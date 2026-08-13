@@ -1,0 +1,179 @@
+<%
+/*
+  Publicação de comunicado, em dois passos.
+
+  Sem JavaScript no cliente, a lista de destinatários só pode ser montada depois que a unidade é
+  conhecida — então o primeiro passo é um GET que apenas escolhe a unidade, e o segundo é o
+  formulário de envio, já com os responsáveis daquela unidade em mãos. Dois passos honestos valem
+  mais que uma tela que finge escolher sozinha.
+
+  Nenhum limite de tamanho é repetido aqui: quem conhece o tamanho do título e do corpo é
+  `comunicacao`, e é de lá que vem a mensagem quando o texto não cabe.
+*/
+const valores = it.valores;
+const responsaveis = it.responsaveis;
+const selecionados = new Set(valores.selecionados);
+
+const erroDe = (campo) => (it.erros ?? []).find((problema) => problema.campo === campo) ?? null;
+
+/* Junta a ajuda do campo e a mensagem de erro no mesmo `aria-describedby`, nessa ordem. */
+const descricaoDe = (campo, ajudaId) =>
+  [ajudaId, erroDe(campo) === null ? '' : campo + '-erro'].filter((id) => id !== '').join(' ');
+%>
+<header class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Comunicação</p>
+    <h1 class="pagina__titulo">Novo comunicado</h1>
+    <p class="pagina__resumo">
+      O comunicado aparece no mural dos responsáveis escolhidos, e a leitura de cada um passa a ser
+      medida a partir da publicação.
+    </p>
+  </div>
+  <p class="pagina__acoes">
+    <a class="botao botao--discreto" href="/comunicados">Voltar aos comunicados</a>
+  </p>
+</header>
+
+<% if (it.unidade === null) { %>
+<section class="secao" aria-labelledby="titulo-unidade">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-unidade">Passo 1 · Unidade</h2>
+    <p class="secao__nota">A lista de destinatários é a dos responsáveis desta unidade</p>
+  </div>
+
+  <% if (it.unidades.length === 0) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nenhuma unidade ativa ao seu alcance',
+      texto: 'Comunicado é sempre de uma unidade para os responsáveis dela. Peça ao administrador da rede uma unidade ativa com o seu papel.',
+    }) %>
+  <% } else { %>
+  <form class="formulario" method="get" action="/comunicados/novo">
+    <div class="campo">
+      <label class="campo__rotulo" for="unidadeId">
+        Unidade <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      </label>
+      <select id="unidadeId" name="unidadeId" required
+              aria-describedby="<%= descricaoDe('unidadeId', 'unidadeId-ajuda') %>"
+              <% if (erroDe('unidadeId') !== null) { %>aria-invalid="true"<% } %>>
+        <option value="">Escolha a unidade</option>
+        <% it.unidades.forEach((unidade) => { %>
+        <option value="<%= unidade.id %>"><%= unidade.nome %></option>
+        <% }) %>
+      </select>
+      <p class="campo__ajuda" id="unidadeId-ajuda">
+        Só aparecem as unidades ativas em que você tem papel.
+      </p>
+      <% if (erroDe('unidadeId') !== null) { %>
+      <p class="campo__erro" id="unidadeId-erro"><%= erroDe('unidadeId').mensagem %></p>
+      <% } %>
+    </div>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Continuar</button>
+    </div>
+  </form>
+  <% } %>
+</section>
+<% } else { %>
+<section class="secao" aria-labelledby="titulo-mensagem">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-mensagem">Passo 2 · Mensagem</h2>
+    <p class="secao__nota">
+      Unidade <strong><%= it.unidade.nome %></strong> ·
+      <a href="/comunicados/novo">trocar unidade</a>
+    </p>
+  </div>
+
+  <form class="formulario" method="post" action="/comunicados/novo">
+    <input type="hidden" name="_chave" value="<%= it.chave %>">
+    <input type="hidden" name="unidadeId" value="<%= it.unidade.id %>">
+
+    <div class="campo">
+      <label class="campo__rotulo" for="titulo">
+        Título <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      </label>
+      <input type="text" id="titulo" name="titulo" required
+             value="<%= valores.titulo %>"
+             aria-describedby="<%= descricaoDe('titulo', 'titulo-ajuda') %>"
+             <% if (erroDe('titulo') !== null) { %>aria-invalid="true"<% } %>>
+      <p class="campo__ajuda" id="titulo-ajuda">
+        É a linha que o responsável vê na lista do mural.
+      </p>
+      <% if (erroDe('titulo') !== null) { %>
+      <p class="campo__erro" id="titulo-erro"><%= erroDe('titulo').mensagem %></p>
+      <% } %>
+    </div>
+
+    <div class="campo">
+      <label class="campo__rotulo" for="corpo">
+        Mensagem <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      </label>
+      <textarea id="corpo" name="corpo" required rows="10"
+                <% if (erroDe('corpo') !== null) { %>aria-invalid="true"<% } %>
+                aria-describedby="<%= descricaoDe('corpo', 'corpo-ajuda') %>"><%= valores.corpo %></textarea>
+      <p class="campo__ajuda" id="corpo-ajuda">
+        O texto aparece como foi digitado, com as quebras de linha preservadas.
+      </p>
+      <% if (erroDe('corpo') !== null) { %>
+      <p class="campo__erro" id="corpo-erro"><%= erroDe('corpo').mensagem %></p>
+      <% } %>
+    </div>
+
+    <fieldset aria-describedby="<%= descricaoDe('destinatarios', 'destinatarios-ajuda') %>">
+      <legend>Destinatários</legend>
+
+      <div class="pilha">
+        <div class="campo campo--opcao">
+          <input type="radio" id="alcance-unidade" name="alcance" value="unidade"
+                 <% if (valores.alcance === 'unidade') { %>checked<% } %>>
+          <label class="campo__rotulo" for="alcance-unidade">
+            Todos os responsáveis da unidade
+            (<span class="numero"><%= responsaveis.length %></span>)
+          </label>
+        </div>
+
+        <div class="campo campo--opcao">
+          <input type="radio" id="alcance-selecionados" name="alcance" value="selecionados"
+                 <% if (valores.alcance === 'selecionados') { %>checked<% } %>>
+          <label class="campo__rotulo" for="alcance-selecionados">
+            Apenas os responsáveis marcados abaixo
+          </label>
+        </div>
+
+        <p class="campo__ajuda" id="destinatarios-ajuda">
+          Enviar para toda a unidade alcança quem tiver aluno com matrícula ativa no dia do envio.
+        </p>
+
+        <% if (erroDe('destinatarios') !== null) { %>
+        <p class="campo__erro" id="destinatarios-erro"><%= erroDe('destinatarios').mensagem %></p>
+        <% } %>
+
+        <% if (responsaveis.length === 0) { %>
+          <%~ include("/parciais/_vazio", {
+            titulo: 'Nenhum responsável nesta unidade',
+            texto: 'Só recebe comunicado quem está vinculado a um aluno com matrícula ativa aqui. A secretaria faz esse vínculo na ficha do aluno.',
+          }) %>
+        <% } else { %>
+        <ul class="pilha">
+          <% responsaveis.forEach((responsavel) => { %>
+          <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-<%= responsavel.id %>"
+                   name="responsaveis[]" value="<%= responsavel.id %>"
+                   <% if (selecionados.has(responsavel.id)) { %>checked<% } %>>
+            <label class="campo__rotulo" for="responsavel-<%= responsavel.id %>">
+              <%= responsavel.nome %>
+            </label>
+          </li>
+          <% }) %>
+        </ul>
+        <% } %>
+      </div>
+    </fieldset>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Publicar comunicado</button>
+      <a class="botao botao--discreto" href="/comunicados">Cancelar</a>
+    </div>
+  </form>
+</section>
+<% } %>

@@ -1,0 +1,87 @@
+<%
+/*
+  Painel da rede.
+
+  Quatro números e o ano em vigor. Não há gráfico, não há período comparativo e não há métrica
+  que ninguém use: cada cartão responde uma pergunta que o administrador faz de verdade — quantas
+  escolas, quantas pessoas com acesso, quantas turmas abertas e quantos alunos matriculados.
+
+  Turmas e matriculados são do ano letivo em vigor; unidades e usuários são da rede inteira. O
+  rótulo de cada cartão diz qual é qual, porque somar anos diferentes daria um número sem uso.
+*/
+const contagens = it.contagens ?? { unidades: 0, usuarios: 0, turmas: 0, matriculados: 0 };
+const anoLetivo = it.anoLetivo ?? null;
+const rede = it.usuario === null ? '' : it.usuario.redeNome;
+const anoNoRotulo = anoLetivo === null ? 'sem ano letivo' : 'ano letivo ' + anoLetivo.ano;
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Rede</p>
+    <h1 class="pagina__titulo"><%= rede %></h1>
+    <p class="pagina__resumo">
+      A rede é o contorno de tudo o que este sistema mostra: nenhuma consulta atravessa para outra
+      rede, e é daqui que saem as unidades, os acessos e o calendário que a secretaria usa.
+    </p>
+  </div>
+</div>
+
+<section class="secao" aria-labelledby="numeros-titulo">
+  <div class="secao__cabecalho">
+    <h2 id="numeros-titulo">Onde a rede está hoje</h2>
+    <p class="secao__nota">Contagem no momento em que esta página foi aberta.</p>
+  </div>
+
+  <div class="painel">
+    <a class="cartao" href="/rede/unidades">
+      <span class="cartao__rotulo">Unidades</span>
+      <span class="cartao__numero"><%= contagens.unidades %></span>
+      <span class="cartao__detalhe">Escolas ativas e inativas da rede</span>
+    </a>
+
+    <a class="cartao" href="/rede/usuarios">
+      <span class="cartao__rotulo">Usuários</span>
+      <span class="cartao__numero"><%= contagens.usuarios %></span>
+      <span class="cartao__detalhe">Pessoas com acesso, somando todos os papéis</span>
+    </a>
+
+    <div class="cartao">
+      <span class="cartao__rotulo">Turmas</span>
+      <span class="cartao__numero"><%= contagens.turmas %></span>
+      <span class="cartao__detalhe">Abertas no <%= anoNoRotulo %></span>
+    </div>
+
+    <div class="cartao">
+      <span class="cartao__rotulo">Matriculados</span>
+      <span class="cartao__numero"><%= contagens.matriculados %></span>
+      <span class="cartao__detalhe">Matrículas ativas no <%= anoNoRotulo %></span>
+    </div>
+  </div>
+</section>
+
+<section class="secao" aria-labelledby="ano-titulo">
+  <div class="secao__cabecalho">
+    <h2 id="ano-titulo">Ano letivo em vigor</h2>
+    <p class="secao__nota">
+      <%= it.anosDefinidos %> ano(s) definido(s) nesta rede.
+    </p>
+  </div>
+
+  <% if (anoLetivo === null) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nenhum ano letivo definido',
+      texto: 'Sem ano letivo não existe turma nem matrícula. É o primeiro passo depois de criar as unidades.',
+      acao: { href: '/rede/anos-letivos', texto: 'Definir ano letivo' }
+    }) %>
+  <% } else { %>
+  <div class="quadro">
+    <dl class="lista-definicoes">
+      <dt>Ano</dt>
+      <dd class="numero"><%= anoLetivo.ano %></dd>
+      <dt>Início</dt>
+      <dd class="numero"><%= it.formatarData(anoLetivo.dataInicio) %></dd>
+      <dt>Término</dt>
+      <dd class="numero"><%= it.formatarData(anoLetivo.dataFim) %></dd>
+    </dl>
+  </div>
+  <% } %>
+</section>

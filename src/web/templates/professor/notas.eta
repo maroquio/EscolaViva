@@ -1,0 +1,122 @@
+<%
+/*
+  Diário de notas de uma disciplina da turma, em um bimestre.
+
+  A tela inteira é uma tabela: uma linha por matrícula ativa, um campo por linha, um envio só. O
+  professor lança a turma de uma vez porque é assim que ele trabalha — com o diário aberto ao lado —
+  e porque salvar aluno a aluno seria trinta escritas onde uma basta.
+
+  Campo em branco não é campo esquecido: é a decisão de apagar a nota daquele aluno, e o rodapé do
+  formulário diz isso antes de alguém descobrir do jeito difícil.
+
+  Com o bimestre fechado a mesma tabela aparece sem campo nenhum. Esconder a tela seria pior do que
+  mostrá-la travada: o professor precisa ver o que foi lançado mesmo depois de não poder mudá-lo.
+
+  O seletor de bimestre é feito de links, não de <select>: sem JavaScript, um <select> precisaria de
+  um botão "aplicar" para navegar, e quatro links fazem o mesmo trabalho com o teclado.
+*/
+const linhas = it.linhas ?? [];
+const fechado = it.fechado === true;
+const bimestre = it.bimestre;
+const alocacao = it.alocacao;
+const legenda = `Notas do ${bimestre}º bimestre · ${alocacao.disciplinaNome} · ${alocacao.turmaNome}`;
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo"><%= alocacao.turmaNome %> · <%= alocacao.serie %> · turno <%= alocacao.turno %></p>
+    <h1 class="pagina__titulo"><%= alocacao.disciplinaNome %></h1>
+    <p class="pagina__resumo">
+      Lançamento de notas de 0 a 10, com uma casa decimal. O que estiver em branco no envio deixa de
+      existir como nota do aluno neste bimestre.
+    </p>
+  </div>
+  <p class="pagina__acoes">
+    <a class="botao botao--discreto" href="<%= it.hrefChamada %>">Chamada</a>
+    <a class="botao botao--discreto" href="<%= it.hrefFechamento %>">Fechamento</a>
+    <a class="botao botao--discreto" href="/professor">Minhas turmas</a>
+  </p>
+</div>
+
+<nav class="acoes" aria-label="Bimestre">
+  <span class="sobretitulo">Bimestre</span>
+  <% it.bimestres.forEach((numero) => { %>
+  <a class="botao <%= numero === bimestre ? 'botao--secundario' : 'botao--discreto' %>"
+     href="<%= it.acaoDoFormulario %>?<%= it.campoBimestre %>=<%= numero %>"
+     <% if (numero === bimestre) { %>aria-current="page"<% } %>><%= numero %>º</a>
+  <% }) %>
+</nav>
+
+<% if (fechado) { %>
+<p class="aviso aviso--atencao" role="status">
+  O <%= bimestre %>º bimestre desta turma está fechado. As notas continuam visíveis, mas não podem
+  mais ser alteradas — nem por aqui, nem por nenhum outro caminho do sistema.
+</p>
+<% } %>
+
+<% if (linhas.length === 0) { %>
+<%~ include("/parciais/_vazio", {
+  titulo: 'Nenhum aluno matriculado',
+  texto: 'Esta turma não tem matrícula ativa, então não há nota a lançar. A matrícula é feita pela secretaria.',
+}) %>
+<% } else { %>
+
+<%
+/* O <form> só existe quando há o que enviar: com o bimestre fechado a tabela é a mesma, sem campos. */
+%>
+<% if (!fechado) { %>
+<form class="formulario formulario--largo" method="post" action="<%= it.acaoDoFormulario %>">
+  <input type="hidden" name="_chave" value="<%= it.chave %>">
+  <input type="hidden" name="<%= it.campoBimestre %>" value="<%= bimestre %>">
+<% } %>
+
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption><%= legenda %></caption>
+      <thead>
+        <tr>
+          <th scope="col">Aluno</th>
+          <th scope="col">Nota (<%= it.notaMinima %> a <%= it.notaMaxima %>)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% linhas.forEach((linha) => { %>
+        <tr>
+          <th scope="row"><%= linha.alunoNome %></th>
+          <td class="numero">
+            <% if (fechado) { %>
+            <%= it.formatarNota(linha.valor === '' ? null : linha.valor) %>
+            <% } else { %>
+            <label class="visualmente-oculto" for="<%= it.prefixoNota %><%= linha.matriculaId %>">
+              Nota de <%= linha.alunoNome %> no <%= bimestre %>º bimestre
+            </label>
+            <input class="entrada-numerica"
+                   type="number"
+                   inputmode="decimal"
+                   step="0.1"
+                   min="<%= it.notaMinima %>"
+                   max="<%= it.notaMaxima %>"
+                   autocomplete="off"
+                   id="<%= it.prefixoNota %><%= linha.matriculaId %>"
+                   name="<%= it.prefixoNota %><%= linha.matriculaId %>"
+                   value="<%= linha.valor %>"
+                   <% if (linha.erro) { %>aria-invalid="true" aria-describedby="erro-<%= linha.matriculaId %>"<% } %>>
+            <% if (linha.erro) { %>
+            <p class="campo__erro" id="erro-<%= linha.matriculaId %>"><%= linha.erro %></p>
+            <% } %>
+            <% } %>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+<% if (!fechado) { %>
+  <div class="acoes">
+    <button class="botao botao--primario" type="submit">Salvar notas do <%= bimestre %>º bimestre</button>
+    <span class="suave">Campo deixado em branco apaga a nota já lançada daquele aluno.</span>
+  </div>
+</form>
+<% } %>
+
+<% } %>

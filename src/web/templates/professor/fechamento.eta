@@ -1,0 +1,84 @@
+<%
+/*
+  Fechamento de bimestre da turma.
+
+  Os quatro bimestres aparecem sempre, inclusive os que ainda nem começaram: a grade completa é a
+  única forma de o professor ver onde está no ano sem contar nos dedos.
+
+  Fechar é síncrono e demora, e a tela diz isso antes do clique em vez de fingir instantaneidade com
+  uma barra de progresso. A conferência percorre todas as matrículas ativas contra todas as
+  disciplinas alocadas da turma — as de todos os professores, não só as deste — e é por isso que a
+  recusa vem com nomes e quantidades: "Matemática (5)" manda abrir uma tela, "faltam notas" manda
+  procurar. Os links abaixo de cada bimestre aberto levam direto ao diário das disciplinas que são
+  deste professor; o que for de outro colega, a mensagem nomeia para que ele saiba a quem falar.
+*/
+const estados = it.estados ?? [];
+const turma = it.turma;
+const disciplinas = turma.disciplinas ?? [];
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo"><%= turma.serie %> · turno <%= turma.turno %></p>
+    <h1 class="pagina__titulo">Fechamento · <%= turma.turmaNome %></h1>
+    <p class="pagina__resumo">
+      Fechar um bimestre confere as notas de todos os alunos em todas as disciplinas da turma antes
+      de gravar. A página só responde quando a conferência termina — em turmas grandes isso leva
+      alguns segundos, e o bimestre fechado bloqueia qualquer alteração de nota daquele período.
+    </p>
+  </div>
+  <p class="pagina__acoes">
+    <a class="botao botao--discreto" href="<%= turma.hrefChamada %>">Chamada</a>
+    <a class="botao botao--discreto" href="/professor">Minhas turmas</a>
+  </p>
+</div>
+
+<ol class="pilha pilha--larga">
+  <% estados.forEach((estado) => { %>
+  <li class="quadro">
+    <div class="secao__cabecalho">
+      <h2><%= estado.bimestre %>º bimestre</h2>
+      <span class="etiqueta <%= estado.fechado ? 'etiqueta--aprovado' : 'etiqueta--em-curso' %>">
+        <%= estado.fechado ? 'Fechado' : 'Aberto' %>
+      </span>
+    </div>
+
+    <% if (estado.fechado) { %>
+    <dl class="lista-definicoes">
+      <dt>Fechado em</dt>
+      <dd><time class="numero" datetime="<%= estado.fechadoEm %>"><%= it.formatarDataHora(estado.fechadoEm) %></time></dd>
+    </dl>
+    <p class="suave">As notas deste bimestre não podem mais ser alteradas.</p>
+    <% } else { %>
+
+    <% if (it.bimestreRecusado === estado.bimestre) { %>
+    <p class="campo__erro" id="pendencia-<%= estado.bimestre %>">
+      Este bimestre não foi fechado: o aviso no topo da página diz quantas notas faltam e em quais
+      disciplinas.
+    </p>
+    <% } %>
+
+    <% if (disciplinas.length > 0) { %>
+    <p class="suave">Minhas disciplinas nesta turma:</p>
+    <ul class="linha">
+      <% disciplinas.forEach((disciplina) => { %>
+      <li>
+        <a href="<%= disciplina.hrefNotas %>?<%= it.campoBimestre %>=<%= estado.bimestre %>"><%= disciplina.disciplinaNome %></a>
+      </li>
+      <% }) %>
+    </ul>
+    <% } %>
+
+    <form class="acoes" method="post" action="<%= it.acaoDoFormulario %>">
+      <input type="hidden" name="_chave" value="<%= it.chave %>">
+      <input type="hidden" name="<%= it.campoBimestre %>" value="<%= estado.bimestre %>">
+      <button class="botao botao--primario" type="submit"
+              <% if (it.bimestreRecusado === estado.bimestre) { %>aria-describedby="pendencia-<%= estado.bimestre %>"<% } %>>
+        Fechar <%= estado.bimestre %>º bimestre
+      </button>
+      <span class="suave">A conferência é feita agora, com a página aberta.</span>
+    </form>
+
+    <% } %>
+  </li>
+  <% }) %>
+</ol>

@@ -1,0 +1,130 @@
+<%
+/*
+  Boletim em tela — não há PDF neste sistema, e esta página é o documento.
+
+  A ordem responde à pergunta de quem abre: primeiro a situação e os dois números que a decidem,
+  depois a tabela que mostra de onde eles vieram. E a regra fica escrita na própria tela: quem lê
+  um "reprovado" tem direito de ver, ali mesmo, qual é o critério — sem procurar em regulamento.
+
+  Nada aqui é calculado no template. Média, percentual e situação vêm prontos de `avaliacao`; o
+  template só escolhe a etiqueta e o formato. A cor da etiqueta acompanha o texto, nunca o
+  substitui: "Aprovado" e "Reprovado" continuam legíveis em preto e branco.
+*/
+const boletim = it.boletim;
+
+const CLASSE_DA_SITUACAO = {
+  aprovado: 'etiqueta--aprovado',
+  reprovado: 'etiqueta--reprovado',
+  em_curso: 'etiqueta--em-curso',
+};
+
+const ROTULO_DA_SITUACAO = {
+  aprovado: 'Aprovado',
+  reprovado: 'Reprovado',
+  em_curso: 'Em curso',
+};
+%>
+<header class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Boletim</p>
+    <h1 class="pagina__titulo"><%= boletim.alunoNome %></h1>
+    <p class="pagina__resumo">
+      Turma <%= boletim.turmaNome %> · ano letivo <span class="numero"><%= boletim.ano %></span>
+    </p>
+  </div>
+  <p class="pagina__acoes">
+    <a class="botao botao--secundario"
+       href="/responsavel/matriculas/<%= it.matriculaId %>/frequencia">Ver frequência</a>
+    <a class="botao botao--discreto" href="/responsavel">Voltar aos alunos</a>
+  </p>
+</header>
+
+<section class="secao" aria-labelledby="titulo-resultado">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-resultado">Resultado do ano</h2>
+    <p class="secao__nota">Apurado a cada leitura, a partir das notas e da chamada</p>
+  </div>
+
+  <div class="pilha">
+    <div class="painel">
+      <div class="cartao">
+        <p class="cartao__rotulo">Média geral</p>
+        <p class="cartao__numero"><%= it.formatarNota(boletim.mediaGeral) %></p>
+        <p class="cartao__detalhe">Média simples das disciplinas cursadas</p>
+      </div>
+
+      <div class="cartao">
+        <p class="cartao__rotulo">Frequência</p>
+        <p class="cartao__numero"><%= it.formatarPercentual(boletim.percentualFrequencia) %></p>
+        <p class="cartao__detalhe">
+          <span class="numero"><%= boletim.presencas %></span> de
+          <span class="numero"><%= boletim.totalDias %></span> dias com chamada registrada
+        </p>
+      </div>
+
+      <div class="cartao">
+        <p class="cartao__rotulo">Situação</p>
+        <p>
+          <span class="etiqueta <%= CLASSE_DA_SITUACAO[boletim.situacao] %>">
+            <%= ROTULO_DA_SITUACAO[boletim.situacao] %>
+          </span>
+        </p>
+        <p class="cartao__detalhe">Critério: média 6,0 e frequência 75 %</p>
+      </div>
+    </div>
+
+    <p class="leitura suave">
+      A situação sai destes dois números: é aprovado quem termina o ano com média final de
+      <strong>6,0 ou mais</strong> e frequência de <strong>75 % ou mais</strong> — as duas
+      condições ao mesmo tempo. Enquanto algum bimestre não estiver fechado, ou faltar nota em
+      alguma disciplina, o ano permanece em curso e ninguém é reprovado por lançamento que ainda
+      não aconteceu.
+    </p>
+  </div>
+</section>
+
+<section class="secao" aria-labelledby="titulo-notas">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-notas">Notas por disciplina</h2>
+    <p class="secao__nota">O travessão marca bimestre sem nota lançada</p>
+  </div>
+
+  <% if (boletim.linhas.length === 0) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nenhuma disciplina alocada nesta turma',
+      texto: 'A turma ainda não tem professor alocado em nenhuma disciplina, então não há nota a mostrar. A secretaria da unidade faz essa alocação.',
+    }) %>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Notas de <%= boletim.alunoNome %> em <%= boletim.ano %></caption>
+      <thead>
+        <tr>
+          <th scope="col">Disciplina</th>
+          <% it.bimestres.forEach((bimestre) => { %>
+          <th scope="col"><%= bimestre %>º bimestre</th>
+          <% }) %>
+          <th scope="col">Média</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% boletim.linhas.forEach((linha) => { %>
+        <tr>
+          <th scope="row"><%= linha.disciplinaNome %></th>
+          <% linha.notas.forEach((nota) => { %>
+          <td class="numero"><%= it.formatarNota(nota) %></td>
+          <% }) %>
+          <td class="numero"><%= it.formatarNota(linha.media) %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="celula-texto" colspan="<%= it.bimestres.length + 1 %>">Média geral do ano</td>
+          <td class="numero"><%= it.formatarNota(boletim.mediaGeral) %></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <% } %>
+</section>

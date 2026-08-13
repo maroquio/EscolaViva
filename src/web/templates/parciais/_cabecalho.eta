@@ -1,0 +1,37 @@
+<%
+/*
+  Cabeçalho da aplicação: rede, unidade e usuário — as três respostas para "onde eu estou e como
+  quem". Um mesmo e-mail pode ser secretária em uma unidade e responsável em outra, então a lista
+  de unidades vem dos papéis, sem inventar uma "unidade atual" que o sistema não guarda.
+
+  É filho direto da grade `.aplicacao` (área `cabecalho`), por isso a tag fica aqui e não no layout.
+*/
+const usuario = it.usuario;
+const unidades = usuario === null ? [] : [...new Set(usuario.papeis.map((p) => p.unidadeNome))];
+%>
+<header class="cabecalho">
+  <a class="marca cabecalho__marca" href="/painel">Escola<em>Viva</em></a>
+
+  <% if (usuario !== null) { %>
+  <div class="cabecalho__contexto">
+    <span class="cabecalho__rede"><%= usuario.redeNome %></span>
+    <span class="cabecalho__unidade">
+      <% if (unidades.length === 0) { %>
+        sem unidade atribuída
+      <% } else if (unidades.length === 1) { %>
+        <%= unidades[0] %>
+      <% } else { %>
+        <%= unidades.length %> unidades
+      <% } %>
+    </span>
+  </div>
+
+  <div class="cabecalho__usuario">
+    <span class="cabecalho__nome" title="<%= usuario.email %>"><%= usuario.nome %></span>
+    <form class="cabecalho__sair" method="post" action="/logout">
+      <input type="hidden" name="_chave" value="<%= it.chave %>">
+      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+    </form>
+  </div>
+  <% } %>
+</header>

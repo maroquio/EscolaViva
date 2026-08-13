@@ -1,0 +1,39 @@
+<%
+/*
+  Layout das telas sem sessão: entrar no sistema e página de erro. Uma folha centrada sobre a
+  pauta do fundo — a mesma marca tipográfica da aplicação, sem barra lateral e sem contexto de
+  rede, porque nada disso é conhecido antes do login.
+
+  O título da página vem do <h1> do próprio conteúdo; aqui só a marca e o rodapé.
+*/
+%><!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= it.titulo %> · EscolaViva</title>
+  <link rel="stylesheet" href="/publico/<%= it.asset('app.css') %>">
+  <%~ include("/parciais/_icone") %>
+</head>
+<body>
+  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="publico">
+    <main class="publico__cartao" id="conteudo" tabindex="-1">
+      <header>
+        <span class="marca publico__marca">Escola<em>Viva</em></span>
+        <p class="publico__titulo">Portal da rede escolar</p>
+      </header>
+
+      <%~ include("/parciais/_mensagens", it) %>
+      <%~ it.body %>
+
+      <p class="publico__rodape">
+        Sistema de uso restrito. O acesso é registrado.
+      </p>
+    </main>
+  </div>
+</body>
+</html>

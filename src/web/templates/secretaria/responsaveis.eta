@@ -1,0 +1,151 @@
+<%
+/*
+  Responsáveis da rede.
+
+  O responsável pertence à rede, não a uma unidade: o vínculo com a unidade nasce da matrícula do
+  aluno. Por isso a lista é a da rede inteira, e é na ficha do aluno que o vínculo se faz.
+*/
+const responsaveis = it.responsaveis ?? [];
+const valores = it.valores ?? {};
+const erros = Array.isArray(it.erros) ? it.erros : [];
+
+const erroDe = (campo) => {
+  const achado = erros.find((problema) => problema.campo === campo);
+  return achado === undefined ? '' : achado.mensagem;
+};
+
+const descricao = (campo, temAjuda) => {
+  const ids = [];
+  if (temAjuda) ids.push(campo + '-ajuda');
+  if (erroDe(campo) !== '') ids.push(campo + '-erro');
+  return ids.join(' ');
+};
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Secretaria</p>
+    <h1 class="pagina__titulo">Responsáveis</h1>
+    <p class="pagina__resumo">
+      Quem recebe comunicado e acompanha boletim e frequência. Depois de cadastrar, vincule o
+      responsável ao aluno pela ficha dele.
+    </p>
+  </div>
+  <div class="pagina__acoes">
+    <a class="botao botao--secundario" href="/secretaria/alunos">Buscar aluno</a>
+  </div>
+</div>
+
+<section class="secao" aria-labelledby="cadastrados">
+  <div class="secao__cabecalho">
+    <h2 id="cadastrados">Cadastrados na rede</h2>
+    <p class="secao__nota">
+      <span class="numero"><%= responsaveis.length %></span>
+      <%= responsaveis.length === 1 ? 'responsável' : 'responsáveis' %>
+    </p>
+  </div>
+
+  <% if (responsaveis.length === 0) { %>
+  <%~ include("/parciais/_vazio", {
+    titulo: 'Nenhum responsável cadastrado',
+    texto: 'Cadastre pelo formulário abaixo. O e-mail é único na rede: é por ele que o responsável entra no sistema quando receber acesso.'
+  }) %>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Responsáveis cadastrados nesta rede</caption>
+      <thead>
+        <tr>
+          <th scope="col">Responsável</th>
+          <th scope="col">E-mail</th>
+          <th scope="col">Telefone</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% responsaveis.forEach((pessoa) => { %>
+        <tr>
+          <th scope="row"><%= pessoa.nome %></th>
+          <td class="celula-texto"><%= pessoa.email %></td>
+          <td class="numero"><%= pessoa.telefone === null ? '—' : pessoa.telefone %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</section>
+
+<section class="secao" aria-labelledby="novo-responsavel">
+  <div class="secao__cabecalho">
+    <h2 id="novo-responsavel">Cadastrar responsável</h2>
+  </div>
+
+  <div class="quadro">
+    <form class="formulario" method="post" action="/secretaria/responsaveis">
+      <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+      <div class="campo">
+        <label class="campo__rotulo" for="nome">
+          Nome completo <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="nome"
+          name="nome"
+          type="text"
+          required
+          maxlength="120"
+          autocomplete="off"
+          value="<%= valores.nome ?? '' %>"
+          <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao('nome', false) !== '') { %>aria-describedby="<%= descricao('nome', false) %>"<% } %>>
+        <% if (erroDe('nome') !== '') { %>
+        <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+        <% } %>
+      </div>
+
+      <div class="formulario__linha">
+        <div class="campo">
+          <label class="campo__rotulo" for="email">
+            E-mail <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            maxlength="254"
+            autocomplete="off"
+            value="<%= valores.email ?? '' %>"
+            <% if (erroDe('email') !== '') { %>aria-invalid="true"<% } %>
+            aria-describedby="<%= descricao('email', true) %>">
+          <p class="campo__ajuda" id="email-ajuda">
+            Único na rede. É por ele que o responsável entra quando o administrador criar o acesso.
+          </p>
+          <% if (erroDe('email') !== '') { %>
+          <p class="campo__erro" id="email-erro"><%= erroDe('email') %></p>
+          <% } %>
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="telefone">Telefone</label>
+          <input
+            id="telefone"
+            name="telefone"
+            type="tel"
+            maxlength="30"
+            autocomplete="off"
+            value="<%= valores.telefone ?? '' %>"
+            <% if (erroDe('telefone') !== '') { %>aria-invalid="true"<% } %>
+            aria-describedby="<%= descricao('telefone', true) %>">
+          <p class="campo__ajuda" id="telefone-ajuda">Opcional. Em branco significa sem telefone.</p>
+          <% if (erroDe('telefone') !== '') { %>
+          <p class="campo__erro" id="telefone-erro"><%= erroDe('telefone') %></p>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="acoes">
+        <button class="botao botao--primario" type="submit">Cadastrar responsável</button>
+      </div>
+    </form>
+  </div>
+</section>

@@ -1,0 +1,269 @@
+<%
+/*
+  Turmas das unidades em que a pessoa é secretaria.
+
+  O filtro vive na URL, não em estado do servidor: a tela filtrada é um endereço que se guarda e se
+  envia a outra pessoa. Só aparecem no seletor as unidades da própria secretaria — filtrar por uma
+  unidade de fora não é uma opção que a tela ofereça.
+*/
+const turmas = it.turmas ?? [];
+const unidades = it.unidades ?? [];
+const anosLetivos = it.anosLetivos ?? [];
+const turnos = it.turnos ?? [];
+const filtro = it.filtro ?? { unidadeId: '', anoLetivoId: '' };
+const valores = it.valores ?? {};
+const erros = Array.isArray(it.erros) ? it.erros : [];
+const filtrando = filtro.unidadeId !== '' || filtro.anoLetivoId !== '';
+
+const erroDe = (campo) => {
+  const achado = erros.find((problema) => problema.campo === campo);
+  return achado === undefined ? '' : achado.mensagem;
+};
+
+const descricao = (campo, temAjuda) => {
+  const ids = [];
+  if (temAjuda) ids.push(campo + '-ajuda');
+  if (erroDe(campo) !== '') ids.push(campo + '-erro');
+  return ids.join(' ');
+};
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Secretaria</p>
+    <h1 class="pagina__titulo">Turmas</h1>
+    <p class="pagina__resumo">
+      A turma pertence a uma unidade e a um ano letivo. É nela que se alocam as disciplinas com seus
+      professores, e é para ela que os alunos são matriculados.
+    </p>
+  </div>
+  <div class="pagina__acoes">
+    <a class="botao botao--secundario" href="/secretaria/disciplinas">Disciplinas</a>
+  </div>
+</div>
+
+<div class="quadro">
+  <form class="formulario" method="get" action="/secretaria/turmas">
+    <div class="formulario__linha">
+      <div class="campo">
+        <label class="campo__rotulo" for="unidade">Unidade</label>
+        <select id="unidade" name="unidade">
+          <option value="">Todas as suas unidades</option>
+          <% unidades.forEach((unidade) => { %>
+          <option value="<%= unidade.id %>" <%= filtro.unidadeId === unidade.id ? 'selected' : '' %>>
+            <%= unidade.nome %>
+          </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="ano">Ano letivo</label>
+        <select id="ano" name="ano">
+          <option value="">Todos os anos</option>
+          <% anosLetivos.forEach((anoLetivo) => { %>
+          <option value="<%= anoLetivo.id %>" <%= filtro.anoLetivoId === anoLetivo.id ? 'selected' : '' %>>
+            <%= anoLetivo.ano %>
+          </option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Filtrar</button>
+      <% if (filtrando) { %>
+      <a class="botao botao--discreto" href="/secretaria/turmas">Limpar filtro</a>
+      <% } %>
+    </div>
+  </form>
+</div>
+
+<section class="secao" aria-labelledby="lista">
+  <div class="secao__cabecalho">
+    <h2 id="lista">Turmas</h2>
+    <p class="secao__nota">
+      <span class="numero"><%= turmas.length %></span>
+      <%= turmas.length === 1 ? 'turma' : 'turmas' %><%= filtrando ? ' no filtro atual' : '' %>
+    </p>
+  </div>
+
+  <% if (turmas.length === 0) { %>
+  <%~ include("/parciais/_vazio", {
+    titulo: filtrando ? 'Nenhuma turma nesse filtro' : 'Nenhuma turma cadastrada',
+    texto: filtrando
+      ? 'Nenhuma turma das suas unidades combina com a unidade e o ano letivo escolhidos. Limpe o filtro para ver todas.'
+      : 'Cadastre a primeira turma pelo formulário abaixo. Sem turma não há matrícula, alocação de professor nem chamada.'
+  }) %>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Turmas das unidades sob sua secretaria</caption>
+      <thead>
+        <tr>
+          <th scope="col">Turma</th>
+          <th scope="col">Série</th>
+          <th scope="col">Turno</th>
+          <th scope="col">Unidade</th>
+          <th scope="col">Ano</th>
+          <th scope="col"><span class="visualmente-oculto">Ações</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% turmas.forEach((turma) => { %>
+        <tr>
+          <th scope="row"><%= turma.nome %></th>
+          <td class="celula-texto"><%= turma.serie %></td>
+          <td class="celula-texto"><%= turma.turno %></td>
+          <td class="celula-texto"><%= turma.unidadeNome %></td>
+          <td class="numero"><%= turma.ano === null ? '—' : turma.ano %></td>
+          <td>
+            <div class="tabela__acoes">
+              <a class="botao botao--secundario botao--miudo" href="/secretaria/turmas/<%= turma.id %>">
+                Abrir<span class="visualmente-oculto"> turma <%= turma.nome %></span>
+              </a>
+            </div>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</section>
+
+<section class="secao" aria-labelledby="nova-turma">
+  <div class="secao__cabecalho">
+    <h2 id="nova-turma">Cadastrar turma</h2>
+  </div>
+
+  <div class="quadro">
+    <% if (unidades.length === 0 || anosLetivos.length === 0) { %>
+    <p class="suave leitura">
+      <% if (unidades.length === 0) { %>
+      Você ainda não tem o papel de secretaria em nenhuma unidade.
+      <% } else { %>
+      Esta rede ainda não tem ano letivo definido. Peça ao administrador da rede para definir um
+      antes de cadastrar turmas.
+      <% } %>
+    </p>
+    <% } else { %>
+    <form class="formulario formulario--largo" method="post" action="/secretaria/turmas">
+      <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+      <div class="formulario__linha">
+        <div class="campo">
+          <label class="campo__rotulo" for="nome">
+            Nome da turma <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="nome"
+            name="nome"
+            type="text"
+            required
+            maxlength="60"
+            autocomplete="off"
+            value="<%= valores.nome ?? '' %>"
+            <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
+            aria-describedby="<%= descricao('nome', true) %>">
+          <p class="campo__ajuda" id="nome-ajuda">Único na unidade dentro do mesmo ano letivo.</p>
+          <% if (erroDe('nome') !== '') { %>
+          <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+          <% } %>
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="serie">
+            Série <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="serie"
+            name="serie"
+            type="text"
+            required
+            maxlength="60"
+            autocomplete="off"
+            value="<%= valores.serie ?? '' %>"
+            <% if (erroDe('serie') !== '') { %>aria-invalid="true"<% } %>
+            aria-describedby="<%= descricao('serie', true) %>">
+          <p class="campo__ajuda" id="serie-ajuda">Como a rede chama: 6º ano, 1ª série, Maternal II.</p>
+          <% if (erroDe('serie') !== '') { %>
+          <p class="campo__erro" id="serie-erro"><%= erroDe('serie') %></p>
+          <% } %>
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="turno">
+            Turno <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="turno"
+            name="turno"
+            required
+            <% if (erroDe('turno') !== '') { %>aria-invalid="true"<% } %>
+            <% if (descricao('turno', false) !== '') { %>aria-describedby="<%= descricao('turno', false) %>"<% } %>>
+            <option value="">Selecione…</option>
+            <% turnos.forEach((turno) => { %>
+            <option value="<%= turno.valor %>" <%= (valores.turno ?? '') === turno.valor ? 'selected' : '' %>>
+              <%= turno.nome %>
+            </option>
+            <% }) %>
+          </select>
+          <% if (erroDe('turno') !== '') { %>
+          <p class="campo__erro" id="turno-erro"><%= erroDe('turno') %></p>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="formulario__linha">
+        <div class="campo">
+          <label class="campo__rotulo" for="unidadeId">
+            Unidade <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="unidadeId"
+            name="unidadeId"
+            required
+            <% if (erroDe('unidadeId') !== '') { %>aria-invalid="true"<% } %>
+            <% if (descricao('unidadeId', false) !== '') { %>aria-describedby="<%= descricao('unidadeId', false) %>"<% } %>>
+            <option value="">Selecione…</option>
+            <% unidades.forEach((unidade) => { %>
+            <option value="<%= unidade.id %>" <%= (valores.unidadeId ?? '') === unidade.id ? 'selected' : '' %>>
+              <%= unidade.nome %>
+            </option>
+            <% }) %>
+          </select>
+          <% if (erroDe('unidadeId') !== '') { %>
+          <p class="campo__erro" id="unidadeId-erro"><%= erroDe('unidadeId') %></p>
+          <% } %>
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="anoLetivoId">
+            Ano letivo <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="anoLetivoId"
+            name="anoLetivoId"
+            required
+            <% if (erroDe('anoLetivoId') !== '') { %>aria-invalid="true"<% } %>
+            <% if (descricao('anoLetivoId', false) !== '') { %>aria-describedby="<%= descricao('anoLetivoId', false) %>"<% } %>>
+            <option value="">Selecione…</option>
+            <% anosLetivos.forEach((anoLetivo) => { %>
+            <option value="<%= anoLetivo.id %>" <%= (valores.anoLetivoId ?? '') === anoLetivo.id ? 'selected' : '' %>>
+              <%= anoLetivo.ano %>
+            </option>
+            <% }) %>
+          </select>
+          <% if (erroDe('anoLetivoId') !== '') { %>
+          <p class="campo__erro" id="anoLetivoId-erro"><%= erroDe('anoLetivoId') %></p>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="acoes">
+        <button class="botao botao--primario" type="submit">Cadastrar turma</button>
+      </div>
+    </form>
+    <% } %>
+  </div>
+</section>

@@ -1,0 +1,54 @@
+<%
+/*
+  Onde o professor leciona.
+
+  A alocação é (turma, disciplina), mas quem trabalha pensa por turma: "o 6º ano A" é uma sala com
+  rostos, e dentro dela estão as duas ou três disciplinas que ele leciona. Por isso a página agrupa
+  por turma e coloca, no mesmo bloco, as duas ações que valem para a sala inteira — a chamada, que é
+  por dia e não por disciplina, e o fechamento, que é por bimestre e por turma.
+
+  Um professor sem alocação não vê uma lista vazia: vê o que precisa acontecer para ele existir aqui.
+*/
+const turmas = it.turmas ?? [];
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Professor</p>
+    <h1 class="pagina__titulo">Minhas turmas</h1>
+    <p class="pagina__resumo">
+      As turmas em que você leciona nesta rede. Cada disciplina abre o diário de notas; a chamada e o
+      fechamento valem para a turma inteira.
+    </p>
+  </div>
+</div>
+
+<% if (turmas.length === 0) { %>
+<%~ include("/parciais/_vazio", {
+  titulo: 'Nenhuma turma alocada',
+  texto: 'Você ainda não foi alocado como professor em nenhuma disciplina desta rede. A alocação é feita pela secretaria, na tela da turma.',
+}) %>
+<% } %>
+
+<% turmas.forEach((turma) => { %>
+<section class="secao" aria-labelledby="turma-<%= turma.turmaId %>">
+  <div class="secao__cabecalho">
+    <h2 id="turma-<%= turma.turmaId %>"><%= turma.turmaNome %></h2>
+    <p class="secao__nota"><%= turma.serie %> · turno <%= turma.turno %></p>
+  </div>
+
+  <div class="painel">
+    <% turma.disciplinas.forEach((disciplina) => { %>
+    <a class="cartao" href="<%= disciplina.hrefNotas %>">
+      <span class="cartao__rotulo">Disciplina</span>
+      <strong><%= disciplina.disciplinaNome %></strong>
+      <span class="cartao__detalhe">Lançar notas do bimestre</span>
+    </a>
+    <% }) %>
+  </div>
+
+  <div class="acoes">
+    <a class="botao botao--secundario" href="<%= turma.hrefChamada %>">Chamada do dia</a>
+    <a class="botao botao--secundario" href="<%= turma.hrefFechamento %>">Fechamento de bimestre</a>
+  </div>
+</section>
+<% }) %>

@@ -1,0 +1,30 @@
+<%
+/*
+  O retorno das escritas, no topo de toda página.
+
+  `it.mensagem` e `it.erro` chegam da query string depois do POST-Redirect-GET (`?ok=` / `?erro=`)
+  ou direto do render; `it.erros` é a lista de `ErroDeAplicacao` de um formulário recusado, e
+  aparece junto com os valores digitados de volta no formulário.
+
+  `role="status"` anuncia sem interromper; `role="alert"` interrompe — é a diferença entre "salvo"
+  e "não salvo", e leitor de tela precisa dela.
+*/
+%>
+<% if (it.mensagem) { %>
+<p class="aviso aviso--sucesso" role="status"><%= it.mensagem %></p>
+<% } %>
+
+<% if (it.erro) { %>
+<p class="aviso aviso--erro" role="alert"><%= it.erro %></p>
+<% } %>
+
+<% if (Array.isArray(it.erros) && it.erros.length > 0) { %>
+<div class="aviso aviso--erro" role="alert">
+  <p class="aviso__titulo">Não foi possível concluir</p>
+  <ul>
+    <% it.erros.forEach((problema) => { %>
+    <li><%= problema.mensagem %></li>
+    <% }) %>
+  </ul>
+</div>
+<% } %>

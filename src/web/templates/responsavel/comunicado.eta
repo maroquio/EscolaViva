@@ -1,0 +1,55 @@
+<%
+/*
+  Um comunicado, por inteiro.
+
+  Abrir esta página não marca leitura: quem marca é o formulário abaixo, com POST. Ler é uma
+  escrita, e escrita não pode acontecer porque alguém navegou — um "voltar" do navegador ou um
+  pré-carregamento inventariam leituras que ninguém fez, e a data de leitura deixaria de medir o
+  que existe para medir.
+
+  O corpo vem escapado pelo template e é exibido com quebras preservadas: o que a escola digitou
+  é texto, nunca marcação.
+*/
+const comunicado = it.comunicado;
+const lidoEm = it.lidoEm;
+%>
+<header class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Comunicado</p>
+    <h1 class="pagina__titulo"><%= comunicado.titulo %></h1>
+    <p class="pagina__resumo">
+      Publicado por <%= comunicado.autorNome %> em
+      <time datetime="<%= comunicado.publicadoEm %>">
+        <%= it.formatarDataHora(comunicado.publicadoEm) %>
+      </time>
+    </p>
+  </div>
+  <p class="pagina__acoes">
+    <a class="botao botao--discreto" href="/responsavel/mural">Voltar ao mural</a>
+  </p>
+</header>
+
+<article class="pilha">
+  <div class="quadro leitura">
+    <p class="texto-corrido"><%= comunicado.corpo %></p>
+  </div>
+
+  <footer class="acoes">
+    <% if (lidoEm === null) { %>
+    <form method="post" action="/responsavel/mural/<%= comunicado.id %>/lido">
+      <input type="hidden" name="_chave" value="<%= it.chave %>">
+      <button class="botao botao--primario" type="submit">Marcar como lido</button>
+    </form>
+    <p class="suave">
+      Marcar como lido avisa a escola de que a mensagem chegou até você.
+    </p>
+    <% } else { %>
+    <p class="linha">
+      <span class="etiqueta etiqueta--aprovado">Lido</span>
+      <span class="suave">
+        em <time datetime="<%= lidoEm %>"><%= it.formatarDataHora(lidoEm) %></time>
+      </span>
+    </p>
+    <% } %>
+  </footer>
+</article>

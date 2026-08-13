@@ -1,0 +1,147 @@
+<%
+/*
+  Anos letivos da rede.
+
+  É o calendário que sustenta turma e matrícula: sem ano definido, a secretaria não tem onde
+  matricular ninguém. Um ano por rede — a repetição é recusada pelo banco e volta como erro no
+  campo, não como falha do sistema.
+
+  Datas aparecem em fonte monoespaçada, como todo número desta interface, para que a coluna possa
+  ser comparada de relance.
+*/
+const anos = it.anos ?? [];
+const valores = it.valores ?? { ano: '', dataInicio: '', dataFim: '' };
+const erros = Array.isArray(it.erros) ? it.erros : [];
+
+const erroDe = (campo) => {
+  const achado = erros.find((problema) => problema.campo === campo);
+  return achado === undefined ? '' : achado.mensagem;
+};
+
+const descricao = (campo, temAjuda) => {
+  const ids = [];
+  if (temAjuda) ids.push(campo + '-ajuda');
+  if (erroDe(campo) !== '') ids.push(campo + '-erro');
+  return ids.join(' ');
+};
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Rede</p>
+    <h1 class="pagina__titulo">Anos letivos</h1>
+    <p class="pagina__resumo">
+      O ano letivo delimita as matrículas: um aluno tem uma matrícula ativa por ano, e é esse
+      recorte que o boletim e a frequência usam.
+    </p>
+  </div>
+</div>
+
+<section class="secao" aria-labelledby="novo-ano-titulo">
+  <div class="secao__cabecalho">
+    <h2 id="novo-ano-titulo">Definir ano letivo</h2>
+  </div>
+
+  <div class="quadro">
+    <form class="formulario" method="post" action="/rede/anos-letivos">
+      <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+      <div class="formulario__linha">
+        <div class="campo">
+          <label class="campo__rotulo" for="ano">
+            Ano <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="ano"
+            name="ano"
+            type="number"
+            required
+            min="2000"
+            max="2100"
+            step="1"
+            inputmode="numeric"
+            value="<%= valores.ano %>"
+            <% if (erroDe('ano') !== '') { %>aria-invalid="true"<% } %>
+            <% if (descricao('ano', false) !== '') { %>aria-describedby="<%= descricao('ano', false) %>"<% } %>>
+          <% if (erroDe('ano') !== '') { %>
+          <p class="campo__erro" id="ano-erro"><%= erroDe('ano') %></p>
+          <% } %>
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="dataInicio">
+            Início <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="dataInicio"
+            name="dataInicio"
+            type="date"
+            required
+            value="<%= valores.dataInicio %>"
+            <% if (erroDe('dataInicio') !== '') { %>aria-invalid="true"<% } %>
+            <% if (descricao('dataInicio', false) !== '') { %>aria-describedby="<%= descricao('dataInicio', false) %>"<% } %>>
+          <% if (erroDe('dataInicio') !== '') { %>
+          <p class="campo__erro" id="dataInicio-erro"><%= erroDe('dataInicio') %></p>
+          <% } %>
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="dataFim">
+            Término <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="dataFim"
+            name="dataFim"
+            type="date"
+            required
+            value="<%= valores.dataFim %>"
+            <% if (erroDe('dataFim') !== '') { %>aria-invalid="true"<% } %>
+            aria-describedby="<%= descricao('dataFim', true) %>">
+          <p class="campo__ajuda" id="dataFim-ajuda">Precisa ser posterior à data de início.</p>
+          <% if (erroDe('dataFim') !== '') { %>
+          <p class="campo__erro" id="dataFim-erro"><%= erroDe('dataFim') %></p>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="acoes">
+        <button class="botao botao--primario" type="submit">Definir ano letivo</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="secao" aria-labelledby="lista-anos-titulo">
+  <div class="secao__cabecalho">
+    <h2 id="lista-anos-titulo">Anos definidos</h2>
+    <p class="secao__nota">Do mais recente para o mais antigo</p>
+  </div>
+
+  <% if (anos.length === 0) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nenhum ano letivo definido',
+      texto: 'Enquanto não houver um ano definido, a secretaria não consegue criar turmas nem matricular alunos.'
+    }) %>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Calendário letivo da rede</caption>
+      <thead>
+        <tr>
+          <th scope="col">Ano</th>
+          <th scope="col">Início</th>
+          <th scope="col">Término</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% anos.forEach((anoLetivo) => { %>
+        <tr>
+          <th scope="row" class="numero"><%= anoLetivo.ano %></th>
+          <td class="numero"><%= it.formatarData(anoLetivo.dataInicio) %></td>
+          <td class="numero"><%= it.formatarData(anoLetivo.dataFim) %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</section>

@@ -1,0 +1,90 @@
+<%
+/*
+  Mural de comunicados do responsável.
+
+  Duas listas, e a diferença entre elas é a hierarquia da página: o que está por ler ganha cartão,
+  título grande e etiqueta; o que já foi lido vira uma linha discreta com a data da leitura. É a
+  mesma informação em dois pesos — e o peso é o que diz onde olhar primeiro.
+
+  Nada nesta tela marca leitura. Abrir o comunicado é navegação; marcar como lido é uma escrita
+  que o responsável faz por escolha, com um botão, na página do próprio comunicado.
+*/
+const naoLidos = it.naoLidos;
+const lidos = it.lidos;
+%>
+<header class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Acompanhamento</p>
+    <h1 class="pagina__titulo">Mural de comunicados</h1>
+    <p class="pagina__resumo">
+      O que a escola enviou a você. Cada comunicado abre por inteiro e pode ser marcado como lido.
+    </p>
+  </div>
+  <p class="pagina__acoes">
+    <a class="botao botao--discreto" href="/responsavel">Voltar aos alunos</a>
+  </p>
+</header>
+
+<section class="secao" aria-labelledby="titulo-por-ler">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-por-ler">Por ler</h2>
+    <p class="secao__nota">
+      <span class="numero"><%= naoLidos.length %></span>
+      <%= naoLidos.length === 1 ? 'comunicado' : 'comunicados' %>
+    </p>
+  </div>
+
+  <% if (naoLidos.length === 0) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nada por ler',
+      texto: 'Todos os comunicados enviados a você já foram marcados como lidos.',
+    }) %>
+  <% } else { %>
+  <ul class="pilha">
+    <% naoLidos.forEach((item) => { %>
+    <li class="quadro">
+      <p class="linha">
+        <span class="etiqueta etiqueta--em-curso">Por ler</span>
+        <time class="suave" datetime="<%= item.publicadoEm %>">
+          <%= it.formatarDataHora(item.publicadoEm) %>
+        </time>
+      </p>
+      <h3>
+        <a href="/responsavel/mural/<%= item.comunicadoId %>"><%= item.titulo %></a>
+      </h3>
+    </li>
+    <% }) %>
+  </ul>
+  <% } %>
+</section>
+
+<section class="secao" aria-labelledby="titulo-lidos">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-lidos">Já lidos</h2>
+    <p class="secao__nota">
+      <span class="numero"><%= lidos.length %></span>
+      <%= lidos.length === 1 ? 'comunicado' : 'comunicados' %>
+    </p>
+  </div>
+
+  <% if (lidos.length === 0) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nenhum comunicado marcado como lido',
+      texto: 'Ao abrir um comunicado, use o botão "Marcar como lido" para que a escola saiba que a mensagem chegou.',
+    }) %>
+  <% } else { %>
+  <ul class="pilha">
+    <% lidos.forEach((item) => { %>
+    <li class="linha">
+      <a href="/responsavel/mural/<%= item.comunicadoId %>"><%= item.titulo %></a>
+      <span class="suave">
+        publicado em
+        <time datetime="<%= item.publicadoEm %>"><%= it.formatarData(item.publicadoEm) %></time>
+        · lido em
+        <time datetime="<%= item.lidoEm %>"><%= it.formatarDataHora(item.lidoEm) %></time>
+      </span>
+    </li>
+    <% }) %>
+  </ul>
+  <% } %>
+</section>

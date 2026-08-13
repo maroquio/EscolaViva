@@ -1,0 +1,110 @@
+<%
+/*
+  Busca de alunos.
+
+  A tela abre sem lista. Uma rede tem dezoito mil alunos: despejar todos seria inútil para quem
+  procura um. O estado inicial explica o que fazer, o estado sem resultado oferece o cadastro, e a
+  lista mostra a turma e a situação da matrícula ativa — que é o que a secretaria precisa saber
+  antes de decidir entre matricular e transferir.
+*/
+const alunos = it.alunos ?? [];
+const termo = it.termo ?? '';
+const buscou = it.buscou === true;
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Secretaria</p>
+    <h1 class="pagina__titulo">Alunos</h1>
+    <p class="pagina__resumo">
+      Procure pelo nome para abrir a ficha, matricular, transferir ou vincular um responsável.
+    </p>
+  </div>
+  <div class="pagina__acoes">
+    <a class="botao botao--primario" href="/secretaria/alunos/novo">Cadastrar aluno</a>
+  </div>
+</div>
+
+<div class="quadro">
+  <form class="formulario" method="get" action="/secretaria/alunos" role="search" aria-label="Buscar aluno">
+    <div class="campo">
+      <label class="campo__rotulo" for="q">Nome do aluno</label>
+      <input id="q" name="q" type="search" value="<%= termo %>" autocomplete="off"
+             maxlength="120" aria-describedby="q-ajuda">
+      <p class="campo__ajuda" id="q-ajuda">
+        Encontra qualquer trecho do nome, sem diferenciar maiúsculas. Mostra os 50 primeiros em
+        ordem alfabética.
+      </p>
+    </div>
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Buscar</button>
+      <% if (termo !== '') { %>
+      <a class="botao botao--discreto" href="/secretaria/alunos">Limpar busca</a>
+      <% } %>
+    </div>
+  </form>
+</div>
+
+<section class="secao" aria-labelledby="resultado">
+  <div class="secao__cabecalho">
+    <h2 id="resultado">Resultado</h2>
+    <% if (buscou) { %>
+    <p class="secao__nota">
+      <span class="numero"><%= alunos.length %></span>
+      <%= alunos.length === 1 ? 'aluno encontrado' : 'alunos encontrados' %>
+    </p>
+    <% } %>
+  </div>
+
+  <% if (!buscou) { %>
+  <%~ include("/parciais/_vazio", {
+    titulo: 'Comece pela busca',
+    texto: 'Digite parte do nome do aluno acima. A lista só aparece depois da busca — é ela que evita carregar a rede inteira para achar uma pessoa.'
+  }) %>
+  <% } else if (alunos.length === 0) { %>
+  <%~ include("/parciais/_vazio", {
+    titulo: 'Nenhum aluno com esse nome',
+    texto: 'Confira a grafia ou tente apenas o primeiro nome. Se o aluno ainda não existe nesta rede, cadastre-o agora.',
+    acao: { href: '/secretaria/alunos/novo', texto: 'Cadastrar aluno' }
+  }) %>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Alunos encontrados para “<%= termo %>”</caption>
+      <thead>
+        <tr>
+          <th scope="col">Aluno</th>
+          <th scope="col">Nascimento</th>
+          <th scope="col">Turma</th>
+          <th scope="col">Ano</th>
+          <th scope="col">Matrícula</th>
+          <th scope="col"><span class="visualmente-oculto">Ações</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% alunos.forEach((aluno) => { %>
+        <tr>
+          <th scope="row"><%= aluno.nome %></th>
+          <td class="numero"><%= it.formatarData(aluno.dataNascimento) %></td>
+          <td class="celula-texto"><%= aluno.turmaNome === null ? '—' : aluno.turmaNome %></td>
+          <td class="numero"><%= aluno.ano === null ? '—' : aluno.ano %></td>
+          <td>
+            <% if (aluno.situacao === null) { %>
+            <span class="suave">sem matrícula ativa</span>
+            <% } else { %>
+            <span class="etiqueta etiqueta--<%= aluno.situacao %>"><%= aluno.situacaoNome %></span>
+            <% } %>
+          </td>
+          <td>
+            <div class="tabela__acoes">
+              <a class="botao botao--secundario botao--miudo" href="/secretaria/alunos/<%= aluno.id %>">
+                Abrir ficha<span class="visualmente-oculto"> de <%= aluno.nome %></span>
+              </a>
+            </div>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</section>

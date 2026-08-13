@@ -1,0 +1,105 @@
+<%
+/*
+  Frequência dia a dia.
+
+  A chamada do EscolaViva é por DIA, não por aula: cada linha desta tabela é uma data em que a
+  turma teve chamada registrada, e a justificativa é o texto que a secretaria recebeu.
+
+  A etiqueta carrega a cor, o texto carrega o significado — "Falta justificada" continua se lendo
+  em preto e branco, e a diferença entre falta com e sem justificativa não depende de enxergar
+  âmbar ou vermelho.
+*/
+const boletim = it.boletim;
+const dias = it.dias;
+const faltas = boletim.totalDias - boletim.presencas;
+
+const situacaoDoDia = (dia) => {
+  if (dia.presente) return { classe: 'etiqueta--ativa', rotulo: 'Presente' };
+  if (dia.justificativa) return { classe: 'etiqueta--transferida', rotulo: 'Falta justificada' };
+  return { classe: 'etiqueta--reprovado', rotulo: 'Falta' };
+};
+%>
+<header class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Frequência</p>
+    <h1 class="pagina__titulo"><%= it.matricula.alunoNome %></h1>
+    <p class="pagina__resumo">
+      Turma <%= it.matricula.turmaNome %> · ano letivo
+      <span class="numero"><%= it.matricula.ano %></span>
+    </p>
+  </div>
+  <p class="pagina__acoes">
+    <a class="botao botao--secundario"
+       href="/responsavel/matriculas/<%= it.matricula.id %>/boletim">Ver boletim</a>
+    <a class="botao botao--discreto" href="/responsavel">Voltar aos alunos</a>
+  </p>
+</header>
+
+<section class="secao" aria-labelledby="titulo-apuracao">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-apuracao">Apuração do ano</h2>
+    <p class="secao__nota">São necessários 75 % de presença para aprovação</p>
+  </div>
+
+  <div class="painel">
+    <div class="cartao">
+      <p class="cartao__rotulo">Frequência</p>
+      <p class="cartao__numero"><%= it.formatarPercentual(boletim.percentualFrequencia) %></p>
+      <p class="cartao__detalhe">Presenças sobre dias com chamada</p>
+    </div>
+
+    <div class="cartao">
+      <p class="cartao__rotulo">Presenças</p>
+      <p class="cartao__numero"><%= boletim.presencas %></p>
+      <p class="cartao__detalhe">
+        de <span class="numero"><%= boletim.totalDias %></span> dias registrados
+      </p>
+    </div>
+
+    <div class="cartao">
+      <p class="cartao__rotulo">Faltas</p>
+      <p class="cartao__numero"><%= faltas %></p>
+      <p class="cartao__detalhe">Justificadas e não justificadas</p>
+    </div>
+  </div>
+</section>
+
+<section class="secao" aria-labelledby="titulo-dias">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-dias">Dia a dia</h2>
+    <p class="secao__nota">Do dia mais recente para o mais antigo</p>
+  </div>
+
+  <% if (dias.length === 0) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nenhum dia de chamada registrado',
+      texto: 'A frequência aparece aqui assim que o professor registrar a primeira chamada da turma.',
+    }) %>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Chamada de <%= it.matricula.alunoNome %></caption>
+      <thead>
+        <tr>
+          <th scope="col">Data</th>
+          <th scope="col">Situação</th>
+          <th scope="col">Justificativa</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% dias.forEach((dia) => { const situacao = situacaoDoDia(dia); %>
+        <tr>
+          <th scope="row">
+            <time datetime="<%= dia.data %>"><%= it.formatarData(dia.data) %></time>
+          </th>
+          <td>
+            <span class="etiqueta <%= situacao.classe %>"><%= situacao.rotulo %></span>
+          </td>
+          <td class="celula-texto"><%= dia.justificativa ? dia.justificativa : '—' %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</section>

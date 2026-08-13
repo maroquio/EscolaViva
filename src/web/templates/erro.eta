@@ -1,0 +1,36 @@
+<%
+/*
+  Página de erro.
+
+  Detalhe de exceção é informação de operação, não de produto: pilha, SQL e mensagem interna ficam
+  no log. Aqui aparece só o que é útil para quem está do outro lado da tela — o que aconteceu, o
+  que fazer agora, e o código de correlação que liga esta tela exata à linha de log correspondente.
+  É esse código que o suporte pede, e é por isso que ele fica visível e selecionável.
+*/
+const correlacaoId = it.correlacaoId ?? '';
+%>
+<div class="erro">
+  <div>
+    <p class="erro__status">Erro <%= it.status %></p>
+    <h1><%= it.titulo %></h1>
+  </div>
+
+  <p class="leitura"><%= it.detalhe %></p>
+
+  <% if (correlacaoId !== '') { %>
+  <div class="erro__ocorrencia">
+    <dl class="lista-definicoes">
+      <dt>Ocorrência</dt>
+      <dd><code class="codigo"><%= correlacaoId %></code></dd>
+    </dl>
+    <p class="erro__instrucao">
+      Informe este código ao pedir ajuda: ele localiza exatamente esta ocorrência no registro do sistema.
+    </p>
+  </div>
+  <% } %>
+
+  <p class="linha">
+    <a class="botao botao--secundario" href="/painel">Voltar ao painel</a>
+    <a class="botao botao--discreto" href="/login">Entrar novamente</a>
+  </p>
+</div>

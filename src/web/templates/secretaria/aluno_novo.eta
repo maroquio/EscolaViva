@@ -1,0 +1,84 @@
+<%
+/*
+  Cadastro de aluno.
+
+  Dois campos, e nenhum a mais: matrícula, turma e responsável são vínculos que se fazem na ficha,
+  depois que o aluno existe. `required` e `type=date` servem para o retorno rápido no navegador —
+  a validação que decide é a do servidor (I22), e é dela que vêm as mensagens abaixo dos campos.
+*/
+const valores = it.valores ?? {};
+const erros = Array.isArray(it.erros) ? it.erros : [];
+
+const erroDe = (campo) => {
+  const achado = erros.find((problema) => problema.campo === campo);
+  return achado === undefined ? '' : achado.mensagem;
+};
+
+const descricao = (campo, temAjuda) => {
+  const ids = [];
+  if (temAjuda) ids.push(campo + '-ajuda');
+  if (erroDe(campo) !== '') ids.push(campo + '-erro');
+  return ids.join(' ');
+};
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Secretaria · Alunos</p>
+    <h1 class="pagina__titulo">Cadastrar aluno</h1>
+    <p class="pagina__resumo">
+      O aluno pertence à rede, não a uma unidade: é a matrícula que o coloca numa turma. Depois de
+      cadastrar, a ficha abre já com os formulários de responsável e de matrícula.
+    </p>
+  </div>
+</div>
+
+<div class="quadro">
+  <form class="formulario" method="post" action="/secretaria/alunos">
+    <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+    <div class="campo">
+      <label class="campo__rotulo" for="nome">
+        Nome completo <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      </label>
+      <input
+        id="nome"
+        name="nome"
+        type="text"
+        required
+        maxlength="120"
+        autocomplete="off"
+        value="<%= valores.nome ?? '' %>"
+        <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
+        aria-describedby="<%= descricao('nome', true) %>">
+      <p class="campo__ajuda" id="nome-ajuda">Como consta no documento do aluno.</p>
+      <% if (erroDe('nome') !== '') { %>
+      <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+      <% } %>
+    </div>
+
+    <div class="campo">
+      <label class="campo__rotulo" for="dataNascimento">
+        Data de nascimento <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      </label>
+      <input
+        id="dataNascimento"
+        name="dataNascimento"
+        type="date"
+        required
+        value="<%= valores.dataNascimento ?? '' %>"
+        <% if (erroDe('dataNascimento') !== '') { %>aria-invalid="true"<% } %>
+        aria-describedby="<%= descricao('dataNascimento', true) %>">
+      <p class="campo__ajuda" id="dataNascimento-ajuda">
+        Não pode estar no futuro.
+      </p>
+      <% if (erroDe('dataNascimento') !== '') { %>
+      <p class="campo__erro" id="dataNascimento-erro"><%= erroDe('dataNascimento') %></p>
+      <% } %>
+    </div>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Cadastrar aluno</button>
+      <a class="botao botao--discreto" href="/secretaria/alunos">Cancelar</a>
+    </div>
+  </form>
+</div>

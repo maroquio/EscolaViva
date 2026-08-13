@@ -1,0 +1,131 @@
+<%
+/*
+  Painel da secretaria: os números das unidades em que ela atua e os caminhos que a manhã pede.
+
+  A contagem vem sempre do banco, nunca de coluna mantida à mão (I5). Números ficam em fonte
+  monoespaçada com dígitos de mesma largura porque servem para comparar de relance, não para ler.
+*/
+const unidades = it.unidades ?? [];
+const totais = it.totais;
+const anoCorrente = it.anoCorrente ?? null;
+
+const atalhos = [
+  { href: '/secretaria/alunos/novo', rotulo: 'Aluno', titulo: 'Cadastrar aluno',
+    detalhe: 'Nome e data de nascimento. A matrícula vem depois, na ficha.' },
+  { href: '/secretaria/alunos', rotulo: 'Matrícula', titulo: 'Buscar e matricular',
+    detalhe: 'Procure pelo nome para matricular, transferir ou vincular responsável.' },
+  { href: '/secretaria/turmas', rotulo: 'Turma', titulo: 'Turmas e professores',
+    detalhe: 'Abra a turma para alocar disciplina e professor da unidade.' },
+  { href: '/secretaria/responsaveis', rotulo: 'Responsável', titulo: 'Cadastrar responsável',
+    detalhe: 'Quem recebe comunicado e responde pelo aluno.' },
+];
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Secretaria</p>
+    <h1 class="pagina__titulo">Painel da secretaria</h1>
+    <p class="pagina__resumo">
+      Matrícula, transferência, turma e disciplina em um lugar só. Os números abaixo consideram
+      apenas as unidades em que você tem o papel de secretaria.
+    </p>
+  </div>
+  <div class="pagina__acoes">
+    <a class="botao botao--primario" href="/secretaria/alunos/novo">Cadastrar aluno</a>
+    <a class="botao botao--secundario" href="/secretaria/alunos">Buscar aluno</a>
+  </div>
+</div>
+
+<% if (unidades.length === 0) { %>
+<%~ include("/parciais/_vazio", {
+  titulo: 'Nenhuma unidade atribuída',
+  texto: 'Seu acesso existe, mas ainda não foi ligado a nenhuma unidade. Peça ao administrador da rede para atribuir o papel de secretaria em uma unidade.'
+}) %>
+<% } else { %>
+
+<section class="secao" aria-labelledby="numeros">
+  <div class="secao__cabecalho">
+    <h2 id="numeros">Hoje</h2>
+    <p class="secao__nota">
+      <% if (anoCorrente === null) { %>
+        Nenhum ano letivo definido nesta rede
+      <% } else { %>
+        Ano letivo mais recente: <span class="numero"><%= anoCorrente.ano %></span>
+        (<%= it.formatarData(anoCorrente.dataInicio) %> a <%= it.formatarData(anoCorrente.dataFim) %>)
+      <% } %>
+    </p>
+  </div>
+
+  <div class="painel">
+    <div class="cartao">
+      <p class="cartao__rotulo">Matrículas ativas</p>
+      <p class="cartao__numero"><%= totais.matriculas %></p>
+      <p class="cartao__detalhe">alunos com matrícula ativa nas suas turmas</p>
+    </div>
+    <div class="cartao">
+      <p class="cartao__rotulo">Turmas</p>
+      <p class="cartao__numero"><%= totais.turmas %></p>
+      <p class="cartao__detalhe">em todos os anos letivos das suas unidades</p>
+    </div>
+    <div class="cartao">
+      <p class="cartao__rotulo">Responsáveis</p>
+      <p class="cartao__numero"><%= totais.responsaveis %></p>
+      <p class="cartao__detalhe">com aluno matriculado nas suas unidades</p>
+    </div>
+    <div class="cartao">
+      <p class="cartao__rotulo">Disciplinas</p>
+      <p class="cartao__numero"><%= totais.disciplinas %></p>
+      <p class="cartao__detalhe">cadastradas na rede, disponíveis para alocar</p>
+    </div>
+  </div>
+</section>
+
+<% if (unidades.length > 1) { %>
+<section class="secao" aria-labelledby="por-unidade">
+  <div class="secao__cabecalho">
+    <h2 id="por-unidade">Por unidade</h2>
+    <p class="secao__nota">Você responde por <span class="numero"><%= unidades.length %></span> unidades</p>
+  </div>
+
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Números de cada unidade sob sua secretaria</caption>
+      <thead>
+        <tr>
+          <th scope="col">Unidade</th>
+          <th scope="col">Turmas</th>
+          <th scope="col">Matrículas ativas</th>
+          <th scope="col">Responsáveis</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% unidades.forEach((unidade) => { %>
+        <tr>
+          <th scope="row"><%= unidade.nome %></th>
+          <td class="numero"><%= unidade.turmas %></td>
+          <td class="numero"><%= unidade.matriculas %></td>
+          <td class="numero"><%= unidade.responsaveis %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<% } %>
+
+<section class="secao" aria-labelledby="atalhos">
+  <div class="secao__cabecalho">
+    <h2 id="atalhos">Atalhos do dia</h2>
+  </div>
+
+  <div class="painel">
+    <% atalhos.forEach((atalho) => { %>
+    <a class="cartao" href="<%= atalho.href %>">
+      <p class="cartao__rotulo"><%= atalho.rotulo %></p>
+      <h3><%= atalho.titulo %></h3>
+      <p class="cartao__detalhe"><%= atalho.detalhe %></p>
+    </a>
+    <% }) %>
+  </div>
+</section>
+
+<% } %>

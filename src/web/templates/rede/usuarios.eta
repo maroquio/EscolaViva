@@ -1,0 +1,225 @@
+<%
+/*
+  Usuários da rede: quem tem acesso, com qual papel e em qual unidade.
+
+  Duas coisas merecem atenção nesta tela.
+
+  1. A senha provisória. Ela é gerada no convite, não é guardada em lugar nenhum em texto claro e
+     aparece aqui uma única vez, logo depois do redirecionamento. Quem fechar a página sem anotar
+     precisa convidar de novo — por isso o bloco é o primeiro elemento da página e fala em voz
+     alta (`role="status"`).
+
+  2. As atribuições. Um mesmo e-mail pode ser secretária em uma unidade e responsável em outra,
+     então o convite aceita várias linhas de unidade + papel. Sem JavaScript no cliente, as linhas
+     são fixas: as que ficarem vazias são simplesmente ignoradas.
+*/
+const usuarios = it.usuarios ?? [];
+const unidades = it.unidades ?? [];
+const responsaveis = it.responsaveis ?? [];
+const papeis = it.papeis ?? [];
+const linhas = it.linhas ?? [];
+const valores = it.valores ?? { nome: '', email: '', responsavelId: '' };
+const erros = Array.isArray(it.erros) ? it.erros : [];
+const convite = it.convite ?? null;
+const convidado = convite === null ? null : (usuarios.find((u) => u.id === convite.usuarioId) ?? null);
+
+const erroDe = (campo) => {
+  const achado = erros.find((problema) => problema.campo === campo);
+  return achado === undefined ? '' : achado.mensagem;
+};
+
+const descricao = (campo, temAjuda) => {
+  const ids = [];
+  if (temAjuda) ids.push(campo + '-ajuda');
+  if (erroDe(campo) !== '') ids.push(campo + '-erro');
+  return ids.join(' ');
+};
+
+const rotuloDoPapel = (valor) => {
+  const achado = papeis.find((opcao) => opcao.valor === valor);
+  return achado === undefined ? valor : achado.rotulo;
+};
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Rede</p>
+    <h1 class="pagina__titulo">Usuários</h1>
+    <p class="pagina__resumo">
+      Todo acesso nasce aqui. O papel decide o que a pessoa vê, e ele existe sempre dentro de uma
+      unidade: a mesma pessoa pode ser secretária em uma escola e responsável em outra.
+    </p>
+  </div>
+</div>
+
+<% if (convite !== null && convidado !== null) { %>
+<div class="aviso aviso--atencao" role="status">
+  <p class="aviso__titulo">Senha provisória de <%= convidado.nome %></p>
+  <p><code class="codigo"><%= convite.senha %></code></p>
+  <p>
+    Anote agora: esta senha aparece uma única vez e não pode ser recuperada depois que você sair
+    desta página. Entregue-a pessoalmente ou por um canal que vocês já usem — o envio automático
+    por e-mail entra no Estágio 04. Peça que a pessoa entre com
+    <strong><%= convidado.email %></strong> e troque a senha no primeiro acesso.
+  </p>
+</div>
+<% } %>
+
+<section class="secao" aria-labelledby="novo-usuario-titulo">
+  <div class="secao__cabecalho">
+    <h2 id="novo-usuario-titulo">Convidar usuário</h2>
+  </div>
+
+  <div class="quadro">
+    <form class="formulario formulario--largo" method="post" action="/rede/usuarios">
+      <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+      <div class="formulario__linha">
+        <div class="campo">
+          <label class="campo__rotulo" for="nome">
+            Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="nome"
+            name="nome"
+            type="text"
+            required
+            maxlength="120"
+            autocomplete="off"
+            value="<%= valores.nome %>"
+            <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
+            <% if (descricao('nome', false) !== '') { %>aria-describedby="<%= descricao('nome', false) %>"<% } %>>
+          <% if (erroDe('nome') !== '') { %>
+          <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+          <% } %>
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="email">
+            E-mail <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autocapitalize="none"
+            spellcheck="false"
+            autocomplete="off"
+            value="<%= valores.email %>"
+            <% if (erroDe('email') !== '') { %>aria-invalid="true"<% } %>
+            aria-describedby="<%= descricao('email', true) %>">
+          <p class="campo__ajuda" id="email-ajuda">É com ele que a pessoa entra. Único na rede.</p>
+          <% if (erroDe('email') !== '') { %>
+          <p class="campo__erro" id="email-erro"><%= erroDe('email') %></p>
+          <% } %>
+        </div>
+      </div>
+
+      <fieldset <% if (erroDe('atribuicoes') !== '') { %>aria-describedby="atribuicoes-erro"<% } %>>
+        <legend>Atribuições</legend>
+        <% if (erroDe('atribuicoes') !== '') { %>
+        <p class="campo__erro" id="atribuicoes-erro"><%= erroDe('atribuicoes') %></p>
+        <% } %>
+
+        <div class="pilha">
+          <% linhas.forEach((linha, indice) => { %>
+          <div class="formulario__linha">
+            <div class="campo">
+              <label class="campo__rotulo" for="unidade-<%= indice %>">Unidade <%= indice + 1 %></label>
+              <select id="unidade-<%= indice %>" name="unidade[]">
+                <option value="">Sem atribuição</option>
+                <% unidades.forEach((unidade) => { %>
+                <option value="<%= unidade.id %>" <% if (unidade.id === linha.unidadeId) { %>selected<% } %>><%= unidade.nome %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="campo">
+              <label class="campo__rotulo" for="papel-<%= indice %>">Papel <%= indice + 1 %></label>
+              <select id="papel-<%= indice %>" name="papel[]">
+                <option value="">Sem atribuição</option>
+                <% papeis.forEach((opcao) => { %>
+                <option value="<%= opcao.valor %>" <% if (opcao.valor === linha.papel) { %>selected<% } %>><%= opcao.rotulo %></option>
+                <% }) %>
+              </select>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+      </fieldset>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="responsavelId">Cadastro de responsável</label>
+        <select
+          id="responsavelId"
+          name="responsavelId"
+          <% if (erroDe('responsavelId') !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao('responsavelId', true) %>">
+          <option value="">Nenhum</option>
+          <% responsaveis.forEach((responsavel) => { %>
+          <option value="<%= responsavel.id %>" <% if (responsavel.id === valores.responsavelId) { %>selected<% } %>><%= responsavel.nome %> — <%= responsavel.email %></option>
+          <% }) %>
+        </select>
+        <p class="campo__ajuda" id="responsavelId-ajuda">
+          Obrigatório quando alguma atribuição acima for Responsável: é esse cadastro que liga a
+          conta aos alunos. A secretaria cria o cadastro antes do convite.
+        </p>
+        <% if (erroDe('responsavelId') !== '') { %>
+        <p class="campo__erro" id="responsavelId-erro"><%= erroDe('responsavelId') %></p>
+        <% } %>
+      </div>
+
+      <div class="acoes">
+        <button class="botao botao--primario" type="submit">Criar usuário</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="secao" aria-labelledby="lista-usuarios-titulo">
+  <div class="secao__cabecalho">
+    <h2 id="lista-usuarios-titulo">Quem tem acesso</h2>
+    <p class="secao__nota"><%= usuarios.length %> no total</p>
+  </div>
+
+  <% if (usuarios.length === 0) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nenhum usuário cadastrado',
+      texto: 'Convide a secretaria primeiro: é ela quem cadastra alunos, responsáveis e turmas.'
+    }) %>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Usuários da rede</caption>
+      <thead>
+        <tr>
+          <th scope="col">Nome</th>
+          <th scope="col">E-mail</th>
+          <th scope="col">Papéis</th>
+          <th scope="col">Situação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% usuarios.forEach((usuario) => { %>
+        <tr>
+          <th scope="row"><%= usuario.nome %></th>
+          <td class="celula-texto"><%= usuario.email %></td>
+          <td class="celula-texto">
+            <% if (usuario.papeis.length === 0) { %>
+            <span class="suave">sem papel atribuído</span>
+            <% } else { %>
+            <% usuario.papeis.forEach((atribuicao) => { %>
+            <div><%= rotuloDoPapel(atribuicao.papel) %> · <%= atribuicao.unidadeNome %></div>
+            <% }) %>
+            <% } %>
+          </td>
+          <td>
+            <span class="<%= usuario.ativo ? 'etiqueta etiqueta--ativa' : 'etiqueta' %>"><%= usuario.ativo ? 'Ativo' : 'Inativo' %></span>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</section>

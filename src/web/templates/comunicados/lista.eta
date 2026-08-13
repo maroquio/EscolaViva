@@ -1,0 +1,129 @@
+<%
+/*
+  Comunicados publicados e o número que esta tela existe para mostrar: a taxa de leitura.
+
+  Publicar não é ser lido. Enquanto o mural do portal for o único canal, a diferença entre os dois
+  é invisível a menos que alguém a meça — e é por isso que a lista mostra destinatários, leituras e
+  a razão entre eles, em vez de apenas dizer "publicado".
+
+  `item.taxa` chega de `comunicacao` como fração de 0 a 1; o formatador de percentual trabalha na
+  escala de 0 a 100, e a multiplicação é só de apresentação.
+*/
+const comunicados = it.comunicados;
+const resumo = it.resumo;
+%>
+<header class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Comunicação</p>
+    <h1 class="pagina__titulo">Comunicados</h1>
+    <p class="pagina__resumo">
+      O que foi enviado ao mural dos responsáveis, com quantos receberam e quantos leram.
+    </p>
+  </div>
+  <p class="pagina__acoes">
+    <a class="botao botao--primario" href="/comunicados/novo">Novo comunicado</a>
+  </p>
+</header>
+
+<form class="linha" method="get" action="/comunicados">
+  <div class="campo">
+    <label class="campo__rotulo" for="filtro-unidade">Unidade</label>
+    <select id="filtro-unidade" name="unidadeId">
+      <% if (it.veTodaARede) { %>
+      <option value=""<% if (it.unidadeAtual === '') { %> selected<% } %>>Toda a rede</option>
+      <% } %>
+      <% it.unidades.forEach((unidade) => { %>
+      <option value="<%= unidade.id %>"<% if (unidade.id === it.unidadeAtual) { %> selected<% } %>>
+        <%= unidade.nome %>
+      </option>
+      <% }) %>
+    </select>
+  </div>
+  <button class="botao botao--secundario" type="submit">Filtrar</button>
+</form>
+
+<section class="secao" aria-labelledby="titulo-alcance">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-alcance">Alcance da comunicação</h2>
+    <p class="secao__nota">Soma dos comunicados listados abaixo</p>
+  </div>
+
+  <div class="pilha">
+    <div class="painel">
+      <div class="cartao">
+        <p class="cartao__rotulo">Taxa de leitura</p>
+        <p class="cartao__numero"><%= it.formatarPercentual(resumo.percentual) %></p>
+        <p class="cartao__detalhe">Leituras sobre destinatários alcançados</p>
+      </div>
+
+      <div class="cartao">
+        <p class="cartao__rotulo">Destinatários</p>
+        <p class="cartao__numero"><%= resumo.destinatarios %></p>
+        <p class="cartao__detalhe">Responsáveis que receberam algum comunicado</p>
+      </div>
+
+      <div class="cartao">
+        <p class="cartao__rotulo">Leituras</p>
+        <p class="cartao__numero"><%= resumo.leituras %></p>
+        <p class="cartao__detalhe">Marcadas pelo próprio responsável no mural</p>
+      </div>
+    </div>
+
+    <p class="leitura suave">
+      A leitura é registrada quando o responsável abre o comunicado no portal e marca que leu.
+      Comunicado publicado que ninguém marcou continua contando como enviado e não como lido — é
+      essa distância entre os dois números que diz quanto da comunicação da escola chega ao destino.
+    </p>
+  </div>
+</section>
+
+<section class="secao" aria-labelledby="titulo-publicados">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-publicados">Publicados</h2>
+    <p class="secao__nota">Do mais recente para o mais antigo</p>
+  </div>
+
+  <% if (comunicados.length === 0) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nenhum comunicado neste recorte',
+      texto: 'Ainda não há comunicado publicado para a unidade escolhida. O primeiro envio já entra nesta lista com a medição de leitura.',
+      acao: { href: '/comunicados/novo', texto: 'Publicar o primeiro comunicado' },
+    }) %>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Comunicados e leituras</caption>
+      <thead>
+        <tr>
+          <th scope="col">Comunicado</th>
+          <th scope="col">Publicado em</th>
+          <th scope="col">Destinatários</th>
+          <th scope="col">Leituras</th>
+          <th scope="col">Taxa de leitura</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% comunicados.forEach((item) => { %>
+        <tr>
+          <td class="celula-texto"><%= item.titulo %></td>
+          <td class="numero">
+            <time datetime="<%= item.publicadoEm %>"><%= it.formatarData(item.publicadoEm) %></time>
+          </td>
+          <td class="numero"><%= item.destinatarios %></td>
+          <td class="numero"><%= item.leituras %></td>
+          <td class="numero"><%= it.formatarPercentual(item.taxa * 100) %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="celula-texto" colspan="2">Total do recorte</td>
+          <td class="numero"><%= resumo.destinatarios %></td>
+          <td class="numero"><%= resumo.leituras %></td>
+          <td class="numero"><%= it.formatarPercentual(resumo.percentual) %></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <% } %>
+</section>

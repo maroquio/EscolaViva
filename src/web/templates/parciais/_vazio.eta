@@ -1,0 +1,22 @@
+<%
+/*
+  Estado vazio. Uma lista sem linhas não é uma falha: é uma tela que precisa dizer o que falta e
+  qual é o próximo passo.
+
+  Recebe seu próprio objeto, e não o `it` da página. A chamada tem a forma
+
+    include("/parciais/_vazio", { titulo, texto, acao })
+
+  com `texto` e `acao` opcionais, e `acao` no formato `{ href, texto }`.
+*/
+const acao = it.acao ?? null;
+%>
+<div class="vazio">
+  <p class="vazio__titulo"><%= it.titulo %></p>
+  <% if (it.texto) { %>
+  <p class="vazio__texto"><%= it.texto %></p>
+  <% } %>
+  <% if (acao !== null) { %>
+  <a class="botao botao--secundario" href="<%= acao.href %>"><%= acao.texto %></a>
+  <% } %>
+</div>

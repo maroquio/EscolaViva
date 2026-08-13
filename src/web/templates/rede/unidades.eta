@@ -1,0 +1,128 @@
+<%
+/*
+  Unidades da rede: a lista e o formulário que a alimenta.
+
+  O formulário fica acima da lista porque esta é a tela de uma rede que está começando — o
+  primeiro uso é criar, e não procurar. O nome é único dentro da rede, e é a constraint do banco
+  que garante isso (I8); o erro que aparece aqui só traduz a recusa para o campo certo.
+*/
+const unidades = it.unidades ?? [];
+const valores = it.valores ?? { nome: '', codigoInep: '' };
+const erros = Array.isArray(it.erros) ? it.erros : [];
+
+const erroDe = (campo) => {
+  const achado = erros.find((problema) => problema.campo === campo);
+  return achado === undefined ? '' : achado.mensagem;
+};
+
+const descricao = (campo, temAjuda) => {
+  const ids = [];
+  if (temAjuda) ids.push(campo + '-ajuda');
+  if (erroDe(campo) !== '') ids.push(campo + '-erro');
+  return ids.join(' ');
+};
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Rede</p>
+    <h1 class="pagina__titulo">Unidades</h1>
+    <p class="pagina__resumo">
+      Cada escola da rede é uma unidade. Papéis, turmas e comunicados existem sempre dentro de
+      uma — ninguém é "professor da rede".
+    </p>
+  </div>
+</div>
+
+<section class="secao" aria-labelledby="nova-unidade-titulo">
+  <div class="secao__cabecalho">
+    <h2 id="nova-unidade-titulo">Nova unidade</h2>
+  </div>
+
+  <div class="quadro">
+    <form class="formulario" method="post" action="/rede/unidades">
+      <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+      <div class="formulario__linha">
+        <div class="campo">
+          <label class="campo__rotulo" for="nome">
+            Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="nome"
+            name="nome"
+            type="text"
+            required
+            maxlength="120"
+            autocomplete="off"
+            value="<%= valores.nome %>"
+            <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
+            aria-describedby="<%= descricao('nome', true) %>">
+          <p class="campo__ajuda" id="nome-ajuda">Como a escola é chamada no dia a dia.</p>
+          <% if (erroDe('nome') !== '') { %>
+          <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+          <% } %>
+        </div>
+
+        <div class="campo">
+          <label class="campo__rotulo" for="codigoInep">Código INEP</label>
+          <input
+            id="codigoInep"
+            name="codigoInep"
+            type="text"
+            maxlength="20"
+            inputmode="numeric"
+            autocomplete="off"
+            value="<%= valores.codigoInep %>"
+            <% if (erroDe('codigoInep') !== '') { %>aria-invalid="true"<% } %>
+            aria-describedby="<%= descricao('codigoInep', true) %>">
+          <p class="campo__ajuda" id="codigoInep-ajuda">Opcional. Pode ser preenchido depois.</p>
+          <% if (erroDe('codigoInep') !== '') { %>
+          <p class="campo__erro" id="codigoInep-erro"><%= erroDe('codigoInep') %></p>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="acoes">
+        <button class="botao botao--primario" type="submit">Criar unidade</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="secao" aria-labelledby="lista-unidades-titulo">
+  <div class="secao__cabecalho">
+    <h2 id="lista-unidades-titulo">Unidades da rede</h2>
+    <p class="secao__nota"><%= unidades.length %> no total</p>
+  </div>
+
+  <% if (unidades.length === 0) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nenhuma unidade criada',
+      texto: 'A primeira unidade abre o caminho para os usuários e as turmas. Use o formulário acima.'
+    }) %>
+  <% } else { %>
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Unidades cadastradas</caption>
+      <thead>
+        <tr>
+          <th scope="col">Unidade</th>
+          <th scope="col">Código INEP</th>
+          <th scope="col">Situação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% unidades.forEach((unidade) => { %>
+        <tr>
+          <th scope="row"><%= unidade.nome %></th>
+          <td class="numero"><%= unidade.codigoInep === null ? '—' : unidade.codigoInep %></td>
+          <td>
+            <span class="<%= unidade.ativa ? 'etiqueta etiqueta--ativa' : 'etiqueta' %>"><%= unidade.ativa ? 'Ativa' : 'Inativa' %></span>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</section>

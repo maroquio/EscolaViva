@@ -1,0 +1,96 @@
+<%
+/*
+  Trocar a própria senha.
+
+  Nenhum dos três campos volta preenchido depois de um erro: senha digitada não é valor a
+  preservar. O que volta é a mensagem, ligada ao campo por `aria-describedby`.
+*/
+const erros = Array.isArray(it.erros) ? it.erros : [];
+
+const erroDe = (campo) => {
+  const achado = erros.find((problema) => problema.campo === campo);
+  return achado === undefined ? '' : achado.mensagem;
+};
+
+const descricao = (campo, temAjuda) => {
+  const ids = [];
+  if (temAjuda) ids.push(campo + '-ajuda');
+  if (erroDe(campo) !== '') ids.push(campo + '-erro');
+  return ids.join(' ');
+};
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Conta</p>
+    <h1 class="pagina__titulo">Trocar senha</h1>
+    <p class="pagina__resumo">
+      Vale para qualquer papel. Depois de trocar, a senha antiga deixa de funcionar imediatamente;
+      as sessões já abertas continuam válidas até expirarem.
+    </p>
+  </div>
+</div>
+
+<div class="quadro">
+  <form class="formulario" method="post" action="/conta/senha">
+    <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+    <div class="campo">
+      <label class="campo__rotulo" for="senhaAtual">
+        Senha atual <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      </label>
+      <input
+        id="senhaAtual"
+        name="senhaAtual"
+        type="password"
+        required
+        autocomplete="current-password"
+        <% if (erroDe('senhaAtual') !== '') { %>aria-invalid="true"<% } %>
+        <% if (descricao('senhaAtual', false) !== '') { %>aria-describedby="<%= descricao('senhaAtual', false) %>"<% } %>>
+      <% if (erroDe('senhaAtual') !== '') { %>
+      <p class="campo__erro" id="senhaAtual-erro"><%= erroDe('senhaAtual') %></p>
+      <% } %>
+    </div>
+
+    <div class="campo">
+      <label class="campo__rotulo" for="senhaNova">
+        Senha nova <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      </label>
+      <input
+        id="senhaNova"
+        name="senhaNova"
+        type="password"
+        required
+        autocomplete="new-password"
+        <% if (erroDe('senhaNova') !== '') { %>aria-invalid="true"<% } %>
+        aria-describedby="<%= descricao('senhaNova', true) %>">
+      <p class="campo__ajuda" id="senhaNova-ajuda">
+        Escolha uma senha longa e que você não use em outro sistema. Se ela for curta demais, o
+        servidor recusa e diz o mínimo exigido.
+      </p>
+      <% if (erroDe('senhaNova') !== '') { %>
+      <p class="campo__erro" id="senhaNova-erro"><%= erroDe('senhaNova') %></p>
+      <% } %>
+    </div>
+
+    <div class="campo">
+      <label class="campo__rotulo" for="senhaConfirmacao">
+        Repita a senha nova <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      </label>
+      <input
+        id="senhaConfirmacao"
+        name="senhaConfirmacao"
+        type="password"
+        required
+        autocomplete="new-password"
+        <% if (erroDe('senhaConfirmacao') !== '') { %>aria-invalid="true"<% } %>
+        <% if (descricao('senhaConfirmacao', false) !== '') { %>aria-describedby="<%= descricao('senhaConfirmacao', false) %>"<% } %>>
+      <% if (erroDe('senhaConfirmacao') !== '') { %>
+      <p class="campo__erro" id="senhaConfirmacao-erro"><%= erroDe('senhaConfirmacao') %></p>
+      <% } %>
+    </div>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Trocar senha</button>
+    </div>
+  </form>
+</div>

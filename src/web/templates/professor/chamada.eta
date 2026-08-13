@@ -1,0 +1,111 @@
+<%
+/*
+  Chamada do dia.
+
+  A frequência do EscolaViva é POR DIA, não por aula: uma linha por aluno por data. Por isso a tela
+  pertence à turma e não à disciplina, e por isso o eixo de navegação é o calendário — ontem, hoje,
+  amanhã — e não a grade de horário.
+
+  A caixa abre marcada. Numa turma de trinta alunos a presença é a regra e a falta é a exceção, então
+  o trabalho do professor é desmarcar duas caixas, não marcar vinte e oito. Reenviar a mesma data
+  corrige o registro em vez de duplicá-lo, o que torna a tela segura de revisitar no fim do dia.
+*/
+const linhas = it.linhas ?? [];
+const data = it.data;
+const turma = it.turma;
+const legenda = `Chamada de ${it.formatarData(data)} · ${turma.turmaNome}`;
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo"><%= turma.serie %> · turno <%= turma.turno %></p>
+    <h1 class="pagina__titulo">Chamada · <%= turma.turmaNome %></h1>
+    <p class="pagina__resumo">
+      Presença de um dia inteiro. A justificativa é o que o responsável informou sobre a falta, e
+      aparece depois no acompanhamento de frequência do aluno.
+    </p>
+  </div>
+  <p class="pagina__acoes">
+    <a class="botao botao--discreto" href="<%= turma.hrefFechamento %>">Fechamento</a>
+    <a class="botao botao--discreto" href="/professor">Minhas turmas</a>
+  </p>
+</div>
+
+<div class="acoes">
+  <nav class="linha" aria-label="Dia da chamada">
+    <a class="botao botao--secundario" rel="prev"
+       href="<%= it.acaoDoFormulario %>?<%= it.campoData %>=<%= it.diaAnterior %>">
+      Dia anterior · <time class="numero" datetime="<%= it.diaAnterior %>"><%= it.formatarData(it.diaAnterior) %></time>
+    </a>
+    <a class="botao botao--secundario" rel="next"
+       href="<%= it.acaoDoFormulario %>?<%= it.campoData %>=<%= it.diaSeguinte %>">
+      Dia seguinte · <time class="numero" datetime="<%= it.diaSeguinte %>"><%= it.formatarData(it.diaSeguinte) %></time>
+    </a>
+  </nav>
+
+  <form class="linha" method="get" action="<%= it.acaoDoFormulario %>">
+    <label class="campo__rotulo" for="ir-para-o-dia">Ir para o dia</label>
+    <span class="campo">
+      <input type="date" id="ir-para-o-dia" name="<%= it.campoData %>" value="<%= data %>">
+    </span>
+    <button class="botao botao--secundario" type="submit">Abrir</button>
+  </form>
+</div>
+
+<% if (linhas.length === 0) { %>
+<%~ include("/parciais/_vazio", {
+  titulo: 'Nenhum aluno matriculado',
+  texto: 'Esta turma não tem matrícula ativa, então não há chamada a registrar. A matrícula é feita pela secretaria.',
+}) %>
+<% } else { %>
+
+<form class="formulario formulario--largo" method="post" action="<%= it.acaoDoFormulario %>">
+  <input type="hidden" name="_chave" value="<%= it.chave %>">
+  <input type="hidden" name="<%= it.campoData %>" value="<%= data %>">
+
+  <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption><%= legenda %></caption>
+      <thead>
+        <tr>
+          <th scope="col">Aluno</th>
+          <th scope="col">Presente</th>
+          <th scope="col">Justificativa da falta</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% linhas.forEach((linha) => { %>
+        <tr>
+          <th scope="row"><%= linha.alunoNome %></th>
+          <td>
+            <label class="visualmente-oculto" for="<%= it.prefixoPresenca %><%= linha.matriculaId %>">
+              <%= linha.alunoNome %> esteve presente em <%= it.formatarData(data) %>
+            </label>
+            <input type="checkbox"
+                   id="<%= it.prefixoPresenca %><%= linha.matriculaId %>"
+                   name="<%= it.prefixoPresenca %><%= linha.matriculaId %>"
+                   <% if (linha.presente) { %>checked<% } %>>
+          </td>
+          <td class="celula-texto">
+            <label class="visualmente-oculto" for="<%= it.prefixoJustificativa %><%= linha.matriculaId %>">
+              Justificativa da falta de <%= linha.alunoNome %>
+            </label>
+            <input type="text"
+                   autocomplete="off"
+                   maxlength="<%= it.limiteDaJustificativa %>"
+                   id="<%= it.prefixoJustificativa %><%= linha.matriculaId %>"
+                   name="<%= it.prefixoJustificativa %><%= linha.matriculaId %>"
+                   value="<%= linha.justificativa %>">
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="acoes">
+    <button class="botao botao--primario" type="submit">Salvar chamada</button>
+    <span class="suave">Todos começam presentes: desmarque quem faltou.</span>
+  </div>
+</form>
+
+<% } %>

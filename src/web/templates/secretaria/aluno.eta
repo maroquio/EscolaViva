@@ -1,0 +1,434 @@
+<%
+/*
+  Ficha do aluno: o que se sabe dele, quem responde por ele e onde ele estuda.
+
+  As três escritas da secretaria moram nesta tela — vincular responsável, matricular e transferir —
+  porque as três decidem a partir do mesmo contexto. Cada uma é um POST com chave própria (I4) que
+  volta por redirecionamento; recusada, volta aqui com o valor digitado e a mensagem no campo que a
+  causou.
+*/
+const aluno = it.aluno;
+const vinculos = it.vinculos ?? [];
+const responsaveis = it.responsaveis ?? [];
+const anosLetivos = it.anosLetivos ?? [];
+const turmas = it.turmas ?? [];
+const matriculas = it.matriculas ?? [];
+const ativa = it.ativa ?? null;
+const valores = it.valores ?? {};
+const erros = Array.isArray(it.erros) ? it.erros : [];
+
+const erroDe = (campo) => {
+  const achado = erros.find((problema) => problema.campo === campo);
+  return achado === undefined ? '' : achado.mensagem;
+};
+
+const descricao = (campo, temAjuda) => {
+  const ids = [];
+  if (temAjuda) ids.push(campo + '-ajuda');
+  if (erroDe(campo) !== '') ids.push(campo + '-erro');
+  return ids.join(' ');
+};
+
+const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valores[campo]);
+
+// Responsável já vinculado sai da lista: vincular duas vezes é o mesmo vínculo.
+const jaVinculados = new Set(vinculos.map((vinculo) => vinculo.responsavelId));
+const disponiveis = responsaveis.filter((pessoa) => !jaVinculados.has(pessoa.id));
+
+// As turmas entram agrupadas por ano letivo: é assim que a secretaria escolhe o par sem errar.
+const agrupar = (lista) => {
+  const grupos = [];
+  lista.forEach((turma) => {
+    let grupo = grupos.find((candidato) => candidato.anoLetivoId === turma.anoLetivoId);
+    if (grupo === undefined) {
+      grupo = { anoLetivoId: turma.anoLetivoId, ano: turma.ano, turmas: [] };
+      grupos.push(grupo);
+    }
+    grupo.turmas.push(turma);
+  });
+  return grupos.sort((a, b) => (b.ano ?? 0) - (a.ano ?? 0));
+};
+
+const gruposDeTurmas = agrupar(turmas);
+const gruposDeDestino =
+  ativa === null ? [] : agrupar(turmas.filter((turma) => turma.id !== ativa.turmaId));
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Secretaria · Ficha do aluno</p>
+    <h1 class="pagina__titulo"><%= aluno.nome %></h1>
+    <p class="pagina__resumo">
+      Nascimento em <span class="numero"><%= it.formatarData(aluno.dataNascimento) %></span>.
+      <% if (ativa === null) { %>
+        Sem matrícula ativa nas suas unidades.
+      <% } else { %>
+        Matriculado na turma <%= ativa.turmaNome %>, ano letivo <span class="numero"><%= ativa.ano %></span>.
+      <% } %>
+    </p>
+  </div>
+  <div class="pagina__acoes">
+    <a class="botao botao--secundario" href="/secretaria/alunos">Voltar à busca</a>
+  </div>
+</div>
+
+<section class="secao" aria-labelledby="dados">
+  <div class="secao__cabecalho">
+    <h2 id="dados">Dados do aluno</h2>
+  </div>
+
+  <div class="quadro">
+    <dl class="lista-definicoes">
+      <dt>Nome</dt>
+      <dd><%= aluno.nome %></dd>
+      <dt>Nascimento</dt>
+      <dd class="numero"><%= it.formatarData(aluno.dataNascimento) %></dd>
+      <dt>Matrícula ativa</dt>
+      <dd>
+        <% if (ativa === null) { %>
+        <span class="suave">nenhuma</span>
+        <% } else { %>
+        <span class="etiqueta etiqueta--ativa"><%= ativa.situacaoNome %></span>
+        <%= ativa.turmaNome %> · ano letivo <span class="numero"><%= ativa.ano %></span> ·
+        matriculado em <span class="numero"><%= it.formatarData(ativa.dataMatricula) %></span>
+        <% } %>
+      </dd>
+    </dl>
+  </div>
+</section>
+
+<section class="secao" aria-labelledby="responsaveis">
+  <div class="secao__cabecalho">
+    <h2 id="responsaveis">Responsáveis vinculados</h2>
+    <p class="secao__nota">
+      <span class="numero"><%= vinculos.length %></span>
+      <%= vinculos.length === 1 ? 'responsável' : 'responsáveis' %>
+    </p>
+  </div>
+
+  <div class="pilha pilha--larga">
+    <% if (vinculos.length === 0) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nenhum responsável vinculado',
+      texto: 'O responsável é quem recebe comunicado e acompanha boletim e frequência deste aluno. Vincule pelo formulário abaixo.'
+    }) %>
+    <% } else { %>
+    <div class="tabela-rolagem">
+      <table class="tabela">
+        <caption>Quem responde por este aluno</caption>
+        <thead>
+          <tr>
+            <th scope="col">Responsável</th>
+            <th scope="col">Parentesco</th>
+            <th scope="col">E-mail</th>
+            <th scope="col">Financeiro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% vinculos.forEach((vinculo) => { %>
+          <tr>
+            <th scope="row"><%= vinculo.nome %></th>
+            <td class="celula-texto"><%= vinculo.parentesco %></td>
+            <td class="celula-texto"><%= vinculo.email %></td>
+            <td><%= vinculo.financeiro ? 'Sim' : 'Não' %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+
+    <div class="quadro">
+      <form class="formulario" method="post" action="/secretaria/alunos/<%= aluno.id %>/responsaveis">
+        <input type="hidden" name="_chave" value="<%= it.chave %>">
+        <fieldset>
+          <legend>Vincular responsável</legend>
+
+          <% if (disponiveis.length === 0) { %>
+          <p class="suave">
+            <% if (responsaveis.length === 0) { %>
+            Nenhum responsável cadastrado nesta rede ainda.
+            <% } else { %>
+            Todos os responsáveis cadastrados já estão vinculados a este aluno.
+            <% } %>
+            <a href="/secretaria/responsaveis">Cadastrar responsável</a>
+          </p>
+          <% } else { %>
+          <div class="formulario__linha">
+            <div class="campo">
+              <label class="campo__rotulo" for="responsavelId">
+                Responsável <span class="campo__obrigatorio" aria-hidden="true">*</span>
+              </label>
+              <select
+                id="responsavelId"
+                name="responsavelId"
+                required
+                <% if (erroDe('responsavelId') !== '') { %>aria-invalid="true"<% } %>
+                <% if (descricao('responsavelId', false) !== '') { %>aria-describedby="<%= descricao('responsavelId', false) %>"<% } %>>
+                <option value="">Selecione…</option>
+                <% disponiveis.forEach((pessoa) => { %>
+                <option value="<%= pessoa.id %>" <%= valor('responsavelId', '') === pessoa.id ? 'selected' : '' %>>
+                  <%= pessoa.nome %> — <%= pessoa.email %>
+                </option>
+                <% }) %>
+              </select>
+              <% if (erroDe('responsavelId') !== '') { %>
+              <p class="campo__erro" id="responsavelId-erro"><%= erroDe('responsavelId') %></p>
+              <% } %>
+            </div>
+
+            <div class="campo">
+              <label class="campo__rotulo" for="parentesco">
+                Parentesco <span class="campo__obrigatorio" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="parentesco"
+                name="parentesco"
+                type="text"
+                required
+                maxlength="40"
+                value="<%= valor('parentesco', '') %>"
+                <% if (erroDe('parentesco') !== '') { %>aria-invalid="true"<% } %>
+                aria-describedby="<%= descricao('parentesco', true) %>">
+              <p class="campo__ajuda" id="parentesco-ajuda">Mãe, pai, avó, tutor legal.</p>
+              <% if (erroDe('parentesco') !== '') { %>
+              <p class="campo__erro" id="parentesco-erro"><%= erroDe('parentesco') %></p>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="campo">
+            <div class="campo campo--opcao">
+              <input
+                id="financeiro"
+                name="financeiro"
+                type="checkbox"
+                value="sim"
+                <%= valor('financeiro', false) === true ? 'checked' : '' %>
+                aria-describedby="financeiro-ajuda">
+              <label class="campo__rotulo" for="financeiro">Responsável financeiro</label>
+            </div>
+            <p class="campo__ajuda" id="financeiro-ajuda">
+              Marque quem responde pela cobrança. O aluno pode ter mais de um responsável, e apenas
+              um deles precisa ser o financeiro.
+            </p>
+          </div>
+
+          <div class="acoes">
+            <button class="botao botao--primario" type="submit">Vincular responsável</button>
+          </div>
+          <% } %>
+        </fieldset>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="secao" aria-labelledby="matriculas">
+  <div class="secao__cabecalho">
+    <h2 id="matriculas">Matrículas</h2>
+    <p class="secao__nota">
+      <span class="numero"><%= matriculas.length %></span>
+      <%= matriculas.length === 1 ? 'registro' : 'registros' %> nas suas unidades
+    </p>
+  </div>
+
+  <div class="pilha pilha--larga">
+    <% if (matriculas.length === 0) { %>
+    <%~ include("/parciais/_vazio", {
+      titulo: 'Nenhuma matrícula registrada',
+      texto: 'Este aluno ainda não foi matriculado em nenhuma turma sob sua secretaria. Use o formulário abaixo para matricular.'
+    }) %>
+    <% } else { %>
+    <div class="tabela-rolagem">
+      <table class="tabela">
+        <caption>Histórico de matrículas deste aluno</caption>
+        <thead>
+          <tr>
+            <th scope="col">Turma</th>
+            <th scope="col">Ano</th>
+            <th scope="col">Data</th>
+            <th scope="col">Situação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% matriculas.forEach((matricula) => { %>
+          <tr>
+            <th scope="row"><%= matricula.turmaNome %></th>
+            <td class="numero"><%= matricula.ano %></td>
+            <td class="numero"><%= it.formatarData(matricula.dataMatricula) %></td>
+            <td>
+              <span class="etiqueta etiqueta--<%= matricula.situacao %>"><%= matricula.situacaoNome %></span>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+
+    <div class="quadro">
+      <form class="formulario" method="post" action="/secretaria/matriculas">
+        <input type="hidden" name="_chave" value="<%= it.chave %>">
+        <input type="hidden" name="alunoId" value="<%= aluno.id %>">
+        <fieldset>
+          <legend>Matricular em uma turma</legend>
+
+          <% if (turmas.length === 0 || anosLetivos.length === 0) { %>
+          <p class="suave">
+            Não há turma disponível nas suas unidades.
+            <a href="/secretaria/turmas">Cadastrar turma</a>
+          </p>
+          <% } else { %>
+          <div class="formulario__linha">
+            <div class="campo">
+              <label class="campo__rotulo" for="turmaId">
+                Turma <span class="campo__obrigatorio" aria-hidden="true">*</span>
+              </label>
+              <select
+                id="turmaId"
+                name="turmaId"
+                required
+                <% if (erroDe('turmaId') !== '') { %>aria-invalid="true"<% } %>
+                <% if (descricao('turmaId', false) !== '') { %>aria-describedby="<%= descricao('turmaId', false) %>"<% } %>>
+                <option value="">Selecione…</option>
+                <% gruposDeTurmas.forEach((grupo) => { %>
+                <optgroup label="Ano letivo <%= grupo.ano === null ? '—' : grupo.ano %>">
+                  <% grupo.turmas.forEach((turma) => { %>
+                  <option value="<%= turma.id %>" <%= valor('turmaId', '') === turma.id ? 'selected' : '' %>>
+                    <%= turma.nome %> · <%= turma.serie %> · <%= turma.turno %> · <%= turma.unidadeNome %>
+                  </option>
+                  <% }) %>
+                </optgroup>
+                <% }) %>
+              </select>
+              <% if (erroDe('turmaId') !== '') { %>
+              <p class="campo__erro" id="turmaId-erro"><%= erroDe('turmaId') %></p>
+              <% } %>
+            </div>
+
+            <div class="campo">
+              <label class="campo__rotulo" for="anoLetivoId">
+                Ano letivo <span class="campo__obrigatorio" aria-hidden="true">*</span>
+              </label>
+              <select
+                id="anoLetivoId"
+                name="anoLetivoId"
+                required
+                <% if (erroDe('anoLetivoId') !== '') { %>aria-invalid="true"<% } %>
+                aria-describedby="<%= descricao('anoLetivoId', true) %>">
+                <option value="">Selecione…</option>
+                <% anosLetivos.forEach((anoLetivo) => { %>
+                <option value="<%= anoLetivo.id %>" <%= valor('anoLetivoId', '') === anoLetivo.id ? 'selected' : '' %>>
+                  <%= anoLetivo.ano %>
+                </option>
+                <% }) %>
+              </select>
+              <p class="campo__ajuda" id="anoLetivoId-ajuda">
+                Precisa ser o mesmo ano da turma escolhida — o servidor recusa o par que não fecha.
+              </p>
+              <% if (erroDe('anoLetivoId') !== '') { %>
+              <p class="campo__erro" id="anoLetivoId-erro"><%= erroDe('anoLetivoId') %></p>
+              <% } %>
+            </div>
+
+            <div class="campo">
+              <label class="campo__rotulo" for="dataMatricula">
+                Data da matrícula <span class="campo__obrigatorio" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="dataMatricula"
+                name="dataMatricula"
+                type="date"
+                required
+                value="<%= valor('dataMatricula', it.hoje) %>"
+                <% if (erroDe('dataMatricula') !== '') { %>aria-invalid="true"<% } %>
+                <% if (descricao('dataMatricula', false) !== '') { %>aria-describedby="<%= descricao('dataMatricula', false) %>"<% } %>>
+              <% if (erroDe('dataMatricula') !== '') { %>
+              <p class="campo__erro" id="dataMatricula-erro"><%= erroDe('dataMatricula') %></p>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="acoes">
+            <button class="botao botao--primario" type="submit">Matricular</button>
+            <p class="secao__nota">Um aluno tem, no máximo, uma matrícula ativa por ano letivo.</p>
+          </div>
+          <% } %>
+        </fieldset>
+      </form>
+    </div>
+
+    <% if (ativa !== null) { %>
+    <div class="quadro">
+      <form class="formulario" method="post" action="/secretaria/matriculas/<%= ativa.id %>/transferir">
+        <input type="hidden" name="_chave" value="<%= it.chave %>">
+        <fieldset>
+          <legend>Transferir de turma</legend>
+
+          <% if (gruposDeDestino.length === 0) { %>
+          <p class="suave">Não há outra turma nas suas unidades para receber esta matrícula.</p>
+          <% } else { %>
+          <p class="suave leitura">
+            A matrícula em <strong><%= ativa.turmaNome %></strong> passa a <em>transferida</em> e
+            uma nova matrícula ativa é aberta na turma de destino — as duas escritas na mesma
+            transação.
+          </p>
+
+          <div class="formulario__linha">
+            <div class="campo">
+              <label class="campo__rotulo" for="turmaDestinoId">
+                Turma de destino <span class="campo__obrigatorio" aria-hidden="true">*</span>
+              </label>
+              <select
+                id="turmaDestinoId"
+                name="turmaDestinoId"
+                required
+                <% if (erroDe('turmaDestinoId') !== '') { %>aria-invalid="true"<% } %>
+                aria-describedby="<%= descricao('turmaDestinoId', true) %>">
+                <option value="">Selecione…</option>
+                <% gruposDeDestino.forEach((grupo) => { %>
+                <optgroup label="Ano letivo <%= grupo.ano === null ? '—' : grupo.ano %>">
+                  <% grupo.turmas.forEach((turma) => { %>
+                  <option value="<%= turma.id %>" <%= valor('turmaDestinoId', '') === turma.id ? 'selected' : '' %>>
+                    <%= turma.nome %> · <%= turma.serie %> · <%= turma.turno %> · <%= turma.unidadeNome %>
+                  </option>
+                  <% }) %>
+                </optgroup>
+                <% }) %>
+              </select>
+              <p class="campo__ajuda" id="turmaDestinoId-ajuda">
+                Precisa pertencer ao mesmo ano letivo da matrícula atual.
+              </p>
+              <% if (erroDe('turmaDestinoId') !== '') { %>
+              <p class="campo__erro" id="turmaDestinoId-erro"><%= erroDe('turmaDestinoId') %></p>
+              <% } %>
+            </div>
+
+            <div class="campo">
+              <label class="campo__rotulo" for="data">
+                Data da transferência <span class="campo__obrigatorio" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="data"
+                name="data"
+                type="date"
+                required
+                value="<%= valor('data', it.hoje) %>"
+                <% if (erroDe('data') !== '') { %>aria-invalid="true"<% } %>
+                <% if (descricao('data', false) !== '') { %>aria-describedby="<%= descricao('data', false) %>"<% } %>>
+              <% if (erroDe('data') !== '') { %>
+              <p class="campo__erro" id="data-erro"><%= erroDe('data') %></p>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="acoes">
+            <button class="botao botao--secundario" type="submit">Transferir matrícula</button>
+          </div>
+          <% } %>
+        </fieldset>
+      </form>
+    </div>
+    <% } %>
+  </div>
+</section>

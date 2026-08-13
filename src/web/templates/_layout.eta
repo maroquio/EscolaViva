@@ -1,0 +1,36 @@
+<%
+/*
+  Layout da aplicação: quem tem sessão vê esta moldura em toda tela.
+
+  `renderizar` monta o documento automaticamente quando a página não declara layout, e escolhe
+  este quando há usuário na sessão. Uma página pode declarar explicitamente chamando
+  `layout("/_layout")` na primeira linha — o resultado é o mesmo.
+
+  Nenhum <script>, nenhuma imagem, nenhuma fonte externa: a página não faz uma única requisição
+  de rede além do próprio HTML e do CSS versionado.
+*/
+%><!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= it.titulo %> · EscolaViva</title>
+  <link rel="stylesheet" href="/publico/<%= it.asset('app.css') %>">
+  <%~ include("/parciais/_icone") %>
+</head>
+<body>
+  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="aplicacao">
+    <%~ include("/parciais/_cabecalho", it) %>
+    <%~ include("/parciais/_navegacao", it) %>
+
+    <main class="conteudo" id="conteudo" tabindex="-1">
+      <%~ include("/parciais/_mensagens", it) %>
+      <%~ it.body %>
+    </main>
+  </div>
+</body>
+</html>
