@@ -1,0 +1,14 @@
+node_modules/
+
+# I18: o exemplo é versionado, o arquivo com segredo real nunca.
+.env
+
+# Gerado por `bun run build:assets` (I10) — o nome carrega o hash do conteúdo.
+publico/
+
+coverage/
+*.dump
+.DS_Store
+
+# bun.lock é versionado de propósito: o Dockerfile instala com --frozen-lockfile,
+# então a imagem só é reprodutível se o lock estiver no repositório.

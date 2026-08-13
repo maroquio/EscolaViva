@@ -1,0 +1,30 @@
+{
+  "name": "escolaviva",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/main.ts",
+    "start": "bun src/main.ts",
+    "migrate": "bun scripts/migrate.ts",
+    "migrate:status": "bun scripts/migrate.ts --status",
+    "build:assets": "bun scripts/build-assets.ts",
+    "seed": "bun scripts/seed.ts",
+    "seed:volume": "bun scripts/seed-volume.ts",
+    "check": "bunx depcruise src --config .dependency-cruiser.js",
+    "typecheck": "bunx tsc --noEmit",
+    "test": "bun test",
+    "test:cobertura": "bun test --coverage",
+    "verificar": "bun run typecheck && bun run check && bun run test"
+  },
+  "dependencies": {
+    "eta": "^3",
+    "hono": "^4",
+    "pino": "^9",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "dependency-cruiser": "^16",
+    "typescript": "^5"
+  }
+}
