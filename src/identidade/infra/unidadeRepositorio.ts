@@ -1,0 +1,81 @@
+import type { Conexao } from '../../shared/db';
+import type { Unidade } from '../dominio/unidade';
+
+type LinhaDeUnidade = {
+  id: string;
+  rede_id: string;
+  nome: string;
+  codigo_inep: string | null;
+  ativa: boolean;
+};
+
+const paraUnidade = (linha: LinhaDeUnidade): Unidade => ({
+  id: linha.id,
+  redeId: linha.rede_id,
+  nome: linha.nome,
+  codigoInep: linha.codigo_inep,
+  ativa: linha.ativa,
+});
+
+export async function listarPorRede(sql: Conexao, redeId: string): Promise<Unidade[]> {
+  const linhas = await sql<LinhaDeUnidade[]>`
+    SELECT id, rede_id, nome, codigo_inep, ativa
+    FROM unidade
+    WHERE rede_id = ${redeId}
+    ORDER BY nome
+  `;
+  return linhas.map(paraUnidade);
+}
+
+export async function porId(
+  sql: Conexao,
+  redeId: string,
+  unidadeId: string,
+): Promise<Unidade | null> {
+  const linhas = await sql<LinhaDeUnidade[]>`
+    SELECT id, rede_id, nome, codigo_inep, ativa
+    FROM unidade
+    WHERE rede_id = ${redeId} AND id = ${unidadeId}
+  `;
+  const linha = linhas[0];
+  return linha === undefined ? null : paraUnidade(linha);
+}
+
+/**
+ * Comparação exata de propósito: a constraint `unidade_nome_unico_na_rede` também é exata, e uma
+ * checagem mais larga aqui recusaria nome que o banco aceitaria.
+ */
+export async function existeNome(sql: Conexao, redeId: string, nome: string): Promise<boolean> {
+  const linhas = await sql<{ existe: number }[]>`
+    SELECT 1 AS existe
+    FROM unidade
+    WHERE rede_id = ${redeId} AND nome = ${nome}
+    LIMIT 1
+  `;
+  return linhas.length > 0;
+}
+
+/**
+ * Quais dos ids informados são realmente unidades desta rede. A FK de `papel_usuario` garante que
+ * a unidade existe, não que ela pertence à rede de quem convida — esse isolamento é conferido aqui.
+ */
+export async function idsNaRede(
+  sql: Conexao,
+  redeId: string,
+  ids: string[],
+): Promise<Set<string>> {
+  if (ids.length === 0) return new Set<string>();
+  const linhas = await sql<{ id: string }[]>`
+    SELECT id
+    FROM unidade
+    WHERE rede_id = ${redeId} AND id IN ${sql(ids)}
+  `;
+  return new Set(linhas.map((linha) => linha.id));
+}
+
+export async function inserir(sql: Conexao, unidade: Unidade): Promise<void> {
+  await sql`
+    INSERT INTO unidade (id, rede_id, nome, codigo_inep, ativa)
+    VALUES (${unidade.id}, ${unidade.redeId}, ${unidade.nome}, ${unidade.codigoInep}, ${unidade.ativa})
+  `;
+}
