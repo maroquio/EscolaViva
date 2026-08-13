@@ -1,0 +1,974 @@
+/* =============================================================================
+   EscolaViva — folha de estilo única do produto.
+
+   Direção: suíço/internacional com respiro editorial. Tema claro apenas, zero
+   framework, zero fonte externa — nenhuma requisição de rede sai desta página.
+
+   Três decisões governam tudo o que vem abaixo:
+     1. Hierarquia por escala e peso, nunca por caixa colorida.
+     2. Profundidade por linha e sobreposição, nunca por sombra difusa.
+     3. Número é dado: sempre em fonte monoespaçada com dígitos de mesma largura,
+        para que colunas de nota e frequência sejam comparáveis de relance.
+
+   Esta é a fonte; `bun run build:assets` publica `publico/app.<hash>.css` (I10).
+
+   Índice
+     1. Tokens
+     2. Base e reset
+     3. Tipografia
+     4. Estrutura da aplicação
+     5. Cabeçalho
+     6. Navegação lateral
+     7. Cabeçalho de página e seções
+     8. Cartões de painel
+     9. Tabelas de dados
+    10. Formulários
+    11. Botões
+    12. Etiquetas de situação
+    13. Avisos
+    14. Estado vazio
+    15. Telas públicas (login e erro)
+    16. Utilitários
+    17. Movimento reduzido e impressão
+   ============================================================================= */
+
+/* --- 1. Tokens ------------------------------------------------------------ */
+
+:root {
+  --papel:        oklch(98.5% 0.004 95);
+  --papel-fundo:  oklch(96%   0.006 95);
+  --tinta:        oklch(24%   0.02  260);
+  --tinta-suave:  oklch(48%   0.015 260);
+  --linha:        oklch(88%   0.008 260);
+  --marca:        oklch(44%   0.13  262);
+  --marca-clara:  oklch(94%   0.03  262);
+  --sucesso:      oklch(52%   0.12  155);
+  --atencao:      oklch(70%   0.14  75);
+  --perigo:       oklch(52%   0.19  27);
+  --serif: ui-serif, Georgia, 'Times New Roman', serif;
+  --sans:  system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono:  ui-monospace, 'SF Mono', Menlo, monospace;
+  --passo: 0.25rem;  /* escala 1,2,3,4,6,8,12,16,24 */
+  --rapido: 140ms; --normal: 260ms; --saida: cubic-bezier(.16,1,.3,1);
+
+  /* Derivados: superfícies e tintas de estado que passam AA sobre --papel. */
+  --papel-alto:   oklch(100%  0     0);
+  --linha-forte:  oklch(76%   0.012 260);
+  --marca-escura: oklch(34%   0.115 262);
+  --sucesso-tinta: oklch(38%  0.10  155);
+  --sucesso-fundo: oklch(95.5% 0.03 155);
+  --atencao-tinta: oklch(42%  0.10  75);
+  --atencao-fundo: oklch(95.5% 0.05 85);
+  --perigo-tinta:  oklch(43%  0.17  27);
+  --perigo-fundo:  oklch(95.5% 0.035 27);
+
+  /* Ritmo: um único passo, multiplicado. Nunca um valor solto no meio da folha. */
+  --e1:  calc(var(--passo) * 1);
+  --e2:  calc(var(--passo) * 2);
+  --e3:  calc(var(--passo) * 3);
+  --e4:  calc(var(--passo) * 4);
+  --e6:  calc(var(--passo) * 6);
+  --e8:  calc(var(--passo) * 8);
+  --e12: calc(var(--passo) * 12);
+  --e16: calc(var(--passo) * 16);
+  --e24: calc(var(--passo) * 24);
+
+  /* Escala tipográfica: contraste real entre o título e o corpo. */
+  --texto-micro:   0.75rem;
+  --texto-pequeno: 0.8125rem;
+  --texto-base:    clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+  --texto-medio:   clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  --texto-grande:  clamp(1.375rem, 1.15rem + 0.85vw, 1.8125rem);
+  --texto-titulo:  clamp(1.75rem, 1.3rem + 1.8vw, 2.625rem);
+  --texto-display: clamp(2.125rem, 1.4rem + 3vw, 3.5rem);
+
+  --barra-lateral: 15.5rem;
+  --altura-cabecalho: 4.25rem;
+  --largura-leitura: 42rem;
+}
+
+/* --- 2. Base e reset ------------------------------------------------------ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body, h1, h2, h3, h4, p, figure, blockquote, dl, dd, ul, ol, fieldset, legend {
+  margin: 0;
+  padding: 0;
+}
+
+ul, ol { list-style: none; }
+
+body {
+  background: var(--papel-fundo);
+  color: var(--tinta);
+  font-family: var(--sans);
+  font-size: var(--texto-base);
+  line-height: 1.6;
+  min-block-size: 100dvh;
+  /* A rolagem horizontal pertence ao contêiner da tabela, nunca à página. */
+  overflow-x: clip;
+  text-rendering: optimizeLegibility;
+}
+
+img, svg { max-inline-size: 100%; block-size: auto; }
+
+/* O foco é a única pista de onde o teclado está: ele nunca é removido. */
+:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+
+::selection { background: var(--marca-clara); color: var(--marca-escura); }
+
+/* --- 3. Tipografia -------------------------------------------------------- */
+
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+h1 { font-size: var(--texto-titulo); }
+h2 { font-size: var(--texto-grande); }
+h3 { font-size: var(--texto-medio); letter-spacing: -0.005em; }
+h4 { font-size: var(--texto-base); }
+
+p { text-wrap: pretty; }
+
+a {
+  color: var(--marca);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: color var(--rapido) var(--saida);
+}
+a:hover { color: var(--marca-escura); }
+a:active { color: var(--tinta); }
+
+code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
+
+/* Número é dado tabular: mesma largura de dígito em qualquer contexto. */
+.numero, td.numero, th.numero, .cartao__numero, time, .codigo {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Sobretítulo: a assinatura editorial que orienta sem competir com o título. */
+.sobretitulo {
+  font-family: var(--mono);
+  font-size: var(--texto-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+}
+
+.marca {
+  font-family: var(--serif);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--tinta);
+  text-decoration: none;
+}
+.marca em {
+  font-style: normal;
+  color: var(--marca);
+}
+
+/* --- 4. Estrutura da aplicação -------------------------------------------- */
+
+/* A régua da marca no topo do documento: 3px que dizem de quem é a página. */
+.aplicacao::before,
+.publico::before {
+  content: '';
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 3px;
+  background: var(--marca);
+  z-index: 3;
+}
+
+.aplicacao {
+  display: grid;
+  grid-template-columns: var(--barra-lateral) minmax(0, 1fr);
+  grid-template-areas:
+    'cabecalho cabecalho'
+    'navegacao conteudo';
+  grid-template-rows: auto minmax(0, 1fr);
+  min-block-size: 100dvh;
+}
+
+.conteudo {
+  grid-area: conteudo;
+  padding: var(--e8) clamp(var(--e4), 3vw, var(--e12)) var(--e24);
+  background: var(--papel);
+  border-inline-start: 1px solid var(--linha);
+  /* A borda da barra lateral e a do conteúdo se sobrepõem em 1px: uma linha só. */
+  margin-inline-start: -1px;
+  min-inline-size: 0;
+}
+
+.pular-para-conteudo {
+  position: absolute;
+  inset-block-start: var(--e2);
+  inset-inline-start: var(--e2);
+  z-index: 10;
+  padding: var(--e2) var(--e4);
+  background: var(--marca);
+  color: var(--papel-alto);
+  font-size: var(--texto-pequeno);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(calc(-100% - var(--e4)));
+  transition: transform var(--rapido) var(--saida);
+}
+.pular-para-conteudo:focus-visible {
+  transform: translateY(0);
+  color: var(--papel-alto);
+}
+
+/* --- 5. Cabeçalho --------------------------------------------------------- */
+
+.cabecalho {
+  grid-area: cabecalho;
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: clamp(var(--e4), 3vw, var(--e12));
+  min-block-size: var(--altura-cabecalho);
+  padding: var(--e3) clamp(var(--e4), 3vw, var(--e8));
+  background: var(--papel-fundo);
+  border-block-end: 1px solid var(--linha);
+}
+
+.cabecalho__marca { font-size: var(--texto-medio); }
+
+.cabecalho__contexto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--e1) var(--e3);
+  min-inline-size: 0;
+  margin-inline-end: auto;
+  padding-inline-start: clamp(var(--e4), 3vw, var(--e8));
+  border-inline-start: 1px solid var(--linha);
+}
+
+.cabecalho__rede {
+  font-weight: 600;
+  font-size: var(--texto-pequeno);
+}
+
+.cabecalho__unidade {
+  font-size: var(--texto-pequeno);
+  color: var(--tinta-suave);
+}
+
+.cabecalho__usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--e3);
+  font-size: var(--texto-pequeno);
+}
+
+.cabecalho__nome {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-inline-size: 14rem;
+}
+
+.cabecalho__sair { display: contents; }
+
+/* --- 6. Navegação lateral ------------------------------------------------- */
+
+.navegacao {
+  grid-area: navegacao;
+  align-self: start;
+  position: sticky;
+  inset-block-start: var(--altura-cabecalho);
+  padding: var(--e8) var(--e4) var(--e12) clamp(var(--e4), 3vw, var(--e8));
+  max-block-size: calc(100dvh - var(--altura-cabecalho));
+  overflow-y: auto;
+}
+
+.navegacao__grupo + .navegacao__grupo { margin-block-start: var(--e8); }
+
+.navegacao__titulo {
+  font-family: var(--mono);
+  font-size: var(--texto-micro);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  padding-block-end: var(--e2);
+  margin-block-end: var(--e2);
+  border-block-end: 1px solid var(--linha);
+}
+
+.navegacao__link {
+  display: block;
+  padding: var(--e2) var(--e3);
+  /* A marca do item ativo ocupa a goteira: por isso o recuo negativo. */
+  margin-inline-start: calc(var(--e3) * -1);
+  border-inline-start: 3px solid transparent;
+  color: var(--tinta);
+  font-size: var(--texto-pequeno);
+  text-decoration: none;
+  transition: background var(--rapido) var(--saida), border-color var(--rapido) var(--saida);
+}
+.navegacao__link:hover {
+  background: var(--papel-fundo);
+  border-inline-start-color: var(--linha-forte);
+  color: var(--tinta);
+}
+.navegacao__link:active { background: var(--marca-clara); }
+.navegacao__link[aria-current='page'] {
+  background: var(--marca-clara);
+  border-inline-start-color: var(--marca);
+  color: var(--marca-escura);
+  font-weight: 600;
+}
+
+/* --- 7. Cabeçalho de página e seções -------------------------------------- */
+
+.pagina__cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--e4) var(--e8);
+  padding-block-end: var(--e4);
+  margin-block-end: var(--e12);
+  border-block-end: 2px solid var(--tinta);
+}
+
+.pagina__titulo { margin-block-start: var(--e2); }
+
+.pagina__resumo {
+  margin-block-start: var(--e3);
+  max-inline-size: var(--largura-leitura);
+  color: var(--tinta-suave);
+}
+
+.pagina__acoes { display: flex; flex-wrap: wrap; gap: var(--e3); }
+
+.secao + .secao { margin-block-start: var(--e16); }
+
+.secao__cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e3) var(--e6);
+  padding-block-end: var(--e2);
+  margin-block-end: var(--e6);
+  border-block-end: 1px solid var(--tinta);
+}
+
+.secao__nota {
+  font-size: var(--texto-pequeno);
+  color: var(--tinta-suave);
+}
+
+.quadro {
+  background: var(--papel-alto);
+  border: 1px solid var(--linha);
+  padding: clamp(var(--e4), 2vw, var(--e8));
+}
+
+.lista-definicoes {
+  display: grid;
+  grid-template-columns: minmax(8rem, auto) minmax(0, 1fr);
+  gap: var(--e2) var(--e6);
+  align-items: baseline;
+}
+.lista-definicoes dt {
+  font-family: var(--mono);
+  font-size: var(--texto-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+}
+.lista-definicoes dd { font-weight: 500; }
+
+/* --- 8. Cartões de painel ------------------------------------------------- */
+
+.painel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1px;
+  background: var(--linha);
+  border: 1px solid var(--linha);
+}
+
+/* Sem espaço entre cartões: a grade de 1px vira a própria linha que os separa. */
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  padding: var(--e6);
+  background: var(--papel-alto);
+  color: inherit;
+  text-decoration: none;
+  transition: background var(--rapido) var(--saida);
+}
+a.cartao:hover { background: var(--marca-clara); }
+a.cartao:active { background: var(--papel-fundo); }
+
+.cartao__rotulo {
+  font-family: var(--mono);
+  font-size: var(--texto-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+}
+
+.cartao__numero {
+  font-size: var(--texto-display);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.cartao__detalhe {
+  font-size: var(--texto-pequeno);
+  color: var(--tinta-suave);
+}
+
+/* --- 9. Tabelas de dados -------------------------------------------------- */
+
+/* A rolagem mora aqui: a página nunca rola de lado por causa de uma tabela. */
+.tabela-rolagem {
+  overflow: auto;
+  max-block-size: min(70dvh, 44rem);
+  border: 1px solid var(--linha);
+  background: var(--papel-alto);
+  overscroll-behavior: contain;
+}
+
+.tabela {
+  inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--texto-pequeno);
+}
+
+.tabela caption {
+  padding: var(--e3) var(--e4);
+  text-align: start;
+  font-size: var(--texto-micro);
+  font-family: var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  background: var(--papel-fundo);
+  border-block-end: 1px solid var(--linha);
+}
+
+.tabela thead th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  padding: var(--e3) var(--e4);
+  background: var(--papel-fundo);
+  font-family: var(--mono);
+  font-size: var(--texto-micro);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: end;
+  white-space: nowrap;
+  /* Regra sob o cabeçalho fixo: `border` some junto com a célula ao rolar. */
+  box-shadow: inset 0 -1px 0 var(--tinta);
+}
+
+.tabela thead th:first-child,
+.tabela .celula-texto { text-align: start; }
+
+.tabela tbody tr { background: var(--papel-alto); }
+.tabela tbody tr:nth-child(even) { background: var(--papel); }
+.tabela tbody tr:hover { background: var(--marca-clara); }
+
+.tabela td, .tabela th[scope='row'] {
+  padding: var(--e3) var(--e4);
+  border-block-end: 1px solid var(--linha);
+  text-align: end;
+  vertical-align: baseline;
+}
+
+/* A coluna do aluno é a âncora de leitura: fica à esquerda e não sai da tela na rolagem. */
+.tabela th[scope='row'] {
+  position: sticky;
+  inset-inline-start: 0;
+  background: inherit;
+  text-align: start;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: inset -1px 0 0 var(--linha);
+}
+
+.tabela tbody tr:last-child td,
+.tabela tbody tr:last-child th[scope='row'] { border-block-end: 0; }
+
+.tabela tfoot th, .tabela tfoot td {
+  padding: var(--e3) var(--e4);
+  text-align: end;
+  font-weight: 600;
+  border-block-start: 2px solid var(--tinta);
+}
+
+.tabela__acoes { display: flex; justify-content: flex-end; gap: var(--e2); }
+
+/* --- 10. Formulários ------------------------------------------------------ */
+
+.formulario {
+  display: grid;
+  gap: var(--e6);
+  max-inline-size: var(--largura-leitura);
+}
+
+.formulario--largo { max-inline-size: none; }
+
+.formulario__linha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--e6);
+}
+
+fieldset { border: 0; }
+
+legend {
+  font-family: var(--serif);
+  font-size: var(--texto-medio);
+  font-weight: 600;
+  padding-block-end: var(--e2);
+  margin-block-end: var(--e4);
+  border-block-end: 1px solid var(--linha);
+  inline-size: 100%;
+}
+
+.campo { display: grid; gap: var(--e2); }
+
+.campo__rotulo {
+  font-size: var(--texto-pequeno);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.campo__obrigatorio { color: var(--perigo-tinta); }
+
+.campo__ajuda {
+  font-size: var(--texto-micro);
+  color: var(--tinta-suave);
+}
+
+.campo__erro {
+  font-size: var(--texto-micro);
+  font-weight: 600;
+  color: var(--perigo-tinta);
+  padding-inline-start: var(--e2);
+  border-inline-start: 2px solid var(--perigo);
+}
+
+input, select, textarea {
+  font: inherit;
+  color: var(--tinta);
+  background: var(--papel-alto);
+  border: 1px solid var(--linha-forte);
+  border-radius: 0;
+  padding: var(--e2) var(--e3);
+  inline-size: 100%;
+  min-inline-size: 0;
+  transition: border-color var(--rapido) var(--saida), background var(--rapido) var(--saida);
+}
+
+input[type='number'], input[type='date'], .entrada-numerica {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+input[type='checkbox'], input[type='radio'] {
+  inline-size: 1.05rem;
+  block-size: 1.05rem;
+  accent-color: var(--marca);
+}
+
+textarea { min-block-size: 9rem; resize: vertical; line-height: 1.55; }
+
+input:hover, select:hover, textarea:hover { border-color: var(--tinta-suave); }
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  border-color: var(--marca);
+  background: var(--papel-alto);
+}
+input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='true'] {
+  border-color: var(--perigo);
+  background: var(--perigo-fundo);
+}
+input:disabled, select:disabled, textarea:disabled {
+  background: var(--papel-fundo);
+  color: var(--tinta-suave);
+  cursor: not-allowed;
+}
+
+.campo--opcao {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--e3);
+}
+.campo--opcao .campo__rotulo { font-weight: 500; }
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e3);
+  padding-block-start: var(--e4);
+  border-block-start: 1px solid var(--linha);
+}
+
+.acoes--fim { justify-content: flex-end; }
+
+/*
+  Filtro de uma linha: o rótulo ocupa a primeira faixa, o controle e o botão dividem a segunda.
+  Estar na mesma faixa do grid é o que alinha os dois — o botão estica até a altura exata do
+  controle, sem depender de uma altura fixa que só coincide em um tamanho de fonte.
+*/
+.filtro {
+  display: grid;
+  grid-template-columns: minmax(0, 16rem) auto;
+  justify-content: start;
+  align-items: stretch;
+  gap: var(--e2) var(--e3);
+  margin-block-end: var(--e12);
+}
+
+.filtro > .campo__rotulo { grid-column: 1; }
+.filtro > input, .filtro > select { grid-column: 1; }
+.filtro > .botao { grid-column: 2; grid-row: 2; }
+
+/* --- 11. Botões ----------------------------------------------------------- */
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e2);
+  padding: var(--e2) var(--e6);
+  min-block-size: 2.5rem;
+  border: 1px solid transparent;
+  border-radius: 0;
+  font: inherit;
+  font-size: var(--texto-pequeno);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--rapido) var(--saida), color var(--rapido) var(--saida),
+              border-color var(--rapido) var(--saida), transform var(--rapido) var(--saida);
+}
+.botao:active { transform: translateY(1px); }
+.botao:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+.botao--primario {
+  background: var(--marca);
+  border-color: var(--marca);
+  color: var(--papel-alto);
+}
+.botao--primario:hover { background: var(--marca-escura); border-color: var(--marca-escura); color: var(--papel-alto); }
+
+.botao--secundario {
+  background: var(--papel-alto);
+  border-color: var(--tinta);
+  color: var(--tinta);
+}
+.botao--secundario:hover { background: var(--marca-clara); border-color: var(--marca); color: var(--marca-escura); }
+
+.botao--perigo {
+  background: var(--papel-alto);
+  border-color: var(--perigo);
+  color: var(--perigo-tinta);
+}
+.botao--perigo:hover { background: var(--perigo); border-color: var(--perigo); color: var(--papel-alto); }
+
+.botao--discreto {
+  background: none;
+  border-color: transparent;
+  color: var(--tinta-suave);
+  padding-inline: var(--e2);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+}
+.botao--discreto:hover { color: var(--marca-escura); }
+
+.botao--miudo { min-block-size: 2rem; padding: var(--e1) var(--e3); font-size: var(--texto-micro); }
+
+/* --- 12. Etiquetas de situação -------------------------------------------- */
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e2);
+  padding: 0 var(--e2);
+  min-block-size: 1.55rem;
+  font-family: var(--mono);
+  font-size: var(--texto-micro);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid currentcolor;
+  color: var(--tinta-suave);
+  background: var(--papel-alto);
+}
+
+/* O ponto à esquerda é a única cor sólida: o texto continua legível em AA. */
+.etiqueta::before {
+  content: '';
+  inline-size: 0.45rem;
+  block-size: 0.45rem;
+  background: currentcolor;
+  border-radius: 50%;
+}
+
+.etiqueta--aprovado, .etiqueta--ativa {
+  color: var(--sucesso-tinta);
+  background: var(--sucesso-fundo);
+}
+.etiqueta--reprovado {
+  color: var(--perigo-tinta);
+  background: var(--perigo-fundo);
+}
+.etiqueta--em-curso {
+  color: var(--marca-escura);
+  background: var(--marca-clara);
+}
+.etiqueta--transferida {
+  color: var(--atencao-tinta);
+  background: var(--atencao-fundo);
+}
+
+/* --- 13. Avisos ----------------------------------------------------------- */
+
+.aviso {
+  display: grid;
+  gap: var(--e1);
+  padding: var(--e3) var(--e4);
+  margin-block-end: var(--e8);
+  background: var(--papel-alto);
+  border: 1px solid var(--linha);
+  border-inline-start-width: 4px;
+  font-size: var(--texto-pequeno);
+}
+
+.aviso__titulo { font-weight: 600; font-size: var(--texto-base); }
+.aviso ul { display: grid; gap: var(--e1); padding-inline-start: var(--e4); list-style: disc; }
+
+.aviso--sucesso {
+  border-color: var(--linha);
+  border-inline-start-color: var(--sucesso);
+  background: var(--sucesso-fundo);
+  color: var(--sucesso-tinta);
+}
+.aviso--erro {
+  border-color: var(--linha);
+  border-inline-start-color: var(--perigo);
+  background: var(--perigo-fundo);
+  color: var(--perigo-tinta);
+}
+.aviso--atencao {
+  border-color: var(--linha);
+  border-inline-start-color: var(--atencao);
+  background: var(--atencao-fundo);
+  color: var(--atencao-tinta);
+}
+
+/* Senha provisória e código de correlação: valores para copiar, não para ler. */
+.codigo {
+  display: inline-block;
+  padding: var(--e1) var(--e2);
+  background: var(--papel-fundo);
+  border: 1px solid var(--linha-forte);
+  font-size: var(--texto-pequeno);
+  letter-spacing: 0.04em;
+  user-select: all;
+}
+
+/* --- 14. Estado vazio ----------------------------------------------------- */
+
+.vazio {
+  display: grid;
+  justify-items: start;
+  gap: var(--e3);
+  padding: var(--e12) var(--e6);
+  border: 1px dashed var(--linha-forte);
+  background: var(--papel-alto);
+}
+
+.vazio__titulo {
+  font-family: var(--serif);
+  font-size: var(--texto-medio);
+  font-weight: 600;
+}
+
+.vazio__texto {
+  max-inline-size: 34rem;
+  color: var(--tinta-suave);
+  font-size: var(--texto-pequeno);
+}
+
+/* --- 15. Telas públicas (login e erro) ------------------------------------ */
+
+.publico {
+  display: grid;
+  place-items: center;
+  min-block-size: 100dvh;
+  padding: var(--e12) var(--e4);
+  background:
+    linear-gradient(var(--linha) 1px, transparent 1px) 0 0 / 100% 2rem,
+    var(--papel-fundo);
+}
+
+.publico__cartao {
+  inline-size: min(100%, 27rem);
+  padding: clamp(var(--e6), 4vw, var(--e12));
+  background: var(--papel);
+  border: 1px solid var(--linha);
+  /* Sobreposição, não sombra: a folha branca pousa sobre a pauta do fundo. */
+  box-shadow: var(--e2) var(--e2) 0 var(--papel), var(--e2) var(--e2) 0 1px var(--linha);
+}
+
+.publico__marca {
+  font-size: var(--texto-grande);
+  display: inline-block;
+  margin-block-end: var(--e2);
+}
+
+.publico__titulo {
+  font-size: var(--texto-medio);
+  margin-block-end: var(--e8);
+  padding-block-end: var(--e3);
+  border-block-end: 1px solid var(--linha);
+  color: var(--tinta-suave);
+  font-family: var(--sans);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.publico__rodape {
+  margin-block-start: var(--e8);
+  padding-block-start: var(--e4);
+  border-block-start: 1px solid var(--linha);
+  font-size: var(--texto-micro);
+  color: var(--tinta-suave);
+}
+
+/* Dentro da folha estreita o título grande da aplicação não cabe: a escala desce um degrau. */
+.publico__cartao h1 { font-size: var(--texto-grande); margin-block-end: var(--e6); }
+
+.erro { display: grid; gap: var(--e6); }
+
+.erro__status {
+  font-family: var(--mono);
+  font-size: var(--texto-medio);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--marca);
+}
+
+.erro__ocorrencia {
+  display: grid;
+  gap: var(--e2);
+  padding-block-start: var(--e4);
+  border-block-start: 1px solid var(--linha);
+}
+
+.erro__instrucao {
+  font-size: var(--texto-micro);
+  color: var(--tinta-suave);
+}
+
+/* --- 16. Utilitários ------------------------------------------------------ */
+
+.visualmente-oculto {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.pilha { display: grid; gap: var(--e4); }
+.pilha--larga { gap: var(--e8); }
+.linha { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e3); }
+.suave { color: var(--tinta-suave); }
+.leitura { max-inline-size: var(--largura-leitura); }
+.texto-corrido { white-space: pre-wrap; line-height: 1.7; }
+
+/* --- 17. Adaptação, movimento reduzido e impressão ------------------------ */
+
+@media (max-width: 60rem) {
+  .aplicacao {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'cabecalho' 'navegacao' 'conteudo';
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .navegacao {
+    position: static;
+    max-block-size: none;
+    padding: var(--e4);
+    border-block-end: 1px solid var(--linha);
+    background: var(--papel-fundo);
+    display: flex;
+    gap: var(--e6);
+    overflow-x: auto;
+  }
+
+  .navegacao__grupo + .navegacao__grupo { margin-block-start: 0; }
+  .navegacao__lista { display: flex; gap: var(--e1); }
+  .navegacao__titulo { white-space: nowrap; }
+  .navegacao__link { margin-inline-start: 0; border-inline-start-width: 0; border-block-end: 3px solid transparent; white-space: nowrap; }
+  .navegacao__link[aria-current='page'] { border-block-end-color: var(--marca); }
+
+  .conteudo { border-inline-start: 0; margin-inline-start: 0; }
+  .cabecalho { flex-wrap: wrap; gap: var(--e2) var(--e4); }
+  .cabecalho__contexto { padding-inline-start: 0; border-inline-start: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+  .botao:active { transform: none; }
+  .pular-para-conteudo { transition: none; }
+}
+
+@media print {
+  .navegacao, .pagina__acoes, .acoes, .pular-para-conteudo { display: none; }
+  body { background: #fff; }
+  .conteudo { padding: 0; border: 0; }
+  .tabela-rolagem { max-block-size: none; overflow: visible; border: 0; }
+  .tabela thead th { position: static; }
+}

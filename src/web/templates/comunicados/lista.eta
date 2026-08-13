@@ -25,20 +25,18 @@ const resumo = it.resumo;
   </p>
 </header>
 
-<form class="linha" method="get" action="/comunicados">
-  <div class="campo">
-    <label class="campo__rotulo" for="filtro-unidade">Unidade</label>
-    <select id="filtro-unidade" name="unidadeId">
-      <% if (it.veTodaARede) { %>
-      <option value=""<% if (it.unidadeAtual === '') { %> selected<% } %>>Toda a rede</option>
-      <% } %>
-      <% it.unidades.forEach((unidade) => { %>
-      <option value="<%= unidade.id %>"<% if (unidade.id === it.unidadeAtual) { %> selected<% } %>>
-        <%= unidade.nome %>
-      </option>
-      <% }) %>
-    </select>
-  </div>
+<form class="filtro" method="get" action="/comunicados">
+  <label class="campo__rotulo" for="filtro-unidade">Unidade</label>
+  <select id="filtro-unidade" name="unidadeId">
+    <% if (it.veTodaARede) { %>
+    <option value=""<% if (it.unidadeAtual === '') { %> selected<% } %>>Toda a rede</option>
+    <% } %>
+    <% it.unidades.forEach((unidade) => { %>
+    <option value="<%= unidade.id %>"<% if (unidade.id === it.unidadeAtual) { %> selected<% } %>>
+      <%= unidade.nome %>
+    </option>
+    <% }) %>
+  </select>
   <button class="botao botao--secundario" type="submit">Filtrar</button>
 </form>
 
