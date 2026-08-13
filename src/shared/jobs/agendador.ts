@@ -1,0 +1,42 @@
+import { logger } from '../log';
+import { comLockExclusivo } from './lock';
+
+export type Job = {
+  nome: string;
+  chaveDeLock: number;
+  intervaloMs: number;
+  executar(): Promise<void>;
+};
+
+export function iniciarAgendador(jobs: Job[]): { parar(): void } {
+  const temporizadores = jobs.map((job) => {
+    const temporizador = setInterval(() => {
+      void executarJob(job);
+    }, job.intervaloMs);
+    // Um job pendente não pode segurar o processo no desligamento.
+    temporizador.unref();
+    return temporizador;
+  });
+
+  return {
+    parar(): void {
+      for (const temporizador of temporizadores) clearInterval(temporizador);
+    },
+  };
+}
+
+async function executarJob(job: Job): Promise<void> {
+  try {
+    const resultado = await comLockExclusivo(job.chaveDeLock, () => job.executar());
+    if (resultado === null) {
+      logger.debug({ job: job.nome }, 'job ignorado: lock em outra instancia');
+    }
+  } catch (erro) {
+    // Job que quebra vira linha de log: derrubar o processo tiraria o site do ar por um expurgo.
+    logger.error({ job: job.nome, erro: descrever(erro) }, 'job falhou');
+  }
+}
+
+function descrever(erro: unknown): string {
+  return erro instanceof Error ? erro.message : String(erro);
+}

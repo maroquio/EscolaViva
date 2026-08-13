@@ -1,0 +1,47 @@
+import type { Context, MiddlewareHandler } from 'hono';
+import { logger, redigir } from '../log';
+import { NaoAutorizado, paginaDeErro } from './erros';
+import type { PapelDaSessao, UsuarioDaSessao } from './sessao';
+import { usuarioAtualOuNulo } from './sessao';
+
+const ROTA_LOGIN = '/login';
+
+export function temPapel(u: UsuarioDaSessao, papel: PapelDaSessao): boolean {
+  return u.papeis.some((atribuicao) => atribuicao.papel === papel);
+}
+
+export function unidadesDoPapel(u: UsuarioDaSessao, papel: PapelDaSessao): string[] {
+  return u.papeis.filter((atribuicao) => atribuicao.papel === papel).map((atribuicao) => atribuicao.unidadeId);
+}
+
+/**
+ * Quem chega anônimo em uma tela é levado ao login; quem chega anônimo em uma escrita recebe 401.
+ * Redirecionar um POST perderia o formulário sem dizer por quê.
+ */
+const recusarAnonimo = (c: Context): Response => {
+  if (c.req.method === 'GET') return c.redirect(ROTA_LOGIN, 303);
+  throw new NaoAutorizado('requisição sem sessão');
+};
+
+export function exigirLogin(): MiddlewareHandler {
+  return async (c, next) => {
+    if (usuarioAtualOuNulo(c) === null) return recusarAnonimo(c);
+    await next();
+  };
+}
+
+export function exigirPapel(...papeis: PapelDaSessao[]): MiddlewareHandler {
+  return async (c, next) => {
+    const usuario = usuarioAtualOuNulo(c);
+    if (usuario === null) return recusarAnonimo(c);
+
+    if (!papeis.some((papel) => temPapel(usuario, papel))) {
+      // Acesso negado que não aparece em lugar nenhum vira chamado de suporte sem resposta.
+      const campos = { rota: c.req.path, usuario_id: usuario.id, papeis_exigidos: papeis };
+      logger.warn(redigir(campos), 'acesso negado por papel');
+      return c.html(paginaDeErro(403), 403);
+    }
+
+    await next();
+  };
+}
