@@ -1,0 +1,182 @@
+import type { Conexao } from '../../shared/db';
+import {
+  turnoValido,
+  type Turma,
+  type TurmaDisciplina,
+  type TurmaDisciplinaDoProfessor,
+  type Turno,
+} from '../dominio/turma';
+
+type LinhaDeTurma = {
+  id: string;
+  rede_id: string;
+  unidade_id: string;
+  ano_letivo_id: string;
+  nome: string;
+  serie: string;
+  turno: string;
+};
+
+type LinhaDeTurmaDisciplina = {
+  id: string;
+  rede_id: string;
+  turma_id: string;
+  disciplina_id: string;
+  disciplina_nome: string;
+  professor_usuario_id: string;
+};
+
+type LinhaDeTurmaDisciplinaDoProfessor = LinhaDeTurmaDisciplina & {
+  turma_nome: string;
+  serie: string;
+  turno: string;
+  unidade_id: string;
+};
+
+/** O CHECK `turno_valido` garante o conjunto no banco; aqui ele volta a ser tipo. */
+function paraTurno(valor: string): Turno {
+  if (!turnoValido(valor)) throw new Error(`turno fora do conjunto conhecido: ${valor}`);
+  return valor;
+}
+
+const paraTurma = (linha: LinhaDeTurma): Turma => ({
+  id: linha.id,
+  redeId: linha.rede_id,
+  unidadeId: linha.unidade_id,
+  anoLetivoId: linha.ano_letivo_id,
+  nome: linha.nome,
+  serie: linha.serie,
+  turno: paraTurno(linha.turno),
+});
+
+const paraTurmaDisciplina = (linha: LinhaDeTurmaDisciplina): TurmaDisciplina => ({
+  id: linha.id,
+  redeId: linha.rede_id,
+  turmaId: linha.turma_id,
+  disciplinaId: linha.disciplina_id,
+  disciplinaNome: linha.disciplina_nome,
+  professorUsuarioId: linha.professor_usuario_id,
+});
+
+const paraTurmaDisciplinaDoProfessor = (
+  linha: LinhaDeTurmaDisciplinaDoProfessor,
+): TurmaDisciplinaDoProfessor => ({
+  ...paraTurmaDisciplina(linha),
+  turmaNome: linha.turma_nome,
+  serie: linha.serie,
+  turno: paraTurno(linha.turno),
+  unidadeId: linha.unidade_id,
+});
+
+export async function inserir(sql: Conexao, turma: Turma): Promise<boolean> {
+  const criadas: { id: string }[] = await sql`
+    INSERT INTO turma (id, rede_id, unidade_id, ano_letivo_id, nome, serie, turno)
+    VALUES (${turma.id}, ${turma.redeId}, ${turma.unidadeId}, ${turma.anoLetivoId},
+            ${turma.nome}, ${turma.serie}, ${turma.turno})
+    ON CONFLICT ON CONSTRAINT turma_unica DO NOTHING
+    RETURNING id`;
+  return criadas.length === 1;
+}
+
+export async function porId(sql: Conexao, redeId: string, id: string): Promise<Turma | null> {
+  const linhas: LinhaDeTurma[] = await sql`
+    SELECT id, rede_id, unidade_id, ano_letivo_id, nome, serie, turno
+      FROM turma
+     WHERE rede_id = ${redeId} AND id = ${id}`;
+  const linha = linhas[0];
+  return linha === undefined ? null : paraTurma(linha);
+}
+
+/**
+ * O filtro ausente vira NULL e a condição se anula sozinha — a consulta continua sendo um
+ * template com parâmetros, sem trecho de SQL montado por concatenação.
+ */
+export async function listar(
+  sql: Conexao,
+  redeId: string,
+  filtro?: { unidadeId?: string; anoLetivoId?: string },
+): Promise<Turma[]> {
+  const unidadeId = filtro?.unidadeId ?? null;
+  const anoLetivoId = filtro?.anoLetivoId ?? null;
+  const linhas: LinhaDeTurma[] = await sql`
+    SELECT id, rede_id, unidade_id, ano_letivo_id, nome, serie, turno
+      FROM turma
+     WHERE rede_id = ${redeId}
+       AND (${unidadeId}::uuid IS NULL OR unidade_id = ${unidadeId}::uuid)
+       AND (${anoLetivoId}::uuid IS NULL OR ano_letivo_id = ${anoLetivoId}::uuid)
+     ORDER BY serie, nome`;
+  return linhas.map(paraTurma);
+}
+
+export async function inserirDisciplina(
+  sql: Conexao,
+  alocacao: TurmaDisciplina,
+): Promise<boolean> {
+  const criadas: { id: string }[] = await sql`
+    INSERT INTO turma_disciplina (id, rede_id, turma_id, disciplina_id, professor_usuario_id)
+    VALUES (${alocacao.id}, ${alocacao.redeId}, ${alocacao.turmaId}, ${alocacao.disciplinaId},
+            ${alocacao.professorUsuarioId})
+    ON CONFLICT ON CONSTRAINT disciplina_unica_na_turma DO NOTHING
+    RETURNING id`;
+  return criadas.length === 1;
+}
+
+export async function disciplinaPorId(
+  sql: Conexao,
+  redeId: string,
+  id: string,
+): Promise<TurmaDisciplina | null> {
+  const linhas: LinhaDeTurmaDisciplina[] = await sql`
+    SELECT td.id, td.rede_id, td.turma_id, td.disciplina_id, d.nome AS disciplina_nome,
+           td.professor_usuario_id
+      FROM turma_disciplina td
+      JOIN disciplina d ON d.id = td.disciplina_id AND d.rede_id = td.rede_id
+     WHERE td.rede_id = ${redeId} AND td.id = ${id}`;
+  const linha = linhas[0];
+  return linha === undefined ? null : paraTurmaDisciplina(linha);
+}
+
+export async function listarDisciplinas(
+  sql: Conexao,
+  redeId: string,
+  turmaId: string,
+): Promise<TurmaDisciplina[]> {
+  const linhas: LinhaDeTurmaDisciplina[] = await sql`
+    SELECT td.id, td.rede_id, td.turma_id, td.disciplina_id, d.nome AS disciplina_nome,
+           td.professor_usuario_id
+      FROM turma_disciplina td
+      JOIN disciplina d ON d.id = td.disciplina_id AND d.rede_id = td.rede_id
+     WHERE td.rede_id = ${redeId} AND td.turma_id = ${turmaId}
+     ORDER BY d.nome`;
+  return linhas.map(paraTurmaDisciplina);
+}
+
+export async function disciplinasDoProfessor(
+  sql: Conexao,
+  redeId: string,
+  professorUsuarioId: string,
+): Promise<TurmaDisciplinaDoProfessor[]> {
+  const linhas: LinhaDeTurmaDisciplinaDoProfessor[] = await sql`
+    SELECT td.id, td.rede_id, td.turma_id, td.disciplina_id, d.nome AS disciplina_nome,
+           td.professor_usuario_id, t.nome AS turma_nome, t.serie, t.turno, t.unidade_id
+      FROM turma_disciplina td
+      JOIN disciplina d ON d.id = td.disciplina_id AND d.rede_id = td.rede_id
+      JOIN turma t ON t.id = td.turma_id AND t.rede_id = td.rede_id
+     WHERE td.rede_id = ${redeId} AND td.professor_usuario_id = ${professorUsuarioId}
+     ORDER BY t.serie, t.nome, d.nome`;
+  return linhas.map(paraTurmaDisciplinaDoProfessor);
+}
+
+export async function doProfessor(
+  sql: Conexao,
+  redeId: string,
+  professorUsuarioId: string,
+): Promise<Turma[]> {
+  const linhas: LinhaDeTurma[] = await sql`
+    SELECT DISTINCT t.id, t.rede_id, t.unidade_id, t.ano_letivo_id, t.nome, t.serie, t.turno
+      FROM turma t
+      JOIN turma_disciplina td ON td.turma_id = t.id AND td.rede_id = t.rede_id
+     WHERE t.rede_id = ${redeId} AND td.professor_usuario_id = ${professorUsuarioId}
+     ORDER BY t.serie, t.nome`;
+  return linhas.map(paraTurma);
+}
