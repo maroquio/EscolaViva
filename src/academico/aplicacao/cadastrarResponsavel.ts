@@ -41,7 +41,7 @@ const entrada = z.object({
   cpf: z
     .string()
     .trim()
-    .optional()
+    .nullish()
     .transform((valor) => (valor ? normalizarCpf(valor) : null))
     .refine((valor) => valor === null || cpfValido(valor), 'Informe um CPF válido.'),
 });

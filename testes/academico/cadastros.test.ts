@@ -437,6 +437,20 @@ describe('cadastrarResponsavel', () => {
     if (criado.ok) expect(criado.valor.cpf).toBeNull();
   });
 
+  test('aceita CPF null explícito no cadastro', async () => {
+    const rede = await criarRede({});
+
+    const criado = await academico.cadastrarResponsavel({
+      redeId: rede.id,
+      nome: 'Maria Santos',
+      email: 'maria@escolaviva.test',
+      cpf: null,
+    });
+
+    expect(criado.ok).toBe(true);
+    if (criado.ok) expect(criado.valor.cpf).toBeNull();
+  });
+
   test('recusa CPF com verificador errado', async () => {
     const rede = await criarRede({});
 
