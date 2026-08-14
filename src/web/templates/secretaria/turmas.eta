@@ -93,23 +93,23 @@ const filtrando = filtro.unidadeId !== '' || filtro.anoLetivoId !== '';
       <caption>Turmas das unidades sob sua secretaria</caption>
       <thead>
         <tr>
-          <th scope="col">Turma</th>
-          <th scope="col">Série</th>
-          <th scope="col">Turno</th>
-          <th scope="col">Unidade</th>
-          <th scope="col">Ano</th>
-          <th scope="col"><span class="visualmente-oculto">Ações</span></th>
+          <th scope="col" class="celula-centro">Turma</th>
+          <th scope="col" class="celula-centro">Série</th>
+          <th scope="col" class="celula-centro">Turno</th>
+          <th scope="col" class="celula-centro">Unidade</th>
+          <th scope="col" class="celula-centro">Ano</th>
+          <th scope="col" class="celula-centro">Ações</th>
         </tr>
       </thead>
       <tbody>
         <% turmas.forEach((turma) => { %>
         <tr>
-          <th scope="row"><%= turma.nome %></th>
-          <td class="celula-texto"><%= turma.serie %></td>
-          <td class="celula-texto"><%= turma.turno %></td>
-          <td class="celula-texto"><%= turma.unidadeNome %></td>
-          <td class="numero"><%= turma.ano === null ? '—' : turma.ano %></td>
-          <td>
+          <th scope="row" class="celula-centro"><%= turma.nome %></th>
+          <td class="celula-centro"><%= turma.serie %></td>
+          <td class="celula-centro"><%= turma.turno %></td>
+          <td class="celula-centro"><%= turma.unidadeNome %></td>
+          <td class="numero celula-centro"><%= turma.ano === null ? '—' : turma.ano %></td>
+          <td class="celula-centro">
             <div class="tabela__acoes">
               <a class="botao botao--secundario botao--miudo" href="/secretaria/turmas/<%= turma.id %>">
                 Abrir<span class="visualmente-oculto"> turma <%= turma.nome %></span>
