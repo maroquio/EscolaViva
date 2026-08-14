@@ -47,7 +47,7 @@ const ROTULO_DA_SITUACAO = {
     </div>
 
     <a class="cartao" href="/responsavel/mural">
-      <span class="cartao__rotulo">Comunicados por ler</span>
+      <span class="cartao__rotulo">Comunicados não lidos</span>
       <span class="cartao__numero"><%= naoLidos.length %></span>
       <span class="cartao__detalhe">
         <%= it.totalNoMural %> <%= it.totalNoMural === 1 ? 'comunicado' : 'comunicados' %> no mural
@@ -113,7 +113,7 @@ const ROTULO_DA_SITUACAO = {
 
 <section class="secao" aria-labelledby="titulo-nao-lidos">
   <div class="secao__cabecalho">
-    <h2 id="titulo-nao-lidos">Comunicados por ler</h2>
+    <h2 id="titulo-nao-lidos">Comunicados não lidos</h2>
     <p class="secao__nota"><a href="/responsavel/mural">Ver o mural completo</a></p>
   </div>
 
@@ -127,15 +127,17 @@ const ROTULO_DA_SITUACAO = {
   <ul class="pilha">
     <% naoLidos.forEach((item) => { %>
     <li class="quadro">
-      <p class="linha">
-        <span class="etiqueta etiqueta--em-curso">Por ler</span>
-        <time class="suave" datetime="<%= item.publicadoEm %>">
-          <%= it.formatarDataHora(item.publicadoEm) %>
-        </time>
-      </p>
-      <h3>
-        <a href="/responsavel/mural/<%= item.comunicadoId %>"><%= item.titulo %></a>
-      </h3>
+      <div class="linha linha--entre">
+        <h3>
+          <a href="/responsavel/mural/<%= item.comunicadoId %>"><%= item.titulo %></a>
+        </h3>
+        <span class="linha">
+          <time class="suave" datetime="<%= item.publicadoEm %>">
+            <%= it.formatarDataHora(item.publicadoEm) %>
+          </time>
+          <span class="etiqueta etiqueta--em-curso">Não lido</span>
+        </span>
+      </div>
     </li>
     <% }) %>
   </ul>

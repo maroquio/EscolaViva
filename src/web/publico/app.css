@@ -1005,6 +1005,7 @@ input:disabled, select:disabled, textarea:disabled {
 .pilha { display: grid; gap: var(--e4); }
 .pilha--larga { gap: var(--e8); }
 .linha { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e3); }
+.linha--entre { justify-content: space-between; }
 .suave { color: var(--tinta-suave); }
 .leitura { max-inline-size: var(--largura-leitura); }
 .texto-corrido { white-space: pre-wrap; line-height: 1.7; }
