@@ -101,9 +101,11 @@ Módulo puro, sem dependência de banco, HTTP, log ou biblioteca.
 Sequência repetida (`00000000000`, `11111111111`, …) passa na aritmética dos verificadores e
 precisa de recusa explícita.
 
-`gerarCpf` monta os nove dígitos-base como `100000000 + semente` — nunca começa em zero e cobre
-900 milhões de valores —, soma um enquanto a base sair uniforme (`111111111` é o único caso na
-faixa) e então calcula os dois verificadores. Serve ao seed e às fixtures de
+`gerarCpf` monta os nove dígitos-base com o prefixo fixo `10` seguido de sete dígitos da semente, e
+então calcula os dois verificadores. O prefixo tem dois dígitos diferentes entre si, então a base
+**nunca** sai uniforme — não há caso a pular, e é justamente pular casos que faria duas sementes
+caírem no mesmo CPF. O mapeamento é injetivo para semente em `[0, 10.000.000)`. Serve ao seed e às
+fixtures de
 teste — não tem uso em produção, e o cabeçalho do arquivo diz isso. Mora junto do validador porque
 é o mesmo algoritmo visto do outro lado: o teste de propriedade
 `cpfValido(gerarCpf(n)) === true` para uma faixa de sementes exercita os dois de uma vez, e um erro
@@ -168,9 +170,10 @@ auxiliares de erro — o template recebe `it.formatarCpf` pronto.
 
 ## 6. Log e privacidade
 
-`CHAVES_PROIBIDAS` em `src/shared/log` ganha `cpf`.
+`CHAVES_PROIBIDAS` em `src/shared/log/redacao.ts:15` **já contém `cpf`** — a redação de log foi
+escrita prevendo este dia e não precisa de mudança nenhuma.
 
-O teste `testes/web/checklist.test.ts` já tem `const CPF = /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/` e
+O que falta é a prova. O teste `testes/web/checklist.test.ts` já tem `const CPF = /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/` e
 afirma que nenhuma linha de log contém CPF. Hoje ele passa por vacuidade: não existe CPF no
 sistema. Passa a valer de verdade — o cenário de log ganha um CPF inconfundível e o teste afirma
 que ele não aparece, nem formatado nem em dígitos crus.
