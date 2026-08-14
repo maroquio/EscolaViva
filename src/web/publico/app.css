@@ -597,14 +597,27 @@ legend {
 input, select, textarea {
   font: inherit;
   color: var(--tinta);
-  background: var(--papel-alto);
+  /* `background-color`, nunca o atalho `background`: o atalho apagaria a seta do select. */
+  background-color: var(--papel-alto);
   border: 1px solid var(--linha-forte);
   border-radius: 0;
   padding: var(--e2) var(--e3);
   inline-size: 100%;
   min-inline-size: 0;
   min-block-size: var(--controle-altura);
-  transition: border-color var(--rapido) var(--saida), background var(--rapido) var(--saida);
+  transition: border-color var(--rapido) var(--saida), background-color var(--rapido) var(--saida);
+}
+
+/* A seta nativa do select encosta na borda direita e ignora o recuo do campo — o navegador a
+   desenha na borda, não depois do conteúdo. Trocá-la por uma seta desenhada aqui é o que
+   permite escolher a folga: ela fica a --e3 da borda, o mesmo respiro do texto do outro lado.
+   O recuo final maior reserva o espaço dela, para que a opção nunca passe por baixo. */
+select {
+  appearance: none;
+  padding-inline-end: var(--e8);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23595e66' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--e3) center;
 }
 
 input[type='number'], input[type='date'], .entrada-numerica {
@@ -624,14 +637,14 @@ textarea { min-block-size: 9rem; resize: vertical; line-height: 1.55; }
 input:hover, select:hover, textarea:hover { border-color: var(--tinta-suave); }
 input:focus-visible, select:focus-visible, textarea:focus-visible {
   border-color: var(--marca);
-  background: var(--papel-alto);
+  background-color: var(--papel-alto);
 }
 input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='true'] {
   border-color: var(--perigo);
-  background: var(--perigo-fundo);
+  background-color: var(--perigo-fundo);
 }
 input:disabled, select:disabled, textarea:disabled {
-  background: var(--papel-fundo);
+  background-color: var(--papel-fundo);
   color: var(--tinta-suave);
   cursor: not-allowed;
 }
