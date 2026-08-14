@@ -39,10 +39,9 @@ const configuracao = {
     {
       name: 'dominio-puro',
       comment:
-        'O domínio não sabe que existe banco, HTTP, log, agendador ou biblioteca de terceiro. ' +
-        'Só pode alcançar `src/shared/ports/` e `src/shared/resultado.ts`. É o que torna o teste ' +
-        'de regra pedagógica um teste puro, e o que destrava I3: quando o `Mailer` entrar no ' +
-        'Estágio 04, `ports/` será o único lugar onde ele cabe.',
+        'Só pode alcançar `src/shared/ports/`, `src/shared/resultado.ts` e `src/shared/documento/` — ' +
+        'este último por ser valor puro, sem I/O e sem regra de negócio de nenhum módulo: a aritmética ' +
+        'do CPF é a mesma para identidade e para academico, e duplicá-la seria pior que compartilhá-la. ',
       severity: 'error',
       from: { path: '^src/[^/]+/dominio/' },
       to: { path: ['^src/shared/(?:db|http|log|jobs)/', 'node_modules'] },
