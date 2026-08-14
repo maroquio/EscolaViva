@@ -125,6 +125,16 @@ export function formatarPercentual(valor: ValorNumerico): string {
   return numero === null ? AUSENTE : `${umaCasaTruncada(numero)} %`;
 }
 
+/**
+ * Taxa sai do domínio como fração de 0 a 1, e é aqui — num lugar só — que ela vira percentual.
+ * Deixar a multiplicação por 100 espalhada pelo template já custou uma tela mostrando "0,1 %" onde
+ * eram 12,3 %: dois pontos escreviam a mesma taxa e só um deles lembrava de converter.
+ */
+export function formatarTaxa(fracao: ValorNumerico): string {
+  const numero = comoNumero(fracao);
+  return numero === null ? AUSENTE : formatarPercentual(numero * 100);
+}
+
 /* --- Montagem do contexto de template -------------------------------------- */
 
 export type DadosDeTemplate = Record<string, unknown>;
@@ -145,6 +155,7 @@ const auxiliares = {
   formatarDataHora,
   formatarNota,
   formatarPercentual,
+  formatarTaxa,
 } as const;
 
 /* --- Erros de campo -------------------------------------------------------- */

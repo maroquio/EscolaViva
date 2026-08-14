@@ -6,8 +6,8 @@
   é invisível a menos que alguém a meça — e é por isso que a lista mostra destinatários, leituras e
   a razão entre eles, em vez de apenas dizer "publicado".
 
-  `item.taxa` chega de `comunicacao` como fração de 0 a 1; o formatador de percentual trabalha na
-  escala de 0 a 100, e a multiplicação é só de apresentação.
+  A taxa chega de `comunicacao` como fração de 0 a 1, e é `it.formatarTaxa` quem a leva para a
+  escala de 0 a 100 — nenhuma conta aqui, para que resumo e linhas não possam divergir.
 */
 const comunicados = it.comunicados;
 const resumo = it.resumo;
@@ -50,7 +50,7 @@ const resumo = it.resumo;
     <div class="painel">
       <div class="cartao">
         <p class="cartao__rotulo">Taxa de leitura</p>
-        <p class="cartao__numero"><%= it.formatarPercentual(resumo.percentual) %></p>
+        <p class="cartao__numero"><%= it.formatarTaxa(resumo.taxa) %></p>
         <p class="cartao__detalhe">Leituras sobre destinatários alcançados</p>
       </div>
 
@@ -67,7 +67,7 @@ const resumo = it.resumo;
       </div>
     </div>
 
-    <p class="leitura suave">
+    <p class="suave">
       A leitura é registrada quando o responsável abre o comunicado no portal e marca que leu.
       Comunicado publicado que ninguém marcou continua contando como enviado e não como lido — é
       essa distância entre os dois números que diz quanto da comunicação da escola chega ao destino.
@@ -109,7 +109,7 @@ const resumo = it.resumo;
           </td>
           <td class="numero"><%= item.destinatarios %></td>
           <td class="numero"><%= item.leituras %></td>
-          <td class="numero"><%= it.formatarPercentual(item.taxa * 100) %></td>
+          <td class="numero"><%= it.formatarTaxa(item.taxa) %></td>
         </tr>
         <% }) %>
       </tbody>
@@ -118,7 +118,7 @@ const resumo = it.resumo;
           <td class="celula-texto" colspan="2">Total do recorte</td>
           <td class="numero"><%= resumo.destinatarios %></td>
           <td class="numero"><%= resumo.leituras %></td>
-          <td class="numero"><%= it.formatarPercentual(resumo.percentual) %></td>
+          <td class="numero"><%= it.formatarTaxa(resumo.taxa) %></td>
         </tr>
       </tfoot>
     </table>

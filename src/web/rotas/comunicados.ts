@@ -125,7 +125,7 @@ rotasComunicados.get('/', async (c) => {
     resumo: {
       destinatarios: resumo.destinatarios,
       leituras: resumo.leituras,
-      percentual: resumo.taxa,
+      taxa: resumo.taxa,
     },
     unidades,
     unidadeAtual: recorte ?? '',
