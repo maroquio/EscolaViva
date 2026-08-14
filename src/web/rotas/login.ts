@@ -66,7 +66,7 @@ const enderecoRemoto = (c: Context): string | undefined => {
 const telaDeEntrada = (c: Context, dados: Record<string, unknown> = {}): Response =>
   renderizar(c, TEMPLATE, {
     titulo: TITULO,
-    valores: { redeSlug: '', email: '' },
+    valores: { redeSlug: '', identificador: '' },
     erros: [],
     ...dados,
   });
@@ -82,19 +82,19 @@ rotasLogin.post('/login', async (c) => {
 
   const corpo = c.get('corpo');
   const redeSlug = texto(corpo, 'redeSlug');
-  const email = texto(corpo, 'email');
+  const identificador = texto(corpo, 'identificador');
   const ip = ipDoCliente(c.req.raw, enderecoRemoto(c), config.proxiesConfiaveis);
 
   const resultado = await identidade.autenticar({
     redeSlug,
-    email,
+    identificador,
     senha: senhaDigitada(corpo),
     ip,
   });
 
   if (!resultado.ok) {
     logger.warn({ rede_slug: redeSlug, resultado: 'recusado', ip }, 'tentativa de entrada');
-    return telaDeEntrada(c, { valores: { redeSlug, email }, erros: resultado.erros });
+    return telaDeEntrada(c, { valores: { redeSlug, identificador }, erros: resultado.erros });
   }
 
   await abrirSessao(c, resultado.valor.sessaoId);

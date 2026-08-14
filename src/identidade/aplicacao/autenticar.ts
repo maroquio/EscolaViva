@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { config } from '../../shared/config';
-import { leitura, unidadeDeTrabalho } from '../../shared/db';
+import { leitura, unidadeDeTrabalho, type Conexao } from '../../shared/db';
+import { normalizarCpf } from '../../shared/documento';
 import { logger } from '../../shared/log';
 import { clockDoSistema, idGeneratorUuid } from '../../shared/ports';
 import {
@@ -15,27 +16,28 @@ import { expiracaoDaSessao, type Sessao } from '../dominio/sessao';
 import { emailNormalizado, usuarioAutenticado, type UsuarioAutenticado } from '../dominio/usuario';
 import * as redeRepositorio from '../infra/redeRepositorio';
 import * as sessaoRepositorio from '../infra/sessaoRepositorio';
+import type { Credenciais } from '../infra/usuarioRepositorio';
 import * as usuarioRepositorio from '../infra/usuarioRepositorio';
 
 const schema = z.object({
   redeSlug: z.string().trim().min(1, 'informe a rede'),
-  email: z.string().trim().min(1, 'informe o e-mail'),
+  identificador: z.string().trim().min(1, 'informe o CPF'),
   senha: z.string().min(1, 'informe a senha'),
   ip: z.string(),
 });
 
 /**
- * Hash fixo conferido quando o e-mail não existe. Sem ele a resposta volta em um milissegundo
- * para e-mail desconhecido e em cerca de cem para e-mail cadastrado, e o relógio passa a
- * responder quem estuda ou trabalha na rede.
+ * Hash fixo conferido quando ninguém é encontrado pelo identificador informado (CPF ou e-mail).
+ * Sem ele a resposta volta em um milissegundo para identificador desconhecido e em cerca de cem
+ * para identificador cadastrado, e o relógio passa a responder quem estuda ou trabalha na rede.
  */
 const HASH_DE_USUARIO_INEXISTENTE =
   '$argon2id$v=19$m=65536,t=2,p=1$XMdb31Dd1P5tOekJsaneq6Yl0CU6HnbV15d11ekBprQ$jxM302vDpER0f7uF9xQRIwAkDNaDTukAT0y3bg04lhQ';
 
-/** Uma única mensagem para e-mail inexistente e para senha errada: a tela não é um oráculo. */
+/** Uma única mensagem para identificador inexistente e para senha errada: a tela não é um oráculo. */
 const CREDENCIAIS_INVALIDAS = {
   codigo: 'credenciais_invalidas',
-  mensagem: 'e-mail ou senha inválidos',
+  mensagem: 'CPF ou senha inválidos',
 };
 
 async function criarSessao(redeId: string, usuarioId: string, ip: string): Promise<Sessao> {
@@ -54,9 +56,22 @@ async function criarSessao(redeId: string, usuarioId: string, ip: string): Promi
   return sessao;
 }
 
+/**
+ * Na janela de compatibilidade o mesmo campo aceita as duas formas, e a arroba decide: e-mail
+ * tem, CPF não. Some na FASE B, quando todo usuário já tem CPF.
+ */
+const credenciaisDe = async (
+  sql: Conexao,
+  redeId: string,
+  identificador: string,
+): Promise<Credenciais | null> =>
+  identificador.includes('@')
+    ? await usuarioRepositorio.credenciaisPorEmail(sql, redeId, emailNormalizado(identificador))
+    : await usuarioRepositorio.credenciaisPorCpf(sql, redeId, normalizarCpf(identificador));
+
 export async function autenticar(entrada: {
   redeSlug: string;
-  email: string;
+  identificador: string;
   senha: string;
   ip: string;
 }): Promise<Resultado<{ sessaoId: string; usuario: UsuarioAutenticado }>> {
@@ -72,11 +87,7 @@ export async function autenticar(entrada: {
     return falhaDeCampo('redeSlug', 'rede_indisponivel', 'rede não encontrada ou fora de operação');
   }
 
-  const credenciais = await usuarioRepositorio.credenciaisPorEmail(
-    sql,
-    rede.id,
-    emailNormalizado(dados.email),
-  );
+  const credenciais = await credenciaisDe(sql, rede.id, dados.identificador);
   const senhaConfere = await Bun.password.verify(
     dados.senha,
     credenciais?.senhaHash ?? HASH_DE_USUARIO_INEXISTENTE,

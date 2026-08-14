@@ -5,9 +5,11 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { identidade } from '../../src/identidade';
+import { gerarCpf } from '../../src/shared/documento';
 import type { ErroDeAplicacao, Resultado } from '../../src/shared/resultado';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
+  cenarioCompleto,
   criarRede,
   criarSessao,
   criarUnidade,
@@ -36,6 +38,16 @@ async function contarSessoes(usuarioId: string): Promise<number> {
   return linhas[0]?.total ?? 0;
 }
 
+/**
+ * `cenarioCompleto` sempre gera CPF pelas fábricas — o tipo é `string | null` só porque a coluna
+ * fica anulável durante a janela de compatibilidade. A checagem aqui existe para o compilador, não
+ * porque o cenário algum dia venha sem CPF.
+ */
+function cpfDe(usuario: { cpf: string | null }): string {
+  if (usuario.cpf === null) throw new Error('cenário sem CPF — a fábrica deveria ter gerado um');
+  return usuario.cpf;
+}
+
 beforeEach(limparBanco);
 
 describe('autenticar', () => {
@@ -55,7 +67,7 @@ describe('autenticar', () => {
 
     const resultado = await identidade.autenticar({
       redeSlug: 'serra',
-      email: 'ana.souza@serra.br',
+      identificador: 'ana.souza@serra.br',
       senha: SENHA_PADRAO,
       ip: '203.0.113.7',
     });
@@ -88,7 +100,7 @@ describe('autenticar', () => {
 
     const resultado = await identidade.autenticar({
       redeSlug: 'caixa-alta',
-      email: '  BIA@Escola.BR ',
+      identificador: '  BIA@Escola.BR ',
       senha: SENHA_PADRAO,
       ip: '',
     });
@@ -102,7 +114,7 @@ describe('autenticar', () => {
 
     const resultado = await identidade.autenticar({
       redeSlug: 'sem-ip',
-      email: 'carlos@escola.br',
+      identificador: 'carlos@escola.br',
       senha: SENHA_PADRAO,
       ip: '',
     });
@@ -120,21 +132,21 @@ describe('autenticar', () => {
 
     const [senhaErrada, emailInexistente, usuarioInativo] = await Promise.all([
       identidade.autenticar({
-        redeSlug: 'generica', email: 'ativo@escola.br', senha: 'senha-errada-1', ip: '',
+        redeSlug: 'generica', identificador: 'ativo@escola.br', senha: 'senha-errada-1', ip: '',
       }),
       identidade.autenticar({
-        redeSlug: 'generica', email: 'ninguem@escola.br', senha: SENHA_PADRAO, ip: '',
+        redeSlug: 'generica', identificador: 'ninguem@escola.br', senha: SENHA_PADRAO, ip: '',
       }),
       identidade.autenticar({
-        redeSlug: 'generica', email: 'inativo@escola.br', senha: SENHA_PADRAO, ip: '',
+        redeSlug: 'generica', identificador: 'inativo@escola.br', senha: SENHA_PADRAO, ip: '',
       }),
     ]);
 
-    const recusaGenerica = [{ codigo: 'credenciais_invalidas', mensagem: 'e-mail ou senha inválidos' }];
+    const recusaGenerica = [{ codigo: 'credenciais_invalidas', mensagem: 'CPF ou senha inválidos' }];
     expect(errosDe(senhaErrada)).toEqual(recusaGenerica);
     expect(errosDe(emailInexistente)).toEqual(recusaGenerica);
     expect(errosDe(usuarioInativo)).toEqual(recusaGenerica);
-    // Sem `campo`, a tela não consegue destacar o input do e-mail e revelar qual dos três é.
+    // Sem `campo`, a tela não consegue destacar o input do identificador e revelar qual dos três é.
     const apontamCampo = [senhaErrada, emailInexistente, usuarioInativo]
       .flatMap(errosDe)
       .some((erro) => Object.hasOwn(erro, 'campo'));
@@ -148,10 +160,10 @@ describe('autenticar', () => {
 
     await Promise.all([
       identidade.autenticar({
-        redeSlug: 'sem-sessao', email: 'ativo@escola.br', senha: 'senha-errada-1', ip: '',
+        redeSlug: 'sem-sessao', identificador: 'ativo@escola.br', senha: 'senha-errada-1', ip: '',
       }),
       identidade.autenticar({
-        redeSlug: 'sem-sessao', email: 'inativo@escola.br', senha: SENHA_PADRAO, ip: '',
+        redeSlug: 'sem-sessao', identificador: 'inativo@escola.br', senha: SENHA_PADRAO, ip: '',
       }),
     ]);
 
@@ -165,10 +177,10 @@ describe('autenticar', () => {
 
     const [redeSuspensa, redeInexistente] = await Promise.all([
       identidade.autenticar({
-        redeSlug: 'suspensa', email: 'ana@escola.br', senha: SENHA_PADRAO, ip: '',
+        redeSlug: 'suspensa', identificador: 'ana@escola.br', senha: SENHA_PADRAO, ip: '',
       }),
       identidade.autenticar({
-        redeSlug: 'rede-que-nao-existe', email: 'ana@escola.br', senha: SENHA_PADRAO, ip: '',
+        redeSlug: 'rede-que-nao-existe', identificador: 'ana@escola.br', senha: SENHA_PADRAO, ip: '',
       }),
     ]);
 
@@ -190,7 +202,7 @@ describe('autenticar', () => {
     const usuario = await criarUsuario({ redeId: cancelada.id, email: 'ana@escola.br' });
 
     const resultado = await identidade.autenticar({
-      redeSlug: 'cancelada', email: 'ana@escola.br', senha: SENHA_PADRAO, ip: '',
+      redeSlug: 'cancelada', identificador: 'ana@escola.br', senha: SENHA_PADRAO, ip: '',
     });
 
     expect(errosDe(resultado)[0]?.codigo).toBe('rede_indisponivel');
@@ -202,11 +214,11 @@ describe('autenticar', () => {
     await criarUsuario({ redeId: rede.id, email: 'ana@escola.br' });
 
     const resultado = await identidade.autenticar({
-      redeSlug: '', email: '', senha: '', ip: '',
+      redeSlug: '', identificador: '', senha: '', ip: '',
     });
 
     const campos = errosDe(resultado).map((erro) => erro.campo);
-    expect(campos).toEqual(['redeSlug', 'email', 'senha']);
+    expect(campos).toEqual(['redeSlug', 'identificador', 'senha']);
   });
 
   test('o mesmo e-mail em redes diferentes autentica cada um na sua rede', async () => {
@@ -217,15 +229,71 @@ describe('autenticar', () => {
 
     const [naPrimeira, naSegunda] = await Promise.all([
       identidade.autenticar({
-        redeSlug: 'primeira', email: 'diretor@escola.br', senha: SENHA_PADRAO, ip: '',
+        redeSlug: 'primeira', identificador: 'diretor@escola.br', senha: SENHA_PADRAO, ip: '',
       }),
       identidade.autenticar({
-        redeSlug: 'segunda', email: 'diretor@escola.br', senha: SENHA_PADRAO, ip: '',
+        redeSlug: 'segunda', identificador: 'diretor@escola.br', senha: SENHA_PADRAO, ip: '',
       }),
     ]);
 
     expect(valorDe(naPrimeira).usuario.id).toBe(daPrimeira.id);
     expect(valorDe(naSegunda).usuario.id).toBe(daSegunda.id);
+  });
+
+  test('entra com CPF cru', async () => {
+    const cenario = await cenarioCompleto();
+
+    const entrada = await identidade.autenticar({
+      redeSlug: cenario.rede.slug,
+      identificador: cpfDe(cenario.secretaria),
+      senha: cenario.senha,
+      ip: '',
+    });
+
+    expect(entrada.ok).toBe(true);
+  });
+
+  test('entra com CPF pontuado', async () => {
+    const cenario = await cenarioCompleto();
+    const cpf = cpfDe(cenario.secretaria);
+    const pontuado = `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9)}`;
+
+    const entrada = await identidade.autenticar({
+      redeSlug: cenario.rede.slug, identificador: pontuado, senha: cenario.senha, ip: '',
+    });
+
+    expect(entrada.ok).toBe(true);
+  });
+
+  /* Removido na FASE B, junto com o ramo do e-mail. A remoção faz parte da demonstração. */
+  test('durante a janela, ainda entra com e-mail', async () => {
+    const cenario = await cenarioCompleto();
+
+    const entrada = await identidade.autenticar({
+      redeSlug: cenario.rede.slug, identificador: cenario.secretaria.email,
+      senha: cenario.senha, ip: '',
+    });
+
+    expect(entrada.ok).toBe(true);
+  });
+
+  test('CPF inexistente e senha errada dão a mesma recusa', async () => {
+    const cenario = await cenarioCompleto();
+
+    const [inexistente, senhaErrada] = await Promise.all([
+      identidade.autenticar({
+        redeSlug: cenario.rede.slug, identificador: gerarCpf(999_999), senha: cenario.senha, ip: '',
+      }),
+      identidade.autenticar({
+        redeSlug: cenario.rede.slug, identificador: cpfDe(cenario.secretaria), senha: 'errada', ip: '',
+      }),
+    ]);
+
+    expect(inexistente.ok).toBe(false);
+    expect(senhaErrada.ok).toBe(false);
+    if (!inexistente.ok && !senhaErrada.ok) {
+      expect(inexistente.erros).toEqual(senhaErrada.erros);
+    }
   });
 });
 
@@ -406,10 +474,10 @@ describe('trocarSenha', () => {
 
     expect(troca.ok).toBe(true);
     const comNova = await identidade.autenticar({
-      redeSlug: 'troca', email: 'ana@troca.br', senha: SENHA_NOVA, ip: '',
+      redeSlug: 'troca', identificador: 'ana@troca.br', senha: SENHA_NOVA, ip: '',
     });
     const comAntiga = await identidade.autenticar({
-      redeSlug: 'troca', email: 'ana@troca.br', senha: SENHA_PADRAO, ip: '',
+      redeSlug: 'troca', identificador: 'ana@troca.br', senha: SENHA_PADRAO, ip: '',
     });
     expect(comNova.ok).toBe(true);
     expect(errosDe(comAntiga)[0]?.codigo).toBe('credenciais_invalidas');
@@ -425,7 +493,7 @@ describe('trocarSenha', () => {
     });
 
     const bia = await identidade.autenticar({
-      redeSlug: 'vizinhos', email: 'bia@vizinhos.br', senha: SENHA_PADRAO, ip: '',
+      redeSlug: 'vizinhos', identificador: 'bia@vizinhos.br', senha: SENHA_PADRAO, ip: '',
     });
     expect(bia.ok).toBe(true);
   });

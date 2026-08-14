@@ -9,7 +9,7 @@
   não diz se o e-mail existe. Ela aparece uma vez, no aviso do topo montado por `_mensagens`;
   quando o erro tem campo, o mesmo texto marca o campo. A senha nunca volta preenchida.
 */
-const valores = it.valores ?? { redeSlug: '', email: '' };
+const valores = it.valores ?? { redeSlug: '', identificador: '' };
 
 /* `erroDe` e `descricao` chegam prontos de `render.ts`, já fechados sobre os erros deste render.
    `descricao` só referencia id de elemento que existe: ajuda quando pedida, erro quando há. */
@@ -44,23 +44,26 @@ const { erroDe, descricao } = it;
   </div>
 
   <div class="campo">
-    <label class="campo__rotulo" for="email">
-      E-mail <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <label class="campo__rotulo" for="identificador">
+      CPF ou e-mail <span class="campo__obrigatorio" aria-hidden="true">*</span>
     </label>
     <input
-      id="email"
-      name="email"
-      type="email"
+      id="identificador"
+      name="identificador"
+      type="text"
       required
-      inputmode="email"
+      inputmode="numeric"
       autocomplete="username"
       autocapitalize="none"
       spellcheck="false"
-      value="<%= valores.email %>"
-      <% if (erroDe('email') !== '') { %>aria-invalid="true"<% } %>
-      <% if (descricao('email', false) !== '') { %>aria-describedby="<%= descricao('email', false) %>"<% } %>>
-    <% if (erroDe('email') !== '') { %>
-    <p class="campo__erro" id="email-erro"><%= erroDe('email') %></p>
+      value="<%= valores.identificador %>"
+      <% if (erroDe('identificador') !== '') { %>aria-invalid="true"<% } %>
+      aria-describedby="<%= descricao('identificador', true) %>">
+    <p class="campo__ajuda" id="identificador-ajuda">
+      O CPF pode ser digitado com ou sem pontos e traço.
+    </p>
+    <% if (erroDe('identificador') !== '') { %>
+    <p class="campo__erro" id="identificador-erro"><%= erroDe('identificador') %></p>
     <% } %>
   </div>
 

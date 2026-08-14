@@ -45,7 +45,7 @@ describe('autenticação', () => {
 
     const resposta = await enviar('/login', {
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      identificador: cenario.secretaria.email,
       senha: cenario.senha,
     });
 
@@ -58,7 +58,7 @@ describe('autenticação', () => {
 
     const resposta = await enviar('/login', {
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      identificador: cenario.secretaria.email,
       senha: cenario.senha,
     });
     const cabecalho = resposta.headers.get('Set-Cookie') ?? '';
@@ -91,7 +91,7 @@ describe('autenticação', () => {
 
     const resposta = await enviar('/login', {
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      identificador: cenario.secretaria.email,
       senha: 'senha-que-nao-e-a-dele',
     });
 
@@ -106,12 +106,12 @@ describe('autenticação', () => {
 
     const comSenhaErrada = await enviar('/login', {
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      identificador: cenario.secretaria.email,
       senha: 'senha-que-nao-e-a-dele',
     });
     const comEmailInexistente = await enviar('/login', {
       redeSlug: cenario.rede.slug,
-      email: desconhecido,
+      identificador: desconhecido,
       senha: 'senha-que-nao-e-a-dele',
     });
     const primeira = semValoresVolateis(await comSenhaErrada.text(), cenario.secretaria.email);
@@ -119,7 +119,7 @@ describe('autenticação', () => {
 
     expect(comEmailInexistente.status).toBe(comSenhaErrada.status);
     expect(segunda).toBe(primeira);
-    expect(primeira).toContain('e-mail ou senha inválidos');
+    expect(primeira).toContain('CPF ou senha inválidos');
   });
 
   test('usuário de outra rede não entra pelo slug errado', async () => {
@@ -129,7 +129,7 @@ describe('autenticação', () => {
 
     const resposta = await enviar('/login', {
       redeSlug: outra.slug,
-      email: cenario.secretaria.email,
+      identificador: cenario.secretaria.email,
       senha: cenario.senha,
     });
 
