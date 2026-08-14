@@ -368,7 +368,14 @@ code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
 
 .pagina__acoes { display: flex; flex-wrap: wrap; gap: var(--e3); }
 
-.secao + .secao { margin-block-start: var(--e16); }
+/*
+  Uma seção se afasta do que vem antes dela, e não só de outra seção: as telas que abrem com um
+  quadro de busca — alunos, turmas — colavam o título da seção seguinte na borda do quadro. O
+  cabeçalho da página é a única exceção, porque já carrega a própria distância na borda de baixo.
+  Margens adjacentes colapsam, então quem vem antes com margem menor (um aviso, por exemplo) não
+  soma: prevalece a distância maior, e o ritmo entre seções continua o mesmo em toda tela.
+*/
+:not(.pagina__cabecalho) + .secao { margin-block-start: var(--e16); }
 
 .secao__cabecalho {
   display: flex;
@@ -666,6 +673,14 @@ input:disabled, select:disabled, textarea:disabled {
 }
 
 .acoes--fim { justify-content: flex-end; }
+
+/*
+  Dentro de um formulário a barra de ações o encerra, e fechar o bloco é todo o seu papel. Solta no
+  fluxo da página ela comanda o que vem abaixo — o bimestre nas notas, o dia na chamada — e sem
+  margem a tabela nasce colada nela. Menos distância do que entre seções: a barra e a tabela que ela
+  comanda são a mesma coisa, e o espaço só precisa dizer onde uma termina.
+*/
+.conteudo > .acoes { margin-block-end: var(--e8); }
 
 /*
   Filtro de uma linha: o rótulo ocupa a primeira faixa, o controle e o botão dividem a segunda.
