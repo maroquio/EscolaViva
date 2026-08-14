@@ -372,11 +372,17 @@ test('o CPF gravado no convite volta na leitura do usuário', async () => {
     atribuicoes: [{ unidadeId: unidade.id, papel: 'secretaria' }],
   });
   if (!convite.ok) throw new Error('convite recusado no cenário');
-  const usuario = await identidade.usuarioPorId(rede.id, convite.valor.usuarioId);
+  // `identidade` não expõe consulta de usuário por id, e criar uma porta pública só para
+  // satisfazer um teste seria escopo que ninguém pediu. `checklist.test.ts` já afirma "a linha
+  // caiu no banco" exatamente assim.
+  const linhas = await sqlDeTeste()<{ cpf: string }[]>`
+    SELECT cpf FROM usuario WHERE id = ${convite.valor.usuarioId}`;
 
-  expect(usuario?.cpf).toBe('52998224725');
+  expect(linhas[0]?.cpf).toBe('52998224725');
 });
 ```
+
+Importe `sqlDeTeste` de `../apoio/banco`.
 
 - [ ] **Step 4: Rode e confirme a falha**
 
