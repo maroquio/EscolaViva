@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cpfValido, normalizarCpf } from '../../shared/documento';
 import { unidadeDeTrabalho } from '../../shared/db';
 import { idGeneratorUuid } from '../../shared/ports';
 import {
@@ -35,6 +36,14 @@ const entrada = z.object({
     .max(TELEFONE_MAXIMO, `O telefone precisa ter até ${TELEFONE_MAXIMO} caracteres.`)
     .nullish()
     .transform((valor) => (valor === undefined || valor === '' ? null : valor)),
+  // Campo em branco é ausência de CPF, não CPF vazio: o responsável estrangeiro existe como
+  // contato e simplesmente não pode receber acesso ao portal enquanto não informar o documento.
+  cpf: z
+    .string()
+    .trim()
+    .optional()
+    .transform((valor) => (valor ? normalizarCpf(valor) : null))
+    .refine((valor) => valor === null || cpfValido(valor), 'Informe um CPF válido.'),
 });
 
 export async function cadastrarResponsavel(e: {
@@ -42,13 +51,12 @@ export async function cadastrarResponsavel(e: {
   nome: string;
   email: string;
   telefone?: string | null;
+  cpf?: string | null;
 }): Promise<Resultado<Responsavel>> {
   const validada = entrada.safeParse(e);
   if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
 
-  // O cadastro de responsável ainda não recebe CPF como entrada — fica nulo até a tarefa que
-  // liga o formulário ao campo.
-  const responsavel: Responsavel = { id: idGeneratorUuid.novo(), cpf: null, ...validada.data };
+  const responsavel: Responsavel = { id: idGeneratorUuid.novo(), ...validada.data };
   const criado = await unidadeDeTrabalho(({ sql }) => responsaveis.inserir(sql, responsavel));
   if (!criado) {
     return falhaDeCampo(

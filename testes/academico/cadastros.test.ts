@@ -422,6 +422,48 @@ describe('cadastrarResponsavel', () => {
 
     expect(errosDe(resultado)[0]?.campo).toBe('email');
   });
+
+  test('cadastra responsável sem CPF — o estrangeiro existe como contato', async () => {
+    const rede = await criarRede({});
+
+    const criado = await academico.cadastrarResponsavel({
+      redeId: rede.id,
+      nome: 'Aiko Tanaka',
+      email: 'aiko@escolaviva.test',
+      cpf: '',
+    });
+
+    expect(criado.ok).toBe(true);
+    if (criado.ok) expect(criado.valor.cpf).toBeNull();
+  });
+
+  test('recusa CPF com verificador errado', async () => {
+    const rede = await criarRede({});
+
+    const criado = await academico.cadastrarResponsavel({
+      redeId: rede.id,
+      nome: 'Marcos Vinícius Pires',
+      email: 'marcos@escolaviva.test',
+      cpf: '52998224724',
+    });
+
+    expect(criado.ok).toBe(false);
+    if (!criado.ok) expect(criado.erros[0]?.campo).toBe('cpf');
+  });
+
+  test('guarda o CPF só com dígitos, mesmo digitado com pontuação', async () => {
+    const rede = await criarRede({});
+
+    const criado = await academico.cadastrarResponsavel({
+      redeId: rede.id,
+      nome: 'Heloísa Braga Sampaio',
+      email: 'heloisa@escolaviva.test',
+      cpf: '529.982.247-25',
+    });
+
+    expect(criado.ok).toBe(true);
+    if (criado.ok) expect(criado.valor.cpf).toBe('52998224725');
+  });
 });
 
 describe('vincularResponsavel', () => {
