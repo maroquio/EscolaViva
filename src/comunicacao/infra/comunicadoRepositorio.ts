@@ -1,4 +1,5 @@
 import type { Conexao } from '../../shared/db';
+import { recorte, type Faixa } from '../../shared/paginacao';
 import type { ComunicadoArmazenado } from '../dominio/comunicado';
 import type { ContagemDeLeitura, ItemDoMural } from '../dominio/destinatario';
 
@@ -105,11 +106,22 @@ export async function inserirDestinatarios(
  * `comunicado_destinatario (rede_id, responsavel_id)`; a ordem por `publicado_em DESC` é a mesma
  * que o índice de `comunicado` materializa.
  */
+/**
+ * `lido` separa as duas metades do mural no banco, e não depois de trazer tudo. Filtrar em memória
+ * obrigaria a carregar o mural inteiro para mostrar as vinte linhas não lidas de quem acumulou
+ * quatro anos de comunicados.
+ */
+export type FiltroDoMural = { lido?: boolean };
+
 export async function listarDoResponsavel(
   sql: Conexao,
   redeId: string,
   responsavelId: string,
+  filtro?: FiltroDoMural,
+  faixa?: Faixa,
 ): Promise<ItemDoMural[]> {
+  const lido = filtro?.lido ?? null;
+  const { limite, deslocamento } = recorte(faixa);
   const linhas = await sql<LinhaDoMural[]>`
     SELECT c.id AS comunicado_id, c.titulo, c.publicado_em, d.lido_em
     FROM comunicado_destinatario d
@@ -117,7 +129,9 @@ export async function listarDoResponsavel(
     WHERE d.rede_id = ${redeId}
       AND d.responsavel_id = ${responsavelId}
       AND c.publicado_em IS NOT NULL
+      AND (${lido}::boolean IS NULL OR (d.lido_em IS NOT NULL) = ${lido}::boolean)
     ORDER BY c.publicado_em DESC
+    LIMIT ${limite}::int OFFSET ${deslocamento}::int
   `;
   return linhas.map((linha) => ({
     comunicadoId: linha.comunicado_id,
@@ -125,6 +139,25 @@ export async function listarDoResponsavel(
     publicadoEm: emTexto(linha.publicado_em),
     lidoEm: emTextoOuNulo(linha.lido_em),
   }));
+}
+
+export async function contarDoResponsavel(
+  sql: Conexao,
+  redeId: string,
+  responsavelId: string,
+  filtro?: FiltroDoMural,
+): Promise<number> {
+  const lido = filtro?.lido ?? null;
+  const linhas = await sql<{ total: number }[]>`
+    SELECT count(*)::int AS total
+    FROM comunicado_destinatario d
+    JOIN comunicado c ON c.rede_id = d.rede_id AND c.id = d.comunicado_id
+    WHERE d.rede_id = ${redeId}
+      AND d.responsavel_id = ${responsavelId}
+      AND c.publicado_em IS NOT NULL
+      AND (${lido}::boolean IS NULL OR (d.lido_em IS NOT NULL) = ${lido}::boolean)
+  `;
+  return linhas[0]?.total ?? 0;
 }
 
 /** O JOIN com destinatário é a regra de visibilidade: quem não recebeu não lê. */
@@ -166,7 +199,9 @@ export async function contarLeituras(
   sql: Conexao,
   redeId: string,
   unidadeId: string | null,
+  faixa?: Faixa,
 ): Promise<ContagemDeLeitura[]> {
+  const { limite, deslocamento } = recorte(faixa);
   const linhas = await sql<LinhaDeContagem[]>`
     SELECT c.id AS comunicado_id,
            c.titulo,
@@ -179,6 +214,7 @@ export async function contarLeituras(
       AND (${unidadeId}::uuid IS NULL OR c.unidade_id = ${unidadeId})
     GROUP BY c.id, c.titulo, c.publicado_em
     ORDER BY c.publicado_em DESC NULLS LAST
+    LIMIT ${limite}::int OFFSET ${deslocamento}::int
   `;
   return linhas.map((linha) => ({
     comunicadoId: linha.comunicado_id,
@@ -187,4 +223,42 @@ export async function contarLeituras(
     destinatarios: linha.destinatarios,
     leituras: linha.leituras,
   }));
+}
+
+export async function contarComunicados(
+  sql: Conexao,
+  redeId: string,
+  unidadeId: string | null,
+): Promise<number> {
+  const linhas = await sql<{ total: number }[]>`
+    SELECT count(*)::int AS total
+    FROM comunicado c
+    WHERE c.rede_id = ${redeId}
+      AND (${unidadeId}::uuid IS NULL OR c.unidade_id = ${unidadeId})
+  `;
+  return linhas[0]?.total ?? 0;
+}
+
+/**
+ * Destinatários e leituras do recorte inteiro, não da página.
+ *
+ * O número do topo da tela mede o alcance da comunicação da unidade — se ele mudasse a cada
+ * clique em "próxima", deixaria de medir alguma coisa e viraria mais uma soma de vinte linhas.
+ */
+export async function somarLeituras(
+  sql: Conexao,
+  redeId: string,
+  unidadeId: string | null,
+): Promise<{ destinatarios: number; leituras: number }> {
+  const linhas = await sql<{ destinatarios: number; leituras: number }[]>`
+    SELECT count(d.responsavel_id)::int AS destinatarios,
+           count(d.lido_em)::int        AS leituras
+    FROM comunicado c
+    LEFT JOIN comunicado_destinatario d ON d.rede_id = c.rede_id AND d.comunicado_id = c.id
+    WHERE c.rede_id = ${redeId}
+      AND (${unidadeId}::uuid IS NULL OR c.unidade_id = ${unidadeId})
+  `;
+  const somado = linhas[0];
+  if (somado === undefined) return { destinatarios: 0, leituras: 0 };
+  return { destinatarios: somado.destinatarios, leituras: somado.leituras };
 }

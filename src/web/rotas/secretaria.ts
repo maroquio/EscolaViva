@@ -10,7 +10,7 @@
  */
 
 import { Hono, type Context } from 'hono';
-import { academico, type Matricula, type Turma } from '../../academico';
+import { academico, type Aluno, type Matricula, type Turma } from '../../academico';
 import { identidade } from '../../identidade';
 import {
   exigirPapel,
@@ -19,8 +19,10 @@ import {
   type CorpoDeFormulario,
   type Variaveis,
 } from '../../shared/http';
+import { fatiar } from '../../shared/paginacao';
 import { clockDoSistema } from '../../shared/ports';
 import type { ErroDeAplicacao } from '../../shared/resultado';
+import { navegacao, paginaDaQuery } from '../paginacao';
 import { renderizar, renderizarErro } from '../render';
 
 type Contexto = Context<{ Variables: Variaveis }>;
@@ -80,49 +82,28 @@ const unidadesDaSecretaria = (c: Contexto): Unidade[] => {
   return [...nomePorId].map(([id, nome]) => ({ id, nome })).sort(porNome);
 };
 
-const turmasDoAlcance = async (
+const idsDe = (unidades: readonly Unidade[]): string[] => unidades.map(({ id }) => id);
+
+/**
+ * O alcance vira uma condição da consulta, e não uma consulta por unidade concatenada aqui. Era
+ * essa concatenação que impedia a lista de ter recorte: quem monta a lista em memória já pagou o
+ * custo inteiro antes de decidir mostrar vinte linhas.
+ */
+const turmasDoAlcance = (
   redeId: string,
   unidades: readonly Unidade[],
   anoLetivoId: string | null,
-): Promise<Turma[]> => {
-  const listas = await Promise.all(unidades.map(({ id }) =>
-    academico.listarTurmas(redeId, anoLetivoId === null ? { unidadeId: id } : { unidadeId: id, anoLetivoId })));
-  return listas.flat();
-};
-
-const matriculasAtivasDoAlcance = async (redeId: string, turmas: readonly Turma[]): Promise<Matricula[]> => {
-  const listas = await Promise.all(turmas.map(({ id }) => academico.matriculasAtivasDaTurma(redeId, id)));
-  return listas.flat();
-};
+): Promise<Turma[]> =>
+  academico.listarTurmas(redeId, {
+    unidadeIds: idsDe(unidades),
+    ...(anoLetivoId === null ? {} : { anoLetivoId }),
+  });
 
 const turmaNoAlcance = async (c: Contexto, turmaId: string): Promise<Turma | null> => {
   if (!ehIdentificador(turmaId)) return null;
   const turma = await academico.turmaPorId(redeAtual(c), turmaId);
   if (turma === null) return null;
   return unidadesDaSecretaria(c).some(({ id }) => id === turma.unidadeId) ? turma : null;
-};
-
-/**
- * O histórico de matrículas de um aluno. Com responsável vinculado, o próprio módulo devolve tudo
- * — todos os anos, todas as situações. Sem nenhum vínculo, o que resta alcançar são as matrículas
- * ativas das turmas sob a secretaria.
- */
-const matriculasDoAluno = async (
-  redeId: string,
-  alunoId: string,
-  vinculos: readonly { responsavelId: string }[],
-  turmas: readonly Turma[],
-): Promise<Matricula[]> => {
-  const listas = vinculos.length > 0
-    ? await Promise.all(vinculos.map((v) => academico.matriculasDoResponsavel(redeId, v.responsavelId)))
-    : [await matriculasAtivasDoAlcance(redeId, turmas)];
-
-  const encontradas = new Map<string, Matricula>();
-  for (const matricula of listas.flat()) {
-    if (matricula.alunoId === alunoId) encontradas.set(matricula.id, matricula);
-  }
-  return [...encontradas.values()]
-    .sort((a, b) => b.ano - a.ano || b.dataMatricula.localeCompare(a.dataMatricula));
 };
 
 /* --- Modelos de exibição ---------------------------------------------------- */
@@ -148,34 +129,34 @@ rotasSecretaria.use(exigirPapel(PAPEL));
 
 /* --- Painel ----------------------------------------------------------------- */
 
+/**
+ * A tabela do painel é a única do sistema recortada em memória, e por um motivo que não vale para
+ * as outras: as unidades vêm dos papéis da sessão, não de uma consulta — não existe SQL onde
+ * pendurar o LIMIT. O que era caro aqui não era a lista de unidades, e sim as contagens: uma
+ * consulta por unidade, mais uma por turma. Agora são três agregações, e só para a página aberta.
+ */
 rotasSecretaria.get('/', async (c) => {
   const redeId = redeAtual(c);
   const unidades = unidadesDaSecretaria(c);
-  const [anosLetivos, disciplinas, turmas, gruposDeResponsaveis] = await Promise.all([
-    academico.listarAnosLetivos(redeId),
-    academico.listarDisciplinas(redeId),
-    turmasDoAlcance(redeId, unidades, null),
-    Promise.all(unidades.map(({ id }) => academico.responsaveisDaUnidade(redeId, id))),
-  ]);
-  const matriculas = await matriculasAtivasDoAlcance(redeId, turmas);
+  const pagina = fatiar(unidades, paginaDaQuery(c));
 
-  const contagens = unidades.map((unidade, posicao) => ({
+  const [anosLetivos, totais, porUnidade] = await Promise.all([
+    academico.listarAnosLetivos(redeId),
+    academico.totaisDoAlcance(redeId, idsDe(unidades)),
+    academico.contagensPorUnidade(redeId, idsDe(pagina.itens)),
+  ]);
+
+  const contagens = pagina.itens.map((unidade) => ({
     nome: unidade.nome,
-    turmas: turmas.filter((turma) => turma.unidadeId === unidade.id).length,
-    matriculas: matriculas.filter((matricula) => matricula.unidadeId === unidade.id).length,
-    responsaveis: (gruposDeResponsaveis[posicao] ?? []).length,
+    ...(porUnidade.get(unidade.id) ?? { turmas: 0, matriculas: 0, responsaveis: 0 }),
   }));
 
   return renderizar(c, '/secretaria/painel', {
     titulo: 'Painel da secretaria',
     unidades: contagens,
+    navegacao: navegacao(c, pagina),
     anoCorrente: anosLetivos[0] ?? null,
-    totais: {
-      turmas: turmas.length,
-      matriculas: matriculas.length,
-      responsaveis: new Set(gruposDeResponsaveis.flat().map(({ id }) => id)).size,
-      disciplinas: disciplinas.length,
-    },
+    totais,
   });
 });
 
@@ -184,9 +165,19 @@ rotasSecretaria.get('/', async (c) => {
 rotasSecretaria.get('/alunos', async (c) => {
   const redeId = redeAtual(c);
   const termo = (c.req.query('q') ?? '').trim();
-  const encontrados = termo === '' ? [] : await academico.buscarAlunos(redeId, termo);
-  const turmas = encontrados.length === 0 ? [] : await turmasDoAlcance(redeId, unidadesDaSecretaria(c), null);
-  const ativas = await matriculasAtivasDoAlcance(redeId, turmas);
+  const pagina =
+    termo === ''
+      ? fatiar<Aluno>([], 1)
+      : await academico.paginaDeAlunos(redeId, termo, paginaDaQuery(c));
+  const encontrados = pagina.itens;
+
+  // A turma ao lado do nome sai de uma consulta para a página inteira. Antes vinha de percorrer as
+  // matrículas de todas as turmas do alcance — a rede inteira lida para enfeitar vinte linhas.
+  const ativas = await academico.matriculasAtivasDosAlunos(
+    redeId,
+    encontrados.map((aluno) => aluno.id),
+    idsDe(unidadesDaSecretaria(c)),
+  );
   const ativaPorAluno = new Map(ativas.map((matricula) => [matricula.alunoId, matricula]));
 
   const alunos = encontrados.map((aluno) => {
@@ -202,7 +193,13 @@ rotasSecretaria.get('/alunos', async (c) => {
     };
   });
 
-  return renderizar(c, '/secretaria/alunos', { titulo: 'Alunos', termo, buscou: termo !== '', alunos });
+  return renderizar(c, '/secretaria/alunos', {
+    titulo: 'Alunos',
+    termo,
+    buscou: termo !== '',
+    alunos,
+    navegacao: navegacao(c, pagina),
+  });
 });
 
 rotasSecretaria.get('/alunos/novo', (c) =>
@@ -222,39 +219,57 @@ rotasSecretaria.post('/alunos', async (c) => {
   });
 });
 
-/** Tudo o que a ficha mostra. Devolve `null` quando o aluno não existe ou está fora do alcance. */
+/**
+ * Tudo o que a ficha mostra. Devolve `null` quando o aluno não existe ou está fora do alcance.
+ *
+ * As duas tabelas da tela — responsáveis vinculados e histórico de matrículas — têm cada uma o
+ * seu parâmetro de página, porque avançar uma não pode mexer na outra.
+ *
+ * A matrícula ativa é consultada à parte, e não procurada entre as linhas exibidas: ela alimenta o
+ * formulário de transferência, que precisa continuar funcionando na segunda página do histórico.
+ */
 const fichaDoAluno = async (c: Contexto, alunoId: string): Promise<Dados | null> => {
   if (!ehIdentificador(alunoId)) return null;
   const redeId = redeAtual(c);
   const unidades = unidadesDaSecretaria(c);
+  const unidadeIds = idsDe(unidades);
 
-  const [aluno, vinculos, responsaveis, anosLetivos, turmas] = await Promise.all([
-    academico.alunoPorId(redeId, alunoId),
-    academico.responsaveisDoAluno(redeId, alunoId),
-    academico.listarResponsaveis(redeId),
-    academico.listarAnosLetivos(redeId),
-    turmasDoAlcance(redeId, unidades, null),
-  ]);
+  const [aluno, vinculos, responsaveis, anosLetivos, turmas, historico, ativas, temMatricula] =
+    await Promise.all([
+      academico.alunoPorId(redeId, alunoId),
+      academico.paginaDeResponsaveisDoAluno(redeId, alunoId, paginaDaQuery(c, 'pResponsaveis')),
+      academico.listarResponsaveis(redeId),
+      academico.listarAnosLetivos(redeId),
+      turmasDoAlcance(redeId, unidades, null),
+      academico.paginaDeMatriculasDoAluno(
+        redeId,
+        alunoId,
+        unidadeIds,
+        paginaDaQuery(c, 'pMatriculas'),
+      ),
+      academico.matriculasAtivasDosAlunos(redeId, [alunoId], unidadeIds),
+      academico.alunoTemMatricula(redeId, alunoId),
+    ]);
   if (aluno === null) return null;
 
-  const matriculas = await matriculasDoAluno(redeId, alunoId, vinculos, turmas);
-  const doAlcance = matriculas.filter((m) => unidades.some(({ id }) => id === m.unidadeId));
   // Aluno que estuda em outra unidade da rede não é assunto desta secretaria — e ela não fica
   // sabendo que ele existe. Aluno ainda sem matrícula é da rede: aparece para todas.
-  if (matriculas.length > 0 && doAlcance.length === 0) return null;
+  if (temMatricula && historico.total === 0) return null;
 
   const anoPorId = new Map(anosLetivos.map((anoLetivo) => [anoLetivo.id, anoLetivo.ano]));
   const nomePorUnidade = new Map(unidades.map(({ id, nome }) => [id, nome]));
-  const ativa = doAlcance.find((matricula) => matricula.situacao === 'ativa') ?? null;
+  const ativa = ativas[0] ?? null;
 
   return {
     titulo: 'Ficha do aluno',
     aluno,
-    vinculos,
+    vinculos: vinculos.itens,
+    navegacaoVinculos: navegacao(c, vinculos, 'pResponsaveis'),
     responsaveis,
     anosLetivos,
     turmas: turmas.map((turma) => turmaEmLista(turma, anoPorId, nomePorUnidade)),
-    matriculas: doAlcance.map(matriculaEmLista),
+    matriculas: historico.itens.map(matriculaEmLista),
+    navegacaoMatriculas: navegacao(c, historico, 'pMatriculas'),
     ativa: ativa === null ? null : matriculaEmLista(ativa),
     hoje: hoje(),
   };
@@ -333,16 +348,19 @@ rotasSecretaria.post('/matriculas/:id/transferir', async (c) => {
 
 /* --- Responsáveis ----------------------------------------------------------- */
 
-const paginaDeResponsaveis = async (c: Contexto, valores: Valores, erros: Erros): Promise<Response> =>
-  renderizar(c, '/secretaria/responsaveis', {
+const telaDeResponsaveis = async (c: Contexto, valores: Valores, erros: Erros): Promise<Response> => {
+  const pagina = await academico.paginaDeResponsaveis(redeAtual(c), paginaDaQuery(c));
+  return renderizar(c, '/secretaria/responsaveis', {
     titulo: 'Responsáveis',
-    responsaveis: await academico.listarResponsaveis(redeAtual(c)),
+    responsaveis: pagina.itens,
+    navegacao: navegacao(c, pagina),
     valores,
     erros,
   });
+};
 
 rotasSecretaria.get('/responsaveis', (c) =>
-  paginaDeResponsaveis(c, { nome: '', email: '', telefone: '' }, []));
+  telaDeResponsaveis(c, { nome: '', email: '', telefone: '' }, []));
 
 rotasSecretaria.post('/responsaveis', async (c) => {
   const corpo = c.get('corpo');
@@ -353,21 +371,28 @@ rotasSecretaria.post('/responsaveis', async (c) => {
   };
   const resultado = await academico.cadastrarResponsavel({ redeId: redeAtual(c), ...valores });
   if (resultado.ok) return concluir(c, `${BASE}/responsaveis`, 'Responsável cadastrado.');
-  return paginaDeResponsaveis(c, valores, resultado.erros);
+  return telaDeResponsaveis(c, valores, resultado.erros);
 });
 
 /* --- Turmas ----------------------------------------------------------------- */
 
-const paginaDeTurmas = async (c: Contexto, valores: Valores, erros: Erros): Promise<Response> => {
+const telaDeTurmas = async (c: Contexto, valores: Valores, erros: Erros): Promise<Response> => {
   const redeId = redeAtual(c);
   const unidades = unidadesDaSecretaria(c);
   const anosLetivos = await academico.listarAnosLetivos(redeId);
 
   // Filtro fora do alcance não filtra por ele: vale como "todas", e nunca vira consulta.
-  const unidadeId = escolhido(c.req.query('unidade'), unidades.map(({ id }) => id));
+  const unidadeId = escolhido(c.req.query('unidade'), idsDe(unidades));
   const anoLetivoId = escolhido(c.req.query('ano'), anosLetivos.map(({ id }) => id));
   const alvo = unidadeId === null ? unidades : unidades.filter(({ id }) => id === unidadeId);
-  const turmas = await turmasDoAlcance(redeId, alvo, anoLetivoId);
+
+  // A ordenação é a da consulta — série e nome. Reordenar por unidade em memória valeria só para
+  // as vinte linhas da página, e a segunda página começaria de novo pela primeira unidade.
+  const pagina = await academico.paginaDeTurmas(
+    redeId,
+    { unidadeIds: idsDe(alvo), ...(anoLetivoId === null ? {} : { anoLetivoId }) },
+    paginaDaQuery(c),
+  );
 
   const anoPorId = new Map(anosLetivos.map((anoLetivo) => [anoLetivo.id, anoLetivo.ano]));
   const nomePorUnidade = new Map(unidades.map(({ id, nome }) => [id, nome]));
@@ -378,15 +403,15 @@ const paginaDeTurmas = async (c: Contexto, valores: Valores, erros: Erros): Prom
     anosLetivos,
     turnos: TURNOS,
     filtro: { unidadeId: unidadeId ?? '', anoLetivoId: anoLetivoId ?? '' },
-    turmas: turmas.map((turma) => turmaEmLista(turma, anoPorId, nomePorUnidade))
-      .sort((a, b) => String(a.unidadeNome).localeCompare(String(b.unidadeNome), 'pt-BR')),
+    turmas: pagina.itens.map((turma) => turmaEmLista(turma, anoPorId, nomePorUnidade)),
+    navegacao: navegacao(c, pagina),
     valores,
     erros,
   });
 };
 
 rotasSecretaria.get('/turmas', (c) =>
-  paginaDeTurmas(c, { nome: '', serie: '', turno: '', unidadeId: '', anoLetivoId: '' }, []));
+  telaDeTurmas(c, { nome: '', serie: '', turno: '', unidadeId: '', anoLetivoId: '' }, []));
 
 rotasSecretaria.post('/turmas', async (c) => {
   const corpo = c.get('corpo');
@@ -404,10 +429,11 @@ rotasSecretaria.post('/turmas', async (c) => {
 
   const resultado = await academico.cadastrarTurma({ redeId: redeAtual(c), ...valores });
   if (resultado.ok) return concluir(c, `${BASE}/turmas/${resultado.valor.id}`, 'Turma cadastrada.');
-  return paginaDeTurmas(c, valores, resultado.erros);
+  return telaDeTurmas(c, valores, resultado.erros);
 });
 
-const paginaDaTurma = async (
+/** Duas tabelas, dois parâmetros: `pDisciplinas` para as alocações e `pMatriculas` para a turma. */
+const telaDaTurma = async (
   c: Contexto,
   turmaId: string,
   valores: Valores,
@@ -418,35 +444,40 @@ const paginaDaTurma = async (
 
   const redeId = redeAtual(c);
   const [alocacoes, disciplinas, professores, matriculas, anosLetivos] = await Promise.all([
-    academico.listarTurmaDisciplinas(redeId, turma.id),
+    academico.paginaDeTurmaDisciplinas(redeId, turma.id, paginaDaQuery(c, 'pDisciplinas')),
     academico.listarDisciplinas(redeId),
     identidade.professoresDaUnidade(redeId, turma.unidadeId),
-    academico.matriculasAtivasDaTurma(redeId, turma.id),
+    academico.paginaDeMatriculasAtivasDaTurma(redeId, turma.id, paginaDaQuery(c, 'pMatriculas')),
     academico.listarAnosLetivos(redeId),
   ]);
   // Uma consulta por tela, não uma por linha: o professor alocado pode já não estar na unidade.
-  const nomes = await identidade.nomesDeUsuarios(redeId, alocacoes.map((a) => a.professorUsuarioId));
+  const nomes = await identidade.nomesDeUsuarios(
+    redeId,
+    alocacoes.itens.map((a) => a.professorUsuarioId),
+  );
   const anoPorId = new Map(anosLetivos.map((anoLetivo) => [anoLetivo.id, anoLetivo.ano]));
   const nomePorUnidade = new Map(unidadesDaSecretaria(c).map(({ id, nome }) => [id, nome]));
 
   return renderizar(c, '/secretaria/turma', {
     titulo: `Turma ${turma.nome}`,
     turma: turmaEmLista(turma, anoPorId, nomePorUnidade),
-    alocacoes: alocacoes.map((alocacao) => ({
+    alocacoes: alocacoes.itens.map((alocacao) => ({
       id: alocacao.id,
       disciplinaNome: alocacao.disciplinaNome,
       professorNome: nomes.get(alocacao.professorUsuarioId) ?? '—',
     })),
+    navegacaoAlocacoes: navegacao(c, alocacoes, 'pDisciplinas'),
     disciplinas,
     professores,
-    matriculas: matriculas.map(matriculaEmLista),
+    matriculas: matriculas.itens.map(matriculaEmLista),
+    navegacaoMatriculas: navegacao(c, matriculas, 'pMatriculas'),
     valores,
     erros,
   });
 };
 
 rotasSecretaria.get('/turmas/:id', async (c) => {
-  const pagina = await paginaDaTurma(c, c.req.param('id'), { disciplinaId: '', professorUsuarioId: '' }, []);
+  const pagina = await telaDaTurma(c, c.req.param('id'), { disciplinaId: '', professorUsuarioId: '' }, []);
   return pagina ?? naoEncontrado(c);
 });
 
@@ -461,24 +492,27 @@ rotasSecretaria.post('/turmas/:id/disciplinas', async (c) => {
   };
   const resultado = await academico.alocarProfessor({ redeId: redeAtual(c), turmaId, ...valores });
   if (resultado.ok) return concluir(c, `${BASE}/turmas/${turmaId}`, 'Disciplina alocada.');
-  return (await paginaDaTurma(c, turmaId, valores, resultado.erros)) ?? naoEncontrado(c);
+  return (await telaDaTurma(c, turmaId, valores, resultado.erros)) ?? naoEncontrado(c);
 });
 
 /* --- Disciplinas ------------------------------------------------------------ */
 
-const paginaDeDisciplinas = async (c: Contexto, valores: Valores, erros: Erros): Promise<Response> =>
-  renderizar(c, '/secretaria/disciplinas', {
+const telaDeDisciplinas = async (c: Contexto, valores: Valores, erros: Erros): Promise<Response> => {
+  const pagina = await academico.paginaDeDisciplinas(redeAtual(c), paginaDaQuery(c));
+  return renderizar(c, '/secretaria/disciplinas', {
     titulo: 'Disciplinas',
-    disciplinas: await academico.listarDisciplinas(redeAtual(c)),
+    disciplinas: pagina.itens,
+    navegacao: navegacao(c, pagina),
     valores,
     erros,
   });
+};
 
-rotasSecretaria.get('/disciplinas', (c) => paginaDeDisciplinas(c, { nome: '' }, []));
+rotasSecretaria.get('/disciplinas', (c) => telaDeDisciplinas(c, { nome: '' }, []));
 
 rotasSecretaria.post('/disciplinas', async (c) => {
   const valores = { nome: texto(c.get('corpo'), 'nome') };
   const resultado = await academico.cadastrarDisciplina({ redeId: redeAtual(c), ...valores });
   if (resultado.ok) return concluir(c, `${BASE}/disciplinas`, 'Disciplina cadastrada.');
-  return paginaDeDisciplinas(c, valores, resultado.erros);
+  return telaDeDisciplinas(c, valores, resultado.erros);
 });

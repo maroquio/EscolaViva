@@ -79,11 +79,20 @@ const atalhos = [
   </div>
 </section>
 
-<% if (unidades.length > 1) { %>
+<%
+/* A condição é sobre o total de unidades, e não sobre as que couberam na página: com 21 unidades,
+   a segunda página traz uma linha só, e a tabela não pode desaparecer por causa disso. */
+const totalDeUnidades = it.navegacao === undefined ? unidades.length : it.navegacao.total;
+%>
+<% if (totalDeUnidades > 1) { %>
 <section class="secao" aria-labelledby="por-unidade">
   <div class="secao__cabecalho">
     <h2 id="por-unidade">Por unidade</h2>
-    <p class="secao__nota">Você responde por <span class="numero"><%= unidades.length %></span> unidades</p>
+    <p class="secao__nota">
+      Você responde por
+      <span class="numero"><%= totalDeUnidades %></span>
+      unidades
+    </p>
   </div>
 
   <div class="tabela-rolagem">
@@ -109,6 +118,7 @@ const atalhos = [
       </tbody>
     </table>
   </div>
+  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'unidades' }) %>
 </section>
 <% } %>
 

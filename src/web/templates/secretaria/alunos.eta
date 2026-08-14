@@ -48,9 +48,10 @@ const buscou = it.buscou === true;
   <div class="secao__cabecalho">
     <h2 id="resultado">Resultado</h2>
     <% if (buscou) { %>
+    <% const achados = it.navegacao === undefined ? alunos.length : it.navegacao.total; %>
     <p class="secao__nota">
-      <span class="numero"><%= alunos.length %></span>
-      <%= alunos.length === 1 ? 'aluno encontrado' : 'alunos encontrados' %>
+      <span class="numero"><%= achados %></span>
+      <%= achados === 1 ? 'aluno encontrado' : 'alunos encontrados' %>
     </p>
     <% } %>
   </div>
@@ -106,5 +107,6 @@ const buscou = it.buscou === true;
       </tbody>
     </table>
   </div>
+  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'alunos encontrados' }) %>
   <% } %>
 </section>

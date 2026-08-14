@@ -39,8 +39,9 @@ const descricao = (campo, temAjuda) => {
   <div class="secao__cabecalho">
     <h2 id="cadastradas">Cadastradas na rede</h2>
     <p class="secao__nota">
-      <span class="numero"><%= disciplinas.length %></span>
-      <%= disciplinas.length === 1 ? 'disciplina' : 'disciplinas' %>
+      <% const quantas = it.navegacao === undefined ? disciplinas.length : it.navegacao.total; %>
+      <span class="numero"><%= quantas %></span>
+      <%= quantas === 1 ? 'disciplina' : 'disciplinas' %>
     </p>
   </div>
 
@@ -67,6 +68,7 @@ const descricao = (campo, temAjuda) => {
       </tbody>
     </table>
   </div>
+  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'disciplinas' }) %>
   <% } %>
 </section>
 

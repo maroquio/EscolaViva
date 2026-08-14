@@ -559,6 +559,79 @@ a.cartao:active { background: var(--papel-fundo); }
 
 .tabela__acoes { display: flex; justify-content: flex-end; gap: var(--e2); }
 
+/* --- 9.1 Paginação -------------------------------------------------------- */
+
+/*
+  A barra fica sob a tabela, encostada nela: os controles pertencem àquele conjunto de linhas, e
+  em telas com duas tabelas a proximidade é a única coisa que diz qual delas eles movem.
+
+  A contagem vem primeiro na origem do documento porque é ela que responde "quanto disso eu estou
+  vendo?" — quem navega por teclado ou leitor de tela ouve a resposta antes dos controles.
+*/
+.paginacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e2) var(--e4);
+  margin-block-start: var(--e3);
+}
+
+.paginacao__contagem {
+  font-size: var(--texto-micro);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  color: var(--tinta-suave);
+}
+
+.paginacao__lista {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e1);
+  margin-inline-start: auto;
+  list-style: none;
+}
+
+/* Alvo de toque de 2,25rem: a barra é usada com o polegar tanto quanto com o mouse. */
+.paginacao__numero,
+.paginacao__passo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 2.25rem;
+  min-block-size: 2.25rem;
+  padding-inline: var(--e2);
+  border: 1px solid transparent;
+  font-family: var(--mono);
+  font-size: var(--texto-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--tinta-suave);
+  text-decoration: none;
+  transition: background var(--rapido) var(--saida), color var(--rapido) var(--saida),
+              border-color var(--rapido) var(--saida);
+}
+
+.paginacao__passo { padding-inline: var(--e3); white-space: nowrap; }
+
+a.paginacao__numero:hover,
+a.paginacao__passo:hover {
+  background: var(--marca-clara);
+  border-color: var(--marca);
+  color: var(--marca-escura);
+}
+
+/* A página atual não é um link: ela é o lugar onde já se está. */
+.paginacao__numero--atual {
+  background: var(--marca);
+  border-color: var(--marca);
+  color: var(--papel-alto);
+  font-weight: 600;
+}
+
+/* Ponta da lista: o degrau existe para manter a barra estável, e não convida ao clique. */
+.paginacao__passo--inerte { opacity: 0.4; }
+
 /* --- 10. Formulários ------------------------------------------------------ */
 
 .formulario {
@@ -1080,6 +1153,8 @@ input:disabled, select:disabled, textarea:disabled {
 
 @media print {
   .navegacao, .pagina__acoes, .acoes, .pular-para-conteudo { display: none; }
+  /* No papel os controles não levam a lugar nenhum, mas o intervalo impresso precisa constar. */
+  .paginacao__lista { display: none; }
   body { background: #fff; }
   .conteudo { padding: 0; border: 0; }
   .tabela-rolagem { max-block-size: none; overflow: visible; border: 0; }

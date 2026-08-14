@@ -1,4 +1,5 @@
 import type { Conexao } from '../../shared/db';
+import { recorte, type Faixa } from '../../shared/paginacao';
 import { paraPapel, type Papel, type PapelEmUnidade } from '../dominio/papel';
 import type { Usuario, UsuarioResumo } from '../dominio/usuario';
 
@@ -86,19 +87,32 @@ export async function papeisDoUsuario(
 /**
  * Duas consultas e um agrupamento em memória em vez de uma junção que multiplica o usuário por
  * papel: a tela de administração da rede lista dezenas de linhas, não milhares.
+ *
+ * A segunda consulta parte dos ids que a primeira devolveu, e não da rede inteira. É o que faz o
+ * recorte valer para as duas: paginar só a lista de usuários e continuar carregando os papéis de
+ * todo mundo deixaria metade do custo da tela onde ele estava.
  */
-export async function listarResumos(sql: Conexao, redeId: string): Promise<UsuarioResumo[]> {
+export async function listarResumos(
+  sql: Conexao,
+  redeId: string,
+  faixa?: Faixa,
+): Promise<UsuarioResumo[]> {
+  const { limite, deslocamento } = recorte(faixa);
   const usuarios = await sql<LinhaDeUsuario[]>`
     SELECT id, rede_id, nome, email, ativo, responsavel_id
     FROM usuario
     WHERE rede_id = ${redeId}
     ORDER BY nome
+    LIMIT ${limite}::int OFFSET ${deslocamento}::int
   `;
+  if (usuarios.length === 0) return [];
+
+  const ids = usuarios.map((linha) => linha.id);
   const papeis = await sql<(LinhaDePapel & { usuario_id: string })[]>`
     SELECT pu.usuario_id, pu.unidade_id, u.nome AS unidade_nome, pu.papel
     FROM papel_usuario pu
     JOIN unidade u ON u.id = pu.unidade_id AND u.rede_id = pu.rede_id
-    WHERE pu.rede_id = ${redeId}
+    WHERE pu.rede_id = ${redeId} AND pu.usuario_id IN ${sql(ids)}
     ORDER BY u.nome, pu.papel
   `;
 
@@ -115,6 +129,15 @@ export async function listarResumos(sql: Conexao, redeId: string): Promise<Usuar
     ativo: linha.ativo,
     papeis: porUsuario.get(linha.id) ?? [],
   }));
+}
+
+export async function contarPorRede(sql: Conexao, redeId: string): Promise<number> {
+  const linhas = await sql<{ total: number }[]>`
+    SELECT count(*)::int AS total
+    FROM usuario
+    WHERE rede_id = ${redeId}
+  `;
+  return linhas[0]?.total ?? 0;
 }
 
 export async function existeEmail(sql: Conexao, redeId: string, email: string): Promise<boolean> {

@@ -24,6 +24,7 @@ import {
 } from '../../shared/http';
 import { logger } from '../../shared/log';
 import type { ErroDeAplicacao } from '../../shared/resultado';
+import { navegacao, paginaDaQuery } from '../paginacao';
 import { renderizar, type DadosDeTemplate } from '../render';
 
 const TEMPLATE_PAINEL = '/rede/painel';
@@ -92,18 +93,20 @@ const mensagemDaQuery = (c: Context): string | undefined => MENSAGENS[c.req.quer
 type ContagensDaRede = { unidades: number; usuarios: number; turmas: number; matriculados: number };
 
 const contarRede = async (redeId: string, anoLetivoId: string | null): Promise<ContagensDaRede> => {
-  const [unidades, usuarios] = await Promise.all([
-    identidade.listarUnidades(redeId),
-    identidade.listarUsuarios(redeId),
+  // Contar não é listar: unidades e usuários saem de duas agregações, e não de duas listas
+  // inteiras trazidas até aqui para terem o `length` lido.
+  const [{ unidades, usuarios }, turmas] = await Promise.all([
+    identidade.contarUnidadesEUsuarios(redeId),
+    anoLetivoId === null
+      ? Promise.resolve<Turma[]>([])
+      : academico.listarTurmas(redeId, { anoLetivoId }),
   ]);
-  const turmas: Turma[] =
-    anoLetivoId === null ? [] : await academico.listarTurmas(redeId, { anoLetivoId });
   const matriculas = await Promise.all(
     turmas.map((turma) => academico.matriculasAtivasDaTurma(redeId, turma.id)),
   );
   return {
-    unidades: unidades.length,
-    usuarios: usuarios.length,
+    unidades,
+    usuarios,
     turmas: turmas.length,
     matriculados: matriculas.reduce((total, daTurma) => total + daTurma.length, 0),
   };
@@ -126,10 +129,11 @@ rotasRede.get('/', async (c) => {
 /* --- Unidades --------------------------------------------------------------- */
 
 const telaDeUnidades = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const unidades = await identidade.listarUnidades(redeAtual(c));
+  const pagina = await identidade.paginaDeUnidades(redeAtual(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATE_UNIDADES, {
     titulo: 'Unidades',
-    unidades,
+    unidades: pagina.itens,
+    navegacao: navegacao(c, pagina),
     valores: { nome: '', codigoInep: '' },
     erros: [],
     ...dados,
@@ -204,16 +208,22 @@ const linhasDoFormulario = (corpo: CorpoDeFormulario): LinhaDeAtribuicao[] => {
 const linhasVazias = (): LinhaDeAtribuicao[] =>
   Array.from({ length: LINHAS_DE_ATRIBUICAO }, () => ({ unidadeId: '', papel: '' }));
 
+/**
+ * A tabela é paginada, os dois campos de seleção não: unidade e responsável precisam da lista
+ * inteira para que o convite possa apontar para qualquer uma delas. Recortar o que a pessoa lê é
+ * cuidado com o banco; recortar o que ela pode escolher seria esconder opção sem avisar.
+ */
 const telaDeUsuarios = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
   const redeId = redeAtual(c);
-  const [usuarios, unidades, responsaveis] = await Promise.all([
-    identidade.listarUsuarios(redeId),
+  const [pagina, unidades, responsaveis] = await Promise.all([
+    identidade.paginaDeUsuarios(redeId, paginaDaQuery(c)),
     identidade.listarUnidades(redeId),
     academico.listarResponsaveis(redeId),
   ]);
   return renderizar(c, TEMPLATE_USUARIOS, {
     titulo: 'Usuários',
-    usuarios,
+    usuarios: pagina.itens,
+    navegacao: navegacao(c, pagina),
     unidades,
     responsaveis,
     papeis: PAPEIS_DA_TELA,
@@ -271,10 +281,11 @@ rotasRede.post('/usuarios', async (c) => {
 /* --- Anos letivos ----------------------------------------------------------- */
 
 const telaDeAnos = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const anos = await academico.listarAnosLetivos(redeAtual(c));
+  const pagina = await academico.paginaDeAnosLetivos(redeAtual(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATE_ANOS, {
     titulo: 'Anos letivos',
-    anos,
+    anos: pagina.itens,
+    navegacao: navegacao(c, pagina),
     valores: { ano: '', dataInicio: '', dataFim: '' },
     erros: [],
     ...dados,

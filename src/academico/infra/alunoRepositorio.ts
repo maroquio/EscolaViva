@@ -1,4 +1,5 @@
 import type { Conexao } from '../../shared/db';
+import type { Faixa } from '../../shared/paginacao';
 import type { Aluno } from '../dominio/aluno';
 
 const LIMITE_DA_BUSCA = 50;
@@ -39,15 +40,32 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<A
 /**
  * A secretaria procura o aluno pelo nome antes de matricular. Busca dedicada é assunto de outro
  * estágio: com dezoito mil alunos, o índice (rede_id, nome) prende a varredura à rede e o ILIKE
- * resolve o trecho em milissegundos. O limite existe porque a tela mostra uma lista, não um dump.
+ * resolve o trecho em milissegundos.
+ *
+ * Sem faixa, o teto de 50 continua valendo: quem chama sem pedir página está pedindo uma amostra,
+ * e uma consulta de busca nunca deve poder devolver a rede inteira por omissão.
  */
-export async function buscar(sql: Conexao, redeId: string, termo: string): Promise<Aluno[]> {
+export async function buscar(
+  sql: Conexao,
+  redeId: string,
+  termo: string,
+  faixa?: Faixa,
+): Promise<Aluno[]> {
   const padrao = `%${escaparCuringas(termo.trim())}%`;
   const linhas: LinhaDeAluno[] = await sql`
     SELECT id, rede_id, nome, to_char(data_nascimento, 'YYYY-MM-DD') AS data_nascimento
       FROM aluno
      WHERE rede_id = ${redeId} AND nome ILIKE ${padrao}
      ORDER BY nome
-     LIMIT ${LIMITE_DA_BUSCA}`;
+     LIMIT ${faixa?.limite ?? LIMITE_DA_BUSCA} OFFSET ${faixa?.deslocamento ?? 0}`;
   return linhas.map(paraAluno);
+}
+
+export async function contarBusca(sql: Conexao, redeId: string, termo: string): Promise<number> {
+  const padrao = `%${escaparCuringas(termo.trim())}%`;
+  const linhas: { total: number }[] = await sql`
+    SELECT count(*)::int AS total
+      FROM aluno
+     WHERE rede_id = ${redeId} AND nome ILIKE ${padrao}`;
+  return linhas[0]?.total ?? 0;
 }

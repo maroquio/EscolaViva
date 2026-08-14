@@ -1,5 +1,6 @@
 import { academico } from '../../academico';
 import { leitura } from '../../shared/db';
+import { TAMANHO_PADRAO, consultarPagina, type Pagina } from '../../shared/paginacao';
 import {
   mediaDaDisciplina,
   mediaGeral,
@@ -64,6 +65,25 @@ export async function frequenciaDaMatricula(
   matriculaId: string,
 ): Promise<ResumoFrequencia[]> {
   return await frequenciaRepositorio.porMatricula(leitura(), redeId, matriculaId);
+}
+
+/**
+ * O dia a dia da matrícula em páginas. O percentual do topo da tela não sai daqui: ele continua
+ * vindo do boletim, que apura o ano inteiro no banco — a página muda o que se lê, não o que vale.
+ */
+export async function paginaDeFrequencia(
+  redeId: string,
+  matriculaId: string,
+  pagina: number,
+  tamanho: number = TAMANHO_PADRAO,
+): Promise<Pagina<ResumoFrequencia>> {
+  const sql = leitura();
+  return await consultarPagina(
+    pagina,
+    tamanho,
+    () => frequenciaRepositorio.contarPorMatricula(sql, redeId, matriculaId),
+    (faixa) => frequenciaRepositorio.porMatricula(sql, redeId, matriculaId, faixa),
+  );
 }
 
 /**

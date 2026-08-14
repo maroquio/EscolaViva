@@ -103,5 +103,6 @@ const situacaoDoDia = (dia) => {
       </tbody>
     </table>
   </div>
+  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'dias registrados' }) %>
   <% } %>
 </section>

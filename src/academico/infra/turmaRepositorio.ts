@@ -1,4 +1,5 @@
 import type { Conexao } from '../../shared/db';
+import { recorte, type Faixa } from '../../shared/paginacao';
 import {
   turnoValido,
   type Turma,
@@ -88,24 +89,84 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<T
 }
 
 /**
+ * O filtro por várias unidades é o alcance da secretaria escrito como parâmetro. Antes ele era uma
+ * consulta por unidade concatenada em memória, e uma lista assim não tem onde pendurar um LIMIT:
+ * o recorte só existe de verdade quando a condição inteira cabe em uma consulta.
+ *
+ * Lista vazia de unidades não é o mesmo que filtro ausente. `= ANY('{}')` não casa com nada — e é
+ * exatamente isso que a secretaria sem unidade atribuída deve enxergar.
+ */
+export type FiltroDeTurma = {
+  unidadeId?: string;
+  unidadeIds?: readonly string[];
+  anoLetivoId?: string;
+};
+
+const condicoesDoFiltro = (sql: Conexao, filtro?: FiltroDeTurma) => ({
+  unidadeId: filtro?.unidadeId ?? null,
+  unidadeIds:
+    filtro?.unidadeIds === undefined ? null : sql.array([...filtro.unidadeIds], 'TEXT'),
+  anoLetivoId: filtro?.anoLetivoId ?? null,
+});
+
+/**
  * O filtro ausente vira NULL e a condição se anula sozinha — a consulta continua sendo um
  * template com parâmetros, sem trecho de SQL montado por concatenação.
  */
 export async function listar(
   sql: Conexao,
   redeId: string,
-  filtro?: { unidadeId?: string; anoLetivoId?: string },
+  filtro?: FiltroDeTurma,
+  faixa?: Faixa,
 ): Promise<Turma[]> {
-  const unidadeId = filtro?.unidadeId ?? null;
-  const anoLetivoId = filtro?.anoLetivoId ?? null;
+  const { unidadeId, unidadeIds, anoLetivoId } = condicoesDoFiltro(sql, filtro);
+  const { limite, deslocamento } = recorte(faixa);
   const linhas: LinhaDeTurma[] = await sql`
     SELECT id, rede_id, unidade_id, ano_letivo_id, nome, serie, turno
       FROM turma
      WHERE rede_id = ${redeId}
        AND (${unidadeId}::uuid IS NULL OR unidade_id = ${unidadeId}::uuid)
+       AND (${unidadeIds}::uuid[] IS NULL OR unidade_id = ANY(${unidadeIds}::uuid[]))
        AND (${anoLetivoId}::uuid IS NULL OR ano_letivo_id = ${anoLetivoId}::uuid)
-     ORDER BY serie, nome`;
+     ORDER BY serie, nome
+     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map(paraTurma);
+}
+
+export async function contar(
+  sql: Conexao,
+  redeId: string,
+  filtro?: FiltroDeTurma,
+): Promise<number> {
+  const { unidadeId, unidadeIds, anoLetivoId } = condicoesDoFiltro(sql, filtro);
+  const linhas: { total: number }[] = await sql`
+    SELECT count(*)::int AS total
+      FROM turma
+     WHERE rede_id = ${redeId}
+       AND (${unidadeId}::uuid IS NULL OR unidade_id = ${unidadeId}::uuid)
+       AND (${unidadeIds}::uuid[] IS NULL OR unidade_id = ANY(${unidadeIds}::uuid[]))
+       AND (${anoLetivoId}::uuid IS NULL OR ano_letivo_id = ${anoLetivoId}::uuid)`;
+  return linhas[0]?.total ?? 0;
+}
+
+/**
+ * Quantas turmas cada unidade tem, em uma consulta só. O painel da secretaria contava percorrendo
+ * a lista de turmas do alcance inteiro — o número de idas ao banco crescia com a rede, para
+ * mostrar uma coluna.
+ */
+export async function contarPorUnidade(
+  sql: Conexao,
+  redeId: string,
+  unidadeIds: readonly string[],
+): Promise<Map<string, number>> {
+  if (unidadeIds.length === 0) return new Map<string, number>();
+  const linhas: { unidade_id: string; total: number }[] = await sql`
+    SELECT unidade_id, count(*)::int AS total
+      FROM turma
+     WHERE rede_id = ${redeId}
+       AND unidade_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
+     GROUP BY unidade_id`;
+  return new Map(linhas.map((linha): [string, number] => [linha.unidade_id, linha.total]));
 }
 
 export async function inserirDisciplina(
@@ -136,19 +197,35 @@ export async function disciplinaPorId(
   return linha === undefined ? null : paraTurmaDisciplina(linha);
 }
 
+/** Sem faixa devolve a turma inteira — é assim que o boletim monta uma linha por disciplina. */
 export async function listarDisciplinas(
   sql: Conexao,
   redeId: string,
   turmaId: string,
+  faixa?: Faixa,
 ): Promise<TurmaDisciplina[]> {
+  const { limite, deslocamento } = recorte(faixa);
   const linhas: LinhaDeTurmaDisciplina[] = await sql`
     SELECT td.id, td.rede_id, td.turma_id, td.disciplina_id, d.nome AS disciplina_nome,
            td.professor_usuario_id
       FROM turma_disciplina td
       JOIN disciplina d ON d.id = td.disciplina_id AND d.rede_id = td.rede_id
      WHERE td.rede_id = ${redeId} AND td.turma_id = ${turmaId}
-     ORDER BY d.nome`;
+     ORDER BY d.nome
+     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map(paraTurmaDisciplina);
+}
+
+export async function contarDisciplinas(
+  sql: Conexao,
+  redeId: string,
+  turmaId: string,
+): Promise<number> {
+  const linhas: { total: number }[] = await sql`
+    SELECT count(*)::int AS total
+      FROM turma_disciplina
+     WHERE rede_id = ${redeId} AND turma_id = ${turmaId}`;
+  return linhas[0]?.total ?? 0;
 }
 
 export async function disciplinasDoProfessor(

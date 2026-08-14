@@ -42,13 +42,13 @@ const ROTULO_DA_SITUACAO = {
   <div class="painel">
     <div class="cartao">
       <p class="cartao__rotulo">Alunos acompanhados</p>
-      <p class="cartao__numero"><%= matriculas.length %></p>
+      <p class="cartao__numero"><%= it.navegacao === undefined ? matriculas.length : it.navegacao.total %></p>
       <p class="cartao__detalhe">Matrículas ligadas ao seu cadastro</p>
     </div>
 
     <a class="cartao" href="/responsavel/mural">
       <span class="cartao__rotulo">Comunicados não lidos</span>
-      <span class="cartao__numero"><%= naoLidos.length %></span>
+      <span class="cartao__numero"><%= it.totalNaoLidos %></span>
       <span class="cartao__detalhe">
         <%= it.totalNoMural %> <%= it.totalNoMural === 1 ? 'comunicado' : 'comunicados' %> no mural
       </span>
@@ -111,6 +111,7 @@ const ROTULO_DA_SITUACAO = {
       </tbody>
     </table>
   </div>
+  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'matrículas' }) %>
   <% } %>
 </section>
 

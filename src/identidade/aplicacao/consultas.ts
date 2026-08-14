@@ -1,5 +1,11 @@
 import { z } from 'zod';
 import { leitura } from '../../shared/db';
+import {
+  TAMANHO_PADRAO,
+  consultarPagina,
+  paginaVazia,
+  type Pagina,
+} from '../../shared/paginacao';
 import { clockDoSistema } from '../../shared/ports';
 import { redeAtiva } from '../dominio/rede';
 import { sessaoExpirou } from '../dominio/sessao';
@@ -47,9 +53,52 @@ export async function unidadePorId(redeId: string, unidadeId: string): Promise<U
   return await unidadeRepositorio.porId(leitura(), redeId, unidadeId);
 }
 
+export async function paginaDeUnidades(
+  redeId: string,
+  pagina: number,
+  tamanho: number = TAMANHO_PADRAO,
+): Promise<Pagina<Unidade>> {
+  if (!ehIdentificador(redeId)) return paginaVazia<Unidade>(tamanho);
+  const sql = leitura();
+  return await consultarPagina(
+    pagina,
+    tamanho,
+    () => unidadeRepositorio.contarPorRede(sql, redeId),
+    (faixa) => unidadeRepositorio.listarPorRede(sql, redeId, faixa),
+  );
+}
+
 export async function listarUsuarios(redeId: string): Promise<UsuarioResumo[]> {
   if (!ehIdentificador(redeId)) return [];
   return await usuarioRepositorio.listarResumos(leitura(), redeId);
+}
+
+export async function paginaDeUsuarios(
+  redeId: string,
+  pagina: number,
+  tamanho: number = TAMANHO_PADRAO,
+): Promise<Pagina<UsuarioResumo>> {
+  if (!ehIdentificador(redeId)) return paginaVazia<UsuarioResumo>(tamanho);
+  const sql = leitura();
+  return await consultarPagina(
+    pagina,
+    tamanho,
+    () => usuarioRepositorio.contarPorRede(sql, redeId),
+    (faixa) => usuarioRepositorio.listarResumos(sql, redeId, faixa),
+  );
+}
+
+/** O painel da rede mostra dois números; contá-los no banco evita trazer as listas para medi-las. */
+export async function contarUnidadesEUsuarios(
+  redeId: string,
+): Promise<{ unidades: number; usuarios: number }> {
+  if (!ehIdentificador(redeId)) return { unidades: 0, usuarios: 0 };
+  const sql = leitura();
+  const [unidades, usuarios] = await Promise.all([
+    unidadeRepositorio.contarPorRede(sql, redeId),
+    usuarioRepositorio.contarPorRede(sql, redeId),
+  ]);
+  return { unidades, usuarios };
 }
 
 /** A tela de login precisa do nome da rede antes de existir sessão — por isso é pública. */

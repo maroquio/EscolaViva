@@ -123,5 +123,6 @@ const resumo = it.resumo;
       </tfoot>
     </table>
   </div>
+  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'comunicados' }) %>
   <% } %>
 </section>

@@ -44,9 +44,11 @@ const descricao = (campo, temAjuda) => {
 <section class="secao" aria-labelledby="alocacoes">
   <div class="secao__cabecalho">
     <h2 id="alocacoes">Disciplinas alocadas</h2>
+    <% const quantasAlocacoes =
+         it.navegacaoAlocacoes === undefined ? alocacoes.length : it.navegacaoAlocacoes.total; %>
     <p class="secao__nota">
-      <span class="numero"><%= alocacoes.length %></span>
-      <%= alocacoes.length === 1 ? 'disciplina' : 'disciplinas' %>
+      <span class="numero"><%= quantasAlocacoes %></span>
+      <%= quantasAlocacoes === 1 ? 'disciplina' : 'disciplinas' %>
     </p>
   </div>
 
@@ -76,6 +78,9 @@ const descricao = (campo, temAjuda) => {
         </tbody>
       </table>
     </div>
+    <%~ include("/parciais/_paginacao", {
+      navegacao: it.navegacaoAlocacoes, rotulo: 'disciplinas alocadas'
+    }) %>
     <% } %>
 
     <div class="quadro">
@@ -160,9 +165,11 @@ const descricao = (campo, temAjuda) => {
 <section class="secao" aria-labelledby="matriculados">
   <div class="secao__cabecalho">
     <h2 id="matriculados">Matrículas ativas</h2>
+    <% const quantosAlunos =
+         it.navegacaoMatriculas === undefined ? matriculas.length : it.navegacaoMatriculas.total; %>
     <p class="secao__nota">
-      <span class="numero"><%= matriculas.length %></span>
-      <%= matriculas.length === 1 ? 'aluno' : 'alunos' %>
+      <span class="numero"><%= quantosAlunos %></span>
+      <%= quantosAlunos === 1 ? 'aluno' : 'alunos' %>
     </p>
   </div>
 
@@ -204,5 +211,8 @@ const descricao = (campo, temAjuda) => {
       </tbody>
     </table>
   </div>
+  <%~ include("/parciais/_paginacao", {
+    navegacao: it.navegacaoMatriculas, rotulo: 'matrículas ativas'
+  }) %>
   <% } %>
 </section>

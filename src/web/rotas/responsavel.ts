@@ -23,6 +23,8 @@ import {
   usuarioAtual,
   type Variaveis,
 } from '../../shared/http';
+import { paginaVazia } from '../../shared/paginacao';
+import { navegacao, paginaDaQuery } from '../paginacao';
 import { renderizar } from '../render';
 
 const MURAL = '/responsavel/mural';
@@ -62,23 +64,39 @@ const comMensagem = (destino: string, aviso: Record<string, string>): string =>
 
 /* --- Painel ---------------------------------------------------------------- */
 
+/**
+ * Os cartões do topo contam no banco; a tabela e a lista trazem só a página aberta. Antes o mural
+ * inteiro vinha para cá para que dois `length` fossem lidos — quatro anos de comunicados
+ * carregados para escrever dois números na tela.
+ */
 rotasResponsavel.get('/', async (c) => {
   const redeId = redeAtual(c);
   const responsavelId = responsavelDaSessao(c);
 
-  const [matriculas, mural]: [Matricula[], ItemDoMural[]] =
-    responsavelId === null
-      ? [[], []]
-      : await Promise.all([
-          academico.matriculasDoResponsavel(redeId, responsavelId),
-          comunicacao.muralDoResponsavel(redeId, responsavelId),
-        ]);
+  if (responsavelId === null) {
+    return renderizar(c, '/responsavel/painel', {
+      titulo: 'Meus alunos',
+      matriculas: [],
+      navegacao: navegacao(c, paginaVazia<Matricula>()),
+      naoLidos: [],
+      totalNaoLidos: 0,
+      totalNoMural: 0,
+    });
+  }
+
+  const [pagina, naoLidos, contagem] = await Promise.all([
+    academico.paginaDeMatriculasDoResponsavel(redeId, responsavelId, paginaDaQuery(c)),
+    comunicacao.paginaDoMural(redeId, responsavelId, false, 1),
+    comunicacao.contagemDoMural(redeId, responsavelId),
+  ]);
 
   return renderizar(c, '/responsavel/painel', {
     titulo: 'Meus alunos',
-    matriculas,
-    naoLidos: mural.filter((item) => item.lidoEm === null),
-    totalNoMural: mural.length,
+    matriculas: pagina.itens,
+    navegacao: navegacao(c, pagina),
+    naoLidos: naoLidos.itens,
+    totalNaoLidos: contagem.naoLidos,
+    totalNoMural: contagem.total,
   });
 });
 
@@ -107,7 +125,7 @@ rotasResponsavel.get('/matriculas/:id/frequencia', async (c) => {
   // O percentual vem do mesmo lugar que decide a aprovação. Recontar presenças aqui produziria um
   // segundo número, e é a divergência entre os dois que o boletim existe para não ter.
   const [dias, boletim] = await Promise.all([
-    avaliacao.frequenciaDaMatricula(redeId, matriculaId),
+    avaliacao.paginaDeFrequencia(redeId, matriculaId, paginaDaQuery(c)),
     avaliacao.boletim(redeId, matriculaId),
   ]);
   if (boletim === null) throw new NaoEncontrado('matrícula sem apuração de frequência');
@@ -116,21 +134,37 @@ rotasResponsavel.get('/matriculas/:id/frequencia', async (c) => {
     titulo: `Frequência de ${matricula.alunoNome}`,
     matricula,
     boletim,
-    dias,
+    dias: dias.itens,
+    navegacao: navegacao(c, dias),
   });
 });
 
 /* --- Mural ------------------------------------------------------------------ */
 
+/**
+ * As duas metades do mural são duas consultas com filtro próprio, cada uma com seu parâmetro de
+ * página: marcar um comunicado como lido move uma linha de uma lista para a outra, e as duas
+ * precisam poder andar sem arrastar a vizinha.
+ */
 rotasResponsavel.get('/mural', async (c) => {
   const responsavelId = responsavelDaSessao(c);
-  const mural =
-    responsavelId === null ? [] : await comunicacao.muralDoResponsavel(redeAtual(c), responsavelId);
+  const redeId = redeAtual(c);
+  const [naoLidos, lidos] =
+    responsavelId === null
+      ? [paginaVazia<ItemDoMural>(), paginaVazia<ItemDoMural>()]
+      : await Promise.all([
+          comunicacao.paginaDoMural(redeId, responsavelId, false, paginaDaQuery(c, 'pNaoLidos')),
+          comunicacao.paginaDoMural(redeId, responsavelId, true, paginaDaQuery(c, 'pLidos')),
+        ]);
 
   return renderizar(c, '/responsavel/mural', {
     titulo: 'Mural de comunicados',
-    naoLidos: mural.filter((item) => item.lidoEm === null),
-    lidos: mural.filter((item) => item.lidoEm !== null),
+    naoLidos: naoLidos.itens,
+    navegacaoNaoLidos: navegacao(c, naoLidos, 'pNaoLidos'),
+    totalNaoLidos: naoLidos.total,
+    lidos: lidos.itens,
+    navegacaoLidos: navegacao(c, lidos, 'pLidos'),
+    totalLidos: lidos.total,
   });
 });
 

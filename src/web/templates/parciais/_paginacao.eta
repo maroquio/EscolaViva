@@ -1,0 +1,69 @@
+<%
+/*
+  Barra de navegação entre páginas de uma tabela.
+
+  Recebe seu próprio objeto, e não o `it` da página — a mesma tela pode ter duas tabelas, cada uma
+  com sua barra. A chamada tem a forma
+
+    include("/parciais/_paginacao", { navegacao, rotulo })
+
+  onde `navegacao` vem de `navegacao(c, pagina, parametro)` na camada web e `rotulo` nomeia o que
+  está sendo contado ("responsáveis", "turmas"), para que quem usa leitor de tela ouça de qual das
+  tabelas da página esta barra fala.
+
+  Página única não desenha botão, mas continua dizendo quantos itens existem: some o controle,
+  não a informação.
+*/
+const nav = it.navegacao ?? null;
+const rotulo = it.rotulo ?? 'itens';
+%>
+<% if (nav !== null && nav.total > 0) { %>
+<nav class="paginacao" aria-label="Paginação de <%= rotulo %>">
+  <p class="paginacao__contagem">
+    <span class="numero"><%= nav.primeiro %>–<%= nav.ultimo %></span>
+    de <span class="numero"><%= nav.total %></span> <%= rotulo %>
+  </p>
+
+  <% if (nav.varias) { %>
+  <ul class="paginacao__lista">
+    <li>
+      <% if (nav.anterior !== null) { %>
+      <a class="paginacao__passo" href="<%= nav.anterior %>" rel="prev">
+        <span aria-hidden="true">&lsaquo;</span> Anterior
+      </a>
+      <% } else { %>
+      <span class="paginacao__passo paginacao__passo--inerte" aria-hidden="true">
+        &lsaquo; Anterior
+      </span>
+      <% } %>
+    </li>
+
+    <% nav.links.forEach((link) => { %>
+    <li>
+      <% if (link.atual) { %>
+      <span class="paginacao__numero paginacao__numero--atual" aria-current="page">
+        <%= link.numero %>
+      </span>
+      <% } else { %>
+      <a class="paginacao__numero" href="<%= link.href %>" aria-label="Página <%= link.numero %>">
+        <%= link.numero %>
+      </a>
+      <% } %>
+    </li>
+    <% }) %>
+
+    <li>
+      <% if (nav.proxima !== null) { %>
+      <a class="paginacao__passo" href="<%= nav.proxima %>" rel="next">
+        Próxima <span aria-hidden="true">&rsaquo;</span>
+      </a>
+      <% } else { %>
+      <span class="paginacao__passo paginacao__passo--inerte" aria-hidden="true">
+        Próxima &rsaquo;
+      </span>
+      <% } %>
+    </li>
+  </ul>
+  <% } %>
+</nav>
+<% } %>

@@ -179,7 +179,7 @@ const rotuloDoPapel = (valor) => {
 <section class="secao" aria-labelledby="lista-usuarios-titulo">
   <div class="secao__cabecalho">
     <h2 id="lista-usuarios-titulo">Quem tem acesso</h2>
-    <p class="secao__nota"><%= usuarios.length %> no total</p>
+    <p class="secao__nota"><%= it.navegacao === undefined ? usuarios.length : it.navegacao.total %> no total</p>
   </div>
 
   <% if (usuarios.length === 0) { %>
@@ -221,5 +221,6 @@ const rotuloDoPapel = (valor) => {
       </tbody>
     </table>
   </div>
+  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'usuários' }) %>
   <% } %>
 </section>

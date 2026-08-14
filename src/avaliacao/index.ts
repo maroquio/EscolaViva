@@ -4,6 +4,7 @@ import {
   estadoDeFechamento,
   frequenciaDaMatricula,
   notasDaTurmaDisciplina,
+  paginaDeFrequencia,
 } from './aplicacao/consultas';
 import { fecharBimestre } from './aplicacao/fecharBimestre';
 import { lancarNotas } from './aplicacao/lancarNotas';
@@ -30,4 +31,5 @@ export const avaliacao = {
   estadoDeFechamento,
   boletim,
   frequenciaDaMatricula,
+  paginaDeFrequencia,
 };

@@ -14,6 +14,7 @@
 import { Hono, type Context } from 'hono';
 import { academico } from '../../academico';
 import { comunicacao, type EstatisticaDeLeitura } from '../../comunicacao';
+import { paginaVazia } from '../../shared/paginacao';
 import { identidade, type Unidade } from '../../identidade';
 import {
   NaoEncontrado,
@@ -26,6 +27,7 @@ import {
   type Variaveis,
 } from '../../shared/http';
 import type { ErroDeAplicacao } from '../../shared/resultado';
+import { navegacao, paginaDaQuery } from '../paginacao';
 import { renderizar } from '../render';
 
 const LISTA = '/comunicados';
@@ -88,24 +90,17 @@ const recorteDaLista = (
   return unidades[0]?.id ?? null;
 };
 
-/**
- * O número que resume a tela: leituras sobre destinatários das linhas exibidas, em percentual. A
- * taxa de cada comunicado vem de `comunicacao`; esta é a soma do que está no recorte.
- */
-const resumoDaLista = (
-  comunicados: readonly EstatisticaDeLeitura[],
-): { destinatarios: number; leituras: number; percentual: number } => {
-  const destinatarios = comunicados.reduce((soma, item) => soma + item.destinatarios, 0);
-  const leituras = comunicados.reduce((soma, item) => soma + item.leituras, 0);
-  return {
-    destinatarios,
-    leituras,
-    percentual: destinatarios === 0 ? 0 : (leituras * 100) / destinatarios,
-  };
-};
+const SEM_RESUMO = { destinatarios: 0, leituras: 0, taxa: 0 };
 
 /* --- Lista ------------------------------------------------------------------ */
 
+/**
+ * O resumo do topo mede o recorte inteiro, e não as linhas da página.
+ *
+ * A taxa de leitura é o motivo desta tela existir: ela responde "o que a escola disse chegou a
+ * quem?". Uma taxa que se recalculasse a cada clique em "próxima" responderia outra pergunta, bem
+ * menos útil — a de quanto foi lido entre estes vinte comunicados aqui.
+ */
 rotasComunicados.get('/', async (c) => {
   const usuario = usuarioAtual(c);
   const veTodaARede = temPapel(usuario, 'admin_rede');
@@ -113,15 +108,25 @@ rotasComunicados.get('/', async (c) => {
   const recorte = recorteDaLista(unidades, c.req.query('unidadeId') ?? '', veTodaARede);
 
   // Secretaria sem unidade atribuída não cai na rede inteira por omissão: sem recorte, sem lista.
-  const comunicados =
-    recorte === null && !veTodaARede
-      ? []
-      : await comunicacao.listarComunicados(usuario.redeId, recorte ?? undefined);
+  const semAlcance = recorte === null && !veTodaARede;
+  const [pagina, resumo] = await Promise.all([
+    semAlcance
+      ? Promise.resolve(paginaVazia<EstatisticaDeLeitura>())
+      : comunicacao.paginaDeComunicados(usuario.redeId, recorte ?? undefined, paginaDaQuery(c)),
+    semAlcance
+      ? Promise.resolve(SEM_RESUMO)
+      : comunicacao.resumoDeComunicados(usuario.redeId, recorte ?? undefined),
+  ]);
 
   return renderizar(c, '/comunicados/lista', {
     titulo: 'Comunicados',
-    comunicados,
-    resumo: resumoDaLista(comunicados),
+    comunicados: pagina.itens,
+    navegacao: navegacao(c, pagina),
+    resumo: {
+      destinatarios: resumo.destinatarios,
+      leituras: resumo.leituras,
+      percentual: resumo.taxa,
+    },
     unidades,
     unidadeAtual: recorte ?? '',
     veTodaARede,

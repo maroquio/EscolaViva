@@ -92,7 +92,7 @@ const descricao = (campo, temAjuda) => {
 <section class="secao" aria-labelledby="lista-unidades-titulo">
   <div class="secao__cabecalho">
     <h2 id="lista-unidades-titulo">Unidades da rede</h2>
-    <p class="secao__nota"><%= unidades.length %> no total</p>
+    <p class="secao__nota"><%= it.navegacao === undefined ? unidades.length : it.navegacao.total %> no total</p>
   </div>
 
   <% if (unidades.length === 0) { %>
@@ -124,5 +124,6 @@ const descricao = (campo, temAjuda) => {
       </tbody>
     </table>
   </div>
+  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'unidades' }) %>
   <% } %>
 </section>

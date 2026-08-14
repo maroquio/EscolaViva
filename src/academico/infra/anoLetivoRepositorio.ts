@@ -1,4 +1,5 @@
 import type { Conexao } from '../../shared/db';
+import { recorte, type Faixa } from '../../shared/paginacao';
 import type { AnoLetivo } from '../dominio/anoLetivo';
 
 type LinhaDeAnoLetivo = {
@@ -45,13 +46,26 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<A
   return linha === undefined ? null : paraAnoLetivo(linha);
 }
 
-export async function listar(sql: Conexao, redeId: string): Promise<AnoLetivo[]> {
+/** Sem faixa devolve todos os anos — a matrícula e o filtro de turmas precisam da lista inteira. */
+export async function listar(
+  sql: Conexao,
+  redeId: string,
+  faixa?: Faixa,
+): Promise<AnoLetivo[]> {
+  const { limite, deslocamento } = recorte(faixa);
   const linhas: LinhaDeAnoLetivo[] = await sql`
     SELECT id, rede_id, ano,
            to_char(data_inicio, 'YYYY-MM-DD') AS data_inicio,
            to_char(data_fim, 'YYYY-MM-DD') AS data_fim
       FROM ano_letivo
      WHERE rede_id = ${redeId}
-     ORDER BY ano DESC`;
+     ORDER BY ano DESC
+     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map(paraAnoLetivo);
+}
+
+export async function contar(sql: Conexao, redeId: string): Promise<number> {
+  const linhas: { total: number }[] = await sql`
+    SELECT count(*)::int AS total FROM ano_letivo WHERE rede_id = ${redeId}`;
+  return linhas[0]?.total ?? 0;
 }

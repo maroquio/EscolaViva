@@ -29,8 +29,8 @@ const lidos = it.lidos;
   <div class="secao__cabecalho">
     <h2 id="titulo-por-ler">Não lidos</h2>
     <p class="secao__nota">
-      <span class="numero"><%= naoLidos.length %></span>
-      <%= naoLidos.length === 1 ? 'comunicado' : 'comunicados' %>
+      <span class="numero"><%= it.totalNaoLidos %></span>
+      <%= it.totalNaoLidos === 1 ? 'comunicado' : 'comunicados' %>
     </p>
   </div>
 
@@ -57,6 +57,9 @@ const lidos = it.lidos;
     </li>
     <% }) %>
   </ul>
+  <%~ include("/parciais/_paginacao", {
+    navegacao: it.navegacaoNaoLidos, rotulo: 'comunicados não lidos'
+  }) %>
   <% } %>
 </section>
 
@@ -64,8 +67,8 @@ const lidos = it.lidos;
   <div class="secao__cabecalho">
     <h2 id="titulo-lidos">Já lidos</h2>
     <p class="secao__nota">
-      <span class="numero"><%= lidos.length %></span>
-      <%= lidos.length === 1 ? 'comunicado' : 'comunicados' %>
+      <span class="numero"><%= it.totalLidos %></span>
+      <%= it.totalLidos === 1 ? 'comunicado' : 'comunicados' %>
     </p>
   </div>
 
@@ -88,5 +91,8 @@ const lidos = it.lidos;
     </li>
     <% }) %>
   </ul>
+  <%~ include("/parciais/_paginacao", {
+    navegacao: it.navegacaoLidos, rotulo: 'comunicados lidos'
+  }) %>
   <% } %>
 </section>

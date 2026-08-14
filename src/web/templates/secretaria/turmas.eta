@@ -81,9 +81,10 @@ const descricao = (campo, temAjuda) => {
 <section class="secao" aria-labelledby="lista">
   <div class="secao__cabecalho">
     <h2 id="lista">Turmas</h2>
+    <% const quantas = it.navegacao === undefined ? turmas.length : it.navegacao.total; %>
     <p class="secao__nota">
-      <span class="numero"><%= turmas.length %></span>
-      <%= turmas.length === 1 ? 'turma' : 'turmas' %><%= filtrando ? ' no filtro atual' : '' %>
+      <span class="numero"><%= quantas %></span>
+      <%= quantas === 1 ? 'turma' : 'turmas' %><%= filtrando ? ' no filtro atual' : '' %>
     </p>
   </div>
 
@@ -128,6 +129,7 @@ const descricao = (campo, temAjuda) => {
       </tbody>
     </table>
   </div>
+  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'turmas' }) %>
   <% } %>
 </section>
 

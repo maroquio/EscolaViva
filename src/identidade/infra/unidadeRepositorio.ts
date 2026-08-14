@@ -1,4 +1,5 @@
 import type { Conexao } from '../../shared/db';
+import { recorte, type Faixa } from '../../shared/paginacao';
 import type { Unidade } from '../dominio/unidade';
 
 type LinhaDeUnidade = {
@@ -17,14 +18,30 @@ const paraUnidade = (linha: LinhaDeUnidade): Unidade => ({
   ativa: linha.ativa,
 });
 
-export async function listarPorRede(sql: Conexao, redeId: string): Promise<Unidade[]> {
+/** Sem faixa devolve a rede inteira — é o que os campos de seleção do formulário precisam. */
+export async function listarPorRede(
+  sql: Conexao,
+  redeId: string,
+  faixa?: Faixa,
+): Promise<Unidade[]> {
+  const { limite, deslocamento } = recorte(faixa);
   const linhas = await sql<LinhaDeUnidade[]>`
     SELECT id, rede_id, nome, codigo_inep, ativa
     FROM unidade
     WHERE rede_id = ${redeId}
     ORDER BY nome
+    LIMIT ${limite}::int OFFSET ${deslocamento}::int
   `;
   return linhas.map(paraUnidade);
+}
+
+export async function contarPorRede(sql: Conexao, redeId: string): Promise<number> {
+  const linhas = await sql<{ total: number }[]>`
+    SELECT count(*)::int AS total
+    FROM unidade
+    WHERE rede_id = ${redeId}
+  `;
+  return linhas[0]?.total ?? 0;
 }
 
 export async function porId(

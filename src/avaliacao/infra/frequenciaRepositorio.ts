@@ -8,6 +8,7 @@
  */
 
 import type { Conexao } from '../../shared/db';
+import { recorte, type Faixa } from '../../shared/paginacao';
 import { idGeneratorUuid } from '../../shared/ports';
 import type {
   ApuracaoDeFrequencia,
@@ -42,22 +43,41 @@ export async function porMatriculasEData(
   );
 }
 
+/**
+ * Duzentos dias letivos por matrícula, e o responsável só olha os últimos. O recorte entra pelo
+ * mesmo índice da ordenação — `LIMIT` sobre `(rede_id, matricula_id, data)` lê a página e para.
+ */
 export async function porMatricula(
   sql: Conexao,
   redeId: string,
   matriculaId: string,
+  faixa?: Faixa,
 ): Promise<ResumoFrequencia[]> {
+  const { limite, deslocamento } = recorte(faixa);
   const linhas: { data: string; presente: boolean; justificativa: string | null }[] = await sql`
     SELECT to_char(data, 'YYYY-MM-DD') AS data, presente, justificativa
       FROM frequencia
      WHERE rede_id = ${redeId}
        AND matricula_id = ${matriculaId}
-     ORDER BY data DESC`;
+     ORDER BY data DESC
+     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map((linha) => ({
     data: linha.data,
     presente: linha.presente,
     justificativa: linha.justificativa,
   }));
+}
+
+export async function contarPorMatricula(
+  sql: Conexao,
+  redeId: string,
+  matriculaId: string,
+): Promise<number> {
+  const linhas: { total: number }[] = await sql`
+    SELECT count(*)::int AS total
+      FROM frequencia
+     WHERE rede_id = ${redeId} AND matricula_id = ${matriculaId}`;
+  return linhas[0]?.total ?? 0;
 }
 
 /** Total de dias e presenças da matrícula, contados no banco — o boletim não traz as linhas. */

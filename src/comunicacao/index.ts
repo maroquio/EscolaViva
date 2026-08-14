@@ -4,8 +4,12 @@
  */
 import {
   comunicadoParaResponsavel,
+  contagemDoMural,
   listarComunicados,
   muralDoResponsavel,
+  paginaDeComunicados,
+  paginaDoMural,
+  resumoDeComunicados,
 } from './aplicacao/consultas';
 import { marcarComoLido } from './aplicacao/marcarComoLido';
 import { publicarComunicado } from './aplicacao/publicarComunicado';
@@ -16,7 +20,11 @@ export type { EstatisticaDeLeitura, ItemDoMural } from './dominio/destinatario';
 export const comunicacao = {
   publicarComunicado,
   muralDoResponsavel,
+  paginaDoMural,
+  contagemDoMural,
   comunicadoParaResponsavel,
   marcarComoLido,
   listarComunicados,
+  paginaDeComunicados,
+  resumoDeComunicados,
 };

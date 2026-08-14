@@ -99,9 +99,11 @@ const gruposDeDestino =
 <section class="secao" aria-labelledby="responsaveis">
   <div class="secao__cabecalho">
     <h2 id="responsaveis">Responsáveis vinculados</h2>
+    <% const quantosVinculos =
+         it.navegacaoVinculos === undefined ? vinculos.length : it.navegacaoVinculos.total; %>
     <p class="secao__nota">
-      <span class="numero"><%= vinculos.length %></span>
-      <%= vinculos.length === 1 ? 'responsável' : 'responsáveis' %>
+      <span class="numero"><%= quantosVinculos %></span>
+      <%= quantosVinculos === 1 ? 'responsável' : 'responsáveis' %>
     </p>
   </div>
 
@@ -135,6 +137,9 @@ const gruposDeDestino =
         </tbody>
       </table>
     </div>
+    <%~ include("/parciais/_paginacao", {
+      navegacao: it.navegacaoVinculos, rotulo: 'responsáveis vinculados'
+    }) %>
     <% } %>
 
     <div class="quadro">
@@ -226,9 +231,11 @@ const gruposDeDestino =
 <section class="secao" aria-labelledby="matriculas">
   <div class="secao__cabecalho">
     <h2 id="matriculas">Matrículas</h2>
+    <% const quantosRegistros =
+         it.navegacaoMatriculas === undefined ? matriculas.length : it.navegacaoMatriculas.total; %>
     <p class="secao__nota">
-      <span class="numero"><%= matriculas.length %></span>
-      <%= matriculas.length === 1 ? 'registro' : 'registros' %> nas suas unidades
+      <span class="numero"><%= quantosRegistros %></span>
+      <%= quantosRegistros === 1 ? 'registro' : 'registros' %> nas suas unidades
     </p>
   </div>
 
@@ -264,6 +271,9 @@ const gruposDeDestino =
         </tbody>
       </table>
     </div>
+    <%~ include("/parciais/_paginacao", {
+      navegacao: it.navegacaoMatriculas, rotulo: 'matrículas'
+    }) %>
     <% } %>
 
     <div class="quadro">
