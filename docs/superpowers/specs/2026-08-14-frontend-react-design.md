@@ -1,7 +1,7 @@
 # Frontend em React e backend como API
 
 > Spec de projeto. O plano de implementação correspondente é
-> `docs/superpowers/plans/2026-08-14-frontend-react.md`.
+> [`docs/MIGRACAO_REACT.md`](../../MIGRACAO_REACT.md).
 
 O EscolaViva troca o HTML renderizado no servidor por uma aplicação React servida como arquivo
 estático, e o Hono deixa de devolver página para devolver JSON. Nenhuma regra de negócio muda:
