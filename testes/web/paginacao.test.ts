@@ -16,12 +16,19 @@ import {
   criarResponsavel,
   type Cenario,
 } from '../apoio/fabricas';
+import { TAMANHO_PADRAO } from '../../src/shared/paginacao';
 import { abrir, entrar } from './apoio';
 
 beforeEach(limparBanco);
 
-/** O tamanho de página do sistema. Os cenários abaixo são montados em torno dele. */
-const TAMANHO = 20;
+/**
+ * O tamanho de página do sistema, lido de onde ele é decidido. Os cenários abaixo são montados em
+ * torno dele: mudar a régua muda os números esperados sem reescrever teste nenhum.
+ */
+const TAMANHO = TAMANHO_PADRAO;
+
+/** Os cinco registros que o cenário completo já traz: a sobra que cai na última página. */
+const SOBRA = 5;
 
 const entrarComoSecretaria = (cenario: Cenario): Promise<string> =>
   entrar({ redeSlug: cenario.rede.slug, email: cenario.secretaria.email, senha: cenario.senha });
@@ -38,17 +45,17 @@ const linhasDaTabela = (pagina: string): number => (pagina.match(/scope="row"/g)
 const nomeNumerado = (posicao: number): string => `Pessoa ${String(posicao).padStart(3, '0')}`;
 
 describe('recorte na tela de responsáveis', () => {
-  /** 25 responsáveis: uma página cheia e uma sobra de cinco. */
-  const vinteECinco = async (): Promise<Cenario> => {
+  /** Uma página cheia e uma sobra de cinco: os cinco do cenário mais uma página inteira. */
+  const umaPaginaEUmaSobra = async (): Promise<Cenario> => {
     const cenario = await cenarioCompleto();
-    for (let i = 1; i <= 20; i += 1) {
+    for (let i = 1; i <= TAMANHO; i += 1) {
       await criarResponsavel({ redeId: cenario.rede.id, nome: nomeNumerado(i) });
     }
     return cenario;
   };
 
   test('a primeira página traz o tamanho de página, e não a lista inteira', async () => {
-    const cenario = await vinteECinco();
+    const cenario = await umaPaginaEUmaSobra();
 
     const pagina = await html('/secretaria/responsaveis', await entrarComoSecretaria(cenario));
 
@@ -58,33 +65,33 @@ describe('recorte na tela de responsáveis', () => {
   });
 
   test('a contagem da seção mostra o total, e não o tamanho da página', async () => {
-    const cenario = await vinteECinco();
+    const cenario = await umaPaginaEUmaSobra();
 
     const pagina = await html('/secretaria/responsaveis', await entrarComoSecretaria(cenario));
 
-    expect(pagina).toContain('>25</span>');
+    expect(pagina).toContain(`>${TAMANHO + SOBRA}</span>`);
   });
 
   test('a segunda página traz a sobra e oferece a volta', async () => {
-    const cenario = await vinteECinco();
+    const cenario = await umaPaginaEUmaSobra();
 
     const pagina = await html('/secretaria/responsaveis?p=2', await entrarComoSecretaria(cenario));
 
-    expect(linhasDaTabela(pagina)).toBe(5);
+    expect(linhasDaTabela(pagina)).toBe(SOBRA);
     expect(pagina).toContain('rel="prev"');
     expect(pagina).not.toContain('rel="next"');
   });
 
   test('página além do fim serve a última, em vez de uma tela vazia', async () => {
-    const cenario = await vinteECinco();
+    const cenario = await umaPaginaEUmaSobra();
 
     const pagina = await html('/secretaria/responsaveis?p=999', await entrarComoSecretaria(cenario));
 
-    expect(linhasDaTabela(pagina)).toBe(5);
+    expect(linhasDaTabela(pagina)).toBe(SOBRA);
   });
 
   test('página que não é número cai na primeira, sem erro', async () => {
-    const cenario = await vinteECinco();
+    const cenario = await umaPaginaEUmaSobra();
     const cookie = await entrarComoSecretaria(cenario);
 
     const resposta = await abrir('/secretaria/responsaveis?p=abc', cookie);
@@ -106,7 +113,7 @@ describe('recorte na tela de responsáveis', () => {
 describe('o resto da query sobrevive à navegação', () => {
   test('o termo da busca continua nos links de página', async () => {
     const cenario = await cenarioCompleto();
-    for (let i = 1; i <= 25; i += 1) {
+    for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
       await criarAluno({ redeId: cenario.rede.id, nome: `Silva ${String(i).padStart(3, '0')}` });
     }
 
@@ -118,7 +125,7 @@ describe('o resto da query sobrevive à navegação', () => {
 
   test('voltar à primeira página tira o parâmetro da URL em vez de escrever p=1', async () => {
     const cenario = await cenarioCompleto();
-    for (let i = 1; i <= 25; i += 1) {
+    for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
       await criarResponsavel({ redeId: cenario.rede.id, nome: nomeNumerado(i) });
     }
 
@@ -133,8 +140,8 @@ describe('duas tabelas na mesma tela', () => {
   test('avançar as matrículas não mexe na página das disciplinas', async () => {
     const cenario = await cenarioCompleto();
     const [turma] = cenario.turmas;
-    // 5 matrículas do cenário + 20: a turma passa a ter duas páginas de alunos.
-    for (let i = 1; i <= 20; i += 1) {
+    // As matrículas do cenário mais uma página inteira: a turma passa a ter duas páginas de alunos.
+    for (let i = 1; i <= TAMANHO; i += 1) {
       const aluno = await criarAluno({ redeId: cenario.rede.id, nome: nomeNumerado(i) });
       await criarMatricula({
         redeId: cenario.rede.id, alunoId: aluno.id, turmaId: turma.id,

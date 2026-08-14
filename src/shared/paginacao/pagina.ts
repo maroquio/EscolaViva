@@ -10,8 +10,8 @@
  * e é ele que chega aqui como função.
  */
 
-/** Vinte linhas: cabe na tela sem rolagem longa e mantém a contagem de páginas legível. */
-export const TAMANHO_PADRAO = 20;
+/** Dez linhas: a tabela inteira cabe na tela sem rolagem interna e a contagem segue legível. */
+export const TAMANHO_PADRAO = 10;
 
 /** O recorte como o SQL o entende. `deslocamento` já vem calculado a partir da página. */
 export type Faixa = {

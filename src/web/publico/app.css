@@ -460,13 +460,24 @@ a.cartao:active { background: var(--papel-fundo); }
 
 /* --- 9. Tabelas de dados -------------------------------------------------- */
 
-/* A rolagem mora aqui: a página nunca rola de lado por causa de uma tabela. */
+/*
+  Só a rolagem lateral mora aqui: a página nunca rola de lado por causa de uma tabela larga, e a
+  tabela nunca rola por dentro. Quem recorta a altura é a paginação, não o CSS — dez linhas cabem
+  inteiras na tela, e uma caixa com rolagem própria esconderia justamente as últimas linhas de uma
+  lista que já foi recortada para caber.
+*/
 .tabela-rolagem {
-  overflow: auto;
-  max-block-size: min(70dvh, 44rem);
+  overflow-x: auto;
+  /*
+    O eixo vertical precisa ser declarado, e `hidden` é o que devolve a roda do mouse à página:
+    pedir rolagem em um eixo faz o outro virar `auto` sozinho, e um `auto` vertical transforma a
+    caixa em área de rolagem que engole a roda mesmo sem ter para onde rolar. Nada é cortado — a
+    altura da caixa é a da tabela inteira, que a paginação já mantém curta.
+  */
+  overflow-y: hidden;
   border: 1px solid var(--linha);
   background: var(--papel-alto);
-  overscroll-behavior: contain;
+  overscroll-behavior-x: contain;
 }
 
 .tabela {
@@ -489,9 +500,6 @@ a.cartao:active { background: var(--papel-fundo); }
 }
 
 .tabela thead th {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: 1;
   padding: var(--e3) var(--e4);
   background: var(--papel-fundo);
   font-family: var(--mono);
@@ -501,7 +509,7 @@ a.cartao:active { background: var(--papel-fundo); }
   text-transform: uppercase;
   text-align: end;
   white-space: nowrap;
-  /* Regra sob o cabeçalho fixo: `border` some junto com a célula ao rolar. */
+  /* Regra grossa separando cabeçalho de dados, por dentro da célula. */
   box-shadow: inset 0 -1px 0 var(--tinta);
 }
 
@@ -515,6 +523,9 @@ a.cartao:active { background: var(--papel-fundo); }
 .tabela thead th.celula-centro,
 .tabela th[scope='row'].celula-centro { text-align: center; }
 .tabela .celula-centro .tabela__acoes { justify-content: center; }
+/* Coluna curta não quebra linha: ao lado de uma coluna elástica, o navegador espremeria
+   justamente estas para dar a sobra à outra, e "Abrir ficha" viraria duas linhas. */
+.tabela .celula-centro, .tabela .celula-centro .botao { white-space: nowrap; }
 
 /* A coluna elástica absorve a folga da tabela: as demais ficam justas ao conteúdo e a
    última encosta na borda direita, em vez da sobra ser dividida entre todas. */
@@ -808,7 +819,6 @@ input:disabled, select:disabled, textarea:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--e2);
   padding: var(--e2) var(--e6);
   min-block-size: var(--controle-altura);  /* a mesma dos campos: botão e campo dividem linha. */
   border: 1px solid transparent;
@@ -824,6 +834,11 @@ input:disabled, select:disabled, textarea:disabled {
 }
 .botao:active { transform: translateY(1px); }
 .botao:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* O respiro do ícone é margem, não `gap`: o rótulo que só o leitor de tela ouve — o
+   "de Fulano" depois de "Abrir ficha" — é um filho como outro qualquer para o flex, e o
+   `gap` reservava espaço para ele, empurrando o texto visível para fora do centro. */
+.botao > svg { margin-inline-end: var(--e2); }
 
 .botao--primario {
   background: var(--marca);
@@ -1157,6 +1172,5 @@ input:disabled, select:disabled, textarea:disabled {
   .paginacao__lista { display: none; }
   body { background: #fff; }
   .conteudo { padding: 0; border: 0; }
-  .tabela-rolagem { max-block-size: none; overflow: visible; border: 0; }
-  .tabela thead th { position: static; }
+  .tabela-rolagem { overflow: visible; border: 0; }
 }
