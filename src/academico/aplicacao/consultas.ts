@@ -236,6 +236,14 @@ export function paginaDeResponsaveis(
   );
 }
 
+/** A camada web usa no convite, para comparar o CPF digitado com o do cadastro apontado. */
+export function responsavelPorId(
+  redeId: string,
+  responsavelId: string,
+): Promise<Responsavel | null> {
+  return responsaveis.porId(leitura(), redeId, responsavelId);
+}
+
 export function responsaveisDoAluno(
   redeId: string,
   alunoId: string,

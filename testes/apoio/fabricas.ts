@@ -6,6 +6,7 @@
 
 import type { SituacaoMatricula } from '../../src/academico';
 import type { Papel } from '../../src/identidade';
+import { gerarCpf } from '../../src/shared/documento';
 import { sqlDeTeste } from './banco';
 
 export type StatusDeRede = 'ativa' | 'suspensa' | 'cancelada';
@@ -75,21 +76,24 @@ export async function criarUnidade(opcoes: {
 }
 
 export type UsuarioDeTeste = {
-  id: string; redeId: string; nome: string; email: string;
+  id: string; redeId: string; nome: string; email: string; cpf: string | null;
   /** A senha em claro, para o teste conseguir autenticar depois. */
   senha: string;
   ativo: boolean; responsavelId: string | null; papeis: PapelEmUnidade[];
 };
 
 export async function criarUsuario(opcoes: {
-  redeId: string; nome?: string | undefined; email?: string | undefined; senha?: string | undefined;
+  redeId: string; nome?: string | undefined; email?: string | undefined;
+  cpf?: string | null | undefined; senha?: string | undefined;
   ativo?: boolean | undefined; responsavelId?: string | null | undefined;
   papeis?: PapelEmUnidade[] | undefined;
 }): Promise<UsuarioDeTeste> {
   const numero = proximo();
   const usuario: UsuarioDeTeste = {
     id: novoId(), redeId: opcoes.redeId, nome: opcoes.nome ?? `Pessoa de Teste ${numero}`,
-    email: opcoes.email ?? `usuario${numero}@${DOMINIO}`, senha: opcoes.senha ?? SENHA_PADRAO,
+    email: opcoes.email ?? `usuario${numero}@${DOMINIO}`,
+    cpf: opcoes.cpf === undefined ? gerarCpf(numero) : opcoes.cpf,
+    senha: opcoes.senha ?? SENHA_PADRAO,
     ativo: opcoes.ativo ?? true, responsavelId: opcoes.responsavelId ?? null, papeis: opcoes.papeis ?? [],
   };
 
@@ -180,17 +184,19 @@ export async function criarAluno(opcoes: {
 }
 
 export type ResponsavelDeTeste = {
-  id: string; redeId: string; nome: string; email: string; telefone: string | null;
+  id: string; redeId: string; nome: string; email: string; cpf: string | null;
+  telefone: string | null;
 };
 
 export async function criarResponsavel(opcoes: {
-  redeId: string; nome?: string | undefined;
-  email?: string | undefined; telefone?: string | null | undefined;
+  redeId: string; nome?: string | undefined; email?: string | undefined;
+  cpf?: string | null | undefined; telefone?: string | null | undefined;
 }): Promise<ResponsavelDeTeste> {
   const numero = proximo();
   return await gravar('responsavel', {
     id: novoId(), redeId: opcoes.redeId, nome: opcoes.nome ?? `Responsável de Teste ${numero}`,
-    email: opcoes.email ?? `responsavel${numero}@${DOMINIO}`, telefone: opcoes.telefone ?? null,
+    email: opcoes.email ?? `responsavel${numero}@${DOMINIO}`,
+    cpf: opcoes.cpf === undefined ? gerarCpf(numero) : opcoes.cpf, telefone: opcoes.telefone ?? null,
   });
 }
 

@@ -12,6 +12,7 @@ export type Usuario = {
   redeId: string;
   nome: string;
   email: string;
+  cpf: string | null;
   ativo: boolean;
   /** Quem entra como responsável aponta para o cadastro de responsável do módulo acadêmico. */
   responsavelId: string | null;

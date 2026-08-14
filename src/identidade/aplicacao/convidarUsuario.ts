@@ -111,6 +111,9 @@ export async function convidarUsuario(entrada: {
     redeId: dados.redeId,
     nome: dados.nome,
     email: emailNormalizado(dados.email),
+    // O convite ainda não recebe CPF como entrada — a Task 4 muda a assinatura e passa a
+    // preencher este campo; até lá, todo usuário nasce sem CPF.
+    cpf: null,
     ativo: true,
     responsavelId,
   };

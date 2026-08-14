@@ -13,6 +13,7 @@ type LinhaDeUsuario = {
   rede_id: string;
   nome: string;
   email: string;
+  cpf: string | null;
   ativo: boolean;
   responsavel_id: string | null;
 };
@@ -26,6 +27,7 @@ const paraUsuario = (linha: LinhaDeUsuario): Usuario => ({
   redeId: linha.rede_id,
   nome: linha.nome,
   email: linha.email,
+  cpf: linha.cpf,
   ativo: linha.ativo,
   responsavelId: linha.responsavel_id,
 });
@@ -43,9 +45,24 @@ export async function credenciaisPorEmail(
   email: string,
 ): Promise<Credenciais | null> {
   const linhas = await sql<LinhaDeCredenciais[]>`
-    SELECT id, rede_id, nome, email, ativo, responsavel_id, senha_hash
+    SELECT id, rede_id, nome, email, cpf, ativo, responsavel_id, senha_hash
     FROM usuario
     WHERE rede_id = ${redeId} AND email = ${email} AND ativo
+  `;
+  const linha = linhas[0];
+  return linha === undefined ? null : { usuario: paraUsuario(linha), senhaHash: linha.senha_hash };
+}
+
+/** Gêmea de `credenciaisPorEmail`: na janela o login pode chegar por qualquer um dos dois. */
+export async function credenciaisPorCpf(
+  sql: Conexao,
+  redeId: string,
+  cpf: string,
+): Promise<Credenciais | null> {
+  const linhas = await sql<LinhaDeCredenciais[]>`
+    SELECT id, rede_id, nome, email, cpf, ativo, responsavel_id, senha_hash
+    FROM usuario
+    WHERE rede_id = ${redeId} AND cpf = ${cpf} AND ativo
   `;
   const linha = linhas[0];
   return linha === undefined ? null : { usuario: paraUsuario(linha), senhaHash: linha.senha_hash };
@@ -61,7 +78,7 @@ export async function credenciaisPorId(
   usuarioId: string,
 ): Promise<Credenciais | null> {
   const linhas = await sql<LinhaDeCredenciais[]>`
-    SELECT id, rede_id, nome, email, ativo, responsavel_id, senha_hash
+    SELECT id, rede_id, nome, email, cpf, ativo, responsavel_id, senha_hash
     FROM usuario
     WHERE id = ${usuarioId} AND ativo
   `;
@@ -99,7 +116,7 @@ export async function listarResumos(
 ): Promise<UsuarioResumo[]> {
   const { limite, deslocamento } = recorte(faixa);
   const usuarios = await sql<LinhaDeUsuario[]>`
-    SELECT id, rede_id, nome, email, ativo, responsavel_id
+    SELECT id, rede_id, nome, email, cpf, ativo, responsavel_id
     FROM usuario
     WHERE rede_id = ${redeId}
     ORDER BY nome
@@ -145,6 +162,20 @@ export async function existeEmail(sql: Conexao, redeId: string, email: string): 
     SELECT 1 AS existe
     FROM usuario
     WHERE rede_id = ${redeId} AND email = ${email}
+    LIMIT 1
+  `;
+  return linhas.length > 0;
+}
+
+/**
+ * Gêmea de `existeEmail`. O índice parcial de 0007 recusaria de qualquer forma; esta consulta
+ * existe para que a recusa chegue à tela como erro de campo, e não como falha de constraint.
+ */
+export async function existeCpf(sql: Conexao, redeId: string, cpf: string): Promise<boolean> {
+  const linhas = await sql<{ existe: number }[]>`
+    SELECT 1 AS existe
+    FROM usuario
+    WHERE rede_id = ${redeId} AND cpf = ${cpf}
     LIMIT 1
   `;
   return linhas.length > 0;
@@ -202,9 +233,9 @@ export async function nomesPorIds(
 
 export async function inserir(sql: Conexao, usuario: Usuario, senhaHash: string): Promise<void> {
   await sql`
-    INSERT INTO usuario (id, rede_id, email, senha_hash, nome, ativo, responsavel_id)
+    INSERT INTO usuario (id, rede_id, email, cpf, senha_hash, nome, ativo, responsavel_id)
     VALUES (
-      ${usuario.id}, ${usuario.redeId}, ${usuario.email}, ${senhaHash},
+      ${usuario.id}, ${usuario.redeId}, ${usuario.email}, ${usuario.cpf}, ${senhaHash},
       ${usuario.nome}, ${usuario.ativo}, ${usuario.responsavelId}
     )
   `;

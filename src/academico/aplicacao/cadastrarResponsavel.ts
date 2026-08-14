@@ -46,7 +46,9 @@ export async function cadastrarResponsavel(e: {
   const validada = entrada.safeParse(e);
   if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
 
-  const responsavel: Responsavel = { id: idGeneratorUuid.novo(), ...validada.data };
+  // O cadastro de responsável ainda não recebe CPF como entrada — fica nulo até a tarefa que
+  // liga o formulário ao campo.
+  const responsavel: Responsavel = { id: idGeneratorUuid.novo(), cpf: null, ...validada.data };
   const criado = await unidadeDeTrabalho(({ sql }) => responsaveis.inserir(sql, responsavel));
   if (!criado) {
     return falhaDeCampo(

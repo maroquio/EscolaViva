@@ -7,6 +7,7 @@ type LinhaDeResponsavel = {
   rede_id: string;
   nome: string;
   email: string;
+  cpf: string | null;
   telefone: string | null;
 };
 
@@ -23,6 +24,7 @@ const paraResponsavel = (linha: LinhaDeResponsavel): Responsavel => ({
   redeId: linha.rede_id,
   nome: linha.nome,
   email: linha.email,
+  cpf: linha.cpf,
   telefone: linha.telefone,
 });
 
@@ -36,9 +38,9 @@ const paraVinculo = (linha: LinhaDeVinculo): VinculoResponsavel => ({
 
 export async function inserir(sql: Conexao, responsavel: Responsavel): Promise<boolean> {
   const criados: { id: string }[] = await sql`
-    INSERT INTO responsavel (id, rede_id, nome, email, telefone)
+    INSERT INTO responsavel (id, rede_id, nome, email, cpf, telefone)
     VALUES (${responsavel.id}, ${responsavel.redeId}, ${responsavel.nome},
-            ${responsavel.email}, ${responsavel.telefone})
+            ${responsavel.email}, ${responsavel.cpf}, ${responsavel.telefone})
     ON CONFLICT ON CONSTRAINT responsavel_email_unico_na_rede DO NOTHING
     RETURNING id`;
   return criados.length === 1;
@@ -50,7 +52,7 @@ export async function porId(
   id: string,
 ): Promise<Responsavel | null> {
   const linhas: LinhaDeResponsavel[] = await sql`
-    SELECT id, rede_id, nome, email, telefone
+    SELECT id, rede_id, nome, email, cpf, telefone
       FROM responsavel
      WHERE rede_id = ${redeId} AND id = ${id}`;
   const linha = linhas[0];
@@ -65,7 +67,7 @@ export async function listar(
 ): Promise<Responsavel[]> {
   const { limite, deslocamento } = recorte(faixa);
   const linhas: LinhaDeResponsavel[] = await sql`
-    SELECT id, rede_id, nome, email, telefone
+    SELECT id, rede_id, nome, email, cpf, telefone
       FROM responsavel
      WHERE rede_id = ${redeId}
      ORDER BY nome

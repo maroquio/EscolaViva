@@ -151,6 +151,7 @@ describe('usuário', () => {
       redeId: 'rede-1',
       nome: 'Ana Souza',
       email: 'ana.souza@escola.br',
+      cpf: null,
       ativo: true,
       responsavelId: null,
     };
@@ -179,6 +180,7 @@ describe('usuário', () => {
       redeId: 'rede-1',
       nome: 'Carlos Lima',
       email: 'carlos@familia.br',
+      cpf: null,
       ativo: true,
       responsavelId: 'responsavel-9',
     };
@@ -194,6 +196,7 @@ describe('usuário', () => {
       redeId: 'rede-1',
       nome: 'Bia Nunes',
       email: 'bia@escola.br',
+      cpf: null,
       ativo: true,
       responsavelId: null,
     };

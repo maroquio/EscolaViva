@@ -3,6 +3,7 @@ export type Responsavel = {
   redeId: string;
   nome: string;
   email: string;
+  cpf: string | null;
   telefone: string | null;
 };
 

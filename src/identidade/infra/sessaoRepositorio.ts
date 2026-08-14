@@ -18,6 +18,7 @@ type LinhaDeSessao = {
   rede_status: string;
   usuario_nome: string;
   usuario_email: string;
+  usuario_cpf: string | null;
   usuario_ativo: boolean;
   responsavel_id: string | null;
 };
@@ -42,6 +43,7 @@ const paraSessaoComDono = (linha: LinhaDeSessao): SessaoComDono => ({
     redeId: linha.rede_id,
     nome: linha.usuario_nome,
     email: linha.usuario_email,
+    cpf: linha.usuario_cpf,
     ativo: linha.usuario_ativo,
     responsavelId: linha.responsavel_id,
   },
@@ -56,8 +58,8 @@ export async function porId(sql: Conexao, sessaoId: string): Promise<SessaoComDo
   const linhas = await sql<LinhaDeSessao[]>`
     SELECT s.id, s.rede_id, s.usuario_id, s.criado_em, s.expira_em, s.ip,
            r.nome AS rede_nome, r.slug AS rede_slug, r.status AS rede_status,
-           u.nome AS usuario_nome, u.email AS usuario_email, u.ativo AS usuario_ativo,
-           u.responsavel_id
+           u.nome AS usuario_nome, u.email AS usuario_email, u.cpf AS usuario_cpf,
+           u.ativo AS usuario_ativo, u.responsavel_id
     FROM sessao s
     JOIN rede r ON r.id = s.rede_id
     JOIN usuario u ON u.id = s.usuario_id AND u.rede_id = s.rede_id

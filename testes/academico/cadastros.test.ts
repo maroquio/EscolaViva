@@ -366,7 +366,7 @@ describe('cadastrarResponsavel', () => {
 
     const responsavel = valorDe(resultado);
     expect(responsavel).toEqual({
-      id: responsavel.id, redeId: rede.id, nome: 'Carla Dias',
+      id: responsavel.id, redeId: rede.id, nome: 'Carla Dias', cpf: null,
       email: 'carla.dias@familia.br', telefone: '27999990000',
     });
   });

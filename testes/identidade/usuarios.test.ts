@@ -10,7 +10,7 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { identidade } from '../../src/identidade';
 import type { ErroDeAplicacao, Resultado } from '../../src/shared/resultado';
-import { limparBanco } from '../apoio/banco';
+import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
   cenarioCompleto,
   criarRede,
@@ -279,6 +279,30 @@ describe('convidarUsuario', () => {
     expect(usuarios[0]?.papeis).toEqual([
       { unidadeId: unidade.id, unidadeNome: 'Escola Única', papel: 'professor' },
     ]);
+  });
+
+  // habilitado na Task 4
+  test.skip('o CPF gravado no convite volta na leitura do usuário', async () => {
+    const rede = await criarRede({});
+    const unidade = await criarUnidadeDeTeste({ redeId: rede.id });
+
+    const convite = await identidade.convidarUsuario({
+      redeId: rede.id,
+      nome: 'Marina Alves Correia',
+      email: 'marina@escolaviva.test',
+      // @ts-expect-error — convidarUsuario ainda não aceita `cpf`; a Task 4 muda a assinatura, e
+      // o erro deste marcador sumir é o próprio sinal de que dá para tirar o `test.skip` acima.
+      cpf: '52998224725',
+      atribuicoes: [{ unidadeId: unidade.id, papel: 'secretaria' }],
+    });
+    if (!convite.ok) throw new Error('convite recusado no cenário');
+    // `identidade` não expõe consulta de usuário por id, e criar uma porta pública só para
+    // satisfazer um teste seria escopo que ninguém pediu. `checklist.test.ts` já afirma "a linha
+    // caiu no banco" exatamente assim.
+    const linhas = await sqlDeTeste()<{ cpf: string }[]>`
+      SELECT cpf FROM usuario WHERE id = ${convite.valor.usuarioId}`;
+
+    expect(linhas[0]?.cpf).toBe('52998224725');
   });
 });
 
