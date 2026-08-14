@@ -16,6 +16,7 @@ import { join } from 'node:path';
 import { unlink } from 'node:fs/promises';
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { config } from '../../src/shared/config';
+import { gerarCpf } from '../../src/shared/documento';
 import { CHAVES_PROIBIDAS } from '../../src/shared/log';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
@@ -479,6 +480,8 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
 
   const NOME_DO_PROFESSOR = 'Ludmila Vasconcelos Trindade';
   const EMAIL_DO_PROFESSOR = 'ludmila.trindade@escolaviva.test';
+  /** Semente própria, e não o contador global das fábricas: aqui o valor precisa ser previsível. */
+  const CPF_DO_PROFESSOR = gerarCpf(910_827);
   const NOME_DO_ALUNO = 'Anastácio Quintiliano Bragança';
   const SLUG = 'rede-do-teste-de-log';
   const NOTA = 7.3;
@@ -492,6 +495,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
   const cenarioComNomesProprios = async (): Promise<{
     redeSlug: string;
     email: string;
+    cpf: string;
     senha: string;
     turmaDisciplinaId: string;
     matriculaIds: string[];
@@ -511,6 +515,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
       redeId: rede.id,
       nome: NOME_DO_PROFESSOR,
       email: EMAIL_DO_PROFESSOR,
+      cpf: CPF_DO_PROFESSOR,
       senha: SENHA_PADRAO,
       papeis: [{ unidadeId: unidade.id, papel: 'professor' }],
     });
@@ -531,6 +536,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
     return {
       redeSlug: rede.slug,
       email: professor.email,
+      cpf: CPF_DO_PROFESSOR,
       senha: SENHA_PADRAO,
       turmaDisciplinaId: turmaDisciplina.id,
       matriculaIds: [matricula.id],
@@ -551,11 +557,15 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
 
     const capturado = await capturarLogDeUmFluxo(cenario);
     const valores = capturado.linhas.flatMap(valoresDoLog);
-    const proibidos: unknown[] = [NOME_DO_PROFESSOR, EMAIL_DO_PROFESSOR, NOME_DO_ALUNO, NOTA];
+    const proibidos: unknown[] = [
+      NOME_DO_PROFESSOR, EMAIL_DO_PROFESSOR, CPF_DO_PROFESSOR, NOME_DO_ALUNO, NOTA,
+    ];
 
     expect(valores.filter((valor) => proibidos.includes(valor))).toEqual([]);
     expect(capturado.bruto).not.toContain(EMAIL_DO_PROFESSOR);
     expect(capturado.bruto).not.toContain(NOME_DO_ALUNO);
+    // Cru, não formatado: é a forma que a coluna grava, e é essa forma que vazaria de verdade.
+    expect(capturado.bruto).not.toContain(CPF_DO_PROFESSOR);
   }, PRAZO_DE_PROCESSO_MS);
 
   test('o log guarda identificadores e o desfecho, que é do que a operação precisa', async () => {

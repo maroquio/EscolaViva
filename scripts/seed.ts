@@ -9,6 +9,7 @@
 
 import { config } from '../src/shared/config';
 import { encerrar, escrita, unidadeDeTrabalho, type Conexao } from '../src/shared/db';
+import { formatarCpf, gerarCpf } from '../src/shared/documento';
 import { idGeneratorUuid } from '../src/shared/ports';
 
 const SLUG = 'demo';
@@ -141,7 +142,7 @@ async function criarEstrutura(sql: Conexao, ano: number): Promise<Estrutura> {
 }
 
 type Equipe = {
-  credenciais: { email: string; papel: string; onde: string }[];
+  credenciais: { email: string; cpf: string; papel: string; onde: string }[];
   secretarias: string[]; professores: string[];
 };
 
@@ -152,13 +153,21 @@ async function criarEquipe(sql: Conexao, e: Estrutura, hash: string): Promise<Eq
   const credenciais: Equipe['credenciais'] = [];
   const secretarias: string[] = [];
   const professores: string[] = [];
+  // Índice próprio, e não o `i` do laço de unidade nem o `p` do laço de professor: os dois
+  // reiniciam em zero, e reaproveitá-los faria secretaria e professor caírem no mesmo CPF
+  // dentro da mesma rede — o índice do e-mail garante unicidade por papel, não entre papéis.
+  let indice = 0;
   const registrar = (nome: string, email: string, papel: string, unidades: Registro[]): string => {
     const id = novoId();
-    usuarios.push({ id, rede_id: e.redeId, email, senha_hash: hash, nome, responsavel_id: null });
+    indice += 1;
+    const cpf = gerarCpf(indice);
+    usuarios.push({
+      id, rede_id: e.redeId, email, senha_hash: hash, nome, responsavel_id: null, cpf,
+    });
     for (const unidade of unidades) {
       papeis.push({ rede_id: e.redeId, usuario_id: id, unidade_id: unidade.id, papel });
     }
-    credenciais.push({ email, papel, onde: unidades.map((u) => u.nome).join(' + ') });
+    credenciais.push({ email, cpf, papel, onde: unidades.map((u) => u.nome).join(' + ') });
     return id;
   };
   // O admin da rede responde pelas duas unidades: `papel_usuario` só existe por unidade.
@@ -180,7 +189,7 @@ async function criarEquipe(sql: Conexao, e: Estrutura, hash: string): Promise<Eq
 
 type Povoamento = {
   matriculas: { id: string; turmaIndice: number }[];
-  responsaveisPorUnidade: string[][]; emails: string[];
+  responsaveisPorUnidade: string[][]; contas: { email: string; cpf: string }[];
 };
 
 /** Aluno, responsáveis, o usuário de cada responsável e a matrícula, tudo na mesma transação. */
@@ -193,7 +202,7 @@ async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<P
   const linhasDeMatricula: Linha[] = [];
   const matriculas: { id: string; turmaIndice: number }[] = [];
   const responsaveisPorUnidade: string[][] = e.unidades.map(() => []);
-  const emails: string[] = [];
+  const contas: { email: string; cpf: string }[] = [];
   let indice = 0;
   e.turmas.forEach((turma, turmaIndice) => {
     const unidade = e.unidades[turma.unidadeIndice];
@@ -212,9 +221,13 @@ async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<P
         const respId = novoId();
         const usuarioId = novoId();
         const nome = nomeDePessoa();
-        const email = emailDe(nome, indice * 10 + r);
+        // O mesmo índice que dá unicidade ao e-mail dá unicidade ao CPF: responsável e o
+        // usuário pelo qual ele acessa são a mesma pessoa, então carregam o mesmo documento.
+        const semente = indice * 10 + r;
+        const email = emailDe(nome, semente);
+        const cpf = gerarCpf(semente);
         const telefone = `(27) 9${entre(1000, 9999)}-${entre(1000, 9999)}`;
-        responsaveis.push({ id: respId, rede_id: e.redeId, nome, email, telefone });
+        responsaveis.push({ id: respId, rede_id: e.redeId, nome, email, telefone, cpf });
         // Exatamente um responsável por aluno responde pelo financeiro: é quem receberá a
         // cobrança quando o Estágio 02 existir.
         vinculos.push({
@@ -222,13 +235,14 @@ async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<P
           parentesco: umDe(PARENTESCOS), financeiro: r === 0,
         });
         usuarios.push({
-          id: usuarioId, rede_id: e.redeId, email, senha_hash: hash, nome, responsavel_id: respId,
+          id: usuarioId, rede_id: e.redeId, email, senha_hash: hash, nome,
+          responsavel_id: respId, cpf,
         });
         papeis.push({
           rede_id: e.redeId, usuario_id: usuarioId, unidade_id: unidade.id, papel: 'responsavel',
         });
         responsaveisPorUnidade[turma.unidadeIndice]?.push(respId);
-        emails.push(email);
+        contas.push({ email, cpf });
       }
       const matriculaId = novoId();
       matriculas.push({ id: matriculaId, turmaIndice });
@@ -244,7 +258,7 @@ async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<P
   await inserir(sql, 'usuario', usuarios);
   await inserir(sql, 'papel_usuario', papeis);
   await inserir(sql, 'matricula', linhasDeMatricula);
-  return { matriculas, responsaveisPorUnidade, emails };
+  return { matriculas, responsaveisPorUnidade, contas };
 }
 
 /** As 36 alocações: seis disciplinas em cada uma das seis turmas. */
@@ -392,16 +406,27 @@ async function imprimirResumo(sql: Conexao, redeId: string): Promise<void> {
 }
 
 const COLUNA = 38;
+const COLUNA_CPF = 14;
 const AMOSTRA_DE_RESPONSAVEIS = 3;
 
-function imprimirCredenciais(equipe: Equipe, responsaveis: string[]): void {
+// CPF impresso formatado, e não cru: a base é de aula e já publica a senha em texto puro, então
+// não há segredo a proteger aqui — só a legibilidade de quem lê o terminal.
+function imprimirCredenciais(equipe: Equipe, responsaveis: { email: string; cpf: string }[]): void {
   console.log(`\nAcesso — rede "${SLUG}", senha "${SENHA}" para todos\n`);
-  console.log(`  ${'E-MAIL'.padEnd(COLUNA)} ${'PAPEL'.padEnd(12)} UNIDADE`);
+  console.log(
+    `  ${'E-MAIL'.padEnd(COLUNA)} ${'CPF'.padEnd(COLUNA_CPF)} ${'PAPEL'.padEnd(12)} UNIDADE`,
+  );
   for (const linha of equipe.credenciais) {
-    console.log(`  ${linha.email.padEnd(COLUNA)} ${linha.papel.padEnd(12)} ${linha.onde}`);
+    console.log(
+      `  ${linha.email.padEnd(COLUNA)} ${formatarCpf(linha.cpf).padEnd(COLUNA_CPF)} `
+        + `${linha.papel.padEnd(12)} ${linha.onde}`,
+    );
   }
-  for (const email of responsaveis.slice(0, AMOSTRA_DE_RESPONSAVEIS)) {
-    console.log(`  ${email.padEnd(COLUNA)} ${'responsavel'.padEnd(12)} portal do responsável`);
+  for (const conta of responsaveis.slice(0, AMOSTRA_DE_RESPONSAVEIS)) {
+    console.log(
+      `  ${conta.email.padEnd(COLUNA)} ${formatarCpf(conta.cpf).padEnd(COLUNA_CPF)} `
+        + `${'responsavel'.padEnd(12)} portal do responsável`,
+    );
   }
   const restantes = responsaveis.length - AMOSTRA_DE_RESPONSAVEIS;
   console.log(`  … e mais ${restantes} responsáveis, mesma senha.`);
@@ -424,7 +449,7 @@ async function semear(): Promise<void> {
     await lancarNotas(sql, estrutura, povoado, alocacoes, equipeCriada.professores);
     await registrarFrequencia(sql, estrutura, povoado);
     await publicarComunicados(sql, estrutura, povoado, equipeCriada);
-    return { redeId: estrutura.redeId, equipe: equipeCriada, responsaveis: povoado.emails };
+    return { redeId: estrutura.redeId, equipe: equipeCriada, responsaveis: povoado.contas };
   });
 
   imprimirCredenciais(equipe, responsaveis);
