@@ -508,8 +508,12 @@ a.cartao:active { background: var(--papel-fundo); }
 .tabela thead th:first-child,
 .tabela .celula-texto { text-align: start; }
 
-/* Colunas curtas (turma, ano, situação, ações) leem melhor centradas sob o próprio rótulo. */
-.tabela .celula-centro { text-align: center; }
+/* Colunas curtas (turma, ano, situação, ações) leem melhor centradas sob o próprio rótulo —
+   inclusive quando a coluna curta é a primeira da tabela ou a própria coluna-âncora, que por
+   padrão nascem à esquerda. */
+.tabela .celula-centro,
+.tabela thead th.celula-centro,
+.tabela th[scope='row'].celula-centro { text-align: center; }
 .tabela .celula-centro .tabela__acoes { justify-content: center; }
 
 /* A coluna elástica absorve a folga da tabela: as demais ficam justas ao conteúdo e a

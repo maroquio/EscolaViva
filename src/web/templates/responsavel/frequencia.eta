@@ -81,21 +81,23 @@ const situacaoDoDia = (dia) => {
       <caption>Chamada de <%= it.matricula.alunoNome %></caption>
       <thead>
         <tr>
-          <th scope="col">Data</th>
-          <th scope="col">Situação</th>
-          <th scope="col">Justificativa</th>
+          <th scope="col" class="celula-centro">Data</th>
+          <th scope="col" class="celula-centro">Situação</th>
+          <th scope="col" class="celula-texto celula-elastica">Justificativa</th>
         </tr>
       </thead>
       <tbody>
         <% dias.forEach((dia) => { const situacao = situacaoDoDia(dia); %>
         <tr>
-          <th scope="row">
+          <th scope="row" class="celula-centro">
             <time datetime="<%= dia.data %>"><%= it.formatarData(dia.data) %></time>
           </th>
-          <td>
+          <td class="celula-centro">
             <span class="etiqueta <%= situacao.classe %>"><%= situacao.rotulo %></span>
           </td>
-          <td class="celula-texto"><%= dia.justificativa ? dia.justificativa : '—' %></td>
+          <td class="celula-texto celula-elastica">
+            <%= dia.justificativa ? dia.justificativa : '—' %>
+          </td>
         </tr>
         <% }) %>
       </tbody>
