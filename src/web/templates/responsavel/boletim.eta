@@ -73,7 +73,7 @@ const ROTULO_DA_SITUACAO = {
       </div>
     </div>
 
-    <p class="leitura suave">
+    <p class="suave">
       A situação sai destes dois números: é aprovado quem termina o ano com média final de
       <strong>6,0 ou mais</strong> e frequência de <strong>75 % ou mais</strong> — as duas
       condições ao mesmo tempo. Enquanto algum bimestre não estiver fechado, ou faltar nota em
