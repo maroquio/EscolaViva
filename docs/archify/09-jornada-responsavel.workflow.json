@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Jornada do responsável",
+    "output": "09-jornada-responsavel.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "acompanhar", "label": "Acompanhar o aluno", "focus": ["entrar", "alunos", "boletim", "frequencia"], "note": "O boletim é uma tela: não existe PDF neste estágio, e a situação é apurada a cada leitura." },
+      { "id": "mural", "label": "O mural e a medição", "focus": ["mural", "lido", "taxa"], "note": "lido_em é a instrumentação que transforma a suspeita sobre o mural em número." }
+    ]
+  },
+  "lanes": [
+    { "id": "responsavel", "label": "Responsável" },
+    { "id": "portal", "label": "Portal do responsável" },
+    { "id": "banco", "label": "PostgreSQL" },
+    { "id": "medicao", "label": "Medição para o Estágio 04", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "acesso", "label": "Acesso", "fromCol": 0, "toCol": 0 },
+    { "id": "leitura", "label": "Leitura", "fromCol": 1, "toCol": 3, "variant": "emphasis" },
+    { "id": "situacao", "label": "Situação do ano", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["entrar", "alunos", "mural", "boletim", "frequencia"],
+  "nodes": [
+    { "id": "entrar", "lane": "responsavel", "col": 0, "type": "external", "label": "Entrar", "sublabel": "papel responsável" },
+    { "id": "alunos", "lane": "responsavel", "col": 1, "type": "frontend", "label": "Meus alunos", "sublabel": "só os vinculados" },
+    { "id": "mural", "lane": "portal", "col": 1, "type": "backend", "label": "Mural", "sublabel": "comunicados da escola" },
+    { "id": "boletim", "lane": "portal", "col": 3, "type": "backend", "label": "Boletim", "sublabel": "em tela, sem PDF" },
+    { "id": "frequencia", "lane": "portal", "col": 5, "type": "backend", "label": "Frequência", "sublabel": "dia a dia" },
+    { "id": "lido", "lane": "banco", "col": 1, "type": "database", "label": "lido_em", "sublabel": "só quando ele marca" },
+    { "id": "taxa", "lane": "medicao", "col": 1, "type": "external", "label": "Taxa: 12 %", "sublabel": "prova a dor do E04" }
+  ],
+  "edges": [
+    { "from": "entrar", "to": "alunos", "variant": "emphasis", "route": "bottom-channel", "fromSide": "bottom", "toSide": "bottom" },
+    { "from": "alunos", "to": "mural", "variant": "emphasis", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "mural", "to": "boletim", "variant": "emphasis", "route": "bottom-channel", "fromSide": "bottom", "toSide": "bottom" },
+    { "from": "boletim", "to": "frequencia", "variant": "emphasis", "route": "bottom-channel", "fromSide": "bottom", "toSide": "bottom" },
+    { "from": "mural", "to": "lido", "label": "marcar lido", "variant": "dashed", "route": "drop", "fromSide": "bottom", "toSide": "top", "labelDy": 34, "labelDx": -48 },
+    { "from": "lido", "to": "taxa", "variant": "dashed", "role": "branch", "route": "drop", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "O que o responsável alcança",
+      "items": [
+        "Apenas os alunos vinculados a ele, em qualquer unidade da rede",
+        "Boletim, frequência e mural — nada de escrita no acadêmico",
+        "Matrícula ou comunicado de outro responsável devolve 404"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "O boletim explica a própria regra",
+      "items": [
+        "Aprovado com média 6,0 ou mais e frequência 75 % ou mais",
+        "Enquanto houver bimestre aberto, a situação é em curso",
+        "A situação carrega cor e texto: cor sozinha não informa"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Marcar como lido não é efeito de GET",
+      "items": [
+        "Abrir o comunicado não registra leitura",
+        "A leitura vem de um formulário, e nunca sobrescreve a primeira",
+        "Sem isso, o número que justifica o e-mail seria mentira"
+      ]
+    }
+  ]
+}

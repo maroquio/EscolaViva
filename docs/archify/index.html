@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagramas do Estágio 01 · EscolaViva</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<style>
+  /* Mesmos tokens do app.css do EscolaViva: tema claro, zero fonte externa, zero requisição. */
+  :root{
+    --papel:        oklch(98.5% 0.004 95);
+    --papel-fundo:  oklch(96%   0.006 95);
+    --tinta:        oklch(24%   0.02  260);
+    --tinta-suave:  oklch(48%   0.015 260);
+    --linha:        oklch(88%   0.008 260);
+    --marca:        oklch(44%   0.13  262);
+    --marca-clara:  oklch(94%   0.03  262);
+    --serif: ui-serif, Georgia, 'Times New Roman', serif;
+    --sans:  system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --mono:  ui-monospace, 'SF Mono', Menlo, monospace;
+    --passo: 0.25rem;
+    --rapido: 140ms; --saida: cubic-bezier(.16,1,.3,1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body{
+    margin: 0;
+    background: var(--papel-fundo);
+    color: var(--tinta);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    /* Papel pautado: o mesmo fundo da tela de entrada do sistema. */
+    background-image: repeating-linear-gradient(
+      to bottom, transparent 0, transparent calc(var(--passo) * 11), var(--linha) calc(var(--passo) * 11), var(--linha) calc(var(--passo) * 11 + 1px)
+    );
+  }
+
+  .folha{
+    max-width: 68rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 1rem + 4vw, 5rem) clamp(1rem, 0.5rem + 3vw, 3rem) 6rem;
+  }
+
+  /* ── Cabeçalho ───────────────────────────────────────────────────────────── */
+  header{ margin-bottom: clamp(2.5rem, 1rem + 5vw, 4.5rem); }
+  .marca{
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin: 0 0 calc(var(--passo) * 8);
+  }
+  .marca em{ font-style: normal; color: var(--marca); }
+  .sobre-titulo{
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--tinta-suave);
+    margin: 0 0 calc(var(--passo) * 2);
+  }
+  h1{
+    font-family: var(--serif);
+    font-size: clamp(2.1rem, 1.2rem + 3.4vw, 3.4rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 calc(var(--passo) * 5);
+  }
+  .abertura{
+    max-width: 46rem;
+    color: var(--tinta-suave);
+    font-size: 1.05rem;
+    margin: 0;
+  }
+  .abertura + .abertura{ margin-top: calc(var(--passo) * 3); }
+  .abertura strong{ color: var(--tinta); font-weight: 600; }
+
+  /* ── Seções ──────────────────────────────────────────────────────────────── */
+  section{ margin-top: clamp(2.5rem, 1rem + 4vw, 4rem); }
+  h2{
+    font-family: var(--serif);
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 calc(var(--passo) * 2);
+    padding-bottom: calc(var(--passo) * 3);
+    border-bottom: 2px solid var(--tinta);
+  }
+  .nota-da-secao{
+    color: var(--tinta-suave);
+    font-size: 0.92rem;
+    margin: calc(var(--passo) * 3) 0 calc(var(--passo) * 6);
+    max-width: 44rem;
+  }
+
+  /* ── Lista de diagramas ──────────────────────────────────────────────────── */
+  ol{ list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; background: var(--linha); border: 1px solid var(--linha); }
+  @media (min-width: 52rem){
+    ol{ grid-template-columns: 1fr 1fr; }
+    /* Seção com número ímpar de cartões: o último ocupa a linha inteira, em vez de
+       deixar meia linha vazia mostrando o fundo da grade. */
+    li:last-child:nth-child(odd){ grid-column: 1 / -1; }
+  }
+
+  .cartao{
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 calc(var(--passo) * 5);
+    align-items: start;
+    background: var(--papel);
+    padding: calc(var(--passo) * 6) calc(var(--passo) * 6) calc(var(--passo) * 7);
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+    transition: background var(--rapido) var(--saida), transform var(--rapido) var(--saida);
+  }
+  .cartao:hover{ background: var(--marca-clara); }
+  .cartao:active{ transform: translateY(1px); }
+  .cartao:focus-visible{ outline: 2px solid var(--marca); outline-offset: -2px; }
+
+  .numero{
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.6rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--marca);
+    grid-row: 1 / span 3;
+    padding-top: 0.1em;
+  }
+  .titulo{
+    font-family: var(--serif);
+    font-size: 1.18rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .tipo{
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--tinta-suave);
+    margin: calc(var(--passo) * 1) 0 calc(var(--passo) * 2);
+  }
+  .resumo{ margin: 0; color: var(--tinta-suave); font-size: 0.94rem; }
+
+  /* ── Rodapé ──────────────────────────────────────────────────────────────── */
+  footer{
+    margin-top: clamp(3rem, 2rem + 4vw, 5rem);
+    padding-top: calc(var(--passo) * 6);
+    border-top: 1px solid var(--linha);
+    color: var(--tinta-suave);
+    font-size: 0.88rem;
+  }
+  footer p{ margin: 0 0 calc(var(--passo) * 2); max-width: 46rem; }
+  footer code{ font-family: var(--mono); font-size: 0.86em; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="folha">
+
+<header>
+  <p class="marca">Escola<em>Viva</em></p>
+  <p class="sobre-titulo">Estágio 01 de 14</p>
+  <h1>Os diagramas da secretaria que cabe em um repositório</h1>
+  <p class="abertura">
+    Dez visualizações do sistema como ele existe hoje: um monólito modular com quatro domínios,
+    um banco relacional e nada mais. Cada uma abre em página própria, com temas claro e escuro,
+    busca, foco por elemento e roteiros guiados.
+  </p>
+  <p class="abertura">
+    Nenhum diagrama descreve o que o produto <strong>vai ser</strong>. Todos descrevem o que ele
+    <strong>é</strong> — inclusive as decisões que doem de propósito, para que os treze estágios
+    seguintes aconteçam por evidência e não por calendário.
+  </p>
+</header>
+
+<section>
+  <h2>Arquitetura e fronteiras</h2>
+  <p class="nota-da-secao">
+    O desenho do sistema inteiro e a regra que impede que ele apodreça: nenhum módulo enxerga o
+    interior de outro, e a ferramenta de build reprova quem tentar.
+  </p>
+  <ol>
+    <li><a class="cartao" href="01-arquitetura.html">
+      <span class="numero">01</span>
+      <p class="titulo">A secretaria que cabe em um repositório</p>
+      <p class="tipo">Arquitetura</p>
+      <p class="resumo">Navegador, camada web, os quatro domínios e um PostgreSQL. Mostra o aluguel permanente e a lista do que foi deixado de fora de propósito.</p>
+    </a></li>
+    <li><a class="cartao" href="02-fronteira-entre-modulos.html">
+      <span class="numero">02</span>
+      <p class="titulo">A fronteira entre os módulos</p>
+      <p class="tipo">Arquitetura</p>
+      <p class="resumo">O grafo de dependência permitido e as três regras verificadas por <code>bun run check</code>. É a decisão que torna o Estágio 14 uma extração, e não uma reescrita.</p>
+    </a></li>
+    <li><a class="cartao" href="10-fluxo-do-dado.html">
+      <span class="numero">10</span>
+      <p class="titulo">Onde o dado vive — e o que sai dele</p>
+      <p class="tipo">Fluxo de dados</p>
+      <p class="resumo">Da entrada externa à fonte da verdade, e daí para boletim, mural, log e dump. Mostra o que o log nunca carrega e por que o backup só conta depois de restaurado.</p>
+    </a></li>
+  </ol>
+</section>
+
+<section>
+  <h2>Operações por dentro</h2>
+  <p class="nota-da-secao">
+    O que acontece entre o clique e o commit, o ciclo de vida do registro central do sistema, e a
+    operação síncrona que planta a dor do Estágio 05.
+  </p>
+  <ol>
+    <li><a class="cartao" href="03-requisicao-de-escrita.html">
+      <span class="numero">03</span>
+      <p class="titulo">Uma escrita inteira, ponta a ponta</p>
+      <p class="tipo">Sequência</p>
+      <p class="resumo">O professor lança as notas da turma. Correlação, sessão, idempotência, travessia de fronteira e um único ponto de commit, em uma tela só.</p>
+    </a></li>
+    <li><a class="cartao" href="04-ciclo-da-matricula.html">
+      <span class="numero">04</span>
+      <p class="titulo">Ciclo de vida da matrícula</p>
+      <p class="tipo">Estados</p>
+      <p class="resumo">Ativa, transferida, cancelada e concluída. Por que transferir é uma operação só, e por que o índice único parcial é quem garante a regra.</p>
+    </a></li>
+    <li><a class="cartao" href="05-fechamento-de-bimestre.html">
+      <span class="numero">05</span>
+      <p class="titulo">Fechamento de bimestre</p>
+      <p class="tipo">Processo</p>
+      <p class="resumo">A conferência que trava o navegador de propósito. Fechar uma turma leva segundos; fechar as quarenta da rede leva minutos — e é esse número que justifica a fila.</p>
+    </a></li>
+  </ol>
+</section>
+
+<section>
+  <h2>Jornadas por perfil</h2>
+  <p class="nota-da-secao">
+    Uma jornada para cada um dos quatro papéis do sistema, do login ao efeito no banco, com o que
+    cada perfil pode e o que lhe é recusado.
+  </p>
+  <ol>
+    <li><a class="cartao" href="06-jornada-admin-rede.html">
+      <span class="numero">06</span>
+      <p class="titulo">Administrador da rede</p>
+      <p class="tipo">Jornada</p>
+      <p class="resumo">Cria unidades, define o ano letivo e convida usuários. A senha provisória aparece uma vez na tela, porque o envio por e-mail só chega no Estágio 04.</p>
+    </a></li>
+    <li><a class="cartao" href="07-jornada-secretaria.html">
+      <span class="numero">07</span>
+      <p class="titulo">Secretaria</p>
+      <p class="tipo">Jornada</p>
+      <p class="resumo">Cadastra, vincula responsável, matricula e transfere. A segunda matrícula ativa no mesmo ano é recusada pelo banco, não pela tela.</p>
+    </a></li>
+    <li><a class="cartao" href="08-jornada-professor.html">
+      <span class="numero">08</span>
+      <p class="titulo">Professor</p>
+      <p class="tipo">Jornada</p>
+      <p class="resumo">Lança notas em lote, registra chamada por dia e fecha o bimestre. Só enxerga as turmas em que é o professor alocado; qualquer outro identificador devolve 404.</p>
+    </a></li>
+    <li><a class="cartao" href="09-jornada-responsavel.html">
+      <span class="numero">09</span>
+      <p class="titulo">Responsável</p>
+      <p class="tipo">Jornada</p>
+      <p class="resumo">Mural, boletim em tela e frequência dia a dia. Marcar como lido é um formulário, nunca efeito de abrir a página — sem isso a taxa de 12 % seria mentira.</p>
+    </a></li>
+  </ol>
+</section>
+
+<footer>
+  <p>
+    Cada diagrama tem ao lado a especificação que o gerou, no mesmo nome com a extensão
+    <code>.json</code>. Para reeditar um deles, altere a especificação e regenere o HTML com o
+    archify — o conteúdo do arquivo entregue é verificado antes de ser gravado.
+  </p>
+  <p>
+    Os arquivos são autocontidos: abrem por <code>file://</code>, sem servidor e sem nenhuma
+    requisição de rede. A contenção horizontal foi conferida em 1440, 1600, 1920 e 2048 pixels;
+    os diagramas com faixas ocupam mais que uma tela na vertical e pedem rolagem para ler os
+    cartões de conclusão.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

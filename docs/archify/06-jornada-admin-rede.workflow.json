@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Jornada do administrador da rede",
+    "output": "06-jornada-admin-rede.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "estrutura", "label": "Montar a estrutura", "focus": ["entrar", "painel", "unidade", "ano"], "note": "Sem unidade e sem ano letivo não existe turma, e sem turma não existe matrícula." },
+      { "id": "pessoas", "label": "Dar acesso", "focus": ["painel", "convite", "senha"], "note": "O papel é sempre por unidade: o mesmo usuário pode ser secretaria em uma escola e nada em outra." }
+    ]
+  },
+  "lanes": [
+    { "id": "admin", "label": "Admin da rede" },
+    { "id": "plataforma", "label": "EscolaViva" },
+    { "id": "banco", "label": "PostgreSQL" },
+    { "id": "pendente", "label": "Sem e-mail neste estágio", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "acesso", "label": "Acesso", "fromCol": 0, "toCol": 0 },
+    { "id": "estrutura", "label": "Estrutura da rede", "fromCol": 1, "toCol": 3, "variant": "emphasis" },
+    { "id": "pessoas", "label": "Pessoas", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["entrar", "painel", "unidade", "ano", "convite"],
+  "nodes": [
+    { "id": "entrar", "lane": "admin", "col": 0, "type": "external", "label": "Entrar", "sublabel": "slug da rede" },
+    { "id": "painel", "lane": "admin", "col": 1, "type": "frontend", "label": "Painel", "sublabel": "contagens da rede" },
+    { "id": "unidade", "lane": "plataforma", "col": 1, "type": "backend", "label": "Unidade", "sublabel": "nome e código INEP" },
+    { "id": "ano", "lane": "plataforma", "col": 3, "type": "backend", "label": "Ano letivo", "sublabel": "início e fim" },
+    { "id": "convite", "lane": "plataforma", "col": 5, "type": "security", "label": "Convidar", "sublabel": "papel por unidade" },
+    { "id": "gravado", "lane": "banco", "col": 3, "type": "database", "label": "Gravado", "sublabel": "unidade, ano_letivo" },
+    { "id": "senha", "lane": "pendente", "col": 5, "type": "external", "label": "Senha na tela", "sublabel": "exibida uma vez só" }
+  ],
+  "edges": [
+    { "from": "entrar", "to": "painel", "variant": "emphasis", "route": "bottom-channel", "fromSide": "bottom", "toSide": "bottom" },
+    { "from": "painel", "to": "unidade", "variant": "emphasis", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "unidade", "to": "ano", "variant": "emphasis", "route": "bottom-channel", "fromSide": "bottom", "toSide": "bottom" },
+    { "from": "ano", "to": "convite", "variant": "emphasis", "route": "bottom-channel", "fromSide": "bottom", "toSide": "bottom" },
+    { "from": "ano", "to": "gravado", "variant": "dashed", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "convite", "to": "senha", "label": "sem e-mail", "variant": "security", "role": "branch", "route": "drop", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "O que só o admin faz",
+      "items": [
+        "Criar unidades da rede",
+        "Definir o ano letivo, com data de início e fim",
+        "Convidar usuários e atribuir papéis por unidade"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "A conta é a rede, não a escola",
+      "items": [
+        "Uma escola isolada é apenas uma rede de uma unidade",
+        "O e-mail é único por rede, não globalmente",
+        "Toda consulta do sistema começa por rede_id"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "A senha provisória aparece uma vez",
+      "items": [
+        "Não há envio de e-mail: o Mailer entra no Estágio 04",
+        "Quem convidou repassa a senha e o convidado a troca",
+        "A senha provisória nunca é escrita no log"
+      ]
+    }
+  ]
+}

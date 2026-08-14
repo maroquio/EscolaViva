@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Ciclo de vida da matrícula",
+    "output": "04-ciclo-da-matricula.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "principal", "label": "Do cadastro ao encerramento", "focus": ["cadastrado", "ativa", "fim_do_ano", "concluida"], "note": "A situação é consultada, nunca mantida em coluna calculada em outro lugar." },
+      { "id": "movimento", "label": "Quando o aluno se move", "focus": ["ativa", "transferida", "cancelada"], "note": "Transferir encerra uma linha e abre outra na mesma transação; cancelar encerra e não abre nada." }
+    ]
+  },
+  "lanes": [
+    { "id": "main", "label": "Situação da matrícula" },
+    { "id": "terminal", "label": "Saídas do ano letivo" }
+  ],
+  "states": [
+    { "id": "cadastrado", "type": "start", "label": "Sem matrícula", "sublabel": "aluno já cadastrado", "lane": "main", "col": 0, "step": "01", "tag": "entrada" },
+    { "id": "ativa", "type": "active", "label": "Ativa", "sublabel": "uma por ano letivo", "lane": "main", "col": 1, "step": "02", "tag": "índice único" },
+    { "id": "fim_do_ano", "type": "decision", "label": "Ano encerrado", "sublabel": "4 bimestres fechados", "lane": "main", "col": 2, "step": "03", "tag": "média e frequência" },
+    { "id": "concluida", "type": "success", "label": "Concluída", "sublabel": "aprovado ou reprovado", "lane": "main", "col": 3, "step": "04", "tag": "terminal" },
+    { "id": "transferida", "type": "failure", "label": "Transferida", "sublabel": "mudou de turma", "lane": "terminal", "col": 0, "tag": "abre outra ativa" },
+    { "id": "cancelada", "type": "failure", "label": "Cancelada", "sublabel": "saiu da rede", "lane": "terminal", "col": 2, "tag": "não abre outra" }
+  ],
+  "transitions": [
+    { "id": "matricular", "from": "cadastrado", "to": "ativa", "variant": "emphasis", "route": "straight" },
+    { "id": "cursar", "from": "ativa", "to": "fim_do_ano", "variant": "emphasis", "route": "straight" },
+    { "id": "concluir", "from": "fim_do_ano", "to": "concluida", "variant": "emphasis", "route": "straight" },
+    { "id": "transferir", "from": "ativa", "to": "transferida", "variant": "security", "route": "drop" },
+    { "id": "renascer", "from": "transferida", "to": "ativa", "variant": "emphasis" },
+    { "id": "cancelar", "from": "fim_do_ano", "to": "cancelada", "variant": "security", "route": "drop" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Uma ativa por ano letivo",
+      "items": [
+        "Garantido por índice único parcial, não por verificação na tela",
+        "A tentativa de criar a segunda vira erro de campo legível",
+        "Quem grava direto no banco encontra a mesma barreira"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Transferir não é duas operações",
+      "items": [
+        "A linha de origem vira transferida e a nova nasce ativa",
+        "As duas escritas moram na mesma unidade de trabalho",
+        "O UPDATE vem antes do INSERT: é ele que libera a vaga do índice"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "A situação é consultada, não guardada",
+      "items": [
+        "Média, frequência e resultado são apurados a cada leitura",
+        "Nenhum caso de uso decide a partir de valor calculado e gravado",
+        "É o que mantém o banco como única fonte da verdade"
+      ]
+    }
+  ]
+}

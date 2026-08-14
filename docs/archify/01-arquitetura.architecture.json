@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "EscolaViva — Estágio 01: a secretaria que cabe em um repositório",
+    "output": "01-arquitetura.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "caminho-principal",
+        "label": "Caminho da requisição",
+        "focus": ["navegador", "web", "academico", "banco"],
+        "note": "Do navegador ao banco em uma transação. Não há salto assíncrono neste estágio."
+      },
+      {
+        "id": "quatro-dominios",
+        "label": "Os quatro domínios",
+        "focus": ["identidade", "academico", "avaliacao", "comunicacao"],
+        "note": "Cada módulo só é alcançado pela sua porta pública. A regra é verificada por bun run check."
+      },
+      {
+        "id": "plataforma",
+        "label": "Plataforma e job",
+        "focus": ["compartilhado", "agendador", "identidade", "banco"],
+        "note": "Middlewares sem regra de negócio e o único job periódico do estágio."
+      }
+    ]
+  },
+  "components": [
+    { "id": "navegador", "type": "external", "label": "Navegador", "sublabel": "secretaria · professor · responsável · admin", "pos": [40, 336], "size": [180, 68] },
+    { "id": "compartilhado", "type": "security", "label": "shared", "sublabel": "correlação · sessão · cache · idempotência", "pos": [300, 150], "size": [180, 70], "tag": "sem regra de negócio" },
+    { "id": "web", "type": "frontend", "label": "Camada web", "sublabel": "Hono + Eta · HTML no servidor", "pos": [300, 336], "size": [180, 68] },
+    { "id": "agendador", "type": "backend", "label": "Agendador", "sublabel": "expurgo de sessões · advisory lock", "pos": [300, 660], "size": [180, 68], "tag": "único job" },
+    { "id": "comunicacao", "type": "backend", "label": "comunicacao", "sublabel": "comunicado · mural · leitura", "pos": [610, 120], "size": [190, 62] },
+    { "id": "avaliacao", "type": "backend", "label": "avaliacao", "sublabel": "nota · frequência · fechamento", "pos": [610, 262], "size": [190, 62] },
+    { "id": "academico", "type": "backend", "label": "academico", "sublabel": "aluno · turma · matrícula", "pos": [610, 404], "size": [190, 62] },
+    { "id": "identidade", "type": "backend", "label": "identidade", "sublabel": "rede · unidade · usuário · papel", "pos": [610, 546], "size": [190, 62] },
+    { "id": "banco", "type": "database", "label": "PostgreSQL 16", "sublabel": "única fonte da verdade", "pos": [930, 330], "size": [180, 76], "tag": "PITR + backup restaurado" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Um servidor de aplicação em container", "wraps": ["compartilhado", "web", "agendador", "comunicacao", "avaliacao", "academico", "identidade"] },
+    { "kind": "security-group", "label": "Sessão obrigatória em toda superfície", "wraps": ["compartilhado", "web"] }
+  ],
+  "connections": [
+    { "id": "acesso", "from": "navegador", "to": "web", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "middlewares", "from": "web", "to": "compartilhado", "label": "middlewares", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "id": "web-comunicacao", "from": "web", "to": "comunicacao" },
+    { "id": "web-avaliacao", "from": "web", "to": "avaliacao" },
+    { "id": "web-academico", "from": "web", "to": "academico" },
+    { "id": "web-identidade", "from": "web", "to": "identidade" },
+    { "id": "job-identidade", "from": "agendador", "to": "identidade", "label": "a cada 15 min", "variant": "dashed", "fromSide": "right", "toSide": "bottom" },
+    { "id": "comunicacao-banco", "from": "comunicacao", "to": "banco" },
+    { "id": "avaliacao-banco", "from": "avaliacao", "to": "banco", "label": "SQL", "labelSegment": 0, "labelDx": -30, "labelDy": -25 },
+    { "id": "academico-banco", "from": "academico", "to": "banco" },
+    { "id": "identidade-banco", "from": "identidade", "to": "banco" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Canal",
+      "items": [
+        "HTML renderizado pelo próprio monólito",
+        "Sem SPA e sem API pública para versionar",
+        "Nenhuma superfície acessível sem login"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Aluguel permanente",
+      "items": [
+        "Um servidor, um banco, um pipeline de migração",
+        "A disciplina de manter a fronteira entre os quatro módulos",
+        "É o menor aluguel possível para um produto que cobra"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Linha de base medida à mão",
+      "items": [
+        "p95 do lançamento de notas abaixo de 300 ms",
+        "CPU do banco abaixo de 20 %",
+        "frequencia com ~3,6 milhões de linhas por ano letivo"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Deixado de fora de propósito",
+      "items": [
+        "Gateway, storage, fila, worker, cache, CDN, réplica",
+        "Observabilidade, esteira, busca dedicada, microserviços",
+        "Cada um entra quando a dor correspondente for medida"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Uma escrita inteira: o professor lança as notas da turma",
+    "output": "03-requisicao-de-escrita.html",
+    "viewBox": [980, 720],
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "borda", "label": "A borda da requisição", "focus": ["navegador", "web", "compartilhado", "banco"], "note": "Correlação, sessão e idempotência acontecem antes de qualquer regra de negócio ser tocada." },
+      { "id": "porta", "label": "A porta entre módulos", "focus": ["avaliacao", "academico", "banco"], "note": "avaliacao pergunta a academico pelas matrículas: a pergunta atravessa a fronteira pelo index.ts." },
+      { "id": "transacao", "label": "Um único ponto de commit", "focus": ["avaliacao", "banco", "web"], "note": "A gravação em lote vive dentro da unidade de trabalho — o lugar onde a outbox entra no Estágio 05." }
+    ]
+  },
+  "participants": [
+    { "id": "navegador", "type": "external", "label": "Navegador", "sublabel": "professor" },
+    { "id": "web", "type": "frontend", "label": "Camada web", "sublabel": "rota + template" },
+    { "id": "compartilhado", "type": "security", "label": "shared", "sublabel": "middlewares" },
+    { "id": "avaliacao", "type": "backend", "label": "avaliacao", "sublabel": "caso de uso" },
+    { "id": "academico", "type": "backend", "label": "academico", "sublabel": "porta pública" },
+    { "id": "banco", "type": "database", "label": "PostgreSQL", "sublabel": "fonte da verdade" }
+  ],
+  "segments": [
+    { "from": 150, "to": 310, "label": "Borda e idempotência" },
+    { "from": 326, "to": 462, "label": "Leitura pela porta pública" },
+    { "from": 478, "to": 606, "label": "Escrita em uma transação" }
+  ],
+  "messages": [
+    { "id": "envio", "from": "navegador", "to": "web", "y": 182, "label": "POST notas do bimestre", "variant": "emphasis" },
+    { "id": "borda", "from": "web", "to": "compartilhado", "y": 220, "label": "correlação + sessão", "variant": "security" },
+    { "id": "chave", "from": "compartilhado", "to": "banco", "y": 258, "label": "INSERT requisicao_idempotente", "variant": "security" },
+    { "id": "chave-nova", "from": "banco", "to": "compartilhado", "y": 294, "label": "chave inédita", "variant": "return" },
+    { "id": "caso-de-uso", "from": "web", "to": "avaliacao", "y": 340, "label": "lancarNotas", "variant": "emphasis" },
+    { "id": "pergunta", "from": "avaliacao", "to": "academico", "y": 378, "label": "matrículas ativas da turma", "variant": "default" },
+    { "id": "consulta", "from": "academico", "to": "banco", "y": 414, "label": "leitura, filtrada por rede_id", "variant": "default" },
+    { "id": "linhas", "from": "banco", "to": "academico", "y": 448, "label": "linhas", "variant": "return" },
+    { "id": "gravacao", "from": "avaliacao", "to": "banco", "y": 496, "label": "UPSERT em lote na transação", "variant": "emphasis" },
+    { "id": "commit", "from": "banco", "to": "avaliacao", "y": 534, "label": "commit", "variant": "return" },
+    { "id": "resposta", "from": "web", "to": "navegador", "y": 584, "label": "303 · private, no-store", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "web", "from": 176, "to": 590, "type": "frontend" },
+    { "participant": "compartilhado", "from": 214, "to": 300, "type": "security" },
+    { "participant": "avaliacao", "from": 334, "to": 540, "type": "backend" },
+    { "participant": "academico", "from": 372, "to": 454, "type": "backend" },
+    { "participant": "banco", "from": 252, "to": 540, "type": "database" }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "A borda decide antes da regra",
+      "items": [
+        "O identificador de correlação nasce aqui e entra em todo log",
+        "A chave de idempotência é gravada antes do processamento",
+        "Reenvio com a mesma chave devolve o destino original sem reprocessar"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "A fronteira é atravessada pela porta",
+      "items": [
+        "avaliacao nunca consulta a tabela matricula diretamente",
+        "A pergunta vai para academico/index.ts e volta tipada",
+        "Sem isso, a extração de um módulo no Estágio 14 vira reescrita"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Um único ponto de commit",
+      "items": [
+        "A turma inteira é gravada em uma transação só",
+        "Qualquer exceção desfaz tudo, sem estado pela metade",
+        "É neste ponto que o INSERT na outbox entra no Estágio 05"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "A fronteira entre os módulos — a regra que a ferramenta verifica",
+    "output": "02-fronteira-entre-modulos.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "cadeia", "label": "A cadeia principal", "focus": ["comunicacao", "academico", "identidade"], "note": "identidade não conhece ninguém. Nenhuma seta volta." },
+      { "id": "avaliacao", "label": "O que avaliacao alcança", "focus": ["avaliacao", "academico", "identidade"], "note": "A nota pertence a uma matrícula; quem lançou é um usuário. Os dois vínculos passam pela porta pública." }
+    ]
+  },
+  "components": [
+    { "id": "comunicacao", "type": "backend", "label": "comunicacao", "sublabel": "o que a escola diz ao responsável", "pos": [60, 96], "size": [230, 70], "tag": "index.ts" },
+    { "id": "avaliacao", "type": "backend", "label": "avaliacao", "sublabel": "nota, frequência e fechamento", "pos": [60, 356], "size": [230, 70], "tag": "index.ts" },
+    { "id": "academico", "type": "backend", "label": "academico", "sublabel": "quem estuda, onde e com quem", "pos": [470, 226], "size": [230, 70], "tag": "index.ts" },
+    { "id": "identidade", "type": "backend", "label": "identidade", "sublabel": "quem entra e o que pode fazer", "pos": [880, 226], "size": [230, 70], "tag": "não conhece ninguém" }
+  ],
+  "boundaries": [
+    { "kind": "security-group", "label": "Só o index.ts atravessa esta linha", "wraps": ["comunicacao", "avaliacao", "academico", "identidade"] }
+  ],
+  "connections": [
+    { "id": "com-aca", "from": "comunicacao", "to": "academico", "label": "matrícula ativa" },
+    { "id": "ava-aca", "from": "avaliacao", "to": "academico", "label": "turma e disciplina" },
+    { "id": "aca-ide", "from": "academico", "to": "identidade", "label": "professor é usuário", "variant": "emphasis" },
+    { "id": "com-ide", "from": "comunicacao", "to": "identidade", "label": "autor do comunicado", "fromSide": "top", "toSide": "top", "via": [[175, 44], [995, 44]] },
+    { "id": "ava-ide", "from": "avaliacao", "to": "identidade", "label": "quem lançou a nota", "fromSide": "bottom", "toSide": "bottom", "via": [[175, 480], [995, 480]] }
+  ],
+  "cards": [
+    {
+      "dot": "violet",
+      "title": "As três regras verificadas por bun run check",
+      "items": [
+        "Nenhum módulo importa arquivo interno de outro — só o index.ts",
+        "*/dominio/ não importa shared/db, shared/http nem SDK de terceiro",
+        "shared/ nunca importa módulo de domínio: a dependência é de fora para dentro"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Por que isso importa no Estágio 14",
+      "items": [
+        "Quando cobranca/ for extraído, \"o que mais mexe nisso?\" já tem resposta",
+        "A resposta é: só quem importa cobranca/index.ts",
+        "Sem a regra, a resposta é \"não sei\" e a extração vira reescrita"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "O que a regra custa hoje",
+      "items": [
+        "Um arquivo de configuração e a disciplina de respeitá-lo",
+        "A verificação roda em bun run check e reprova de verdade",
+        "A partir do Estágio 12 ela roda também na esteira"
+      ]
+    }
+  ]
+}
