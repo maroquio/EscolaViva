@@ -11,6 +11,7 @@ import { describe, expect, test } from 'bun:test';
 import {
   mediaDaDisciplina,
   mediaGeral,
+  mediasPorBimestre,
   percentualFrequencia,
   situacaoFinal,
 } from '../../src/avaliacao/dominio/boletim';
@@ -107,6 +108,46 @@ describe('mediaGeral', () => {
     const geral = mediaGeral(nenhuma);
 
     expect(geral).toBeNull();
+  });
+});
+
+describe('mediasPorBimestre', () => {
+  const linha = (disciplinaNome: string, notas: (number | null)[]) => ({
+    disciplinaNome,
+    notas,
+    media: mediaDaDisciplina(notas),
+  });
+
+  test('é a média simples das notas de todas as disciplinas em cada bimestre', () => {
+    const linhas = [linha('Arte', [10, 8, 6, 4]), linha('Ciências', [0, 2, 4, 6])];
+
+    const medias = mediasPorBimestre(linhas);
+
+    expect(medias).toEqual([5, 5, 5, 5]);
+  });
+
+  test('trunca na segunda casa, como o resto da regra', () => {
+    const linhas = [linha('Arte', [5.99, 10, 10, 10]), linha('Ciências', [6, 10, 10, 10])];
+
+    const medias = mediasPorBimestre(linhas);
+
+    expect(medias[0]).toBe(5.99);
+  });
+
+  test('devolve null no bimestre em que falta nota de alguma disciplina', () => {
+    const linhas = [linha('Arte', [7, null, 8, 9]), linha('Ciências', [9, 9, 8, 7])];
+
+    const medias = mediasPorBimestre(linhas);
+
+    expect(medias).toEqual([8, null, 8, 8]);
+  });
+
+  test('devolve os quatro bimestres nulos quando o aluno não cursa disciplina nenhuma', () => {
+    const nenhuma: ReturnType<typeof linha>[] = [];
+
+    const medias = mediasPorBimestre(nenhuma);
+
+    expect(medias).toEqual([null, null, null, null]);
   });
 });
 

@@ -548,6 +548,11 @@ a.cartao:active { background: var(--papel-fundo); }
   border-block-start: 2px solid var(--tinta);
 }
 
+/* O rodapé de totais também tem coluna-âncora grudada: sem fundo próprio na linha, a célula
+   `sticky` herda transparência e o conteúdo rola por baixo dela. */
+.tabela tfoot tr { background: var(--papel-alto); }
+.tabela tfoot th[scope='row'] { font-weight: 600; }
+
 .tabela__acoes { display: flex; justify-content: flex-end; gap: var(--e2); }
 
 /* --- 10. Formulários ------------------------------------------------------ */

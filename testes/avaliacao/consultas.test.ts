@@ -349,6 +349,7 @@ describe('boletim', () => {
       turmaNome: minimo.turmaNome,
       ano: ANO_PADRAO,
       linhas: [{ disciplinaNome: minimo.disciplinaNome, notas: [6, 6, 6, 6], media: 6 }],
+      mediasPorBimestre: [6, 6, 6, 6],
       mediaGeral: 6,
       percentualFrequencia: 75,
       totalDias: 4,

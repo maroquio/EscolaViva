@@ -3,6 +3,7 @@ import { leitura } from '../../shared/db';
 import {
   mediaDaDisciplina,
   mediaGeral,
+  mediasPorBimestre,
   percentualFrequencia,
   situacaoFinal,
   type Boletim,
@@ -94,6 +95,7 @@ export async function boletim(redeId: string, matriculaId: string): Promise<Bole
     turmaNome: matricula.turmaNome,
     ano: matricula.ano,
     linhas,
+    mediasPorBimestre: mediasPorBimestre(linhas),
     mediaGeral: media,
     percentualFrequencia: frequencia,
     totalDias: apuracao.totalDias,

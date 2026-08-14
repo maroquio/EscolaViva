@@ -102,9 +102,9 @@ const ROTULO_DA_SITUACAO = {
         <tr>
           <th scope="col">Disciplina</th>
           <% it.bimestres.forEach((bimestre) => { %>
-          <th scope="col"><%= bimestre %>º bimestre</th>
+          <th scope="col" class="celula-centro"><%= bimestre %>º bimestre</th>
           <% }) %>
-          <th scope="col">Média</th>
+          <th scope="col" class="celula-centro">Média anual</th>
         </tr>
       </thead>
       <tbody>
@@ -112,16 +112,19 @@ const ROTULO_DA_SITUACAO = {
         <tr>
           <th scope="row"><%= linha.disciplinaNome %></th>
           <% linha.notas.forEach((nota) => { %>
-          <td class="numero"><%= it.formatarNota(nota) %></td>
+          <td class="numero celula-centro"><%= it.formatarNota(nota) %></td>
           <% }) %>
-          <td class="numero"><%= it.formatarNota(linha.media) %></td>
+          <td class="numero celula-centro"><%= it.formatarNota(linha.media) %></td>
         </tr>
         <% }) %>
       </tbody>
       <tfoot>
         <tr>
-          <td class="celula-texto" colspan="<%= it.bimestres.length + 1 %>">Média geral do ano</td>
-          <td class="numero"><%= it.formatarNota(boletim.mediaGeral) %></td>
+          <th scope="row">Médias</th>
+          <% boletim.mediasPorBimestre.forEach((mediaDoBimestre) => { %>
+          <td class="numero celula-centro"><%= it.formatarNota(mediaDoBimestre) %></td>
+          <% }) %>
+          <td class="numero celula-centro"><%= it.formatarNota(boletim.mediaGeral) %></td>
         </tr>
       </tfoot>
     </table>

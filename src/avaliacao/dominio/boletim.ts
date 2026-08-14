@@ -34,6 +34,7 @@ export type Boletim = {
   turmaNome: string;
   ano: number;
   linhas: LinhaDeBoletim[];
+  mediasPorBimestre: (number | null)[];
   mediaGeral: number | null;
   percentualFrequencia: number;
   totalDias: number;
@@ -81,15 +82,39 @@ export function mediaDaDisciplina(notas: (number | null)[]): number | null {
   return truncarEmCentesimos(soma / QUANTIDADE_DE_BIMESTRES);
 }
 
+/**
+ * Média aritmética simples de um conjunto já apurado, na mesma aritmética de centésimos truncados
+ * do resto do arquivo. Qualquer lacuna devolve `null`: média de conjunto incompleto é número que
+ * ninguém calculou.
+ */
+function mediaSimples(valores: readonly (number | null)[]): number | null {
+  if (valores.length === 0) return null;
+  let soma = 0;
+  for (const valor of valores) {
+    if (valor === null) return null;
+    soma += emCentesimos(valor);
+  }
+  return truncarEmCentesimos(soma / valores.length);
+}
+
 /** Média do aluno no ano: média aritmética simples das médias das disciplinas que ele cursa. */
 export function mediaGeral(medias: (number | null)[]): number | null {
-  if (medias.length === 0) return null;
-  let soma = 0;
-  for (const media of medias) {
-    if (media === null) return null;
-    soma += emCentesimos(media);
-  }
-  return truncarEmCentesimos(soma / medias.length);
+  return mediaSimples(medias);
+}
+
+/**
+ * Média do aluno em cada bimestre: média simples das notas de todas as disciplinas naquele
+ * bimestre. Bimestre com disciplina sem nota devolve `null` pela mesma razão da média da
+ * disciplina — o travessão na tabela é a lacuna, não um zero.
+ *
+ * Este número é de leitura, e não decide aprovação: a situação continua saindo de `mediaGeral`,
+ * que é a média das médias das disciplinas. Com todas as notas lançadas os dois caminhos dão o
+ * mesmo valor a menos do corte de centésimos, e é `mediaGeral` que o boletim imprime no ano.
+ */
+export function mediasPorBimestre(linhas: readonly LinhaDeBoletim[]): (number | null)[] {
+  return Array.from({ length: QUANTIDADE_DE_BIMESTRES }, (_, indice) =>
+    mediaSimples(linhas.map((linha) => linha.notas[indice] ?? null)),
+  );
 }
 
 export function percentualFrequencia(presencas: number, total: number): number {
