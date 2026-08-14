@@ -19,6 +19,7 @@ import { academico, type Turma } from '../../academico';
 import { identidade, type Papel } from '../../identidade';
 import { config } from '../../shared/config';
 import {
+  ehIdentificador,
   exigirPapel,
   redeAtual,
   type CorpoDeFormulario,
@@ -90,15 +91,6 @@ const lista = (corpo: CorpoDeFormulario, campo: string): string[] => {
   if (Array.isArray(valor)) return valor.map((item) => (typeof item === 'string' ? item.trim() : ''));
   return typeof valor === 'string' ? [valor.trim()] : [];
 };
-
-/**
- * `academico.responsavelPorId` compara o id com uma coluna `uuid`: um `responsavelId` fora do
- * formato viraria erro de conversão do PostgreSQL, e não a simples ausência de cadastro que de
- * fato é. A borda recusa antes de chegar lá — o mesmo cuidado que `secretaria.ts` já toma para
- * turma, aluno e matrícula.
- */
-const FORMATO_DE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ehIdentificador = (valor: string): boolean => FORMATO_DE_ID.test(valor);
 
 const mensagemDaQuery = (c: Context): string | undefined => MENSAGENS[c.req.query('ok') ?? ''];
 

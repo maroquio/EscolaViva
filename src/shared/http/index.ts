@@ -36,6 +36,8 @@ export {
 } from './erros';
 export type { RenderizadorDeErro, StatusDeErro } from './erros';
 
+export { ehIdentificador } from './identificador';
+
 /**
  * O que os middlewares guardam no contexto da requisição. A camada web monta o servidor com
  * `new Hono<{ Variables: Variaveis }>()` e passa a ler `c.get(...)` já tipado.

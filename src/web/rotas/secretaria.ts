@@ -13,6 +13,7 @@ import { Hono, type Context } from 'hono';
 import { academico, type Aluno, type AnoLetivo, type Matricula, type Turma } from '../../academico';
 import { identidade } from '../../identidade';
 import {
+  ehIdentificador,
   exigirPapel,
   redeAtual,
   usuarioAtual,
@@ -43,13 +44,6 @@ const TURNOS = Object.entries(NOME_DO_TURNO).map(([valor, nome]) => ({ valor, no
 const NOME_DA_SITUACAO: Record<string, string> = {
   ativa: 'Ativa', transferida: 'Transferida', cancelada: 'Cancelada', concluida: 'Concluída',
 };
-
-/**
- * O acadêmico compara id com coluna `uuid`: um `:id` digitado à mão viraria erro de conversão do
- * PostgreSQL, isto é, 500 no lugar de 404. A borda recusa antes de chegar lá.
- */
-const FORMATO_DE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ehIdentificador = (valor: string): boolean => FORMATO_DE_ID.test(valor);
 
 const hoje = (): string => clockDoSistema.agora().toISOString().slice(0, 10);
 const porNome = (a: Unidade, b: Unidade): number => a.nome.localeCompare(b.nome, 'pt-BR');
