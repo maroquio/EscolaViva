@@ -147,10 +147,42 @@ const auxiliares = {
   formatarPercentual,
 } as const;
 
+/* --- Erros de campo -------------------------------------------------------- */
+
+type Problema = { readonly campo: string; readonly mensagem: string };
+
+const problemasDe = (dados: DadosDeTemplate): readonly Problema[] => {
+  const erros = dados['erros'];
+  return Array.isArray(erros) ? (erros as readonly Problema[]) : [];
+};
+
+/**
+ * Todo formulário mostra o erro embaixo do campo e aponta o `aria-describedby` para ele. Escrever
+ * isso no template custava as mesmas quinze linhas em cada um — dez cópias de uma regra só. As duas
+ * funções nascem aqui, já fechadas sobre os `erros` daquele render: o template recebe `it.erroDe` e
+ * `it.descricao` prontos, do mesmo jeito que já recebia `it.formatarData`.
+ */
+const auxiliaresDeErro = (dados: DadosDeTemplate) => {
+  const problemas = problemasDe(dados);
+
+  /** Mensagem do campo, ou string vazia quando ele passou. */
+  const erroDe = (campo: string): string =>
+    problemas.find((problema) => problema.campo === campo)?.mensagem ?? '';
+
+  /** Ids que o campo descreve: a ajuda fixa, quando existe, e o erro, quando há. */
+  const descricao = (campo: string, temAjuda = false): string =>
+    [temAjuda ? `${campo}-ajuda` : '', erroDe(campo) === '' ? '' : `${campo}-erro`]
+      .filter((id) => id !== '')
+      .join(' ');
+
+  return { erroDe, descricao };
+};
+
 const contextoDeTemplate = (c: Context, dados: DadosDeTemplate): DadosDeTemplate => ({
   titulo: 'EscolaViva',
   ...dados,
   ...auxiliares,
+  ...auxiliaresDeErro(dados),
   usuario: usuarioAtualOuNulo(c),
   // I4: chave nova a cada render — dois carregamentos da mesma tela são dois envios distintos,
   // mas dois cliques no mesmo botão carregam a mesma chave e produzem um registro só.

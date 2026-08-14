@@ -1,25 +1,11 @@
 <%
 /*
-  Disciplinas da rede.
+  Disciplinas da rede: a lista, e só. O cadastro mora em `/secretaria/disciplinas/nova`.
 
   A disciplina é da rede inteira: "Matemática" é a mesma em todas as unidades. O que varia por
   turma é quem a leciona, e essa alocação se faz na tela da turma.
 */
 const disciplinas = it.disciplinas ?? [];
-const valores = it.valores ?? {};
-const erros = Array.isArray(it.erros) ? it.erros : [];
-
-const erroDe = (campo) => {
-  const achado = erros.find((problema) => problema.campo === campo);
-  return achado === undefined ? '' : achado.mensagem;
-};
-
-const descricao = (campo, temAjuda) => {
-  const ids = [];
-  if (temAjuda) ids.push(campo + '-ajuda');
-  if (erroDe(campo) !== '') ids.push(campo + '-erro');
-  return ids.join(' ');
-};
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -32,6 +18,7 @@ const descricao = (campo, temAjuda) => {
   </div>
   <div class="pagina__acoes">
     <a class="botao botao--secundario" href="/secretaria/turmas">Turmas</a>
+    <a class="botao botao--primario" href="/secretaria/disciplinas/nova">Cadastrar disciplina</a>
   </div>
 </div>
 
@@ -48,7 +35,8 @@ const descricao = (campo, temAjuda) => {
   <% if (disciplinas.length === 0) { %>
   <%~ include("/parciais/_vazio", {
     titulo: 'Nenhuma disciplina cadastrada',
-    texto: 'Sem disciplina não há alocação de professor, e sem alocação não há lançamento de nota. Comece pelo formulário abaixo.'
+    texto: 'Sem disciplina não há alocação de professor, e sem alocação não há lançamento de nota.',
+    acao: { href: '/secretaria/disciplinas/nova', texto: 'Cadastrar disciplina' }
   }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -70,40 +58,4 @@ const descricao = (campo, temAjuda) => {
   </div>
   <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'disciplinas' }) %>
   <% } %>
-</section>
-
-<section class="secao" aria-labelledby="nova-disciplina">
-  <div class="secao__cabecalho">
-    <h2 id="nova-disciplina">Cadastrar disciplina</h2>
-  </div>
-
-  <div class="quadro">
-    <form class="formulario" method="post" action="/secretaria/disciplinas">
-      <input type="hidden" name="_chave" value="<%= it.chave %>">
-
-      <div class="campo">
-        <label class="campo__rotulo" for="nome">
-          Nome da disciplina <span class="campo__obrigatorio" aria-hidden="true">*</span>
-        </label>
-        <input
-          id="nome"
-          name="nome"
-          type="text"
-          required
-          maxlength="120"
-          autocomplete="off"
-          value="<%= valores.nome ?? '' %>"
-          <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('nome', true) %>">
-        <p class="campo__ajuda" id="nome-ajuda">Único na rede: não há duas “Matemática”.</p>
-        <% if (erroDe('nome') !== '') { %>
-        <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
-        <% } %>
-      </div>
-
-      <div class="acoes">
-        <button class="botao botao--primario" type="submit">Cadastrar disciplina</button>
-      </div>
-    </form>
-  </div>
 </section>

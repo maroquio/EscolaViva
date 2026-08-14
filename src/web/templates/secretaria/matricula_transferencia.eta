@@ -1,0 +1,116 @@
+<%
+/*
+  Transferência de turma.
+
+  A turma de origem sai da lista de destino — transferir para onde já se está não é transferência.
+  A operação é uma só: a matrícula atual passa a "transferida" e uma nova matrícula ativa nasce no
+  destino, as duas escritas na mesma transação.
+*/
+const aluno = it.aluno;
+const ativa = it.ativa;
+const turmas = it.turmas ?? [];
+const valores = it.valores ?? {};
+const { erroDe, descricao } = it;
+
+const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valores[campo]);
+
+const agrupar = (lista) => {
+  const grupos = [];
+  lista.forEach((turma) => {
+    let grupo = grupos.find((candidato) => candidato.anoLetivoId === turma.anoLetivoId);
+    if (grupo === undefined) {
+      grupo = { anoLetivoId: turma.anoLetivoId, ano: turma.ano, turmas: [] };
+      grupos.push(grupo);
+    }
+    grupo.turmas.push(turma);
+  });
+  return grupos.sort((a, b) => (b.ano ?? 0) - (a.ano ?? 0));
+};
+
+const grupos = agrupar(turmas);
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Secretaria · <%= aluno.nome %></p>
+    <h1 class="pagina__titulo">Transferir de turma</h1>
+    <p class="pagina__resumo">
+      Matrícula ativa em <strong><%= ativa.turmaNome %></strong>, ano letivo
+      <span class="numero"><%= ativa.ano %></span>.
+    </p>
+  </div>
+  <div class="pagina__acoes">
+    <a class="botao botao--secundario" href="/secretaria/alunos/<%= aluno.id %>">Voltar à ficha</a>
+  </div>
+</div>
+
+<div class="quadro">
+  <% if (grupos.length === 0) { %>
+  <p class="suave leitura">Não há outra turma nas suas unidades para receber esta matrícula.</p>
+  <div class="acoes">
+    <a class="botao botao--primario" href="/secretaria/turmas/nova">Cadastrar turma</a>
+    <a class="botao botao--discreto" href="/secretaria/alunos/<%= aluno.id %>">Voltar à ficha</a>
+  </div>
+  <% } else { %>
+  <p class="suave leitura">
+    A matrícula em <strong><%= ativa.turmaNome %></strong> passa a <em>transferida</em> e uma nova
+    matrícula ativa é aberta na turma de destino — as duas escritas na mesma transação.
+  </p>
+
+  <form class="formulario" method="post" action="/secretaria/matriculas/<%= ativa.id %>/transferir">
+    <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+    <div class="formulario__linha">
+      <div class="campo">
+        <label class="campo__rotulo" for="turmaDestinoId">
+          Turma de destino <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <select
+          id="turmaDestinoId"
+          name="turmaDestinoId"
+          required
+          <% if (erroDe('turmaDestinoId') !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao('turmaDestinoId', true) %>">
+          <option value="">Selecione…</option>
+          <% grupos.forEach((grupo) => { %>
+          <optgroup label="Ano letivo <%= grupo.ano === null ? '—' : grupo.ano %>">
+            <% grupo.turmas.forEach((turma) => { %>
+            <option value="<%= turma.id %>" <%= valor('turmaDestinoId', '') === turma.id ? 'selected' : '' %>>
+              <%= turma.nome %> · <%= turma.serie %> · <%= turma.turno %> · <%= turma.unidadeNome %>
+            </option>
+            <% }) %>
+          </optgroup>
+          <% }) %>
+        </select>
+        <p class="campo__ajuda" id="turmaDestinoId-ajuda">
+          Precisa pertencer ao mesmo ano letivo da matrícula atual.
+        </p>
+        <% if (erroDe('turmaDestinoId') !== '') { %>
+        <p class="campo__erro" id="turmaDestinoId-erro"><%= erroDe('turmaDestinoId') %></p>
+        <% } %>
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="data">
+          Data da transferência <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="data"
+          name="data"
+          type="date"
+          required
+          value="<%= valor('data', it.hoje) %>"
+          <% if (erroDe('data') !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao('data') !== '') { %>aria-describedby="<%= descricao('data') %>"<% } %>>
+        <% if (erroDe('data') !== '') { %>
+        <p class="campo__erro" id="data-erro"><%= erroDe('data') %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Transferir matrícula</button>
+      <a class="botao botao--discreto" href="/secretaria/alunos/<%= aluno.id %>">Cancelar</a>
+    </div>
+  </form>
+  <% } %>
+</div>

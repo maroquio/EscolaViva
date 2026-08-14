@@ -5,19 +5,7 @@
   Nenhum dos três campos volta preenchido depois de um erro: senha digitada não é valor a
   preservar. O que volta é a mensagem, ligada ao campo por `aria-describedby`.
 */
-const erros = Array.isArray(it.erros) ? it.erros : [];
-
-const erroDe = (campo) => {
-  const achado = erros.find((problema) => problema.campo === campo);
-  return achado === undefined ? '' : achado.mensagem;
-};
-
-const descricao = (campo, temAjuda) => {
-  const ids = [];
-  if (temAjuda) ids.push(campo + '-ajuda');
-  if (erroDe(campo) !== '') ids.push(campo + '-erro');
-  return ids.join(' ');
-};
+const { erroDe, descricao } = it;
 %>
 <div class="pagina__cabecalho">
   <div>

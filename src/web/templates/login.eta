@@ -10,20 +10,10 @@
   quando o erro tem campo, o mesmo texto marca o campo. A senha nunca volta preenchida.
 */
 const valores = it.valores ?? { redeSlug: '', email: '' };
-const erros = Array.isArray(it.erros) ? it.erros : [];
 
-const erroDe = (campo) => {
-  const achado = erros.find((problema) => problema.campo === campo);
-  return achado === undefined ? '' : achado.mensagem;
-};
-
-/* Só referencia id de elemento que existe: ajuda sempre, erro apenas quando há erro. */
-const descricao = (campo, temAjuda) => {
-  const ids = [];
-  if (temAjuda) ids.push(campo + '-ajuda');
-  if (erroDe(campo) !== '') ids.push(campo + '-erro');
-  return ids.join(' ');
-};
+/* `erroDe` e `descricao` chegam prontos de `render.ts`, já fechados sobre os erros deste render.
+   `descricao` só referencia id de elemento que existe: ajuda quando pedida, erro quando há. */
+const { erroDe, descricao } = it;
 %>
 <h1>Entrar</h1>
 

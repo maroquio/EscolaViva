@@ -1,0 +1,113 @@
+<%
+/*
+  Vínculo de responsável a um aluno.
+
+  Quem já responde pelo aluno sai da lista: vincular duas vezes é o mesmo vínculo. Se não sobrar
+  ninguém, a página diz por quê e aponta o caminho — cadastrar um responsável novo — em vez de
+  mostrar um seletor vazio.
+*/
+const aluno = it.aluno;
+const disponiveis = it.disponiveis ?? [];
+const temResponsaveis = it.temResponsaveis === true;
+const valores = it.valores ?? {};
+const { erroDe, descricao } = it;
+
+const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valores[campo]);
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Secretaria · <%= aluno.nome %></p>
+    <h1 class="pagina__titulo">Vincular responsável</h1>
+    <p class="pagina__resumo">
+      O responsável é quem recebe comunicado e acompanha boletim e frequência deste aluno.
+    </p>
+  </div>
+  <div class="pagina__acoes">
+    <a class="botao botao--secundario" href="/secretaria/alunos/<%= aluno.id %>">Voltar à ficha</a>
+  </div>
+</div>
+
+<div class="quadro">
+  <% if (disponiveis.length === 0) { %>
+  <p class="suave leitura">
+    <% if (!temResponsaveis) { %>
+    Nenhum responsável cadastrado nesta rede ainda.
+    <% } else { %>
+    Todos os responsáveis cadastrados já estão vinculados a este aluno.
+    <% } %>
+  </p>
+  <div class="acoes">
+    <a class="botao botao--primario" href="/secretaria/responsaveis/novo">Cadastrar responsável</a>
+    <a class="botao botao--discreto" href="/secretaria/alunos/<%= aluno.id %>">Voltar à ficha</a>
+  </div>
+  <% } else { %>
+  <form class="formulario" method="post" action="/secretaria/alunos/<%= aluno.id %>/responsaveis">
+    <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+    <div class="formulario__linha">
+      <div class="campo">
+        <label class="campo__rotulo" for="responsavelId">
+          Responsável <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <select
+          id="responsavelId"
+          name="responsavelId"
+          required
+          <% if (erroDe('responsavelId') !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao('responsavelId') !== '') { %>aria-describedby="<%= descricao('responsavelId') %>"<% } %>>
+          <option value="">Selecione…</option>
+          <% disponiveis.forEach((pessoa) => { %>
+          <option value="<%= pessoa.id %>" <%= valor('responsavelId', '') === pessoa.id ? 'selected' : '' %>>
+            <%= pessoa.nome %> — <%= pessoa.email %>
+          </option>
+          <% }) %>
+        </select>
+        <% if (erroDe('responsavelId') !== '') { %>
+        <p class="campo__erro" id="responsavelId-erro"><%= erroDe('responsavelId') %></p>
+        <% } %>
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="parentesco">
+          Parentesco <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="parentesco"
+          name="parentesco"
+          type="text"
+          required
+          maxlength="40"
+          value="<%= valor('parentesco', '') %>"
+          <% if (erroDe('parentesco') !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao('parentesco', true) %>">
+        <p class="campo__ajuda" id="parentesco-ajuda">Mãe, pai, avó, tutor legal.</p>
+        <% if (erroDe('parentesco') !== '') { %>
+        <p class="campo__erro" id="parentesco-erro"><%= erroDe('parentesco') %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="campo">
+      <div class="campo campo--opcao">
+        <input
+          id="financeiro"
+          name="financeiro"
+          type="checkbox"
+          value="sim"
+          <%= valor('financeiro', false) === true ? 'checked' : '' %>
+          aria-describedby="financeiro-ajuda">
+        <label class="campo__rotulo" for="financeiro">Responsável financeiro</label>
+      </div>
+      <p class="campo__ajuda" id="financeiro-ajuda">
+        Marque quem responde pela cobrança. O aluno pode ter mais de um responsável, e apenas um
+        deles precisa ser o financeiro.
+      </p>
+    </div>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Vincular responsável</button>
+      <a class="botao botao--discreto" href="/secretaria/alunos/<%= aluno.id %>">Cancelar</a>
+    </div>
+  </form>
+  <% } %>
+</div>

@@ -1,0 +1,72 @@
+<%
+/*
+  Criação de unidade.
+
+  Página só de formulário: a lista fica em `/rede/unidades`. `required` e `maxlength` servem para o
+  retorno rápido no navegador — a validação que decide é a do servidor (I22), e é dela que vêm as
+  mensagens abaixo dos campos.
+*/
+const valores = it.valores ?? { nome: '', codigoInep: '' };
+const { erroDe, descricao } = it;
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Rede · Unidades</p>
+    <h1 class="pagina__titulo">Criar unidade</h1>
+    <p class="pagina__resumo">
+      A unidade é onde tudo o mais acontece: sem ela não há turma, papel nem comunicado. O nome
+      precisa ser único dentro da rede.
+    </p>
+  </div>
+</div>
+
+<div class="quadro">
+  <form class="formulario" method="post" action="/rede/unidades">
+    <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+    <div class="formulario__linha">
+      <div class="campo">
+        <label class="campo__rotulo" for="nome">
+          Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="nome"
+          name="nome"
+          type="text"
+          required
+          maxlength="120"
+          autocomplete="off"
+          value="<%= valores.nome %>"
+          <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao('nome', true) %>">
+        <p class="campo__ajuda" id="nome-ajuda">Como a escola é chamada no dia a dia.</p>
+        <% if (erroDe('nome') !== '') { %>
+        <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+        <% } %>
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="codigoInep">Código INEP</label>
+        <input
+          id="codigoInep"
+          name="codigoInep"
+          type="text"
+          maxlength="20"
+          inputmode="numeric"
+          autocomplete="off"
+          value="<%= valores.codigoInep %>"
+          <% if (erroDe('codigoInep') !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao('codigoInep', true) %>">
+        <p class="campo__ajuda" id="codigoInep-ajuda">Opcional. Pode ser preenchido depois.</p>
+        <% if (erroDe('codigoInep') !== '') { %>
+        <p class="campo__erro" id="codigoInep-erro"><%= erroDe('codigoInep') %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Criar unidade</button>
+      <a class="botao botao--discreto" href="/rede/unidades">Cancelar</a>
+    </div>
+  </form>
+</div>

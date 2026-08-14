@@ -1,0 +1,136 @@
+<%
+/*
+  Convite de usuário.
+
+  Um mesmo e-mail pode ser secretária em uma unidade e responsável em outra, então o convite aceita
+  várias linhas de unidade + papel. Sem JavaScript no cliente, as linhas são fixas: as que ficarem
+  vazias são simplesmente ignoradas, e as preenchidas pela metade voltam com erro.
+
+  As duas listas de seleção não são paginadas, ao contrário da tabela em `/rede/usuarios`: recortar
+  o que a pessoa lê é cuidado com o banco, recortar o que ela pode escolher seria esconder opção
+  sem avisar.
+*/
+const unidades = it.unidades ?? [];
+const responsaveis = it.responsaveis ?? [];
+const papeis = it.papeis ?? [];
+const linhas = it.linhas ?? [];
+const valores = it.valores ?? { nome: '', email: '', responsavelId: '' };
+const { erroDe, descricao } = it;
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Rede · Usuários</p>
+    <h1 class="pagina__titulo">Convidar usuário</h1>
+    <p class="pagina__resumo">
+      A senha provisória é gerada agora e aparece uma única vez na lista, logo depois de criar.
+      Tenha onde anotá-la antes de enviar o formulário.
+    </p>
+  </div>
+</div>
+
+<div class="quadro">
+  <form class="formulario formulario--largo" method="post" action="/rede/usuarios">
+    <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+    <div class="formulario__linha">
+      <div class="campo">
+        <label class="campo__rotulo" for="nome">
+          Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="nome"
+          name="nome"
+          type="text"
+          required
+          maxlength="120"
+          autocomplete="off"
+          value="<%= valores.nome %>"
+          <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao('nome') !== '') { %>aria-describedby="<%= descricao('nome') %>"<% } %>>
+        <% if (erroDe('nome') !== '') { %>
+        <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+        <% } %>
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="email">
+          E-mail <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          autocapitalize="none"
+          spellcheck="false"
+          autocomplete="off"
+          value="<%= valores.email %>"
+          <% if (erroDe('email') !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao('email', true) %>">
+        <p class="campo__ajuda" id="email-ajuda">É com ele que a pessoa entra. Único na rede.</p>
+        <% if (erroDe('email') !== '') { %>
+        <p class="campo__erro" id="email-erro"><%= erroDe('email') %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <fieldset <% if (erroDe('atribuicoes') !== '') { %>aria-describedby="atribuicoes-erro"<% } %>>
+      <legend>Atribuições</legend>
+      <% if (erroDe('atribuicoes') !== '') { %>
+      <p class="campo__erro" id="atribuicoes-erro"><%= erroDe('atribuicoes') %></p>
+      <% } %>
+
+      <div class="pilha">
+        <% linhas.forEach((linha, indice) => { %>
+        <div class="formulario__linha">
+          <div class="campo">
+            <label class="campo__rotulo" for="unidade-<%= indice %>">Unidade <%= indice + 1 %></label>
+            <select id="unidade-<%= indice %>" name="unidade[]">
+              <option value="">Sem atribuição</option>
+              <% unidades.forEach((unidade) => { %>
+              <option value="<%= unidade.id %>" <% if (unidade.id === linha.unidadeId) { %>selected<% } %>><%= unidade.nome %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label class="campo__rotulo" for="papel-<%= indice %>">Papel <%= indice + 1 %></label>
+            <select id="papel-<%= indice %>" name="papel[]">
+              <option value="">Sem atribuição</option>
+              <% papeis.forEach((opcao) => { %>
+              <option value="<%= opcao.valor %>" <% if (opcao.valor === linha.papel) { %>selected<% } %>><%= opcao.rotulo %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    </fieldset>
+
+    <div class="campo">
+      <label class="campo__rotulo" for="responsavelId">Cadastro de responsável</label>
+      <select
+        id="responsavelId"
+        name="responsavelId"
+        <% if (erroDe('responsavelId') !== '') { %>aria-invalid="true"<% } %>
+        aria-describedby="<%= descricao('responsavelId', true) %>">
+        <option value="">Nenhum</option>
+        <% responsaveis.forEach((responsavel) => { %>
+        <option value="<%= responsavel.id %>" <% if (responsavel.id === valores.responsavelId) { %>selected<% } %>><%= responsavel.nome %> — <%= responsavel.email %></option>
+        <% }) %>
+      </select>
+      <p class="campo__ajuda" id="responsavelId-ajuda">
+        Obrigatório quando alguma atribuição acima for Responsável: é esse cadastro que liga a
+        conta aos alunos. A secretaria cria o cadastro antes do convite.
+      </p>
+      <% if (erroDe('responsavelId') !== '') { %>
+      <p class="campo__erro" id="responsavelId-erro"><%= erroDe('responsavelId') %></p>
+      <% } %>
+    </div>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Criar usuário</button>
+      <a class="botao botao--discreto" href="/rede/usuarios">Cancelar</a>
+    </div>
+  </form>
+</div>

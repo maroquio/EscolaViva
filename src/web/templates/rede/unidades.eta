@@ -1,26 +1,14 @@
 <%
 /*
-  Unidades da rede: a lista e o formulário que a alimenta.
+  Unidades da rede: a lista, e só.
 
-  O formulário fica acima da lista porque esta é a tela de uma rede que está começando — o
-  primeiro uso é criar, e não procurar. O nome é único dentro da rede, e é a constraint do banco
-  que garante isso (I8); o erro que aparece aqui só traduz a recusa para o campo certo.
+  O cadastro mora em `/rede/unidades/nova`. Separar as duas coisas dá um assunto a cada página e
+  faz o erro de validação voltar para o formulário sem arrastar junto a consulta paginada da lista.
+
+  O nome é único dentro da rede, e é a constraint do banco que garante isso (I8); a mensagem que
+  aparece no formulário só traduz a recusa para o campo certo.
 */
 const unidades = it.unidades ?? [];
-const valores = it.valores ?? { nome: '', codigoInep: '' };
-const erros = Array.isArray(it.erros) ? it.erros : [];
-
-const erroDe = (campo) => {
-  const achado = erros.find((problema) => problema.campo === campo);
-  return achado === undefined ? '' : achado.mensagem;
-};
-
-const descricao = (campo, temAjuda) => {
-  const ids = [];
-  if (temAjuda) ids.push(campo + '-ajuda');
-  if (erroDe(campo) !== '') ids.push(campo + '-erro');
-  return ids.join(' ');
-};
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -31,63 +19,10 @@ const descricao = (campo, temAjuda) => {
       uma — ninguém é "professor da rede".
     </p>
   </div>
+  <div class="pagina__acoes">
+    <a class="botao botao--primario" href="/rede/unidades/nova">Criar unidade</a>
+  </div>
 </div>
-
-<section class="secao" aria-labelledby="nova-unidade-titulo">
-  <div class="secao__cabecalho">
-    <h2 id="nova-unidade-titulo">Nova unidade</h2>
-  </div>
-
-  <div class="quadro">
-    <form class="formulario" method="post" action="/rede/unidades">
-      <input type="hidden" name="_chave" value="<%= it.chave %>">
-
-      <div class="formulario__linha">
-        <div class="campo">
-          <label class="campo__rotulo" for="nome">
-            Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
-          </label>
-          <input
-            id="nome"
-            name="nome"
-            type="text"
-            required
-            maxlength="120"
-            autocomplete="off"
-            value="<%= valores.nome %>"
-            <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
-            aria-describedby="<%= descricao('nome', true) %>">
-          <p class="campo__ajuda" id="nome-ajuda">Como a escola é chamada no dia a dia.</p>
-          <% if (erroDe('nome') !== '') { %>
-          <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
-          <% } %>
-        </div>
-
-        <div class="campo">
-          <label class="campo__rotulo" for="codigoInep">Código INEP</label>
-          <input
-            id="codigoInep"
-            name="codigoInep"
-            type="text"
-            maxlength="20"
-            inputmode="numeric"
-            autocomplete="off"
-            value="<%= valores.codigoInep %>"
-            <% if (erroDe('codigoInep') !== '') { %>aria-invalid="true"<% } %>
-            aria-describedby="<%= descricao('codigoInep', true) %>">
-          <p class="campo__ajuda" id="codigoInep-ajuda">Opcional. Pode ser preenchido depois.</p>
-          <% if (erroDe('codigoInep') !== '') { %>
-          <p class="campo__erro" id="codigoInep-erro"><%= erroDe('codigoInep') %></p>
-          <% } %>
-        </div>
-      </div>
-
-      <div class="acoes">
-        <button class="botao botao--primario" type="submit">Criar unidade</button>
-      </div>
-    </form>
-  </div>
-</section>
 
 <section class="secao" aria-labelledby="lista-unidades-titulo">
   <div class="secao__cabecalho">
@@ -98,7 +33,8 @@ const descricao = (campo, temAjuda) => {
   <% if (unidades.length === 0) { %>
     <%~ include("/parciais/_vazio", {
       titulo: 'Nenhuma unidade criada',
-      texto: 'A primeira unidade abre o caminho para os usuários e as turmas. Use o formulário acima.'
+      texto: 'A primeira unidade abre o caminho para os usuários e as turmas.',
+      acao: { href: '/rede/unidades/nova', texto: 'Criar unidade' }
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">

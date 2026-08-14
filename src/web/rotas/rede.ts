@@ -2,8 +2,10 @@
  * Administração da rede: unidades, usuários e anos letivos.
  *
  * É o papel que abre a rede para todos os outros — sem unidade não há turma, sem usuário não há
- * secretaria nem professor, sem ano letivo não há matrícula. Por isso as três telas são listas
- * com um formulário de criação em cima, e nada mais.
+ * secretaria nem professor, sem ano letivo não há matrícula. Cada um dos três assuntos tem duas
+ * telas: a lista, que só lê, e o formulário de criação, numa página própria. A separação mantém a
+ * lista fora do caminho do erro de validação — recusar um formulário não recarrega mais a consulta
+ * paginada que ninguém pediu.
  *
  * Os números do painel são montados a partir das portas públicas de `identidade` e `academico`
  * (I1): a camada web não conhece tabela nem consulta. Contar matriculados percorre as turmas do
@@ -29,8 +31,11 @@ import { renderizar, type DadosDeTemplate } from '../render';
 
 const TEMPLATE_PAINEL = '/rede/painel';
 const TEMPLATE_UNIDADES = '/rede/unidades';
+const TEMPLATE_UNIDADE_NOVA = '/rede/unidade_nova';
 const TEMPLATE_USUARIOS = '/rede/usuarios';
+const TEMPLATE_USUARIO_NOVO = '/rede/usuario_novo';
 const TEMPLATE_ANOS = '/rede/anos';
+const TEMPLATE_ANO_NOVO = '/rede/ano_novo';
 
 const ROTA_UNIDADES = '/rede/unidades';
 const ROTA_USUARIOS = '/rede/usuarios';
@@ -134,13 +139,22 @@ const telaDeUnidades = async (c: Context, dados: DadosDeTemplate = {}): Promise<
     titulo: 'Unidades',
     unidades: pagina.itens,
     navegacao: navegacao(c, pagina),
-    valores: { nome: '', codigoInep: '' },
-    erros: [],
     ...dados,
   });
 };
 
+/** O formulário não lê a lista: recusar um nome repetido não custa a consulta paginada. */
+const formDeUnidade = (c: Context, dados: DadosDeTemplate = {}): Response =>
+  renderizar(c, TEMPLATE_UNIDADE_NOVA, {
+    titulo: 'Criar unidade',
+    valores: { nome: '', codigoInep: '' },
+    erros: [],
+    ...dados,
+  });
+
 rotasRede.get('/unidades', (c) => telaDeUnidades(c, { mensagem: mensagemDaQuery(c) }));
+
+rotasRede.get('/unidades/nova', (c) => formDeUnidade(c));
 
 rotasRede.post('/unidades', async (c) => {
   const redeId = redeAtual(c);
@@ -152,7 +166,7 @@ rotasRede.post('/unidades', async (c) => {
     nome: valores.nome,
     codigoInep: valores.codigoInep,
   });
-  if (!resultado.ok) return await telaDeUnidades(c, { valores, erros: resultado.erros });
+  if (!resultado.ok) return formDeUnidade(c, { valores, erros: resultado.erros });
 
   logger.info({ rede_id: redeId, unidade_id: resultado.valor.id }, 'unidade criada');
   return c.redirect(`${ROTA_UNIDADES}?ok=unidade-criada`, 303);
@@ -209,27 +223,41 @@ const linhasVazias = (): LinhaDeAtribuicao[] =>
   Array.from({ length: LINHAS_DE_ATRIBUICAO }, () => ({ unidadeId: '', papel: '' }));
 
 /**
- * A tabela é paginada, os dois campos de seleção não: unidade e responsável precisam da lista
- * inteira para que o convite possa apontar para qualquer uma delas. Recortar o que a pessoa lê é
- * cuidado com o banco; recortar o que ela pode escolher seria esconder opção sem avisar.
+ * A lista traz `papeis` só para traduzir a sigla da atribuição em nome de tela; as duas listas de
+ * seleção do convite não são problema seu, e é por isso que abrir `/rede/usuarios` deixou de
+ * carregar todas as unidades e todos os responsáveis da rede.
  */
 const telaDeUsuarios = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const redeId = redeAtual(c);
-  const [pagina, unidades, responsaveis] = await Promise.all([
-    identidade.paginaDeUsuarios(redeId, paginaDaQuery(c)),
-    identidade.listarUnidades(redeId),
-    academico.listarResponsaveis(redeId),
-  ]);
+  const pagina = await identidade.paginaDeUsuarios(redeAtual(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATE_USUARIOS, {
     titulo: 'Usuários',
     usuarios: pagina.itens,
     navegacao: navegacao(c, pagina),
+    papeis: PAPEIS_DA_TELA,
+    convite: null,
+    ...dados,
+  });
+};
+
+/**
+ * A tabela da lista é paginada, os dois campos de seleção daqui não: unidade e responsável
+ * precisam da lista inteira para que o convite possa apontar para qualquer uma delas. Recortar o
+ * que a pessoa lê é cuidado com o banco; recortar o que ela pode escolher seria esconder opção sem
+ * avisar.
+ */
+const formDeUsuario = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
+  const redeId = redeAtual(c);
+  const [unidades, responsaveis] = await Promise.all([
+    identidade.listarUnidades(redeId),
+    academico.listarResponsaveis(redeId),
+  ]);
+  return renderizar(c, TEMPLATE_USUARIO_NOVO, {
+    titulo: 'Convidar usuário',
     unidades,
     responsaveis,
     papeis: PAPEIS_DA_TELA,
     valores: { nome: '', email: '', responsavelId: '' },
     linhas: linhasVazias(),
-    convite: null,
     erros: [],
     ...dados,
   });
@@ -239,6 +267,8 @@ rotasRede.get('/usuarios', async (c) => {
   const convite = await retirarConvite(c);
   return await telaDeUsuarios(c, { convite, mensagem: mensagemDaQuery(c) });
 });
+
+rotasRede.get('/usuarios/novo', (c) => formDeUsuario(c));
 
 rotasRede.post('/usuarios', async (c) => {
   const redeId = redeAtual(c);
@@ -257,7 +287,7 @@ rotasRede.post('/usuarios', async (c) => {
       : [],
   );
   if (atribuicoes.length !== preenchidas.length) {
-    return await telaDeUsuarios(c, { valores, linhas, erros: [ATRIBUICAO_INCOMPLETA] });
+    return await formDeUsuario(c, { valores, linhas, erros: [ATRIBUICAO_INCOMPLETA] });
   }
 
   const resultado = await identidade.convidarUsuario({
@@ -267,7 +297,7 @@ rotasRede.post('/usuarios', async (c) => {
     atribuicoes,
     responsavelId: valores.responsavelId === '' ? null : valores.responsavelId,
   });
-  if (!resultado.ok) return await telaDeUsuarios(c, { valores, linhas, erros: resultado.erros });
+  if (!resultado.ok) return await formDeUsuario(c, { valores, linhas, erros: resultado.erros });
 
   // A senha provisória não entra no log — nem aqui, nem em lugar nenhum.
   logger.info(
@@ -286,13 +316,21 @@ const telaDeAnos = async (c: Context, dados: DadosDeTemplate = {}): Promise<Resp
     titulo: 'Anos letivos',
     anos: pagina.itens,
     navegacao: navegacao(c, pagina),
-    valores: { ano: '', dataInicio: '', dataFim: '' },
-    erros: [],
     ...dados,
   });
 };
 
+const formDeAno = (c: Context, dados: DadosDeTemplate = {}): Response =>
+  renderizar(c, TEMPLATE_ANO_NOVO, {
+    titulo: 'Definir ano letivo',
+    valores: { ano: '', dataInicio: '', dataFim: '' },
+    erros: [],
+    ...dados,
+  });
+
 rotasRede.get('/anos-letivos', (c) => telaDeAnos(c, { mensagem: mensagemDaQuery(c) }));
+
+rotasRede.get('/anos-letivos/novo', (c) => formDeAno(c));
 
 rotasRede.post('/anos-letivos', async (c) => {
   const redeId = redeAtual(c);
@@ -305,7 +343,7 @@ rotasRede.post('/anos-letivos', async (c) => {
 
   // O caso de uso recebe número; converter texto vazio em 0 devolveria a mensagem errada.
   if (!ANO_EM_QUATRO_DIGITOS.test(valores.ano)) {
-    return await telaDeAnos(c, { valores, erros: [ANO_INVALIDO] });
+    return formDeAno(c, { valores, erros: [ANO_INVALIDO] });
   }
 
   const resultado = await academico.definirAnoLetivo({
@@ -314,7 +352,7 @@ rotasRede.post('/anos-letivos', async (c) => {
     dataInicio: valores.dataInicio,
     dataFim: valores.dataFim,
   });
-  if (!resultado.ok) return await telaDeAnos(c, { valores, erros: resultado.erros });
+  if (!resultado.ok) return formDeAno(c, { valores, erros: resultado.erros });
 
   logger.info({ rede_id: redeId, ano_letivo_id: resultado.valor.id }, 'ano letivo definido');
   return c.redirect(`${ROTA_ANOS}?ok=ano-definido`, 303);

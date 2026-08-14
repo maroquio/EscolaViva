@@ -1,0 +1,90 @@
+<%
+/*
+  Definição de ano letivo.
+
+  Um ano por rede — a repetição é recusada pelo banco e volta como erro no campo, não como falha do
+  sistema. O ano vem como texto e é conferido em quatro dígitos antes de virar número: converter
+  vazio em 0 devolveria a mensagem errada.
+*/
+const valores = it.valores ?? { ano: '', dataInicio: '', dataFim: '' };
+const { erroDe, descricao } = it;
+%>
+<div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Rede · Anos letivos</p>
+    <h1 class="pagina__titulo">Definir ano letivo</h1>
+    <p class="pagina__resumo">
+      O período define o que conta como "este ano" para matrícula, boletim e frequência. Não pode
+      haver dois anos iguais na mesma rede.
+    </p>
+  </div>
+</div>
+
+<div class="quadro">
+  <form class="formulario" method="post" action="/rede/anos-letivos">
+    <input type="hidden" name="_chave" value="<%= it.chave %>">
+
+    <div class="formulario__linha">
+      <div class="campo">
+        <label class="campo__rotulo" for="ano">
+          Ano <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="ano"
+          name="ano"
+          type="number"
+          required
+          min="2000"
+          max="2100"
+          step="1"
+          inputmode="numeric"
+          value="<%= valores.ano %>"
+          <% if (erroDe('ano') !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao('ano') !== '') { %>aria-describedby="<%= descricao('ano') %>"<% } %>>
+        <% if (erroDe('ano') !== '') { %>
+        <p class="campo__erro" id="ano-erro"><%= erroDe('ano') %></p>
+        <% } %>
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="dataInicio">
+          Início <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="dataInicio"
+          name="dataInicio"
+          type="date"
+          required
+          value="<%= valores.dataInicio %>"
+          <% if (erroDe('dataInicio') !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao('dataInicio') !== '') { %>aria-describedby="<%= descricao('dataInicio') %>"<% } %>>
+        <% if (erroDe('dataInicio') !== '') { %>
+        <p class="campo__erro" id="dataInicio-erro"><%= erroDe('dataInicio') %></p>
+        <% } %>
+      </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="dataFim">
+          Término <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="dataFim"
+          name="dataFim"
+          type="date"
+          required
+          value="<%= valores.dataFim %>"
+          <% if (erroDe('dataFim') !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao('dataFim', true) %>">
+        <p class="campo__ajuda" id="dataFim-ajuda">Precisa ser posterior à data de início.</p>
+        <% if (erroDe('dataFim') !== '') { %>
+        <p class="campo__erro" id="dataFim-erro"><%= erroDe('dataFim') %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Definir ano letivo</button>
+      <a class="botao botao--discreto" href="/rede/anos-letivos">Cancelar</a>
+    </div>
+  </form>
+</div>

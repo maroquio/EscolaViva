@@ -1,31 +1,14 @@
 <%
 /*
-  Detalhe da turma: as disciplinas alocadas com seus professores e quem está matriculado nela.
+  Detalhe da turma, só de leitura: as disciplinas alocadas com seus professores e quem está
+  matriculado nela. A alocação se faz em `/secretaria/turmas/:id/disciplinas/nova`.
 
   A alocação é o que dá acesso ao professor: sem uma linha aqui, ele não vê a turma para lançar
-  nota nem para registrar chamada. Por isso a lista de professores vem da unidade desta turma —
-  quem não tem o papel ali não aparece, e o servidor recusa se a lista for burlada.
+  nota nem para registrar chamada.
 */
 const turma = it.turma;
 const alocacoes = it.alocacoes ?? [];
-const disciplinas = it.disciplinas ?? [];
-const professores = it.professores ?? [];
 const matriculas = it.matriculas ?? [];
-const valores = it.valores ?? {};
-const erros = Array.isArray(it.erros) ? it.erros : [];
-const podeAlocar = disciplinas.length > 0 && professores.length > 0;
-
-const erroDe = (campo) => {
-  const achado = erros.find((problema) => problema.campo === campo);
-  return achado === undefined ? '' : achado.mensagem;
-};
-
-const descricao = (campo, temAjuda) => {
-  const ids = [];
-  if (temAjuda) ids.push(campo + '-ajuda');
-  if (erroDe(campo) !== '') ids.push(campo + '-erro');
-  return ids.join(' ');
-};
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -56,7 +39,8 @@ const descricao = (campo, temAjuda) => {
     <% if (alocacoes.length === 0) { %>
     <%~ include("/parciais/_vazio", {
       titulo: 'Nenhuma disciplina alocada',
-      texto: 'Enquanto não houver disciplina com professor nesta turma, nenhum professor consegue lançar nota nem registrar chamada aqui.'
+      texto: 'Enquanto não houver disciplina com professor nesta turma, nenhum professor consegue lançar nota nem registrar chamada aqui.',
+      acao: { href: `/secretaria/turmas/${turma.id}/disciplinas/nova`, texto: 'Alocar disciplina' }
     }) %>
     <% } else { %>
     <div class="tabela-rolagem">
@@ -81,84 +65,13 @@ const descricao = (campo, temAjuda) => {
     <%~ include("/parciais/_paginacao", {
       navegacao: it.navegacaoAlocacoes, rotulo: 'disciplinas alocadas'
     }) %>
-    <% } %>
 
-    <div class="quadro">
-      <form class="formulario" method="post" action="/secretaria/turmas/<%= turma.id %>/disciplinas">
-        <input type="hidden" name="_chave" value="<%= it.chave %>">
-        <fieldset>
-          <legend>Alocar disciplina e professor</legend>
-
-          <% if (!podeAlocar) { %>
-          <p class="suave leitura">
-            <% if (disciplinas.length === 0) { %>
-            Esta rede ainda não tem disciplina cadastrada.
-            <a href="/secretaria/disciplinas">Cadastrar disciplina</a>
-            <% } else { %>
-            Nenhum usuário tem papel de professor em <%= turma.unidadeNome %>. Peça ao
-            administrador da rede para atribuir o papel antes de alocar.
-            <% } %>
-          </p>
-          <% } else { %>
-          <div class="formulario__linha">
-            <div class="campo">
-              <label class="campo__rotulo" for="disciplinaId">
-                Disciplina <span class="campo__obrigatorio" aria-hidden="true">*</span>
-              </label>
-              <select
-                id="disciplinaId"
-                name="disciplinaId"
-                required
-                <% if (erroDe('disciplinaId') !== '') { %>aria-invalid="true"<% } %>
-                aria-describedby="<%= descricao('disciplinaId', true) %>">
-                <option value="">Selecione…</option>
-                <% disciplinas.forEach((disciplina) => { %>
-                <option value="<%= disciplina.id %>" <%= (valores.disciplinaId ?? '') === disciplina.id ? 'selected' : '' %>>
-                  <%= disciplina.nome %>
-                </option>
-                <% }) %>
-              </select>
-              <p class="campo__ajuda" id="disciplinaId-ajuda">
-                Cada disciplina entra uma única vez por turma.
-              </p>
-              <% if (erroDe('disciplinaId') !== '') { %>
-              <p class="campo__erro" id="disciplinaId-erro"><%= erroDe('disciplinaId') %></p>
-              <% } %>
-            </div>
-
-            <div class="campo">
-              <label class="campo__rotulo" for="professorUsuarioId">
-                Professor <span class="campo__obrigatorio" aria-hidden="true">*</span>
-              </label>
-              <select
-                id="professorUsuarioId"
-                name="professorUsuarioId"
-                required
-                <% if (erroDe('professorUsuarioId') !== '') { %>aria-invalid="true"<% } %>
-                aria-describedby="<%= descricao('professorUsuarioId', true) %>">
-                <option value="">Selecione…</option>
-                <% professores.forEach((professor) => { %>
-                <option value="<%= professor.id %>" <%= (valores.professorUsuarioId ?? '') === professor.id ? 'selected' : '' %>>
-                  <%= professor.nome %>
-                </option>
-                <% }) %>
-              </select>
-              <p class="campo__ajuda" id="professorUsuarioId-ajuda">
-                Somente quem tem papel de professor em <%= turma.unidadeNome %>.
-              </p>
-              <% if (erroDe('professorUsuarioId') !== '') { %>
-              <p class="campo__erro" id="professorUsuarioId-erro"><%= erroDe('professorUsuarioId') %></p>
-              <% } %>
-            </div>
-          </div>
-
-          <div class="acoes">
-            <button class="botao botao--primario" type="submit">Alocar</button>
-          </div>
-          <% } %>
-        </fieldset>
-      </form>
+    <div class="acoes">
+      <a class="botao botao--primario" href="/secretaria/turmas/<%= turma.id %>/disciplinas/nova">
+        Alocar disciplina e professor
+      </a>
     </div>
+    <% } %>
   </div>
 </section>
 
