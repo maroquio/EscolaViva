@@ -3,16 +3,16 @@
  *
  * Duas decisões governam este arquivo:
  *
- * 1. A tela não é um oráculo. Rede inexistente, e-mail desconhecido e senha errada voltam pela
- *    mesma porta, com a mensagem que `identidade.autenticar` já escolheu — quem fica tentando não
- *    descobre quem estuda ou trabalha na rede.
- * 2. I17: a tentativa vai para o log, o e-mail não. A linha guarda o identificador da rede, o
- *    desfecho e o endereço de origem resolvido por `ipDoCliente` (I12): é o bastante para
- *    reconhecer uma sequência de tentativas contra a mesma rede, e não transforma o log em
+ * 1. A tela não é um oráculo. Rede inexistente, CPF ou e-mail desconhecido e senha errada voltam
+ *    pela mesma porta, com a mensagem que `identidade.autenticar` já escolheu — quem fica
+ *    tentando não descobre quem estuda ou trabalha na rede.
+ * 2. I17: a tentativa vai para o log, o CPF ou e-mail digitado não. A linha guarda o identificador
+ *    da rede, o desfecho e o endereço de origem resolvido por `ipDoCliente` (I12): é o bastante
+ *    para reconhecer uma sequência de tentativas contra a mesma rede, e não transforma o log em
  *    cadastro de pessoas.
  *
- * A senha digitada nunca volta para a tela. A rede e o e-mail voltam — quem errou a senha não
- * deve ser obrigado a redigitar o resto.
+ * A senha digitada nunca volta para a tela. A rede e o CPF ou e-mail voltam — quem errou a senha
+ * não deve ser obrigado a redigitar o resto.
  */
 
 import { Hono, type Context } from 'hono';

@@ -6,8 +6,9 @@
   tela nunca há usuário, então nunca há barra lateral nem contexto de rede.
 
   A mensagem de recusa vem inteira de `identidade.autenticar` e é deliberadamente vaga — a tela
-  não diz se o e-mail existe. Ela aparece uma vez, no aviso do topo montado por `_mensagens`;
-  quando o erro tem campo, o mesmo texto marca o campo. A senha nunca volta preenchida.
+  não diz se o CPF ou o e-mail existe. Ela aparece uma vez, no aviso do topo montado por
+  `_mensagens`; quando o erro tem campo, o mesmo texto marca o campo. A senha nunca volta
+  preenchida.
 */
 const valores = it.valores ?? { redeSlug: '', identificador: '' };
 
