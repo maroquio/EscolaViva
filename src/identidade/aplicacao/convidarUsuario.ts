@@ -83,10 +83,7 @@ async function gravar(convite: Convite): Promise<Resultado<ConviteAceito>> {
     if (await usuarioRepositorio.existeEmail(sql, usuario.redeId, usuario.email)) {
       return falhaDeCampo('email', 'email_em_uso', 'já existe usuário com este e-mail na rede');
     }
-    // `usuario.cpf` é `string | null` no tipo do domínio — a coluna segue anulável durante a
-    // janela —, mas quem chega até aqui sempre montou o convite com `dados.cpf`, já validado
-    // como string. A guarda é para o `tsc`, não para um caso que este fluxo de fato produza.
-    if (usuario.cpf !== null && (await usuarioRepositorio.existeCpf(sql, usuario.redeId, usuario.cpf))) {
+    if (await usuarioRepositorio.existeCpf(sql, usuario.redeId, usuario.cpf)) {
       return falhaDeCampo('cpf', 'cpf_em_uso', 'já existe usuário com este CPF na rede');
     }
 

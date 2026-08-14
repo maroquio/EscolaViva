@@ -27,7 +27,7 @@ const chavesDaPagina = (html: string): string[] =>
 const entrarComoSecretaria = (cenario: Cenario): Promise<string> =>
   entrar({
     redeSlug: cenario.rede.slug,
-    email: cenario.secretaria.email,
+    cpf: cenario.secretaria.cpf,
     senha: cenario.senha,
   });
 

@@ -180,7 +180,7 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 
@@ -197,7 +197,7 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 
@@ -300,7 +300,7 @@ describe('enviar o mesmo formulário duas vezes cria um registro', () => {
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
     const campos = { _chave: crypto.randomUUID(), nome: 'Educação Física' };
@@ -319,7 +319,7 @@ describe('enviar o mesmo formulário duas vezes cria um registro', () => {
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 
@@ -345,7 +345,7 @@ describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 
@@ -373,7 +373,7 @@ describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.responsavel.email,
+      cpf: cenario.responsavel.cpf,
       senha: cenario.senha,
     });
 
@@ -597,7 +597,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 

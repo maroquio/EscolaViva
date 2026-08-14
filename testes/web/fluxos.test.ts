@@ -42,7 +42,7 @@ const entrarComo = (
   cenario: Cenario,
   quem: 'secretaria' | 'professor' | 'responsavel',
 ): Promise<string> =>
-  entrar({ redeSlug: cenario.rede.slug, email: cenario[quem].email, senha: cenario.senha });
+  entrar({ redeSlug: cenario.rede.slug, cpf: cenario[quem].cpf, senha: cenario.senha });
 
 describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
   beforeEach(async () => {

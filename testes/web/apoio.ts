@@ -65,18 +65,17 @@ export function cookieDaResposta(resposta: Response): string {
   return bruto.split(';')[0] ?? '';
 }
 
-export type Credenciais = { redeSlug: string; email: string; senha: string };
+export type Credenciais = { redeSlug: string; cpf: string; senha: string };
 
 /**
- * Entra de verdade e devolve o cookie assinado que a aplicação emitiu. O tipo continua chamando o
- * campo de `email` — é o que todo cenário de teste tem à mão —, mas quem viaja no corpo do
- * formulário é `identificador`, o nome que `/login` passou a aceitar na janela de compatibilidade
- * do CPF; a tradução é desta função, não de quem chama.
+ * Entra de verdade e devolve o cookie assinado que a aplicação emitiu. Desde que a janela de
+ * compatibilidade do CPF fechou (ADR 0004), `/login` só aceita o campo `cpf` — não há mais
+ * tradução a fazer aqui, só repassar o que o cenário de teste já tem à mão.
  */
 export async function entrar(credenciais: Credenciais): Promise<string> {
   const resposta = await enviar('/login', {
     redeSlug: credenciais.redeSlug,
-    identificador: credenciais.email,
+    cpf: credenciais.cpf,
     senha: credenciais.senha,
   });
   if (resposta.status !== 303) {
@@ -165,7 +164,9 @@ export async function saudeComBancoForaDoAr(): Promise<RespostaDeSaude> {
 
 export type CenarioDeFluxo = {
   redeSlug: string;
+  /** Só para o cenário verificar que o e-mail não vaza no log — não entra mais no login (ADR 0004). */
   email: string;
+  cpf: string;
   senha: string;
   turmaDisciplinaId: string;
   matriculaIds: readonly string[];
@@ -196,14 +197,12 @@ export async function capturarLogDeUmFluxo(cenario: CenarioDeFluxo): Promise<Log
     };
     const chave = () => crypto.randomUUID();
 
-    // '/login' espera 'identificador'; o cenário chama o campo de 'email' porque é sempre um
-    // e-mail que os testes de log usam para entrar.
     await app.request('/login', formulario({
-      _chave: chave(), redeSlug: dados.redeSlug, identificador: dados.email, senha: 'senha-errada',
+      _chave: chave(), redeSlug: dados.redeSlug, cpf: dados.cpf, senha: 'senha-errada',
     }));
 
     const entrada = await app.request('/login', formulario({
-      _chave: chave(), redeSlug: dados.redeSlug, identificador: dados.email, senha: dados.senha,
+      _chave: chave(), redeSlug: dados.redeSlug, cpf: dados.cpf, senha: dados.senha,
     }));
     const cookie = (entrada.headers.get('Set-Cookie') ?? '').split(';')[0];
     const comSessao = (init = {}) => ({

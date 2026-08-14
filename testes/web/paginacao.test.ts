@@ -31,10 +31,10 @@ const TAMANHO = TAMANHO_PADRAO;
 const SOBRA = 5;
 
 const entrarComoSecretaria = (cenario: Cenario): Promise<string> =>
-  entrar({ redeSlug: cenario.rede.slug, email: cenario.secretaria.email, senha: cenario.senha });
+  entrar({ redeSlug: cenario.rede.slug, cpf: cenario.secretaria.cpf, senha: cenario.senha });
 
 const entrarComoResponsavel = (cenario: Cenario): Promise<string> =>
-  entrar({ redeSlug: cenario.rede.slug, email: cenario.responsavel.email, senha: cenario.senha });
+  entrar({ redeSlug: cenario.rede.slug, cpf: cenario.responsavel.cpf, senha: cenario.senha });
 
 const html = async (caminho: string, cookie: string): Promise<string> =>
   await (await abrir(caminho, cookie)).text();

@@ -3,15 +3,15 @@
  *
  * Duas decisões governam este arquivo:
  *
- * 1. A tela não é um oráculo. Rede inexistente, CPF ou e-mail desconhecido e senha errada voltam
+ * 1. A tela não é um oráculo. Rede inexistente, CPF desconhecido e senha errada voltam
  *    pela mesma porta, com a mensagem que `identidade.autenticar` já escolheu — quem fica
  *    tentando não descobre quem estuda ou trabalha na rede.
- * 2. I17: a tentativa vai para o log, o CPF ou e-mail digitado não. A linha guarda o identificador
+ * 2. I17: a tentativa vai para o log, o CPF digitado não. A linha guarda o identificador
  *    da rede, o desfecho e o endereço de origem resolvido por `ipDoCliente` (I12): é o bastante
  *    para reconhecer uma sequência de tentativas contra a mesma rede, e não transforma o log em
  *    cadastro de pessoas.
  *
- * A senha digitada nunca volta para a tela. A rede e o CPF ou e-mail voltam — quem errou a senha
+ * A senha digitada nunca volta para a tela. A rede e o CPF voltam — quem errou a senha
  * não deve ser obrigado a redigitar o resto.
  */
 
@@ -66,7 +66,7 @@ const enderecoRemoto = (c: Context): string | undefined => {
 const telaDeEntrada = (c: Context, dados: Record<string, unknown> = {}): Response =>
   renderizar(c, TEMPLATE, {
     titulo: TITULO,
-    valores: { redeSlug: '', identificador: '' },
+    valores: { redeSlug: '', cpf: '' },
     erros: [],
     ...dados,
   });
@@ -82,19 +82,19 @@ rotasLogin.post('/login', async (c) => {
 
   const corpo = c.get('corpo');
   const redeSlug = texto(corpo, 'redeSlug');
-  const identificador = texto(corpo, 'identificador');
+  const cpf = texto(corpo, 'cpf');
   const ip = ipDoCliente(c.req.raw, enderecoRemoto(c), config.proxiesConfiaveis);
 
   const resultado = await identidade.autenticar({
     redeSlug,
-    identificador,
+    identificador: cpf,
     senha: senhaDigitada(corpo),
     ip,
   });
 
   if (!resultado.ok) {
     logger.warn({ rede_slug: redeSlug, resultado: 'recusado', ip }, 'tentativa de entrada');
-    return telaDeEntrada(c, { valores: { redeSlug, identificador }, erros: resultado.erros });
+    return telaDeEntrada(c, { valores: { redeSlug, cpf }, erros: resultado.erros });
   }
 
   await abrirSessao(c, resultado.valor.sessaoId);

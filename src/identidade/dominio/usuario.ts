@@ -12,7 +12,8 @@ export type Usuario = {
   redeId: string;
   nome: string;
   email: string;
-  cpf: string | null;
+  /** Migração 0008 (ADR 0004) fechou a janela de 0007: toda linha de `usuario` tem CPF. */
+  cpf: string;
   ativo: boolean;
   /** Quem entra como responsável aponta para o cadastro de responsável do módulo acadêmico. */
   responsavelId: string | null;

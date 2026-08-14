@@ -18,7 +18,7 @@ type LinhaDeSessao = {
   rede_status: string;
   usuario_nome: string;
   usuario_email: string;
-  usuario_cpf: string | null;
+  usuario_cpf: string;
   usuario_ativo: boolean;
   responsavel_id: string | null;
 };

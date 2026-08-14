@@ -8,6 +8,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
+import { gerarCpf } from '../../src/shared/documento';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import { cenarioCompleto, criarRede, criarUsuario, SENHA_PADRAO } from '../apoio/fabricas';
 import { abrir, cookieDaResposta, entrar, enviar, postar } from './apoio';
@@ -15,9 +16,9 @@ import { abrir, cookieDaResposta, entrar, enviar, postar } from './apoio';
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 
 /** Duas telas de login só podem diferir no que a pessoa digitou — nunca no que o banco tem. */
-const semValoresVolateis = (html: string, ...emails: string[]): string =>
-  emails
-    .reduce((texto, email) => texto.replaceAll(email, 'E-MAIL'), html)
+const semValoresVolateis = (html: string, ...valores: string[]): string =>
+  valores
+    .reduce((texto, valor) => texto.replaceAll(valor, 'CPF_DIGITADO'), html)
     .replace(UUID, 'IDENTIFICADOR');
 
 /** Troca o primeiro caractere do id assinado: mesma forma, assinatura que não confere mais. */
@@ -45,7 +46,7 @@ describe('autenticação', () => {
 
     const resposta = await enviar('/login', {
       redeSlug: cenario.rede.slug,
-      identificador: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 
@@ -58,7 +59,7 @@ describe('autenticação', () => {
 
     const resposta = await enviar('/login', {
       redeSlug: cenario.rede.slug,
-      identificador: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
     const cabecalho = resposta.headers.get('Set-Cookie') ?? '';
@@ -74,7 +75,7 @@ describe('autenticação', () => {
 
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
     const linhas = await sqlDeTeste()<{ id: string }[]>`
@@ -91,7 +92,7 @@ describe('autenticação', () => {
 
     const resposta = await enviar('/login', {
       redeSlug: cenario.rede.slug,
-      identificador: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: 'senha-que-nao-e-a-dele',
     });
 
@@ -100,24 +101,24 @@ describe('autenticação', () => {
     expect(await sessoesGravadas(cenario.secretaria.id)).toBe(0);
   });
 
-  test('e-mail desconhecido e senha errada devolvem a mesma tela', async () => {
+  test('CPF desconhecido e senha errada devolvem a mesma tela', async () => {
     const cenario = await cenarioCompleto();
-    const desconhecido = 'nunca-cadastrada@escolaviva.test';
+    const desconhecido = gerarCpf(888_888);
 
     const comSenhaErrada = await enviar('/login', {
       redeSlug: cenario.rede.slug,
-      identificador: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: 'senha-que-nao-e-a-dele',
     });
-    const comEmailInexistente = await enviar('/login', {
+    const comCpfInexistente = await enviar('/login', {
       redeSlug: cenario.rede.slug,
-      identificador: desconhecido,
+      cpf: desconhecido,
       senha: 'senha-que-nao-e-a-dele',
     });
-    const primeira = semValoresVolateis(await comSenhaErrada.text(), cenario.secretaria.email);
-    const segunda = semValoresVolateis(await comEmailInexistente.text(), desconhecido);
+    const primeira = semValoresVolateis(await comSenhaErrada.text(), cenario.secretaria.cpf);
+    const segunda = semValoresVolateis(await comCpfInexistente.text(), desconhecido);
 
-    expect(comEmailInexistente.status).toBe(comSenhaErrada.status);
+    expect(comCpfInexistente.status).toBe(comSenhaErrada.status);
     expect(segunda).toBe(primeira);
     expect(primeira).toContain('CPF ou senha inválidos');
   });
@@ -129,7 +130,7 @@ describe('autenticação', () => {
 
     const resposta = await enviar('/login', {
       redeSlug: outra.slug,
-      identificador: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 
@@ -154,7 +155,7 @@ describe('autenticação', () => {
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 
@@ -177,7 +178,7 @@ describe('autenticação', () => {
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 
@@ -194,7 +195,7 @@ describe('autenticação', () => {
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 
@@ -208,7 +209,7 @@ describe('autenticação', () => {
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 
@@ -222,7 +223,7 @@ describe('autenticação', () => {
     const cenario = await cenarioCompleto();
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
-      email: cenario.secretaria.email,
+      cpf: cenario.secretaria.cpf,
       senha: cenario.senha,
     });
 

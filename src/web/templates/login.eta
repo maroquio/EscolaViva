@@ -6,11 +6,11 @@
   tela nunca há usuário, então nunca há barra lateral nem contexto de rede.
 
   A mensagem de recusa vem inteira de `identidade.autenticar` e é deliberadamente vaga — a tela
-  não diz se o CPF ou o e-mail existe. Ela aparece uma vez, no aviso do topo montado por
+  não diz se o CPF existe. Ela aparece uma vez, no aviso do topo montado por
   `_mensagens`; quando o erro tem campo, o mesmo texto marca o campo. A senha nunca volta
   preenchida.
 */
-const valores = it.valores ?? { redeSlug: '', identificador: '' };
+const valores = it.valores ?? { redeSlug: '', cpf: '' };
 
 /* `erroDe` e `descricao` chegam prontos de `render.ts`, já fechados sobre os erros deste render.
    `descricao` só referencia id de elemento que existe: ajuda quando pedida, erro quando há. */
@@ -45,26 +45,26 @@ const { erroDe, descricao } = it;
   </div>
 
   <div class="campo">
-    <label class="campo__rotulo" for="identificador">
-      CPF ou e-mail <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <label class="campo__rotulo" for="cpf">
+      CPF <span class="campo__obrigatorio" aria-hidden="true">*</span>
     </label>
     <input
-      id="identificador"
-      name="identificador"
+      id="cpf"
+      name="cpf"
       type="text"
       required
       inputmode="numeric"
       autocomplete="username"
       autocapitalize="none"
       spellcheck="false"
-      value="<%= valores.identificador %>"
-      <% if (erroDe('identificador') !== '') { %>aria-invalid="true"<% } %>
-      aria-describedby="<%= descricao('identificador', true) %>">
-    <p class="campo__ajuda" id="identificador-ajuda">
+      value="<%= valores.cpf %>"
+      <% if (erroDe('cpf') !== '') { %>aria-invalid="true"<% } %>
+      aria-describedby="<%= descricao('cpf', true) %>">
+    <p class="campo__ajuda" id="cpf-ajuda">
       O CPF pode ser digitado com ou sem pontos e traço.
     </p>
-    <% if (erroDe('identificador') !== '') { %>
-    <p class="campo__erro" id="identificador-erro"><%= erroDe('identificador') %></p>
+    <% if (erroDe('cpf') !== '') { %>
+    <p class="campo__erro" id="cpf-erro"><%= erroDe('cpf') %></p>
     <% } %>
   </div>
 

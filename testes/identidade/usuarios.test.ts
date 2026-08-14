@@ -83,7 +83,7 @@ describe('convidarUsuario', () => {
 
     const entrada = await identidade.autenticar({
       redeSlug: 'provisoria',
-      identificador: 'bia@provisoria.br',
+      identificador: gerarCpf(4),
       senha: valorDe(convite).senhaProvisoria,
       ip: '',
     });
@@ -107,7 +107,7 @@ describe('convidarUsuario', () => {
     expect(usuarios[0]?.email).toBe('carlos.lima@escola.br');
     const entrada = await identidade.autenticar({
       redeSlug: 'normalizado',
-      identificador: 'carlos.lima@escola.br',
+      identificador: gerarCpf(5),
       senha: valorDe(convite).senhaProvisoria,
       ip: '',
     });
@@ -213,7 +213,7 @@ describe('convidarUsuario', () => {
 
     const entrada = await identidade.autenticar({
       redeSlug: 'portal',
-      identificador: 'mae.da.ana@familia.br',
+      identificador: gerarCpf(10),
       senha: valorDe(convite).senhaProvisoria,
       ip: '',
     });
@@ -642,7 +642,7 @@ describe('isolamento de tenant', () => {
     const { a, b } = await duasRedes();
 
     const entrada = await identidade.autenticar({
-      redeSlug: a.rede.slug, identificador: a.admin.email, senha: a.senha, ip: '',
+      redeSlug: a.rede.slug, identificador: a.admin.cpf, senha: a.senha, ip: '',
     });
 
     const papeis = valorDe(entrada).usuario.papeis;

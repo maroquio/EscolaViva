@@ -23,7 +23,7 @@ const entrarComo = (
   cenario: Cenario,
   quem: 'admin' | 'secretaria' | 'professor' | 'responsavel',
 ): Promise<string> =>
-  entrar({ redeSlug: cenario.rede.slug, email: cenario[quem].email, senha: cenario.senha });
+  entrar({ redeSlug: cenario.rede.slug, cpf: cenario[quem].cpf, senha: cenario.senha });
 
 const statusDe = async (caminho: string, cookie: string): Promise<number> =>
   (await abrir(caminho, cookie)).status;

@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, test } from 'bun:test';
+import { gerarCpf } from '../../src/shared/documento';
 import { PAPEIS, papelValido, paraPapel } from '../../src/identidade/dominio/papel';
 import {
   paraStatusDeRede,
@@ -151,7 +152,7 @@ describe('usuário', () => {
       redeId: 'rede-1',
       nome: 'Ana Souza',
       email: 'ana.souza@escola.br',
-      cpf: null,
+      cpf: gerarCpf(1),
       ativo: true,
       responsavelId: null,
     };
@@ -180,7 +181,7 @@ describe('usuário', () => {
       redeId: 'rede-1',
       nome: 'Carlos Lima',
       email: 'carlos@familia.br',
-      cpf: null,
+      cpf: gerarCpf(2),
       ativo: true,
       responsavelId: 'responsavel-9',
     };
@@ -196,7 +197,7 @@ describe('usuário', () => {
       redeId: 'rede-1',
       nome: 'Bia Nunes',
       email: 'bia@escola.br',
-      cpf: null,
+      cpf: gerarCpf(3),
       ativo: true,
       responsavelId: null,
     };

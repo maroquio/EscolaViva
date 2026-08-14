@@ -76,7 +76,9 @@ export async function criarUnidade(opcoes: {
 }
 
 export type UsuarioDeTeste = {
-  id: string; redeId: string; nome: string; email: string; cpf: string | null;
+  id: string; redeId: string; nome: string; email: string;
+  /** Migração 0008 (ADR 0004): toda linha de `usuario` tem CPF, sempre — nunca `null` aqui. */
+  cpf: string;
   /** A senha em claro, para o teste conseguir autenticar depois. */
   senha: string;
   ativo: boolean; responsavelId: string | null; papeis: PapelEmUnidade[];
@@ -84,7 +86,7 @@ export type UsuarioDeTeste = {
 
 export async function criarUsuario(opcoes: {
   redeId: string; nome?: string | undefined; email?: string | undefined;
-  cpf?: string | null | undefined; senha?: string | undefined;
+  cpf?: string | undefined; senha?: string | undefined;
   ativo?: boolean | undefined; responsavelId?: string | null | undefined;
   papeis?: PapelEmUnidade[] | undefined;
 }): Promise<UsuarioDeTeste> {

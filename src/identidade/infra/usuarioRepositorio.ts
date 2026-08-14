@@ -13,7 +13,7 @@ type LinhaDeUsuario = {
   rede_id: string;
   nome: string;
   email: string;
-  cpf: string | null;
+  cpf: string;
   ativo: boolean;
   responsavel_id: string | null;
 };
@@ -38,22 +38,11 @@ const paraPapelEmUnidade = (linha: LinhaDePapel): PapelEmUnidade => ({
   papel: paraPapel(linha.papel),
 });
 
-/** O e-mail chega já normalizado pela aplicação — é assim que o índice único vale como identidade. */
-export async function credenciaisPorEmail(
-  sql: Conexao,
-  redeId: string,
-  email: string,
-): Promise<Credenciais | null> {
-  const linhas = await sql<LinhaDeCredenciais[]>`
-    SELECT id, rede_id, nome, email, cpf, ativo, responsavel_id, senha_hash
-    FROM usuario
-    WHERE rede_id = ${redeId} AND email = ${email} AND ativo
-  `;
-  const linha = linhas[0];
-  return linha === undefined ? null : { usuario: paraUsuario(linha), senhaHash: linha.senha_hash };
-}
-
-/** Gêmea de `credenciaisPorEmail`: na janela o login pode chegar por qualquer um dos dois. */
+/**
+ * A única busca de credenciais por login (ADR 0004): o CPF é o identificador de acesso, o e-mail
+ * é só contato. `credenciaisPorEmail` existiu enquanto a janela de 0007 aceitava os dois e foi
+ * removida junto com o ramo de e-mail em `autenticar`.
+ */
 export async function credenciaisPorCpf(
   sql: Conexao,
   redeId: string,
@@ -169,7 +158,7 @@ export async function existeEmail(sql: Conexao, redeId: string, email: string): 
 }
 
 /**
- * Gêmea de `existeEmail`. O índice parcial de 0007 recusaria de qualquer forma; esta consulta
+ * Gêmea de `existeEmail`. A constraint única de 0008 recusaria de qualquer forma; esta consulta
  * existe para que a recusa chegue à tela como erro de campo, e não como falha de constraint.
  */
 export async function existeCpf(sql: Conexao, redeId: string, cpf: string): Promise<boolean> {

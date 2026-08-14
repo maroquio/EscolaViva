@@ -18,7 +18,7 @@ import { cenarioCompleto, duasRedes, type Cenario } from '../apoio/fabricas';
 import { abrir, entrar, enviar } from './apoio';
 
 const entrarComo = (cenario: Cenario, quem: 'admin' | 'secretaria'): Promise<string> =>
-  entrar({ redeSlug: cenario.rede.slug, email: cenario[quem].email, senha: cenario.senha });
+  entrar({ redeSlug: cenario.rede.slug, cpf: cenario[quem].cpf, senha: cenario.senha });
 
 /** O `form` de escrita daquela página, e não o de sair da conta que vem no cabeçalho. */
 const temFormularioPara = (html: string, destino: string): boolean =>
@@ -31,16 +31,15 @@ beforeEach(async () => {
 /* ------------------------------------------------------------------------- */
 
 // Fora dos quatro grupos do arquivo — não é cadastro, listagem, recusa nem alcance —, mas é a
-// mesma família de verificação: a página abre e traz o campo que a fase atual promete. Aqui a
-// promessa é dupla, e o teste confere as duas: o campo mudou de nome (`identificador`) e o rótulo
-// diz que aceita as duas formas de entrar (`CPF ou e-mail`). Só a primeira checagem passaria com a
-// tela ainda dizendo apenas "E-mail" acima de um campo renomeado por baixo — a segunda é o que
-// garante que a tela também mudou o que promete, não só o atributo.
-test('a tela de entrada pede CPF ou e-mail', async () => {
+// mesma família de verificação: a página abre e traz o campo que a fase atual promete. A janela do
+// CPF fechou (ADR 0004): o campo chama-se `cpf`, e o rótulo não menciona mais e-mail — só a
+// primeira checagem passaria com a tela ainda dizendo "CPF ou e-mail" acima de um campo renomeado
+// por baixo, a segunda é o que garante que a tela também parou de prometer o que já não aceita.
+test('a tela de entrada pede CPF, e não mais e-mail', async () => {
   const html = await (await abrir('/login')).text();
 
-  expect(html).toContain('name="identificador"');
-  expect(html).toContain('CPF ou e-mail');
+  expect(html).toContain('name="cpf"');
+  expect(html).not.toContain('e-mail');
 });
 
 /* ------------------------------------------------------------------------- */
