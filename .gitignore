@@ -12,5 +12,8 @@ coverage/
 *.dump
 .DS_Store
 
+# Pasta de ferramenta local, sem nada que o repositório precise carregar.
+.lesson-bridge/
+
 # bun.lock é versionado de propósito: o Dockerfile instala com --frozen-lockfile,
 # então a imagem só é reprodutível se o lock estiver no repositório.
