@@ -663,6 +663,18 @@ input:disabled, select:disabled, textarea:disabled {
 }
 .campo--opcao .campo__rotulo { font-weight: 500; }
 
+/*
+  Caixas de marcar em colunas. Uma unidade tem dezenas de responsáveis, e em coluna única a
+  lista empurra o botão de publicar para muito abaixo da dobra. Quatro colunas cabem numa tela
+  larga; abaixo disso o número cai, porque nome espremido não se lê. As quebras ficam na seção
+  17, junto das outras adaptações de largura.
+*/
+.grade-opcoes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--e3) var(--e6);
+}
+
 .acoes {
   display: flex;
   flex-wrap: wrap;
@@ -998,6 +1010,14 @@ input:disabled, select:disabled, textarea:disabled {
 .texto-corrido { white-space: pre-wrap; line-height: 1.7; }
 
 /* --- 17. Adaptação, movimento reduzido e impressão ------------------------ */
+
+/*
+  As colunas de destinatários caem antes do layout inteiro: com a barra lateral ocupando espaço,
+  quatro nomes lado a lado já ficam apertados bem acima do ponto em que a navegação vira faixa.
+*/
+@media (max-width: 78rem) { .grade-opcoes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 56rem) { .grade-opcoes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 34rem) { .grade-opcoes { grid-template-columns: minmax(0, 1fr); } }
 
 @media (max-width: 60rem) {
   .aplicacao {

@@ -2,10 +2,14 @@
 /*
   Publicação de comunicado, em dois passos.
 
-  Sem JavaScript no cliente, a lista de destinatários só pode ser montada depois que a unidade é
-  conhecida — então o primeiro passo é um GET que apenas escolhe a unidade, e o segundo é o
+  A lista de destinatários só pode ser montada depois que a unidade é conhecida, e quem a conhece
+  é o servidor — então o primeiro passo é um GET que apenas escolhe a unidade, e o segundo é o
   formulário de envio, já com os responsáveis daquela unidade em mãos. Dois passos honestos valem
   mais que uma tela que finge escolher sozinha.
+
+  No fim do arquivo está o único script que uma tela traz por conta própria — o de fechar avisos
+  vem no layout, em toda página. Ele liga o botão de marcar todos e é enriquecimento e nada mais:
+  nenhum campo, nenhuma validação e nenhum passo dependem dele.
 
   Nenhum limite de tamanho é repetido aqui: quem conhece o tamanho do título e do corpo é
   `comunicacao`, e é de lá que vem a mensagem quando o texto não cabe.
@@ -84,11 +88,11 @@ const descricaoDe = (campo, ajudaId) =>
     </p>
   </div>
 
-  <form class="formulario" method="post" action="/comunicados/novo">
+  <form class="formulario formulario--largo" method="post" action="/comunicados/novo">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
     <input type="hidden" name="unidadeId" value="<%= it.unidade.id %>">
 
-    <div class="campo">
+    <div class="campo leitura">
       <label class="campo__rotulo" for="titulo">
         Título <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
@@ -104,7 +108,7 @@ const descricaoDe = (campo, ajudaId) =>
       <% } %>
     </div>
 
-    <div class="campo">
+    <div class="campo leitura">
       <label class="campo__rotulo" for="corpo">
         Mensagem <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
@@ -154,7 +158,18 @@ const descricaoDe = (campo, ajudaId) =>
             texto: 'Só recebe comunicado quem está vinculado a um aluno com matrícula ativa aqui. A secretaria faz esse vínculo na ficha do aluno.',
           }) %>
         <% } else { %>
-        <ul class="pilha">
+        <%
+        /*
+          O botão nasce escondido e só o script o revela: sem JavaScript ele não faria nada, e um
+          botão inerte na tela é pior que botão nenhum. A lista abaixo continua marcável à mão.
+        */
+        %>
+        <p class="linha">
+          <button class="botao botao--secundario botao--miudo" type="button"
+                  id="marcar-todos" hidden>Selecionar todos</button>
+        </p>
+
+        <ul class="grade-opcoes">
           <% responsaveis.forEach((responsavel) => { %>
           <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-<%= responsavel.id %>"
@@ -176,4 +191,41 @@ const descricaoDe = (campo, ajudaId) =>
     </div>
   </form>
 </section>
+
+<%
+/*
+  O único script que uma tela traz por conta própria, e por escolha: marcar trinta caixas uma a uma
+  é trabalho que a máquina faz melhor. É enriquecimento puro — sem ele o formulário continua
+  completo, porque o botão só aparece se este código rodar, e quem publica ainda tem o "todos da
+  unidade" ao lado.
+
+  Marcar todos também liga o rádio de seleção: caixa marcada com o alcance em "unidade" seria um
+  clique sem efeito, já que o servidor ignora a lista quando o comunicado vai para a unidade toda.
+*/
+%>
+<script>
+  (() => {
+    const botao = document.getElementById('marcar-todos');
+    const caixas = Array.from(document.querySelectorAll('input[name="responsaveis[]"]'));
+    const alcanceSelecionados = document.getElementById('alcance-selecionados');
+    if (botao === null || caixas.length === 0) return;
+
+    const todasMarcadas = () => caixas.every((caixa) => caixa.checked);
+    const atualizarRotulo = () => {
+      botao.textContent = todasMarcadas() ? 'Desmarcar todos' : 'Selecionar todos';
+    };
+
+    botao.addEventListener('click', () => {
+      const marcar = !todasMarcadas();
+      caixas.forEach((caixa) => { caixa.checked = marcar; });
+      if (marcar && alcanceSelecionados !== null) alcanceSelecionados.checked = true;
+      atualizarRotulo();
+    });
+
+    caixas.forEach((caixa) => caixa.addEventListener('change', atualizarRotulo));
+
+    atualizarRotulo();
+    botao.hidden = false;
+  })();
+</script>
 <% } %>
