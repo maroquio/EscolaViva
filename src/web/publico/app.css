@@ -49,6 +49,10 @@
   --sans:  system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono:  ui-monospace, 'SF Mono', Menlo, monospace;
   --passo: 0.25rem;  /* escala 1,2,3,4,6,8,12,16,24 */
+  /* Altura única de campo. Sem ela cada controle tem a sua: o select ignora `line-height` e
+     fica mais baixo, e o seletor de data desenha o próprio miolo e fica mais alto. O valor
+     cobre o mais alto dos três, então nenhum é cortado e todos terminam na mesma linha. */
+  --controle-altura: 2.875rem;
   --rapido: 140ms; --normal: 260ms; --saida: cubic-bezier(.16,1,.3,1);
 
   /* Derivados: superfícies e tintas de estado que passam AA sobre --papel. */
@@ -541,9 +545,16 @@ a.cartao:active { background: var(--papel-fundo); }
 
 .formulario--largo { max-inline-size: none; }
 
+/*
+  Campos lado a lado. `align-items: start` é o que impede o campo mais curto de esticar
+  até a altura do vizinho: sem ele, a coluna sem texto de ajuda cresce e o alongamento
+  sobra para o controle, que fica mais alto que o do lado. Cada campo mantém a altura
+  natural e todos começam no topo da linha.
+*/
 .formulario__linha {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  align-items: start;
   gap: var(--e6);
 }
 
@@ -559,7 +570,8 @@ legend {
   inline-size: 100%;
 }
 
-.campo { display: grid; gap: var(--e2); }
+/* `align-content: start` protege a altura do controle onde o campo é esticado por um pai. */
+.campo { display: grid; align-content: start; gap: var(--e2); }
 
 .campo__rotulo {
   font-size: var(--texto-pequeno);
@@ -591,6 +603,7 @@ input, select, textarea {
   padding: var(--e2) var(--e3);
   inline-size: 100%;
   min-inline-size: 0;
+  min-block-size: var(--controle-altura);
   transition: border-color var(--rapido) var(--saida), background var(--rapido) var(--saida);
 }
 
@@ -602,6 +615,7 @@ input[type='number'], input[type='date'], .entrada-numerica {
 input[type='checkbox'], input[type='radio'] {
   inline-size: 1.05rem;
   block-size: 1.05rem;
+  min-block-size: 0;  /* a altura de campo não vale para a caixa de marcar. */
   accent-color: var(--marca);
 }
 
@@ -666,7 +680,7 @@ input:disabled, select:disabled, textarea:disabled {
   justify-content: center;
   gap: var(--e2);
   padding: var(--e2) var(--e6);
-  min-block-size: 2.5rem;
+  min-block-size: var(--controle-altura);  /* a mesma dos campos: botão e campo dividem linha. */
   border: 1px solid transparent;
   border-radius: 0;
   font: inherit;
