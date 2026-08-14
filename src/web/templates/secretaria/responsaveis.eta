@@ -35,7 +35,7 @@ const responsaveis = it.responsaveis ?? [];
   <% if (responsaveis.length === 0) { %>
   <%~ include("/parciais/_vazio", {
     titulo: 'Nenhum responsável cadastrado',
-    texto: 'O e-mail é único na rede: é por ele que o responsável entra no sistema quando receber acesso.',
+    texto: 'O e-mail é único na rede: é por ele que o responsável recebe comunicado — não é usado para entrar.',
     acao: { href: '/secretaria/responsaveis/novo', texto: 'Cadastrar responsável' }
   }) %>
   <% } else { %>

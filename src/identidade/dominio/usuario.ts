@@ -34,6 +34,7 @@ export type UsuarioResumo = {
   id: string;
   nome: string;
   email: string;
+  cpf: string | null;
   ativo: boolean;
   papeis: PapelEmUnidade[];
 };

@@ -59,7 +59,7 @@ const { erroDe, descricao } = it;
           <% if (erroDe('email') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('email', true) %>">
         <p class="campo__ajuda" id="email-ajuda">
-          Único na rede. É por ele que o responsável entra quando o administrador criar o acesso.
+          Único na rede. É por ele que o responsável recebe comunicado — não é usado para entrar.
         </p>
         <% if (erroDe('email') !== '') { %>
         <p class="campo__erro" id="email-erro"><%= erroDe('email') %></p>

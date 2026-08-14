@@ -143,6 +143,7 @@ export async function listarResumos(
     id: linha.id,
     nome: linha.nome,
     email: linha.email,
+    cpf: linha.cpf,
     ativo: linha.ativo,
     papeis: porUsuario.get(linha.id) ?? [],
   }));

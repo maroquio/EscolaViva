@@ -60,6 +60,7 @@ describe('convidarUsuario', () => {
         id: usuarioId,
         nome: 'Ana Souza',
         email: 'ana.souza@convite.br',
+        cpf: gerarCpf(3),
         ativo: true,
         papeis: [
           { unidadeId: centro.id, unidadeNome: 'Escola Centro', papel: 'professor' },
