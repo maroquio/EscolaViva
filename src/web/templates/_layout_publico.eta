@@ -35,5 +35,7 @@
       </p>
     </main>
   </div>
+
+  <%~ include("/parciais/_script_avisos") %>
 </body>
 </html>

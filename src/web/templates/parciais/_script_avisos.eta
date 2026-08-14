@@ -1,0 +1,41 @@
+<%
+/*
+  O botão de fechar dos avisos, para todo aviso de toda tela.
+
+  Ele nasce daqui e não do HTML de cada aviso por dois motivos. O primeiro é alcance: um aviso
+  aparece no retorno de toda escrita (`_mensagens`) e também no meio de telas que avisam sobre o
+  próprio estado — notas em aberto, senha provisória recém-criada —, e o botão precisa valer para
+  todos sem repetir marcação em cada um. O segundo é honestidade: fechar é conforto, não função.
+  Sem script nenhum aviso ganha botão, e nenhuma tela perde nada — o aviso continua legível e
+  some sozinho na próxima navegação, porque nasce da query string do redirecionamento ou do
+  estado consultado, nunca de algo guardado no navegador.
+
+  Fechar remove o aviso do documento em vez de escondê-lo: leitor de tela não deve tropeçar num
+  texto que a tela já não mostra. Como o botão desaparece com ele, o foco do teclado ficaria no
+  vazio, então volta para o conteúdo da página — sem rolagem, para não jogar a tela para o topo.
+*/
+%>
+<script>
+  (() => {
+    const avisos = document.querySelectorAll('.aviso');
+    if (avisos.length === 0) return;
+
+    const conteudo = document.getElementById('conteudo');
+
+    avisos.forEach((aviso) => {
+      const fechar = document.createElement('button');
+      fechar.type = 'button';
+      fechar.className = 'aviso__fechar';
+      fechar.setAttribute('aria-label', 'Fechar aviso');
+      fechar.textContent = '×';
+
+      fechar.addEventListener('click', () => {
+        const tinhaFoco = document.activeElement === fechar;
+        aviso.remove();
+        if (tinhaFoco && conteudo !== null) conteudo.focus({ preventScroll: true });
+      });
+
+      aviso.append(fechar);
+    });
+  })();
+</script>

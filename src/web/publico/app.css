@@ -791,6 +791,8 @@ input:disabled, select:disabled, textarea:disabled {
 
 .aviso {
   display: grid;
+  /* Segunda faixa para o botão de fechar. Sem botão ela tem largura zero e nada muda. */
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--e1);
   padding: var(--e3) var(--e4);
   margin-block-end: var(--e8);
@@ -800,8 +802,39 @@ input:disabled, select:disabled, textarea:disabled {
   font-size: var(--texto-pequeno);
 }
 
+.aviso > *:not(.aviso__fechar) { grid-column: 1; }
+
 .aviso__titulo { font-weight: 600; font-size: var(--texto-base); }
 .aviso ul { display: grid; gap: var(--e1); padding-inline-start: var(--e4); list-style: disc; }
+
+/*
+  Fechar o aviso é enriquecimento: o botão é criado pelo script do layout e some junto com o
+  aviso, então sem script a tela continua inteira — só sem o botão. Ele fica preso na primeira
+  linha da grade, no topo direito, para não descer quando o aviso tem título e lista. A cor vem
+  do próprio aviso, e o recuo negativo encosta o alvo de clique no canto sem apertar o texto.
+*/
+.aviso__fechar {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  margin-inline-end: calc(var(--e2) * -1);
+  padding: 0;
+  font-size: var(--texto-base);
+  line-height: 1;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--rapido) var(--saida);
+}
+
+.aviso__fechar:hover { opacity: 1; }
 
 .aviso--sucesso {
   border-color: var(--linha);

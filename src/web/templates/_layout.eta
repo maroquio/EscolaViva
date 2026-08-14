@@ -6,8 +6,10 @@
   este quando há usuário na sessão. Uma página pode declarar explicitamente chamando
   `layout("/_layout")` na primeira linha — o resultado é o mesmo.
 
-  Nenhum <script>, nenhuma imagem, nenhuma fonte externa: a página não faz uma única requisição
-  de rede além do próprio HTML e do CSS versionado.
+  Nenhuma imagem, nenhuma fonte externa, nenhum script vindo de fora: a página não faz uma única
+  requisição de rede além do próprio HTML e do CSS versionado. O único script do layout é o botão
+  de fechar dos avisos, embutido no fim do documento; uma página pode embutir o seu, desde que a
+  tela continue inteira sem ele.
 */
 %><!doctype html>
 <html lang="pt-BR">
@@ -32,5 +34,7 @@
       <%~ it.body %>
     </main>
   </div>
+
+  <%~ include("/parciais/_script_avisos") %>
 </body>
 </html>
