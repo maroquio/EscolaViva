@@ -73,34 +73,37 @@ const ROTULO_DA_SITUACAO = {
       <caption>Matrículas sob sua responsabilidade</caption>
       <thead>
         <tr>
-          <th scope="col">Aluno</th>
-          <th scope="col">Turma</th>
-          <th scope="col">Ano</th>
-          <th scope="col">Matrícula</th>
-          <th scope="col">Acompanhar</th>
+          <th class="celula-elastica" scope="col">Aluno</th>
+          <th class="celula-centro" scope="col">Turma</th>
+          <th class="celula-centro" scope="col">Ano</th>
+          <th class="celula-centro" scope="col">Matrícula</th>
+          <th class="celula-centro" scope="col">Acompanhar</th>
         </tr>
       </thead>
       <tbody>
         <% matriculas.forEach((matricula) => { %>
         <tr>
-          <th scope="row"><%= matricula.alunoNome %></th>
-          <td class="celula-texto"><%= matricula.turmaNome %></td>
-          <td class="numero"><%= matricula.ano %></td>
-          <td>
+          <th class="celula-elastica" scope="row"><%= matricula.alunoNome %></th>
+          <td class="celula-centro"><%= matricula.turmaNome %></td>
+          <td class="numero celula-centro"><%= matricula.ano %></td>
+          <td class="celula-centro">
             <span class="etiqueta <%= CLASSE_DA_SITUACAO[matricula.situacao] %>">
               <%= ROTULO_DA_SITUACAO[matricula.situacao] %>
             </span>
           </td>
-          <td>
+          <td class="celula-centro">
             <span class="tabela__acoes">
+              <%
+                /* O fecho da âncora vem colado ao rótulo oculto de propósito: uma quebra de
+                   linha ali vira um item vazio no flex do botão, e o `gap` tira o texto
+                   visível do centro. */
+              %>
               <a class="botao botao--secundario botao--miudo"
                  href="/responsavel/matriculas/<%= matricula.id %>/boletim">
-                Boletim<span class="visualmente-oculto"> de <%= matricula.alunoNome %></span>
-              </a>
+                Boletim<span class="visualmente-oculto"> de <%= matricula.alunoNome %></span></a>
               <a class="botao botao--secundario botao--miudo"
                  href="/responsavel/matriculas/<%= matricula.id %>/frequencia">
-                Frequência<span class="visualmente-oculto"> de <%= matricula.alunoNome %></span>
-              </a>
+                Frequência<span class="visualmente-oculto"> de <%= matricula.alunoNome %></span></a>
             </span>
           </td>
         </tr>
