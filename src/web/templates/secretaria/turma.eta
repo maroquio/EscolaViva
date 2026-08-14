@@ -49,7 +49,7 @@ const matriculas = it.matriculas ?? [];
         <thead>
           <tr>
             <th scope="col">Disciplina</th>
-            <th scope="col">Professor</th>
+            <th scope="col" class="celula-texto">Professor</th>
           </tr>
         </thead>
         <tbody>
@@ -98,21 +98,21 @@ const matriculas = it.matriculas ?? [];
       <caption>Alunos com matrícula ativa nesta turma</caption>
       <thead>
         <tr>
-          <th scope="col">Aluno</th>
-          <th scope="col">Matriculado em</th>
-          <th scope="col">Situação</th>
-          <th scope="col"><span class="visualmente-oculto">Ações</span></th>
+          <th scope="col" class="celula-elastica">Aluno</th>
+          <th scope="col" class="celula-centro">Matriculado em</th>
+          <th scope="col" class="celula-centro">Situação</th>
+          <th scope="col" class="celula-centro">Ações</th>
         </tr>
       </thead>
       <tbody>
         <% matriculas.forEach((matricula) => { %>
         <tr>
-          <th scope="row"><%= matricula.alunoNome %></th>
-          <td class="numero"><%= it.formatarData(matricula.dataMatricula) %></td>
-          <td>
+          <th scope="row" class="celula-elastica"><%= matricula.alunoNome %></th>
+          <td class="numero celula-centro"><%= it.formatarData(matricula.dataMatricula) %></td>
+          <td class="celula-centro">
             <span class="etiqueta etiqueta--<%= matricula.situacao %>"><%= matricula.situacaoNome %></span>
           </td>
-          <td>
+          <td class="celula-centro">
             <div class="tabela__acoes">
               <a class="botao botao--secundario botao--miudo" href="/secretaria/alunos/<%= matricula.alunoId %>">
                 Abrir ficha<span class="visualmente-oculto"> de <%= matricula.alunoNome %></span>
