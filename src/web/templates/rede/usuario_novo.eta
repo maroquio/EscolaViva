@@ -14,7 +14,7 @@ const unidades = it.unidades ?? [];
 const responsaveis = it.responsaveis ?? [];
 const papeis = it.papeis ?? [];
 const linhas = it.linhas ?? [];
-const valores = it.valores ?? { nome: '', email: '', responsavelId: '' };
+const valores = it.valores ?? { nome: '', email: '', cpf: '', responsavelId: '' };
 const { erroDe, descricao } = it;
 %>
 <div class="pagina__cabecalho">
@@ -53,6 +53,26 @@ const { erroDe, descricao } = it;
       </div>
 
       <div class="campo">
+        <label class="campo__rotulo" for="cpf">
+          CPF <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="cpf"
+          name="cpf"
+          type="text"
+          required
+          maxlength="14"
+          autocomplete="off"
+          value="<%= valores.cpf %>"
+          <% if (erroDe('cpf') !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao('cpf', true) %>">
+        <p class="campo__ajuda" id="cpf-ajuda">É por ele que a pessoa entra. Com ou sem pontos.</p>
+        <% if (erroDe('cpf') !== '') { %>
+        <p class="campo__erro" id="cpf-erro"><%= erroDe('cpf') %></p>
+        <% } %>
+      </div>
+
+      <div class="campo">
         <label class="campo__rotulo" for="email">
           E-mail <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
@@ -67,7 +87,7 @@ const { erroDe, descricao } = it;
           value="<%= valores.email %>"
           <% if (erroDe('email') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('email', true) %>">
-        <p class="campo__ajuda" id="email-ajuda">É com ele que a pessoa entra. Único na rede.</p>
+        <p class="campo__ajuda" id="email-ajuda">Contato. Não é usado para entrar.</p>
         <% if (erroDe('email') !== '') { %>
         <p class="campo__erro" id="email-erro"><%= erroDe('email') %></p>
         <% } %>

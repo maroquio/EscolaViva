@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { unidadeDeTrabalho } from '../../shared/db';
+import { cpfValido, normalizarCpf } from '../../shared/documento';
 import { idGeneratorUuid } from '../../shared/ports';
 import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/resultado';
 import { PAPEIS, type Papel } from '../dominio/papel';
@@ -11,6 +12,15 @@ const schema = z.object({
   redeId: z.string().uuid('rede inválida'),
   nome: z.string().trim().min(1, 'informe o nome').max(120, 'nome longo demais'),
   email: z.string().trim().min(1, 'informe o e-mail').email('e-mail inválido'),
+  cpf: z
+    .string()
+    .trim()
+    .transform(normalizarCpf)
+    .refine(cpfValido, 'Informe um CPF válido.'),
+  // O cadastro do responsável vive em `academico`, e `identidade` não pode alcançá-lo: quem o
+  // busca é a camada web, que já orquestra os dois módulos. Aqui chega só o que a regra compara.
+  cpfDoCadastro: z.string().nullable().optional(),
+  nomeDoCadastro: z.string().optional(),
   atribuicoes: z
     .array(
       z.object({
@@ -73,6 +83,12 @@ async function gravar(convite: Convite): Promise<Resultado<ConviteAceito>> {
     if (await usuarioRepositorio.existeEmail(sql, usuario.redeId, usuario.email)) {
       return falhaDeCampo('email', 'email_em_uso', 'já existe usuário com este e-mail na rede');
     }
+    // `usuario.cpf` é `string | null` no tipo do domínio — a coluna segue anulável durante a
+    // janela —, mas quem chega até aqui sempre montou o convite com `dados.cpf`, já validado
+    // como string. A guarda é para o `tsc`, não para um caso que este fluxo de fato produza.
+    if (usuario.cpf !== null && (await usuarioRepositorio.existeCpf(sql, usuario.redeId, usuario.cpf))) {
+      return falhaDeCampo('cpf', 'cpf_em_uso', 'já existe usuário com este CPF na rede');
+    }
 
     await usuarioRepositorio.inserir(sql, usuario, convite.senhaHash);
     await usuarioRepositorio.inserirPapeis(sql, usuario.redeId, usuario.id, atribuicoes);
@@ -86,6 +102,9 @@ export async function convidarUsuario(entrada: {
   redeId: string;
   nome: string;
   email: string;
+  cpf: string;
+  cpfDoCadastro?: string | null;
+  nomeDoCadastro?: string;
   atribuicoes: Atribuicao[];
   responsavelId?: string | null | undefined;
 }): Promise<Resultado<ConviteAceito>> {
@@ -104,6 +123,17 @@ export async function convidarUsuario(entrada: {
     );
   }
 
+  // Só confere quando o cadastro já tem CPF. Sem CPF não há divergência a impedir — é o que
+  // mantém o convite funcionando para os responsáveis cadastrados antes da migração 0007.
+  const cpfDoCadastro = dados.cpfDoCadastro ?? null;
+  if (cpfDoCadastro !== null && cpfDoCadastro !== dados.cpf) {
+    return falhaDeCampo(
+      'cpf',
+      'cpf_diverge_do_cadastro',
+      `O CPF não confere com o do cadastro de ${dados.nomeDoCadastro ?? 'responsável'}.`,
+    );
+  }
+
   const senha = senhaProvisoria();
   const senhaHash = await Bun.password.hash(senha);
   const usuario: Usuario = {
@@ -111,9 +141,7 @@ export async function convidarUsuario(entrada: {
     redeId: dados.redeId,
     nome: dados.nome,
     email: emailNormalizado(dados.email),
-    // O convite ainda não recebe CPF como entrada — a Task 4 muda a assinatura e passa a
-    // preencher este campo; até lá, todo usuário nasce sem CPF.
-    cpf: null,
+    cpf: dados.cpf,
     ativo: true,
     responsavelId,
   };

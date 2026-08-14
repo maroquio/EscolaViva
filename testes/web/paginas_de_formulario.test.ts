@@ -12,6 +12,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
+import { gerarCpf } from '../../src/shared/documento';
 import { limparBanco } from '../apoio/banco';
 import { cenarioCompleto, duasRedes, type Cenario } from '../apoio/fabricas';
 import { abrir, entrar, enviar } from './apoio';
@@ -233,6 +234,37 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     expect(temFormularioPara(html, '/rede/unidades')).toBe(true);
     expect(html).toContain('value="123"');
     expect(html).not.toContain('Unidades cadastradas');
+  });
+
+  test('o convite recusa CPF que diverge do cadastro, sem publicar o número', async () => {
+    const cenario = await cenarioCompleto();
+    const cookie = await entrarComo(cenario, 'admin');
+    const responsavel = cenario.responsaveis[0];
+
+    const resposta = await enviar('/rede/usuarios', {
+      nome: 'Mãe do Aluno', email: 'mae@escolaviva.test', cpf: gerarCpf(987_654),
+      responsavelId: responsavel.id, 'unidade[]': cenario.unidades[0].id, 'papel[]': 'responsavel',
+    }, cookie);
+    const html = await resposta.text();
+
+    expect(resposta.status).toBe(200);
+    expect(html).toContain('id="cpf-erro"');
+    expect(html).toContain(responsavel.nome);
+    expect(html).not.toContain(responsavel.cpf);
+  });
+
+  test('responsavelId fora do formato não derruba o convite com erro de conversão', async () => {
+    const cenario = await cenarioCompleto();
+    const cookie = await entrarComo(cenario, 'admin');
+
+    const resposta = await enviar('/rede/usuarios', {
+      nome: 'Sem Cadastro', email: 'sem.cadastro@escolaviva.test', cpf: gerarCpf(987_655),
+      responsavelId: 'nao-e-uuid', 'unidade[]': cenario.unidades[0].id, 'papel[]': 'secretaria',
+    }, cookie);
+    const html = await resposta.text();
+
+    expect(resposta.status).toBe(200);
+    expect(html).toContain('id="responsavelId-erro"');
   });
 
   test('vínculo recusado volta para a página do vínculo, sem a ficha inteira', async () => {

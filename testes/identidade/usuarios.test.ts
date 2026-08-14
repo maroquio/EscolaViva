@@ -9,6 +9,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { identidade } from '../../src/identidade';
+import { gerarCpf } from '../../src/shared/documento';
 import type { ErroDeAplicacao, Resultado } from '../../src/shared/resultado';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
@@ -44,6 +45,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Ana Souza',
       email: 'ana.souza@convite.br',
+      cpf: gerarCpf(3),
       atribuicoes: [
         { unidadeId: centro.id, papel: 'professor' },
         { unidadeId: praia.id, papel: 'secretaria' },
@@ -74,6 +76,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Bia Nunes',
       email: 'bia@provisoria.br',
+      cpf: gerarCpf(4),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'secretaria' }],
     });
 
@@ -95,6 +98,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Carlos Lima',
       email: '  Carlos.LIMA@Escola.BR  ',
+      cpf: gerarCpf(5),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'professor' }],
     });
 
@@ -118,6 +122,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Outra Pessoa',
       email: 'ocupado@escola.br',
+      cpf: gerarCpf(6),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'professor' }],
     });
 
@@ -140,6 +145,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Outra Pessoa',
       email: 'OCUPADO@Escola.BR',
+      cpf: gerarCpf(7),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'professor' }],
     });
 
@@ -157,6 +163,7 @@ describe('convidarUsuario', () => {
       redeId: colegio.id,
       nome: 'Ana Souza',
       email: 'ana.souza@escola.br',
+      cpf: gerarCpf(8),
       atribuicoes: [{ unidadeId: doColegio.id, papel: 'secretaria' }],
     });
 
@@ -174,6 +181,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Mãe da Ana',
       email: 'mae.da.ana@familia.br',
+      cpf: gerarCpf(9),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'responsavel' }],
     });
 
@@ -197,6 +205,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Mãe da Ana',
       email: 'mae.da.ana@familia.br',
+      cpf: gerarCpf(10),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'responsavel' }],
       responsavelId: responsavel.id,
     });
@@ -219,6 +228,7 @@ describe('convidarUsuario', () => {
       redeId: nossa.id,
       nome: 'Intrusa',
       email: 'intrusa@escola.br',
+      cpf: gerarCpf(11),
       atribuicoes: [{ unidadeId: unidadeAlheia.id, papel: 'admin_rede' }],
     });
 
@@ -239,6 +249,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Sem Papel',
       email: 'sem.papel@escola.br',
+      cpf: gerarCpf(12),
       atribuicoes: [],
     });
 
@@ -253,6 +264,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Ana Souza',
       email: 'ana-arroba-nada',
+      cpf: gerarCpf(13),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'professor' }],
     });
 
@@ -268,6 +280,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Ana Souza',
       email: 'ana@escola.br',
+      cpf: gerarCpf(14),
       atribuicoes: [
         { unidadeId: unidade.id, papel: 'professor' },
         { unidadeId: unidade.id, papel: 'professor' },
@@ -281,8 +294,102 @@ describe('convidarUsuario', () => {
     ]);
   });
 
-  // habilitado na Task 4
-  test.skip('o CPF gravado no convite volta na leitura do usuário', async () => {
+  test('recusa convite com CPF inválido', async () => {
+    const rede = await criarRede({});
+    const unidade = await criarUnidadeDeTeste({ redeId: rede.id });
+
+    const convite = await identidade.convidarUsuario({
+      redeId: rede.id,
+      nome: 'Rui Barbosa Neto',
+      email: 'rui@escolaviva.test',
+      cpf: '11111111111',
+      atribuicoes: [{ unidadeId: unidade.id, papel: 'secretaria' }],
+    });
+
+    expect(convite.ok).toBe(false);
+    if (!convite.ok) expect(convite.erros[0]?.campo).toBe('cpf');
+  });
+
+  test('recusa CPF já usado por outro usuário da mesma rede', async () => {
+    const rede = await criarRede({});
+    const unidade = await criarUnidadeDeTeste({ redeId: rede.id });
+    await criarUsuario({ redeId: rede.id, cpf: '52998224725', papeis: [] });
+
+    const convite = await identidade.convidarUsuario({
+      redeId: rede.id,
+      nome: 'Outra Pessoa',
+      email: 'outra@escolaviva.test',
+      cpf: '52998224725',
+      atribuicoes: [{ unidadeId: unidade.id, papel: 'secretaria' }],
+    });
+
+    expect(convite.ok).toBe(false);
+    if (!convite.ok) expect(convite.erros[0]?.campo).toBe('cpf');
+  });
+
+  test('o mesmo CPF em outra rede é aceito — a unicidade é por tenant', async () => {
+    const a = await criarRede({});
+    const b = await criarRede({});
+    const unidadeB = await criarUnidadeDeTeste({ redeId: b.id });
+    await criarUsuario({ redeId: a.id, cpf: '52998224725', papeis: [] });
+
+    const convite = await identidade.convidarUsuario({
+      redeId: b.id,
+      nome: 'Homônimo de Outra Rede',
+      email: 'homonimo@escolaviva.test',
+      cpf: '52998224725',
+      atribuicoes: [{ unidadeId: unidadeB.id, papel: 'secretaria' }],
+    });
+
+    expect(convite.ok).toBe(true);
+  });
+
+  test('recusa quando o CPF digitado diverge do cadastro do responsável', async () => {
+    const rede = await criarRede({});
+    const unidade = await criarUnidadeDeTeste({ redeId: rede.id });
+    const responsavel = await criarResponsavel({ redeId: rede.id, cpf: '52998224725' });
+
+    const convite = await identidade.convidarUsuario({
+      redeId: rede.id,
+      nome: 'Mãe do Aluno',
+      email: 'mae@escolaviva.test',
+      cpf: gerarCpf(1),
+      responsavelId: responsavel.id,
+      cpfDoCadastro: responsavel.cpf,
+      nomeDoCadastro: responsavel.nome,
+      atribuicoes: [{ unidadeId: unidade.id, papel: 'responsavel' }],
+    });
+
+    expect(convite.ok).toBe(false);
+    if (!convite.ok) {
+      expect(convite.erros[0]?.campo).toBe('cpf');
+      expect(convite.erros[0]?.mensagem).toContain(responsavel.nome);
+      expect(convite.erros[0]?.mensagem).not.toContain(responsavel.cpf);
+    }
+  });
+
+  /* Durante a janela os cadastros antigos ainda não têm CPF; exigi-lo bloquearia um fluxo que
+     funcionava, que é o oposto do que a compatibilidade promete. */
+  test('aceita quando o cadastro do responsável ainda não tem CPF', async () => {
+    const rede = await criarRede({});
+    const unidade = await criarUnidadeDeTeste({ redeId: rede.id });
+    const responsavel = await criarResponsavel({ redeId: rede.id, cpf: null });
+
+    const convite = await identidade.convidarUsuario({
+      redeId: rede.id,
+      nome: 'Pai do Aluno',
+      email: 'pai@escolaviva.test',
+      cpf: gerarCpf(2),
+      responsavelId: responsavel.id,
+      cpfDoCadastro: null,
+      nomeDoCadastro: responsavel.nome,
+      atribuicoes: [{ unidadeId: unidade.id, papel: 'responsavel' }],
+    });
+
+    expect(convite.ok).toBe(true);
+  });
+
+  test('o CPF gravado no convite volta na leitura do usuário', async () => {
     const rede = await criarRede({});
     const unidade = await criarUnidadeDeTeste({ redeId: rede.id });
 
@@ -290,8 +397,6 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Marina Alves Correia',
       email: 'marina@escolaviva.test',
-      // @ts-expect-error — convidarUsuario ainda não aceita `cpf`; a Task 4 muda a assinatura, e
-      // o erro deste marcador sumir é o próprio sinal de que dá para tirar o `test.skip` acima.
       cpf: '52998224725',
       atribuicoes: [{ unidadeId: unidade.id, papel: 'secretaria' }],
     });

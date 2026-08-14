@@ -91,6 +91,15 @@ const lista = (corpo: CorpoDeFormulario, campo: string): string[] => {
   return typeof valor === 'string' ? [valor.trim()] : [];
 };
 
+/**
+ * `academico.responsavelPorId` compara o id com uma coluna `uuid`: um `responsavelId` fora do
+ * formato viraria erro de conversão do PostgreSQL, e não a simples ausência de cadastro que de
+ * fato é. A borda recusa antes de chegar lá — o mesmo cuidado que `secretaria.ts` já toma para
+ * turma, aluno e matrícula.
+ */
+const FORMATO_DE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ehIdentificador = (valor: string): boolean => FORMATO_DE_ID.test(valor);
+
 const mensagemDaQuery = (c: Context): string | undefined => MENSAGENS[c.req.query('ok') ?? ''];
 
 /* --- Painel da rede --------------------------------------------------------- */
@@ -256,7 +265,7 @@ const formDeUsuario = async (c: Context, dados: DadosDeTemplate = {}): Promise<R
     unidades,
     responsaveis,
     papeis: PAPEIS_DA_TELA,
-    valores: { nome: '', email: '', responsavelId: '' },
+    valores: { nome: '', email: '', cpf: '', responsavelId: '' },
     linhas: linhasVazias(),
     erros: [],
     ...dados,
@@ -276,6 +285,7 @@ rotasRede.post('/usuarios', async (c) => {
   const valores = {
     nome: texto(corpo, 'nome'),
     email: texto(corpo, 'email'),
+    cpf: texto(corpo, 'cpf'),
     responsavelId: texto(corpo, 'responsavelId'),
   };
   const linhas = linhasDoFormulario(corpo);
@@ -290,10 +300,20 @@ rotasRede.post('/usuarios', async (c) => {
     return await formDeUsuario(c, { valores, linhas, erros: [ATRIBUICAO_INCOMPLETA] });
   }
 
+  // Só a camada web enxerga identidade e academico ao mesmo tempo (I1): é aqui, e só aqui, que o
+  // CPF digitado pode ser comparado com o do cadastro que o convite alega representar.
+  const cadastro =
+    valores.responsavelId === '' || !ehIdentificador(valores.responsavelId)
+      ? null
+      : await academico.responsavelPorId(redeId, valores.responsavelId);
+
   const resultado = await identidade.convidarUsuario({
     redeId,
     nome: valores.nome,
     email: valores.email,
+    cpf: valores.cpf,
+    cpfDoCadastro: cadastro?.cpf ?? null,
+    ...(cadastro === null ? {} : { nomeDoCadastro: cadastro.nome }),
     atribuicoes,
     responsavelId: valores.responsavelId === '' ? null : valores.responsavelId,
   });
