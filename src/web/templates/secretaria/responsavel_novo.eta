@@ -67,6 +67,25 @@ const { erroDe, descricao } = it;
       </div>
 
       <div class="campo">
+        <label class="campo__rotulo" for="cpf">CPF</label>
+        <input
+          id="cpf"
+          name="cpf"
+          type="text"
+          maxlength="14"
+          autocomplete="off"
+          value="<%= valores.cpf ?? '' %>"
+          <% if (erroDe('cpf') !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao('cpf', true) %>">
+        <p class="campo__ajuda" id="cpf-ajuda">
+          Opcional. Sem CPF a pessoa fica como contato e não recebe acesso ao portal.
+        </p>
+        <% if (erroDe('cpf') !== '') { %>
+        <p class="campo__erro" id="cpf-erro"><%= erroDe('cpf') %></p>
+        <% } %>
+      </div>
+
+      <div class="campo">
         <label class="campo__rotulo" for="telefone">Telefone</label>
         <input
           id="telefone"

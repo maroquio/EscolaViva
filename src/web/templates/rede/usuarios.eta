@@ -64,6 +64,7 @@ const rotuloDoPapel = (valor) => {
       <thead>
         <tr>
           <th scope="col">Nome</th>
+          <th scope="col">CPF</th>
           <th scope="col">E-mail</th>
           <th scope="col">Papéis</th>
           <th scope="col">Situação</th>
@@ -73,6 +74,7 @@ const rotuloDoPapel = (valor) => {
         <% usuarios.forEach((usuario) => { %>
         <tr>
           <th scope="row"><%= usuario.nome %></th>
+          <td class="celula-texto"><%= it.formatarCpf(usuario.cpf ?? '') %></td>
           <td class="celula-texto"><%= usuario.email %></td>
           <td class="celula-texto">
             <% if (usuario.papeis.length === 0) { %>

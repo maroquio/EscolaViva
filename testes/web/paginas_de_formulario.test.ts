@@ -71,6 +71,15 @@ describe('cada cadastro tem a sua página, e ela traz o formulário', () => {
     });
   }
 
+  test('cadastro de responsável traz o campo de CPF', async () => {
+    const cenario = await cenarioCompleto();
+    const cookie = await entrarComo(cenario, 'secretaria');
+
+    const html = await (await abrir('/secretaria/responsaveis/novo', cookie)).text();
+
+    expect(html).toContain('name="cpf"');
+  });
+
   test('vincular responsável tem página própria, fora da ficha', async () => {
     const cenario = await cenarioCompleto();
     const cookie = await entrarComo(cenario, 'secretaria');
@@ -251,6 +260,20 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     expect(html).toContain('id="cpf-erro"');
     expect(html).toContain(responsavel.nome);
     expect(html).not.toContain(responsavel.cpf);
+  });
+
+  test('CPF inválido no cadastro de responsável volta com o erro ancorado no campo', async () => {
+    const cenario = await cenarioCompleto();
+    const cookie = await entrarComo(cenario, 'secretaria');
+
+    const resposta = await enviar('/secretaria/responsaveis', {
+      nome: 'Responsável Sem Acesso', email: 'sem.acesso@escolaviva.test', cpf: '52998224724',
+    }, cookie);
+    const html = await resposta.text();
+
+    expect(resposta.status).toBe(200);
+    expect(html).toContain('id="cpf-erro"');
+    expect(html).toContain('value="52998224724"');
   });
 
   test('responsavelId fora do formato não derruba o convite com erro de conversão', async () => {

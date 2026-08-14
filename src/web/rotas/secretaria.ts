@@ -474,7 +474,7 @@ const formDeResponsavel = (c: Contexto, valores: Valores, erros: Erros): Respons
 rotasSecretaria.get('/responsaveis', (c) => telaDeResponsaveis(c));
 
 rotasSecretaria.get('/responsaveis/novo', (c) =>
-  formDeResponsavel(c, { nome: '', email: '', telefone: '' }, []));
+  formDeResponsavel(c, { nome: '', email: '', telefone: '', cpf: '' }, []));
 
 rotasSecretaria.post('/responsaveis', async (c) => {
   const corpo = c.get('corpo');
@@ -482,6 +482,7 @@ rotasSecretaria.post('/responsaveis', async (c) => {
     nome: texto(corpo, 'nome'),
     email: texto(corpo, 'email'),
     telefone: texto(corpo, 'telefone'),
+    cpf: texto(corpo, 'cpf'),
   };
   const resultado = await academico.cadastrarResponsavel({ redeId: redeAtual(c), ...valores });
   if (resultado.ok) return concluir(c, `${BASE}/responsaveis`, 'Responsável cadastrado.');

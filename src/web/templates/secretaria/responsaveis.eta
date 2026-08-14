@@ -44,17 +44,19 @@ const responsaveis = it.responsaveis ?? [];
       <caption>Responsáveis cadastrados nesta rede</caption>
       <thead>
         <tr>
-          <th scope="col">Responsável</th>
-          <th scope="col">E-mail</th>
-          <th scope="col">Telefone</th>
+          <th scope="col" class="celula-elastica">Responsável</th>
+          <th scope="col" class="celula-centro">CPF</th>
+          <th scope="col" class="celula-texto">E-mail</th>
+          <th scope="col" class="celula-centro">Telefone</th>
         </tr>
       </thead>
       <tbody>
         <% responsaveis.forEach((pessoa) => { %>
         <tr>
-          <th scope="row"><%= pessoa.nome %></th>
+          <th scope="row" class="celula-elastica"><%= pessoa.nome %></th>
+          <td class="numero celula-centro"><%= it.formatarCpf(pessoa.cpf ?? '') %></td>
           <td class="celula-texto"><%= pessoa.email %></td>
-          <td class="numero"><%= pessoa.telefone === null ? '—' : pessoa.telefone %></td>
+          <td class="numero celula-centro"><%= pessoa.telefone === null ? '—' : pessoa.telefone %></td>
         </tr>
         <% }) %>
       </tbody>

@@ -15,6 +15,7 @@ import { join } from 'node:path';
 import { Eta } from 'eta';
 import type { Context } from 'hono';
 import { config } from '../shared/config';
+import { formatarCpf } from '../shared/documento';
 import {
   contextoAtual,
   registrarRenderizadorDeErro,
@@ -151,6 +152,7 @@ const textoDaQuery = (c: Context, nome: string): string | null => {
 
 const auxiliares = {
   asset,
+  formatarCpf,
   formatarData,
   formatarDataHora,
   formatarNota,
