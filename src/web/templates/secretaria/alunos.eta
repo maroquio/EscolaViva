@@ -23,7 +23,7 @@ const buscou = it.buscou === true;
       <input id="q" name="<%= it.campoDaBusca %>" type="search" value="<%= termo %>" autocomplete="off"
              maxlength="<%= it.limiteDoNome %>" aria-describedby="q<%= it.sufixos.ajuda %>">
       <p class="campo__ajuda" id="q<%= it.sufixos.ajuda %>">
-<% // magic-values: permitido — não é LIMITES.aluno.busca nem o TAMANHO_PADRAO da paginação %>
+<% // magic-values: permitido — não é LIMITES.aluno.linhasDaBusca nem o TAMANHO_PADRAO da paginação %>
         Encontra qualquer trecho do nome, sem diferenciar maiúsculas. Mostra os 50 primeiros em
         ordem alfabética.
       </p>

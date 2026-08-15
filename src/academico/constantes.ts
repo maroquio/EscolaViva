@@ -4,7 +4,7 @@ import type { Turno } from './dominio/turma';
 export const LIMITES = {
   aluno: {
     nome: 120,
-    busca: 50,
+    linhasDaBusca: 50,
   },
   disciplina: { nome: 120 },
   responsavel: { nome: 120, email: 254, telefone: 30 },

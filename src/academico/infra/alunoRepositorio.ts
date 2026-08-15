@@ -47,7 +47,7 @@ export async function buscar(
       FROM aluno
      WHERE rede_id = ${redeId} AND nome ILIKE ${padrao}
      ORDER BY nome
-     LIMIT ${faixa?.limite ?? LIMITES.aluno.busca} OFFSET ${faixa?.deslocamento ?? 0}`;
+     LIMIT ${faixa?.limite ?? LIMITES.aluno.linhasDaBusca} OFFSET ${faixa?.deslocamento ?? 0}`;
   return linhas.map(paraAluno);
 }
 
