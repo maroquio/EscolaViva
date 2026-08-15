@@ -8,7 +8,7 @@
  * exatamente por isso que `.dependency-cruiser.js` existe, e este arquivo é o mesmo raciocínio
  * aplicado ao valor em vez da seta.
  *
- * Ele cobra cinco coisas, e as cinco são modos de falha distintos:
+ * Ele cobra sete coisas, e as sete são modos de falha distintos:
  *
  *   1. LITERAL SOLTO — um literal em posição de expressão que ninguém nomeou: `slice(0, 10)`,
  *      `'Cadastrar aluno'`, `` `${prefixo}/*` ``. Um literal que é o VALOR de uma `const MAIUSCULA`
@@ -102,6 +102,27 @@
  *      é estreito de propósito, porque esta é a regra deste arquivo com mais jeito de produzir
  *      falso positivo.
  *
+ *   6. SUPRESSÃO QUE CONFESSA — a justificativa que nomeia a constante cujo valor ela cala.
+ *
+ *      As cinco regras acima têm um teto comum que não é heurística nenhuma: a SUPRESSÃO. Toda uma
+ *      delas se fecha com `// magic-values: permitido — <motivo>`, e o verificador HONRAVA o
+ *      comentário sem o LER. Era a saída que fecha o achado sem ninguém validar o texto, e duas
+ *      passadas seguidas a usaram para o mesmo defeito: `responsavel/boletim.eta` justificou o `·`
+ *      escrito à mão dizendo que ele "já tem dono em APRESENTACAO.separador", e
+ *      `comunicados/lista.eta` justificou `name="unidadeId"` dizendo que ele "é o parâmetro de
+ *      query PARAMETROS.unidadeId". A regra 2 do refactor manda a justificativa dizer qual
+ *      constante o valor NÃO é; as duas dizem qual ele É, que é confissão e não justificativa.
+ *      Ver `constantesCitadas` e `negada` — a segunda é o portão, e a medição que a exigiu está lá.
+ *
+ *   7. SUPRESSÃO QUE CONTRADIZ — o mesmo literal consumido num arquivo e suprimido em outro.
+ *
+ *      A regra 6 lê o texto do comentário e só ele. Sobra o que nenhum texto denuncia: a MESMA
+ *      forma tratada como cópia numa tela e como decisão própria na irmã ao lado. A sétima passada
+ *      converteu o `·` de `secretaria/turma.eta` para `it.apresentacao.separador` e suprimiu o `·`
+ *      idêntico de `secretaria/aluno.eta`, três diretórios adiante — duas decisões opostas sobre um
+ *      caractere, e o verificador em silêncio nas duas. Ver o portão em `ehMarcaTipografica` e
+ *      `IDENTIFICADOR`, que é onde coincidência é impossível, e a medição que o estreitou até ali.
+ *
  * As exceções abaixo são a regra 6 do refactor, e cada uma tem um motivo que não é preguiça:
  *
  *   - Status HTTP são vocabulário do protocolo, não do produto. `c.redirect(destino, 303)` diz
@@ -125,7 +146,8 @@
  *
  * Escape hatch, para o caso legítimo que a heurística não prevê: um comentário
  * `// magic-values: permitido — <motivo>` na linha do literal ou na linha acima dela. O motivo é
- * obrigatório, e é ele que faz a exceção ser revisável em vez de invisível.
+ * obrigatório, e é ele que faz a exceção ser revisável em vez de invisível — e agora ele é LIDO,
+ * pelas regras 6 e 7, em vez de apenas honrado.
  */
 
 import { join, resolve } from 'node:path';
@@ -218,7 +240,35 @@ const STATUS_HTTP = new Set([
 /** Índice, base e elemento neutro. */
 const NUMEROS_NEUTROS = new Set([0, 1]);
 
-const SUPRESSAO = /\/\/\s*magic-values:\s*permitido\s*[—-]\s*\S/;
+const SUPRESSAO = /\/\/\s*magic-values:\s*permitido\s*[—-]\s*(\S.*)$/;
+
+const LINHA_DE_COMENTARIO = /^\s*\/\//;
+
+/**
+ * A JUSTIFICATIVA que calou a linha, ou nada quando não há supressão nenhuma.
+ *
+ * Era um `boolean`, e o `boolean` era o defeito: o verificador HONRAVA o comentário sem o LER, e a
+ * supressão virou a saída que fecha o achado sem ninguém validar o texto. Devolver a frase é o que
+ * permite às regras A e B cobrarem o que ela diz.
+ *
+ * O que volta é o COMENTÁRIO INTEIRO — a prosa acima do marcador junto com o motivo —, e não só a
+ * linha do `// magic-values:`. A razão é medida: em `responsavel/frequencia.eta` o "só o separador
+ * tem dono (`it.apresentacao.separador`)" está escrito na prosa, uma linha acima do marcador, e é
+ * ali que a confissão está. Quem lê só o marcador honra o resto sem ler, que é o defeito de novo,
+ * um andar acima.
+ */
+const justificativaDa = (linhas: readonly string[], linha: number): string | undefined => {
+  for (const numero of [linha, linha - 1]) {
+    const motivo = SUPRESSAO.exec(linhas[numero - 1] ?? '')?.[1];
+    if (motivo === undefined) continue;
+    const prosa: string[] = [];
+    for (let i = numero - 1; i > 0 && LINHA_DE_COMENTARIO.test(linhas[i - 1] ?? ''); i -= 1) {
+      prosa.unshift(linhas[i - 1] ?? '');
+    }
+    return [...prosa, motivo].join('\n');
+  }
+  return undefined;
+};
 
 const MAIUSCULA_COM_UNDERLINE = /^[A-Z][A-Z0-9_]*$/;
 
@@ -288,6 +338,17 @@ const nomeDaPropriedade = (nome: ts.PropertyName): string | undefined => {
 const indicePorValor = new Map<string, Dono[]>();
 const valoresNumericosComDono = new Map<number, Dono>();
 
+/** O índice lido ao contrário: do CAMINHO para o valor que ele declara. */
+type Declarado = Dono & { readonly valor: string };
+
+const declarados: Declarado[] = [];
+
+const textoDoLiteral = (no: ts.Node): string | undefined => {
+  if (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) return no.text;
+  if (ts.isNumericLiteral(no)) return String(Number(no.text.replaceAll('_', '')));
+  return undefined;
+};
+
 function indexarDeclaracoes(arquivo: string, fonte: string): void {
   const origem = ts.createSourceFile(arquivo, fonte, ts.ScriptTarget.ESNext, true);
 
@@ -296,9 +357,11 @@ function indexarDeclaracoes(arquivo: string, fonte: string): void {
     if (chave === undefined) return;
     const dono: Dono = { caminho, arquivo };
     indicePorValor.set(chave, [...(indicePorValor.get(chave) ?? []), dono]);
+    const valor = textoDoLiteral(no);
+    if (valor !== undefined) declarados.push({ ...dono, valor });
     if (ts.isNumericLiteral(no)) {
-      const valor = Number(no.text.replaceAll('_', ''));
-      if (!valoresNumericosComDono.has(valor)) valoresNumericosComDono.set(valor, dono);
+      const numero = Number(no.text.replaceAll('_', ''));
+      if (!valoresNumericosComDono.has(numero)) valoresNumericosComDono.set(numero, dono);
     }
   };
 
@@ -823,6 +886,105 @@ const mesmoNome = (aqui: string, dono: string): boolean => {
   return contemTodas(new Set(daqui), doDono) || contemTodas(new Set(doDono), daqui);
 };
 
+/* --- Resolver um caminho escrito em prosa contra o índice ------------------- */
+
+const PREFIXO_DO_TEMPLATE = /^it\./;
+
+const CAMINHO_PONTILHADO = /[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+/g;
+
+/**
+ * Um caminho só nomeia uma declaração se disser um GRUPO e uma FOLHA. `TEMPLATES` sozinho não
+ * nomeia `TEMPLATES.parciais.paginacao`, ou toda menção a um mapa resolveria para o mapa inteiro.
+ */
+const PALAVRAS_MINIMAS_DO_CAMINHO = 2;
+
+const terminaEm = (palavras: readonly string[], fim: readonly string[]): boolean =>
+  fim.length <= palavras.length &&
+  fim.every((palavra, i) => palavras[palavras.length - fim.length + i] === palavra);
+
+const SO_ALFANUMERICO = /[^A-Za-z0-9]+/g;
+
+/**
+ * O último trecho de um caminho, normalizado: `it.unidade.id` → `id`, `CAMPOS.turma.unidadeId` →
+ * `unidadeid`.
+ *
+ * É a metade que a comparação por PALAVRA sozinha não consegue fazer, porque `palavrasDoCaminho`
+ * parte a caixa: `unidadeId` vira `unidade` + `id`, e passa a casar com o `it.unidade.id` de um
+ * dado de página, que não é constante nenhuma. Comparar a FOLHA inteira desfaz o engano sem desfazer
+ * a leitura por palavra, que é quem sabe que `it.alcances` e `ALCANCE` dizem o mesmo.
+ */
+const folhaDe = (caminho: string): string =>
+  (caminho.split('.').at(-1) ?? '').replaceAll(SO_ALFANUMERICO, '').toLowerCase();
+
+/**
+ * O que um caminho ESCRITO nomeia no índice. `it.apresentacao.separador`, `APRESENTACAO.separador` e
+ * `it.parciais.paginacao` chegam aqui como texto — de um comentário ou do código de um template — e
+ * saem como as declarações que eles alcançam.
+ *
+ * São duas leituras ao mesmo tempo, e nenhuma das duas sozinha basta:
+ *
+ *   - a FOLHA precisa ser a mesma, byte a byte depois de normalizada. É ela que separa
+ *     `it.unidade.id` (dado de página) de `CAMPOS.turma.unidadeId` (constante), que a leitura por
+ *     palavra confunde;
+ *   - e as palavras escritas precisam TERMINAR o caminho da declaração. `it.parciais.paginacao`
+ *     alcança `TEMPLATES.parciais.paginacao` porque a declaração só acrescenta o grupo na frente —
+ *     que é exatamente a diferença entre o apelido que o `it` carrega e o nome da constante.
+ *
+ * O que fica de fora fica de propósito: `it.titulo`, `it.rotulo` e `it.turma` são uma palavra só, e
+ * uma palavra só casaria com meio índice. `it.contagem.turma`, que nomeia o PAR e não o valor,
+ * também não resolve — ler o grupo é ler as duas metades, e nenhuma delas é o que está escrito.
+ */
+const declaracoesNomeadas = (caminho: string): readonly Declarado[] => {
+  const escrito = palavrasDoCaminho(caminho.replace(PREFIXO_DO_TEMPLATE, ''));
+  if (escrito.length < PALAVRAS_MINIMAS_DO_CAMINHO) return [];
+  const folha = folhaDe(caminho);
+  return declarados.filter(
+    (declarado) =>
+      folhaDe(declarado.caminho) === folha &&
+      terminaEm(palavrasDoCaminho(declarado.caminho), escrito),
+  );
+};
+
+/**
+ * As palavras que NEGAM o que vem depois delas. É o que separa uma justificativa legítima — que
+ * nomeia a constante para dizer que o valor NÃO é ela — de uma confissão.
+ */
+const NEGACOES: ReadonlySet<string> = new Set([
+  'não',
+  'nao',
+  'nem',
+  'sem',
+  'nenhum',
+  'nenhuma',
+  'jamais',
+  'tampouco',
+]);
+
+/** Onde uma oração termina. A vírgula entra: "nomeia a contagem, não a tela `X`" nega só a segunda. */
+const FIM_DE_ORACAO = /[,;:()\n—]/;
+
+const PALAVRAS = /[\wÀ-ÿ]+/g;
+
+/** A citação está NEGADA — a oração em que ela aparece tem um "não", um "nem" ou um "sem". */
+const negada = (texto: string, ateA: number): boolean => {
+  const oracao = texto.slice(0, ateA).split(FIM_DE_ORACAO).at(-1) ?? '';
+  return [...oracao.matchAll(PALAVRAS)].some((palavra) =>
+    NEGACOES.has(palavra[0].toLowerCase()),
+  );
+};
+
+/** Todo caminho pontilhado que um texto escreve, com o que cada um alcança no índice. */
+const constantesCitadas = (
+  texto: string,
+): readonly { citacao: string; alvo: Declarado; negada: boolean }[] =>
+  [...texto.matchAll(CAMINHO_PONTILHADO)].flatMap((citacao) =>
+    declaracoesNomeadas(citacao[0]).map((alvo) => ({
+      citacao: citacao[0],
+      alvo,
+      negada: negada(texto, citacao.index),
+    })),
+  );
+
 /**
  * Ninguém é cópia de si mesmo. `web/rotas/mapa.ts` é indexado E varrido — é a única fonte de um
  * punhado de valores e ao mesmo tempo tem lógica —, e sem este corte cada declaração dele se
@@ -872,6 +1034,79 @@ type Ocorrencia = {
 };
 
 const ocorrencias: Ocorrencia[] = [];
+
+/* --- O que a supressão calou, e o que o comentário dela diz ----------------- */
+
+/**
+ * Um literal que uma supressão apagou do relatório, com a justificativa que a apagou.
+ *
+ * O verificador HONRAVA o comentário sem o LER, e é a saída que fecha o achado sem ninguém validar
+ * o texto. Guardar as duas coisas juntas — o valor calado e a frase que o calou — é o que permite
+ * cobrar a frase.
+ */
+type Silenciado = {
+  readonly arquivo: string;
+  readonly linha: number;
+  readonly coluna: number;
+  readonly valor: string;
+  readonly justificativa: string;
+};
+
+const silenciados: Silenciado[] = [];
+
+/** Onde um valor com dono é CONSUMIDO pelo caminho dele, e não escrito à mão. */
+type Consumo = {
+  readonly arquivo: string;
+  readonly linha: number;
+  readonly caminho: string;
+  readonly valor: string;
+};
+
+const consumos: Consumo[] = [];
+
+const RAIZ_DO_CAMINHO = /^([A-Za-z_][A-Za-z0-9_]*)\./;
+
+/**
+ * O caminho parte de uma CONSTANTE? `it.apresentacao.separador` e `TITULOS.secretaria.alunos`, sim;
+ * `turma.id` e `matricula.alunoNome`, não — são dados de uma consulta, e ler as palavras deles
+ * contra o índice acha parentesco onde não há nenhum (`turma.id` "alcançando"
+ * `CAMPOS.turma.unidadeId` porque as duas palavras cabem dentro das quatro).
+ */
+const ehCaminhoDeConstante = (caminho: string): boolean => {
+  const raiz = RAIZ_DO_CAMINHO.exec(caminho)?.[1];
+  return raiz !== undefined && (raiz === 'it' || MAIUSCULA_COM_UNDERLINE.test(raiz));
+};
+
+/**
+ * Todo caminho que o CÓDIGO de um arquivo LÊ — `it.apresentacao.separador` num `.eta`,
+ * `TITULOS.secretaria.alunos` num `.ts`.
+ *
+ * Sai da ÁRVORE, e não de uma varredura de texto, por uma razão que é a regra A ao contrário:
+ * comentário não é consumo. Uma justificativa que cita `APRESENTACAO.separador` não está LENDO o
+ * separador — está falando dele —, e confundir as duas coisas faria a regra B acusar o par que a
+ * própria supressão inventou.
+ */
+const colherConsumos = (
+  arquivo: string,
+  origem: ts.SourceFile,
+  linhaDe: (no: ts.Node) => number,
+): void => {
+  const visitar = (no: ts.Node): void => {
+    if (
+      ts.isPropertyAccessExpression(no) &&
+      no.parent !== undefined &&
+      !ts.isPropertyAccessExpression(no.parent)
+    ) {
+      const caminho = no.getText(origem);
+      if (!ehCaminhoDeConstante(caminho)) return;
+      for (const alvo of declaracoesNomeadas(caminho)) {
+        consumos.push({ arquivo, linha: linhaDe(no), caminho, valor: alvo.valor });
+      }
+    }
+    ts.forEachChild(no, visitar);
+  };
+  ts.forEachChild(origem, visitar);
+};
 
 /**
  * A partir de quantas cópias um texto sem dono vira achado. TRÊS, e o número é a regra inteira.
@@ -956,15 +1191,16 @@ function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
   const achados: Achado[] = [];
   const geramTipo = nomesQueGeramTipo(origem);
 
-  const suprimida = (linha: number): boolean => {
-    const atual = linhas[linha - 1] ?? '';
-    const anterior = linhas[linha - 2] ?? '';
-    return SUPRESSAO.test(atual) || SUPRESSAO.test(anterior);
+  const suprimida = (linha: number, coluna: number, valor: string): boolean => {
+    const justificativa = justificativaDa(linhas, linha);
+    if (justificativa === undefined) return false;
+    silenciados.push({ arquivo, linha, coluna, valor, justificativa });
+    return true;
   };
 
   const registrar = (no: ts.Node, motivo: string): void => {
     const { line, character } = origem.getLineAndCharacterOfPosition(no.getStart(origem));
-    if (suprimida(line + 1)) return;
+    if (suprimida(line + 1, character + 1, textoDoLiteral(no) ?? no.getText(origem))) return;
     achados.push({
       arquivo,
       linha: line + 1,
@@ -984,7 +1220,7 @@ function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
   const contar = (no: ts.Node, texto: string): void => {
     if (!arquivo.startsWith(MODULO_DO_PRODUTO) || !ehTextoContavel(texto)) return;
     const { line, character } = origem.getLineAndCharacterOfPosition(no.getStart(origem));
-    if (suprimida(line + 1)) return;
+    if (suprimida(line + 1, character + 1, texto)) return;
     ocorrencias.push({
       texto,
       arquivo,
@@ -1075,6 +1311,11 @@ function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
   ts.forEachChild(origem, (no) => {
     visitar(no, RAIZ_DA_ARVORE);
   });
+  colherConsumos(
+    arquivo,
+    origem,
+    (no) => origem.getLineAndCharacterOfPosition(no.getStart(origem)).line + 1,
+  );
   return achados;
 }
 
@@ -1767,11 +2008,21 @@ const composicaoDe = (texto: string): Pedaco[] | undefined => {
  *
  *   - REDAÇÃO E NOME, que é o critério do `.ts` — `donoDuplicado`, com a CHAVE que carrega o
  *     literal fazendo o papel do caminho. `{ titulo: 'Cadastrar responsável' }` é acusado duas
- *     vezes por motivos independentes: são duas palavras redigidas igual às de
- *     `TITULOS.secretaria.responsavelNovo`, e a chave `titulo` está dentro do nome do dono. Já
- *     `{ rotulo: 'Responsável' }`, ao lado, não é nenhum dos dois. A chave é o caminho porque a
- *     variável que a envolve (`atalhos`, `rotulos`) é andaime local: não nomeia nada fora do
- *     arquivo, e o Eta nem a exporta.
+ *     vezes por motivos independentes: é redigido igual ao de `TITULOS.secretaria.responsavelNovo`,
+ *     e a chave `titulo` está dentro do nome do dono. Já `{ rotulo: 'Responsável' }`, ao lado, não
+ *     é nenhum dos dois. A chave é o caminho porque a variável que a envolve (`atalhos`, `rotulos`)
+ *     é andaime local: não nomeia nada fora do arquivo, e o Eta nem a exporta.
+ *
+ * O portão de redação é UMA palavra de três letras, e não as DUAS que `ehFrase` exige de um literal
+ * `.ts` — a MESMA assimetria de posição que `donoDoTexto` documenta, e pela mesma razão. Um `.ts`
+ * pode ser dono do próprio conceito e por isso precisa da redação inteira para provar cópia; um
+ * template não pode ser dono de nada. Exigir duas palavras aqui deixava passar exatamente os
+ * rótulos de uma palavra só: o `'Fechado' : 'Aberto'` de `professor/fechamento.eta`, que copia as
+ * duas metades de `VOCABULARIO.fechamento` — uma constante que nasceu para ser o dono deste literal
+ * e nunca ganhou UM LEITOR —, e o `{ rotulo: 'matrículas' }` que `responsavel/painel.eta` passa ao
+ * mesmo `include` a que `secretaria/aluno.eta` passa `it.contagem.matricula.plural`, no mesmo
+ * parâmetro e para a mesma palavra. Medido, o portão em uma palavra acusa três lugares e nenhum
+ * falso; órfã e cópia são o mesmo defeito visto dos dois lados.
  */
 const donoNoCodigoDoTemplate = (texto: string, chave: string): Dono | undefined => {
   // Texto vazio é elemento neutro, como o `0` e o `1`, e não valor: `it.valores.ano ?? ''` diz
@@ -1780,7 +2031,7 @@ const donoNoCodigoDoTemplate = (texto: string, chave: string): Dono | undefined 
   if (texto === '' || VOCABULARIO_DO_HTML.has(texto)) return undefined;
   const donos = donosDe(texto);
   if (IDENTIFICADOR.test(texto) || ehMarcaTipografica(texto)) return donos[0];
-  return escolherDono(donos, chave, DUAS_PALAVRAS_SEGUIDAS.test(texto));
+  return escolherDono(donos, chave, UMA_PALAVRA.test(texto));
 };
 
 /** A chave que carrega o literal dentro do bloco: `{ titulo: 'Cadastrar responsável' }` → `titulo`. */
@@ -1834,17 +2085,18 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
   const linhas = fonte.split('\n');
   const achados: Achado[] = [];
 
-  const suprimida = (linha: number): boolean => {
-    const atual = linhas[linha - 1] ?? '';
-    const anterior = linhas[linha - 2] ?? '';
-    return SUPRESSAO.test(atual) || SUPRESSAO.test(anterior);
+  const suprimida = (linha: number, coluna: number, valor: string): boolean => {
+    const justificativa = justificativaDa(linhas, linha);
+    if (justificativa === undefined) return false;
+    silenciados.push({ arquivo, linha, coluna, valor, justificativa });
+    return true;
   };
 
   /** A contagem da regra 4 no template. Vale o que vale no `.ts`: conta tudo, não julga nada. */
   const contar = (indice: number, texto: string, trecho: string): void => {
     if (!arquivo.startsWith(MODULO_DO_PRODUTO) || !ehTextoContavel(texto)) return;
     const { linha, coluna } = posicaoDe(fonte, indice);
-    if (suprimida(linha)) return;
+    if (suprimida(linha, coluna, texto)) return;
     ocorrencias.push({
       texto,
       arquivo,
@@ -1854,9 +2106,14 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
     });
   };
 
-  const registrar = (indice: number, trecho: string, motivo: string): void => {
+  /**
+   * O `valor` é o LITERAL, e o `trecho` é como ele aparece no arquivo — iguais no texto de nó,
+   * diferentes num atributo, onde o trecho traz o nome do atributo em volta. Quem cobra a supressão
+   * precisa do literal; quem lê o relatório precisa do trecho.
+   */
+  const registrar = (indice: number, trecho: string, motivo: string, valor = trecho): void => {
     const { linha, coluna } = posicaoDe(fonte, indice);
-    if (suprimida(linha)) return;
+    if (suprimida(linha, coluna, valor)) return;
     achados.push({
       arquivo,
       linha,
@@ -1866,12 +2123,13 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
     });
   };
 
-  const acusarLimite = (indice: number, texto: string, dono: Dono): void => {
+  const acusarLimite = (indice: number, texto: string, valor: number, dono: Dono): void => {
     registrar(
       indice,
       texto,
       `limite redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
         'passe o valor pelo handler, via `it`',
+      String(valor),
     );
   };
 
@@ -1888,7 +2146,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
   const conferirLimite = (indice: number, texto: string, valor: number): void => {
     if (NUMEROS_NEUTROS.has(valor)) return;
     const dono = valoresNumericosComDono.get(valor);
-    if (dono !== undefined) acusarLimite(indice, texto, dono);
+    if (dono !== undefined) acusarLimite(indice, texto, valor, dono);
   };
 
   /**
@@ -1915,7 +2173,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
   const conferirLimiteNaProsa = (indice: number, texto: string, valor: number): void => {
     if (NUMEROS_NEUTROS.has(valor)) return;
     const dono = valoresNumericosComDono.get(valor);
-    if (dono !== undefined && ehNomeDeLimite(dono.caminho)) acusarLimite(indice, texto, dono);
+    if (dono !== undefined && ehNomeDeLimite(dono.caminho)) acusarLimite(indice, texto, valor, dono);
   };
 
   /**
@@ -1970,6 +2228,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
       indice,
       trecho,
       `texto composto — ${donos.join(' + ')}; ` + 'componha no handler e passe via `it`',
+      texto,
     );
     return true;
   };
@@ -2013,6 +2272,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
         trecho,
         `texto redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
           'passe o valor pelo handler, via `it`',
+        texto,
       );
       return;
     }
@@ -2022,7 +2282,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
     // agora: mover um deles para dentro de um `<% %>` não pode apagá-lo do relatório.
     if (acusarComposicao(indice, trecho, texto)) return;
     if (!dentroDeTemplate && ROTA_COM_SEGMENTO.test(texto)) {
-      registrar(indice, trecho, MOTIVO_DE_ENDERECO_NO_TEMPLATE);
+      registrar(indice, trecho, MOTIVO_DE_ENDERECO_NO_TEMPLATE, texto);
     }
   };
 
@@ -2033,11 +2293,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
     // O que o Eta interpola tem dono do outro lado; o que sobra é o que o template escreveu.
     const escritoAMao = comCodigoMarcado(valor).replaceAll(MARCA_DE_CODIGO, '');
     if (!ehEnderecoNoAtributo(escritoAMao)) continue;
-    registrar(
-      atributo.index,
-      atributo[0],
-      MOTIVO_DE_ENDERECO_NO_TEMPLATE,
-    );
+    registrar(atributo.index, atributo[0], MOTIVO_DE_ENDERECO_NO_TEMPLATE, escritoAMao);
   }
 
   /* --- Marcação: texto de nó que já tem dono -------------------------------- */
@@ -2073,6 +2329,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
       atributo[0],
       `valor redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
         'passe o valor pelo handler, via `it`',
+      valor,
     );
   }
 
@@ -2097,6 +2354,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
         atributo[0],
         `texto redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
           'passe o valor pelo handler, via `it`',
+        recorte.texto,
       );
     }
   }
@@ -2166,6 +2424,11 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
     ts.forEachChild(origem, (no) => {
       visitar(no, false);
     });
+    colherConsumos(
+      arquivo,
+      origem,
+      (no) => posicaoDe(fonte, deslocamento + no.getStart(origem)).linha,
+    );
   }
 
   return achados;
@@ -2192,6 +2455,129 @@ for (const arquivo of alvos) {
       ? analisarTemplate(arquivo, fonte)
       : analisarTypeScript(arquivo, fonte)),
   );
+}
+
+/* --- Regras A e B: o verificador LÊ a supressão em vez de honrá-la ---------- */
+
+/**
+ * Toda supressão de uma mesma linha, junta — é a linha que o comentário cala, e é a linha inteira
+ * que ele precisa justificar.
+ */
+const silenciadasPorLinha = (() => {
+  const porLinha = new Map<string, Silenciado[]>();
+  for (const silenciado of silenciados) {
+    const chave = `${silenciado.arquivo}:${silenciado.linha}`;
+    porLinha.set(chave, [...(porLinha.get(chave) ?? []), silenciado]);
+  }
+  return porLinha;
+})();
+
+/**
+ * REGRA A — A SUPRESSÃO QUE CONFESSA.
+ *
+ * A regra 2 do refactor manda a justificativa dizer QUAL CONSTANTE O VALOR NÃO É. Dizer qual ele É
+ * não é justificativa: é confissão, e é a forma que a supressão toma quando ela fecha o achado sem
+ * ninguém validar o texto. O verificador HONRAVA o comentário sem o LER, e enquanto isso valesse
+ * toda passada futura podia repetir o padrão — foi o que aconteceu duas vezes seguidas.
+ *
+ * O portão tem duas metades, e as duas foram medidas antes de entrar:
+ *
+ *   - O VALOR PRECISA BATER. Uma justificativa que cita uma constante de OUTRO valor não está
+ *     falando do literal que ela cala.
+ *   - A CITAÇÃO NÃO PODE ESTAR NEGADA. É a metade que a medição exigiu, e não uma cortesia: uma
+ *     justificativa legítima também nomeia a constante — para negá-la —, e negar exige nomear
+ *     alguma coisa cujo valor COINCIDE, senão não haveria o que negar. Medida sem esta metade, a
+ *     regra acusa 15 supressões e 11 delas dizem "não é X" com todas as letras: `rede/painel.eta`
+ *     ("nomeia a contagem desta rede, não a tela `TITULOS.secretaria.turmas`"),
+ *     `secretaria/alunos.eta` ("este 50 não é LIMITES.aluno.busca"), `responsavel/painel.eta`
+ *     ("não é `ROTULOS.frequencia`, que nomeia a TAXA"). Onze falsos para quatro verdadeiros é o
+ *     sinal de que o portão está no lugar errado. Com a negação lida, sobram seis, e os seis são o
+ *     que a regra 2 chama de confissão.
+ *
+ * A justificativa lida é o COMENTÁRIO INTEIRO, e não só a linha do marcador: em
+ * `responsavel/frequencia.eta` o "só o separador tem dono (`it.apresentacao.separador`)" está na
+ * prosa acima do `// magic-values:`, e é ali que a confissão está escrita. Medido, ler o comentário
+ * inteiro acrescenta esse caso e nenhum falso.
+ */
+for (const [, lista] of [...silenciadasPorLinha].sort()) {
+  const primeiro = lista[0];
+  if (primeiro === undefined) continue;
+  for (const { citacao, alvo, negada } of constantesCitadas(primeiro.justificativa)) {
+    if (negada) continue;
+    const calado = lista.find((silenciado) => silenciado.valor === alvo.valor);
+    if (calado === undefined) continue;
+    achados.push({
+      arquivo: calado.arquivo,
+      linha: calado.linha,
+      coluna: calado.coluna,
+      trecho: JSON.stringify(calado.valor).slice(0, 72),
+      motivo:
+        `supressão que confessa — a justificativa cita \`${citacao}\` ` +
+        `(${alvo.caminho}, em ${alvo.arquivo}), que vale exatamente este literal; ` +
+        'a regra 2 pede qual constante o valor NÃO é',
+    });
+    break;
+  }
+}
+
+/**
+ * REGRA B — A SUPRESSÃO QUE CONTRADIZ.
+ *
+ * O mesmo literal CONSUMIDO da constante num arquivo e SUPRIMIDO em outro. É o defeito que apareceu
+ * duas passadas seguidas e que nenhuma regra via: a sétima passada converteu o `·` de
+ * `secretaria/turma.eta` e de `turma_disciplina_nova.eta` e suprimiu o `·` idêntico de
+ * `secretaria/aluno.eta`, `responsavel/boletim.eta` e `responsavel/frequencia.eta` — mesma forma,
+ * decisão oposta, e as duas com o verificador em silêncio.
+ *
+ * O portão é o mesmo par que `donoNoCodigoDoTemplate` já usa quando a posição não prova nada, e
+ * está aqui pela mesma razão: são as duas classes de valor em que COINCIDÊNCIA É IMPOSSÍVEL.
+ * Ninguém digita um `·` por acaso, e ninguém redige `unidadeId` por acaso. Fora delas, o mesmo
+ * texto em dois lugares é o que a regra 2 manda SEPARAR, e medir sem o portão prova isso na hora:
+ * a regra crua acusa 14 pares e 9 são exatamente os que a supressão já explicava — "Turmas" de uma
+ * contagem contra `TITULOS.secretaria.turmas` de uma tela, "Frequência" de um sobretítulo contra
+ * `ROTULOS.frequencia` de um percentual, o `7` do mulberry32 contra `PAGINACAO.janela`. Com o
+ * portão, sobram cinco, e os cinco são o par que a sétima passada partiu ao meio.
+ *
+ * O achado sai de UM lado só — o da supressão —, e nomeia o outro. Acusar também o consumo foi
+ * medido e recusado: o `·` é lido corretamente em 26 lugares e o `unidadeId` em 9, e trinta e cinco
+ * achados apontando para código certo é o que faz um verificador ser ignorado. Quem tem de mudar é
+ * quem escreveu à mão; quem consome é a PROVA, e prova se cita.
+ */
+/** Quantos trechos de caminho dois arquivos têm em comum, do começo. `src/web/templates/…` → 3. */
+const prefixoComum = (aqui: string, ali: string): number => {
+  const daqui = aqui.split('/');
+  const dali = ali.split('/');
+  let comuns = 0;
+  while (comuns < daqui.length && comuns < dali.length && daqui[comuns] === dali[comuns]) {
+    comuns += 1;
+  }
+  return comuns;
+};
+
+const contradicoes = new Set<string>();
+for (const silenciado of silenciados) {
+  const { arquivo, linha, coluna, valor } = silenciado;
+  if (!ehMarcaTipografica(valor) && !IDENTIFICADOR.test(valor)) continue;
+  // O par nomeado é o MAIS PRÓXIMO no repositório — a tela irmã antes do handler de outro módulo.
+  // A contradição que esta regra existe para pegar é entre vizinhos, e é o vizinho que a mostra.
+  const par = consumos
+    .filter((consumo) => consumo.arquivo !== arquivo && consumo.valor === valor)
+    .sort((aqui, ali) => prefixoComum(ali.arquivo, arquivo) - prefixoComum(aqui.arquivo, arquivo))
+    .at(0);
+  if (par === undefined) continue;
+  const posicao = `${arquivo}:${linha}:${coluna}`;
+  if (contradicoes.has(posicao)) continue;
+  contradicoes.add(posicao);
+  achados.push({
+    arquivo,
+    linha,
+    coluna,
+    trecho: JSON.stringify(valor).slice(0, 72),
+    motivo:
+      'supressão que contradiz — este mesmo literal é CONSUMIDO da constante em ' +
+      `${par.arquivo}:${par.linha} (\`${par.caminho}\`); ` +
+      'a mesma forma não pode ser cópia lá e decisão própria aqui',
+  });
 }
 
 /**
