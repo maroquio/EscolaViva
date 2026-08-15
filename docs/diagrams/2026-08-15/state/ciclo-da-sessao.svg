@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 800" width="1240" height="800">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+    <marker id="p-2563eb" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="p-9ca3af" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#9ca3af"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1240" height="800" fill="#ffffff"/>
+  <text x="36" y="44" font-size="21" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Ciclo de vida da sessão</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">src/identidade/dominio/sessao.ts · aplicacao/autenticar.ts · aplicacao/consultas.ts · aplicacao/expurgarSessoes.ts · ADR 0001</text>
+  <circle cx="235" cy="132" r="9" fill="#111827"/>
+  <path d="M 235,141 L 235,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="252" y="152" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">autenticar / INSERT sessao</text>
+  <text x="252" y="165" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">expira_em = agora + duração configurada</text>
+  <rect x="120" y="195" width="250" height="100" rx="12" ry="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+  <text x="136" y="221" font-size="13.5" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">válida</text>
+  <text x="136" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a linha existe e expira_em &gt; now()</text>
+  <text x="136" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o cookie assinado aponta para ela</text>
+  <rect x="600" y="195" width="250" height="100" rx="12" ry="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="616" y="221" font-size="13.5" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">vencida</text>
+  <text x="616" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a linha CONTINUA no banco</text>
+  <text x="616" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">nenhuma escrita marcou o vencimento</text>
+  <path d="M 370,245 L 598,245" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="384" y="214" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">expira_em &lt; now()</text>
+  <text x="384" y="227" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">— só o tempo passa, ninguém escreve</text>
+  <circle cx="1010" cy="245" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8"/>
+  <circle cx="1010" cy="245" r="7.5" fill="#111827"/>
+  <path d="M 850,245 L 995,245" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="864" y="214" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">job expurgoDeSessoes</text>
+  <text x="864" y="227" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ DELETE WHERE expira_em &lt; now()</text>
+  <path d="M 245,295 L 245,390 L 1010,390 L 1010,260" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="262" y="383" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">logout / DELETE FROM sessao WHERE id = ?  —  sair duas vezes é o mesmo estado, e por isso /logout fica fora da idempotência</text>
+  <rect x="60" y="440" width="360" height="300" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="74" y="464" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">O portão que roda a cada requisição</text>
+  <text x="74" y="484" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">sessaoValida() não olha só o vencimento. Ela</text>
+  <text x="74" y="497" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">recusa por três motivos independentes:</text>
+  <text x="74" y="510" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="74" y="523" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">1. sessaoExpirou(sessao, agora)</text>
+  <text x="74" y="536" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">2. !redeAtiva(rede) — suspensa ou cancelada</text>
+  <text x="74" y="549" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">3. !usuario.ativo</text>
+  <text x="74" y="562" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="74" y="575" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Só o primeiro é estado da própria sessão. Os</text>
+  <text x="74" y="588" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">outros dois são estado de OUTRA entidade, lidos</text>
+  <text x="74" y="601" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">no mesmo SELECT que trouxe a sessão.</text>
+  <text x="74" y="614" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="74" y="627" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Consequência: "válida" no banco não quer dizer</text>
+  <text x="74" y="640" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">"aceita" na requisição. E como nada é escrito na</text>
+  <text x="74" y="653" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">linha, reativar a rede faz as sessões voltarem a</text>
+  <text x="74" y="666" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">valer sozinhas.</text>
+  <rect x="440" y="440" width="360" height="300" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="454" y="464" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Dois portões que ninguém abre nem fecha</text>
+  <text x="454" y="484" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">rede.status aceita ativa | suspensa | cancelada.</text>
+  <text x="454" y="497" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">usuario.ativo é boolean.</text>
+  <text x="454" y="510" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="454" y="523" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Os dois são LIDOS para derrubar sessão. Nenhum é</text>
+  <text x="454" y="536" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ESCRITO por caso de uso do Estágio 01 — não há</text>
+  <text x="454" y="549" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">UPDATE em rede.status nem em usuario.ativo em</text>
+  <text x="454" y="562" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">lugar nenhum de src/.</text>
+  <text x="454" y="575" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="454" y="588" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Quem os define é o seed, ou SQL direto. Suspender</text>
+  <text x="454" y="601" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">uma rede inadimplente é funcionalidade de estágio</text>
+  <text x="454" y="614" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">posterior; o gancho de leitura já está no lugar,</text>
+  <text x="454" y="627" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">esperando quem escreva.</text>
+  <rect x="820" y="440" width="360" height="300" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="834" y="464" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Por que a sessão vive em tabela</text>
+  <text x="834" y="484" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ADR 0001. O processo não guarda estado próprio:</text>
+  <text x="834" y="497" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">reiniciar o servidor não desloga ninguém, e seis</text>
+  <text x="834" y="510" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">instâncias no Estágio 08 enxergam a mesma sessão</text>
+  <text x="834" y="523" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">sem sticky session nem memória compartilhada.</text>
+  <text x="834" y="536" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="834" y="549" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O preço é um SELECT por requisição — pago em</text>
+  <text x="834" y="562" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">leitura(), não em escrita().</text>
+  <text x="834" y="575" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="834" y="588" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O expurgo é um job com lock por chave: com uma</text>
+  <text x="834" y="601" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">instância o lock é redundante; com seis, é o que</text>
+  <text x="834" y="614" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">evita seis varreduras simultâneas na mesma tabela.</text>
+  <text x="834" y="627" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">IX (expira_em) é o índice que essa varredura usa.</text>
+  <text x="36" y="780" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Lido de src/identidade/ e src/shared/jobs/. Estado do Estágio 01.</text>
+</svg>

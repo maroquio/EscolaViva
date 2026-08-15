@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 780" width="1240" height="780">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+    <marker id="p-2563eb" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="p-9ca3af" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#9ca3af"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1240" height="780" fill="#ffffff"/>
+  <text x="36" y="44" font-size="21" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Ciclo de vida do bimestre de uma turma</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">src/avaliacao/aplicacao/fecharBimestre.ts · dominio/fechamentoBimestre.ts · tabela fechamento_bimestre (migrations/0003)</text>
+  <circle cx="255" cy="132" r="9" fill="#111827"/>
+  <path d="M 255,141 L 255,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="272" y="158" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">a turma passa a existir</text>
+  <rect x="140" y="195" width="250" height="105" rx="12" ry="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+  <text x="156" y="221" font-size="13.5" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">aberto</text>
+  <text x="156" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">NÃO há linha em fechamento_bimestre</text>
+  <text x="156" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o estado é a ausência do registro</text>
+  <text x="156" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">notas e chamada continuam aceitas</text>
+  <path d="M 560,221 L 586,247 L 560,273 L 534,247 Z" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.6"/>
+  <text x="560" y="251" font-size="9.5" fill="#92400e" font-weight="600" text-anchor="middle">fechar</text>
+  <path d="M 390,247 L 532,247" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="402" y="226" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">fecharBimestre(turma, bimestre)</text>
+  <rect x="700" y="195" width="250" height="105" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="716" y="221" font-size="13.5" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">fechado</text>
+  <text x="716" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">linha gravada: turma + bimestre</text>
+  <text x="716" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">fechado_por, fechado_em</text>
+  <text x="716" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">nenhum DELETE existe no repositório</text>
+  <path d="M 586,247 L 698,247" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <text x="560" y="200" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="middle">[as cinco guardas passam]</text>
+  <circle cx="1060" cy="247" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8"/>
+  <circle cx="1060" cy="247" r="7.5" fill="#111827"/>
+  <path d="M 950,247 L 1045,247" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <text x="962" y="288" font-size="9" fill="#16a34a" font-weight="600" text-anchor="start">sem reabertura</text>
+  <text x="962" y="301" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">no Estágio 01</text>
+  <path d="M 560,273 L 560,340 L 265,340 L 265,302" fill="none" stroke="#dc2626" stroke-width="1.6" marker-end="url(#p-dc2626)"/>
+  <text x="300" y="362" font-size="9.5" fill="#dc2626" font-weight="600" text-anchor="start">[qualquer guarda falha] / nada é gravado, e a tela recebe o código do erro</text>
+  <rect x="60" y="400" width="400" height="300" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="74" y="424" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">As cinco guardas, na ordem em que rodam</text>
+  <text x="74" y="444" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">FORA da transação — leituras:</text>
+  <text x="74" y="457" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  1. turmaNaoEncontrada</text>
+  <text x="74" y="470" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  2. semDisciplina — a turma não tem nenhuma</text>
+  <text x="74" y="483" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     disciplina alocada, então não há o que fechar</text>
+  <text x="74" y="496" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  3. semMatriculaAtiva — turma sem aluno ativo</text>
+  <text x="74" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="74" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">DENTRO da unidadeDeTrabalho:</text>
+  <text x="74" y="535" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  4. jaFechado — reconsultado aqui, e não antes:</text>
+  <text x="74" y="548" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     entre a leitura e a escrita cabe outro</text>
+  <text x="74" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     fechamento</text>
+  <text x="74" y="574" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  5. fechamentoIncompleto — pendenciasDoFechamento()</text>
+  <text x="74" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     compara, disciplina a disciplina, quantas notas</text>
+  <text x="74" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     foram lançadas contra o número de matrículas</text>
+  <text x="74" y="613" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     ativas. A mensagem diz o que falta, por</text>
+  <text x="74" y="626" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     disciplina — não um "não pode" seco.</text>
+  <rect x="480" y="400" width="380" height="300" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="494" y="424" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">O estado aberto não existe no banco</text>
+  <text x="494" y="444" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Não há coluna, flag ou linha dizendo "aberto".</text>
+  <text x="494" y="457" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Há linhas dizendo "fechado", e o resto é dedução:</text>
+  <text x="494" y="470" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="494" y="483" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">estadosDeFechamento() recebe as linhas gravadas e</text>
+  <text x="494" y="496" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">expande os QUATRO bimestres, marcando fechado:</text>
+  <text x="494" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">false onde não achou registro.</text>
+  <text x="494" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="494" y="535" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">A escolha tem consequência prática: fechar um</text>
+  <text x="494" y="548" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">bimestre nunca precisa criar linha para os outros</text>
+  <text x="494" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">três, e um bimestre que ninguém tocou não ocupa</text>
+  <text x="494" y="574" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">espaço nem precisa de migração para nascer.</text>
+  <text x="494" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="494" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">É a mesma ideia do índice parcial da matrícula:</text>
+  <text x="494" y="613" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a ausência é informação.</text>
+  <rect x="880" y="400" width="300" height="300" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="894" y="424" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">A segunda trava</text>
+  <text x="894" y="444" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">A guarda 4 roda dentro da transação, mas ainda</text>
+  <text x="894" y="457" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">assim é código.</text>
+  <text x="894" y="470" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="894" y="483" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">UQ (turma_id, bimestre) é a garantia que não</text>
+  <text x="894" y="496" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">depende de ninguém lembrar: dois fechamentos</text>
+  <text x="894" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">simultâneos da mesma turma e bimestre não</text>
+  <text x="894" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">passam, mesmo que ambos leiam "aberto" antes</text>
+  <text x="894" y="535" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">de escrever.</text>
+  <text x="894" y="548" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="894" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">A checagem em código existe para dar mensagem</text>
+  <text x="894" y="574" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">boa; o índice existe para dar garantia. Os dois</text>
+  <text x="894" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">fazem trabalhos diferentes e nenhum substitui</text>
+  <text x="894" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o outro.</text>
+  <text x="36" y="760" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Lido de src/avaliacao/. Estado do Estágio 01.</text>
+</svg>
