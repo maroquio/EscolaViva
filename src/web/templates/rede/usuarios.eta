@@ -20,6 +20,13 @@
 
   Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
   `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
+
+  O sobretítulo é `it.areas.rede` (`AREAS`, em `web/constantes.ts`): a mesma palavra rotula o grupo
+  no menu, e ela está aqui para dizer em que parte dele a pessoa está. Os cabeçalhos das três
+  primeiras colunas são `it.rotulos`, o nome que Nome, CPF e E-mail têm em toda tela — inclusive no
+  `<label>` do convite, que edita estes mesmos dados. E o rótulo da paginação é
+  `it.contagem.usuario.plural`, o substantivo que vem depois de um número; ele é outra decisão que
+  o título "Usuários" da tela, ainda que hoje as duas palavras se pareçam.
 */
 const usuarios = it.usuarios ?? [];
 const papeis = it.papeis ?? [];
@@ -46,7 +53,7 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Rede</p>
+    <p class="sobretitulo"><%= it.areas.rede %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Todo acesso nasce aqui. O papel decide o que a pessoa vê, e ele existe sempre dentro de uma
@@ -89,10 +96,11 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
       <caption>Usuários da rede</caption>
       <thead>
         <tr>
-          <th scope="col">Nome</th>
-          <th scope="col">CPF</th>
-          <th scope="col">E-mail</th>
+          <th scope="col"><%= it.rotulos.nome %></th>
+          <th scope="col"><%= it.rotulos.cpf %></th>
+          <th scope="col"><%= it.rotulos.email %></th>
           <th scope="col">Papéis</th>
+<% // magic-values: permitido — cabeça genérica de CINCO vocabulários de estado diferentes (aqui o `VOCABULARIO_DE_IDENTIDADE.ativo` do usuário; nas outras telas, unidade, matrícula, presença e situação final). Não é um `ROTULOS.situacao`: um dono único prometeria que as cinco colunas se renomeiam juntas, e renomear a de frequência para "Presença" não pode mexer nesta. Ver o bloco abaixo de ROTULOS em `web/constantes.ts` %>
           <th scope="col">Situação</th>
         </tr>
       </thead>
@@ -119,6 +127,6 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'usuários' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.usuario.plural }) %>
   <% } %>
 </section>

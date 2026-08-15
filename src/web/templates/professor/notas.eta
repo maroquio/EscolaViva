@@ -31,12 +31,35 @@
   `it.separadorDeTurno` (`APRESENTACAO`); o caminho da parcial, em `it.parciais`. Todos vêm de
   `src/web/constantes.ts` pela rota: o Eta não importa TypeScript, e redigitá-los aqui abriria a
   segunda fonte de verdade que a constante existe para fechar.
+
+  E o mesmo vale, por fim, para o TEXTO. Três coisas que esta tela diz também são ditas fora dela:
+
+    - `it.rotuloDeBimestre(n)` escreve "1º bimestre". A tela o escreve quatro vezes — na legenda da
+      tabela, no aviso de bimestre fechado, no rótulo oculto de cada campo e no botão de salvar —, e
+      o boletim e as duas telas de fechamento escrevem o mesmo. O dono é `ROTULO_DE_BIMESTRE`, em
+      `avaliacao`, porque quem decide o que é um bimestre é quem fecha um; o `AVISOS.bimestreFechado`
+      da camada web já compõe a frase de sucesso com ele. Redigitar `º bimestre` faria o dia em que
+      o produto passasse a dizer "1º trimestre" chegar em cinco telas e faltar na sexta.
+    - `it.rotulos.aluno` é o nome do dado "Aluno" no alto da coluna, o mesmo que encabeça as tabelas
+      de aluno das outras telas.
+    - `it.semAlunoMatriculado` é o TÍTULO do estado vazio que a chamada e a ficha da turma também
+      mostram: o fato constatado é um só. O parágrafo abaixo dele fica aqui porque é só desta tela —
+      cada uma diz o que fazer a seguir, e daqui a saída é a secretaria.
+
+  O `<%= numero %>º` dos quatro links de bimestre NÃO usa `it.rotuloDeBimestre`: ali está o ordinal
+  sozinho, sem o substantivo, porque o `aria-label` do `<nav>` já disse "Bimestre" e repeti-lo em
+  cada link deixaria o leitor de tela ouvindo "bimestre" cinco vezes seguidas. É outra decisão.
+
+  A LINHA EM BRANCO dentro do `<label>` oculto, logo depois de `it.rotuloDeBimestre(...)`, não é
+  descuido: o Eta está configurado com `autoTrim: [false, 'nl']` e come a quebra de linha que vem
+  logo após um `%>`. Com a tag no fim da linha, o `</label>` subia para junto do texto. A linha em
+  branco repõe a quebra que o Eta consome, e o HTML sai igual ao de antes — byte a byte.
 */
 const linhas = it.linhas ?? [];
 const fechado = it.fechado === true;
 const bimestre = it.bimestre;
 const alocacao = it.alocacao;
-const legenda = `Notas do ${bimestre}º bimestre · ${alocacao.disciplinaNome} · ${alocacao.turmaNome}`;
+const legenda = `Notas do ${it.rotuloDeBimestre(bimestre)} · ${alocacao.disciplinaNome} · ${alocacao.turmaNome}`;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -65,14 +88,14 @@ const legenda = `Notas do ${bimestre}º bimestre · ${alocacao.disciplinaNome} �
 
 <% if (fechado) { %>
 <p class="aviso aviso--atencao" role="status">
-  O <%= bimestre %>º bimestre desta turma está fechado. As notas continuam visíveis, mas não podem
+  O <%= it.rotuloDeBimestre(bimestre) %> desta turma está fechado. As notas continuam visíveis, mas não podem
   mais ser alteradas — nem por aqui, nem por nenhum outro caminho do sistema.
 </p>
 <% } %>
 
 <% if (linhas.length === 0) { %>
 <%~ include(it.parciais.vazio, {
-  titulo: 'Nenhum aluno matriculado',
+  titulo: it.semAlunoMatriculado,
   texto: 'Esta turma não tem matrícula ativa, então não há nota a lançar. A matrícula é feita pela secretaria.',
 }) %>
 <% } else { %>
@@ -91,7 +114,7 @@ const legenda = `Notas do ${bimestre}º bimestre · ${alocacao.disciplinaNome} �
       <caption><%= legenda %></caption>
       <thead>
         <tr>
-          <th scope="col">Aluno</th>
+          <th scope="col"><%= it.rotulos.aluno %></th>
           <th scope="col">Nota (<%= it.notaMinima %> a <%= it.notaMaxima %>)</th>
         </tr>
       </thead>
@@ -104,7 +127,8 @@ const legenda = `Notas do ${bimestre}º bimestre · ${alocacao.disciplinaNome} �
             <%= it.formatarNota(linha.valor === '' ? null : linha.valor) %>
             <% } else { %>
             <label class="visualmente-oculto" for="<%= it.prefixoNota %><%= linha.matriculaId %>">
-              Nota de <%= linha.alunoNome %> no <%= bimestre %>º bimestre
+              Nota de <%= linha.alunoNome %> no <%= it.rotuloDeBimestre(bimestre) %>
+
             </label>
             <input class="entrada-numerica"
                    type="number"
@@ -130,7 +154,7 @@ const legenda = `Notas do ${bimestre}º bimestre · ${alocacao.disciplinaNome} �
 
 <% if (!fechado) { %>
   <div class="acoes">
-    <button class="botao botao--primario" type="submit">Salvar notas do <%= bimestre %>º bimestre</button>
+    <button class="botao botao--primario" type="submit">Salvar notas do <%= it.rotuloDeBimestre(bimestre) %></button>
     <span class="suave">Campo deixado em branco apaga a nota já lançada daquele aluno.</span>
   </div>
 </form>

@@ -16,18 +16,39 @@
 */
 
 /*
-  Os dois tamanhos e os sufixos de id chegam prontos da rota: o Eta não importa TypeScript, então
-  `LIMITES.unidade` (`src/identidade/constantes.ts`) e `SUFIXOS_DE_ID` (`src/web/constantes.ts`)
-  atravessam por `it`. Quem recusa de verdade é `criarUnidade`, com `MENSAGENS.unidade.nomeLongo` e
-  `.inepLongo`; o `maxlength` só adianta a recusa no navegador, e redigitá-lo aqui faria a caixa
-  aceitar o que o caso de uso devolve como erro.
+  Os dois tamanhos chegam prontos da rota: o Eta não importa TypeScript, então `LIMITES.unidade`
+  (`src/identidade/constantes.ts`) atravessa por `it`. Quem recusa de verdade é `criarUnidade`, com
+  `MENSAGENS.unidade.nomeLongo` e `.inepLongo`; o `maxlength` só adianta a recusa no navegador, e
+  redigitá-lo aqui faria a caixa aceitar o que o caso de uso devolve como erro.
+*/
+
+/*
+  `campos` é `CAMPOS.unidade` (`src/identidade/constantes.ts`, exposto por `it.campos`): os dois
+  nomes que ATRAVESSAM este arquivo. `name=` é por onde a rota lê o corpo, e `erroDe`/`descricao`
+  leem a mesma palavra na falha que `criarUnidade` devolve. Divergindo, o campo chega vazio ao
+  servidor, que recusa por obrigatório o que a pessoa acabou de preencher — e nada disso quebraria
+  compilação, porque `.eta` não passa pelo compilador.
+
+  São `CAMPOS.unidade` e não `CAMPOS.aluno`, apesar de os dois escreverem `'nome'`: o que casa com
+  este formulário é o nome que `criarUnidade` cita, e renomear o campo do aluno não pode mexer aqui.
+
+  `it.idDaAjuda(...)` e `it.idDoErro(...)` são o outro lado de `descricao()`: ela monta o
+  `aria-describedby` e eles montam o `id` para onde ele aponta. Escrever o id à mão aqui deixaria o
+  `aria-describedby` apontando para um id inexistente — a tela ficaria igual para quem enxerga e o
+  leitor de tela não leria nem a ajuda nem o erro.
+
+  Já o `id=` do `<input>` e o `for=` do `<label>` continuam escritos à mão de propósito.
+  // magic-values: permitido — id e for casam dentro desta mesma caixa e não atravessam arquivo
+  algum; o nome que atravessa é o `name=`, e `for="nome"` ao lado de `id="nome"` é o HTML mais
+  legível que se pode ler aqui.
 */
 const valores = it.valores ?? { nome: '', codigoInep: '' };
-const { erroDe, descricao, sufixos } = it;
+const { erroDe, descricao } = it;
+const campos = it.campos.unidade;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Rede · Unidades</p>
+    <p class="sobretitulo"><%= it.areas.rede %><%= it.apresentacao.separador %><%= it.titulos.rede.unidades %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       A unidade é onde tudo o mais acontece: sem ela não há turma, papel nem comunicado. O nome
@@ -43,21 +64,21 @@ const { erroDe, descricao, sufixos } = it;
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="nome">
-          Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.nome %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="nome"
-          name="nome"
+          name="<%= campos.nome %>"
           type="text"
           required
           maxlength="<%= it.limiteDoNome %>"
           autocomplete="off"
           value="<%= valores.nome %>"
-          <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('nome', true) %>">
-        <p class="campo__ajuda" id="nome<%= sufixos.ajuda %>">Como a escola é chamada no dia a dia.</p>
-        <% if (erroDe('nome') !== '') { %>
-        <p class="campo__erro" id="nome<%= sufixos.erro %>"><%= erroDe('nome') %></p>
+          <% if (erroDe(campos.nome) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.nome, true) %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.nome) %>">Como a escola é chamada no dia a dia.</p>
+        <% if (erroDe(campos.nome) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.nome) %>"><%= erroDe(campos.nome) %></p>
         <% } %>
       </div>
 
@@ -65,24 +86,24 @@ const { erroDe, descricao, sufixos } = it;
         <label class="campo__rotulo" for="codigoInep">Código INEP</label>
         <input
           id="codigoInep"
-          name="codigoInep"
+          name="<%= campos.codigoInep %>"
           type="text"
           maxlength="<%= it.limiteDoCodigoInep %>"
           inputmode="numeric"
           autocomplete="off"
           value="<%= valores.codigoInep %>"
-          <% if (erroDe('codigoInep') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('codigoInep', true) %>">
-        <p class="campo__ajuda" id="codigoInep<%= sufixos.ajuda %>">Opcional. Pode ser preenchido depois.</p>
-        <% if (erroDe('codigoInep') !== '') { %>
-        <p class="campo__erro" id="codigoInep<%= sufixos.erro %>"><%= erroDe('codigoInep') %></p>
+          <% if (erroDe(campos.codigoInep) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.codigoInep, true) %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.codigoInep) %>">Opcional. Pode ser preenchido depois.</p>
+        <% if (erroDe(campos.codigoInep) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.codigoInep) %>"><%= erroDe(campos.codigoInep) %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit"><%= it.titulos.rede.unidadeNova %></button>
-      <a class="botao botao--discreto" href="<%= it.rotas.rede.unidades() %>">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.rede.unidades() %>"><%= it.acoes.cancelar %></a>
     </div>
   </form>
 </div>

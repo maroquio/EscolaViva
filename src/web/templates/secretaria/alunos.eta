@@ -34,6 +34,22 @@
   de onde o menu tira o nome de cada link. Escrito à mão, renomear a tela de destino deixaria o
   caminho até ela chamando-a pelo nome antigo, e nada acusa: o botão continua levando ao lugar certo
   com a legenda errada.
+
+  O sobretítulo é `it.areas` — `AREAS` (`src/web/constantes.ts`) —, e não `it.titulos`: "Secretaria"
+  é a ÁREA onde esta tela mora, o mesmo nome que o menu dá ao grupo de links, e o sobretítulo existe
+  justamente para dizer em que parte do menu a pessoa está. "Alunos", logo abaixo, é o título da
+  tela, e vem por `it.titulo`.
+
+  O nome de cada coluna é `it.rotulos` — `ROTULOS` (`src/web/constantes.ts`) —, o mesmo mapa que
+  nomeia o dado no `<dt>` da ficha e no `<label>` do formulário que o edita. "Aluno" encabeça a mesma
+  coluna em seis telas e "Ações" é a coluna dos botões de linha em toda tabela do sistema: escritos à
+  mão, renomear o dado numa tela deixaria as outras chamando-o pelo nome antigo, e nada quebra. A
+  coluna do ano é `it.rotulos.ano` — o NÚMERO do ano, que é o que a célula mostra —, e não
+  `it.rotulos.anoLetivo`, que nomeia a entidade escolhida nos filtros de outras telas.
+
+  "Nascimento" continua escrito à mão: hoje ele nomeia o mesmo dado aqui e no `<dt>` de
+  `secretaria/aluno.eta`, mas ainda não tem entrada em `ROTULOS`, e inventar uma de um lado só não é
+  fonte única — é uma segunda cópia com endereço melhor.
 */
 const alunos = it.alunos ?? [];
 const termo = it.termo ?? '';
@@ -41,7 +57,7 @@ const buscou = it.buscou === true;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Secretaria</p>
+    <p class="sobretitulo"><%= it.areas.secretaria %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Procure pelo nome para abrir a ficha, matricular, transferir ou vincular um responsável.
@@ -101,12 +117,12 @@ const buscou = it.buscou === true;
       <caption>Alunos encontrados para “<%= termo %>”</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-elastica">Aluno</th>
+          <th scope="col" class="celula-elastica"><%= it.rotulos.aluno %></th>
           <th scope="col" class="celula-centro">Nascimento</th>
-          <th scope="col" class="celula-centro">Turma</th>
-          <th scope="col" class="celula-centro">Ano</th>
-          <th scope="col" class="celula-centro">Matrícula</th>
-          <th scope="col" class="celula-centro">Ações</th>
+          <th scope="col" class="celula-centro"><%= it.rotulos.turma %></th>
+          <th scope="col" class="celula-centro"><%= it.rotulos.ano %></th>
+          <th scope="col" class="celula-centro"><%= it.rotulos.matricula %></th>
+          <th scope="col" class="celula-centro"><%= it.rotulos.acoes %></th>
         </tr>
       </thead>
       <tbody>

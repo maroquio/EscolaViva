@@ -27,11 +27,36 @@
   O `<h2>` da seção não entra nisso: "Cadastradas na rede" nomeia a lista dentro da página, e não a
   página — as duas frases mudam por motivos diferentes.
 */
+
+/*
+  A palavra "disciplina" tem dono em três lugares desta tela, e são DUAS decisões diferentes.
+
+  O `<th>` da tabela sai de `it.rotulos` — `ROTULOS` (`src/web/constantes.ts`) —, que é o nome do
+  DADO: a mesma palavra encabeça a coluna aqui, o `<dt>` da ficha da turma e o `<label>` do
+  formulário de alocação, e as três mudam juntas por definição.
+
+  Já o substantivo contado — "3 disciplinas", na nota da seção e no rótulo da barra de paginação —
+  sai de `it.contagem`, que guarda o par singular/plural em minúsculas. Não é o mesmo dono, ainda
+  que as palavras se pareçam: "Disciplina" nomeia no alto de uma coluna e "disciplinas" é lido em
+  voz corrida no meio de uma frase. Encurtar o cabeçalho não encurta a frase.
+
+  A escolha entre as duas metades é `it.pluralizar`, e não o ternário escrito à mão: depois que as
+  duas pontas viram constante, `quantas === 1 ? it.contagem.disciplina.singular :
+  it.contagem.disciplina.plural` seria pior de ler do que a linha que substitui.
+
+  O sobretítulo sai de `it.areas` — `AREAS` —, o mesmo mapa que rotula o grupo do menu. Ele existe
+  para dizer em que parte do menu a pessoa está: renomear o grupo e esquecer esta tela deixaria o
+  sistema chamando o mesmo lugar por dois nomes.
+
+  As outras duas frases que dizem "disciplina" ficam escritas aqui, e de propósito: o título do
+  estado vazio e o `<caption>` da tabela são prosa desta tela, existem uma vez cada e não são o
+  nome de coisa nenhuma. Dar-lhes um dono prometeria que mudam junto com a coluna, e não mudam.
+*/
 const disciplinas = it.disciplinas ?? [];
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Secretaria</p>
+    <p class="sobretitulo"><%= it.areas.secretaria %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Cadastradas uma vez para toda a rede. Cada turma recebe as suas na tela da turma, sempre com
@@ -50,7 +75,7 @@ const disciplinas = it.disciplinas ?? [];
     <p class="secao__nota">
       <% const quantas = it.navegacao === undefined ? disciplinas.length : it.navegacao.total; %>
       <span class="numero"><%= quantas %></span>
-      <%= quantas === 1 ? 'disciplina' : 'disciplinas' %>
+      <%= it.pluralizar(quantas, it.contagem.disciplina) %>
     </p>
   </div>
 
@@ -66,7 +91,7 @@ const disciplinas = it.disciplinas ?? [];
       <caption>Disciplinas disponíveis para alocar nas turmas</caption>
       <thead>
         <tr>
-          <th scope="col">Disciplina</th>
+          <th scope="col"><%= it.rotulos.disciplina %></th>
         </tr>
       </thead>
       <tbody>
@@ -78,6 +103,6 @@ const disciplinas = it.disciplinas ?? [];
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'disciplinas' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.disciplina.plural }) %>
   <% } %>
 </section>

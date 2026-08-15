@@ -15,13 +15,19 @@
 
   A ação do estado vazio, mais abaixo, NÃO é o mesmo texto e por isso continua escrita: "Publicar o
   primeiro comunicado" é o convite de uma lista que nunca teve linha, e não o nome da tela.
+
+  O `name` do seletor do filtro é a única string de contrato que continua escrita à mão aqui, e a
+  razão está anotada na própria linha: aquele formulário é um GET, e o que o `name` monta é o
+  parâmetro de QUERY que a rota lê em `PARAMETROS.unidadeId` — outro mapa, outra decisão, que hoje
+  se escreve igual a `CAMPOS.comunicado.unidadeId` por coincidência. `PARAMETROS` não chega ao
+  template, e esta tela não recebe da rota um `campoDaUnidade` como a de turmas recebe.
 */
 const comunicados = it.comunicados;
 const resumo = it.resumo;
 %>
 <header class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Comunicação</p>
+    <p class="sobretitulo"><%= it.areas.comunicacao %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       O que foi enviado ao mural dos responsáveis, com quantos receberam e quantos leram.
@@ -33,7 +39,8 @@ const resumo = it.resumo;
 </header>
 
 <form class="filtro" method="get" action="<%= it.rotas.comunicados.lista() %>">
-  <label class="campo__rotulo" for="filtro-unidade">Unidade</label>
+  <label class="campo__rotulo" for="filtro-unidade"><%= it.rotulos.unidade %></label>
+<% // magic-values: permitido — este `name` é o parâmetro de query PARAMETROS.unidadeId (o formulário é GET), e não CAMPOS.turma.unidadeId nem CAMPOS.comunicado.unidadeId, que são campos de CORPO de POST de outras telas; ver o bloco do topo %>
   <select id="filtro-unidade" name="unidadeId">
     <% if (it.veTodaARede) { %>
     <option value=""<% if (it.unidadeAtual === '') { %> selected<% } %>>Toda a rede</option>
@@ -62,7 +69,7 @@ const resumo = it.resumo;
       </div>
 
       <div class="cartao">
-        <p class="cartao__rotulo">Destinatários</p>
+        <p class="cartao__rotulo"><%= it.rotulos.destinatarios %></p>
         <p class="cartao__numero"><%= resumo.destinatarios %></p>
         <p class="cartao__detalhe">Responsáveis que receberam algum comunicado</p>
       </div>
@@ -89,7 +96,7 @@ const resumo = it.resumo;
   </div>
 
   <% if (comunicados.length === 0) { %>
-    <%~ include("/parciais/_vazio", {
+    <%~ include(it.parciais.vazio, {
       titulo: 'Nenhum comunicado neste recorte',
       texto: 'Ainda não há comunicado publicado para a unidade escolhida. O primeiro envio já entra nesta lista com a medição de leitura.',
       acao: { href: it.rotas.comunicados.novo(), texto: 'Publicar o primeiro comunicado' },
@@ -102,7 +109,7 @@ const resumo = it.resumo;
         <tr>
           <th scope="col">Comunicado</th>
           <th scope="col">Publicado em</th>
-          <th scope="col">Destinatários</th>
+          <th scope="col"><%= it.rotulos.destinatarios %></th>
           <th scope="col">Leituras</th>
           <th scope="col">Taxa de leitura</th>
         </tr>
@@ -130,6 +137,6 @@ const resumo = it.resumo;
       </tfoot>
     </table>
   </div>
-  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'comunicados' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.comunicado.plural }) %>
   <% } %>
 </section>

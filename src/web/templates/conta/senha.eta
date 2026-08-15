@@ -9,8 +9,20 @@
   mesma chave que a rota passa como `it.titulo` no `<h1>` acima e que o menu já usa para nomear o
   link do grupo "Conta". São a mesma decisão dita uma vez: renomear a tela renomeia junto o botão
   que a cumpre e o caminho do menu que traz até aqui, em vez de exigir uma varredura pelos `.eta`.
+
+  `campos` é o apelido de `CAMPOS.senha` do módulo de identidade, o dono dos três nomes. Ele cobre
+  tudo que ATRAVESSA este arquivo: o `name=` que a rota lê do corpo, o `campo` que `falhaDeCampo()`
+  carrega até `erroDe()`/`descricao()`, e o `id` do parágrafo que o `aria-describedby` promete —
+  este último pelos auxiliares `it.idDoErro`/`it.idDaAjuda`, que são o outro lado de `descricao()`.
+  Divergindo qualquer um deles, nada quebra à vista: o campo chega vazio ao servidor, ou o leitor
+  de tela aponta para um id inexistente e não lê nem o erro nem a ajuda.
 */
+// magic-values: permitido — o `id` do <input> e o `for=` do <label> ficam literais de propósito.
+// Não são cópia de CAMPOS.senha: o valor coincide, mas o contrato é outro. Eles casam um com o
+// outro dentro destas seis linhas e ninguém fora do arquivo os lê; o nome que atravessa é o
+// `name=`. `for="senhaAtual"` ao lado de `id="senhaAtual"` é o HTML que um aluno lê de uma vez.
 const { erroDe, descricao } = it;
+const campos = it.campos.senha;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -33,14 +45,14 @@ const { erroDe, descricao } = it;
       </label>
       <input
         id="senhaAtual"
-        name="senhaAtual"
+        name="<%= campos.atual %>"
         type="password"
         required
         autocomplete="current-password"
-        <% if (erroDe('senhaAtual') !== '') { %>aria-invalid="true"<% } %>
-        <% if (descricao('senhaAtual', false) !== '') { %>aria-describedby="<%= descricao('senhaAtual', false) %>"<% } %>>
-      <% if (erroDe('senhaAtual') !== '') { %>
-      <p class="campo__erro" id="senhaAtual-erro"><%= erroDe('senhaAtual') %></p>
+        <% if (erroDe(campos.atual) !== '') { %>aria-invalid="true"<% } %>
+        <% if (descricao(campos.atual, false) !== '') { %>aria-describedby="<%= descricao(campos.atual, false) %>"<% } %>>
+      <% if (erroDe(campos.atual) !== '') { %>
+      <p class="campo__erro" id="<%= it.idDoErro(campos.atual) %>"><%= erroDe(campos.atual) %></p>
       <% } %>
     </div>
 
@@ -50,18 +62,18 @@ const { erroDe, descricao } = it;
       </label>
       <input
         id="senhaNova"
-        name="senhaNova"
+        name="<%= campos.nova %>"
         type="password"
         required
         autocomplete="new-password"
-        <% if (erroDe('senhaNova') !== '') { %>aria-invalid="true"<% } %>
-        aria-describedby="<%= descricao('senhaNova', true) %>">
-      <p class="campo__ajuda" id="senhaNova-ajuda">
+        <% if (erroDe(campos.nova) !== '') { %>aria-invalid="true"<% } %>
+        aria-describedby="<%= descricao(campos.nova, true) %>">
+      <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.nova) %>">
         Escolha uma senha longa e que você não use em outro sistema. Se ela for curta demais, o
         servidor recusa e diz o mínimo exigido.
       </p>
-      <% if (erroDe('senhaNova') !== '') { %>
-      <p class="campo__erro" id="senhaNova-erro"><%= erroDe('senhaNova') %></p>
+      <% if (erroDe(campos.nova) !== '') { %>
+      <p class="campo__erro" id="<%= it.idDoErro(campos.nova) %>"><%= erroDe(campos.nova) %></p>
       <% } %>
     </div>
 
@@ -71,14 +83,14 @@ const { erroDe, descricao } = it;
       </label>
       <input
         id="senhaConfirmacao"
-        name="senhaConfirmacao"
+        name="<%= campos.confirmacao %>"
         type="password"
         required
         autocomplete="new-password"
-        <% if (erroDe('senhaConfirmacao') !== '') { %>aria-invalid="true"<% } %>
-        <% if (descricao('senhaConfirmacao', false) !== '') { %>aria-describedby="<%= descricao('senhaConfirmacao', false) %>"<% } %>>
-      <% if (erroDe('senhaConfirmacao') !== '') { %>
-      <p class="campo__erro" id="senhaConfirmacao-erro"><%= erroDe('senhaConfirmacao') %></p>
+        <% if (erroDe(campos.confirmacao) !== '') { %>aria-invalid="true"<% } %>
+        <% if (descricao(campos.confirmacao, false) !== '') { %>aria-describedby="<%= descricao(campos.confirmacao, false) %>"<% } %>>
+      <% if (erroDe(campos.confirmacao) !== '') { %>
+      <p class="campo__erro" id="<%= it.idDoErro(campos.confirmacao) %>"><%= erroDe(campos.confirmacao) %></p>
       <% } %>
     </div>
 

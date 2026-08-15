@@ -25,6 +25,14 @@
   justificativa que `scripts/magic-values.ts` exige fica na linha acima do literal, e encostada na
   margem de propósito: o Eta guarda o que vier ANTES de um `<%` como texto do documento, então
   indentar o comentário empurraria a linha seguinte dois espaços para a direita no HTML servido.
+
+  Os dois mapas de situação logo abaixo parecem irmãos e não são. O RÓTULO — "Ativa",
+  "Transferida" — é vocabulário do domínio, e quem acrescenta uma situação de matrícula é
+  `academico`: por isso ele chega pronto em `it.rotuloDaSituacao`, passado pelo handler, e não
+  redigitado aqui. Enquanto as quatro palavras moravam neste arquivo, uma situação nova nascia
+  aparecendo como código cru na tabela, e nada acusava. A CLASSE fica: `etiqueta--ativa` é
+  vocabulário da folha de estilo, não tem dono em `constantes.ts` nenhum, e é esta tela que decide
+  como pinta o que mostra.
 */
 const matriculas = it.matriculas;
 const naoLidos = it.naoLidos;
@@ -36,16 +44,11 @@ const CLASSE_DA_SITUACAO = {
   concluida: '',
 };
 
-const ROTULO_DA_SITUACAO = {
-  ativa: 'Ativa',
-  transferida: 'Transferida',
-  cancelada: 'Cancelada',
-  concluida: 'Concluída',
-};
+const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
 %>
 <header class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Acompanhamento</p>
+    <p class="sobretitulo"><%= it.areas.acompanhamento %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Boletim, frequência e comunicados dos alunos sob sua responsabilidade.
@@ -70,7 +73,7 @@ const ROTULO_DA_SITUACAO = {
       <span class="cartao__rotulo">Comunicados não lidos</span>
       <span class="cartao__numero"><%= it.totalNaoLidos %></span>
       <span class="cartao__detalhe">
-        <%= it.totalNoMural %> <%= it.totalNoMural === 1 ? 'comunicado' : 'comunicados' %> no mural
+        <%= it.totalNoMural %> <%= it.pluralizar(it.totalNoMural, it.contagem.comunicado) %> no mural
       </span>
     </a>
   </div>
@@ -94,10 +97,10 @@ const ROTULO_DA_SITUACAO = {
       <caption>Matrículas sob sua responsabilidade</caption>
       <thead>
         <tr>
-          <th class="celula-elastica" scope="col">Aluno</th>
-          <th class="celula-centro" scope="col">Turma</th>
-          <th class="celula-centro" scope="col">Ano</th>
-          <th class="celula-centro" scope="col">Matrícula</th>
+          <th class="celula-elastica" scope="col"><%= it.rotulos.aluno %></th>
+          <th class="celula-centro" scope="col"><%= it.rotulos.turma %></th>
+          <th class="celula-centro" scope="col"><%= it.rotulos.ano %></th>
+          <th class="celula-centro" scope="col"><%= it.rotulos.matricula %></th>
           <th class="celula-centro" scope="col">Acompanhar</th>
         </tr>
       </thead>
@@ -124,6 +127,7 @@ const ROTULO_DA_SITUACAO = {
                 Boletim<span class="visualmente-oculto"> de <%= matricula.alunoNome %></span></a>
               <a class="botao botao--secundario botao--miudo"
                  href="<%= it.rotas.responsavel.frequencia({ id: matricula.id }) %>">
+<% // magic-values: permitido — rótulo do link que abre a tela de frequência, par do "Boletim" da linha acima; não é `ROTULOS.frequencia`, que nomeia a TAXA no cartão do boletim %>
                 Frequência<span class="visualmente-oculto"> de <%= matricula.alunoNome %></span></a>
             </span>
           </td>

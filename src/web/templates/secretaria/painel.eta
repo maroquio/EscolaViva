@@ -31,28 +31,56 @@
   nem se parecem com o título do destino, e a terceira abre a LISTA de responsáveis ("Responsáveis"),
   onde o cadastro ainda é um clique adiante. Coincidir com `TITULOS.secretaria.responsavelNovo` é
   acidente de redação: renomear aquela tela não deve reescrever este cartão.
+*/
 
-  Os rótulos dos cartões de número e os cabeçalhos da tabela por unidade ("Turmas", "Disciplinas")
-  também são outra decisão: nomeiam a contagem daquela coluna, não a tela que os menus abrem.
+/*
+  O sobretítulo é `it.areas` — `AREAS` (`src/web/constantes.ts`), a mesma palavra que rotula o grupo
+  no menu. O sobretítulo existe justamente para dizer em que parte do menu a pessoa está: escrito à
+  mão, renomear o grupo deixaria o menu e o cabeçalho chamando o mesmo lugar por dois nomes.
+
+  O nome de cada dado é `it.rotulos` — `ROTULOS`: "Aluno", "Matrícula", "Turma" e "Responsável"
+  rotulam os cartões de atalho, e "Unidade" e "Matrículas ativas" nomeiam a coluna e o cartão de
+  número aqui e nas outras telas em que o mesmo dado aparece. O substantivo que vem DEPOIS de um
+  número é outra coisa, e sai de `it.contagem` — `CONTAGEM`: "unidades", na frase da seção e no
+  rótulo da barra de paginação. "Unidade" nomeia a coluna; "unidades" é lido em voz corrida no meio
+  de uma frase contada, e encurtar o cabeçalho um dia não encurta a frase.
+
+  "Turmas", "Responsáveis" e "Disciplinas" continuam escritos aqui. Coincidem com o título das telas
+  de mesmo nome, e a coincidência é de redação: nesta tela eles nomeiam a CONTAGEM do cartão e da
+  coluna, e não a tela que o menu abre — renomear a lista de responsáveis não pode renomear este
+  número. O lugar deles, no dia em que outra tela precisar dos mesmos nomes, é um membro próprio em
+  `ROTULOS`, ao lado de `matriculasAtivas`; `TITULOS` não é, em nenhum dia.
+
+  A linha vazia solta abaixo do "unidades", na nota da seção, existe por causa do autoTrim do Eta,
+  que apaga a primeira quebra vinda depois de um fechamento de tag. Sem uma segunda quebra ali, o
+  fim do parágrafo grudaria no substantivo dentro do HTML entregue ao navegador. Os rótulos de botão
+  de `secretaria/aluno.eta` levam o mesmo ajuste, e o comentário de lá detalha a configuração.
 */
 const unidades = it.unidades ?? [];
 const totais = it.totais;
 const anoCorrente = it.anoCorrente ?? null;
 
 const atalhos = [
-  { href: it.rotas.secretaria.alunoNovo(), rotulo: 'Aluno', titulo: it.titulos.secretaria.alunoNovo,
+  { href: it.rotas.secretaria.alunoNovo(), rotulo: it.rotulos.aluno,
+    titulo: it.titulos.secretaria.alunoNovo,
     detalhe: 'Nome e data de nascimento. A matrícula vem depois, na ficha.' },
-  { href: it.rotas.secretaria.alunos(), rotulo: 'Matrícula', titulo: 'Buscar e matricular',
+  { href: it.rotas.secretaria.alunos(), rotulo: it.rotulos.matricula,
+    titulo: 'Buscar e matricular',
     detalhe: 'Procure pelo nome para matricular, transferir ou vincular responsável.' },
-  { href: it.rotas.secretaria.turmas(), rotulo: 'Turma', titulo: 'Turmas e professores',
+  { href: it.rotas.secretaria.turmas(), rotulo: it.rotulos.turma,
+    titulo: 'Turmas e professores',
     detalhe: 'Abra a turma para alocar disciplina e professor da unidade.' },
-  { href: it.rotas.secretaria.responsaveis(), rotulo: 'Responsável', titulo: 'Cadastrar responsável',
+  { href: it.rotas.secretaria.responsaveis(), rotulo: it.rotulos.responsavel,
+    // Manchete deste cartão, que abre a LISTA de responsáveis — o cadastro é um clique adiante,
+    // e renomear a tela de cadastro não deve reescrever esta manchete.
+    // magic-values: permitido — coincide com TITULOS.secretaria.responsavelNovo por acidente.
+    titulo: 'Cadastrar responsável',
     detalhe: 'Quem recebe comunicado e responde pelo aluno.' },
 ];
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Secretaria</p>
+    <p class="sobretitulo"><%= it.areas.secretaria %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Matrícula, transferência, turma e disciplina em um lugar só. Os números abaixo consideram
@@ -61,7 +89,7 @@ const atalhos = [
   </div>
   <div class="pagina__acoes">
     <a class="botao botao--primario" href="<%= it.rotas.secretaria.alunoNovo() %>"><%= it.titulos.secretaria.alunoNovo %></a>
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.alunos() %>">Buscar aluno</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.alunos() %>"><%= it.acoes.buscarAluno %></a>
   </div>
 </div>
 
@@ -87,7 +115,7 @@ const atalhos = [
 
   <div class="painel">
     <div class="cartao">
-      <p class="cartao__rotulo">Matrículas ativas</p>
+      <p class="cartao__rotulo"><%= it.rotulos.matriculasAtivas %></p>
       <p class="cartao__numero"><%= totais.matriculas %></p>
       <p class="cartao__detalhe">alunos com matrícula ativa nas suas turmas</p>
     </div>
@@ -121,7 +149,8 @@ const totalDeUnidades = it.navegacao === undefined ? unidades.length : it.navega
     <p class="secao__nota">
       Você responde por
       <span class="numero"><%= totalDeUnidades %></span>
-      unidades
+      <%= it.contagem.unidade.plural %>
+
     </p>
   </div>
 
@@ -130,9 +159,9 @@ const totalDeUnidades = it.navegacao === undefined ? unidades.length : it.navega
       <caption>Números de cada unidade sob sua secretaria</caption>
       <thead>
         <tr>
-          <th scope="col">Unidade</th>
+          <th scope="col"><%= it.rotulos.unidade %></th>
           <th scope="col">Turmas</th>
-          <th scope="col">Matrículas ativas</th>
+          <th scope="col"><%= it.rotulos.matriculasAtivas %></th>
           <th scope="col">Responsáveis</th>
         </tr>
       </thead>
@@ -148,7 +177,7 @@ const totalDeUnidades = it.navegacao === undefined ? unidades.length : it.navega
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'unidades' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.unidade.plural }) %>
 </section>
 <% } %>
 

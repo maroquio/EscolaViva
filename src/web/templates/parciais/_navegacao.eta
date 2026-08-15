@@ -15,7 +15,13 @@
   (`identidade`), o mesmo vocabulário que a sessão carrega em `usuario.papeis` — um `'secretria'`
   digitado aqui não falha em lugar nenhum: o grupo apenas some do menu de quem tem o papel.
 
-  As duas coisas chegam como `it.titulos` e `it.papel`, injetadas por `render.ts`. Não podiam vir do
+  O NOME DE CADA GRUPO vem de `it.areas` pelo mesmo motivo, e é o mesmo texto que as telas daquele
+  grupo imprimem no sobretítulo: o sobretítulo existe justamente para dizer em que parte deste menu
+  a pessoa está, então "Rede" aqui e "Rede" lá em cima da tela de unidades são a mesma decisão. Se
+  fossem dois literais, renomear o grupo para "Rede de ensino" deixaria o menu dizendo uma coisa e a
+  tela que ele abre dizendo outra, sem nada quebrar.
+
+  As três coisas chegam como `it.titulos`, `it.papel` e `it.areas`, injetadas por `render.ts`. Não podiam vir do
   handler: este parcial é incluído pelo `_layout`, que é escolhido pelo próprio `render.ts` a partir
   da sessão, e nenhuma rota sabe que ele existe para se lembrar de alimentá-lo. `it.titulo`, no
   singular, continua sendo outra coisa — o título DESTA página, que a rota passa.
@@ -34,30 +40,30 @@ const papeis = new Set(usuario === null ? [] : usuario.papeis.map((p) => p.papel
 const QUALQUER_PAPEL = Object.values(it.papel);
 
 const grupos = [
-  { titulo: 'Rede', papeis: [it.papel.adminRede], itens: [
+  { titulo: it.areas.rede, papeis: [it.papel.adminRede], itens: [
     { href: it.rotas.rede.painel(), texto: it.titulos.rede.painel },
     { href: it.rotas.rede.unidades(), texto: it.titulos.rede.unidades },
     { href: it.rotas.rede.usuarios(), texto: it.titulos.rede.usuarios },
     { href: it.rotas.rede.anosLetivos(), texto: it.titulos.rede.anos },
   ] },
-  { titulo: 'Secretaria', papeis: [it.papel.secretaria], itens: [
+  { titulo: it.areas.secretaria, papeis: [it.papel.secretaria], itens: [
     { href: it.rotas.secretaria.painel(), texto: it.titulos.secretaria.painel },
     { href: it.rotas.secretaria.alunos(), texto: it.titulos.secretaria.alunos },
     { href: it.rotas.secretaria.responsaveis(), texto: it.titulos.secretaria.responsaveis },
     { href: it.rotas.secretaria.turmas(), texto: it.titulos.secretaria.turmas },
     { href: it.rotas.secretaria.disciplinas(), texto: it.titulos.secretaria.disciplinas },
   ] },
-  { titulo: 'Ensino', papeis: [it.papel.professor], itens: [
+  { titulo: it.areas.ensino, papeis: [it.papel.professor], itens: [
     { href: it.rotas.professor.painel(), texto: it.titulos.professor.painel },
   ] },
-  { titulo: 'Acompanhamento', papeis: [it.papel.responsavel], itens: [
+  { titulo: it.areas.acompanhamento, papeis: [it.papel.responsavel], itens: [
     { href: it.rotas.responsavel.painel(), texto: it.titulos.responsavel.painel },
     { href: it.rotas.responsavel.mural(), texto: 'Mural' },
   ] },
-  { titulo: 'Comunicação', papeis: [it.papel.adminRede, it.papel.secretaria], itens: [
+  { titulo: it.areas.comunicacao, papeis: [it.papel.adminRede, it.papel.secretaria], itens: [
     { href: it.rotas.comunicados.lista(), texto: it.titulos.comunicados.lista },
   ] },
-  { titulo: 'Conta', papeis: QUALQUER_PAPEL, itens: [
+  { titulo: it.areas.conta, papeis: QUALQUER_PAPEL, itens: [
     { href: it.rotas.conta.senha(), texto: it.titulos.trocarSenha },
   ] },
 ].filter((grupo) => grupo.papeis.some((papel) => papeis.has(papel)));

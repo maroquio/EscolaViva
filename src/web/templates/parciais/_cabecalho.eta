@@ -14,6 +14,12 @@
   folha do login: um só lugar decide onde a ênfase cai. Sai CRUA porque o valor é marcação — a
   ênfase na segunda metade da palavra é a logotipia, não decoração desta barra — e a saída crua é
   segura porque é um literal de `constantes.ts`, nunca um dado que chegou do usuário.
+
+  A LINHA EM BRANCO logo antes do `<% } %>` que fecha a contagem de unidades é de propósito, e não
+  sobra de edição: o Eta está configurado com `autoTrim: [false, 'nl']`, que come a quebra de linha
+  imediatamente após um `%>`. Enquanto a linha terminava no texto ` unidades`, a quebra sobrevivia;
+  terminando em `<%= it.contagem.unidade.plural %>`, ela seria engolida e o HTML sairia um byte
+  diferente do de antes. A linha em branco repõe exatamente essa quebra. Apagá-la muda a saída.
 */
 const usuario = it.usuario;
 const unidades = usuario === null ? [] : [...new Set(usuario.papeis.map((p) => p.unidadeNome))];
@@ -30,7 +36,8 @@ const unidades = usuario === null ? [] : [...new Set(usuario.papeis.map((p) => p
       <% } else if (unidades.length === 1) { %>
         <%= unidades[0] %>
       <% } else { %>
-        <%= unidades.length %> unidades
+        <%= unidades.length %> <%= it.contagem.unidade.plural %>
+
       <% } %>
     </span>
   </div>

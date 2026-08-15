@@ -25,7 +25,7 @@ const lidoEm = it.lidoEm;
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.mural() %>">Voltar ao mural</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.mural() %>"><%= it.acoes.voltarPara.mural %></a>
   </p>
 </header>
 

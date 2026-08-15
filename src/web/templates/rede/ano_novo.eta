@@ -16,13 +16,29 @@
 */
 
 /*
-  A faixa aceita e os sufixos de id chegam prontos da rota: o Eta não importa TypeScript, então
-  `LIMITES.anoLetivo` (`src/academico/constantes.ts`) e `SUFIXOS_DE_ID` (`src/web/constantes.ts`)
-  atravessam por `it`. Redigitar 2000 aqui faria a tela recusar uma faixa e o caso de uso outra;
-  redigitar "-erro" faria o `aria-describedby` apontar para um id que não existe.
+  A faixa aceita e os nomes de campo chegam prontos por `it`: o Eta não importa TypeScript, então
+  `LIMITES.anoLetivo` e `CAMPOS.anoLetivo` (`src/academico/constantes.ts`) atravessam a fronteira
+  pela rota e por `render.ts`. Redigitar 2000 aqui faria a tela recusar uma faixa e o caso de uso
+  outra.
+
+  `campos` é o apelido curto do mapa de nomes deste formulário. O que ele guarda é o nome que
+  ATRAVESSA o arquivo: a rota lê o corpo do POST por ele e `falhaDeCampo` o devolve na recusa, que é
+  o que `erroDe()` e `descricao()` procuram. Divergindo, o campo chega vazio ao servidor, que recusa
+  por obrigatório o que a pessoa acabou de preencher.
+
+  `it.idDoErro` e `it.idDaAjuda` são o outro lado de `descricao()`: ela monta o `aria-describedby`, e
+  eles montam o `id` para onde essa lista aponta. Escrever "-erro" à mão aqui faria o
+  `aria-describedby` apontar para um id inexistente — nada falha, ninguém que enxerga percebe, e o
+  leitor de tela não lê nem a ajuda nem o erro.
+
+  O `id` do `<input>` e o `for` do `<label>`, esses continuam escritos à mão de propósito: casam um
+  com o outro dentro das mesmas seis linhas, nada fora deste arquivo os lê, e `for="ano"` ao lado de
+  `id="ano"` é o HTML mais legível que se pode deixar para quem está aprendendo.
+  magic-values: permitido — o `id`/`for` não é o nome que atravessa o arquivo; o `name=`, sim.
 */
 const valores = it.valores ?? { ano: '', dataInicio: '', dataFim: '' };
-const { erroDe, descricao, sufixos } = it;
+const campos = it.campos.anoLetivo;
+const { erroDe, descricao } = it;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -42,11 +58,11 @@ const { erroDe, descricao, sufixos } = it;
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="ano">
-          Ano <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.ano %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="ano"
-          name="ano"
+          name="<%= campos.ano %>"
           type="number"
           required
           min="<%= it.anoMinimo %>"
@@ -54,52 +70,52 @@ const { erroDe, descricao, sufixos } = it;
           step="1"
           inputmode="numeric"
           value="<%= valores.ano %>"
-          <% if (erroDe('ano') !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao('ano') !== '') { %>aria-describedby="<%= descricao('ano') %>"<% } %>>
-        <% if (erroDe('ano') !== '') { %>
-        <p class="campo__erro" id="ano<%= sufixos.erro %>"><%= erroDe('ano') %></p>
+          <% if (erroDe(campos.ano) !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao(campos.ano) !== '') { %>aria-describedby="<%= descricao(campos.ano) %>"<% } %>>
+        <% if (erroDe(campos.ano) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.ano) %>"><%= erroDe(campos.ano) %></p>
         <% } %>
       </div>
 
       <div class="campo">
         <label class="campo__rotulo" for="dataInicio">
-          Início <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.inicio %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="dataInicio"
-          name="dataInicio"
+          name="<%= campos.dataInicio %>"
           type="date"
           required
           value="<%= valores.dataInicio %>"
-          <% if (erroDe('dataInicio') !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao('dataInicio') !== '') { %>aria-describedby="<%= descricao('dataInicio') %>"<% } %>>
-        <% if (erroDe('dataInicio') !== '') { %>
-        <p class="campo__erro" id="dataInicio<%= sufixos.erro %>"><%= erroDe('dataInicio') %></p>
+          <% if (erroDe(campos.dataInicio) !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao(campos.dataInicio) !== '') { %>aria-describedby="<%= descricao(campos.dataInicio) %>"<% } %>>
+        <% if (erroDe(campos.dataInicio) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.dataInicio) %>"><%= erroDe(campos.dataInicio) %></p>
         <% } %>
       </div>
 
       <div class="campo">
         <label class="campo__rotulo" for="dataFim">
-          Término <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.termino %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="dataFim"
-          name="dataFim"
+          name="<%= campos.dataFim %>"
           type="date"
           required
           value="<%= valores.dataFim %>"
-          <% if (erroDe('dataFim') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('dataFim', true) %>">
-        <p class="campo__ajuda" id="dataFim<%= sufixos.ajuda %>">Precisa ser posterior à data de início.</p>
-        <% if (erroDe('dataFim') !== '') { %>
-        <p class="campo__erro" id="dataFim<%= sufixos.erro %>"><%= erroDe('dataFim') %></p>
+          <% if (erroDe(campos.dataFim) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.dataFim, true) %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.dataFim) %>">Precisa ser posterior à data de início.</p>
+        <% if (erroDe(campos.dataFim) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.dataFim) %>"><%= erroDe(campos.dataFim) %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit"><%= it.titulos.rede.anoNovo %></button>
-      <a class="botao botao--discreto" href="<%= it.rotas.rede.anosLetivos() %>">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.rede.anosLetivos() %>"><%= it.acoes.cancelar %></a>
     </div>
   </form>
 </div>

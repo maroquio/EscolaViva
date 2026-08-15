@@ -13,32 +13,45 @@
 */
 
 /*
-  Os dois limites, o rótulo da opção em branco e os sufixos de id chegam prontos pelo `it`, e por
-  isso não há número nenhum escrito nesta página. Os donos dos tamanhos são `LIMITES.turma.nome` e
-  `LIMITES.turma.serie` (`src/academico/constantes.ts`), que `cadastrarTurma` faz valer com
-  `MENSAGENS.turma.nomeLongo` e `.serieLonga` — são duas políticas, coincidentes hoje e livres para
-  divergir amanhã, e o `maxlength` só adianta a recusa no navegador. `it.opcaoVazia` é
+  Os dois limites, o rótulo da opção em branco e os nomes dos cinco campos chegam prontos pelo `it`,
+  e por isso não há número nem nome de campo escrito à mão nesta página. Os donos dos tamanhos são
+  `LIMITES.turma.nome` e `LIMITES.turma.serie` (`src/academico/constantes.ts`), que `cadastrarTurma`
+  faz valer com `MENSAGENS.turma.nomeLongo` e `.serieLonga` — são duas políticas, coincidentes hoje
+  e livres para divergir amanhã, e o `maxlength` só adianta a recusa no navegador. `it.opcaoVazia` é
   `APRESENTACAO.opcaoVazia`, a primeira opção de todo seletor: os três desta página usam a mesma, e
-  o `required` do HTML é que recusa o envio com ela. Os sufixos são de `SUFIXOS_DE_ID`, os mesmos
-  que `descricao()` usa para montar o `aria-describedby` do outro lado.
+  o `required` do HTML é que recusa o envio com ela.
+
+  `campos` é `CAMPOS.turma` (`src/academico/constantes.ts`, alcançado por `CAMPOS` da camada web), e
+  é o nome que ATRAVESSA arquivos: o `name=` que o navegador envia, a leitura do corpo em
+  `rotas/secretaria.ts` e o `falhaDeCampo(CAMPOS.turma.serie, …)` de `cadastrarTurma` têm de dizer a
+  mesma palavra, e nenhum compilador liga os três. Divergindo, o campo chega vazio e o servidor
+  recusa por obrigatório o que a pessoa acabou de preencher. `it.idDoErro` e `it.idDaAjuda` fecham o
+  outro lado do `aria-describedby` que `descricao()` promete: a convenção `<campo>-erro` é
+  `SUFIXOS_DE_ID` e existe uma vez só. Já o `id` da própria caixa e o `for` do rótulo continuam
+  escritos à mão: eles casam um com o outro dentro das mesmas seis linhas, ninguém de fora os lê, e
+  `for="serie"` ao lado de `id="serie"` é o HTML mais legível que se pode deixar aqui.
 
   O rótulo do botão que envia é o título desta tela: `it.titulos` — `TITULOS`
   (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` do `<h1>` logo acima e de
   onde saem os rótulos dos botões que trazem alguém até aqui — a lista de turmas, a matrícula e a
   transferência. "Cadastrar turma" é uma decisão só, escrita em cinco lugares; renomeá-la em um e
-  esquecer os outros deixa a tela se chamando de dois jeitos, e nada acusa.
+  esquecer os outros deixa a tela se chamando de dois jeitos, e nada acusa. O sobretítulo compõe a
+  ÁREA do menu com o título da lista onde esta tela vive (`AREAS.secretaria` e
+  `TITULOS.secretaria.turmas`), e "Unidade", "Ano letivo" e "Cancelar" vêm de `ROTULOS` e `ACOES`:
+  são o nome do dado e o texto de sair, escritos igual nas outras telas.
 */
 const unidades = it.unidades ?? [];
 const anosLetivos = it.anosLetivos ?? [];
 const turnos = it.turnos ?? [];
 const valores = it.valores ?? {};
-const { erroDe, descricao, sufixos } = it;
+const campos = it.campos.turma;
+const { erroDe, descricao } = it;
 
 const listaDeTurmas = it.rotas.secretaria.turmas();
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Secretaria · Turmas</p>
+    <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= it.titulos.secretaria.turmas %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       É na turma que se alocam as disciplinas com seus professores, e é para ela que os alunos são
@@ -58,7 +71,7 @@ const listaDeTurmas = it.rotas.secretaria.turmas();
     <% } %>
   </p>
   <div class="acoes">
-    <a class="botao botao--discreto" href="<%= listaDeTurmas %>">Voltar às turmas</a>
+    <a class="botao botao--discreto" href="<%= listaDeTurmas %>"><%= it.acoes.voltarPara.turmas %></a>
   </div>
   <% } else { %>
   <form class="formulario formulario--largo" method="post" action="<%= listaDeTurmas %>">
@@ -71,17 +84,17 @@ const listaDeTurmas = it.rotas.secretaria.turmas();
         </label>
         <input
           id="nome"
-          name="nome"
+          name="<%= campos.nome %>"
           type="text"
           required
           maxlength="<%= it.limiteDoNome %>"
           autocomplete="off"
           value="<%= valores.nome ?? '' %>"
-          <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('nome', true) %>">
-        <p class="campo__ajuda" id="nome<%= sufixos.ajuda %>">Único na unidade dentro do mesmo ano letivo.</p>
-        <% if (erroDe('nome') !== '') { %>
-        <p class="campo__erro" id="nome<%= sufixos.erro %>"><%= erroDe('nome') %></p>
+          <% if (erroDe(campos.nome) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.nome, true) %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.nome) %>">Único na unidade dentro do mesmo ano letivo.</p>
+        <% if (erroDe(campos.nome) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.nome) %>"><%= erroDe(campos.nome) %></p>
         <% } %>
       </div>
 
@@ -91,17 +104,17 @@ const listaDeTurmas = it.rotas.secretaria.turmas();
         </label>
         <input
           id="serie"
-          name="serie"
+          name="<%= campos.serie %>"
           type="text"
           required
           maxlength="<%= it.limiteDaSerie %>"
           autocomplete="off"
           value="<%= valores.serie ?? '' %>"
-          <% if (erroDe('serie') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('serie', true) %>">
-        <p class="campo__ajuda" id="serie<%= sufixos.ajuda %>">Como a rede chama: 6º ano, 1ª série, Maternal II.</p>
-        <% if (erroDe('serie') !== '') { %>
-        <p class="campo__erro" id="serie<%= sufixos.erro %>"><%= erroDe('serie') %></p>
+          <% if (erroDe(campos.serie) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.serie, true) %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.serie) %>">Como a rede chama: 6º ano, 1ª série, Maternal II.</p>
+        <% if (erroDe(campos.serie) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.serie) %>"><%= erroDe(campos.serie) %></p>
         <% } %>
       </div>
 
@@ -111,10 +124,10 @@ const listaDeTurmas = it.rotas.secretaria.turmas();
         </label>
         <select
           id="turno"
-          name="turno"
+          name="<%= campos.turno %>"
           required
-          <% if (erroDe('turno') !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao('turno') !== '') { %>aria-describedby="<%= descricao('turno') %>"<% } %>>
+          <% if (erroDe(campos.turno) !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao(campos.turno) !== '') { %>aria-describedby="<%= descricao(campos.turno) %>"<% } %>>
           <option value=""><%= it.opcaoVazia %></option>
           <% turnos.forEach((turno) => { %>
           <option value="<%= turno.valor %>" <%= (valores.turno ?? '') === turno.valor ? 'selected' : '' %>>
@@ -122,8 +135,8 @@ const listaDeTurmas = it.rotas.secretaria.turmas();
           </option>
           <% }) %>
         </select>
-        <% if (erroDe('turno') !== '') { %>
-        <p class="campo__erro" id="turno<%= sufixos.erro %>"><%= erroDe('turno') %></p>
+        <% if (erroDe(campos.turno) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.turno) %>"><%= erroDe(campos.turno) %></p>
         <% } %>
       </div>
     </div>
@@ -131,14 +144,14 @@ const listaDeTurmas = it.rotas.secretaria.turmas();
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="unidadeId">
-          Unidade <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.unidade %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
           id="unidadeId"
-          name="unidadeId"
+          name="<%= campos.unidadeId %>"
           required
-          <% if (erroDe('unidadeId') !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao('unidadeId') !== '') { %>aria-describedby="<%= descricao('unidadeId') %>"<% } %>>
+          <% if (erroDe(campos.unidadeId) !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao(campos.unidadeId) !== '') { %>aria-describedby="<%= descricao(campos.unidadeId) %>"<% } %>>
           <option value=""><%= it.opcaoVazia %></option>
           <% unidades.forEach((unidade) => { %>
           <option value="<%= unidade.id %>" <%= (valores.unidadeId ?? '') === unidade.id ? 'selected' : '' %>>
@@ -146,21 +159,21 @@ const listaDeTurmas = it.rotas.secretaria.turmas();
           </option>
           <% }) %>
         </select>
-        <% if (erroDe('unidadeId') !== '') { %>
-        <p class="campo__erro" id="unidadeId<%= sufixos.erro %>"><%= erroDe('unidadeId') %></p>
+        <% if (erroDe(campos.unidadeId) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.unidadeId) %>"><%= erroDe(campos.unidadeId) %></p>
         <% } %>
       </div>
 
       <div class="campo">
         <label class="campo__rotulo" for="anoLetivoId">
-          Ano letivo <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.anoLetivo %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
           id="anoLetivoId"
-          name="anoLetivoId"
+          name="<%= campos.anoLetivoId %>"
           required
-          <% if (erroDe('anoLetivoId') !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao('anoLetivoId') !== '') { %>aria-describedby="<%= descricao('anoLetivoId') %>"<% } %>>
+          <% if (erroDe(campos.anoLetivoId) !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao(campos.anoLetivoId) !== '') { %>aria-describedby="<%= descricao(campos.anoLetivoId) %>"<% } %>>
           <option value=""><%= it.opcaoVazia %></option>
           <% anosLetivos.forEach((anoLetivo) => { %>
           <option value="<%= anoLetivo.id %>" <%= (valores.anoLetivoId ?? '') === anoLetivo.id ? 'selected' : '' %>>
@@ -168,15 +181,15 @@ const listaDeTurmas = it.rotas.secretaria.turmas();
           </option>
           <% }) %>
         </select>
-        <% if (erroDe('anoLetivoId') !== '') { %>
-        <p class="campo__erro" id="anoLetivoId<%= sufixos.erro %>"><%= erroDe('anoLetivoId') %></p>
+        <% if (erroDe(campos.anoLetivoId) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.anoLetivoId) %>"><%= erroDe(campos.anoLetivoId) %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit"><%= it.titulos.secretaria.turmaNova %></button>
-      <a class="botao botao--discreto" href="<%= listaDeTurmas %>">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= listaDeTurmas %>"><%= it.acoes.cancelar %></a>
     </div>
   </form>
   <% } %>

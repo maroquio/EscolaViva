@@ -16,23 +16,42 @@
 */
 
 /*
-  Os dois tamanhos e os sufixos de id chegam prontos da rota: o Eta não importa TypeScript, então
-  `LIMITES.usuario.nome` (`src/identidade/constantes.ts`), `TAMANHO_DO_CPF_COM_MASCARA`
-  (`src/shared/constantes.ts`) e `SUFIXOS_DE_ID` (`src/web/constantes.ts`) atravessam por `it`.
-  Quem recusa o nome longo é `convidarUsuario`, com `MENSAGENS.usuario.nomeLongo`, e quem decide se
-  o CPF vale é `shared/documento`, que aceita com ou sem pontuação — o `maxlength` só limita o que
-  cabe na caixa.
+  Os dois tamanhos chegam prontos da rota: o Eta não importa TypeScript, então
+  `LIMITES.usuario.nome` (`src/identidade/constantes.ts`) e `TAMANHO_DO_CPF_COM_MASCARA`
+  (`src/shared/constantes.ts`) atravessam por `it`. Quem recusa o nome longo é `convidarUsuario`,
+  com `MENSAGENS.usuario.nomeLongo`, e quem decide se o CPF vale é `shared/documento`, que aceita
+  com ou sem pontuação — o `maxlength` só limita o que cabe na caixa.
+*/
+
+/*
+  `campos` é o `CAMPOS.usuario` de `src/identidade/constantes.ts`, que chega pelo `it.campos` da
+  camada web. É o nome que ATRAVESSA este arquivo: a rota lê o corpo do POST por ele e o
+  `falhaDeCampo` do caso de uso o devolve para `erroDe`. Divergindo, o campo chega vazio e o
+  servidor recusa por obrigatório justamente o que a pessoa acabou de preencher — sem erro em lugar
+  nenhum. `unidades` e `papeis` são as duas listas paralelas das atribuições, que a rota junta no
+  campo `atribuicoes`.
+
+  `it.idDoErro` e `it.idDaAjuda` são a outra ponta de `descricao()`: ela monta o `aria-describedby`
+  do `<input>`, elas montam o `id` do parágrafo para onde ele aponta. Escrever esse id à mão aqui
+  apontaria o leitor de tela para um elemento inexistente, e nada falharia — a caixa recusa o id, o
+  texto do erro continua aparecendo e ninguém que enxerga percebe.
 */
 const unidades = it.unidades ?? [];
 const responsaveis = it.responsaveis ?? [];
 const papeis = it.papeis ?? [];
 const linhas = it.linhas ?? [];
 const valores = it.valores ?? { nome: '', email: '', cpf: '', responsavelId: '' };
-const { erroDe, descricao, sufixos } = it;
+const campos = it.campos.usuario;
+// magic-values: permitido — o `id` do <input> e o `for` do <label> logo abaixo casam um com o outro
+// dentro das mesmas seis linhas e não atravessam este arquivo; `for="nome"` ao lado de `id="nome"`
+// é o HTML mais legível que existe, e o nome que atravessa é o do `name=`, que vem de `campos`.
+const { erroDe, descricao } = it;
+/* "Rede · Usuários" é a área do menu mais a lista onde esta tela vive: os dois pedaços já têm dono. */
+const sobretitulo = `${it.areas.rede}${it.apresentacao.separador}${it.titulos.rede.usuarios}`;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Rede · Usuários</p>
+    <p class="sobretitulo"><%= sobretitulo %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       A senha provisória é gerada agora e aparece uma única vez na lista, logo depois de criar.
@@ -48,77 +67,77 @@ const { erroDe, descricao, sufixos } = it;
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="nome">
-          Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.nome %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="nome"
-          name="nome"
+          name="<%= campos.nome %>"
           type="text"
           required
           maxlength="<%= it.limiteDoNome %>"
           autocomplete="off"
           value="<%= valores.nome %>"
-          <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao('nome') !== '') { %>aria-describedby="<%= descricao('nome') %>"<% } %>>
-        <% if (erroDe('nome') !== '') { %>
-        <p class="campo__erro" id="nome<%= sufixos.erro %>"><%= erroDe('nome') %></p>
+          <% if (erroDe(campos.nome) !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao(campos.nome) !== '') { %>aria-describedby="<%= descricao(campos.nome) %>"<% } %>>
+        <% if (erroDe(campos.nome) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.nome) %>"><%= erroDe(campos.nome) %></p>
         <% } %>
       </div>
 
       <div class="campo">
         <label class="campo__rotulo" for="cpf">
-          CPF <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.cpf %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="cpf"
-          name="cpf"
+          name="<%= campos.cpf %>"
           type="text"
           required
           maxlength="<%= it.tamanhoDoCpf %>"
           autocomplete="off"
           value="<%= valores.cpf %>"
-          <% if (erroDe('cpf') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('cpf', true) %>">
-        <p class="campo__ajuda" id="cpf<%= sufixos.ajuda %>">É por ele que a pessoa entra. Com ou sem pontos.</p>
-        <% if (erroDe('cpf') !== '') { %>
-        <p class="campo__erro" id="cpf<%= sufixos.erro %>"><%= erroDe('cpf') %></p>
+          <% if (erroDe(campos.cpf) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.cpf, true) %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.cpf) %>">É por ele que a pessoa entra. Com ou sem pontos.</p>
+        <% if (erroDe(campos.cpf) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.cpf) %>"><%= erroDe(campos.cpf) %></p>
         <% } %>
       </div>
 
       <div class="campo">
         <label class="campo__rotulo" for="email">
-          E-mail <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.email %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="email"
-          name="email"
+          name="<%= campos.email %>"
           type="email"
           required
           autocapitalize="none"
           spellcheck="false"
           autocomplete="off"
           value="<%= valores.email %>"
-          <% if (erroDe('email') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('email', true) %>">
-        <p class="campo__ajuda" id="email<%= sufixos.ajuda %>">Contato. Não é usado para entrar.</p>
-        <% if (erroDe('email') !== '') { %>
-        <p class="campo__erro" id="email<%= sufixos.erro %>"><%= erroDe('email') %></p>
+          <% if (erroDe(campos.email) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.email, true) %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.email) %>">Contato. Não é usado para entrar.</p>
+        <% if (erroDe(campos.email) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.email) %>"><%= erroDe(campos.email) %></p>
         <% } %>
       </div>
     </div>
 
-    <fieldset <% if (erroDe('atribuicoes') !== '') { %>aria-describedby="atribuicoes<%= sufixos.erro %>"<% } %>>
+    <fieldset <% if (erroDe(campos.atribuicoes) !== '') { %>aria-describedby="<%= it.idDoErro(campos.atribuicoes) %>"<% } %>>
       <legend>Atribuições</legend>
-      <% if (erroDe('atribuicoes') !== '') { %>
-      <p class="campo__erro" id="atribuicoes<%= sufixos.erro %>"><%= erroDe('atribuicoes') %></p>
+      <% if (erroDe(campos.atribuicoes) !== '') { %>
+      <p class="campo__erro" id="<%= it.idDoErro(campos.atribuicoes) %>"><%= erroDe(campos.atribuicoes) %></p>
       <% } %>
 
       <div class="pilha">
         <% linhas.forEach((linha, indice) => { %>
         <div class="formulario__linha">
           <div class="campo">
-            <label class="campo__rotulo" for="unidade-<%= indice %>">Unidade <%= indice + 1 %></label>
-            <select id="unidade-<%= indice %>" name="unidade[]">
+            <label class="campo__rotulo" for="unidade-<%= indice %>"><%= it.rotulos.unidade %> <%= indice + 1 %></label>
+            <select id="unidade-<%= indice %>" name="<%= campos.unidades %>">
               <option value="">Sem atribuição</option>
               <% unidades.forEach((unidade) => { %>
               <option value="<%= unidade.id %>" <% if (unidade.id === linha.unidadeId) { %>selected<% } %>><%= unidade.nome %></option>
@@ -128,7 +147,7 @@ const { erroDe, descricao, sufixos } = it;
 
           <div class="campo">
             <label class="campo__rotulo" for="papel-<%= indice %>">Papel <%= indice + 1 %></label>
-            <select id="papel-<%= indice %>" name="papel[]">
+            <select id="papel-<%= indice %>" name="<%= campos.papeis %>">
               <option value="">Sem atribuição</option>
               <% papeis.forEach((opcao) => { %>
               <option value="<%= opcao.valor %>" <% if (opcao.valor === linha.papel) { %>selected<% } %>><%= opcao.rotulo %></option>
@@ -144,26 +163,26 @@ const { erroDe, descricao, sufixos } = it;
       <label class="campo__rotulo" for="responsavelId">Cadastro de responsável</label>
       <select
         id="responsavelId"
-        name="responsavelId"
-        <% if (erroDe('responsavelId') !== '') { %>aria-invalid="true"<% } %>
-        aria-describedby="<%= descricao('responsavelId', true) %>">
+        name="<%= campos.responsavelId %>"
+        <% if (erroDe(campos.responsavelId) !== '') { %>aria-invalid="true"<% } %>
+        aria-describedby="<%= descricao(campos.responsavelId, true) %>">
         <option value="">Nenhum</option>
         <% responsaveis.forEach((responsavel) => { %>
         <option value="<%= responsavel.id %>" <% if (responsavel.id === valores.responsavelId) { %>selected<% } %>><%= responsavel.nome %> — <%= responsavel.email %></option>
         <% }) %>
       </select>
-      <p class="campo__ajuda" id="responsavelId<%= sufixos.ajuda %>">
+      <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.responsavelId) %>">
         Obrigatório quando alguma atribuição acima for Responsável: é esse cadastro que liga a
         conta aos alunos. A secretaria cria o cadastro antes do convite.
       </p>
-      <% if (erroDe('responsavelId') !== '') { %>
-      <p class="campo__erro" id="responsavelId<%= sufixos.erro %>"><%= erroDe('responsavelId') %></p>
+      <% if (erroDe(campos.responsavelId) !== '') { %>
+      <p class="campo__erro" id="<%= it.idDoErro(campos.responsavelId) %>"><%= erroDe(campos.responsavelId) %></p>
       <% } %>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Criar usuário</button>
-      <a class="botao botao--discreto" href="<%= it.rotas.rede.usuarios() %>">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.rede.usuarios() %>"><%= it.acoes.cancelar %></a>
     </div>
   </form>
 </div>

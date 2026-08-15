@@ -49,13 +49,16 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
     <p class="sobretitulo">Boletim</p>
     <h1 class="pagina__titulo"><%= boletim.alunoNome %></h1>
     <p class="pagina__resumo">
-      Turma <%= boletim.turmaNome %> · ano letivo <span class="numero"><%= boletim.ano %></span>
+<% // "ano letivo" aqui não é o ROTULOS.anoLetivo que rotula o filtro e o select de quem ESCOLHE a %>
+<% // entidade: é o substantivo lido em voz corrida, minúsculo, com o número dentro de um span. %>
+<% // magic-values: permitido — prosa em frase corrida, e não rótulo de dado; o único pedaço repetido é o separador, que já tem dono em APRESENTACAO.separador %>
+      <%= it.rotulos.turma %> <%= boletim.turmaNome %> · ano letivo <span class="numero"><%= boletim.ano %></span>
     </p>
   </div>
   <p class="pagina__acoes">
     <a class="botao botao--secundario"
        href="<%= it.rotas.responsavel.frequencia({ id: it.matriculaId }) %>">Ver frequência</a>
-    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.painel() %>">Voltar aos alunos</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.painel() %>"><%= it.acoes.voltarPara.alunos %></a>
   </p>
 </header>
 
@@ -74,7 +77,7 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
       </div>
 
       <div class="cartao">
-        <p class="cartao__rotulo">Frequência</p>
+        <p class="cartao__rotulo"><%= it.rotulos.frequencia %></p>
         <p class="cartao__numero"><%= it.formatarPercentual(boletim.percentualFrequencia) %></p>
         <p class="cartao__detalhe">
           <span class="numero"><%= boletim.presencas %></span> de
@@ -83,6 +86,10 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
       </div>
 
       <div class="cartao">
+<% // A mesma palavra encabeça cinco lugares com cinco vocabulários FECHADOS diferentes, de quatro %>
+<% // módulos: unidade Ativa/Inativa, usuário Ativo/Inativo, matrícula Ativa/Transferida/…, dia de %>
+<% // aula Presente/Falta e, aqui, o situacaoFinal do boletim. O porquê está em web/constantes.ts. %>
+<% // magic-values: permitido — substantivo genérico que encabeça cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em ROTULOS %>
         <p class="cartao__rotulo">Situação</p>
         <p>
           <span class="etiqueta <%= CLASSE_DA_SITUACAO[boletim.situacao] %>">
@@ -120,9 +127,9 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
       <caption>Notas de <%= boletim.alunoNome %> em <%= boletim.ano %></caption>
       <thead>
         <tr>
-          <th scope="col">Disciplina</th>
+          <th scope="col"><%= it.rotulos.disciplina %></th>
           <% it.bimestres.forEach((bimestre) => { %>
-          <th scope="col" class="celula-centro"><%= bimestre %>º bimestre</th>
+          <th scope="col" class="celula-centro"><%= it.rotuloDeBimestre(bimestre) %></th>
           <% }) %>
           <th scope="col" class="celula-centro">Média anual</th>
         </tr>

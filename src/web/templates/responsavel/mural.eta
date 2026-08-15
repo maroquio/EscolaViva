@@ -17,20 +17,25 @@
 
   Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
   `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
+
+  As duas notas de contagem dizem "comunicado"/"comunicados" com `it.pluralizar` sobre
+  `it.contagem.comunicado`: singular e plural são uma decisão só, e as duas seções contam a MESMA
+  coisa em pesos diferentes — escrever o ternário duas vezes deixaria a metade lida do mural livre
+  para divergir da não lida na palavra que ambas contam.
 */
 const naoLidos = it.naoLidos;
 const lidos = it.lidos;
 %>
 <header class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Acompanhamento</p>
+    <p class="sobretitulo"><%= it.areas.acompanhamento %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       O que a escola enviou a você. Cada comunicado abre por inteiro e pode ser marcado como lido.
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.painel() %>">Voltar aos alunos</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.painel() %>"><%= it.acoes.voltarPara.alunos %></a>
   </p>
 </header>
 
@@ -39,7 +44,7 @@ const lidos = it.lidos;
     <h2 id="titulo-por-ler">Não lidos</h2>
     <p class="secao__nota">
       <span class="numero"><%= it.totalNaoLidos %></span>
-      <%= it.totalNaoLidos === 1 ? 'comunicado' : 'comunicados' %>
+      <%= it.pluralizar(it.totalNaoLidos, it.contagem.comunicado) %>
     </p>
   </div>
 
@@ -77,7 +82,7 @@ const lidos = it.lidos;
     <h2 id="titulo-lidos">Já lidos</h2>
     <p class="secao__nota">
       <span class="numero"><%= it.totalLidos %></span>
-      <%= it.totalLidos === 1 ? 'comunicado' : 'comunicados' %>
+      <%= it.pluralizar(it.totalLidos, it.contagem.comunicado) %>
     </p>
   </div>
 

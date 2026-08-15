@@ -39,6 +39,30 @@
   cartão que já explica o resto, e não é o título "Matricular em uma turma". São duas frases, e não
   a mesma dita duas vezes.
 */
+
+/*
+  O vocabulário desta tela também tem dono, e são três mapas diferentes de `src/web/constantes.ts`,
+  cada um respondendo a uma pergunta:
+
+    - `it.areas` — em que parte do menu a pessoa está. O sobretítulo compõe `AREAS.secretaria` com o
+      `APRESENTACAO.separador` e o título desta tela (`TITULOS.secretaria.aluno`), em vez de repetir
+      "Secretaria · Ficha do aluno" à mão: renomear a área no menu ou a tela nos títulos passaria a
+      valer aqui no mesmo movimento.
+    - `it.rotulos` — o nome de cada DADO: o `<dt>` da ficha e o `<th>` que encabeça as duas colunas.
+      "Nome", "Responsável", "E-mail", "Turma" e "Ano" saem de `ROTULOS`. "Parentesco", "Financeiro"
+      e "Data" ficam escritos aqui: existem uma vez só no sistema, e nomeiam colunas desta tela.
+    - `it.contagem` + `it.pluralizar` — o substantivo CONTADO, que é outra coisa que o rótulo:
+      `ROTULOS.responsavel` é "Responsável" no alto da coluna, `CONTAGEM.responsavel` é
+      "responsável/responsáveis" lido em voz corrida depois do número. Encurtar o cabeçalho não
+      encurta a frase, e por isso são dois donos.
+    - `it.acoes` — o texto do link que TIRA a pessoa desta tela. "Voltar à busca"
+      (`ACOES.voltarPara.busca`) nomeia o destino, e o membro é o DESTINO e não a origem: quem
+      acrescentar uma segunda tela que volte para a busca encontra o rótulo pronto.
+
+  O rótulo da primeira barra de paginação NÃO sai de `CONTAGEM`: "responsáveis vinculados" descreve
+  o recorte daquela tabela — os vínculos deste aluno —, existe uma vez só e é decisão desta tela. O
+  da segunda sai, porque é o substantivo puro.
+*/
 const aluno = it.aluno;
 const vinculos = it.vinculos ?? [];
 const matriculas = it.matriculas ?? [];
@@ -46,7 +70,7 @@ const ativa = it.ativa ?? null;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Secretaria · Ficha do aluno</p>
+    <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= it.titulos.secretaria.aluno %></p>
     <h1 class="pagina__titulo"><%= aluno.nome %></h1>
     <p class="pagina__resumo">
       Nascimento em <span class="numero"><%= it.formatarData(aluno.dataNascimento) %></span>.
@@ -58,7 +82,7 @@ const ativa = it.ativa ?? null;
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.alunos() %>">Voltar à busca</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.alunos() %>"><%= it.acoes.voltarPara.busca %></a>
   </div>
 </div>
 
@@ -69,7 +93,7 @@ const ativa = it.ativa ?? null;
 
   <div class="quadro">
     <dl class="lista-definicoes">
-      <dt>Nome</dt>
+      <dt><%= it.rotulos.nome %></dt>
       <dd><%= aluno.nome %></dd>
       <dt>Nascimento</dt>
       <dd class="numero"><%= it.formatarData(aluno.dataNascimento) %></dd>
@@ -79,6 +103,7 @@ const ativa = it.ativa ?? null;
         <span class="suave">nenhuma</span>
         <% } else { %>
         <span class="etiqueta etiqueta--ativa"><%= ativa.situacaoNome %></span>
+<% // magic-values: permitido — "ano letivo" aqui é prosa da frase que resume a matrícula ativa, e não ROTULOS.anoLetivo, que nomeia a ENTIDADE escolhida num filtro ou num <select>; o "·" separa fragmentos de uma sentença com <span class="numero"> no meio, e não atributos de uma linha como o APRESENTACAO.separador %>
         <%= ativa.turmaNome %> · ano letivo <span class="numero"><%= ativa.ano %></span> ·
         matriculado em <span class="numero"><%= it.formatarData(ativa.dataMatricula) %></span>
         <% } %>
@@ -94,7 +119,7 @@ const ativa = it.ativa ?? null;
          it.navegacaoVinculos === undefined ? vinculos.length : it.navegacaoVinculos.total; %>
     <p class="secao__nota">
       <span class="numero"><%= quantosVinculos %></span>
-      <%= quantosVinculos === 1 ? 'responsável' : 'responsáveis' %>
+      <%= it.pluralizar(quantosVinculos, it.contagem.responsavel) %>
     </p>
   </div>
 
@@ -114,9 +139,9 @@ const ativa = it.ativa ?? null;
         <caption>Quem responde por este aluno</caption>
         <thead>
           <tr>
-            <th scope="col">Responsável</th>
+            <th scope="col"><%= it.rotulos.responsavel %></th>
             <th scope="col">Parentesco</th>
-            <th scope="col">E-mail</th>
+            <th scope="col"><%= it.rotulos.email %></th>
             <th scope="col">Financeiro</th>
           </tr>
         </thead>
@@ -153,6 +178,7 @@ const ativa = it.ativa ?? null;
          it.navegacaoMatriculas === undefined ? matriculas.length : it.navegacaoMatriculas.total; %>
     <p class="secao__nota">
       <span class="numero"><%= quantosRegistros %></span>
+<% // magic-values: permitido — "registro" é a palavra genérica desta frase, e não uma entidade contável do produto: o que a tabela lista são matrículas, mas a frase conta os REGISTROS que restaram nas unidades de quem olha. Fora de CONTAGEM, que nomeia o que o sistema cadastra %>
       <%= quantosRegistros === 1 ? 'registro' : 'registros' %> nas suas unidades
     </p>
   </div>
@@ -170,9 +196,10 @@ const ativa = it.ativa ?? null;
         <caption>Histórico de matrículas deste aluno</caption>
         <thead>
           <tr>
-            <th scope="col">Turma</th>
-            <th scope="col">Ano</th>
+            <th scope="col"><%= it.rotulos.turma %></th>
+            <th scope="col"><%= it.rotulos.ano %></th>
             <th scope="col">Data</th>
+<% // magic-values: permitido — "Situação" é a cabeça genérica de cinco colunas com cinco vocabulários de estado diferentes; de propósito NÃO está em ROTULOS, e também não é o VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula que preenche a célula abaixo dela. Ver o bloco logo depois de ROTULOS em `src/web/constantes.ts` %>
             <th scope="col">Situação</th>
           </tr>
         </thead>
@@ -191,7 +218,7 @@ const ativa = it.ativa ?? null;
       </table>
     </div>
     <%~ include(it.parciais.paginacao, {
-      navegacao: it.navegacaoMatriculas, rotulo: 'matrículas'
+      navegacao: it.navegacaoMatriculas, rotulo: it.contagem.matricula.plural
     }) %>
 
     <div class="acoes">

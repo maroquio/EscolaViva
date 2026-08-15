@@ -14,38 +14,54 @@
 */
 
 /*
-  O limite do parentesco, o rótulo da opção em branco, o valor que a caixa envia quando marcada e os
-  sufixos de id chegam prontos pelo `it`. O dono do tamanho é `LIMITES.parentesco.descricao`
+  O limite do parentesco, o rótulo da opção em branco e o valor que a caixa envia quando marcada
+  chegam prontos pelo `it`. O dono do tamanho é `LIMITES.parentesco.descricao`
   (`src/academico/constantes.ts`), que `vincularResponsavel` faz valer com
   `MENSAGENS.vinculo.parentescoLongo`; o `maxlength` só adianta a recusa no navegador. `it.marcado` é
   `MARCADO` (`src/web/constantes.ts`) — caixa desmarcada não é enviada pelo navegador, e é a ausência
-  do nome, não o valor, que o servidor lê como "não". `it.opcaoVazia` é `APRESENTACAO.opcaoVazia`, e
-  os sufixos são de `SUFIXOS_DE_ID`, os mesmos que `descricao()` usa do outro lado.
+  do nome, não o valor, que o servidor lê como "não". `it.opcaoVazia` é `APRESENTACAO.opcaoVazia`.
 
   Os dois rótulos de ação também: `it.titulos` — `TITULOS` (`src/web/constantes.ts`), o mesmo mapa de
   onde a rota tira o `it.titulo` do `<h1>`. O botão que envia carrega o título desta tela, e a saída
   do estado vazio carrega o título da tela de cadastro de responsável, que é para onde ela leva.
   Escritos à mão, renomear qualquer uma das duas telas deixaria a outra ponta chamando-a pelo nome
   antigo, e nada acusa: o botão continua funcionando com a legenda errada.
+
+  O sobretítulo compõe `it.areas.secretaria` com o `it.apresentacao.separador`, e os três rótulos de
+  saída — as duas voltas à ficha e o "Cancelar" do pé do formulário — saem de `it.acoes`: "Voltar à
+  ficha" nomeia o DESTINO e aparece em três telas, "Cancelar" nomeia o que se abandona e é a mesma
+  palavra nos doze formulários do sistema.
+
+  `campos` é `CAMPOS.vinculo` (`src/academico/constantes.ts`, alcançado pelo `CAMPOS` da camada web):
+  é o nome que ATRAVESSA arquivos — a rota lê o corpo por ele e `vincularResponsavel` devolve
+  `falhaDeCampo` com ele —, e é por isso que o `name=`, o `erroDe()`, o `descricao()` e o `valor()`
+  o leem daqui em vez de repetirem a string. Já o `id=` do controle e o `for=` do `<label>` continuam
+  escritos à mão:
+  // magic-values: permitido — id e for casam um com o outro dentro desta caixa e não atravessam
+  // arquivo; quem atravessa é o `name=`, e esse vem de `campos`.
+  Os ids do erro e da ajuda, ao contrário, atravessam: são o alvo do `aria-describedby` que
+  `descricao()` monta do outro lado, e por isso saem de `it.idDoErro` / `it.idDaAjuda`, as funções
+  que guardam a mesma regra que ela.
 */
 const aluno = it.aluno;
 const disponiveis = it.disponiveis ?? [];
 const temResponsaveis = it.temResponsaveis === true;
 const valores = it.valores ?? {};
-const { erroDe, descricao, sufixos } = it;
+const campos = it.campos.vinculo;
+const { erroDe, descricao } = it;
 
 const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valores[campo]);
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Secretaria · <%= aluno.nome %></p>
+    <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= aluno.nome %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       O responsável é quem recebe comunicado e acompanha boletim e frequência deste aluno.
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>">Voltar à ficha</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>"><%= it.acoes.voltarPara.ficha %></a>
   </div>
 </div>
 
@@ -60,7 +76,7 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
   </p>
   <div class="acoes">
     <a class="botao botao--primario" href="<%= it.rotas.secretaria.responsavelNovo() %>"><%= it.titulos.secretaria.responsavelNovo %></a>
-    <a class="botao botao--discreto" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>">Voltar à ficha</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>"><%= it.acoes.voltarPara.ficha %></a>
   </div>
   <% } else { %>
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.alunoResponsaveis({ id: aluno.id }) %>">
@@ -73,19 +89,19 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
         </label>
         <select
           id="responsavelId"
-          name="responsavelId"
+          name="<%= campos.responsavelId %>"
           required
-          <% if (erroDe('responsavelId') !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao('responsavelId') !== '') { %>aria-describedby="<%= descricao('responsavelId') %>"<% } %>>
+          <% if (erroDe(campos.responsavelId) !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao(campos.responsavelId) !== '') { %>aria-describedby="<%= descricao(campos.responsavelId) %>"<% } %>>
           <option value=""><%= it.opcaoVazia %></option>
           <% disponiveis.forEach((pessoa) => { %>
-          <option value="<%= pessoa.id %>" <%= valor('responsavelId', '') === pessoa.id ? 'selected' : '' %>>
+          <option value="<%= pessoa.id %>" <%= valor(campos.responsavelId, '') === pessoa.id ? 'selected' : '' %>>
             <%= pessoa.nome %> — <%= pessoa.email %>
           </option>
           <% }) %>
         </select>
-        <% if (erroDe('responsavelId') !== '') { %>
-        <p class="campo__erro" id="responsavelId<%= sufixos.erro %>"><%= erroDe('responsavelId') %></p>
+        <% if (erroDe(campos.responsavelId) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.responsavelId) %>"><%= erroDe(campos.responsavelId) %></p>
         <% } %>
       </div>
 
@@ -95,16 +111,16 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
         </label>
         <input
           id="parentesco"
-          name="parentesco"
+          name="<%= campos.parentesco %>"
           type="text"
           required
           maxlength="<%= it.limiteDoParentesco %>"
-          value="<%= valor('parentesco', '') %>"
-          <% if (erroDe('parentesco') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('parentesco', true) %>">
-        <p class="campo__ajuda" id="parentesco<%= sufixos.ajuda %>">Mãe, pai, avó, tutor legal.</p>
-        <% if (erroDe('parentesco') !== '') { %>
-        <p class="campo__erro" id="parentesco<%= sufixos.erro %>"><%= erroDe('parentesco') %></p>
+          value="<%= valor(campos.parentesco, '') %>"
+          <% if (erroDe(campos.parentesco) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.parentesco, true) %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.parentesco) %>">Mãe, pai, avó, tutor legal.</p>
+        <% if (erroDe(campos.parentesco) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.parentesco) %>"><%= erroDe(campos.parentesco) %></p>
         <% } %>
       </div>
     </div>
@@ -113,14 +129,14 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
       <div class="campo campo--opcao">
         <input
           id="financeiro"
-          name="financeiro"
+          name="<%= campos.financeiro %>"
           type="checkbox"
           value="<%= it.marcado %>"
-          <%= valor('financeiro', false) === true ? 'checked' : '' %>
-          aria-describedby="financeiro<%= sufixos.ajuda %>">
+          <%= valor(campos.financeiro, false) === true ? 'checked' : '' %>
+          aria-describedby="<%= it.idDaAjuda(campos.financeiro) %>">
         <label class="campo__rotulo" for="financeiro">Responsável financeiro</label>
       </div>
-      <p class="campo__ajuda" id="financeiro<%= sufixos.ajuda %>">
+      <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.financeiro) %>">
         Marque quem responde pela cobrança. O aluno pode ter mais de um responsável, e apenas um
         deles precisa ser o financeiro.
       </p>
@@ -128,7 +144,7 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit"><%= it.titulos.secretaria.vincularResponsavel %></button>
-      <a class="botao botao--discreto" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>"><%= it.acoes.cancelar %></a>
     </div>
   </form>
   <% } %>

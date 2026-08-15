@@ -18,6 +18,16 @@
   `it.rotas`. Escrito à mão, o painel ficava livre para chamar a tela de "Unidades" aqui e de outra
   coisa no `<h1>` que o clique abre — a mesma divergência silenciosa que o menu já não tem.
 
+  O sobretítulo também não é escrito: "Rede" é o nome da ÁREA, o mesmo rótulo que
+  `parciais/_navegacao.eta` põe no grupo do menu, e chega aqui em `it.areas`. O sobretítulo existe
+  justamente para dizer em que parte do menu a pessoa está — escrito à mão, renomear o grupo no menu
+  deixaria o cabeçalho chamando o mesmo lugar por outro nome.
+
+  Os três `<dt>` do ano em vigor saem de `it.rotulos`, que é o nome que um DADO tem na tela, seja no
+  `<th>` de uma coluna, no `<dt>` de uma ficha ou no `<label>` da caixa que edita esse mesmo dado.
+  `rotulos.ano` é o NÚMERO do ano — que é o que o `<dd class="numero">` ao lado mostra —, e não a
+  entidade ano letivo, que é `rotulos.anoLetivo` e é o que os filtros da secretaria escolhem.
+
   Os outros dois cartões NÃO são link, e por isso continuam com o rótulo escrito. "Turmas" e
   "Matriculados" nomeiam uma CONTAGEM desta rede, não uma tela: coincidem com
   `TITULOS.secretaria.turmas` por serem a mesma palavra do domínio, e não a mesma decisão —
@@ -33,7 +43,7 @@ const anoNoRotulo = anoLetivo === null ? 'sem ano letivo' : 'ano letivo ' + anoL
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Rede</p>
+    <p class="sobretitulo"><%= it.areas.rede %></p>
     <h1 class="pagina__titulo"><%= rede %></h1>
     <p class="pagina__resumo">
       A rede é o contorno de tudo o que este sistema mostra: nenhuma consulta atravessa para outra
@@ -95,11 +105,11 @@ const anoNoRotulo = anoLetivo === null ? 'sem ano letivo' : 'ano letivo ' + anoL
   <% } else { %>
   <div class="quadro">
     <dl class="lista-definicoes">
-      <dt>Ano</dt>
+      <dt><%= it.rotulos.ano %></dt>
       <dd class="numero"><%= anoLetivo.ano %></dd>
-      <dt>Início</dt>
+      <dt><%= it.rotulos.inicio %></dt>
       <dd class="numero"><%= it.formatarData(anoLetivo.dataInicio) %></dd>
-      <dt>Término</dt>
+      <dt><%= it.rotulos.termino %></dt>
       <dd class="numero"><%= it.formatarData(anoLetivo.dataFim) %></dd>
     </dl>
   </div>

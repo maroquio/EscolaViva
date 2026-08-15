@@ -26,11 +26,33 @@
   chamando-a pelo nome antigo, e nada acusa: o botão continua levando ao lugar certo com a legenda
   errada.
 */
+/*
+  O vocabulário de tela vem todo de `src/web/constantes.ts`, por `render.ts`, e cada mapa responde a
+  uma pergunta diferente:
+
+    `it.areas.secretaria`  — o sobretítulo. É o nome do GRUPO no menu (`parciais/_navegacao.eta`), e
+                             está aqui para dizer em que parte do menu a pessoa está. Renomear o
+                             grupo e esquecer esta tela faria o sistema chamar o mesmo lugar por dois
+                             nomes.
+    `it.acoes.buscarAluno` — o atalho para a busca. Três telas chamam a MESMA busca: o painel da
+                             secretaria, esta lista e o estado vazio da turma.
+    `it.rotulos.*`         — o nome do dado no alto da coluna. "CPF" e "E-mail" encabeçam a mesma
+                             coisa aqui, na lista de usuários e no formulário que a edita.
+    `it.contagem.responsavel` + `it.pluralizar` — o substantivo CONTADO, minúsculo, que vai depois do
+                             número ("3 responsáveis") e no rótulo da barra de paginação. É outra
+                             decisão que `it.rotulos.responsavel`: aquele nomeia a coluna, este é
+                             lido em voz corrida no meio de uma frase.
+
+  Duas colunas continuam escritas à mão de propósito. "Telefone" não é membro de `ROTULOS`: aparece
+  uma vez em todo o sistema, e um dono para uma ocorrência só promete uma repetição que não existe.
+  "Responsáveis cadastrados nesta rede", no `<caption>`, e "Cadastrados na rede", no `<h2>`, são
+  frase desta tela e não nome de dado.
+*/
 const responsaveis = it.responsaveis ?? [];
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Secretaria</p>
+    <p class="sobretitulo"><%= it.areas.secretaria %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Quem recebe comunicado e acompanha boletim e frequência. Depois de cadastrar, vincule o
@@ -38,7 +60,7 @@ const responsaveis = it.responsaveis ?? [];
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.alunos() %>">Buscar aluno</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.alunos() %>"><%= it.acoes.buscarAluno %></a>
     <a class="botao botao--primario" href="<%= it.rotas.secretaria.responsavelNovo() %>"><%= it.titulos.secretaria.responsavelNovo %></a>
   </div>
 </div>
@@ -49,7 +71,7 @@ const responsaveis = it.responsaveis ?? [];
     <p class="secao__nota">
       <% const quantos = it.navegacao === undefined ? responsaveis.length : it.navegacao.total; %>
       <span class="numero"><%= quantos %></span>
-      <%= quantos === 1 ? 'responsável' : 'responsáveis' %>
+      <%= it.pluralizar(quantos, it.contagem.responsavel) %>
     </p>
   </div>
 
@@ -65,9 +87,9 @@ const responsaveis = it.responsaveis ?? [];
       <caption>Responsáveis cadastrados nesta rede</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-elastica">Responsável</th>
-          <th scope="col" class="celula-centro">CPF</th>
-          <th scope="col" class="celula-texto">E-mail</th>
+          <th scope="col" class="celula-elastica"><%= it.rotulos.responsavel %></th>
+          <th scope="col" class="celula-centro"><%= it.rotulos.cpf %></th>
+          <th scope="col" class="celula-texto"><%= it.rotulos.email %></th>
           <th scope="col" class="celula-centro">Telefone</th>
         </tr>
       </thead>
@@ -83,6 +105,6 @@ const responsaveis = it.responsaveis ?? [];
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'responsáveis' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.responsavel.plural }) %>
   <% } %>
 </section>

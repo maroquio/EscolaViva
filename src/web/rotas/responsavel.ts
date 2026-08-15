@@ -17,7 +17,7 @@
  */
 
 import { Hono, type Context } from 'hono';
-import { academico, type Matricula } from '../../academico';
+import { VOCABULARIO_DO_ACADEMICO, academico, type Matricula } from '../../academico';
 import {
   APROVACAO,
   ARITMETICA,
@@ -72,6 +72,17 @@ const PARCIAIS = { parciais: TEMPLATES.parciais };
 const ROTULOS_DA_AVALIACAO = {
   rotuloDaSituacao: VOCABULARIO_DA_AVALIACAO.situacaoFinal,
   rotuloDaPresenca: VOCABULARIO_DA_AVALIACAO.presenca,
+};
+
+/**
+ * A situação da MATRÍCULA — "Ativa", "Transferida" — é outro vocabulário, de outro dono: quem
+ * acrescenta uma situação é `academico`, não `avaliacao`. As duas se chamam "situação" na tela e
+ * nada mais têm em comum, então o painel recebe esta e o boletim recebe aquela. Enquanto as quatro
+ * palavras estavam redigitadas no `.eta`, uma situação nova nascia aparecendo como código cru na
+ * tabela, sem que nada acusasse.
+ */
+const ROTULOS_DO_ACADEMICO = {
+  rotuloDaSituacao: VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula,
 };
 
 /**
@@ -134,6 +145,7 @@ rotasResponsavel.get(ROTAS.responsavel.painel.padrao, async (c) => {
   if (responsavelId === null) {
     return renderizar(c, TEMPLATES.responsavel.painel, {
       ...PARCIAIS,
+      ...ROTULOS_DO_ACADEMICO,
       titulo: TITULOS.responsavel.painel,
       matriculas: [],
       navegacao: navegacao(c, paginaVazia<Matricula>()),
@@ -151,6 +163,7 @@ rotasResponsavel.get(ROTAS.responsavel.painel.padrao, async (c) => {
 
   return renderizar(c, TEMPLATES.responsavel.painel, {
     ...PARCIAIS,
+    ...ROTULOS_DO_ACADEMICO,
     titulo: TITULOS.responsavel.painel,
     matriculas: pagina.itens,
     navegacao: navegacao(c, pagina),

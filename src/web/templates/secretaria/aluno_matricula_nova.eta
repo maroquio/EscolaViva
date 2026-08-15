@@ -14,11 +14,30 @@
 */
 
 /*
-  O travessão da célula sem valor, o rótulo da opção em branco e os sufixos de id chegam prontos
-  pelo `it`: são de `AUSENTE` (`src/shared/constantes.ts`), de `APRESENTACAO.opcaoVazia` e de
-  `SUFIXOS_DE_ID` (`src/web/constantes.ts`). O Eta não importa TypeScript, e reescrevê-los aqui
-  criaria uma segunda decisão ao lado da do dono — no caso dos sufixos, um id apontado pelo
-  `aria-describedby` que `descricao()` monta e que esta página não escreveria igual.
+  O travessão da célula sem valor e o rótulo da opção em branco chegam prontos pelo `it`: são de
+  `AUSENTE` (`src/shared/constantes.ts`) e de `APRESENTACAO.opcaoVazia` (`src/web/constantes.ts`).
+  O Eta não importa TypeScript, e reescrevê-los aqui criaria uma segunda decisão ao lado da do dono.
+
+  Os quatro nomes de campo saem de `it.campos.matricula` — o `CAMPOS.matricula` de `src/academico`,
+  o MESMO mapa por onde a rota lê o corpo do POST e por onde `matricular.ts` devolve a falha. É o
+  nome que ATRAVESSA os três arquivos: divergindo, o campo chega vazio ao servidor, que recusa por
+  obrigatório o que a secretaria acabou de preencher, e o texto do erro aparece embaixo da caixa
+  errada. Não é `CAMPOS.alocacao.turmaId` nem `CAMPOS.turma.anoLetivoId`, que hoje se escrevem
+  igual: aqueles são os campos de OUTROS dois formulários, e renomear um não renomeia este.
+
+  O `id` da caixa e o `for` do rótulo continuam escritos à mão. Eles casam um com o outro dentro das
+  mesmas seis linhas e ninguém de fora deste arquivo os lê — `for="turmaId"` ao lado de
+  `id="turmaId"` é o HTML mais legível que se pode mostrar. Já o `id` do parágrafo de erro e o do de
+  ajuda são apontados de fora: são o outro lado do `aria-describedby` que `descricao()` monta em
+  `render.ts`, e por isso saem de `it.idDoErro()` e `it.idDaAjuda()`. Escritos à mão, o atributo
+  passaria a apontar para um id inexistente — a caixa recusa, o texto aparece na tela e o leitor de
+  tela não lê nenhum dos dois. Nada falha, e quem enxerga não percebe.
+
+  O sobretítulo, os três rótulos de saída e os nomes dos dados também têm dono, e pelo mesmo motivo:
+  `it.areas.secretaria` é o nome do grupo no menu (renomeá-lo e esquecer esta tela deixaria menu e
+  cabeçalho chamando o mesmo lugar por dois nomes), `it.acoes.voltarPara.ficha` e `it.acoes.cancelar`
+  são a mesma decisão de produto repetida em doze formulários, e `it.rotulos.turma` e
+  `it.rotulos.anoLetivo` nomeiam aqui o mesmo dado que encabeça as colunas das listas.
 
   O atalho do estado vazio se rotula com o título da tela para onde leva: `it.titulos` — `TITULOS`
   (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` da tela de cadastro de
@@ -33,7 +52,8 @@ const aluno = it.aluno;
 const turmas = it.turmas ?? [];
 const anosLetivos = it.anosLetivos ?? [];
 const valores = it.valores ?? {};
-const { erroDe, descricao, sufixos } = it;
+const campos = it.campos.matricula;
+const { erroDe, descricao } = it;
 
 const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valores[campo]);
 
@@ -55,14 +75,14 @@ const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Secretaria · <%= aluno.nome %></p>
+    <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= aluno.nome %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Um aluno tem, no máximo, uma matrícula ativa por ano letivo.
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= fichaDoAluno %>">Voltar à ficha</a>
+    <a class="botao botao--secundario" href="<%= fichaDoAluno %>"><%= it.acoes.voltarPara.ficha %></a>
   </div>
 </div>
 
@@ -71,62 +91,62 @@ const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
   <p class="suave leitura">Não há turma disponível nas suas unidades.</p>
   <div class="acoes">
     <a class="botao botao--primario" href="<%= it.rotas.secretaria.turmaNova() %>"><%= it.titulos.secretaria.turmaNova %></a>
-    <a class="botao botao--discreto" href="<%= fichaDoAluno %>">Voltar à ficha</a>
+    <a class="botao botao--discreto" href="<%= fichaDoAluno %>"><%= it.acoes.voltarPara.ficha %></a>
   </div>
   <% } else { %>
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.matriculas() %>">
     <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
-    <input type="hidden" name="alunoId" value="<%= aluno.id %>">
+    <input type="hidden" name="<%= campos.alunoId %>" value="<%= aluno.id %>">
 
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="turmaId">
-          Turma <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.turma %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
           id="turmaId"
-          name="turmaId"
+          name="<%= campos.turmaId %>"
           required
-          <% if (erroDe('turmaId') !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao('turmaId') !== '') { %>aria-describedby="<%= descricao('turmaId') %>"<% } %>>
+          <% if (erroDe(campos.turmaId) !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao(campos.turmaId) !== '') { %>aria-describedby="<%= descricao(campos.turmaId) %>"<% } %>>
           <option value=""><%= it.opcaoVazia %></option>
           <% grupos.forEach((grupo) => { %>
-          <optgroup label="Ano letivo <%= grupo.ano === null ? it.semValor : grupo.ano %>">
+          <optgroup label="<%= it.rotulos.anoLetivo %> <%= grupo.ano === null ? it.semValor : grupo.ano %>">
             <% grupo.turmas.forEach((turma) => { %>
-            <option value="<%= turma.id %>" <%= valor('turmaId', '') === turma.id ? 'selected' : '' %>>
+            <option value="<%= turma.id %>" <%= valor(campos.turmaId, '') === turma.id ? 'selected' : '' %>>
               <%= turma.nome %> · <%= turma.serie %> · <%= turma.turno %> · <%= turma.unidadeNome %>
             </option>
             <% }) %>
           </optgroup>
           <% }) %>
         </select>
-        <% if (erroDe('turmaId') !== '') { %>
-        <p class="campo__erro" id="turmaId<%= sufixos.erro %>"><%= erroDe('turmaId') %></p>
+        <% if (erroDe(campos.turmaId) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.turmaId) %>"><%= erroDe(campos.turmaId) %></p>
         <% } %>
       </div>
 
       <div class="campo">
         <label class="campo__rotulo" for="anoLetivoId">
-          Ano letivo <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.anoLetivo %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
           id="anoLetivoId"
-          name="anoLetivoId"
+          name="<%= campos.anoLetivoId %>"
           required
-          <% if (erroDe('anoLetivoId') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('anoLetivoId', true) %>">
+          <% if (erroDe(campos.anoLetivoId) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.anoLetivoId, true) %>">
           <option value=""><%= it.opcaoVazia %></option>
           <% anosLetivos.forEach((anoLetivo) => { %>
-          <option value="<%= anoLetivo.id %>" <%= valor('anoLetivoId', '') === anoLetivo.id ? 'selected' : '' %>>
+          <option value="<%= anoLetivo.id %>" <%= valor(campos.anoLetivoId, '') === anoLetivo.id ? 'selected' : '' %>>
             <%= anoLetivo.ano %>
           </option>
           <% }) %>
         </select>
-        <p class="campo__ajuda" id="anoLetivoId<%= sufixos.ajuda %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.anoLetivoId) %>">
           Precisa ser o mesmo ano da turma escolhida — o servidor recusa o par que não fecha.
         </p>
-        <% if (erroDe('anoLetivoId') !== '') { %>
-        <p class="campo__erro" id="anoLetivoId<%= sufixos.erro %>"><%= erroDe('anoLetivoId') %></p>
+        <% if (erroDe(campos.anoLetivoId) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.anoLetivoId) %>"><%= erroDe(campos.anoLetivoId) %></p>
         <% } %>
       </div>
 
@@ -136,21 +156,21 @@ const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
         </label>
         <input
           id="dataMatricula"
-          name="dataMatricula"
+          name="<%= campos.dataMatricula %>"
           type="date"
           required
-          value="<%= valor('dataMatricula', it.hoje) %>"
-          <% if (erroDe('dataMatricula') !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao('dataMatricula') !== '') { %>aria-describedby="<%= descricao('dataMatricula') %>"<% } %>>
-        <% if (erroDe('dataMatricula') !== '') { %>
-        <p class="campo__erro" id="dataMatricula<%= sufixos.erro %>"><%= erroDe('dataMatricula') %></p>
+          value="<%= valor(campos.dataMatricula, it.hoje) %>"
+          <% if (erroDe(campos.dataMatricula) !== '') { %>aria-invalid="true"<% } %>
+          <% if (descricao(campos.dataMatricula) !== '') { %>aria-describedby="<%= descricao(campos.dataMatricula) %>"<% } %>>
+        <% if (erroDe(campos.dataMatricula) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.dataMatricula) %>"><%= erroDe(campos.dataMatricula) %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Matricular</button>
-      <a class="botao botao--discreto" href="<%= fichaDoAluno %>">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= fichaDoAluno %>"><%= it.acoes.cancelar %></a>
     </div>
   </form>
   <% } %>

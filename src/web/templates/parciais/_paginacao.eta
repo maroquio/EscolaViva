@@ -23,10 +23,16 @@
 */
 
 /*
-  Espelho de `PAGINACAO.rotuloPadrao` (`src/web/constantes.ts`), e não uma segunda decisão: o Eta
-  não importa TypeScript e a parcial só enxerga o que o ponto de chamada passa. Todas as inclusões
-  de hoje informam o `rotulo`; este é o texto de socorro para a que esquecer.
+  Espelho de `PAGINACAO.rotuloPadrao` (`src/web/constantes.ts`), e não uma segunda decisão. É a
+  única cópia que este refactor não conseguiu apagar, e a razão é estrutural: o Eta não importa
+  TypeScript, e `include` NÃO herda o `it` de quem inclui — a parcial enxerga exatamente o objeto
+  do ponto de chamada, e nada do contexto onde `render.ts` injeta as constantes da camada web.
+  Não há, portanto, dono a consumir daqui.
+
+  Todas as inclusões de hoje informam o `rotulo`; este é o texto de socorro para a que esquecer —
+  sem ele, a barra anunciaria "de 12 undefined" para quem usa leitor de tela.
 */
+// magic-values: permitido — este 'itens' É PAGINACAO.rotuloPadrao, e não outro conceito que coincide por valor; a parcial não tem como consumi-lo, pelo motivo acima.
 const ROTULO_PADRAO = 'itens';
 
 const nav = it.navegacao ?? null;

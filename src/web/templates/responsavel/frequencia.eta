@@ -62,9 +62,20 @@ const situacaoDoDia = (dia) => {
 %>
 <header class="pagina__cabecalho">
   <div>
+<%
+// O sobretítulo das telas internas do responsável nomeia o DOCUMENTO que a pessoa abriu — "Boletim"
+// no boletim, "Comunicado" no comunicado, "Frequência" aqui —, e não a área do menu: quem imprime
+// `it.areas.acompanhamento` são as duas telas de fora, o painel e o mural.
+// magic-values: permitido — não é `it.rotulos.frequencia`, que nomeia o PERCENTUAL do cartão, nem `it.areas.acompanhamento`. %>
     <p class="sobretitulo">Frequência</p>
     <h1 class="pagina__titulo"><%= it.matricula.alunoNome %></h1>
     <p class="pagina__resumo">
+<%
+// A linha abaixo é uma FRASE, e não uma sequência de rótulos: "Turma 5º A · ano letivo 2026" se lê
+// de uma vez, em voz corrida, com o ano num `<span>` à parte porque a folha de estilo o destaca.
+// Só o separador tem dono (`it.apresentacao.separador`); trocar só ele partiria a sentença em
+// pedaços que ninguém mais lê como sentença, que é o que a regra de legibilidade recusa.
+// magic-values: permitido — "Turma" não é `it.rotulos.turma` (o `<th>` da coluna) e "ano letivo" não é `it.rotulos.anoLetivo` (o rótulo do filtro). %>
       Turma <%= it.matricula.turmaNome %> · ano letivo
       <span class="numero"><%= it.matricula.ano %></span>
     </p>
@@ -72,7 +83,7 @@ const situacaoDoDia = (dia) => {
   <p class="pagina__acoes">
     <a class="botao botao--secundario"
        href="<%= it.rotas.responsavel.boletim({ id: it.matricula.id }) %>">Ver boletim</a>
-    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.painel() %>">Voltar aos alunos</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.painel() %>"><%= it.acoes.voltarPara.alunos %></a>
   </p>
 </header>
 
@@ -84,7 +95,7 @@ const situacaoDoDia = (dia) => {
 
   <div class="painel">
     <div class="cartao">
-      <p class="cartao__rotulo">Frequência</p>
+      <p class="cartao__rotulo"><%= it.rotulos.frequencia %></p>
       <p class="cartao__numero"><%= it.formatarPercentual(boletim.percentualFrequencia) %></p>
       <p class="cartao__detalhe">Presenças sobre dias com chamada</p>
     </div>
@@ -123,6 +134,14 @@ const situacaoDoDia = (dia) => {
       <thead>
         <tr>
           <th scope="col" class="celula-centro">Data</th>
+<%
+// "Situação" encabeça cinco colunas do sistema, e cada uma mostra um vocabulário fechado diferente,
+// de quatro módulos. Esta mostra `VOCABULARIO_DA_AVALIACAO.presenca` — Presente, Falta, Falta
+// justificada —, e nenhuma das outras quatro: unidade, usuário, matrícula e boletim têm as suas.
+// Um dono único prometeria que as cinco mudam juntas, e decidir que ESTA coluna passa a dizer
+// "Presença" não pode renomear a coluna da lista de unidades. Ver o bloco logo abaixo de `ROTULOS`,
+// em `web/constantes.ts`, onde a decisão está escrita por inteiro.
+// magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; por isso não é membro de `it.rotulos`. %>
           <th scope="col" class="celula-centro">Situação</th>
           <th scope="col" class="celula-texto celula-elastica">Justificativa</th>
         </tr>

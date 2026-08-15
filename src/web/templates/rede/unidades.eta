@@ -21,6 +21,13 @@
 
   Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
   `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
+
+  O sobretítulo é `it.areas.rede` (`AREAS`, em `web/constantes.ts`): a mesma palavra rotula o grupo
+  no menu, e ela está aqui só para dizer em que parte dele a pessoa está. O cabeçalho da primeira
+  coluna é `it.rotulos.unidade`, o nome que este dado tem em toda tela — no filtro da lista de
+  turmas, no `<label>` do convite, aqui. E o rótulo da paginação é `it.contagem.unidade.plural`, o
+  substantivo que vem depois de um número: é outra decisão que o título "Unidades" da tela, ainda
+  que hoje as duas palavras se pareçam — encurtar o cabeçalho não encurta a frase contada.
 */
 const unidades = it.unidades ?? [];
 
@@ -40,7 +47,7 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Rede</p>
+    <p class="sobretitulo"><%= it.areas.rede %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Cada escola da rede é uma unidade. Papéis, turmas e comunicados existem sempre dentro de
@@ -70,8 +77,9 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
       <caption>Unidades cadastradas</caption>
       <thead>
         <tr>
-          <th scope="col">Unidade</th>
+          <th scope="col"><%= it.rotulos.unidade %></th>
           <th scope="col">Código INEP</th>
+<% // magic-values: permitido — cabeça genérica de CINCO vocabulários de estado diferentes (aqui o `VOCABULARIO_DE_IDENTIDADE.unidadeAtiva`, que preenche a célula abaixo; nas outras telas, usuário, matrícula, presença e situação final). Não é um `ROTULOS.situacao`: um dono único prometeria que as cinco colunas se renomeiam juntas, e decidir que a tabela de frequência passa a dizer "Presença" não pode renomear esta. Ver o bloco abaixo de ROTULOS em `web/constantes.ts` %>
           <th scope="col">Situação</th>
         </tr>
       </thead>
@@ -88,6 +96,6 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'unidades' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.unidade.plural }) %>
   <% } %>
 </section>

@@ -16,19 +16,41 @@
   mensagem também não: `it.linhasDaMensagem` chega da rota, onde a decisão está nomeada e o
   compilador a enxerga.
 */
+
+/*
+  Os nomes de campo e os auxiliares de erro chegam de fora, e pelo mesmo motivo: o `.eta` não passa
+  pelo compilador, e as duas pontas de cada contrato moram em outro arquivo.
+
+  `it.campos.comunicado` é o `CAMPOS` do módulo de comunicação — o mesmo mapa que a rota usa para ler
+  o corpo do formulário e que o caso de uso devolve em `falhaDeCampo`. Um `name=` redigitado faz o
+  campo chegar vazio ao servidor, que recusa por obrigatório o que a pessoa acabou de preencher.
+
+  `it.alcances` é o `ALCANCE` do mesmo módulo, e é o par do `name=`: o `campos.alcance` diz COMO o
+  valor se chama, `alcances` diz QUAIS valores existem. Os dois rádios abaixo escrevem um deles no
+  `value` e o releem no `checked`, e é o mesmo par que a rota compara para decidir se o comunicado
+  vai à unidade inteira ou só aos marcados. Escrever "selecionados" errado aqui não quebra nada
+  visível: o envio cai silenciosamente no outro alcance.
+
+  `erroDe` e `descricao` vêm de `render.ts`, já fechados sobre os erros DESTE render, e substituem o
+  par que este arquivo mantinha à mão — era a única tela do sistema com cópia própria dos dois.
+  `idDoErro` e `idDaAjuda` são a outra ponta do que `descricao` promete no `aria-describedby`:
+  escrever "-erro" aqui faria a lista apontar para um id inexistente, e nada falharia — só quem usa
+  leitor de tela deixaria de ouvir a mensagem que está na tela.
+
+  O `id` da caixa e o `for` do rótulo continuam literais de propósito: casam um com o outro dentro
+  das mesmas seis linhas, ninguém de fora os lê, e `for="titulo"` ao lado de `id="titulo"` é o HTML
+  mais legível que um aluno pode encontrar.
+*/
 const valores = it.valores;
 const responsaveis = it.responsaveis;
 const selecionados = new Set(valores.selecionados);
-
-const erroDe = (campo) => (it.erros ?? []).find((problema) => problema.campo === campo) ?? null;
-
-/* Junta a ajuda do campo e a mensagem de erro no mesmo `aria-describedby`, nessa ordem. */
-const descricaoDe = (campo, ajudaId) =>
-  [ajudaId, erroDe(campo) === null ? '' : campo + '-erro'].filter((id) => id !== '').join(' ');
+const campos = it.campos.comunicado;
+const alcances = it.alcances;
+const { erroDe, descricao, idDoErro, idDaAjuda } = it;
 %>
 <header class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Comunicação</p>
+    <p class="sobretitulo"><%= it.areas.comunicacao %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       O comunicado aparece no mural dos responsáveis escolhidos, e a leitura de cada um passa a ser
@@ -36,7 +58,7 @@ const descricaoDe = (campo, ajudaId) =>
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="<%= it.rotas.comunicados.lista() %>">Voltar aos comunicados</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.comunicados.lista() %>"><%= it.acoes.voltarPara.comunicados %></a>
   </p>
 </header>
 
@@ -48,7 +70,7 @@ const descricaoDe = (campo, ajudaId) =>
   </div>
 
   <% if (it.unidades.length === 0) { %>
-    <%~ include("/parciais/_vazio", {
+    <%~ include(it.parciais.vazio, {
       titulo: 'Nenhuma unidade ativa ao seu alcance',
       texto: 'Comunicado é sempre de uma unidade para os responsáveis dela. Peça ao administrador da rede uma unidade ativa com o seu papel.',
     }) %>
@@ -56,21 +78,34 @@ const descricaoDe = (campo, ajudaId) =>
   <form class="formulario" method="get" action="<%= it.rotas.comunicados.novo() %>">
     <div class="campo">
       <label class="campo__rotulo" for="unidadeId">
-        Unidade <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        <%= it.rotulos.unidade %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
+<%
+/*
+  O `name` deste `<select>` NÃO é `CAMPOS.comunicado.unidadeId`. Aquele é o campo do CORPO do POST, e
+  aparece no passo 2, no `input` oculto. Este formulário é GET: o que o `name` monta é o parâmetro de
+  QUERY que a rota lê em `PARAMETROS.unidadeId` — outra decisão, de outro mapa, que hoje se escreve
+  igual por coincidência. `PARAMETROS` não chega ao template, e apontar para o mapa errado só porque
+  os dois valem "unidadeId" hoje seria juntar por valor o que está separado por conceito.
+
+  O ERRO do campo, esse sim, é chaveado por `campos.unidadeId`: quem o emite é
+  `ERROS_DE_FORMULARIO.unidadeAusente`, e o `campo` dele vem de `CAMPOS.comunicado.unidadeId`.
+*/
+%>
+<% // magic-values: permitido — é o parâmetro de query PARAMETROS.unidadeId (formulário GET), e não CAMPOS.comunicado.unidadeId; ver o bloco acima %>
       <select id="unidadeId" name="unidadeId" required
-              aria-describedby="<%= descricaoDe('unidadeId', 'unidadeId-ajuda') %>"
-              <% if (erroDe('unidadeId') !== null) { %>aria-invalid="true"<% } %>>
+              aria-describedby="<%= descricao(campos.unidadeId, true) %>"
+              <% if (erroDe(campos.unidadeId) !== '') { %>aria-invalid="true"<% } %>>
         <option value="">Escolha a unidade</option>
         <% it.unidades.forEach((unidade) => { %>
         <option value="<%= unidade.id %>"><%= unidade.nome %></option>
         <% }) %>
       </select>
-      <p class="campo__ajuda" id="unidadeId-ajuda">
+      <p class="campo__ajuda" id="<%= idDaAjuda(campos.unidadeId) %>">
         Só aparecem as unidades ativas em que você tem papel.
       </p>
-      <% if (erroDe('unidadeId') !== null) { %>
-      <p class="campo__erro" id="unidadeId-erro"><%= erroDe('unidadeId').mensagem %></p>
+      <% if (erroDe(campos.unidadeId) !== '') { %>
+      <p class="campo__erro" id="<%= idDoErro(campos.unidadeId) %>"><%= erroDe(campos.unidadeId) %></p>
       <% } %>
     </div>
 
@@ -85,28 +120,28 @@ const descricaoDe = (campo, ajudaId) =>
   <div class="secao__cabecalho">
     <h2 id="titulo-mensagem">Passo 2 · Mensagem</h2>
     <p class="secao__nota">
-      Unidade <strong><%= it.unidade.nome %></strong> ·
+      <%= it.rotulos.unidade %> <strong><%= it.unidade.nome %></strong> ·
       <a href="<%= it.rotas.comunicados.novo() %>">trocar unidade</a>
     </p>
   </div>
 
   <form class="formulario formulario--largo" method="post" action="<%= it.rotas.comunicados.novo() %>">
     <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
-    <input type="hidden" name="unidadeId" value="<%= it.unidade.id %>">
+    <input type="hidden" name="<%= campos.unidadeId %>" value="<%= it.unidade.id %>">
 
     <div class="campo leitura">
       <label class="campo__rotulo" for="titulo">
         Título <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
-      <input type="text" id="titulo" name="titulo" required
+      <input type="text" id="titulo" name="<%= campos.titulo %>" required
              value="<%= valores.titulo %>"
-             aria-describedby="<%= descricaoDe('titulo', 'titulo-ajuda') %>"
-             <% if (erroDe('titulo') !== null) { %>aria-invalid="true"<% } %>>
-      <p class="campo__ajuda" id="titulo-ajuda">
+             aria-describedby="<%= descricao(campos.titulo, true) %>"
+             <% if (erroDe(campos.titulo) !== '') { %>aria-invalid="true"<% } %>>
+      <p class="campo__ajuda" id="<%= idDaAjuda(campos.titulo) %>">
         É a linha que o responsável vê na lista do mural.
       </p>
-      <% if (erroDe('titulo') !== null) { %>
-      <p class="campo__erro" id="titulo-erro"><%= erroDe('titulo').mensagem %></p>
+      <% if (erroDe(campos.titulo) !== '') { %>
+      <p class="campo__erro" id="<%= idDoErro(campos.titulo) %>"><%= erroDe(campos.titulo) %></p>
       <% } %>
     </div>
 
@@ -114,24 +149,24 @@ const descricaoDe = (campo, ajudaId) =>
       <label class="campo__rotulo" for="corpo">
         Mensagem <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
-      <textarea id="corpo" name="corpo" required rows="<%= it.linhasDaMensagem %>"
-                <% if (erroDe('corpo') !== null) { %>aria-invalid="true"<% } %>
-                aria-describedby="<%= descricaoDe('corpo', 'corpo-ajuda') %>"><%= valores.corpo %></textarea>
-      <p class="campo__ajuda" id="corpo-ajuda">
+      <textarea id="corpo" name="<%= campos.corpo %>" required rows="<%= it.linhasDaMensagem %>"
+                <% if (erroDe(campos.corpo) !== '') { %>aria-invalid="true"<% } %>
+                aria-describedby="<%= descricao(campos.corpo, true) %>"><%= valores.corpo %></textarea>
+      <p class="campo__ajuda" id="<%= idDaAjuda(campos.corpo) %>">
         O texto aparece como foi digitado, com as quebras de linha preservadas.
       </p>
-      <% if (erroDe('corpo') !== null) { %>
-      <p class="campo__erro" id="corpo-erro"><%= erroDe('corpo').mensagem %></p>
+      <% if (erroDe(campos.corpo) !== '') { %>
+      <p class="campo__erro" id="<%= idDoErro(campos.corpo) %>"><%= erroDe(campos.corpo) %></p>
       <% } %>
     </div>
 
-    <fieldset aria-describedby="<%= descricaoDe('destinatarios', 'destinatarios-ajuda') %>">
-      <legend>Destinatários</legend>
+    <fieldset aria-describedby="<%= descricao(campos.destinatarios, true) %>">
+      <legend><%= it.rotulos.destinatarios %></legend>
 
       <div class="pilha">
         <div class="campo campo--opcao">
-          <input type="radio" id="alcance-unidade" name="alcance" value="unidade"
-                 <% if (valores.alcance === 'unidade') { %>checked<% } %>>
+          <input type="radio" id="alcance-unidade" name="<%= campos.alcance %>" value="<%= alcances.unidade %>"
+                 <% if (valores.alcance === alcances.unidade) { %>checked<% } %>>
           <label class="campo__rotulo" for="alcance-unidade">
             Todos os responsáveis da unidade
             (<span class="numero"><%= responsaveis.length %></span>)
@@ -139,23 +174,23 @@ const descricaoDe = (campo, ajudaId) =>
         </div>
 
         <div class="campo campo--opcao">
-          <input type="radio" id="alcance-selecionados" name="alcance" value="selecionados"
-                 <% if (valores.alcance === 'selecionados') { %>checked<% } %>>
+          <input type="radio" id="alcance-selecionados" name="<%= campos.alcance %>" value="<%= alcances.selecionados %>"
+                 <% if (valores.alcance === alcances.selecionados) { %>checked<% } %>>
           <label class="campo__rotulo" for="alcance-selecionados">
             Apenas os responsáveis marcados abaixo
           </label>
         </div>
 
-        <p class="campo__ajuda" id="destinatarios-ajuda">
+        <p class="campo__ajuda" id="<%= idDaAjuda(campos.destinatarios) %>">
           Enviar para toda a unidade alcança quem tiver aluno com matrícula ativa no dia do envio.
         </p>
 
-        <% if (erroDe('destinatarios') !== null) { %>
-        <p class="campo__erro" id="destinatarios-erro"><%= erroDe('destinatarios').mensagem %></p>
+        <% if (erroDe(campos.destinatarios) !== '') { %>
+        <p class="campo__erro" id="<%= idDoErro(campos.destinatarios) %>"><%= erroDe(campos.destinatarios) %></p>
         <% } %>
 
         <% if (responsaveis.length === 0) { %>
-          <%~ include("/parciais/_vazio", {
+          <%~ include(it.parciais.vazio, {
             titulo: 'Nenhum responsável nesta unidade',
             texto: 'Só recebe comunicado quem está vinculado a um aluno com matrícula ativa aqui. A secretaria faz esse vínculo na ficha do aluno.',
           }) %>
@@ -175,7 +210,7 @@ const descricaoDe = (campo, ajudaId) =>
           <% responsaveis.forEach((responsavel) => { %>
           <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-<%= responsavel.id %>"
-                   name="responsaveis[]" value="<%= responsavel.id %>"
+                   name="<%= campos.responsaveis %>" value="<%= responsavel.id %>"
                    <% if (selecionados.has(responsavel.id)) { %>checked<% } %>>
             <label class="campo__rotulo" for="responsavel-<%= responsavel.id %>">
               <%= responsavel.nome %>
@@ -189,7 +224,7 @@ const descricaoDe = (campo, ajudaId) =>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Publicar comunicado</button>
-      <a class="botao botao--discreto" href="<%= it.rotas.comunicados.lista() %>">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.comunicados.lista() %>"><%= it.acoes.cancelar %></a>
     </div>
   </form>
 </section>
@@ -203,12 +238,16 @@ const descricaoDe = (campo, ajudaId) =>
 
   Marcar todos também liga o rádio de seleção: caixa marcada com o alcance em "unidade" seria um
   clique sem efeito, já que o servidor ignora a lista quando o comunicado vai para a unidade toda.
+
+  O seletor das caixas é interpolado a partir de `campos.responsaveis`, e não redigitado: se ele
+  divergisse do `name=` acima, o botão deixaria de encontrar caixa nenhuma e ficaria escondido para
+  sempre — a página inteira continuaria de pé, e ninguém saberia que a comodidade sumiu.
 */
 %>
 <script>
   (() => {
     const botao = document.getElementById('marcar-todos');
-    const caixas = Array.from(document.querySelectorAll('input[name="responsaveis[]"]'));
+    const caixas = Array.from(document.querySelectorAll('input[name="<%= campos.responsaveis %>"]'));
     const alcanceSelecionados = document.getElementById('alcance-selecionados');
     if (botao === null || caixas.length === 0) return;
 

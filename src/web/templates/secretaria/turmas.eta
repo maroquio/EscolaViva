@@ -40,6 +40,27 @@
   filtro, e continuaria "Turmas" mesmo que a tela passasse a se chamar de outro jeito. São duas
   decisões, e ligá-las faria uma mudar por causa da outra.
 */
+
+/*
+  O sobretítulo sai de `it.areas` — `AREAS` (`src/web/constantes.ts`) —, o mesmo mapa de onde o menu
+  tira o nome do grupo em que esta tela mora: o sobretítulo existe justamente para dizer em que parte
+  do menu a pessoa está, e escrito à mão renomear o grupo deixaria a tela apontando para um lugar que
+  não se chama mais assim.
+
+  O nome de cada dado — o `<label>` do filtro e o `<th>` da coluna — sai de `it.rotulos` (`ROTULOS`,
+  mesmo arquivo). É UM mapa para as duas posições porque o que distingue as chaves é o significado, e
+  não onde a palavra aparece: esta tela é o exemplo citado no próprio `ROTULOS`. O filtro diz
+  "Ano letivo" (`rotulos.anoLetivo`) porque escolhe a ENTIDADE, e a coluna diz "Ano"
+  (`rotulos.ano`) porque mostra o NÚMERO — são dois rótulos de propósito. Já "Unidade" é o mesmo
+  rótulo no filtro e na coluna por decisão, e não por acaso: é o mesmo dado nas duas pontas.
+
+  "Série" e "Turno" continuam escritos aqui: aparecem uma vez cada e nenhuma outra tela os nomeia,
+  então não há duas pontas para manter juntas.
+
+  O substantivo contado — "1 turma" / "3 turmas", e o rótulo da paginação — sai de `it.contagem`
+  (`CONTAGEM`), pelo auxiliar `it.pluralizar`, que escolhe entre as duas metades do par. É outra
+  decisão que `rotulos.turma`: aquele nomeia a coluna, este é lido em voz corrida dentro da frase.
+*/
 const turmas = it.turmas ?? [];
 const unidades = it.unidades ?? [];
 const anosLetivos = it.anosLetivos ?? [];
@@ -50,7 +71,7 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Secretaria</p>
+    <p class="sobretitulo"><%= it.areas.secretaria %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       A turma pertence a uma unidade e a um ano letivo. É nela que se alocam as disciplinas com seus
@@ -67,7 +88,7 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
   <form class="formulario" method="get" action="<%= listaDeTurmas %>">
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="unidade">Unidade</label>
+        <label class="campo__rotulo" for="unidade"><%= it.rotulos.unidade %></label>
         <select id="unidade" name="<%= it.campoDaUnidade %>">
           <option value="">Todas as suas unidades</option>
           <% unidades.forEach((unidade) => { %>
@@ -79,7 +100,7 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="ano">Ano letivo</label>
+        <label class="campo__rotulo" for="ano"><%= it.rotulos.anoLetivo %></label>
         <select id="ano" name="<%= it.campoDoAno %>">
           <option value="">Todos os anos</option>
           <% anosLetivos.forEach((anoLetivo) => { %>
@@ -106,7 +127,7 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
     <% const quantas = it.navegacao === undefined ? turmas.length : it.navegacao.total; %>
     <p class="secao__nota">
       <span class="numero"><%= quantas %></span>
-      <%= quantas === 1 ? 'turma' : 'turmas' %><%= filtrando ? ' no filtro atual' : '' %>
+      <%= it.pluralizar(quantas, it.contagem.turma) %><%= filtrando ? ' no filtro atual' : '' %>
     </p>
   </div>
 
@@ -128,12 +149,12 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
       <caption>Turmas das unidades sob sua secretaria</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-centro">Turma</th>
+          <th scope="col" class="celula-centro"><%= it.rotulos.turma %></th>
           <th scope="col" class="celula-centro">Série</th>
           <th scope="col" class="celula-centro">Turno</th>
-          <th scope="col" class="celula-centro">Unidade</th>
-          <th scope="col" class="celula-centro">Ano</th>
-          <th scope="col" class="celula-centro">Ações</th>
+          <th scope="col" class="celula-centro"><%= it.rotulos.unidade %></th>
+          <th scope="col" class="celula-centro"><%= it.rotulos.ano %></th>
+          <th scope="col" class="celula-centro"><%= it.rotulos.acoes %></th>
         </tr>
       </thead>
       <tbody>
@@ -147,6 +168,7 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
           <td class="celula-centro">
             <div class="tabela__acoes">
               <a class="botao botao--secundario botao--miudo" href="<%= it.rotas.secretaria.turma({ id: turma.id }) %>">
+<% // magic-values: permitido — "turma" aqui é prosa do nome acessível do botão ("Abrir turma 3ºA"), irmã do "Abrir ficha de <nome>" das outras listas, e não CONTAGEM.turma.singular, que é o substantivo que vem DEPOIS DE UM NÚMERO em "1 turma" e na paginação. Consumir a contagem prometeria que encurtar a frase contada renomeia o botão, e são duas decisões %>
                 Abrir<span class="visualmente-oculto"> turma <%= turma.nome %></span>
               </a>
             </div>
@@ -156,6 +178,6 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'turmas' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.turma.plural }) %>
   <% } %>
 </section>

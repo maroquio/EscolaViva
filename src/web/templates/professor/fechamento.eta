@@ -26,6 +26,18 @@
   valor escrito nas duas pontas: ele chega em `it.prefixos.pendencia` (`PREFIXOS_DE_ID`, em
   `src/web/constantes.ts`), e o " · turno " do sobretítulo em `it.separadorDeTurno`. Escritos à
   mão, a próxima mudança acerta uma ponta e deixa a outra apontando para o vazio.
+
+  O mesmo vale para o TEXTO "1º bimestre", que esta tela escreve duas vezes — no título de cada
+  quadro e no botão que fecha aquele bimestre. Ele sai de `it.rotuloDeBimestre(n)`, cujo dono é
+  `ROTULO_DE_BIMESTRE` em `avaliacao`: quem decide o que é um bimestre é quem fecha um. O boletim,
+  o diário de notas e o `AVISOS.bimestreFechado` da camada web escrevem esse mesmo rótulo pelo
+  mesmo caminho. Redigitar `º bimestre` aqui faria o dia em que o produto passasse a dizer
+  "1º trimestre" chegar em quatro telas e faltar nesta.
+
+  A linha em branco depois desse rótulo, dentro do botão, não é descuido: o Eta come a quebra de
+  linha que vem logo após um `%>`, e sem ela o `</button>` subia para a mesma linha do texto no HTML
+  servido. É a mesma compensação que `_layout_publico.eta` faz no rodapé. No `<h2>` acima ela não é
+  necessária porque ali o `%>` é seguido pela tag de fechamento, e não pela quebra de linha.
 */
 const estados = it.estados ?? [];
 const turma = it.turma;
@@ -51,7 +63,7 @@ const disciplinas = turma.disciplinas ?? [];
   <% estados.forEach((estado) => { %>
   <li class="quadro">
     <div class="secao__cabecalho">
-      <h2><%= estado.bimestre %>º bimestre</h2>
+      <h2><%= it.rotuloDeBimestre(estado.bimestre) %></h2>
       <span class="etiqueta <%= estado.fechado ? 'etiqueta--aprovado' : 'etiqueta--em-curso' %>">
         <%= estado.fechado ? 'Fechado' : 'Aberto' %>
       </span>
@@ -88,7 +100,8 @@ const disciplinas = turma.disciplinas ?? [];
       <input type="hidden" name="<%= it.campoBimestre %>" value="<%= estado.bimestre %>">
       <button class="botao botao--primario" type="submit"
               <% if (it.bimestreRecusado === estado.bimestre) { %>aria-describedby="<%= it.prefixos.pendencia %><%= estado.bimestre %>"<% } %>>
-        Fechar <%= estado.bimestre %>º bimestre
+        Fechar <%= it.rotuloDeBimestre(estado.bimestre) %>
+
       </button>
       <span class="suave">A conferência é feita agora, com a página aberta.</span>
     </form>

@@ -12,14 +12,26 @@
 */
 
 /*
-  Os quatro limites e os sufixos de id chegam prontos pelo `it`, e por isso não há número nenhum
-  escrito nesta página. Os donos de três deles são `LIMITES.responsavel.nome`, `.email` e
-  `.telefone` (`src/academico/constantes.ts`), que `cadastrarResponsavel` faz valer com
+  Os quatro limites chegam prontos pelo `it`, e por isso não há número nenhum escrito nesta página.
+  Os donos de três deles são `LIMITES.responsavel.nome`, `.email` e `.telefone`
+  (`src/academico/constantes.ts`), que `cadastrarResponsavel` faz valer com
   `MENSAGENS.responsavel.nomeLongo`, `.emailLongo` e `.telefoneLongo`; o `maxlength` só adianta a
   recusa no navegador. O quarto é `TAMANHO_DO_CPF_COM_MASCARA` (`src/shared/constantes.ts`) — onze
   dígitos, dois pontos e um traço —, que limita o que cabe na caixa: quem decide se o CPF vale é
-  `shared/documento`, que aceita com ou sem pontuação. Os sufixos são de `SUFIXOS_DE_ID`, os mesmos
-  que `descricao()` usa para montar o `aria-describedby` do outro lado.
+  `shared/documento`, que aceita com ou sem pontuação.
+
+  `campos` é o apelido curto de `CAMPOS.responsavel` (`src/academico/constantes.ts`, que a camada web
+  reexporta em `it.campos`). É o nome que ATRAVESSA arquivos: o `name=` que o navegador envia, a
+  leitura do corpo em `web/rotas/secretaria.ts` e o `falhaDeCampo` que `cadastrarResponsavel` devolve
+  são a mesma palavra escrita em três lugares que nenhum compilador liga. Divergindo, o campo chega
+  vazio e o servidor recusa por obrigatório o que a pessoa acabou de preencher.
+
+  O `id` do `<input>` e o `for` do `<label>` continuam literais de propósito: casam um com o outro
+  dentro das mesmas seis linhas, nada fora deste arquivo os lê, e `for="cpf"` ao lado de `id="cpf"` é
+  o HTML mais legível que existe. Já o `id` do parágrafo de erro e o da ajuda saem de `it.idDoErro` e
+  `it.idDaAjuda` (`src/web/render.ts`), que são o OUTRO lado de `descricao()`: é para eles que o
+  `aria-describedby` aponta, e essa promessa atravessa daqui até o render. Escritos à mão, um id
+  divergente não falha em lugar nenhum — o leitor de tela apenas para de anunciar o erro.
 
   O rótulo do botão que envia é o título desta tela: `it.titulos` — `TITULOS`
   (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` do `<h1>` logo acima e de
@@ -28,7 +40,8 @@
   renomeá-la em um e esquecer os outros deixa a tela se chamando de dois jeitos, e nada acusa.
 */
 const valores = it.valores ?? {};
-const { erroDe, descricao, sufixos } = it;
+const { erroDe, descricao } = it;
+const campos = it.campos.responsavel;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -51,58 +64,58 @@ const { erroDe, descricao, sufixos } = it;
       </label>
       <input
         id="nome"
-        name="nome"
+        name="<%= campos.nome %>"
         type="text"
         required
         maxlength="<%= it.limiteDoNome %>"
         autocomplete="off"
         value="<%= valores.nome ?? '' %>"
-        <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
-        <% if (descricao('nome') !== '') { %>aria-describedby="<%= descricao('nome') %>"<% } %>>
-      <% if (erroDe('nome') !== '') { %>
-      <p class="campo__erro" id="nome<%= sufixos.erro %>"><%= erroDe('nome') %></p>
+        <% if (erroDe(campos.nome) !== '') { %>aria-invalid="true"<% } %>
+        <% if (descricao(campos.nome) !== '') { %>aria-describedby="<%= descricao(campos.nome) %>"<% } %>>
+      <% if (erroDe(campos.nome) !== '') { %>
+      <p class="campo__erro" id="<%= it.idDoErro(campos.nome) %>"><%= erroDe(campos.nome) %></p>
       <% } %>
     </div>
 
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="email">
-          E-mail <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.rotulos.email %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="email"
-          name="email"
+          name="<%= campos.email %>"
           type="email"
           required
           maxlength="<%= it.limiteDoEmail %>"
           autocomplete="off"
           value="<%= valores.email ?? '' %>"
-          <% if (erroDe('email') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('email', true) %>">
-        <p class="campo__ajuda" id="email<%= sufixos.ajuda %>">
+          <% if (erroDe(campos.email) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.email, true) %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.email) %>">
           Único na rede. É por ele que o responsável recebe comunicado — não é usado para entrar.
         </p>
-        <% if (erroDe('email') !== '') { %>
-        <p class="campo__erro" id="email<%= sufixos.erro %>"><%= erroDe('email') %></p>
+        <% if (erroDe(campos.email) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.email) %>"><%= erroDe(campos.email) %></p>
         <% } %>
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="cpf">CPF</label>
+        <label class="campo__rotulo" for="cpf"><%= it.rotulos.cpf %></label>
         <input
           id="cpf"
-          name="cpf"
+          name="<%= campos.cpf %>"
           type="text"
           maxlength="<%= it.limiteDoCpfComMascara %>"
           autocomplete="off"
           value="<%= valores.cpf ?? '' %>"
-          <% if (erroDe('cpf') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('cpf', true) %>">
-        <p class="campo__ajuda" id="cpf<%= sufixos.ajuda %>">
+          <% if (erroDe(campos.cpf) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.cpf, true) %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.cpf) %>">
           Opcional. Sem CPF a pessoa fica como contato e não recebe acesso ao portal.
         </p>
-        <% if (erroDe('cpf') !== '') { %>
-        <p class="campo__erro" id="cpf<%= sufixos.erro %>"><%= erroDe('cpf') %></p>
+        <% if (erroDe(campos.cpf) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.cpf) %>"><%= erroDe(campos.cpf) %></p>
         <% } %>
       </div>
 
@@ -110,23 +123,23 @@ const { erroDe, descricao, sufixos } = it;
         <label class="campo__rotulo" for="telefone">Telefone</label>
         <input
           id="telefone"
-          name="telefone"
+          name="<%= campos.telefone %>"
           type="tel"
           maxlength="<%= it.limiteDoTelefone %>"
           autocomplete="off"
           value="<%= valores.telefone ?? '' %>"
-          <% if (erroDe('telefone') !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao('telefone', true) %>">
-        <p class="campo__ajuda" id="telefone<%= sufixos.ajuda %>">Opcional. Em branco significa sem telefone.</p>
-        <% if (erroDe('telefone') !== '') { %>
-        <p class="campo__erro" id="telefone<%= sufixos.erro %>"><%= erroDe('telefone') %></p>
+          <% if (erroDe(campos.telefone) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= descricao(campos.telefone, true) %>">
+        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.telefone) %>">Opcional. Em branco significa sem telefone.</p>
+        <% if (erroDe(campos.telefone) !== '') { %>
+        <p class="campo__erro" id="<%= it.idDoErro(campos.telefone) %>"><%= erroDe(campos.telefone) %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit"><%= it.titulos.secretaria.responsavelNovo %></button>
-      <a class="botao botao--discreto" href="<%= it.rotas.secretaria.responsaveis() %>">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.secretaria.responsaveis() %>"><%= it.acoes.cancelar %></a>
     </div>
   </form>
 </div>

@@ -24,6 +24,24 @@
   sobretítulo chega em `it.separadorDeTurno`: são `TEMPLATES.parciais` e `APRESENTACAO`, de
   `src/web/constantes.ts`, carregados até aqui pela rota — o Eta não importa TypeScript, e
   redigitá-los abriria a segunda fonte de verdade que a constante existe para fechar.
+
+  Duas palavras desta tela são de fora dela e chegam por `it`:
+
+    - `it.semAlunoMatriculado` é o título do estado vazio. O mesmo fato — a turma não tem
+      matrícula ativa — é constatado por três telas: esta, o lançamento de notas e a ficha da
+      turma. Só o TÍTULO é compartilhado; o parágrafo abaixo continua escrito aqui porque cada
+      uma das três diz uma coisa diferente sobre o que fazer a seguir, e o que fazer a seguir
+      depende de onde a pessoa está.
+    - `it.rotulos.aluno` é o nome do dado na primeira coluna. É o mesmo "Aluno" que encabeça a
+      lista da secretaria e o `<dt>` da ficha: quem renomear o dado renomeia nos três.
+
+  As outras duas colunas ficam escritas aqui, e de propósito. "Justificativa da falta" existe
+  uma vez em todo o sistema e é redação desta tela. E "Presente" NÃO é
+  `VOCABULARIO_DA_AVALIACAO.presenca.presente`, ainda que se escreva igual: aquele é UM dos três
+  valores que a frequência de um dia assume — ao lado de "Falta justificada" e "Falta" —, e é
+  impresso na coluna "Situação" da tela de frequência do responsável. Este é a pergunta que o
+  cabeçalho faz sobre a caixa de marcar logo abaixo, e a resposta a ela é marcar ou desmarcar,
+  não um dos três textos. Ligá-los faria acrescentar um estado de frequência mexer na pergunta.
 */
 const linhas = it.linhas ?? [];
 const data = it.data;
@@ -68,7 +86,7 @@ const legenda = `Chamada de ${it.formatarData(data)} · ${turma.turmaNome}`;
 
 <% if (linhas.length === 0) { %>
 <%~ include(it.parciais.vazio, {
-  titulo: 'Nenhum aluno matriculado',
+  titulo: it.semAlunoMatriculado,
   texto: 'Esta turma não tem matrícula ativa, então não há chamada a registrar. A matrícula é feita pela secretaria.',
 }) %>
 <% } else { %>
@@ -82,7 +100,7 @@ const legenda = `Chamada de ${it.formatarData(data)} · ${turma.turmaNome}`;
       <caption><%= legenda %></caption>
       <thead>
         <tr>
-          <th scope="col">Aluno</th>
+          <th scope="col"><%= it.rotulos.aluno %></th>
           <th scope="col">Presente</th>
           <th scope="col">Justificativa da falta</th>
         </tr>

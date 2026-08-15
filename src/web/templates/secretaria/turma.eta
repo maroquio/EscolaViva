@@ -32,10 +32,34 @@
   após `%>` (`autoTrim: [false, 'nl']`), e sem a segunda quebra o `</a>` subiria para a mesma linha
   do texto no HTML servido. É a mesma compensação que `_layout_publico.eta` faz no rodapé.
 
-  As duas ações dos estados vazios ficam de fora. "Alocar disciplina" é curto de propósito, dentro de
-  um cartão que já explica o resto, e não é o título "Alocar disciplina e professor"; "Buscar aluno"
-  não é como a tela de alunos se chama ("Alunos") — é o que se vai fazer nela. Nos dois casos são
-  duas frases, e não a mesma dita duas vezes.
+  As duas ações dos estados vazios saem de lugares diferentes, e a diferença é qual delas tem dono.
+  "Alocar disciplina" continua escrita aqui: é curta de propósito, dentro de um cartão que já explica
+  o resto, não é o título "Alocar disciplina e professor" e existe uma vez só no sistema. Já "Buscar
+  aluno" é a MESMA chamada que o painel da secretaria e a lista de responsáveis fazem para a busca de
+  alunos, e por isso vem de `it.acoes` — `ACOES.buscarAluno` (`src/web/constantes.ts`). Ela não é o
+  nome da tela de destino, que em `TITULOS` se chama "Alunos": é o que se vai fazer nela.
+
+  O título do estado vazio dos matriculados é `it.semAlunoMatriculado` — `SEM_ALUNO_MATRICULADO`
+  (`src/web/constantes.ts`), o mesmo fato que a chamada e o lançamento de notas constatam. Só o
+  TÍTULO é compartilhado: o parágrafo abaixo dele é próprio desta tela, porque quem chega aqui
+  matricula pela ficha do aluno, e quem chega pela chamada não tem o que fazer a não ser esperar.
+
+  O link do alto é a terceira forma: "Voltar às turmas" nomeia o DESTINO, e sai de
+  `it.acoes.voltarPara` — `ACOES.voltarPara.turmas` (`src/web/constantes.ts`), o mesmo rótulo que as
+  outras telas de turma imprimem para o mesmo caminho de volta.
+
+  Os nomes de dado vêm de `it.rotulos` — `ROTULOS` (`src/web/constantes.ts`). "Aluno" encabeça a
+  mesma coluna em seis telas, "Ações" é a coluna dos botões de linha em toda tabela do sistema e
+  "Matrículas ativas" é a mesma contagem que o cartão do painel e a coluna da lista de turmas
+  mostram: renomear qualquer um deles aqui e esquecer os outros deixaria o sistema chamando o mesmo
+  dado por dois nomes. "Professor", "Matriculado em" e "Disciplinas alocadas" ficam escritos aqui —
+  cada um existe uma vez no sistema e é decisão desta tela.
+
+  O substantivo contado sai de `it.contagem` pela mão de `it.pluralizar`: "1 disciplina" e "3
+  disciplinas" são as duas metades de `CONTAGEM.disciplina`, e quem trocar uma troca a outra no mesmo
+  movimento. O rótulo da barra de paginação, logo abaixo da tabela, continua literal de propósito:
+  "disciplinas alocadas" e "matrículas ativas" descrevem o RECORTE daquela tabela, e não o
+  substantivo — existem uma vez cada e são decisão desta tela.
 */
 const turma = it.turma;
 const alocacoes = it.alocacoes ?? [];
@@ -46,12 +70,16 @@ const matriculas = it.matriculas ?? [];
     <p class="sobretitulo">Secretaria · Turma</p>
     <h1 class="pagina__titulo"><%= turma.nome %></h1>
     <p class="pagina__resumo">
+<% // O bloco encosta na margem porque o Eta guarda como texto tudo o que vier antes da abertura
+   // dele: indentado, empurraria a linha de baixo no HTML servido e o golden acusaria a tela.
+   // magic-values: permitido — "ano letivo" aqui é prosa no meio de uma frase corrida, e não o
+   // rótulo `ROTULOS.anoLetivo` ("Ano letivo"), que nomeia o filtro e a coluna da lista de turmas %>
       <%= turma.serie %> · <%= turma.turno %> · <%= turma.unidadeNome %> · ano letivo
       <span class="numero"><%= turma.ano === null ? it.semValor : turma.ano %></span>
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.turmas() %>">Voltar às turmas</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.turmas() %>"><%= it.acoes.voltarPara.turmas %></a>
   </div>
 </div>
 
@@ -62,7 +90,7 @@ const matriculas = it.matriculas ?? [];
          it.navegacaoAlocacoes === undefined ? alocacoes.length : it.navegacaoAlocacoes.total; %>
     <p class="secao__nota">
       <span class="numero"><%= quantasAlocacoes %></span>
-      <%= quantasAlocacoes === 1 ? 'disciplina' : 'disciplinas' %>
+      <%= it.pluralizar(quantasAlocacoes, it.contagem.disciplina) %>
     </p>
   </div>
 
@@ -82,7 +110,7 @@ const matriculas = it.matriculas ?? [];
         <caption>Quem leciona o quê nesta turma</caption>
         <thead>
           <tr>
-            <th scope="col">Disciplina</th>
+            <th scope="col"><%= it.rotulos.disciplina %></th>
             <th scope="col" class="celula-texto">Professor</th>
           </tr>
         </thead>
@@ -112,20 +140,20 @@ const matriculas = it.matriculas ?? [];
 
 <section class="secao" aria-labelledby="matriculados">
   <div class="secao__cabecalho">
-    <h2 id="matriculados">Matrículas ativas</h2>
+    <h2 id="matriculados"><%= it.rotulos.matriculasAtivas %></h2>
     <% const quantosAlunos =
          it.navegacaoMatriculas === undefined ? matriculas.length : it.navegacaoMatriculas.total; %>
     <p class="secao__nota">
       <span class="numero"><%= quantosAlunos %></span>
-      <%= quantosAlunos === 1 ? 'aluno' : 'alunos' %>
+      <%= it.pluralizar(quantosAlunos, it.contagem.aluno) %>
     </p>
   </div>
 
   <% if (matriculas.length === 0) { %>
   <%~ include(it.parciais.vazio, {
-    titulo: 'Nenhum aluno matriculado',
+    titulo: it.semAlunoMatriculado,
     texto: 'Matricule pela ficha do aluno: procure pelo nome e escolha esta turma.',
-    acao: { href: it.rotas.secretaria.alunos(), texto: 'Buscar aluno' }
+    acao: { href: it.rotas.secretaria.alunos(), texto: it.acoes.buscarAluno }
   }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -133,10 +161,19 @@ const matriculas = it.matriculas ?? [];
       <caption>Alunos com matrícula ativa nesta turma</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-elastica">Aluno</th>
+          <th scope="col" class="celula-elastica"><%= it.rotulos.aluno %></th>
           <th scope="col" class="celula-centro">Matriculado em</th>
+<% // "Situação" ficou de fora de `ROTULOS` de propósito, e a razão está escrita em bloco logo abaixo
+   // dele, em `src/web/constantes.ts`: a mesma palavra encabeça cinco colunas, e cada uma mostra um
+   // vocabulário fechado diferente — a da unidade (Ativa/Inativa), a do usuário (Ativo/Inativo), a
+   // do dia de aula (Presente/Falta) e a do boletim (Aprovado/Reprovado/Em curso) são as outras
+   // quatro. Um dono único prometeria que os cinco mudam juntos, e eles não mudam: decidir que a
+   // tabela de frequência passa a dizer "Presença" não pode renomear a coluna desta tabela aqui.
+   // O bloco encosta na margem porque o Eta guarda como texto tudo o que vier antes da abertura
+   // dele: indentado, empurraria a linha de baixo no HTML servido.
+   // magic-values: permitido — esta coluna mostra a situação da MATRÍCULA, e o par dela é `VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula`, e não um rótulo de `ROTULOS` %>
           <th scope="col" class="celula-centro">Situação</th>
-          <th scope="col" class="celula-centro">Ações</th>
+          <th scope="col" class="celula-centro"><%= it.rotulos.acoes %></th>
         </tr>
       </thead>
       <tbody>
