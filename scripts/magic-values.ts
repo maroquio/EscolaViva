@@ -11,14 +11,32 @@
  * Ele cobra três coisas, e as três são modos de falha distintos:
  *
  *   1. LITERAL SOLTO — um literal em posição de expressão que ninguém nomeou: `slice(0, 10)`,
- *      `'Cadastrar aluno'`, `` `${prefixo}/*` ``. Um literal que é o inicializador de uma
- *      `const MAIUSCULA` não é solto: ele tem nome, e o nome é a documentação.
+ *      `'Cadastrar aluno'`, `` `${prefixo}/*` ``. Um literal que é o VALOR de uma `const MAIUSCULA`
+ *      não é solto: ele tem nome, e o nome é a documentação.
+ *
+ *      A isenção é da DECLARAÇÃO, e termina onde a declaração termina. `const NOME_MAXIMO = 120` é
+ *      um nome para um valor; `const TABELA = { rotulo: '…', recorte: (t) => t.slice(0, 37) }` é
+ *      uma TABELA DE CONSTANTES, e tabela de constantes mora num `constantes.ts` — fora dele ela é
+ *      a segunda fonte da verdade que este script existe para fechar. Por isso a isenção atravessa
+ *      operador e chamada (`const FAIXA = 10 ** DIGITOS`, `const METADE = Math.floor(x / 2)` — o
+ *      nome batiza a conta inteira) e PARA em três lugares: no `{` de um objeto, no `[` de um
+ *      arranjo e no corpo de uma função. Ali dentro já não é um valor batizado, é conteúdo, e
+ *      conteúdo é cobrado como em qualquer outro lugar.
+ *
+ *      Isto já foi ao contrário: a isenção valia para a subárvore inteira, e bastava enterrar o
+ *      literal sob uma `const` MAIÚSCULA — num objeto, num arranjo, dentro de uma arrow — para
+ *      ficar invisível. Um `endereco: '/secretaria/alunos/novo'` escrito à mão passava calado.
  *
  *   2. VALOR DUPLICADO — o literal batizado localmente que repete um valor que já tem dono num
  *      `constantes.ts`. Cobrar só anonimato deixaria a porta escancarada: bastava batizar a cópia
  *      para escapar, e foi assim que `MAX_CONEXOES = 10` conviveu com `BANCO.maxConexoes` e
  *      `FORMATO_DE_ID` conviveu com `FORMATOS.identificador` — as duas constantes de
  *      `shared/constantes.ts` mortas, sem ninguém as importando, e o verificador em silêncio.
+ *
+ *      Esta regra roda em TODO literal, batizado ou não, e é ela que fecha o outro escape: renomear
+ *      a cópia. `const LIMITE_DE_NOME_DO_ALUNO = 120` diz exatamente o que `LIMITES.aluno.nome` já
+ *      dizia, e `const ROTULO_DA_TELA = 'Cadastrar aluno'` é a frase de `TITULOS.secretaria.alunoNovo`
+ *      copiada palavra por palavra. Nenhum dos dois é anônimo, e os dois são segunda fonte.
  *
  *   3. LITERAL EM `.eta` — os 44 templates estão dentro da varredura, e não fora. É neles que mora
  *      o modo de falha que o docblock de `web/rotas/mapa.ts` descreve: link quebrado em `.eta` não
@@ -74,17 +92,25 @@ const ALVOS: readonly string[] = [
 
 /**
  * Os arquivos onde os literais MORAM. Não é indulgência: é a definição do lugar certo, e o
- * verificador precisa saber qual é para poder cobrar todos os outros. É também de onde sai o
- * índice de valores com dono, que é o que torna a regra 2 (valor duplicado) possível.
+ * verificador precisa saber qual é para poder cobrar todos os outros. Um `constantes.ts` é
+ * declaração de ponta a ponta — não há lógica dentro dele para cobrar.
  */
-const ARQUIVOS_DE_DECLARACAO = /(?:^|\/)constantes\.ts$|(?:^|\/)web\/rotas\/mapa\.ts$/;
+const ARQUIVOS_DE_CONSTANTES = /(?:^|\/)constantes\.ts$/;
+
+/**
+ * `web/rotas/mapa.ts` declara o vocabulário de rota E tem lógica de verdade — `juntar` decide o que
+ * fazer com a barra final, `preencher` monta a URL e derruba a página quando falta parâmetro. Ele
+ * entra no índice de valores com dono, como um `constantes.ts`, e NÃO sai da varredura: isentá-lo
+ * inteiro era isentar duas funções em nome das três linhas de declaração que moram ao lado delas.
+ */
+const ARQUIVOS_INDEXADOS = /(?:^|\/)constantes\.ts$|(?:^|\/)web\/rotas\/mapa\.ts$/;
 
 const ESTE_ARQUIVO = 'scripts/magic-values.ts';
 
 const EXTENSAO_DE_TEMPLATE = '.eta';
 
 /**
- * O único `.eta` isento, e a isenção é do CONTEÚDO, não do arquivo.
+ * O único `.eta` com isenção, e a isenção é do CONTEÚDO, não do arquivo.
  *
  * Tudo o que está entre `<script>` e `</script>` em `parciais/_script_avisos.eta` é copiado byte a
  * byte para dentro de toda página que os layouts montam: não é código do servidor, é conteúdo do
@@ -93,10 +119,29 @@ const EXTENSAO_DE_TEMPLATE = '.eta';
  * golden acusar todas de uma vez. O parcial ainda por cima é incluído sem `it` pelos dois layouts,
  * e o Eta compila com `useWith: false`: não há de onde interpolar um valor do servidor, mesmo que
  * se quisesse. Enquanto isso for verdade, o literal é a forma correta, e não a forma tolerada.
+ *
+ * O que o arquivo tem FORA do `<script>` continua sendo cobrado, e é a diferença que importa: um
+ * `href` acrescentado à marcação deste parcial é uma rota escrita à mão como qualquer outra, e
+ * pular o arquivo inteiro — que era o que este script fazia — deixava exatamente essa porta aberta
+ * enquanto o comentário aqui prometia o contrário.
  */
-const TEMPLATES_ISENTOS: ReadonlySet<string> = new Set([
+const TEMPLATES_COM_SCRIPT_ISENTO: ReadonlySet<string> = new Set([
   'src/web/templates/parciais/_script_avisos.eta',
 ]);
+
+const BLOCO_DE_SCRIPT = /(<script\b[^>]*>)([\s\S]*?)(<\/script>)/gi;
+
+/**
+ * Apaga o corpo do `<script>` sem mexer em uma única posição do arquivo: cada caractere que não é
+ * quebra de linha vira espaço. Linha, coluna e índice de tudo o que vem depois continuam valendo,
+ * e o que sobra para a varredura é a marcação — que é justamente o que a isenção não cobre.
+ */
+const semCorpoDeScript = (fonte: string): string =>
+  fonte.replaceAll(
+    BLOCO_DE_SCRIPT,
+    (_inteiro, abertura: string, corpo: string, fechamento: string) =>
+      `${abertura}${corpo.replaceAll(/[^\n]/g, ' ')}${fechamento}`,
+  );
 
 /**
  * Vocabulário do protocolo HTTP.
@@ -166,11 +211,6 @@ const nomeDaPropriedade = (nome: ts.PropertyName): string | undefined => {
   return undefined;
 };
 
-/** `MAX_CONEXOES` e `maxConexoes` são o mesmo nome escrito em duas convenções. */
-const normalizarNome = (nome: string): string => nome.toLowerCase().replaceAll(/[^a-z0-9]/g, '');
-
-const folhaDoCaminho = (caminho: string): string => caminho.slice(caminho.lastIndexOf('.') + 1);
-
 const indicePorValor = new Map<string, Dono[]>();
 const valoresNumericosComDono = new Map<number, Dono>();
 
@@ -219,12 +259,10 @@ function indexarDeclaracoes(arquivo: string, fonte: string): void {
 
 /**
  * Um literal nomeado não é ANÔNIMO. `const NOME_MAXIMO = 120` diz o que 120 significa; é o `120`
- * escrito no meio da chamada que não diz nada. A proteção vale para a subárvore inteira, porque
- * uma tabela de constantes é um objeto literal cheio de literais — e todos eles têm nome, dado
- * pela chave que os carrega.
+ * escrito no meio da chamada que não diz nada.
  *
- * Nomear resolve o anonimato e NÃO resolve a duplicação: dentro da subárvore protegida entra a
- * outra regra, `conferirDuplicacao`, que é o que impede batizar a cópia para escapar do relatório.
+ * Nomear resolve o anonimato e NÃO resolve a duplicação: sobre o valor batizado ainda roda a regra
+ * 2, que é o que impede batizar a cópia para escapar do relatório.
  */
 const declaracaoNomeada = (no: ts.Node): boolean => {
   if (!ts.isVariableDeclaration(no)) return false;
@@ -235,12 +273,134 @@ const declaracaoNomeada = (no: ts.Node): boolean => {
   return ehConst && MAIUSCULA_COM_UNDERLINE.test(no.name.text);
 };
 
+/** `as const`, `satisfies` e parênteses não mudam o valor; envolvem quem o declara. */
+const semEnvelope = (no: ts.Node): ts.Node => {
+  let atual = no;
+  while (
+    atual.parent !== undefined &&
+    (ts.isAsExpression(atual.parent) ||
+      ts.isSatisfiesExpression(atual.parent) ||
+      ts.isParenthesizedExpression(atual.parent))
+  ) {
+    atual = atual.parent;
+  }
+  return atual;
+};
+
 /**
- * Dado de amostra dos seeds: a tabela de nomes, a lista de disciplinas. São dados, não política —
- * a regra 6 os deixa de fora, e o que continua sendo cobrado nos seeds é a LÓGICA em volta deles.
+ * Onde a isenção da declaração PARA.
+ *
+ * O nome de uma `const` batiza uma expressão, não um catálogo. `const FAIXA = 10 ** DIGITOS` e
+ * `const METADE = Math.floor(JANELA / 2)` continuam sendo um valor com nome — a conta inteira é o
+ * que o nome descreve. Já o `{` de um objeto, o `[` de um arranjo e o corpo de uma função abrem
+ * conteúdo NOVO embaixo do nome: `TABELA.prazo` e `TABELA.recorte` são decisões que o identificador
+ * `TABELA` não documenta, e o lugar de uma tabela de constantes é um `constantes.ts`.
  */
-const ehTabelaDeDados = (no: ts.Node, arquivo: string): boolean =>
-  arquivo.startsWith('scripts/seed') && ts.isArrayLiteralExpression(no);
+const abreConteudoNovo = (no: ts.Node): boolean =>
+  ts.isObjectLiteralExpression(no) || ts.isArrayLiteralExpression(no) || ts.isFunctionLike(no);
+
+/**
+ * Texto, e nada além de texto: um literal, um template, ou a emenda de vários com `+`.
+ *
+ * É o que distingue uma FRASE COM PARÂMETROS de uma função com lógica dentro. `(versao) =>
+ * `  pendente  ${versao}`` não calcula nada: é uma mensagem cujo nome está na chave que a carrega,
+ * e o corpo é a redação inteira. Já `(t) => t.slice(0, 37)` decide alguma coisa, e o `37` é a
+ * decisão — o nome da função não diz que ela corta em 37.
+ */
+const ehSoTexto = (no: ts.Node): boolean => {
+  if (ts.isParenthesizedExpression(no)) return ehSoTexto(no.expression);
+  if (ts.isBinaryExpression(no)) {
+    return (
+      no.operatorToken.kind === ts.SyntaxKind.PlusToken &&
+      ehSoTexto(no.left) &&
+      ehSoTexto(no.right)
+    );
+  }
+  return (
+    ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no) || ts.isTemplateExpression(no)
+  );
+};
+
+const corpoDeExpressao = (no: ts.Node): ts.Node | undefined =>
+  ts.isArrowFunction(no) || ts.isFunctionExpression(no) || ts.isFunctionDeclaration(no)
+    ? no.body
+    : undefined;
+
+/**
+ * O literal é o VALOR que a declaração nomeia? Sobe pela árvore enquanto o que está acima ainda é
+ * a mesma expressão batizada, e desiste no primeiro objeto, arranjo ou função pelo caminho.
+ *
+ * A única função que a subida atravessa é a que devolve só texto, e só quando o caminho inteiro
+ * até ela também foi texto: aí o que está embaixo do nome é a frase, e não o que a frase interpola.
+ */
+const ehValorBatizado = (no: ts.Node): boolean => {
+  let soTexto = ehSoTexto(no);
+  for (let atual = semEnvelope(no); atual.parent !== undefined; atual = semEnvelope(atual.parent)) {
+    const pai = atual.parent;
+    if (ts.isVariableDeclaration(pai)) return pai.initializer === atual && declaracaoNomeada(pai);
+    if (ts.isFunctionLike(pai)) {
+      const corpo = corpoDeExpressao(pai);
+      if (!soTexto || corpo === undefined || !ehSoTexto(corpo)) return false;
+    } else if (abreConteudoNovo(pai)) {
+      return false;
+    }
+    soTexto = soTexto && ehSoTexto(pai);
+  }
+  return false;
+};
+
+/**
+ * Os nomes de que o próprio arquivo deriva um TIPO: `type Papel = (typeof PAPEIS)[number]`.
+ *
+ * Uma lista assim não é uma cópia de nada — ela É a fonte, e a fonte de um tipo ainda por cima.
+ * `TURNOS`, `PAPEIS`, `STATUS_DE_REDE`, `SITUACOES_DE_MATRICULA` e `SITUACOES_FINAIS` moram no
+ * `dominio/` justamente porque é de lá que saem o tipo e o `type guard`; cobrá-las como literal
+ * solto seria mandar mover para `constantes.ts` exatamente o que o `constantes.ts` de cada módulo
+ * documenta por escrito que fica onde está. Este script já isenta o nó de tipo (`ts.isTypeNode`) —
+ * a união escrita como valor é a mesma declaração dita na outra sintaxe.
+ */
+const nomesQueGeramTipo = (origem: ts.SourceFile): ReadonlySet<string> => {
+  const nomes = new Set<string>();
+  const visitar = (no: ts.Node): void => {
+    if (ts.isTypeQueryNode(no) && ts.isIdentifier(no.exprName)) nomes.add(no.exprName.text);
+    ts.forEachChild(no, visitar);
+  };
+  ts.forEachChild(origem, visitar);
+  return nomes;
+};
+
+/**
+ * Dado de amostra dos seeds: a tabela de nomes, a lista de disciplinas, e também o punhado de
+ * parâmetros que descreve a amostra (`ALUNOS_POR_TURMA`, `NASCIMENTO.ultimoDia`). São dados, não
+ * política — a regra 6 os deixa de fora, e o que continua sendo cobrado nos seeds é a LÓGICA em
+ * volta deles: a isenção exige estar sob uma `const` MAIÚSCULA, e não vale dentro de função.
+ *
+ * O que NÃO cai nesta isenção é a regra 2: uma rota ou um limite com dono escrito dentro de uma
+ * tabela de seed continua sendo segunda fonte da verdade, e continua sendo acusado.
+ */
+const ehTabelaDeDados = (no: ts.Node, arquivo: string, caminho: string): boolean =>
+  arquivo.startsWith('scripts/seed') &&
+  (ts.isArrayLiteralExpression(no) || (caminho !== '' && ts.isObjectLiteralExpression(no)));
+
+const ehLiteralSimples = (no: ts.Node): boolean =>
+  ts.isStringLiteral(no) ||
+  ts.isNoSubstitutionTemplateLiteral(no) ||
+  ts.isNumericLiteral(no) ||
+  (ts.isPrefixUnaryExpression(no) && ts.isNumericLiteral(no.operand));
+
+/**
+ * `const BIMESTRES = [1, 2, 3, 4]`, `const TURNOS = ['matutino', …]`: a LISTA é a declaração.
+ *
+ * Enumerar é declarar. Uma lista em que todo elemento é um literal não tem valor escondido dentro
+ * dela — ela é a definição inteira, e o nome que a carrega diz do que é a lista. Não confundir com
+ * a tabela do caso 1: lá o objeto emparelha nomes que ninguém declarou com valores que ninguém
+ * declarou; aqui não há par nenhum, há o conjunto.
+ *
+ * A isenção é do ANONIMATO e só dele: a regra 2 continua rodando elemento a elemento, e uma rota ou
+ * uma frase com dono escrita dentro da lista continua sendo acusada.
+ */
+const ehEnumeracao = (no: ts.Node, caminho: string): boolean =>
+  caminho !== '' && ts.isArrayLiteralExpression(no) && no.elements.every(ehLiteralSimples);
 
 /** O nome final de quem está sendo chamado: `c.redirect(...)` → `redirect`, `f(...)` → `f`. */
 const nomeChamado = (alvo: ts.Expression): string | undefined => {
@@ -445,6 +605,26 @@ const ehTipoDeArrayNoPostgres = (no: ts.Node): boolean => {
 const textoIsento = (no: ts.StringLiteralLike): boolean =>
   ehOperandoDeTypeof(no) || ehTipoDeArrayNoPostgres(no);
 
+/**
+ * `{ id: 'id' }`, `{ drenou: 'drenou' }`: o texto que repete a própria chave.
+ *
+ * Não é um valor escondido atrás de um nome — é o nome escrito duas vezes. A chave já está ali, à
+ * esquerda, e não há uma segunda leitura possível para o que está à direita: são o mesmo token, e
+ * quem lê a linha lê a decisão inteira. É a forma que `DESFECHO_DA_DRENAGEM` e `PARAMETROS_DE_ROTA`
+ * usam para dar nome a um membro de um conjunto fechado.
+ *
+ * A isenção não abre porta nenhuma, porque as regras de cópia rodam ANTES dela: uma rota começa com
+ * `/` e uma frase tem espaço, e nenhuma das duas jamais é igual a um identificador de propriedade.
+ */
+const ehEspelhoDaChave = (no: ts.StringLiteralLike): boolean => {
+  const pai = no.parent;
+  return (
+    ts.isPropertyAssignment(pai) &&
+    pai.initializer === no &&
+    nomeDaPropriedade(pai.name) === no.text
+  );
+};
+
 /* --- Regra 2: o valor que já tem dono --------------------------------------- */
 
 /**
@@ -475,51 +655,124 @@ const textoIsento = (no: ts.StringLiteralLike): boolean =>
  *   - É UMA EXPRESSÃO REGULAR IDÊNTICA. Uma regex não é um valor, é uma gramática escrita à mão:
  *     `/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i` não é reescrita caractere
  *     a caractere por acaso em dois arquivos. Quem a tem de novo, copiou.
+ *
+ *   - É UMA FRASE IDÊNTICA. Pelo mesmo motivo da regex, e com a mesma força: "Cadastrar aluno" e
+ *     "Unidade não encontrada nesta rede." são redação, e duas pessoas não redigem a mesma frase
+ *     palavra por palavra sem uma delas ter copiado da outra. O portão é ter DUAS palavras de três
+ *     letras ou mais: `'utf8'`, `'sha256'`, `'.'` e `'no-store'` não passam por ele, e é por isso
+ *     que os seis `SEPARADOR_*` que valem `'.'` neste repositório continuam sendo seis decisões.
  */
 const ehExpressaoRegular = (no: ts.Node): boolean => ts.isRegularExpressionLiteral(no);
 
-const ehNomeDeTopo = (caminho: string): boolean => !caminho.includes('.');
+const DUAS_PALAVRAS_SEGUIDAS = /[A-Za-zÀ-ÿ]{3,}\s+[A-Za-zÀ-ÿ]{3,}/;
+
+const ehFrase = (no: ts.Node): boolean =>
+  (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) &&
+  DUAS_PALAVRAS_SEGUIDAS.test(no.text);
+
+/** Ligações que não nomeiam nada: sobram em `LIMITE_DE_NOME_DO_ALUNO` e não distinguem conceito. */
+const PALAVRAS_VAZIAS: ReadonlySet<string> = new Set([
+  'de',
+  'do',
+  'da',
+  'dos',
+  'das',
+  'em',
+  'no',
+  'na',
+  'ao',
+  'aos',
+  'com',
+  'por',
+  'para',
+  'e',
+  'o',
+  'a',
+]);
+
+const SEPARADOR_DE_CAIXA = /([a-z0-9])([A-Z])/g;
+const NAO_ALFANUMERICO = /[^A-Za-z0-9]+/;
+const TAMANHO_MINIMO_PARA_SINGULAR = 4;
+
+/** `LIMITES` e `limite` são a mesma palavra; o plural do grupo não muda o conceito. */
+const singular = (palavra: string): string =>
+  palavra.length >= TAMANHO_MINIMO_PARA_SINGULAR && palavra.endsWith('s')
+    ? palavra.slice(0, -1)
+    : palavra;
+
+/** `LIMITES.aluno.nome` e `LIMITE_DE_NOME_DO_ALUNO` → as mesmas três palavras. */
+const palavrasDoCaminho = (caminho: string): string[] =>
+  caminho
+    .split('.')
+    .flatMap((parte) => parte.replaceAll(SEPARADOR_DE_CAIXA, '$1 $2').split(NAO_ALFANUMERICO))
+    .map((palavra) => palavra.toLowerCase())
+    .filter((palavra) => palavra !== '' && !PALAVRAS_VAZIAS.has(palavra))
+    .map(singular);
+
+const contemTodas = (conjunto: ReadonlySet<string>, palavras: readonly string[]): boolean =>
+  palavras.length > 0 && palavras.every((palavra) => conjunto.has(palavra));
 
 /**
- * Dois caminhos nomeiam a mesma coisa quando dizem a mesma coisa por inteiro. A única folga é o
- * grupo implícito: uma const de topo (`MAX_CONEXOES`) carrega no próprio nome o que do outro lado
- * está na chave (`BANCO.maxConexoes`), e é a mesma leitura escrita de dois jeitos.
+ * Dois caminhos nomeiam a mesma coisa quando um deles diz TUDO o que o outro diz.
+ *
+ * A comparação é por palavra, e não por texto, porque a mesma leitura se escreve de várias formas:
+ * `MAX_CONEXOES` é `BANCO.maxConexoes` sem o grupo, e `LIMITE_DE_NOME_DO_ALUNO` é `LIMITES.aluno.nome`
+ * com as palavras em outra ordem e uma preposição no meio. Comparar o texto concatenado só pegava a
+ * primeira das duas — bastava reordenar as palavras da cópia para escapar do relatório.
+ *
+ * Continua sendo o nome INTEIRO: a inclusão precisa valer em algum sentido, e por isso os pares que
+ * a regra 2 manda separar seguem separados. `TABELA.unidade` não contém `alcance` e `ALCANCE.unidade`
+ * não contém `tabela`; `CAIXA.secretaria` e `PAPEL.secretaria` idem; `PESO_INICIAL_DO_PRIMEIRO` não
+ * diz `banco` nem `conexões`, e continua podendo valer 10 ao lado de `BANCO.maxConexoes`.
  */
 const mesmoNome = (aqui: string, dono: string): boolean => {
-  const daqui = normalizarNome(aqui);
-  const doDono = normalizarNome(dono);
-  if (daqui === doDono) return true;
-  if (ehNomeDeTopo(aqui) && daqui === normalizarNome(folhaDoCaminho(dono))) return true;
-  return ehNomeDeTopo(dono) && doDono === normalizarNome(folhaDoCaminho(aqui));
+  const daqui = palavrasDoCaminho(aqui);
+  const doDono = palavrasDoCaminho(dono);
+  return contemTodas(new Set(daqui), doDono) || contemTodas(new Set(doDono), daqui);
 };
 
-const donoDuplicado = (no: ts.Node, caminho: string): Dono | undefined => {
+/**
+ * Ninguém é cópia de si mesmo. `web/rotas/mapa.ts` é indexado E varrido — é a única fonte de um
+ * punhado de valores e ao mesmo tempo tem lógica —, e sem este corte cada declaração dele se
+ * acusaria de repetir a própria declaração.
+ */
+const donoDuplicado = (no: ts.Node, caminho: string, arquivo: string): Dono | undefined => {
   const chave = chaveDeValor(no);
   if (chave === undefined) return undefined;
-  const donos = indicePorValor.get(chave);
-  if (donos === undefined) return undefined;
+  const donos = (indicePorValor.get(chave) ?? []).filter((dono) => dono.arquivo !== arquivo);
+  if (donos.length === 0) return undefined;
 
-  const porNome = donos.find((dono) => mesmoNome(caminho, dono.caminho));
-  if (porNome !== undefined) return porNome;
+  if (caminho !== '') {
+    const porNome = donos.find((dono) => mesmoNome(caminho, dono.caminho));
+    if (porNome !== undefined) return porNome;
+  }
 
-  return ehExpressaoRegular(no) ? donos[0] : undefined;
+  return ehExpressaoRegular(no) || ehFrase(no) ? donos[0] : undefined;
 };
 
 /* --- Análise de um arquivo `.ts` -------------------------------------------- */
 
 /**
- * O que o visitante carrega árvore abaixo: se está dentro de uma declaração nomeada, e por qual
- * caminho se chegou até aqui. O caminho é o que permite comparar `MENSAGENS.turma.nomeLongo` local
- * com `MENSAGENS.turma.nomeLongo` do dono — sem ele, a regra 2 só teria o valor para olhar.
+ * O que o visitante carrega árvore abaixo: se está dentro de uma DECLARAÇÃO — a tabela de dados de
+ * um seed, a lista de que sai um tipo — e por qual caminho se chegou até aqui. O caminho é o que
+ * permite comparar `MENSAGENS.turma.nomeLongo` local com `MENSAGENS.turma.nomeLongo` do dono; sem
+ * ele, a regra 2 só teria o valor para olhar.
+ *
+ * O caminho para na porta de uma função: corpo de função é lógica, e lógica não herda o nome da
+ * tabela em que está escrita. A isenção de declaração continua valendo lá dentro, porque uma
+ * mensagem de seed com um `padEnd` no meio continua sendo dado de amostra.
  */
-type Contexto = { readonly protegido: boolean; readonly caminho: string };
+type Contexto = { readonly declaracao: boolean; readonly caminho: string };
 
-const RAIZ_DA_ARVORE: Contexto = { protegido: false, caminho: '' };
+const RAIZ_DA_ARVORE: Contexto = { declaracao: false, caminho: '' };
+
+const MOTIVO_DE_ENDERECO = 'endereço escrito à mão — use `ROTAS` (web/constantes.ts)';
 
 function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
   const origem = ts.createSourceFile(arquivo, fonte, ts.ScriptTarget.ESNext, true);
   const linhas = fonte.split('\n');
   const achados: Achado[] = [];
+  const geramTipo = nomesQueGeramTipo(origem);
 
   const suprimida = (linha: number): boolean => {
     const atual = linhas[linha - 1] ?? '';
@@ -539,6 +792,44 @@ function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
     });
   };
 
+  /**
+   * O que vale para TODO literal, batizado ou não, dentro de tabela de seed ou fora dela: a forma
+   * que se reconhece sozinha (um endereço) e o valor que já tem dono. É esta metade que impede
+   * escapar do relatório batizando ou enterrando a cópia.
+   */
+  const motivoDeCopia = (no: ts.Node, caminho: string): string | undefined => {
+    if (
+      (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) &&
+      ROTA_COM_SEGMENTO.test(no.text)
+    ) {
+      return MOTIVO_DE_ENDERECO;
+    }
+    const dono = donoDuplicado(no, caminho, arquivo);
+    return dono === undefined ? undefined : `mesmo valor de ${dono.caminho} (${dono.arquivo})`;
+  };
+
+  const conferir = (no: ts.Node, contexto: Contexto): void => {
+    const copia = motivoDeCopia(no, contexto.caminho);
+    if (copia !== undefined) {
+      registrar(no, copia);
+      return;
+    }
+    if (contexto.declaracao || ehValorBatizado(no)) return;
+
+    if (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) {
+      // Chave de objeto e string vazia não são valores mágicos.
+      const ehChave = ts.isPropertyAssignment(no.parent) && no.parent.name === no;
+      const solto = !ehChave && no.text !== '' && !textoIsento(no) && !ehEspelhoDaChave(no);
+      if (solto) registrar(no, '');
+    } else if (ts.isTemplateExpression(no)) {
+      // Registra o template inteiro, mas segue descendo: o que ele interpola pode ser mágico
+      // por conta própria, e um achado não deve esconder o outro.
+      if (templateComProsa(no)) registrar(no, '');
+    } else if (ts.isNumericLiteral(no) && !numeroIsento(no)) {
+      registrar(no, '');
+    }
+  };
+
   const visitar = (no: ts.Node, contexto: Contexto): void => {
     // Tipo é declaração, não expressão: uma união de literais É a fonte única, não uma cópia.
     if (ts.isTypeNode(no)) return;
@@ -547,39 +838,24 @@ function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
     // `sql`...`` e afins: o texto do SQL fica inteiro de fora (regra 6).
     if (ts.isTaggedTemplateExpression(no)) return;
 
-    let atual = contexto;
-    if (!atual.protegido && declaracaoNomeada(no)) {
-      atual = { protegido: true, caminho: (no as ts.VariableDeclaration).name.getText(origem) };
-    } else if (!atual.protegido && ehTabelaDeDados(no, arquivo)) {
-      atual = { protegido: true, caminho: '' };
+    let atual = ts.isFunctionLike(no) ? { declaracao: contexto.declaracao, caminho: '' } : contexto;
+    if (declaracaoNomeada(no)) {
+      const nome = (no as ts.VariableDeclaration).name.getText(origem);
+      atual = { declaracao: geramTipo.has(nome), caminho: nome };
+    }
+    if (ehTabelaDeDados(no, arquivo, atual.caminho) || ehEnumeracao(no, atual.caminho)) {
+      atual = { declaracao: true, caminho: atual.caminho };
     }
 
-    if (atual.protegido) {
-      if (atual.caminho !== '') {
-        const dono = donoDuplicado(no, atual.caminho);
-        if (dono !== undefined) {
-          registrar(no, `mesmo valor de ${dono.caminho} (${dono.arquivo})`);
-        }
-      }
-    } else if (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) {
-      // Chave de objeto e string vazia não são valores mágicos.
-      const ehChave = ts.isPropertyAssignment(no.parent) && no.parent.name === no;
-      if (!ehChave && no.text !== '' && !textoIsento(no)) registrar(no, '');
-    } else if (ts.isTemplateExpression(no)) {
-      // Registra o template inteiro, mas segue descendo: o que ele interpola pode ser mágico
-      // por conta própria, e um achado não deve esconder o outro.
-      if (templateComProsa(no)) registrar(no, '');
-    } else if (ts.isNumericLiteral(no) && !numeroIsento(no)) {
-      registrar(no, '');
-    }
+    conferir(no, atual);
 
     ts.forEachChild(no, (filho) => {
-      // A chave de uma propriedade nunca é um literal solto, mesmo dentro de árvore desprotegida.
+      // A chave de uma propriedade nunca é um literal solto, mesmo fora de qualquer declaração.
       if (ts.isPropertyAssignment(no) && no.name === filho) return;
       const adiante =
-        atual.protegido && atual.caminho !== '' && ts.isPropertyAssignment(no)
+        atual.caminho !== '' && ts.isPropertyAssignment(no)
           ? {
-              protegido: true,
+              declaracao: atual.declaracao,
               caminho: `${atual.caminho}.${nomeDaPropriedade(no.name) ?? ''}`,
             }
           : atual;
@@ -647,6 +923,10 @@ const ROTA_COM_SEGMENTO = /^\/[A-Za-z0-9_:-]/;
 const ehEnderecoNoAtributo = (texto: string): boolean =>
   texto === BARRA || ROTA_COM_SEGMENTO.test(texto);
 
+/** No `.ts` o endereço vem de `ROTAS`; no `.eta`, do `it.rotas` que o handler injeta. */
+const MOTIVO_DE_ENDERECO_NO_TEMPLATE =
+  'endereço escrito à mão — use `it.rotas` (ROTAS, em web/constantes.ts)';
+
 type Posicao = { readonly linha: number; readonly coluna: number };
 
 const posicaoDe = (fonte: string, indice: number): Posicao => {
@@ -709,7 +989,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
     registrar(
       atributo.index,
       atributo[0],
-      'endereço escrito à mão — use `it.rotas` (ROTAS, em web/constantes.ts)',
+      MOTIVO_DE_ENDERECO_NO_TEMPLATE,
     );
   }
 
@@ -750,7 +1030,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
         registrar(
           deslocamento + no.getStart(origem),
           no.getText(origem),
-          'endereço escrito à mão — use `it.rotas` (ROTAS, em web/constantes.ts)',
+          MOTIVO_DE_ENDERECO_NO_TEMPLATE,
         );
       }
 
@@ -776,15 +1056,15 @@ const somenteResumo = Bun.argv.includes('--resumo');
 const alvos = await arquivosAlvo();
 
 for (const arquivo of alvos) {
-  if (!ARQUIVOS_DE_DECLARACAO.test(arquivo)) continue;
+  if (!ARQUIVOS_INDEXADOS.test(arquivo)) continue;
   indexarDeclaracoes(arquivo, await Bun.file(join(RAIZ, arquivo)).text());
 }
 
 const achados: Achado[] = [];
 for (const arquivo of alvos) {
-  if (arquivo === ESTE_ARQUIVO || ARQUIVOS_DE_DECLARACAO.test(arquivo)) continue;
-  if (TEMPLATES_ISENTOS.has(arquivo)) continue;
-  const fonte = await Bun.file(join(RAIZ, arquivo)).text();
+  if (arquivo === ESTE_ARQUIVO || ARQUIVOS_DE_CONSTANTES.test(arquivo)) continue;
+  const bruto = await Bun.file(join(RAIZ, arquivo)).text();
+  const fonte = TEMPLATES_COM_SCRIPT_ISENTO.has(arquivo) ? semCorpoDeScript(bruto) : bruto;
   achados.push(
     ...(arquivo.endsWith(EXTENSAO_DE_TEMPLATE)
       ? analisarTemplate(arquivo, fonte)

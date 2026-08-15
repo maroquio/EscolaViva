@@ -2,50 +2,16 @@ import { SQL } from 'bun';
 import { join, resolve } from 'node:path';
 import { config } from '../src/shared/config/index';
 import { CHAVES_DE_LOCK, MIGRACOES } from '../src/shared/constantes';
+import { ARGUMENTOS, MENSAGENS_DA_MIGRACAO as MENSAGENS } from './constantes';
 
 /**
  * O diretório e o glob vêm de `shared/constantes` porque a migração não é a única coisa que
- * precisa saber onde os `.sql` moram; o resto deste arquivo — bandeiras de linha de comando e
- * texto de console — tem exatamente um consumidor, este script, e por isso fica aqui.
+ * precisa saber onde os `.sql` moram. As bandeiras e o texto de console têm um consumidor só —
+ * este script —, e mesmo assim moram em `scripts/constantes.ts`: um consumidor único é motivo para
+ * não exportar dali para fora, não para redigir uma tabela de constantes dentro de um arquivo de
+ * lógica. O que sobra aqui é o que este arquivo de fato faz: ler argumentos, tomar o lock, aplicar.
  */
 const DIRETORIO_DE_MIGRACOES = resolve(import.meta.dir, '..', MIGRACOES.diretorio);
-
-const ARGUMENTOS = {
-  status: '--status',
-  url: '--url',
-  /** Prefixo que distingue uma bandeira de um valor: `--url --status` é URL faltando, não URL. */
-  prefixo: '--',
-  /** `Bun.argv` abre com o runtime e o caminho do script; o que o usuário digitou vem depois. */
-  primeiroDoUsuario: 2,
-} as const;
-
-/**
- * O `  aplicada  ` do status e o `  aplicada  ` do progresso têm o mesmo prefixo por coincidência
- * e são duas mensagens: uma lista o que já estava no banco, com o instante em que entrou; a outra
- * narra o que este processo acabou de aplicar, com quanto tempo levou. Quem for reformatar o
- * relatório de `--status` não deve reformatar junto o log de aplicação.
- */
-const MENSAGENS = {
-  urlSemValor: `${ARGUMENTOS.url} exige a URL de conexão logo em seguida.`,
-  argumentoDesconhecido: (argumento: string): string =>
-    `Argumento desconhecido: ${argumento}. Use ${ARGUMENTOS.status} e ${ARGUMENTOS.url} <postgres://...>.`,
-  destino: (banco: string): string => `Banco: ${banco}`,
-  falha: (motivo: string): string => `Falha ao migrar: ${motivo}`,
-  status: {
-    pendente: (versao: string): string => `  pendente  ${versao}`,
-    aplicada: (versao: string, instante: string): string => `  aplicada  ${versao}  (${instante})`,
-    semArquivo: (versao: string): string => `  registrada sem arquivo  ${versao}`,
-    resumo: (aplicadas: number, pendentes: number): string =>
-      `${aplicadas} aplicada(s), ${pendentes} pendente(s).`,
-  },
-  aplicacao: {
-    nadaAAplicar: 'Nada a aplicar: o banco já está na última migração.',
-    aplicada: (versao: string, duracaoMs: number): string =>
-      `  aplicada  ${versao}  (${duracaoMs} ms)`,
-    uma: '1 migração aplicada.',
-    varias: (total: number): string => `${total} migrações aplicadas.`,
-  },
-} as const;
 
 type Argumentos = { readonly somenteStatus: boolean; readonly url: string };
 
