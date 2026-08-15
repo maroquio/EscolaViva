@@ -84,8 +84,7 @@ const paginaDaTurma = it.rotas.secretaria.turma({ id: turma.id });
   // aqui também é. A diferença está no número ao lado: o par singular/plural da CONTAGEM existe
   // para o número que CONTA ("de 2 anos letivos", na paginação de rede/anos.eta), e o número
   // desta frase é o NOME do ano, que nunca faz a palavra virar plural. Argumento inteiro, com as
-  // sete telas que escrevem esta prosa, no cabeçalho de rede/painel.eta.
-  // magic-values: permitido — prosa da frase que identifica a turma, e não o rótulo ROTULOS.anoLetivo nem o substantivo contado CONTAGEM.anoLetivo %>
+  // sete telas que escrevem esta prosa, no cabeçalho de rede/painel.eta. %>
       <%= turma.serie %><%= it.apresentacao.separador %><%= turma.turno %><%= it.apresentacao.separador %><%= turma.unidadeNome %><%= it.apresentacao.separador %>ano letivo
       <span class="numero"><%= turma.ano === null ? it.semValor : turma.ano %></span>
     </p>

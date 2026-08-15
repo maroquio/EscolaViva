@@ -17,7 +17,7 @@
   Divergindo qualquer um deles, nada quebra à vista: o campo chega vazio ao servidor, ou o leitor
   de tela aponta para um id inexistente e não lê nem o erro nem a ajuda.
 */
-// magic-values: permitido — o `id` do <input> e o `for=` do <label> ficam literais de propósito.
+// O `id` do <input> e o `for=` do <label> ficam literais de propósito.
 // Não são cópia de CAMPOS.senha: o valor coincide, mas o contrato é outro. Eles casam um com o
 // outro dentro destas seis linhas e ninguém fora do arquivo os lê; o nome que atravessa é o
 // `name=`. `for="senhaAtual"` ao lado de `id="senhaAtual"` é o HTML que um aluno lê de uma vez.

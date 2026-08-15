@@ -31,13 +31,6 @@
   objeto do ponto de chamada, `{ navegacao, rotulo }`, e nada do contexto onde `render.ts` injeta
   as constantes da camada web. Nenhuma das inclusões manda constante alguma para cá.
 */
-// A palavra desta linha não é PAGINACAO.rotuloPadrao, e a distância entre as duas não é de redação:
-// é de dono. Aquela declaração não é lida por ninguém — `src/web/paginacao.ts` consome do grupo só
-// a janela, `render.ts` nem o importa, e nenhum template a alcança. Valor que consumidor nenhum lê
-// não é fonte da verdade de nada; a fonte do que a barra imprime é esta linha, o único lugar onde o
-// include deixa a parcial ler. Quem tem de sair é a declaração sem consumidor, em
-// `src/web/constantes.ts`, e não a palavra sem a qual a tela para de dizer o que está contando.
-// magic-values: permitido — este 'itens' não é PAGINACAO.rotuloPadrao: aquela declaração não tem consumidor nenhum, e a fonte do que a barra imprime é esta linha.
 const ROTULO_PADRAO = 'itens';
 
 const nav = it.navegacao ?? null;

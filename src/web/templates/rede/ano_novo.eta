@@ -41,8 +41,8 @@
 
   O `id` do `<input>` e o `for` do `<label>`, esses continuam escritos à mão de propósito: casam um
   com o outro dentro das mesmas seis linhas, nada fora deste arquivo os lê, e `for="ano"` ao lado de
-  `id="ano"` é o HTML mais legível que se pode deixar para quem está aprendendo.
-  magic-values: permitido — o `id`/`for` não é o nome que atravessa o arquivo; o `name=`, sim.
+  `id="ano"` é o HTML mais legível que se pode deixar para quem está aprendendo. O nome que
+  atravessa o arquivo é o do `name=`, não o do `id`/`for`.
 */
 const valores = it.valores ?? { ano: '', dataInicio: '', dataFim: '' };
 const campos = it.campos.anoLetivo;

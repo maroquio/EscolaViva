@@ -59,13 +59,8 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
     <p class="sobretitulo">Boletim</p>
     <h1 class="pagina__titulo"><%= boletim.alunoNome %></h1>
     <p class="pagina__resumo">
-<% // "ano letivo" aqui não é o ROTULOS.anoLetivo que rotula o filtro e o select de quem ESCOLHE a %>
-<% // entidade — e também não é CONTAGEM.anoLetivo, por mais que seja o substantivo minúsculo lido %>
-<% // em voz corrida: o número do span é o NOME do ano, não uma quantidade dele, e por isso a %>
-<% // palavra ao lado nunca vira "anos letivos". O par singular/plural da CONTAGEM só trabalha onde %>
-<% // um número CONTA — "de 2 anos letivos", na paginação de rede/anos.eta. Argumento inteiro em %>
-<% // rede/painel.eta, que já leu a constante aqui por engano. %>
-<% // magic-values: permitido — prosa em frase corrida, e não ROTULOS.anoLetivo, que rotula o dado escolhido, nem CONTAGEM.anoLetivo, que é o substantivo de um número %>
+<% // "ano letivo" aqui é prosa em frase corrida: o número do span é o NOME do ano, não uma %>
+<% // quantidade dele, e por isso a palavra ao lado nunca vira "anos letivos". %>
       <%= it.rotulos.turma %> <%= boletim.turmaNome %><%= it.apresentacao.separador %>ano letivo <span class="numero"><%= boletim.ano %></span>
     </p>
   </div>
@@ -101,8 +96,7 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
 
       <div class="cartao">
 <% // A mesma palavra encabeça cinco lugares com cinco vocabulários FECHADOS diferentes, de quatro %>
-<% // módulos: unidade Ativa/Inativa, usuário Ativo/Inativo, matrícula Ativa/Transferida/…, dia de %>
-<% // aula Presente/Falta e, aqui, o situacaoFinal do boletim. O porquê está em web/constantes.ts. %>
+<% // módulos: unidade, usuário, matrícula, dia de aula e, aqui, o do boletim. Ver web/constantes.ts. %>
 <% // magic-values: permitido — substantivo genérico que encabeça cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em ROTULOS %>
         <p class="cartao__rotulo">Situação</p>
         <p>

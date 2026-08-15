@@ -75,8 +75,9 @@ const atalhos = [
     detalhe: 'Abra a turma para alocar disciplina e professor da unidade.' },
   { href: it.rotas.secretaria.responsaveis(), rotulo: it.rotulos.responsavel,
     // Manchete deste cartão, que abre a LISTA de responsáveis: o cadastro ainda é um clique
-    // adiante, e quem carrega o nome daquela tela é o botão que leva até ela — ver o topo.
-    // magic-values: permitido — a manchete não é `TITULOS.secretaria.responsavelNovo`, título da tela de cadastro que este cartão NÃO abre; nem é `TITULOS.secretaria.responsaveis`, título da tela que ele abre
+    // adiante, e quem carrega o nome daquela tela é o botão que leva até ela — ver o topo. Não é
+    // o título da tela de cadastro, que este cartão NÃO abre, nem o título da tela que ele abre.
+    // magic-values: permitido — não é `TITULOS.secretaria.responsavelNovo` nem `TITULOS.secretaria.responsaveis`
     titulo: 'Cadastrar responsável',
     detalhe: 'Quem recebe comunicado e responde pelo aluno.' },
 ];

@@ -71,25 +71,14 @@ const situacaoDoDia = (dia) => {
 <header class="pagina__cabecalho">
   <div>
 <%
-// O sobretítulo das telas internas do responsável nomeia o DOCUMENTO que a pessoa abriu — "Boletim"
-// no boletim, "Comunicado" no comunicado, "Frequência" aqui —, e não a área do menu: quem imprime
-// `it.areas.acompanhamento` são as duas telas de fora, o painel e o mural.
-// magic-values: permitido — não é `it.rotulos.frequencia`, que nomeia o PERCENTUAL do cartão, nem `it.areas.acompanhamento`. %>
+// O sobretítulo nomeia o DOCUMENTO aberto — "Boletim", "Comunicado", "Frequência" —, e não a área
+// do menu: quem imprime `it.areas.acompanhamento` são as telas de fora, o painel e o mural. %>
     <p class="sobretitulo">Frequência</p>
     <h1 class="pagina__titulo"><%= it.matricula.alunoNome %></h1>
     <p class="pagina__resumo">
 <%
-// A linha abaixo se lê de uma vez, em voz corrida — "Turma 5º A · ano letivo 2026" —, com o ano num
-// `<span>` à parte porque a folha de estilo o destaca. Ler em voz corrida não faz da marca do meio
-// outra coisa: ela emenda dois atributos numa linha só, que é o trabalho do separador, e vem da
-// constante como vem em `secretaria/turma.eta`. O que fica escrito aqui são as PALAVRAS.
-//
-// "ano letivo" não é `it.contagem.anoLetivo.singular`, ainda que seja o substantivo
-// minúsculo de uma frase corrida: o 2026 do `<span>` é o NOME do ano, e não uma quantidade de anos
-// letivos — nenhum valor dele faz a palavra virar plural. O par da CONTAGEM só trabalha onde um
-// número CONTA ("de 2 anos letivos", na paginação de `rede/anos.eta`); o argumento inteiro, com as
-// sete telas que escrevem esta prosa, está no cabeçalho de `rede/painel.eta`.
-// magic-values: permitido — "Turma" não é `it.rotulos.turma` (o `<th>` da coluna), "ano letivo" não é `it.rotulos.anoLetivo` (o rótulo do filtro) nem `it.contagem.anoLetivo` (o substantivo que um número conta). %>
+// A linha se lê corrida — "Turma 5º A · ano letivo 2026" —, e a marca do meio vem de
+// `it.apresentacao.separador`. "ano letivo" é prosa: o 2026 é o NOME do ano, não uma contagem. %>
       Turma <%= it.matricula.turmaNome %><%= it.apresentacao.separador %>ano letivo
       <span class="numero"><%= it.matricula.ano %></span>
     </p>
@@ -149,12 +138,9 @@ const situacaoDoDia = (dia) => {
         <tr>
           <th scope="col" class="celula-centro">Data</th>
 <%
-// "Situação" encabeça cinco colunas do sistema, e cada uma mostra um vocabulário fechado diferente,
-// de quatro módulos. Esta mostra `VOCABULARIO_DA_AVALIACAO.presenca` — Presente, Falta, Falta
-// justificada —, e nenhuma das outras quatro: unidade, usuário, matrícula e boletim têm as suas.
-// Um dono único prometeria que as cinco mudam juntas, e decidir que ESTA coluna passa a dizer
-// "Presença" não pode renomear a coluna da lista de unidades. Ver o bloco logo abaixo de `ROTULOS`,
-// em `web/constantes.ts`, onde a decisão está escrita por inteiro.
+// "Situação" encabeça cinco colunas do sistema, cada uma com um vocabulário fechado diferente, de
+// quatro módulos; um dono único prometeria que as cinco mudam juntas. Ver `ROTULOS`, em
+// `web/constantes.ts`.
 // magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; por isso não é membro de `it.rotulos`. %>
           <th scope="col" class="celula-centro">Situação</th>
           <th scope="col" class="celula-texto celula-elastica">Justificativa</th>

@@ -168,7 +168,10 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
           <td class="celula-centro">
             <div class="tabela__acoes">
               <a class="botao botao--secundario botao--miudo" href="<%= it.rotas.secretaria.turma({ id: turma.id }) %>">
-<% // magic-values: permitido — "turma" aqui é prosa do nome acessível do botão ("Abrir turma 3ºA"), irmã do "Abrir ficha de <nome>" das outras listas, e não CONTAGEM.turma.singular, que é o substantivo que vem DEPOIS DE UM NÚMERO em "1 turma" e na paginação. Consumir a contagem prometeria que encurtar a frase contada renomeia o botão, e são duas decisões %>
+<% // O nome acessível deste botão ("Abrir turma 3ºA") é irmão do "Abrir ficha de <nome>" das outras %>
+<% // listas: prosa de quem redige o botão. Consumir a contagem prometeria que encurtar a frase %>
+<% // contada renomeia o botão também, e são duas decisões. %>
+<% // magic-values: permitido — não é CONTAGEM.turma.singular, o substantivo que vem DEPOIS DE UM NÚMERO %>
                 Abrir<span class="visualmente-oculto"> turma <%= turma.nome %></span>
               </a>
             </div>

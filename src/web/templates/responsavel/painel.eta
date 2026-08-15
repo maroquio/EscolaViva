@@ -90,7 +90,7 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
 
 <section class="secao" aria-labelledby="titulo-alunos">
   <div class="secao__cabecalho">
-<% // magic-values: permitido — nomeia esta seção, não a tela `TITULOS.secretaria.alunos` %>
+<% // "Alunos" nomeia esta seção do painel, e não a tela `TITULOS.secretaria.alunos` da secretaria. %>
     <h2 id="titulo-alunos">Alunos</h2>
     <p class="secao__nota">Uma matrícula por ano letivo</p>
   </div>

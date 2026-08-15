@@ -20,12 +20,9 @@
   da seção, em `it.separadorDeTurno`. São `TEMPLATES.parciais` e `APRESENTACAO`, de
   `src/web/constantes.ts`, carregados até aqui pela rota.
 
-  magic-values: permitido — o "Professor" do sobretítulo, abaixo, fica escrito à mão. Ele NÃO é
-  `it.areas.ensino`, que é o outro candidato óbvio: `AREAS` guarda o nome de cada grupo do menu, e o
-  grupo onde este link mora se chama "Ensino". As duas palavras respondem a perguntas diferentes —
-  "em que parte do menu eu estou?" e "em que papel eu estou olhando esta tela?" — e esta é a única
-  tela da rede em que as duas respostas divergem. Consumir `AREAS` aqui escreveria "Ensino" no alto
-  da página do professor; criar `AREAS.professor` inventaria um grupo de menu que não existe.
+  O "Professor" do sobretítulo, abaixo, fica escrito à mão, e NÃO é `it.areas.ensino`: `AREAS` diz
+  em que parte do menu se está, e o grupo onde este link mora se chama "Ensino". Esta é a única tela
+  da rede em que a área do menu e o papel de quem olha divergem.
 
   O "Disciplina" do cartão, ao contrário, é o mesmo dado nomeado em toda a rede e vem de
   `it.rotulos.disciplina` (`ROTULOS`, em `src/web/constantes.ts`). Repare que não é

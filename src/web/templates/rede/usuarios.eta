@@ -107,7 +107,12 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
           <th scope="col"><%= it.rotulos.cpf %></th>
           <th scope="col"><%= it.rotulos.email %></th>
           <th scope="col">Papéis</th>
-<% // magic-values: permitido — cabeça genérica de CINCO vocabulários de estado diferentes (aqui o `VOCABULARIO_DE_IDENTIDADE.ativo` do usuário; nas outras telas, unidade, matrícula, presença e situação final). Não é um `ROTULOS.situacao`: um dono único prometeria que as cinco colunas se renomeiam juntas, e renomear a de frequência para "Presença" não pode mexer nesta. Ver o bloco abaixo de ROTULOS em `web/constantes.ts` %>
+<% // Esta cabeça é genérica: a mesma palavra encabeça CINCO colunas com cinco vocabulários de %>
+<% // estado diferentes — aqui o usuário, e nas outras telas a unidade, a matrícula, a presença e a %>
+<% // situação final. Um dono único prometeria que as cinco se renomeiam juntas, e renomear a de %>
+<% // frequência para "Presença" não pode mexer nesta. O argumento inteiro está no bloco abaixo de %>
+<% // ROTULOS, em `web/constantes.ts`. %>
+<% // magic-values: permitido — não é um `ROTULOS.situacao`, nem o `VOCABULARIO_DE_IDENTIDADE.ativo` da célula abaixo %>
           <th scope="col">Situação</th>
         </tr>
       </thead>

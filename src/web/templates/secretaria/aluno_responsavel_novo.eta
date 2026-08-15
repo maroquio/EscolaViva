@@ -36,9 +36,8 @@
   é o nome que ATRAVESSA arquivos — a rota lê o corpo por ele e `vincularResponsavel` devolve
   `falhaDeCampo` com ele —, e é por isso que o `name=`, o `erroDe()`, o `descricao()` e o `valor()`
   o leem daqui em vez de repetirem a string. Já o `id=` do controle e o `for=` do `<label>` continuam
-  escritos à mão:
-  // magic-values: permitido — id e for casam um com o outro dentro desta caixa e não atravessam
-  // arquivo; quem atravessa é o `name=`, e esse vem de `campos`.
+  escritos à mão: casam um com o outro dentro desta caixa e não atravessam arquivo; quem
+  atravessa é o `name=`, e esse vem de `campos`.
   Os ids do erro e da ajuda, ao contrário, atravessam: são o alvo do `aria-describedby` que
   `descricao()` monta do outro lado, e por isso saem de `it.idDoErro` / `it.idDaAjuda`, as funções
   que guardam a mesma regra que ela.

@@ -458,16 +458,17 @@ export const ROTULOS = {
 /**
  * "Situação" fica FORA de `ROTULOS`, e a decisão é o exemplo mais claro do que este arquivo evita.
  *
- * A palavra encabeça cinco colunas, e cada uma mostra um vocabulário fechado diferente, de quatro
+ * A palavra encabeça seis colunas, que mostram cinco vocabulários fechados diferentes, de três
  * módulos diferentes: a unidade é Ativa/Inativa (`VOCABULARIO_DE_IDENTIDADE.unidadeAtiva`), o
  * usuário é Ativo/Inativo (`.ativo`), a matrícula é Ativa/Transferida/Cancelada/Concluída
- * (`VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula`), o dia de aula é Presente/Falta
- * (`VOCABULARIO_DA_AVALIACAO.presenca`) e o boletim é Aprovado/Reprovado/Em curso (`.situacaoFinal`).
+ * (`VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula`, na tela do aluno e na da turma), o dia de aula é
+ * Presente/Falta (`VOCABULARIO_DA_AVALIACAO.presenca`) e o boletim é Aprovado/Reprovado/Em curso
+ * (`.situacaoFinal`).
  *
  * "Situação" é o substantivo genérico do português que serve de cabeça para os cinco. Um dono único
- * prometeria que as cinco mudam juntas, e elas não mudam: decidir que a tabela de frequência passa a
+ * prometeria que os cinco mudam juntos, e eles não mudam: decidir que a tabela de frequência passa a
  * dizer "Presença" é uma mudança da tela de frequência, e não pode renomear a coluna da lista de
- * unidades. As cinco ocorrências ficam escritas onde estão, com `// magic-values: permitido`.
+ * unidades. As seis ocorrências ficam escritas onde estão, com `// magic-values: permitido`.
  */
 
 /* --- Substantivos contáveis ------------------------------------------------- */
@@ -793,7 +794,6 @@ export const PREFIXOS_DE_ID = { erroDeCelula: 'erro-', pendencia: 'pendencia-' }
 export const PAGINACAO = {
   /** Sete números cabem na barra sem quebrar a linha no celular. */
   janela: 7,
-  rotuloPadrao: 'itens',
 } as const;
 
 /** Sem JavaScript no cliente, "uma ou mais atribuições" são linhas fixas que podem ficar vazias. */

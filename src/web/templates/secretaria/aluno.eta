@@ -120,11 +120,13 @@ const separadorAoFimDaLinha = it.apresentacao.separador.trimEnd();
         <span class="suave">nenhuma</span>
         <% } else { %>
         <span class="etiqueta etiqueta--ativa"><%= ativa.situacaoNome %></span>
+<% // "ano letivo" aqui é prosa da frase que resume a matrícula ativa, e não ROTULOS.anoLetivo, que %>
+<% // nomeia a ENTIDADE escolhida num filtro ou num <select>. %>
+<% // %>
 <% // Nem CONTAGEM.anoLetivo, apesar de ser o substantivo minúsculo de uma frase corrida: o número %>
 <% // ao lado é o NOME do ano, não uma quantidade de anos letivos, e nenhum valor dele faz a %>
 <% // palavra virar plural. O par da CONTAGEM só trabalha onde um número CONTA, como na barra de %>
 <% // paginação de rede/anos.eta. O argumento inteiro está no cabeçalho de rede/painel.eta. %>
-<% // magic-values: permitido — "ano letivo" aqui é prosa da frase que resume a matrícula ativa, e não ROTULOS.anoLetivo, que nomeia a ENTIDADE escolhida num filtro ou num <select>, nem CONTAGEM.anoLetivo, que é o substantivo que um número conta %>
         <%= ativa.turmaNome %><%= it.apresentacao.separador %>ano letivo <span class="numero"><%= ativa.ano %></span><%= separadorAoFimDaLinha %>
 
         matriculado em <span class="numero"><%= it.formatarData(ativa.dataMatricula) %></span>
@@ -200,7 +202,9 @@ const separadorAoFimDaLinha = it.apresentacao.separador.trimEnd();
          it.navegacaoMatriculas === undefined ? matriculas.length : it.navegacaoMatriculas.total; %>
     <p class="secao__nota">
       <span class="numero"><%= quantosRegistros %></span>
-<% // magic-values: permitido — "registro" é a palavra genérica desta frase, e não uma entidade contável do produto: o que a tabela lista são matrículas, mas a frase conta os REGISTROS que restaram nas unidades de quem olha. Fora de CONTAGEM, que nomeia o que o sistema cadastra %>
+<% // "registro" é a palavra genérica desta frase, e não uma entidade contável do produto: o que a %>
+<% // tabela lista são matrículas, mas a frase conta os REGISTROS que restaram nas unidades de quem %>
+<% // olha. Fica fora de CONTAGEM, que nomeia o que o sistema cadastra. %>
       <%= quantosRegistros === 1 ? 'registro' : 'registros' %> nas suas unidades
     </p>
   </div>
@@ -221,7 +225,10 @@ const separadorAoFimDaLinha = it.apresentacao.separador.trimEnd();
             <th scope="col"><%= it.rotulos.turma %></th>
             <th scope="col"><%= it.rotulos.ano %></th>
             <th scope="col">Data</th>
-<% // magic-values: permitido — "Situação" é a cabeça genérica de cinco colunas com cinco vocabulários de estado diferentes; de propósito NÃO está em ROTULOS, e também não é o VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula que preenche a célula abaixo dela. Ver o bloco logo depois de ROTULOS em `src/web/constantes.ts` %>
+<% // Esta cabeça é genérica: a mesma palavra encabeça cinco colunas com cinco vocabulários de %>
+<% // estado diferentes, e por isso ficou de fora de ROTULOS de propósito. O argumento inteiro está %>
+<% // no bloco logo depois de ROTULOS, em `src/web/constantes.ts`. %>
+<% // magic-values: permitido — não é rótulo de ROTULOS, nem o VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula da célula abaixo %>
             <th scope="col">Situação</th>
           </tr>
         </thead>

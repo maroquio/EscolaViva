@@ -63,8 +63,8 @@ const { erroDe, descricao } = it;
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.disciplinas() %>">
     <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
-<% // magic-values: permitido — o `for=` do rótulo e o `id=` da caixa casam um com o outro dentro %>
-<% // destas seis linhas e nada fora do arquivo os lê; não são o `name=`, que atravessa até a rota. %>
+<% // O `for=` do rótulo e o `id=` da caixa casam um com o outro dentro destas seis linhas e nada %>
+<% // fora do arquivo os lê; não são o `name=`, que atravessa até a rota. %>
 <% // `for="nome"` ao lado de `id="nome"` é o HTML mais legível que um aluno pode encontrar. %>
     <div class="campo">
       <label class="campo__rotulo" for="nome">

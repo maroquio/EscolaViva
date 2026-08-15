@@ -42,7 +42,7 @@ const papeis = it.papeis ?? [];
 const linhas = it.linhas ?? [];
 const valores = it.valores ?? { nome: '', email: '', cpf: '', responsavelId: '' };
 const campos = it.campos.usuario;
-// magic-values: permitido — o `id` do <input> e o `for` do <label> logo abaixo casam um com o outro
+// O `id` do <input> e o `for` do <label> logo abaixo casam um com o outro
 // dentro das mesmas seis linhas e não atravessam este arquivo; `for="nome"` ao lado de `id="nome"`
 // é o HTML mais legível que existe, e o nome que atravessa é o do `name=`, que vem de `campos`.
 const { erroDe, descricao } = it;

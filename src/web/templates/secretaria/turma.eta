@@ -90,9 +90,9 @@ const matriculas = it.matriculas ?? [];
    // singular/plural da CONTAGEM existe para o número que CONTA ("de 2 anos letivos", na
    // paginação de `rede/anos.eta`), e o número desta linha é o NOME do ano — nenhum valor dele faz
    // a palavra virar plural. O argumento inteiro está no cabeçalho de `rede/painel.eta`.
-   // magic-values: permitido — "ano letivo" aqui é prosa no meio de uma frase corrida, e não o
-   // rótulo `ROTULOS.anoLetivo` ("Ano letivo"), que nomeia o filtro e a coluna da lista de turmas,
-   // nem `CONTAGEM.anoLetivo`, que é o substantivo que um número conta %>
+   //
+   // Nem é o rótulo `ROTULOS.anoLetivo`, que nomeia o filtro e a coluna da lista de turmas: aqui o
+   // substantivo é prosa no meio de uma frase corrida. %>
       <%= turma.serie %><%= it.apresentacao.separador %><%= turma.turno %><%= it.apresentacao.separador %><%= turma.unidadeNome %><%= it.apresentacao.separador %>ano letivo
       <span class="numero"><%= turma.ano === null ? it.semValor : turma.ano %></span>
     </p>
@@ -190,7 +190,10 @@ const matriculas = it.matriculas ?? [];
    // tabela de frequência passa a dizer "Presença" não pode renomear a coluna desta tabela aqui.
    // O bloco encosta na margem porque o Eta guarda como texto tudo o que vier antes da abertura
    // dele: indentado, empurraria a linha de baixo no HTML servido.
-   // magic-values: permitido — esta coluna mostra a situação da MATRÍCULA, e o par dela é `VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula`, e não um rótulo de `ROTULOS` %>
+   //
+   // O que esta coluna mostra é a situação da MATRÍCULA, e o par dela é o
+   // `VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula` que preenche a célula.
+   // magic-values: permitido — a cabeça da coluna não é um rótulo de `ROTULOS` %>
           <th scope="col" class="celula-centro">Situação</th>
           <th scope="col" class="celula-centro"><%= it.rotulos.acoes %></th>
         </tr>

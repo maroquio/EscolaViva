@@ -90,7 +90,10 @@ const buscou = it.buscou === true;
       <input id="q" name="<%= it.campoDaBusca %>" type="search" value="<%= termo %>" autocomplete="off"
              maxlength="<%= it.limiteDoNome %>" aria-describedby="q<%= it.sufixos.ajuda %>">
       <p class="campo__ajuda" id="q<%= it.sufixos.ajuda %>">
-<% // magic-values: permitido — este 50 não é LIMITES.aluno.busca: aquele teto só vale para quem chama a busca SEM faixa, e esta tela chama a consulta paginada; nem é o TAMANHO_PADRAO da paginação, que vale dez e é quem de fato limita esta lista. Ver o bloco do topo %>
+<% // Este 50 é o número que a frase de ajuda anuncia, e o bloco do topo explica por que ele fica %>
+<% // escrito aqui: LIMITES.aluno.busca é o teto de quem chama a busca SEM faixa, e esta tela chama %>
+<% // a consulta paginada, cujo limite é o TAMANHO_PADRAO — dez, e não cinquenta. %>
+<% // magic-values: permitido — não é LIMITES.aluno.busca nem o TAMANHO_PADRAO da paginação %>
         Encontra qualquer trecho do nome, sem diferenciar maiúsculas. Mostra os 50 primeiros em
         ordem alfabética.
       </p>

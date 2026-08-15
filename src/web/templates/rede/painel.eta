@@ -53,10 +53,10 @@
   Os outros dois cartões NÃO são link, e por isso continuam com o rótulo escrito. "Turmas" e
   "Matriculados" nomeiam uma CONTAGEM desta rede, não uma tela: coincidem com
   `TITULOS.secretaria.turmas` por serem a mesma palavra do domínio, e não a mesma decisão —
-  renomear a tela da secretaria não deve renomear um número do painel da rede. A justificativa que
-  `scripts/magic-values.ts` exige fica na linha acima do literal, e encostada na margem de
-  propósito: o Eta guarda o que vier ANTES de um `<%` como texto do documento, então indentar o
-  comentário empurraria a linha seguinte dois espaços para a direita no HTML servido.
+  renomear a tela da secretaria não deve renomear um número do painel da rede. O comentário que
+  registra isso fica na linha acima do literal, e encostado na margem de propósito: o Eta guarda o
+  que vier ANTES de um `<%` como texto do documento, então indentar o comentário empurraria a linha
+  seguinte dois espaços para a direita no HTML servido.
 
   Uma armadilha vizinha, para quem for escrever a próxima justificativa aqui dentro: o Eta acha o
   `%>` que fecha a tag com um leitor que entende ASPAS e comentário de bloco, mas NÃO entende
@@ -107,7 +107,7 @@ const anoNoRotulo =
     </a>
 
     <div class="cartao">
-<% // magic-values: permitido — nomeia a contagem desta rede, não a tela `TITULOS.secretaria.turmas` %>
+<% // Nomeia a contagem desta rede, não a tela `TITULOS.secretaria.turmas` %>
       <span class="cartao__rotulo">Turmas</span>
       <span class="cartao__numero"><%= contagens.turmas %></span>
       <span class="cartao__detalhe">Abertas no <%= anoNoRotulo %></span>

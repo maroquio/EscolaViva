@@ -37,10 +37,9 @@
   `aria-describedby` apontando para um id inexistente — a tela ficaria igual para quem enxerga e o
   leitor de tela não leria nem a ajuda nem o erro.
 
-  Já o `id=` do `<input>` e o `for=` do `<label>` continuam escritos à mão de propósito.
-  // magic-values: permitido — id e for casam dentro desta mesma caixa e não atravessam arquivo
-  algum; o nome que atravessa é o `name=`, e `for="nome"` ao lado de `id="nome"` é o HTML mais
-  legível que se pode ler aqui.
+  Já o `id=` do `<input>` e o `for=` do `<label>` continuam escritos à mão de propósito: casam
+  dentro desta mesma caixa e não atravessam arquivo algum; o nome que atravessa é o `name=`, e
+  `for="nome"` ao lado de `id="nome"` é o HTML mais legível que se pode ler aqui.
 */
 const valores = it.valores ?? { nome: '', codigoInep: '' };
 const { erroDe, descricao } = it;

@@ -55,8 +55,8 @@ const campos = it.campos.aluno;
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.alunos() %>">
     <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
-<% // magic-values: permitido — `id` e `for` casam um com o outro dentro desta caixa e ninguém de %>
-<% // fora do arquivo os lê: não são o `CAMPOS.aluno.nome` que atravessa até a rota, esse é o `name`. %>
+<% // `id` e `for` casam um com o outro dentro desta caixa e ninguém de fora do arquivo os lê: não %>
+<% // são o `CAMPOS.aluno.nome` que atravessa até a rota, esse é o `name`. %>
     <div class="campo">
       <label class="campo__rotulo" for="nome">
         Nome completo <span class="campo__obrigatorio" aria-hidden="true">*</span>
@@ -77,7 +77,7 @@ const campos = it.campos.aluno;
       <% } %>
     </div>
 
-<% // magic-values: permitido — mesma caixa, mesma razão: `id` e `for` não saem daqui. %>
+<% // Mesma caixa, mesma razão: `id` e `for` não saem daqui. %>
     <div class="campo">
       <label class="campo__rotulo" for="dataNascimento">
         Data de nascimento <span class="campo__obrigatorio" aria-hidden="true">*</span>
