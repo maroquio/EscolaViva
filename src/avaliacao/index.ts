@@ -33,3 +33,22 @@ export const avaliacao = {
   frequenciaDaMatricula,
   paginaDeFrequencia,
 };
+
+/**
+ * As constantes do módulo que alguém de fora precisa ler, com o sufixo do dono para a travessia.
+ *
+ * `APROVACAO` e `ARITMETICA` saem porque o boletim IMPRIME o critério — a tela promete mostrar a
+ * regra que decidiu a situação, e os dois pisos precisam chegar lá sem serem redigitados.
+ * `CODIGOS` e `MENSAGENS` ficam dentro: viajam no `Resultado` e ninguém os alcança pelo nome.
+ */
+export {
+  APROVACAO,
+  ARITMETICA,
+  CAMPOS as CAMPOS_DA_AVALIACAO,
+  LIMITES as LIMITES_DA_AVALIACAO,
+  MEIA_NOITE_UTC,
+  VOCABULARIO as VOCABULARIO_DA_AVALIACAO,
+} from './constantes';
+
+/** O conjunto de bimestres é fonte de tipo e de regra: sai de `dominio/nota.ts`. */
+export { BIMESTRES } from './dominio/nota';

@@ -45,3 +45,25 @@ export const identidade = {
   professoresDaUnidade,
   nomesDeUsuarios,
 };
+
+/**
+ * As constantes do módulo que alguém de fora precisa ler, com o sufixo do dono para a travessia.
+ *
+ * `CODIGOS`, `MENSAGENS` e `ERROS_INTERNOS` ficam de dentro: viajam no `Resultado` e ninguém os
+ * alcança pelo nome. `SEGURANCA` e `SEPARADOR_DE_ATRIBUICAO` também — o hash de tempo constante e
+ * o separador da chave em memória são de como este módulo faz, não de o que ele promete.
+ */
+export {
+  CAMPOS as CAMPOS_DE_IDENTIDADE,
+  EVENTOS_DE_LOG as EVENTOS_DE_LOG_DE_IDENTIDADE,
+  EXPURGO_DE_SESSOES,
+  LIMITES as LIMITES_DE_IDENTIDADE,
+  PAPEL,
+  REDE_ATIVA,
+  VOCABULARIO as VOCABULARIO_DE_IDENTIDADE,
+} from './constantes';
+
+/** Vocabulário fechado do domínio: fonte de tipo, reexportado direto de `dominio/`. */
+export { PAPEIS } from './dominio/papel';
+export { STATUS_DE_REDE } from './dominio/rede';
+export { TAMANHO_MINIMO_DE_SENHA } from './dominio/usuario';
