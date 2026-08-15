@@ -47,7 +47,7 @@ const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Secretaria · <%= aluno.nome %></p>
-    <h1 class="pagina__titulo">Matricular em uma turma</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Um aluno tem, no máximo, uma matrícula ativa por ano letivo.
     </p>
@@ -66,7 +66,7 @@ const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
   </div>
   <% } else { %>
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.matriculas() %>">
-    <input type="hidden" name="_chave" value="<%= it.chave %>">
+    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
     <input type="hidden" name="alunoId" value="<%= aluno.id %>">
 
     <div class="formulario__linha">

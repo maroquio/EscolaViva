@@ -14,8 +14,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Eta } from 'eta';
 import type { Context } from 'hono';
+import { PAPEL } from '../identidade';
 import { config } from '../shared/config';
-import { AMBIENTE_DESENVOLVIMENTO, ATIVOS, AUSENTE } from '../shared/constantes';
+import { AMBIENTE_DESENVOLVIMENTO, ATIVOS, AUSENTE, CAMPO_CHAVE } from '../shared/constantes';
 import { formatarCpf } from '../shared/documento';
 import {
   contextoAtual,
@@ -27,6 +28,7 @@ import {
   APRESENTACAO,
   CURINGA_DE_ASSET,
   DETALHES_DE_ERRO,
+  DOCUMENTO,
   PARAMETROS,
   ROTAS,
   SUFIXOS_DE_ID,
@@ -187,12 +189,36 @@ const textoDaQuery = (c: Context, nome: string): string | null => {
  * versionado. As duas pontas dessa troca são decisões de `constantes.ts` — o `*` do padrão e o nome
  * lógico que o build publica —, e chegam ao `.eta` por aqui: o Eta não importa TypeScript, e
  * redigitá-las no template servia uma folha inexistente sem erro em lugar nenhum.
+ *
+ * `campoChave` viaja pela mesma razão. O `it.chave` que toda tela de escrita já recebia é o VALOR
+ * da chave de idempotência (I4); o NOME do campo oculto que a carrega é a outra ponta do contrato
+ * que `shared/http/idempotencia.ts` lê, e estava redigitado em cada `.eta`. Um `name` divergente
+ * não falha em lugar nenhum: o middleware responde 400 e a tela some para quem estava usando.
+ *
+ * Os cinco logo abaixo de `rotas` são o que a MOLDURA precisa, e por isso não podiam ficar a cargo
+ * do handler.
+ * `_layout` e `_layout_publico` não são escolhidos por rota nenhuma — `layoutPadrao`, aqui embaixo,
+ * decide entre os dois olhando a sessão, e a página de erro registrada no fim deste arquivo nem
+ * passa por handler. Os parciais que os layouts incluem (`it.parciais`), as declarações do `<head>`
+ * (`it.documento`), a marca e o rodapé (`it.apresentacao`) e o que `_navegacao` usa para rotular e
+ * filtrar os links (`it.titulos`, `it.papel`) chegam então de onde a moldura é montada. A
+ * alternativa era pedir a cada uma das rotas que se lembrasse de passá-los; a primeira que
+ * esquecesse serviria a tela sem cabeçalho, sem menu e sem `<title>`.
+ *
+ * `it.titulo` continua sendo o título DESTA página, que a rota passa; `it.titulos` é o mapa inteiro,
+ * de onde o menu tira o rótulo da tela para onde cada link leva.
  */
 const auxiliares = {
   asset,
   curingaDeAsset: CURINGA_DE_ASSET,
   nomeLogicoDaFolha: ATIVOS.nomeLogicoDaFolha,
+  campoChave: CAMPO_CHAVE,
   rotas: ROTAS,
+  parciais: TEMPLATES.parciais,
+  documento: DOCUMENTO,
+  apresentacao: APRESENTACAO,
+  titulos: TITULOS,
+  papel: PAPEL,
   formatarCpf,
   formatarData,
   formatarDataHora,

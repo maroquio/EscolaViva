@@ -40,6 +40,13 @@ const CLASSE_DA_PRESENCA = {
 /** `AUSENTE` (`src/shared/constantes.ts`), pela rota: célula sem valor mostra um travessão. */
 const SEM_VALOR = it.semValor;
 
+/*
+  O piso de frequência escrito na tela chega pronto em `it.criterio`, o MESMO objeto que o boletim
+  recebe, derivado de `APROVACAO.frequenciaMinimaEmCentesimos`. Escrever "75 %" à mão aqui era a
+  terceira cópia do piso — e a única que ninguém acompanharia no dia em que ele mudasse.
+*/
+const CRITERIO = it.criterio;
+
 const situacaoDoDia = (dia) => {
   if (dia.presente) {
     return { classe: CLASSE_DA_PRESENCA.presente, rotulo: ROTULO_DA_PRESENCA.presente };
@@ -72,7 +79,7 @@ const situacaoDoDia = (dia) => {
 <section class="secao" aria-labelledby="titulo-apuracao">
   <div class="secao__cabecalho">
     <h2 id="titulo-apuracao">Apuração do ano</h2>
-    <p class="secao__nota">São necessários 75 % de presença para aprovação</p>
+    <p class="secao__nota">São necessários <%= CRITERIO.frequencia %> de presença para aprovação</p>
   </div>
 
   <div class="painel">

@@ -12,7 +12,9 @@
   nenhum campo, nenhuma validação e nenhum passo dependem dele.
 
   Nenhum limite de tamanho é repetido aqui: quem conhece o tamanho do título e do corpo é
-  `comunicacao`, e é de lá que vem a mensagem quando o texto não cabe.
+  `comunicacao`, e é de lá que vem a mensagem quando o texto não cabe. A altura da caixa de
+  mensagem também não: `it.linhasDaMensagem` chega da rota, onde a decisão está nomeada e o
+  compilador a enxerga.
 */
 const valores = it.valores;
 const responsaveis = it.responsaveis;
@@ -27,7 +29,7 @@ const descricaoDe = (campo, ajudaId) =>
 <header class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Comunicação</p>
-    <h1 class="pagina__titulo">Novo comunicado</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       O comunicado aparece no mural dos responsáveis escolhidos, e a leitura de cada um passa a ser
       medida a partir da publicação.
@@ -89,7 +91,7 @@ const descricaoDe = (campo, ajudaId) =>
   </div>
 
   <form class="formulario formulario--largo" method="post" action="<%= it.rotas.comunicados.novo() %>">
-    <input type="hidden" name="_chave" value="<%= it.chave %>">
+    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
     <input type="hidden" name="unidadeId" value="<%= it.unidade.id %>">
 
     <div class="campo leitura">
@@ -112,7 +114,7 @@ const descricaoDe = (campo, ajudaId) =>
       <label class="campo__rotulo" for="corpo">
         Mensagem <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
-      <textarea id="corpo" name="corpo" required rows="10"
+      <textarea id="corpo" name="corpo" required rows="<%= it.linhasDaMensagem %>"
                 <% if (erroDe('corpo') !== null) { %>aria-invalid="true"<% } %>
                 aria-describedby="<%= descricaoDe('corpo', 'corpo-ajuda') %>"><%= valores.corpo %></textarea>
       <p class="campo__ajuda" id="corpo-ajuda">

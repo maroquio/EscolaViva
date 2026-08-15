@@ -27,7 +27,7 @@ const { erroDe, descricao, sufixos } = it;
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Secretaria · Responsáveis</p>
-    <h1 class="pagina__titulo">Cadastrar responsável</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Quem recebe comunicado e acompanha boletim e frequência. Depois de cadastrar, vincule-o ao
       aluno pela ficha dele.
@@ -37,7 +37,7 @@ const { erroDe, descricao, sufixos } = it;
 
 <div class="quadro">
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.responsaveis() %>">
-    <input type="hidden" name="_chave" value="<%= it.chave %>">
+    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
     <div class="campo">
       <label class="campo__rotulo" for="nome">

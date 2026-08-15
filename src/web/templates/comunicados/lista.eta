@@ -15,7 +15,7 @@ const resumo = it.resumo;
 <header class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Comunicação</p>
-    <h1 class="pagina__titulo">Comunicados</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       O que foi enviado ao mural dos responsáveis, com quantos receberam e quantos leram.
     </p>

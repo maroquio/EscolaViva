@@ -199,7 +199,15 @@ export const ENTIDADES_HTML = {
   aspasDuplas: '&quot;',
 } as const;
 
-/** Nome do campo oculto que carrega a chave de idempotência (I4) — casado com 13 `.eta`. */
+/**
+ * Nome do campo oculto que carrega a chave de idempotência (I4).
+ *
+ * As duas pontas do contrato leem daqui: `shared/http/idempotencia.ts` procura este nome no corpo
+ * do POST, e os 19 `.eta` que abrem formulário de escrita o imprimem no `name` — não mais à mão,
+ * mas por `it.campoChave`, que `web/render.ts` põe no contexto de todo template. Redigitá-lo era
+ * um engano invisível: `name` divergente não quebra compilação nenhuma, o middleware responde 400
+ * e a tela some para quem estava usando o sistema.
+ */
 export const CAMPO_CHAVE = '_chave';
 
 /** Nomes das variáveis do contexto Hono. Precisam casar com as chaves do tipo `Variaveis`. */

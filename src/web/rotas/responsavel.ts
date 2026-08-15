@@ -203,6 +203,9 @@ rotasResponsavel.get(ROTAS.responsavel.frequencia.padrao, async (c) => {
     ...PARCIAIS,
     rotuloDaPresenca: ROTULOS_DA_AVALIACAO.rotuloDaPresenca,
     semValor: AUSENTE,
+    // O mesmo objeto que o boletim recebe: as duas telas escrevem o piso de frequência, e escrevê-lo
+    // duas vezes era como uma delas passava a mentir sozinha.
+    criterio: CRITERIO_DE_APROVACAO,
     titulo: TITULOS.responsavel.frequencia(matricula.alunoNome),
     matricula,
     boletim,

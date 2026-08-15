@@ -35,6 +35,7 @@ import {
   ERROS_DE_FORMULARIO,
   PARAMETROS,
   ROTAS,
+  SEM_SELECAO_NO_ENVIO,
   TEMPLATES,
   TITULOS,
 } from '../constantes';
@@ -181,6 +182,19 @@ const contextoDeEnvio = async (
   return { unidades, unidade, responsaveis };
 };
 
+/**
+ * Altura da caixa de mensagem, em linhas de texto.
+ *
+ * NÃO é o `TAMANHO_PADRAO` da paginação, que também vale dez: aquele é quantas LINHAS DE TABELA
+ * cabem na tela, este é quantas LINHAS DE DIGITAÇÃO o autor vê antes de a caixa rolar. Mudar um
+ * pelo outro é o engano que a vizinhança de valores iguais convida.
+ *
+ * Mora nesta rota, e não no `.eta`, porque `rows="9"` escrito no template não quebra compilação
+ * nenhuma — e porque é a única tela do sistema com caixa de texto longo: um dono na camada de
+ * apresentação inteira prometeria uma política que não existe.
+ */
+const LINHAS_DA_MENSAGEM = 10;
+
 const paginaDeEnvio = (
   c: Context,
   contexto: ContextoDeEnvio,
@@ -189,6 +203,7 @@ const paginaDeEnvio = (
 ): Response =>
   renderizar(c, TEMPLATES.comunicados.novo, {
     titulo: TITULOS.comunicados.novo,
+    linhasDaMensagem: LINHAS_DA_MENSAGEM,
     ...contexto,
     valores,
     erros,
@@ -205,14 +220,13 @@ const valoresIniciais = (unidadeId: string): ValoresDoComunicado => ({
 /**
  * A recusa por lista vazia, com o campo e o código de `ERROS_DE_FORMULARIO.semSelecao`.
  *
- * A frase fica aqui porque a constante da camada web reescreveu o texto ("Marque ao menos um
- * responsável, ou envie para a unidade inteira.") e este refactor não muda um byte do que a tela
- * diz. Reconciliar as duas redações é decisão de produto, não de extração de constante: no dia em
- * que ela for tomada, esta `const` some e o objeto de `ERROS_DE_FORMULARIO` é usado inteiro.
+ * A frase é `SEM_SELECAO_NO_ENVIO`, ao lado das demais frases da camada web. Aquele objeto não
+ * declara `mensagem` porque este é o único lugar que emite esta recusa, e o texto é da tela de
+ * envio: uma frase declarada lá seria letra morta, sobrescrita na única linha que a usaria.
  */
 const SEM_SELECAO: ErroDeAplicacao = {
   ...ERROS_DE_FORMULARIO.semSelecao,
-  mensagem: 'Marque ao menos um responsável ou escolha enviar para toda a unidade.',
+  mensagem: SEM_SELECAO_NO_ENVIO,
 };
 
 /**

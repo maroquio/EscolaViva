@@ -77,7 +77,7 @@ const legenda = `Notas do ${bimestre}º bimestre · ${alocacao.disciplinaNome} �
 %>
 <% if (!fechado) { %>
 <form class="formulario formulario--largo" method="post" action="<%= it.acaoDoFormulario %>">
-  <input type="hidden" name="_chave" value="<%= it.chave %>">
+  <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
   <input type="hidden" name="<%= it.campoBimestre %>" value="<%= bimestre %>">
 <% } %>
 

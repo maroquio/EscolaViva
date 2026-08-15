@@ -21,7 +21,7 @@ const anos = it.anos ?? [];
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Rede</p>
-    <h1 class="pagina__titulo">Anos letivos</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       O ano letivo delimita as matrículas: um aluno tem uma matrícula ativa por ano, e é esse
       recorte que o boletim e a frequência usam.

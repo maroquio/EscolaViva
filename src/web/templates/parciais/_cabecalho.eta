@@ -9,12 +9,17 @@
   Os dois endereços da barra — a marca, que leva ao painel, e o formulário de sair — vêm de
   `it.rotas`, o mesmo mapa que o router registra. Endereço escrito à mão aqui não quebra
   compilação: quebra a tela de quem clica.
+
+  O DESENHO da marca vem de `it.apresentacao.marca`, e é o mesmo que `_layout_publico` imprime na
+  folha do login: um só lugar decide onde a ênfase cai. Sai CRUA porque o valor é marcação — a
+  ênfase na segunda metade da palavra é a logotipia, não decoração desta barra — e a saída crua é
+  segura porque é um literal de `constantes.ts`, nunca um dado que chegou do usuário.
 */
 const usuario = it.usuario;
 const unidades = usuario === null ? [] : [...new Set(usuario.papeis.map((p) => p.unidadeNome))];
 %>
 <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="<%= it.rotas.publicas.painel() %>">Escola<em>Viva</em></a>
+  <a class="marca cabecalho__marca" href="<%= it.rotas.publicas.painel() %>"><%~ it.apresentacao.marca %></a>
 
   <% if (usuario !== null) { %>
   <div class="cabecalho__contexto">
@@ -33,7 +38,7 @@ const unidades = usuario === null ? [] : [...new Set(usuario.papeis.map((p) => p
   <div class="cabecalho__usuario">
     <span class="cabecalho__nome" title="<%= usuario.email %>"><%= usuario.nome %></span>
     <form class="cabecalho__sair" method="post" action="<%= it.rotas.publicas.logout() %>">
-      <input type="hidden" name="_chave" value="<%= it.chave %>">
+      <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
       <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
     </form>
   </div>

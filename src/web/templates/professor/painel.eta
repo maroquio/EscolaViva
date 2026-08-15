@@ -33,7 +33,7 @@ const idDaTurma = (turmaId) => `turma-${turmaId}`;
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Professor</p>
-    <h1 class="pagina__titulo">Minhas turmas</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       As turmas em que você leciona nesta rede. Cada disciplina abre o diário de notas; a chamada e o
       fechamento valem para a turma inteira.

@@ -16,34 +16,41 @@
   curinga: mudar o prefixo publicado passa a ser uma edição só, em `ROTAS`, em vez de um `href`
   aqui que ninguém lembra de acompanhar — e `href` errado em `.eta` não quebra compilação, quebra
   a tela de quem está usando o sistema.
+
+  Pelo mesmo motivo nada mais aqui é digitado: `it.documento` traz as declarações do `<head>` e o id
+  do `<main>`, `it.apresentacao` traz o sufixo de marca do `<title>`, e `it.parciais` traz o caminho
+  de cada parcial. Os três objetos chegam de `render.ts` — nunca do handler —, porque quem escolhe
+  ESTE layout é `render.ts`, olhando a sessão: a rota não sabe que ele existe e não teria como se
+  lembrar de alimentá-lo. `_layout_publico` lê exatamente os mesmos valores, e é essa a razão de
+  eles terem dono: as duas molduras são o mesmo documento, e divergir em silêncio era o risco.
 */
 const folhaDeEstilo = it.rotas.publicas
   .publico()
   .replace(it.curingaDeAsset, it.asset(it.nomeLogicoDaFolha));
 %><!doctype html>
-<html lang="pt-BR">
+<html lang="<%= it.documento.idioma %>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="robots" content="noindex, nofollow">
-  <title><%= it.titulo %> · EscolaViva</title>
+  <meta name="color-scheme" content="<%= it.documento.esquemaDeCor %>">
+  <meta name="robots" content="<%= it.documento.robots %>">
+  <title><%= it.titulo %><%= it.apresentacao.sufixoDoTitulo %></title>
   <link rel="stylesheet" href="<%= folhaDeEstilo %>">
-  <%~ include("/parciais/_icone") %>
+  <%~ include(it.parciais.icone) %>
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+  <a class="pular-para-conteudo" href="#<%= it.documento.idDoConteudo %>">Pular para o conteúdo</a>
 
   <div class="aplicacao">
-    <%~ include("/parciais/_cabecalho", it) %>
-    <%~ include("/parciais/_navegacao", it) %>
+    <%~ include(it.parciais.cabecalho, it) %>
+    <%~ include(it.parciais.navegacao, it) %>
 
-    <main class="conteudo" id="conteudo" tabindex="-1">
-      <%~ include("/parciais/_mensagens", it) %>
+    <main class="conteudo" id="<%= it.documento.idDoConteudo %>" tabindex="-1">
+      <%~ include(it.parciais.mensagens, it) %>
       <%~ it.body %>
     </main>
   </div>
 
-  <%~ include("/parciais/_script_avisos") %>
+  <%~ include(it.parciais.scriptAvisos) %>
 </body>
 </html>

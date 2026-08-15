@@ -37,7 +37,7 @@ const lidoEm = it.lidoEm;
   <footer class="acoes">
     <% if (lidoEm === null) { %>
     <form method="post" action="<%= it.rotas.responsavel.comunicadoLido({ comunicadoId: comunicado.id }) %>">
-      <input type="hidden" name="_chave" value="<%= it.chave %>">
+      <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
       <button class="botao botao--primario" type="submit">Marcar como lido</button>
     </form>
     <p class="suave">

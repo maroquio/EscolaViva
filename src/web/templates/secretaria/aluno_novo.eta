@@ -26,7 +26,7 @@ const { erroDe, descricao, sufixos } = it;
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Secretaria · Alunos</p>
-    <h1 class="pagina__titulo">Cadastrar aluno</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       O aluno pertence à rede, não a uma unidade: é a matrícula que o coloca numa turma. Depois de
       cadastrar, a ficha abre com os caminhos para vincular um responsável e para matricular.
@@ -36,7 +36,7 @@ const { erroDe, descricao, sufixos } = it;
 
 <div class="quadro">
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.alunos() %>">
-    <input type="hidden" name="_chave" value="<%= it.chave %>">
+    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
     <div class="campo">
       <label class="campo__rotulo" for="nome">

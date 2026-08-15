@@ -62,14 +62,35 @@ export type Grupo<P extends string, R extends Record<string, string>> = {
 const PARAMETRO = /:([A-Za-z][A-Za-z0-9_]*)/g;
 
 /**
+ * O separador de segmentos de uma URL — gramática do caminho, e não um endereço.
+ *
+ * A distinção importa porque `ROTAS.publicas.raiz` também vale `'/'` e é outra coisa: aquilo é a
+ * porta de entrada do sistema, um lugar para onde se navega; isto é o caractere que separa
+ * `/secretaria` de `alunos`. Este arquivo não pode importar `ROTAS` — é `web/constantes.ts` que
+ * importa `grupo()` daqui —, e mesmo que pudesse, tomar a raiz emprestada como separador fundiria
+ * por valor duas decisões que mudam por motivos diferentes.
+ */
+const BARRA = '/';
+
+/**
  * O padrão do painel de cada grupo é `'/'`, porque é assim que o Hono registra a raiz de um
  * router. Concatenado ao prefixo isso daria `/secretaria/`, e o Hono trata `/secretaria` e
  * `/secretaria/` como rotas diferentes: o link com a barra final cairia no `notFound`.
  */
 const juntar = (prefixo: string, padrao: string): string => {
   const bruto = `${prefixo}${padrao}`;
-  return bruto.length > 1 && bruto.endsWith('/') ? bruto.slice(0, -1) : bruto;
+  return bruto.length > 1 && bruto.endsWith(BARRA) ? bruto.slice(0, -1) : bruto;
 };
+
+/**
+ * A falha do `preencher`, redigida aqui e não no meio do `throw`.
+ *
+ * Ela nomeia o parâmetro que faltou E o padrão em que ele faltou porque quem a lê está diante de
+ * uma página de erro, sem o código na frente: `:id` sozinho não diz qual rota tentou montar, e o
+ * caminho sozinho não diz qual dos parâmetros ficou de fora.
+ */
+const MENSAGEM_DE_PARAMETRO_FALTANDO = (nome: string, caminho: string): string =>
+  `rota montada sem o parâmetro "${nome}": ${caminho}`;
 
 /**
  * O `encodeURIComponent` está aqui e não em cada chamador porque o valor que entra na URL vem do
@@ -83,7 +104,7 @@ const preencher = (caminho: string, parametros: Record<string, string | number>)
   caminho.replace(PARAMETRO, (_inteiro, nome: string) => {
     const valor = parametros[nome];
     if (valor === undefined) {
-      throw new Error(`rota montada sem o parâmetro "${nome}": ${caminho}`);
+      throw new Error(MENSAGEM_DE_PARAMETRO_FALTANDO(nome, caminho));
     }
     return encodeURIComponent(String(valor));
   });

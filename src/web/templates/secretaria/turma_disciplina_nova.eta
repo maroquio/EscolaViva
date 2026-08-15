@@ -31,7 +31,7 @@ const paginaDaTurma = it.rotas.secretaria.turma({ id: turma.id });
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Secretaria · Turma <%= turma.nome %></p>
-    <h1 class="pagina__titulo">Alocar disciplina e professor</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       <%= turma.serie %> · <%= turma.turno %> · <%= turma.unidadeNome %> · ano letivo
       <span class="numero"><%= turma.ano === null ? it.semValor : turma.ano %></span>
@@ -60,7 +60,7 @@ const paginaDaTurma = it.rotas.secretaria.turma({ id: turma.id });
   </div>
   <% } else { %>
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.turmaDisciplinas({ id: turma.id }) %>">
-    <input type="hidden" name="_chave" value="<%= it.chave %>">
+    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
     <div class="formulario__linha">
       <div class="campo">

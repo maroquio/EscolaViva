@@ -28,7 +28,7 @@ const legenda = `Chamada de ${it.formatarData(data)} · ${turma.turmaNome}`;
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo"><%= turma.serie %><%= it.separadorDeTurno %><%= turma.turno %></p>
-    <h1 class="pagina__titulo">Chamada · <%= turma.turmaNome %></h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Presença de um dia inteiro. A justificativa é o que o responsável informou sobre a falta, e
       aparece depois no acompanhamento de frequência do aluno.
@@ -69,7 +69,7 @@ const legenda = `Chamada de ${it.formatarData(data)} · ${turma.turmaNome}`;
 <% } else { %>
 
 <form class="formulario formulario--largo" method="post" action="<%= it.acaoDoFormulario %>">
-  <input type="hidden" name="_chave" value="<%= it.chave %>">
+  <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
   <input type="hidden" name="<%= it.campoData %>" value="<%= data %>">
 
   <div class="tabela-rolagem">

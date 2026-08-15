@@ -47,7 +47,7 @@ const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Secretaria · <%= aluno.nome %></p>
-    <h1 class="pagina__titulo">Transferir de turma</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Matrícula ativa em <strong><%= ativa.turmaNome %></strong>, ano letivo
       <span class="numero"><%= ativa.ano %></span>.
@@ -72,7 +72,7 @@ const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
   </p>
 
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.matriculaTransferir({ id: ativa.id }) %>">
-    <input type="hidden" name="_chave" value="<%= it.chave %>">
+    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
     <div class="formulario__linha">
       <div class="campo">

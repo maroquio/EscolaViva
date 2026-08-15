@@ -24,7 +24,7 @@ const lidos = it.lidos;
 <header class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Acompanhamento</p>
-    <h1 class="pagina__titulo">Mural de comunicados</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       O que a escola enviou a você. Cada comunicado abre por inteiro e pode ser marcado como lido.
     </p>

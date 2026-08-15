@@ -24,7 +24,7 @@ const { erroDe, descricao, sufixos } = it;
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Rede · Unidades</p>
-    <h1 class="pagina__titulo">Criar unidade</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       A unidade é onde tudo o mais acontece: sem ela não há turma, papel nem comunicado. O nome
       precisa ser único dentro da rede.
@@ -34,7 +34,7 @@ const { erroDe, descricao, sufixos } = it;
 
 <div class="quadro">
   <form class="formulario" method="post" action="<%= it.rotas.rede.unidades() %>">
-    <input type="hidden" name="_chave" value="<%= it.chave %>">
+    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
     <div class="formulario__linha">
       <div class="campo">

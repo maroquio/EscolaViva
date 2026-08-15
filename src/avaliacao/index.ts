@@ -40,6 +40,9 @@ export const avaliacao = {
  * `APROVACAO` e `ARITMETICA` saem porque o boletim IMPRIME o critério — a tela promete mostrar a
  * regra que decidiu a situação, e os dois pisos precisam chegar lá sem serem redigitados.
  * `CODIGOS` e `MENSAGENS` ficam dentro: viajam no `Resultado` e ninguém os alcança pelo nome.
+ *
+ * `MEIO_DIA_UTC` sai pela mesma razão que `MEIA_NOITE_UTC`: a tela de chamada NAVEGA entre datas
+ * do diário, e o sufixo que ela anexa é o do módulo que decide o que é um dia de chamada.
  */
 export {
   APROVACAO,
@@ -47,6 +50,7 @@ export {
   CAMPOS as CAMPOS_DA_AVALIACAO,
   LIMITES as LIMITES_DA_AVALIACAO,
   MEIA_NOITE_UTC,
+  MEIO_DIA_UTC,
   VOCABULARIO as VOCABULARIO_DA_AVALIACAO,
 } from './constantes';
 

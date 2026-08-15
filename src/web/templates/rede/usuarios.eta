@@ -42,7 +42,7 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Rede</p>
-    <h1 class="pagina__titulo">Usuários</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Todo acesso nasce aqui. O papel decide o que a pessoa vê, e ele existe sempre dentro de uma
       unidade: a mesma pessoa pode ser secretária em uma escola e responsável em outra.

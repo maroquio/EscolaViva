@@ -29,7 +29,7 @@ const disciplinas = turma.disciplinas ?? [];
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo"><%= turma.serie %><%= it.separadorDeTurno %><%= turma.turno %></p>
-    <h1 class="pagina__titulo">Fechamento · <%= turma.turmaNome %></h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Fechar um bimestre confere as notas de todos os alunos em todas as disciplinas da turma antes
       de gravar. A página só responde quando a conferência termina — em turmas grandes isso leva
@@ -79,7 +79,7 @@ const disciplinas = turma.disciplinas ?? [];
     <% } %>
 
     <form class="acoes" method="post" action="<%= it.acaoDoFormulario %>">
-      <input type="hidden" name="_chave" value="<%= it.chave %>">
+      <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
       <input type="hidden" name="<%= it.campoBimestre %>" value="<%= estado.bimestre %>">
       <button class="botao botao--primario" type="submit"
               <% if (it.bimestreRecusado === estado.bimestre) { %>aria-describedby="<%= it.prefixos.pendencia %><%= estado.bimestre %>"<% } %>>

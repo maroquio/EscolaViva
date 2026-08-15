@@ -24,7 +24,7 @@ const { erroDe, descricao, sufixos } = it;
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Secretaria · Disciplinas</p>
-    <h1 class="pagina__titulo">Cadastrar disciplina</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       A disciplina vale para toda a rede. Depois de cadastrar, aloque-a nas turmas com o professor
       responsável.
@@ -34,7 +34,7 @@ const { erroDe, descricao, sufixos } = it;
 
 <div class="quadro">
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.disciplinas() %>">
-    <input type="hidden" name="_chave" value="<%= it.chave %>">
+    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
     <div class="campo">
       <label class="campo__rotulo" for="nome">

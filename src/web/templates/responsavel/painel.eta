@@ -38,7 +38,7 @@ const ROTULO_DA_SITUACAO = {
 <header class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Acompanhamento</p>
-    <h1 class="pagina__titulo">Meus alunos</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Boletim, frequência e comunicados dos alunos sob sua responsabilidade.
     </p>

@@ -17,7 +17,7 @@
 
 import { Hono, type Context } from 'hono';
 import { academico } from '../../academico';
-import { BIMESTRES, LIMITES_DA_AVALIACAO, avaliacao } from '../../avaliacao';
+import { BIMESTRES, LIMITES_DA_AVALIACAO, MEIO_DIA_UTC, avaliacao } from '../../avaliacao';
 import { PAPEL } from '../../identidade';
 import {
   FORMATOS,
@@ -45,6 +45,7 @@ import {
   NOTA_FORA_DA_FAIXA,
   PARAMETROS,
   PREFIXOS_DE_ID,
+  RESUMO_DE_NOTA_FORA_DA_FAIXA,
   ROTAS,
   TEMPLATES,
   TITULOS,
@@ -124,14 +125,17 @@ const NOTA_INVALIDA = NOTA_FORA_DA_FAIXA(
 /**
  * O resumo no topo do formulário, distinto do erro que aparece em cada célula.
  *
- * O campo e o código vêm de `ERROS_DE_FORMULARIO.notaInvalida`; a frase não. A constante da camada
- * web redigiu o texto de outro jeito ("a nota precisa ser um número de 0 a 10") e este refactor não
- * muda um byte do que a tela diz. Reconciliar as duas redações é decisão de produto: no dia em que
- * ela for tomada, esta `const` some e o objeto de `ERROS_DE_FORMULARIO` é usado inteiro.
+ * O campo e o código vêm de `ERROS_DE_FORMULARIO.notaInvalida`; a frase, de
+ * `RESUMO_DE_NOTA_FORA_DA_FAIXA`, ao lado do texto por célula que ela acompanha. Aquele objeto não
+ * declara `mensagem` justamente por isto: o texto cita o intervalo da nota, que só existe depois
+ * de ler `LIMITES_DA_AVALIACAO`, e nenhuma frase fixa serviria.
  */
 const RESUMO_DE_NOTAS_INVALIDAS: ErroDeAplicacao = {
   ...ERROS_DE_FORMULARIO.notaInvalida,
-  mensagem: `Confira os campos destacados: há nota fora do intervalo de ${LIMITES_DA_AVALIACAO.nota.minimo} a ${LIMITES_DA_AVALIACAO.nota.maximo}.`,
+  mensagem: RESUMO_DE_NOTA_FORA_DA_FAIXA(
+    LIMITES_DA_AVALIACAO.nota.minimo,
+    LIMITES_DA_AVALIACAO.nota.maximo,
+  ),
 };
 
 const comParametros = (caminho: string, parametros: Record<string, string>): string =>
@@ -154,15 +158,6 @@ const bimestreOuNulo = (bruto: string | undefined): number | null => {
   const numero = Number(bruto);
   return BIMESTRES.includes(numero) ? numero : null;
 };
-
-/**
- * Longe da meia-noite: somar um dia nunca tropeça em fuso nem em horário de verão.
- *
- * NÃO é o `MEIA_NOITE_UTC` de `avaliacao`, que anexa `T00:00:00Z` só para provar que o dia existe.
- * Aqui o meio-dia é deliberado, porque esta camada NAVEGA entre datas; lá não se soma nada. Mesma
- * forma, decisões independentes — por isso a constante mora neste arquivo, com o motivo junto.
- */
-const MEIO_DIA_UTC = 'T12:00:00Z';
 
 /** `Number` só entende ponto; quem digita usa a vírgula do teclado. */
 const SEPARADOR_DECIMAL_DO_NUMBER = '.';
@@ -191,6 +186,10 @@ const dataOuNula = (bruto: string | undefined): string | null => {
   return convertida.toISOString().slice(0, TAMANHO_DA_DATA_ISO) === bruto ? bruto : null;
 };
 
+/**
+ * O dia anterior e o seguinte da chamada. `MEIO_DIA_UTC` vem de `avaliacao`, ao lado da
+ * `MEIA_NOITE_UTC` de que ele se distingue: longe da meia-noite, somar 24 h não tropeça em fuso.
+ */
 const deslocarDia = (data: string, dias: number): string => {
   const base = new Date(`${data}${MEIO_DIA_UTC}`).getTime();
   return new Date(base + dias * TEMPO.msPorDia).toISOString().slice(0, TAMANHO_DA_DATA_ISO);

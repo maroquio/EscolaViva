@@ -23,7 +23,7 @@ const disciplinas = it.disciplinas ?? [];
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Secretaria</p>
-    <h1 class="pagina__titulo">Disciplinas</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Cadastradas uma vez para toda a rede. Cada turma recebe as suas na tela da turma, sempre com
       o professor responsável.

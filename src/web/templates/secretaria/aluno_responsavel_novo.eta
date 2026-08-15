@@ -33,7 +33,7 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Secretaria · <%= aluno.nome %></p>
-    <h1 class="pagina__titulo">Vincular responsável</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       O responsável é quem recebe comunicado e acompanha boletim e frequência deste aluno.
     </p>
@@ -58,7 +58,7 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
   </div>
   <% } else { %>
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.alunoResponsaveis({ id: aluno.id }) %>">
-    <input type="hidden" name="_chave" value="<%= it.chave %>">
+    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
     <div class="formulario__linha">
       <div class="campo">

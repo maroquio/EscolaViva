@@ -24,9 +24,11 @@
   `app.css`, e `conteudo` é o id que os dois layouts dão ao `<main>` — mas o lugar de nomear
   qualquer um deles seria o servidor, interpolando o valor para dentro do script, e não uma
   declaração que viaja até o navegador. Enquanto o parcial for incluído sem dados — os dois
-  layouts escrevem `include("/parciais/_script_avisos")` sem passar `it`, e Eta compila com
-  `useWith: false`, então `it` chega indefinido e qualquer `it.algo` derrubaria a página inteira
-  em vez de só perder o botão —, não há de onde interpolar, e o literal é a forma correta.
+  layouts escrevem `include(it.parciais.scriptAvisos)` com UM argumento só, e Eta compila com
+  `useWith: false`, então `it` chega indefinido aqui dentro e qualquer `it.algo` derrubaria a
+  página inteira em vez de só perder o botão —, não há de onde interpolar, e o literal é a forma
+  correta. O caminho do parcial, esse sim, saiu do layout: é `TEMPLATES.parciais.scriptAvisos`.
+  O `conteudo` abaixo é a mesma decisão de `DOCUMENTO.idDoConteudo`, que os layouts já leem de lá.
 
   O resto é vocabulário do DOM, não do produto: `'button'`, `'aria-label'` e `'click'` se leem
   melhor como estão, pela mesma razão que 303 se lê melhor que um nome.

@@ -33,7 +33,7 @@ const { erroDe, descricao, sufixos } = it;
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Rede · Usuários</p>
-    <h1 class="pagina__titulo">Convidar usuário</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       A senha provisória é gerada agora e aparece uma única vez na lista, logo depois de criar.
       Tenha onde anotá-la antes de enviar o formulário.
@@ -43,7 +43,7 @@ const { erroDe, descricao, sufixos } = it;
 
 <div class="quadro">
   <form class="formulario formulario--largo" method="post" action="<%= it.rotas.rede.usuarios() %>">
-    <input type="hidden" name="_chave" value="<%= it.chave %>">
+    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
     <div class="formulario__linha">
       <div class="campo">

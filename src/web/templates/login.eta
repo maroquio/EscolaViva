@@ -16,10 +16,10 @@ const valores = it.valores ?? { redeSlug: '', cpf: '' };
    `descricao` só referencia id de elemento que existe: ajuda quando pedida, erro quando há. */
 const { erroDe, descricao } = it;
 %>
-<h1>Entrar</h1>
+<h1><%= it.titulo %></h1>
 
 <form class="formulario" method="post" action="<%= it.rotas.publicas.login() %>">
-  <input type="hidden" name="_chave" value="<%= it.chave %>">
+  <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
   <div class="campo">
     <label class="campo__rotulo" for="redeSlug">

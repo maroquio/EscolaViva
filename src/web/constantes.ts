@@ -18,7 +18,7 @@
 import { CAMPOS_DO_ACADEMICO } from '../academico';
 import { CAMPOS_DA_AVALIACAO } from '../avaliacao';
 import { CAMPOS_DA_COMUNICACAO } from '../comunicacao';
-import { CAMPOS_DE_IDENTIDADE } from '../identidade';
+import { CAMPOS_DE_IDENTIDADE, PAPEL } from '../identidade';
 import { ATIVOS, AUSENTE, CAMINHOS_DE_ENTRADA, CAMINHOS_DE_SAUDE } from '../shared/constantes';
 import { grupo } from './rotas/mapa';
 
@@ -143,12 +143,18 @@ export const curingaDe = (prefixo: string): string => `${prefixo}/*`;
 /**
  * Ordem de precedência do painel: uma pessoa pode acumular papéis — a secretária que também é mãe
  * de aluno —, e a tela inicial é a do papel de maior alcance na rede.
+ *
+ * O que esta tabela decide é a ORDEM, e só ela. Os quatro nomes vêm de `PAPEL` (`identidade`), pelo
+ * mesmo motivo que `CAMPOS` aponta para o `CAMPOS` de cada módulo em vez de redigitá-lo: escritos à
+ * mão aqui, um `'secretria'` compilaria — `find` simplesmente não acharia o papel, e quem tem só
+ * esse papel cairia na página "conta sem papel atribuído" com o acesso inteiro em ordem. Com
+ * `PAPEL.secretaria` o erro de digitação não passa do `tsc`.
  */
 export const PAINEL_POR_PAPEL = [
-  { papel: 'admin_rede', destino: ROTAS.rede.painel() },
-  { papel: 'secretaria', destino: ROTAS.secretaria.painel() },
-  { papel: 'professor', destino: ROTAS.professor.painel() },
-  { papel: 'responsavel', destino: ROTAS.responsavel.painel() },
+  { papel: PAPEL.adminRede, destino: ROTAS.rede.painel() },
+  { papel: PAPEL.secretaria, destino: ROTAS.secretaria.painel() },
+  { papel: PAPEL.professor, destino: ROTAS.professor.painel() },
+  { papel: PAPEL.responsavel, destino: ROTAS.responsavel.painel() },
 ] as const;
 
 /* --- Templates -------------------------------------------------------------- */
@@ -160,6 +166,18 @@ export const TEMPLATES = {
   erro: '/erro',
   login: '/login',
 
+  /**
+   * Os sete parciais. Nenhum é incluído por caminho escrito à mão: o template recebe este objeto
+   * inteiro como `it.parciais` e escreve `include(it.parciais.vazio, …)`.
+   *
+   * Quem injeta é `render.ts`, junto com `it.rotas`, e não o handler. `paginacao` e `vazio` chegam
+   * pelo `PARCIAIS` que cada arquivo de rota espalha no contexto, o que funciona porque é a PÁGINA
+   * que os inclui — mas `icone`, `cabecalho`, `navegacao`, `mensagens` e `scriptAvisos` são
+   * incluídos pelos LAYOUTS, e layout não é escolhido por rota nenhuma: `render.ts` decide entre
+   * `_layout` e `_layout_publico` olhando a sessão, e a página de erro de `shared/http` nem passa
+   * por handler. Pedir a cada rota que se lembre de passar o que o layout usa daria certo até a
+   * primeira que esquecesse, e o sintoma seria a moldura sumindo da tela.
+   */
   parciais: {
     icone: '/parciais/_icone',
     cabecalho: '/parciais/_cabecalho',
@@ -313,6 +331,11 @@ export const VALORES_INICIAIS = {
  * Cada título aparece na rota que o passa e de novo no `<h1>` do template, quando não também no
  * botão que leva até ele — "Cadastrar aluno" está escrito seis vezes hoje. É texto de produto:
  * mudá-lo é decisão de quem escreve o sistema, e precisa mudar nos seis de uma vez.
+ *
+ * O menu é o sétimo lugar: `parciais/_navegacao.eta` rotula treze links com o título da tela para
+ * onde eles levam, e recebe o mapa inteiro como `it.titulos` (ver `auxiliares`, em `render.ts`).
+ * Renomear "Anos letivos" e esquecer o menu deixaria o sistema chamando a mesma tela por dois
+ * nomes — o do link e o do `<h1>` que ele abre.
  */
 export const TITULOS = {
   produto: 'EscolaViva',
@@ -429,15 +452,20 @@ export const ERROS_DE_FORMULARIO = {
     codigo: 'atribuicao_incompleta',
     mensagem: 'Cada atribuição precisa de uma unidade e de um papel.',
   },
+  /**
+   * Sem `mensagem`, ao contrário das vizinhas: as duas recusas abaixo não têm redação única.
+   * Quem as emite compõe a frase com um número que só existe em tempo de execução — o intervalo
+   * da nota — ou com um texto próprio da tela de envio. Declarar aqui um texto que todo consumidor
+   * sobrescreve seria pior que não declarar nenhum: quem procurasse pela frase que a tela mostra
+   * encontraria esta, e ela nunca chegou a uma tela.
+   */
   notaInvalida: {
     campo: CAMPOS.notas,
     codigo: 'nota_invalida',
-    mensagem: 'Confira os campos destacados: a nota precisa ser um número de 0 a 10.',
   },
   semSelecao: {
     campo: CAMPOS.comunicado.destinatarios,
     codigo: 'sem_selecao',
-    mensagem: 'Marque ao menos um responsável, ou envie para a unidade inteira.',
   },
   destinatarioForaDaUnidade: {
     campo: CAMPOS.comunicado.destinatarios,
@@ -454,6 +482,24 @@ export const ERROS_DE_FORMULARIO = {
 /** Erro por célula da tabela de notas — o texto da TELA, distinto do texto da aplicação. */
 export const NOTA_FORA_DA_FAIXA = (minimo: number, maximo: number): string =>
   `Use um número de ${minimo} a ${maximo}.`;
+
+/**
+ * As frases das duas recusas que `ERROS_DE_FORMULARIO` declara sem `mensagem`.
+ *
+ * `notaInvalida` e `semSelecao` levam campo e código de lá e a redação daqui, porque a primeira
+ * depende do intervalo da nota, que vem de `LIMITES_DA_AVALIACAO` em tempo de execução, e a
+ * segunda tem o texto próprio da tela de envio. Um `mensagem` fixo naquele objeto seria letra
+ * morta — todo consumidor o substituiria.
+ *
+ * O que muda ao trazê-las para cá é o DONO: até agora as duas estavam redigidas dentro de
+ * `web/rotas/professor.ts` e `web/rotas/comunicados.ts`, que é arquivo de rota e não de texto, e
+ * lá ninguém as encontrava ao procurar pela frase que aparece na tela.
+ */
+export const RESUMO_DE_NOTA_FORA_DA_FAIXA = (minimo: number, maximo: number): string =>
+  `Confira os campos destacados: há nota fora do intervalo de ${minimo} a ${maximo}.`;
+
+export const SEM_SELECAO_NO_ENVIO =
+  'Marque ao menos um responsável ou escolha enviar para toda a unidade.';
 
 /* --- Páginas de erro -------------------------------------------------------- */
 
@@ -533,9 +579,21 @@ export const EVENTOS_DE_LOG = {
 
 /* --- Apresentação ----------------------------------------------------------- */
 
+/**
+ * As quatro primeiras chaves são a moldura de marca, e chegam aos dois layouts como
+ * `it.apresentacao` — ver `auxiliares`, em `render.ts`. O resto são regras de formatação, lidas
+ * daqui pelo próprio `render.ts` e por alguns handlers.
+ */
 export const APRESENTACAO = {
   /** Sufixo de marca no `<title>` de toda página. */
   sufixoDoTitulo: ' · EscolaViva',
+  /**
+   * A logotipia, e por isso MARCAÇÃO: a ênfase na segunda metade da palavra é o desenho da marca,
+   * não decoração do template. Sai com `<%~ %>` nos dois lugares que a imprimem — o cabeçalho da
+   * aplicação e a folha do login —, e a saída crua é segura porque o valor é este literal e nunca
+   * um dado de usuário. Guardar só `'EscolaViva'` e deixar o `<em>` no `.eta` partiria o nome do
+   * produto em dois pedaços que teriam de ser recortados igual nos dois arquivos.
+   */
   marca: 'Escola<em>Viva</em>',
   subtituloPublico: 'Portal da rede escolar',
   rodapePublico: 'Sistema de uso restrito. O acesso é registrado.',
@@ -613,6 +671,21 @@ export const COOKIE_DO_CONVITE = {
 
 /* --- Documento -------------------------------------------------------------- */
 
+/**
+ * O que os dois layouts declaram no `<head>` e o id que ancora o `<main>`. Chega ao `.eta` como
+ * `it.documento` (ver `auxiliares`, em `render.ts`), porque é a MESMA declaração nas duas molduras:
+ * escrita à mão, `_layout` ganharia um `color-scheme` que `_layout_publico` não teria, e a tela de
+ * login passaria a divergir do resto do sistema sem que nada acusasse.
+ *
+ * Duas cópias deliberadas ficam de fora, e as duas são de fronteira:
+ *
+ *   - `shared/http/erros.ts` escreve `lang="pt-BR"` na página de reserva. `shared/` não enxerga a
+ *     camada web — é a mesma fronteira que levou `TITULOS_DE_ERRO` a nascer em
+ *     `shared/constantes.ts` —, e aquela página existe justamente para o instante em que o motor
+ *     de template ainda não foi registrado.
+ *   - `parciais/_script_avisos.eta` escreve `'conteudo'` dentro do `<script>`. Aquele corpo viaja
+ *     byte a byte para o navegador e é incluído sem `it`: não há de onde interpolar.
+ */
 export const DOCUMENTO = {
   idioma: 'pt-BR',
   esquemaDeCor: 'light',

@@ -36,7 +36,7 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Rede</p>
-    <h1 class="pagina__titulo">Unidades</h1>
+    <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Cada escola da rede é uma unidade. Papéis, turmas e comunicados existem sempre dentro de
       uma — ninguém é "professor da rede".
