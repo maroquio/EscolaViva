@@ -20,8 +20,10 @@
   renomear o painel do professor deixava três telas mandando o professor de volta para uma página
   que passou a se chamar outra coisa.
 
-  Pela mesma razão o caminho da parcial incluída chega em `it.parciais` e o " · turno " do
-  sobretítulo chega em `it.separadorDeTurno`: são `TEMPLATES.parciais` e `APRESENTACAO`, de
+  Pela mesma razão o caminho da parcial incluída chega em `it.parciais` e os dois separadores
+  chegam prontos: o " · turno " do sobretítulo em `it.separadorDeTurno`, e o " · " que emenda
+  data e turma na legenda da tabela em `it.separador` — o mesmo que junta atributos numa linha
+  só no sobretítulo da tela de notas. São `TEMPLATES.parciais` e `APRESENTACAO`, de
   `src/web/constantes.ts`, carregados até aqui pela rota — o Eta não importa TypeScript, e
   redigitá-los abriria a segunda fonte de verdade que a constante existe para fechar.
 
@@ -46,7 +48,7 @@
 const linhas = it.linhas ?? [];
 const data = it.data;
 const turma = it.turma;
-const legenda = `Chamada de ${it.formatarData(data)} · ${turma.turmaNome}`;
+const legenda = `Chamada de ${it.formatarData(data)}${it.separador}${turma.turmaNome}`;
 %>
 <div class="pagina__cabecalho">
   <div>

@@ -27,10 +27,18 @@
 
   O mesmo vale para o que não é endereço. O `id=` do erro da célula e o `aria-describedby` do campo
   que ele descreve são o MESMO valor nas duas pontas, e chegam em `it.prefixos.erroDeCelula`
-  (`PREFIXOS_DE_ID`); os separadores do sobretítulo chegam em `it.separador` e
-  `it.separadorDeTurno` (`APRESENTACAO`); o caminho da parcial, em `it.parciais`. Todos vêm de
+  (`PREFIXOS_DE_ID`); os separadores do sobretítulo E da legenda da tabela chegam em `it.separador`
+  e `it.separadorDeTurno` (`APRESENTACAO`); o caminho da parcial, em `it.parciais`. Todos vêm de
   `src/web/constantes.ts` pela rota: o Eta não importa TypeScript, e redigitá-los aqui abriria a
   segunda fonte de verdade que a constante existe para fechar.
+
+  O INTERVALO DA NOTA é o mesmo caso, e a tela já o lia certo em dois dos três lugares: o cabeçalho
+  da coluna e o `min=`/`max=` do campo saem de `it.notaMinima` e `it.notaMaxima`, que a rota tira de
+  `LIMITES.nota` (`avaliacao`) — a mesma escala que o caso de uso aplica ao recusar e que o banco
+  repete em `valor_valido`. Só o resumo do alto da página dizia "de 0 a 10" à mão. Mudar a escala da
+  rede movia a caixa, o cabeçalho, a recusa do servidor e a restrição da tabela de uma vez, e
+  deixava a primeira frase que o professor lê prometendo o intervalo antigo. Agora os três leem o
+  mesmo par.
 
   E o mesmo vale, por fim, para o TEXTO. Três coisas que esta tela diz também são ditas fora dela:
 
@@ -59,14 +67,14 @@ const linhas = it.linhas ?? [];
 const fechado = it.fechado === true;
 const bimestre = it.bimestre;
 const alocacao = it.alocacao;
-const legenda = `Notas do ${it.rotuloDeBimestre(bimestre)} · ${alocacao.disciplinaNome} · ${alocacao.turmaNome}`;
+const legenda = `Notas do ${it.rotuloDeBimestre(bimestre)}${it.separador}${alocacao.disciplinaNome}${it.separador}${alocacao.turmaNome}`;
 %>
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo"><%= alocacao.turmaNome %><%= it.separador %><%= alocacao.serie %><%= it.separadorDeTurno %><%= alocacao.turno %></p>
     <h1 class="pagina__titulo"><%= alocacao.disciplinaNome %></h1>
     <p class="pagina__resumo">
-      Lançamento de notas de 0 a 10, com uma casa decimal. O que estiver em branco no envio deixa de
+      Lançamento de notas de <%= it.notaMinima %> a <%= it.notaMaxima %>, com uma casa decimal. O que estiver em branco no envio deixa de
       existir como nota do aluno neste bimestre.
     </p>
   </div>

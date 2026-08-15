@@ -28,6 +28,15 @@
   `rotulos.ano` é o NÚMERO do ano — que é o que o `<dd class="numero">` ao lado mostra —, e não a
   entidade ano letivo, que é `rotulos.anoLetivo` e é o que os filtros da secretaria escolhem.
 
+  O detalhe dos dois cartões de baixo diz "no ano letivo 2025", e essas duas palavras são a MESMA
+  decisão que "3 anos letivos" na barra de paginação: o substantivo do domínio, minúsculo, lido numa
+  frase corrida. Ele mora em `CONTAGEM` e chega aqui em `it.contagem` — que não é `it.contagens`, o
+  par de números que o handler manda, e o `s` a mais é a única coisa que separa os dois. Vir ANTES do
+  número em vez de depois não muda de quem é a palavra: quem trocar "ano letivo" por outro nome tem
+  de trocá-lo nos dois lugares no mesmo movimento. A metade "sem …" lê a mesma constante pelo mesmo
+  motivo — seria estranho o cartão chamar a coisa por um nome quando ela existe e por outro quando
+  falta.
+
   Os outros dois cartões NÃO são link, e por isso continuam com o rótulo escrito. "Turmas" e
   "Matriculados" nomeiam uma CONTAGEM desta rede, não uma tela: coincidem com
   `TITULOS.secretaria.turmas` por serem a mesma palavra do domínio, e não a mesma decisão —
@@ -39,7 +48,9 @@
 const contagens = it.contagens ?? { unidades: 0, usuarios: 0, turmas: 0, matriculados: 0 };
 const anoLetivo = it.anoLetivo ?? null;
 const rede = it.usuario === null ? '' : it.usuario.redeNome;
-const anoNoRotulo = anoLetivo === null ? 'sem ano letivo' : 'ano letivo ' + anoLetivo.ano;
+const anoLetivoEmPalavras = it.contagem.anoLetivo.singular;
+const anoNoRotulo =
+  anoLetivo === null ? 'sem ' + anoLetivoEmPalavras : anoLetivoEmPalavras + ' ' + anoLetivo.ano;
 %>
 <div class="pagina__cabecalho">
   <div>

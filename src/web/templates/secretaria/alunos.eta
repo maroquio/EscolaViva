@@ -35,6 +35,21 @@
   caminho até ela chamando-a pelo nome antigo, e nada acusa: o botão continua levando ao lugar certo
   com a legenda errada.
 
+  O nome acessível do formulário é `it.acoes` — `ACOES.buscarAluno` (`src/web/constantes.ts`) —, a
+  mesma frase que rotula o botão do painel da secretaria, o da lista de responsáveis e a ação do
+  estado vazio da turma. As três CHAMAM esta busca; o `aria-label` é como ela se apresenta a quem
+  chegou por leitor de tela. Escrito à mão, seria a quarta cópia da mesma frase, e renomear a
+  chamada nas outras três deixaria a tela chamada anunciando-se pelo nome antigo — sem que nada
+  quebre, porque ninguém confere se os quatro textos ainda combinam.
+
+  O "50" da linha de ajuda continua escrito à mão, e é o caso oposto. Ele coincide com
+  `LIMITES.aluno.busca` (`src/academico/constantes.ts`), que também vale 50 e vira `LIMIT` no
+  repositório de alunos, mas aquele teto só se aplica a quem chama a busca SEM pedir página: esta
+  tela chama a consulta PAGINADA, e quem decide quantas linhas aparecem aqui é o `TAMANHO_PADRAO`
+  da paginação, que vale dez. Ligar a frase ao teto prometeria que mudá-lo reescreve o que se lê
+  aqui, e as duas coisas não mudam juntas. A frase, aliás, descreve a busca de antes da paginação e
+  merece revisão de texto — só que reescrevê-la muda a tela, e isso é decisão de produto.
+
   O sobretítulo é `it.areas` — `AREAS` (`src/web/constantes.ts`) —, e não `it.titulos`: "Secretaria"
   é a ÁREA onde esta tela mora, o mesmo nome que o menu dá ao grupo de links, e o sobretítulo existe
   justamente para dizer em que parte do menu a pessoa está. "Alunos", logo abaixo, é o título da
@@ -69,12 +84,13 @@ const buscou = it.buscou === true;
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="get" action="<%= it.rotas.secretaria.alunos() %>" role="search" aria-label="Buscar aluno">
+  <form class="formulario" method="get" action="<%= it.rotas.secretaria.alunos() %>" role="search" aria-label="<%= it.acoes.buscarAluno %>">
     <div class="campo">
       <label class="campo__rotulo" for="q">Nome do aluno</label>
       <input id="q" name="<%= it.campoDaBusca %>" type="search" value="<%= termo %>" autocomplete="off"
              maxlength="<%= it.limiteDoNome %>" aria-describedby="q<%= it.sufixos.ajuda %>">
       <p class="campo__ajuda" id="q<%= it.sufixos.ajuda %>">
+<% // magic-values: permitido — este 50 não é LIMITES.aluno.busca: aquele teto só vale para quem chama a busca SEM faixa, e esta tela chama a consulta paginada; nem é o TAMANHO_PADRAO da paginação, que vale dez e é quem de fato limita esta lista. Ver o bloco do topo %>
         Encontra qualquer trecho do nome, sem diferenciar maiúsculas. Mostra os 50 primeiros em
         ordem alfabética.
       </p>
