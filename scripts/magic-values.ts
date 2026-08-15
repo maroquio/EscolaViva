@@ -20,7 +20,7 @@ const ESTE_ARQUIVO = 'scripts/magic-values.ts';
 
 const EXTENSAO_DE_TEMPLATE = '.eta';
 
-const TEMPLATES_COM_SCRIPT_ISENTO: ReadonlySet<string> = new Set([
+const TEMPLATES_CUJO_SCRIPT_VIRA_HTML: ReadonlySet<string> = new Set([
   'src/web/templates/parciais/_script_avisos.eta',
 ]);
 
@@ -1316,7 +1316,7 @@ const achados: Achado[] = [];
 for (const arquivo of alvos) {
   if (arquivo === ESTE_ARQUIVO || ARQUIVOS_DE_CONSTANTES.test(arquivo)) continue;
   const bruto = await Bun.file(join(RAIZ, arquivo)).text();
-  const fonte = TEMPLATES_COM_SCRIPT_ISENTO.has(arquivo) ? semCorpoDeScript(bruto) : bruto;
+  const fonte = TEMPLATES_CUJO_SCRIPT_VIRA_HTML.has(arquivo) ? semCorpoDeScript(bruto) : bruto;
   marcadores.push(...marcadoresDe(arquivo, fonte));
   achados.push(
     ...(arquivo.endsWith(EXTENSAO_DE_TEMPLATE)
