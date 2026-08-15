@@ -1,25 +1,10 @@
 #!/usr/bin/env bash
-#
-# I7 — restauração testada. RODAR TODA SEXTA E ANOTAR O RESULTADO na tabela "Medição semanal"
-# do README, junto com a data e o nome do arquivo restaurado.
-#
-# "Backup não verificado não é backup." É a única invariante do curso escrita como frase de
-# efeito, e provavelmente é por isso: este é o item que costuma ser empurrado para o fim do
-# backlog e nunca acontece. Dez minutos por semana, antes de existir cliente real.
-#
-# O que ele faz: pega o dump mais recente (ou o caminho passado como argumento), cria um banco
-# descartável ao lado do de origem, restaura, conta as matrículas ativas dos dois lados e
-# compara. Derruba o banco descartável no fim, aconteça o que acontecer, e sai com código
-# diferente de zero se a contagem não bater — para que um agendador perceba a falha.
-#
-# Uso:  bash scripts/restore-test.sh [caminho/do/arquivo.dump]
 
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DESTINO="$RAIZ/backups"
 
-# Mesmas seis linhas de `backup.sh`: o shell não lê `.env` como o Bun lê.
 if [[ -z "${DATABASE_URL:-}" && -f "$RAIZ/.env" ]]; then
   DATABASE_URL="$(grep -E '^DATABASE_URL=' "$RAIZ/.env" | tail -n 1 | cut -d '=' -f 2-)"
   DATABASE_URL="${DATABASE_URL%\"}"
@@ -31,11 +16,6 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   exit 1
 fi
 
-# ── Cliente compatível (mesma escolha de `backup.sh`) ─────────────────────────────────────
-# `pg_restore` recusa servidor mais novo do que ele. Se a restauração semanal dependesse de
-# instalar um PostgreSQL igual ao do servidor, ela simplesmente não seria feita — que é
-# exatamente o destino que o documento prevê para este item. Usa o cliente do PATH quando ele
-# serve; quando não serve, usa o que já está dentro do container do banco, dizendo qual escolheu.
 SERVICO_DO_BANCO=banco
 COMPOSE=(docker compose -f "$RAIZ/docker-compose.yml")
 
@@ -84,8 +64,6 @@ if [[ -z "$DUMP" || ! -f "$DUMP" ]]; then
   exit 1
 fi
 
-# A URL do banco descartável é a de origem com outro nome de banco — mesmo servidor, mesmas
-# credenciais, mesma configuração. Restaurar em outro servidor testaria outra coisa.
 SEM_CONSULTA="${URL_CLIENTE%%\?*}"
 CONSULTA=""
 if [[ "$URL_CLIENTE" == *\?* ]]; then CONSULTA="?${URL_CLIENTE#*\?}"; fi
@@ -124,8 +102,6 @@ echo "Matrículas ativas na origem: $ORIGEM"
      --command="CREATE DATABASE $BANCO_TEMP" >/dev/null
 BANCO_CRIADO=1
 
-# O dump é lido da entrada padrão em vez de por caminho: o arquivo está no disco de quem roda o
-# script, e o cliente pode estar dentro do container — só o fluxo atravessa os dois mundos.
 INICIO=$(date +%s)
 if ! "${PREFIXO[@]}" pg_restore --dbname="$URL_TEMP" --no-owner --no-privileges \
                                 --exit-on-error < "$DUMP"; then

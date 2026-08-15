@@ -1,39 +1,3 @@
-/* =============================================================================
-   EscolaViva — folha de estilo única do produto.
-
-   Direção: suíço/internacional com respiro editorial. Tema claro apenas, zero
-   framework, zero fonte externa — nenhuma requisição de rede sai desta página.
-
-   Três decisões governam tudo o que vem abaixo:
-     1. Hierarquia por escala e peso, nunca por caixa colorida.
-     2. Profundidade por linha e sobreposição, nunca por sombra difusa.
-     3. Número é dado: sempre em fonte monoespaçada com dígitos de mesma largura,
-        para que colunas de nota e frequência sejam comparáveis de relance.
-
-   Esta é a fonte; `bun run build:assets` publica `publico/app.<hash>.css` (I10).
-
-   Índice
-     1. Tokens
-     2. Base e reset
-     3. Tipografia
-     4. Estrutura da aplicação
-     5. Cabeçalho
-     6. Navegação lateral
-     7. Cabeçalho de página e seções
-     8. Cartões de painel
-     9. Tabelas de dados
-    10. Formulários
-    11. Botões
-    12. Etiquetas de situação
-    13. Avisos
-    14. Estado vazio
-    15. Telas públicas (login e erro)
-    16. Utilitários
-    17. Movimento reduzido e impressão
-   ============================================================================= */
-
-/* --- 1. Tokens ------------------------------------------------------------ */
-
 :root {
   --papel:        oklch(98.5% 0.004 95);
   --papel-fundo:  oklch(96%   0.006 95);
@@ -48,14 +12,10 @@
   --serif: ui-serif, Georgia, 'Times New Roman', serif;
   --sans:  system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono:  ui-monospace, 'SF Mono', Menlo, monospace;
-  --passo: 0.25rem;  /* escala 1,2,3,4,6,8,12,16,24 */
-  /* Altura única de campo. Sem ela cada controle tem a sua: o select ignora `line-height` e
-     fica mais baixo, e o seletor de data desenha o próprio miolo e fica mais alto. O valor
-     cobre o mais alto dos três, então nenhum é cortado e todos terminam na mesma linha. */
+  --passo: 0.25rem;
   --controle-altura: 2.875rem;
   --rapido: 140ms; --normal: 260ms; --saida: cubic-bezier(.16,1,.3,1);
 
-  /* Derivados: superfícies e tintas de estado que passam AA sobre --papel. */
   --papel-alto:   oklch(100%  0     0);
   --linha-forte:  oklch(76%   0.012 260);
   --marca-escura: oklch(34%   0.115 262);
@@ -66,7 +26,6 @@
   --perigo-tinta:  oklch(43%  0.17  27);
   --perigo-fundo:  oklch(95.5% 0.035 27);
 
-  /* Ritmo: um único passo, multiplicado. Nunca um valor solto no meio da folha. */
   --e1:  calc(var(--passo) * 1);
   --e2:  calc(var(--passo) * 2);
   --e3:  calc(var(--passo) * 3);
@@ -77,7 +36,6 @@
   --e16: calc(var(--passo) * 16);
   --e24: calc(var(--passo) * 24);
 
-  /* Escala tipográfica: contraste real entre o título e o corpo. */
   --texto-micro:   0.75rem;
   --texto-pequeno: 0.8125rem;
   --texto-base:    clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
@@ -90,8 +48,6 @@
   --altura-cabecalho: 4.25rem;
   --largura-leitura: 42rem;
 }
-
-/* --- 2. Base e reset ------------------------------------------------------ */
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -114,14 +70,12 @@ body {
   font-size: var(--texto-base);
   line-height: 1.6;
   min-block-size: 100dvh;
-  /* A rolagem horizontal pertence ao contêiner da tabela, nunca à página. */
   overflow-x: clip;
   text-rendering: optimizeLegibility;
 }
 
 img, svg { max-inline-size: 100%; block-size: auto; }
 
-/* O foco é a única pista de onde o teclado está: ele nunca é removido. */
 :focus-visible {
   outline: 2px solid var(--marca);
   outline-offset: 2px;
@@ -129,8 +83,6 @@ img, svg { max-inline-size: 100%; block-size: auto; }
 }
 
 ::selection { background: var(--marca-clara); color: var(--marca-escura); }
-
-/* --- 3. Tipografia -------------------------------------------------------- */
 
 h1, h2, h3, h4 {
   font-family: var(--serif);
@@ -158,14 +110,12 @@ a:active { color: var(--tinta); }
 
 code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
 
-/* Número é dado tabular: mesma largura de dígito em qualquer contexto. */
 .numero, td.numero, th.numero, .cartao__numero, time, .codigo {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
 }
 
-/* Sobretítulo: a assinatura editorial que orienta sem competir com o título. */
 .sobretitulo {
   font-family: var(--mono);
   font-size: var(--texto-micro);
@@ -186,9 +136,6 @@ code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
   color: var(--marca);
 }
 
-/* --- 4. Estrutura da aplicação -------------------------------------------- */
-
-/* A régua da marca no topo do documento: 3px que dizem de quem é a página. */
 .aplicacao::before,
 .publico::before {
   content: '';
@@ -215,7 +162,6 @@ code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
   padding: var(--e8) clamp(var(--e4), 3vw, var(--e12)) var(--e24);
   background: var(--papel);
   border-inline-start: 1px solid var(--linha);
-  /* A borda da barra lateral e a do conteúdo se sobrepõem em 1px: uma linha só. */
   margin-inline-start: -1px;
   min-inline-size: 0;
 }
@@ -238,8 +184,6 @@ code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
   transform: translateY(0);
   color: var(--papel-alto);
 }
-
-/* --- 5. Cabeçalho --------------------------------------------------------- */
 
 .cabecalho {
   grid-area: cabecalho;
@@ -295,8 +239,6 @@ code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
 
 .cabecalho__sair { display: contents; }
 
-/* --- 6. Navegação lateral ------------------------------------------------- */
-
 .navegacao {
   grid-area: navegacao;
   align-self: start;
@@ -324,7 +266,6 @@ code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
 .navegacao__link {
   display: block;
   padding: var(--e2) var(--e3);
-  /* A marca do item ativo ocupa a goteira: por isso o recuo negativo. */
   margin-inline-start: calc(var(--e3) * -1);
   border-inline-start: 3px solid transparent;
   color: var(--tinta);
@@ -344,8 +285,6 @@ code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
   color: var(--marca-escura);
   font-weight: 600;
 }
-
-/* --- 7. Cabeçalho de página e seções -------------------------------------- */
 
 .pagina__cabecalho {
   display: flex;
@@ -368,13 +307,6 @@ code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
 
 .pagina__acoes { display: flex; flex-wrap: wrap; gap: var(--e3); }
 
-/*
-  Uma seção se afasta do que vem antes dela, e não só de outra seção: as telas que abrem com um
-  quadro de busca — alunos, turmas — colavam o título da seção seguinte na borda do quadro. O
-  cabeçalho da página é a única exceção, porque já carrega a própria distância na borda de baixo.
-  Margens adjacentes colapsam, então quem vem antes com margem menor (um aviso, por exemplo) não
-  soma: prevalece a distância maior, e o ritmo entre seções continua o mesmo em toda tela.
-*/
 :not(.pagina__cabecalho) + .secao { margin-block-start: var(--e16); }
 
 .secao__cabecalho {
@@ -414,8 +346,6 @@ code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
 }
 .lista-definicoes dd { font-weight: 500; }
 
-/* --- 8. Cartões de painel ------------------------------------------------- */
-
 .painel {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
@@ -424,7 +354,6 @@ code, kbd, samp { font-family: var(--mono); font-size: 0.9em; }
   border: 1px solid var(--linha);
 }
 
-/* Sem espaço entre cartões: a grade de 1px vira a própria linha que os separa. */
 .cartao {
   display: flex;
   flex-direction: column;
@@ -458,22 +387,8 @@ a.cartao:active { background: var(--papel-fundo); }
   color: var(--tinta-suave);
 }
 
-/* --- 9. Tabelas de dados -------------------------------------------------- */
-
-/*
-  Só a rolagem lateral mora aqui: a página nunca rola de lado por causa de uma tabela larga, e a
-  tabela nunca rola por dentro. Quem recorta a altura é a paginação, não o CSS — dez linhas cabem
-  inteiras na tela, e uma caixa com rolagem própria esconderia justamente as últimas linhas de uma
-  lista que já foi recortada para caber.
-*/
 .tabela-rolagem {
   overflow-x: auto;
-  /*
-    O eixo vertical precisa ser declarado, e `hidden` é o que devolve a roda do mouse à página:
-    pedir rolagem em um eixo faz o outro virar `auto` sozinho, e um `auto` vertical transforma a
-    caixa em área de rolagem que engole a roda mesmo sem ter para onde rolar. Nada é cortado — a
-    altura da caixa é a da tabela inteira, que a paginação já mantém curta.
-  */
   overflow-y: hidden;
   border: 1px solid var(--linha);
   background: var(--papel-alto);
@@ -509,26 +424,18 @@ a.cartao:active { background: var(--papel-fundo); }
   text-transform: uppercase;
   text-align: end;
   white-space: nowrap;
-  /* Regra grossa separando cabeçalho de dados, por dentro da célula. */
   box-shadow: inset 0 -1px 0 var(--tinta);
 }
 
 .tabela thead th:first-child,
 .tabela .celula-texto { text-align: start; }
 
-/* Colunas curtas (turma, ano, situação, ações) leem melhor centradas sob o próprio rótulo —
-   inclusive quando a coluna curta é a primeira da tabela ou a própria coluna-âncora, que por
-   padrão nascem à esquerda. */
 .tabela .celula-centro,
 .tabela thead th.celula-centro,
 .tabela th[scope='row'].celula-centro { text-align: center; }
 .tabela .celula-centro .tabela__acoes { justify-content: center; }
-/* Coluna curta não quebra linha: ao lado de uma coluna elástica, o navegador espremeria
-   justamente estas para dar a sobra à outra, e "Abrir ficha" viraria duas linhas. */
 .tabela .celula-centro, .tabela .celula-centro .botao { white-space: nowrap; }
 
-/* A coluna elástica absorve a folga da tabela: as demais ficam justas ao conteúdo e a
-   última encosta na borda direita, em vez da sobra ser dividida entre todas. */
 .tabela .celula-elastica { inline-size: 100%; }
 
 .tabela tbody tr { background: var(--papel-alto); }
@@ -542,7 +449,6 @@ a.cartao:active { background: var(--papel-fundo); }
   vertical-align: baseline;
 }
 
-/* A coluna do aluno é a âncora de leitura: fica à esquerda e não sai da tela na rolagem. */
 .tabela th[scope='row'] {
   position: sticky;
   inset-inline-start: 0;
@@ -563,22 +469,11 @@ a.cartao:active { background: var(--papel-fundo); }
   border-block-start: 2px solid var(--tinta);
 }
 
-/* O rodapé de totais também tem coluna-âncora grudada: sem fundo próprio na linha, a célula
-   `sticky` herda transparência e o conteúdo rola por baixo dela. */
 .tabela tfoot tr { background: var(--papel-alto); }
 .tabela tfoot th[scope='row'] { font-weight: 600; }
 
 .tabela__acoes { display: flex; justify-content: flex-end; gap: var(--e2); }
 
-/* --- 9.1 Paginação -------------------------------------------------------- */
-
-/*
-  A barra fica sob a tabela, encostada nela: os controles pertencem àquele conjunto de linhas, e
-  em telas com duas tabelas a proximidade é a única coisa que diz qual delas eles movem.
-
-  A contagem vem primeiro na origem do documento porque é ela que responde "quanto disso eu estou
-  vendo?" — quem navega por teclado ou leitor de tela ouve a resposta antes dos controles.
-*/
 .paginacao {
   display: flex;
   flex-wrap: wrap;
@@ -604,7 +499,6 @@ a.cartao:active { background: var(--papel-fundo); }
   list-style: none;
 }
 
-/* Alvo de toque de 2,25rem: a barra é usada com o polegar tanto quanto com o mouse. */
 .paginacao__numero,
 .paginacao__passo {
   display: inline-flex;
@@ -632,7 +526,6 @@ a.paginacao__passo:hover {
   color: var(--marca-escura);
 }
 
-/* A página atual não é um link: ela é o lugar onde já se está. */
 .paginacao__numero--atual {
   background: var(--marca);
   border-color: var(--marca);
@@ -640,10 +533,7 @@ a.paginacao__passo:hover {
   font-weight: 600;
 }
 
-/* Ponta da lista: o degrau existe para manter a barra estável, e não convida ao clique. */
 .paginacao__passo--inerte { opacity: 0.4; }
-
-/* --- 10. Formulários ------------------------------------------------------ */
 
 .formulario {
   display: grid;
@@ -653,12 +543,6 @@ a.paginacao__passo:hover {
 
 .formulario--largo { max-inline-size: none; }
 
-/*
-  Campos lado a lado. `align-items: start` é o que impede o campo mais curto de esticar
-  até a altura do vizinho: sem ele, a coluna sem texto de ajuda cresce e o alongamento
-  sobra para o controle, que fica mais alto que o do lado. Cada campo mantém a altura
-  natural e todos começam no topo da linha.
-*/
 .formulario__linha {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
@@ -678,7 +562,6 @@ legend {
   inline-size: 100%;
 }
 
-/* `align-content: start` protege a altura do controle onde o campo é esticado por um pai. */
 .campo { display: grid; align-content: start; gap: var(--e2); }
 
 .campo__rotulo {
@@ -705,7 +588,6 @@ legend {
 input, select, textarea {
   font: inherit;
   color: var(--tinta);
-  /* `background-color`, nunca o atalho `background`: o atalho apagaria a seta do select. */
   background-color: var(--papel-alto);
   border: 1px solid var(--linha-forte);
   border-radius: 0;
@@ -716,10 +598,6 @@ input, select, textarea {
   transition: border-color var(--rapido) var(--saida), background-color var(--rapido) var(--saida);
 }
 
-/* A seta nativa do select encosta na borda direita e ignora o recuo do campo — o navegador a
-   desenha na borda, não depois do conteúdo. Trocá-la por uma seta desenhada aqui é o que
-   permite escolher a folga: ela fica a --e3 da borda, o mesmo respiro do texto do outro lado.
-   O recuo final maior reserva o espaço dela, para que a opção nunca passe por baixo. */
 select {
   appearance: none;
   padding-inline-end: var(--e8);
@@ -736,7 +614,7 @@ input[type='number'], input[type='date'], .entrada-numerica {
 input[type='checkbox'], input[type='radio'] {
   inline-size: 1.05rem;
   block-size: 1.05rem;
-  min-block-size: 0;  /* a altura de campo não vale para a caixa de marcar. */
+  min-block-size: 0;
   accent-color: var(--marca);
 }
 
@@ -764,12 +642,6 @@ input:disabled, select:disabled, textarea:disabled {
 }
 .campo--opcao .campo__rotulo { font-weight: 500; }
 
-/*
-  Caixas de marcar em colunas. Uma unidade tem dezenas de responsáveis, e em coluna única a
-  lista empurra o botão de publicar para muito abaixo da dobra. Quatro colunas cabem numa tela
-  larga; abaixo disso o número cai, porque nome espremido não se lê. As quebras ficam na seção
-  17, junto das outras adaptações de largura.
-*/
 .grade-opcoes {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -787,19 +659,8 @@ input:disabled, select:disabled, textarea:disabled {
 
 .acoes--fim { justify-content: flex-end; }
 
-/*
-  Dentro de um formulário a barra de ações o encerra, e fechar o bloco é todo o seu papel. Solta no
-  fluxo da página ela comanda o que vem abaixo — o bimestre nas notas, o dia na chamada — e sem
-  margem a tabela nasce colada nela. Menos distância do que entre seções: a barra e a tabela que ela
-  comanda são a mesma coisa, e o espaço só precisa dizer onde uma termina.
-*/
 .conteudo > .acoes { margin-block-end: var(--e8); }
 
-/*
-  Filtro de uma linha: o rótulo ocupa a primeira faixa, o controle e o botão dividem a segunda.
-  Estar na mesma faixa do grid é o que alinha os dois — o botão estica até a altura exata do
-  controle, sem depender de uma altura fixa que só coincide em um tamanho de fonte.
-*/
 .filtro {
   display: grid;
   grid-template-columns: minmax(0, 16rem) auto;
@@ -813,14 +674,12 @@ input:disabled, select:disabled, textarea:disabled {
 .filtro > input, .filtro > select { grid-column: 1; }
 .filtro > .botao { grid-column: 2; grid-row: 2; }
 
-/* --- 11. Botões ----------------------------------------------------------- */
-
 .botao {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: var(--e2) var(--e6);
-  min-block-size: var(--controle-altura);  /* a mesma dos campos: botão e campo dividem linha. */
+  min-block-size: var(--controle-altura);
   border: 1px solid transparent;
   border-radius: 0;
   font: inherit;
@@ -835,9 +694,6 @@ input:disabled, select:disabled, textarea:disabled {
 .botao:active { transform: translateY(1px); }
 .botao:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
-/* O respiro do ícone é margem, não `gap`: o rótulo que só o leitor de tela ouve — o
-   "de Fulano" depois de "Abrir ficha" — é um filho como outro qualquer para o flex, e o
-   `gap` reservava espaço para ele, empurrando o texto visível para fora do centro. */
 .botao > svg { margin-inline-end: var(--e2); }
 
 .botao--primario {
@@ -874,8 +730,6 @@ input:disabled, select:disabled, textarea:disabled {
 
 .botao--miudo { min-block-size: 2rem; padding: var(--e1) var(--e3); font-size: var(--texto-micro); }
 
-/* --- 12. Etiquetas de situação -------------------------------------------- */
-
 .etiqueta {
   display: inline-flex;
   align-items: center;
@@ -893,7 +747,6 @@ input:disabled, select:disabled, textarea:disabled {
   background: var(--papel-alto);
 }
 
-/* O ponto à esquerda é a única cor sólida: o texto continua legível em AA. */
 .etiqueta::before {
   content: '';
   inline-size: 0.45rem;
@@ -919,11 +772,8 @@ input:disabled, select:disabled, textarea:disabled {
   background: var(--atencao-fundo);
 }
 
-/* --- 13. Avisos ----------------------------------------------------------- */
-
 .aviso {
   display: grid;
-  /* Segunda faixa para o botão de fechar. Sem botão ela tem largura zero e nada muda. */
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--e1);
   padding: var(--e3) var(--e4);
@@ -939,12 +789,6 @@ input:disabled, select:disabled, textarea:disabled {
 .aviso__titulo { font-weight: 600; font-size: var(--texto-base); }
 .aviso ul { display: grid; gap: var(--e1); padding-inline-start: var(--e4); list-style: disc; }
 
-/*
-  Fechar o aviso é enriquecimento: o botão é criado pelo script do layout e some junto com o
-  aviso, então sem script a tela continua inteira — só sem o botão. Ele fica preso na primeira
-  linha da grade, no topo direito, para não descer quando o aviso tem título e lista. A cor vem
-  do próprio aviso, e o recuo negativo encosta o alvo de clique no canto sem apertar o texto.
-*/
 .aviso__fechar {
   grid-column: 2;
   grid-row: 1;
@@ -987,7 +831,6 @@ input:disabled, select:disabled, textarea:disabled {
   color: var(--atencao-tinta);
 }
 
-/* Senha provisória e código de correlação: valores para copiar, não para ler. */
 .codigo {
   display: inline-block;
   padding: var(--e1) var(--e2);
@@ -997,8 +840,6 @@ input:disabled, select:disabled, textarea:disabled {
   letter-spacing: 0.04em;
   user-select: all;
 }
-
-/* --- 14. Estado vazio ----------------------------------------------------- */
 
 .vazio {
   display: grid;
@@ -1021,8 +862,6 @@ input:disabled, select:disabled, textarea:disabled {
   font-size: var(--texto-pequeno);
 }
 
-/* --- 15. Telas públicas (login e erro) ------------------------------------ */
-
 .publico {
   display: grid;
   place-items: center;
@@ -1038,7 +877,6 @@ input:disabled, select:disabled, textarea:disabled {
   padding: clamp(var(--e6), 4vw, var(--e12));
   background: var(--papel);
   border: 1px solid var(--linha);
-  /* Sobreposição, não sombra: a folha branca pousa sobre a pauta do fundo. */
   box-shadow: var(--e2) var(--e2) 0 var(--papel), var(--e2) var(--e2) 0 1px var(--linha);
 }
 
@@ -1067,7 +905,6 @@ input:disabled, select:disabled, textarea:disabled {
   color: var(--tinta-suave);
 }
 
-/* Dentro da folha estreita o título grande da aplicação não cabe: a escala desce um degrau. */
 .publico__cartao h1 { font-size: var(--texto-grande); margin-block-end: var(--e6); }
 
 .erro { display: grid; gap: var(--e6); }
@@ -1093,8 +930,6 @@ input:disabled, select:disabled, textarea:disabled {
   color: var(--tinta-suave);
 }
 
-/* --- 16. Utilitários ------------------------------------------------------ */
-
 .visualmente-oculto {
   position: absolute;
   inline-size: 1px;
@@ -1115,12 +950,6 @@ input:disabled, select:disabled, textarea:disabled {
 .leitura { max-inline-size: var(--largura-leitura); }
 .texto-corrido { white-space: pre-wrap; line-height: 1.7; }
 
-/* --- 17. Adaptação, movimento reduzido e impressão ------------------------ */
-
-/*
-  As colunas de destinatários caem antes do layout inteiro: com a barra lateral ocupando espaço,
-  quatro nomes lado a lado já ficam apertados bem acima do ponto em que a navegação vira faixa.
-*/
 @media (max-width: 78rem) { .grade-opcoes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 56rem) { .grade-opcoes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 34rem) { .grade-opcoes { grid-template-columns: minmax(0, 1fr); } }
@@ -1168,7 +997,6 @@ input:disabled, select:disabled, textarea:disabled {
 
 @media print {
   .navegacao, .pagina__acoes, .acoes, .pular-para-conteudo { display: none; }
-  /* No papel os controles não levam a lugar nenhum, mas o intervalo impresso precisa constar. */
   .paginacao__lista { display: none; }
   body { background: #fff; }
   .conteudo { padding: 0; border: 0; }
