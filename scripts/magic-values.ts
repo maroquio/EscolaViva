@@ -59,6 +59,22 @@
  *      mudado de posição; o mesmo valia para `include("/parciais/_vazio")` e para o `'unidade'`
  *      que o formulário de comunicado compara. Ver `donoNoCodigoDoTemplate`.
  *
+ *      Cada uma das leituras acima nasceu olhando para UMA posição, e é assim que um verificador
+ *      fica simétrico num eixo e cego nos outros. Fechar a cegueira é olhar para o mesmo valor onde
+ *      ele não costuma estar, e foram três lugares:
+ *
+ *        - o NÚMERO na prosa da tela. "Mostra os 50 primeiros" e "notas de 0 a 10" são o mesmo teto
+ *          que o handler já passa por `it`, escrito por extenso — e quando o dono muda, a frase
+ *          continua igual e passa a mentir. Ver `conferirLimiteNaProsa`.
+ *        - o TEXTO num atributo que não é conteúdo do documento. `aria-label` é o nome do controle
+ *          para quem usa leitor de tela, e `<form aria-label="Buscar aluno">` era a quarta cópia de
+ *          `ACOES.buscarAluno`, invisível porque o varredor pula o interior da tag inteira. Ver
+ *          `ATRIBUTOS_DE_TEXTO`.
+ *        - o PEDAÇO FIXO de um template com interpolação. `` `Notas do ${…} · ${…}` `` não é
+ *          `isStringLiteral` nem `isNoSubstitutionTemplateLiteral`, então escapava das duas regras
+ *          de uma vez — enquanto o `it.separador` correto estava quatro linhas abaixo, na mesma
+ *          tela. Ver `conferirTexto`.
+ *
  *   4. REPETIÇÃO SEM DONO — o texto que reaparece em `src/` e que nenhum `constantes.ts` declara.
  *
  *      As três regras acima têm um teto comum, e o teto não é a heurística: é o ÍNDICE. Todas
@@ -748,6 +764,19 @@ const palavrasDoCaminho = (caminho: string): string[] =>
     .filter((palavra) => palavra !== '' && !PALAVRAS_VAZIAS.has(palavra))
     .map(singular);
 
+/**
+ * O dono que se chama LIMITE. `LIMITES.aluno.busca`, `LIMITES.nota.maximo` e
+ * `APRESENTACAO.limiteDaMensagem` dizem; `PAGINACAO.janela` e `DIAS_DA_SEMANA.sabadoJs` não.
+ *
+ * Lê o caminho com `palavrasDoCaminho`, e não com um `includes` no texto, pela mesma razão de
+ * sempre: é ele que já sabe que `LIMITES` e `limiteDaMensagem` dizem a mesma palavra, e um segundo
+ * jeito de quebrar um nome em palavras divergiria do primeiro na primeira mudança.
+ */
+const PALAVRA_DE_LIMITE = 'limite';
+
+const ehNomeDeLimite = (caminho: string): boolean =>
+  palavrasDoCaminho(caminho).includes(PALAVRA_DE_LIMITE);
+
 const contemTodas = (conjunto: ReadonlySet<string>, palavras: readonly string[]): boolean =>
   palavras.length > 0 && palavras.every((palavra) => conjunto.has(palavra));
 
@@ -1042,6 +1071,43 @@ function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
  */
 const ABERTURA_DE_BLOCO = '<%';
 
+const FECHAMENTO_DE_BLOCO = '%>';
+
+const ASPAS_DE_CODIGO: ReadonlySet<string> = new Set(['"', "'", '`']);
+
+const ESCAPE_DA_STRING = '\\';
+
+const COMENTARIO_DE_BLOCO = { abertura: '/*', fechamento: '*/' } as const;
+
+const QUEBRA_DE_LINHA = '\n';
+
+const CRASE = '`';
+
+/**
+ * Onde termina a string aberta em `inicio`, ou `inicio + 1` quando aquela aspa não abria string
+ * nenhuma. A contrabarra escapa o próximo caractere, inclusive a própria aspa.
+ *
+ * A aspa simples e a dupla morrem na quebra de linha; a crase, não. É a regra do Eta, não uma
+ * escolha daqui — as três expressões de `parse.ts` dizem exatamente isso —, e ela é o que segura o
+ * apóstrofo escrito numa frase de comentário: sem o corte na linha, um `d'água` num `//` engoliria
+ * o resto do arquivo à procura da aspa que fecha.
+ *
+ * Uma crase com `${…}` que interpole OUTRA crase sairia daqui no lugar errado. Não existe nenhuma
+ * nos templates de hoje, e o preço de errar é uma fronteira de bloco deslocada, não um achado
+ * inventado: o que cair do lado errado da fronteira é lido pela outra regra, e as duas cobram.
+ */
+const fimDaString = (fonte: string, inicio: number, aspa: string): number => {
+  for (let i = inicio + 1; i < fonte.length; i += 1) {
+    if (fonte[i] === ESCAPE_DA_STRING) {
+      i += 1;
+      continue;
+    }
+    if (fonte[i] === aspa) return i + 1;
+    if (aspa !== CRASE && fonte[i] === QUEBRA_DE_LINHA) return inicio + 1;
+  }
+  return fonte.length;
+};
+
 /**
  * Onde o Eta começa e onde termina — a fronteira entre o que o template EXECUTA e o que ele
  * ESCREVE, e as três regras do `.eta` precisam dela pelas três razões:
@@ -1050,10 +1116,62 @@ const ABERTURA_DE_BLOCO = '<%';
  *   - a do texto apaga o bloco de dentro do documento, porque código não é texto que alguém lê;
  *   - a do limite lê o que está DENTRO do bloco, que é o único pedaço de TypeScript do arquivo.
  *
- * É uma expressão só para as três, e não três iguais: um `<%_` que o Eta passasse a aceitar teria de
- * ser reconhecido nas três leituras ao mesmo tempo, e três cópias divergiriam na primeira.
+ * É uma leitura só para as três, e não três iguais: um `<%_` que o Eta passasse a aceitar teria de
+ * ser reconhecido nas três ao mesmo tempo, e três cópias divergiriam na primeira.
+ *
+ * Era um `<%([\s\S]*?)%>`, e a preguiça do `*?` custava caro: o bloco terminava no PRIMEIRO `%>`,
+ * inclusive no que está dentro de um comentário do próprio código. Cinco templates deste
+ * repositório documentam a armadilha do `autoTrim` escrevendo `` `%>` `` no docblock — e nos cinco
+ * o bloco de abertura fechava ali, no meio da frase. O estrago era duplo e silencioso: TODO o
+ * código real do arquivo (o `const legenda` de `professor/notas.eta`, entre outros) caía fora de
+ * qualquer bloco e nenhuma regra o lia, enquanto a PROSA do docblock passava a ser lida como texto
+ * do documento — foi de lá que saiu um "limite redeclarado" apontando para um comentário.
+ *
+ * Onde o `%>` conta e onde ele é texto quem decide NÃO é este arquivo: é o `parse.ts` do Eta, e
+ * copiá-lo é a única forma de a fronteira daqui ser a mesma que a do motor. Ele varre à procura de
+ * `'`, `"`, `` ` ``, `/*` ou da tag de fechamento — então string e comentário de BLOCO escondem o
+ * `%>`, e comentário de LINHA não esconde. Parece assimetria e não é: `<% // … %>` é a forma que
+ * este repositório usa para justificar uma supressão dentro do template, e ela só funciona porque o
+ * Eta fecha a tag ali mesmo, no fim da linha do comentário. Ensinar `//` a esconder o `%>` — que
+ * foi a primeira versão desta função — fazia o bloco seguir para dentro da MARCAÇÃO, e o `<label
+ * class="campo__rotulo">` de dois formulários virava, para o verificador, um literal de TypeScript.
  */
-const BLOCO_DE_ETA = /<%([\s\S]*?)%>/g;
+const fimDoBloco = (fonte: string, desde: number): number => {
+  let i = desde;
+  while (i < fonte.length) {
+    if (fonte.startsWith(FECHAMENTO_DE_BLOCO, i)) return i;
+    if (fonte.startsWith(COMENTARIO_DE_BLOCO.abertura, i)) {
+      const desdeOMiolo = i + COMENTARIO_DE_BLOCO.abertura.length;
+      const fim = fonte.indexOf(COMENTARIO_DE_BLOCO.fechamento, desdeOMiolo);
+      i = fim < 0 ? fonte.length : fim + COMENTARIO_DE_BLOCO.fechamento.length;
+    } else if (ASPAS_DE_CODIGO.has(fonte[i] ?? '')) {
+      i = fimDaString(fonte, i, fonte[i] ?? '');
+    } else {
+      i += 1;
+    }
+  }
+  return fonte.length;
+};
+
+/** Um bloco do Eta: onde ele começa, o que ele ocupa no arquivo e o que há entre as tags. */
+type BlocoDoEta = { readonly indice: number; readonly inteiro: string; readonly interno: string };
+
+const blocosDoEta = (fonte: string): BlocoDoEta[] => {
+  const blocos: BlocoDoEta[] = [];
+  let posicao = 0;
+  for (;;) {
+    const abertura = fonte.indexOf(ABERTURA_DE_BLOCO, posicao);
+    if (abertura < 0) return blocos;
+    const fim = fimDoBloco(fonte, abertura + ABERTURA_DE_BLOCO.length);
+    const depois = Math.min(fim + FECHAMENTO_DE_BLOCO.length, fonte.length);
+    blocos.push({
+      indice: abertura,
+      inteiro: fonte.slice(abertura, depois),
+      interno: fonte.slice(abertura + ABERTURA_DE_BLOCO.length, fim),
+    });
+    posicao = depois;
+  }
+};
 
 const MARCADOR_DE_ABERTURA = /^[=~_-]/;
 const MARCADOR_DE_FECHAMENTO = /[-_]$/;
@@ -1068,6 +1186,25 @@ const ATRIBUTO_DE_ENDERECO = /\b(href|action)\s*=\s*"([^"]*)"/g;
  * denunciar, e é a forma que o refactor tenderia a produzir na próxima vez.
  */
 const ATRIBUTO_DE_LIMITE = /\b(maxlength|minlength|max|min)\s*=\s*"([0-9_]+)"/g;
+
+/**
+ * O mesmo limite, escrito por extenso na PROSA da tela.
+ *
+ * `conferirLimite` já lia o atributo e o bloco `<% %>`, e não lia a única posição em que o número
+ * erra sem quebrar nada: o texto que a pessoa lê. `professor/notas.eta` diz "Lançamento de notas de
+ * 0 a 10, com uma casa decimal." sessenta e oito linhas acima de um `max="<%= it.notaMaxima %>"`
+ * que consome `LIMITES.nota.maximo` corretamente — mesma tela, mesmo número, um com dono e o outro
+ * em prosa. `secretaria/alunos.eta` promete "Mostra os 50 primeiros em ordem alfabética." sobre o
+ * `LIMIT` que `LIMITES.aluno.busca` fixa no repositório. Mudar o teto no dono não muda a frase, e o
+ * defeito que sobra é o pior tipo: a tela passa a MENTIR para quem a lê, e nada acusa — o número em
+ * prosa não é lido por compilador, por teste nem pelo golden, que só sabe dizer que o byte mudou.
+ *
+ * O recorte é do número INTEIRO, e o que a vizinhança recusa é só o DÍGITO do outro lado da
+ * vírgula: "R$ 10,50" é um valor formatado, e cortá-lo em `10` e `50` inventaria dois limites onde
+ * há um preço. A vírgula sozinha não recusa nada, e não pode — "de 0 a 10, com uma casa decimal"
+ * termina o número com vírgula, e é justamente o caso que esta regra existe para pegar.
+ */
+const NUMERO_NA_PROSA = /(?<!\d)(?<![\d][,.])\d+(?!\d)(?![,.]\d)/g;
 
 /**
  * `include()` e `layout()` recebem CAMINHO DE TEMPLATE, que é arquivo e não endereço — a mesma
@@ -1245,6 +1382,9 @@ const fimDaTag = (fonte: string, inicio: number): number => {
   return fonte.length;
 };
 
+/** Um pedaço que a pessoa digitou, e onde ele começa no arquivo. */
+type Recorte = { readonly indice: number; readonly texto: string };
+
 /**
  * Um pedaço de texto do documento, e se ele está dentro de um nó que NOMEIA.
  *
@@ -1254,7 +1394,51 @@ const fimDaTag = (fonte: string, inicio: number): number => {
  * com o português —, enquanto a da repetição sem dono conta TODO texto, porque um "Situação" que
  * atravessa seis telas é vocabulário do produto esteja ele num `<th>`, num `<label>` ou num botão.
  */
-type Texto = { readonly indice: number; readonly texto: string; readonly nomeia: boolean };
+type Texto = Recorte & { readonly nomeia: boolean };
+
+/**
+ * Troca todo bloco `<% %>` pela marca, caractere a caractere.
+ *
+ * É a metade comum das duas leituras que precisam separar o que a PESSOA digitou do que o Eta
+ * interpola — o texto do documento e o valor de um atributo que a pessoa lê. Mora numa função só
+ * porque as duas dependem da mesma promessa, e é uma promessa fácil de quebrar escrevendo de novo:
+ * o comprimento não muda, então toda posição do arquivo continua valendo depois da troca.
+ */
+const comCodigoMarcado = (trecho: string): string => {
+  const pedacos: string[] = [];
+  let posicao = 0;
+  for (const bloco of blocosDoEta(trecho)) {
+    pedacos.push(
+      trecho.slice(posicao, bloco.indice),
+      bloco.inteiro.replaceAll(/[^\n]/g, MARCA_DE_CODIGO),
+    );
+    posicao = bloco.indice + bloco.inteiro.length;
+  }
+  pedacos.push(trecho.slice(posicao));
+  return pedacos.join('');
+};
+
+/**
+ * Os pedaços que sobraram entre as marcas, recortados nas pontas e com a posição de cada um.
+ *
+ * É o que faz `<span><%= n %></span> turmas <%= quando %>` render "turmas" em vez de um borrão, e é
+ * o mesmo recorte que `aria-label="Página <%= link.numero %>"` precisa para render "Página": os
+ * dois são o mesmo problema — texto de gente costurado com valor de servidor —, e o segundo só
+ * chegou depois. O recorte é das PONTAS e não do miolo: um texto com quebra de linha no meio
+ * continua sendo um texto só, que é como a prosa das telas não vira achado.
+ */
+const recortesEscritosAMao = (marcado: string): Recorte[] => {
+  const recortes: Recorte[] = [];
+  let deslocamento = 0;
+  for (const pedaco of marcado.split(MARCA_DE_CODIGO)) {
+    const recortado = pedaco.trim();
+    if (recortado !== '') {
+      recortes.push({ indice: deslocamento + pedaco.indexOf(recortado), texto: recortado });
+    }
+    deslocamento += pedaco.length + MARCA_DE_CODIGO.length;
+  }
+  return recortes;
+};
 
 /**
  * Os textos que NOMEIAM no template: o que sobra dentro de um `ELEMENTOS_QUE_NOMEIAM` depois que o
@@ -1272,19 +1456,12 @@ type Texto = { readonly indice: number; readonly texto: string; readonly nomeia:
  * até o `</script>` literal (`fechamentoDe`) e não uma varredura de tags com um estado a mais.
  */
 const textosDoDocumento = (fonte: string): Texto[] => {
-  const marcado = fonte.replaceAll(BLOCO_DE_ETA, (bloco) =>
-    bloco.replaceAll(/[^\n]/g, MARCA_DE_CODIGO),
-  );
+  const marcado = comCodigoMarcado(fonte);
   const textos: Texto[] = [];
 
   const recolher = (inicio: number, fim: number, nomeia: boolean): void => {
-    let deslocamento = inicio;
-    for (const pedaco of marcado.slice(inicio, fim).split(MARCA_DE_CODIGO)) {
-      const recortado = pedaco.trim();
-      if (recortado !== '') {
-        textos.push({ indice: deslocamento + pedaco.indexOf(recortado), texto: recortado, nomeia });
-      }
-      deslocamento += pedaco.length + MARCA_DE_CODIGO.length;
+    for (const recorte of recortesEscritosAMao(marcado.slice(inicio, fim))) {
+      textos.push({ indice: inicio + recorte.indice, texto: recorte.texto, nomeia });
     }
   };
 
@@ -1341,6 +1518,33 @@ const textosDoDocumento = (fonte: string): Texto[] => {
 const IDENTIFICADOR = /^[/-]?[a-z][A-Za-z0-9_/-]*$/;
 
 /**
+ * Uma MARCA TIPOGRÁFICA: nem letra, nem dígito, e ao menos um símbolo fora do ASCII — `·`, `—`,
+ * `–`, `×`, `→`. É o terceiro portão de `donoNoCodigoDoTemplate`, e existe pelo mesmo motivo que os
+ * outros dois: provar cópia sem cair na fusão por valor que a regra 2 proíbe.
+ *
+ * A pontuação ASCII é o alfabeto da COMPOSIÇÃO DE MÁQUINA — `/` junta caminho, `-` prefixa id, `:`
+ * separa campo de cookie, `,` e `.` separam decimal —, e cada camada é dona legítima da sua: são
+ * seis `SEPARADOR_*` valendo `'.'` neste repositório, e `ROTAS.publicas.raiz` vale `'/'` ao lado do
+ * `href + '/'` de `_navegacao.eta`, que é o teste de ancestralidade e não a raiz. Casar por valor
+ * ali mandaria fundir exatamente o que a regra 2 manda separar, e ainda apontaria o dono errado.
+ *
+ * Um símbolo fora do ASCII não compõe nada: não entra em caminho, em id nem em chave, e ninguém o
+ * digita por acaso. Ele só existe para ser LIDO, e a única decisão que pode carregar é como a tela
+ * apresenta dois valores lado a lado — que é `APRESENTACAO`, e é uma só. `' · '` escrito à mão na
+ * legenda de `professor/notas.eta` não é uma segunda opinião sobre o separador: é a primeira,
+ * copiada.
+ */
+const SEM_LETRA_NEM_DIGITO = /^[^A-Za-zÀ-ÿ0-9]+$/;
+
+const ULTIMO_CODIGO_ASCII = 127;
+
+const foraDoAscii = (texto: string): boolean =>
+  [...texto].some((caractere) => (caractere.codePointAt(0) ?? 0) > ULTIMO_CODIGO_ASCII);
+
+const ehMarcaTipografica = (texto: string): boolean =>
+  SEM_LETRA_NEM_DIGITO.test(texto) && foraDoAscii(texto);
+
+/**
  * O dono de um valor escrito no CÓDIGO do template — dentro de um `<% %>` ou num atributo que o
  * navegador devolve ao servidor.
  *
@@ -1353,13 +1557,18 @@ const IDENTIFICADOR = /^[/-]?[a-z][A-Za-z0-9_/-]*$/;
  * `quantos === 1 ? 'responsável' : 'responsáveis'` é a flexão de um substantivo, não a mensagem de
  * reserva de `MENSAGENS.usuario.rotuloDeResponsavel`.
  *
- * São então dois portões, e cada um responde por metade do que um bloco escreve:
+ * São então três portões, e juntos respondem pelo que um bloco escreve:
  *
  *   - IDENTIFICADOR. `'unidade'` comparado com `valores.alcance`, `'nome'` passado a `erroDe()`,
  *     `"/parciais/_vazio"` entregue ao `include()`: nenhum deles é texto que alguém lê, e todos os
  *     três o servidor também escreve — `ALCANCE`, `CAMPOS`, `TEMPLATES`. Escrever um deles errado
  *     não deixa a tela feia, faz o envio cair no alcance errado ou a página morrer em tempo de
  *     execução. Coincidiu, é cópia: o template não é dono de vocabulário nenhum.
+ *
+ *   - MARCA TIPOGRÁFICA, pelo mesmo raciocínio e com outra matéria-prima: o `' · '` que costura
+ *     `` `Notas do ${…} · ${…}` `` não é texto que alguém redigiu nem nome de campo, é o separador
+ *     de `APRESENTACAO` escrito à mão. Ver `ehMarcaTipografica` para por que o portão exige um
+ *     símbolo fora do ASCII e deixa `/`, `-` e `:` de fora.
  *
  *   - REDAÇÃO E NOME, que é o critério do `.ts` — `donoDuplicado`, com a CHAVE que carrega o
  *     literal fazendo o papel do caminho. `{ titulo: 'Cadastrar responsável' }` é acusado duas
@@ -1375,7 +1584,7 @@ const donoNoCodigoDoTemplate = (texto: string, chave: string): Dono | undefined 
   // A regra do `.ts` já o isenta pelo mesmo motivo; aqui ele chegava pela porta da chave igual.
   if (texto === '' || VOCABULARIO_DO_HTML.has(texto)) return undefined;
   const donos = indicePorValor.get(chaveDeTexto(texto)) ?? [];
-  if (IDENTIFICADOR.test(texto)) return donos[0];
+  if (IDENTIFICADOR.test(texto) || ehMarcaTipografica(texto)) return donos[0];
   return escolherDono(donos, chave, DUAS_PALAVRAS_SEGUIDAS.test(texto));
 };
 
@@ -1401,6 +1610,30 @@ const chaveQueCarrega = (no: ts.Node): string => {
  * linha ilegível que a regra 5 recusa (`id="<%= it.campos.turma.nome %><%= it.sufixos.erro %>"`).
  */
 const ATRIBUTOS_QUE_VOLTAM = /\b(name|value)\s*=\s*"([^"]*)"/g;
+
+/**
+ * Os atributos que carregam TEXTO LIDO PELA PESSOA — e a regra que os lê é a do texto de nó, não a
+ * do código.
+ *
+ * `aria-label`, `title`, `alt` e `placeholder` não são conteúdo do documento, mas são a mesma
+ * promessa que `ELEMENTOS_QUE_NOMEIAM` faz: o `aria-label` de um controle é o NOME dele para quem
+ * usa leitor de tela, exatamente como o texto entre as tags é o nome dele para quem enxerga. Quando
+ * os dois nomes existem, são a mesma decisão dita duas vezes — e foi assim que
+ * `<form role="search" aria-label="Buscar aluno">` ficou sendo a QUARTA cópia de `ACOES.buscarAluno`
+ * enquanto as outras três já liam `it.acoes.buscarAluno`: o varredor de texto pula o interior de uma
+ * tag inteira, então nenhuma das três regras de marcação chegava a olhar para lá.
+ *
+ * O que ficou de fora ficou pelo motivo oposto, e é o conserto que a passada anterior fez de
+ * propósito: `id`, `for`, `class` e `type` carregam IDENTIFICADOR ou PALAVRA DA ESPECIFICAÇÃO, não
+ * texto — medidos, produzem 222 achados, entre eles um `aria-invalid="true"` casando com o `'true'`
+ * de variável de ambiente. A linha aqui é essa: entra o atributo que alguém LÊ, fica fora o que
+ * nomeia um elemento ou repete uma palavra do HTML.
+ */
+const ATRIBUTOS_DE_TEXTO = /\b(aria-label|title|alt|placeholder)\s*=\s*"([^"]*)"/g;
+
+/** Onde começa o valor de um atributo casado: logo depois da primeira aspa. */
+const inicioDoValor = (atributo: RegExpExecArray): number =>
+  atributo.index + atributo[0].indexOf('"') + 1;
 
 function analisarTemplate(arquivo: string, fonte: string): Achado[] {
   const linhas = fonte.split('\n');
@@ -1438,6 +1671,15 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
     });
   };
 
+  const acusarLimite = (indice: number, texto: string, dono: Dono): void => {
+    registrar(
+      indice,
+      texto,
+      `limite redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+        'passe o valor pelo handler, via `it`',
+    );
+  };
+
   /**
    * Um número escrito no `.eta` que já tem dono num `constantes.ts` é sempre redeclaração, e aqui
    * a coincidência de valor BASTA — ao contrário do que vale para um `.ts`.
@@ -1451,13 +1693,79 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
   const conferirLimite = (indice: number, texto: string, valor: number): void => {
     if (NUMEROS_NEUTROS.has(valor)) return;
     const dono = valoresNumericosComDono.get(valor);
-    if (dono === undefined) return;
-    registrar(
-      indice,
-      texto,
-      `limite redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
-        'passe o valor pelo handler, via `it`',
-    );
+    if (dono !== undefined) acusarLimite(indice, texto, dono);
+  };
+
+  /**
+   * O mesmo número, na PROSA da tela — e aqui a coincidência de valor não basta.
+   *
+   * Nas duas posições acima o lugar já prova o que o número é: `maxlength="120"` é um limite porque
+   * o atributo se chama assim, e `const NOME_MAXIMO = 120` num bloco é um limite porque a `const`
+   * se chama assim. Numa frase não há posição que prove nada — o número tanto pode ser um teto
+   * quanto um passo, um ordinal ou uma contagem —, e cobrar toda coincidência mede o repositório
+   * contra a regra 2. Medido: "Passo 2 · Mensagem" casava com `APRESENTACAO.colunaDeDoisDigitos`,
+   * "6º ano, 1ª série" casava com `DIAS_DA_SEMANA.sabadoJs`, e nenhum dos dois é um limite — são
+   * três falsos para dois verdadeiros.
+   *
+   * O que decide é a mesma coisa que decide o resto deste arquivo: **o nome é a documentação**, e é
+   * a forma exata de `ehPosicaoDeStatus` — lá um número é status onde o código em volta o CHAMA de
+   * status; aqui um número é limite onde o DONO se chama limite. `LIMITES.aluno.busca` e
+   * `LIMITES.nota.maximo` dizem; `APRESENTACAO.colunaDeDoisDigitos` e `DIAS_DA_SEMANA.sabadoJs` não.
+   *
+   * O que fica de fora fica de fora de propósito: uma frase que redigisse `PAGINACAO.janela` por
+   * extenso passa calada, e passar calado é o preço certo. Um verificador que acusa três coisas
+   * erradas para pegar duas certas é um verificador que se aprende a ignorar — e aí ele não pega
+   * nem as duas.
+   */
+  const conferirLimiteNaProsa = (indice: number, texto: string, valor: number): void => {
+    if (NUMEROS_NEUTROS.has(valor)) return;
+    const dono = valoresNumericosComDono.get(valor);
+    if (dono !== undefined && ehNomeDeLimite(dono.caminho)) acusarLimite(indice, texto, dono);
+  };
+
+  /**
+   * O texto que o bloco `<% %>` escreve — venha ele de um literal inteiro ou de um PEDAÇO FIXO de
+   * template, que é a mesma coisa vista de outro ângulo.
+   *
+   * `` `Notas do ${…} · ${…} · ${…}` `` não é um `TemplateExpression` por acaso: é a forma que uma
+   * frase toma quando ela interpola um valor. E era exatamente por isso que ela passava calada —
+   * `TemplateExpression` não é `isStringLiteral` nem `isNoSubstitutionTemplateLiteral`, então nem
+   * entrava na contagem da repetição nem era consultada na regra do dono, enquanto o mesmo arquivo,
+   * quatro linhas abaixo, consumia `it.separador` corretamente. O docblock de `notas.eta` chegava a
+   * afirmar que "os separadores chegam em `it.separador`": verdade numa linha, falsa na outra.
+   *
+   * Cada pedaço é julgado por si; o que ele interpola não é problema dele, e já tem dono do outro
+   * lado. A CONTAGEM da regra 4 recebe o texto cru, como qualquer literal — e a busca pelo dono
+   * recebe as duas leituras que um pedaço encostado numa interpolação tem, pelo motivo explicado
+   * três linhas abaixo dela.
+   */
+  const conferirTexto = (
+    indice: number,
+    texto: string,
+    trecho: string,
+    chave: string,
+    dentroDeTemplate: boolean,
+  ): void => {
+    contar(indice, texto, trecho);
+    // Quem tem dono é apontado pelo dono: o achado que diz de ONDE importar vale mais do que o
+    // que diz apenas "escrito à mão". A regra do endereço fica com o que não tem dono nenhum,
+    // que é justamente a rota inventada no template — o caso para o qual ela existe.
+    // Duas leituras, porque um pedaço encostado numa interpolação tem duas: `' · '` É o valor, e os
+    // espaços dele são metade da decisão de `APRESENTACAO.separador`; já em `` `Cadastrar aluno ${n}` ``
+    // o espaço final é a costura, e a frase é o que sobra. Consultar só o texto cru deixaria a
+    // segunda escapar por um espaço.
+    const dono =
+      donoNoCodigoDoTemplate(texto, chave) ?? donoNoCodigoDoTemplate(texto.trim(), chave);
+    if (dono !== undefined) {
+      registrar(
+        indice,
+        trecho,
+        `texto redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+          'passe o valor pelo handler, via `it`',
+      );
+    } else if (!dentroDeTemplate && ROTA_COM_SEGMENTO.test(texto)) {
+      registrar(indice, trecho, MOTIVO_DE_ENDERECO_NO_TEMPLATE);
+    }
   };
 
   /* --- Marcação: endereço escrito à mão em `href`/`action` ------------------ */
@@ -1465,7 +1773,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
   for (const atributo of fonte.matchAll(ATRIBUTO_DE_ENDERECO)) {
     const valor = atributo[2] ?? '';
     // O que o Eta interpola tem dono do outro lado; o que sobra é o que o template escreveu.
-    const escritoAMao = valor.replaceAll(BLOCO_DE_ETA, '');
+    const escritoAMao = comCodigoMarcado(valor).replaceAll(MARCA_DE_CODIGO, '');
     if (!ehEnderecoNoAtributo(escritoAMao)) continue;
     registrar(
       atributo.index,
@@ -1478,6 +1786,9 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
 
   for (const { indice, texto, nomeia } of textosDoDocumento(fonte)) {
     contar(indice, texto, texto);
+    for (const numero of texto.matchAll(NUMERO_NA_PROSA)) {
+      conferirLimiteNaProsa(indice + numero.index, texto, Number(numero[0]));
+    }
     const dono = nomeia ? donoDoTexto(texto) : undefined;
     if (dono === undefined) continue;
     registrar(
@@ -1505,6 +1816,26 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
     );
   }
 
+  /* --- Marcação: o texto de `aria-label`/`title`/`alt`/`placeholder` -------- */
+
+  for (const atributo of fonte.matchAll(ATRIBUTOS_DE_TEXTO)) {
+    const inicio = inicioDoValor(atributo);
+    for (const recorte of recortesEscritosAMao(comCodigoMarcado(atributo[2] ?? ''))) {
+      const indice = inicio + recorte.indice;
+      contar(indice, recorte.texto, atributo[0]);
+      // Vale a coincidência simples, como no texto de nó e pela mesma razão: o `aria-label` de um
+      // controle é o NOME dele, e a posição já provou o que a redação provaria.
+      const dono = donoDoTexto(recorte.texto);
+      if (dono === undefined) continue;
+      registrar(
+        indice,
+        atributo[0],
+        `texto redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+          'passe o valor pelo handler, via `it`',
+      );
+    }
+  }
+
   /* --- Marcação: limite escrito à mão em `maxlength`/`max`/`min` ------------ */
 
   for (const atributo of fonte.matchAll(ATRIBUTO_DE_LIMITE)) {
@@ -1513,13 +1844,13 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
 
   /* --- Código: o que o bloco `<% %>` redeclara ------------------------------ */
 
-  for (const bloco of fonte.matchAll(BLOCO_DE_ETA)) {
-    const bruto = bloco[1] ?? '';
+  for (const bloco of blocosDoEta(fonte)) {
+    const bruto = bloco.interno;
     if (bruto.startsWith(COMENTARIO_DO_ETA)) continue;
 
     const recuo = MARCADOR_DE_ABERTURA.test(bruto) ? 1 : 0;
     const codigo = bruto.slice(recuo).replace(MARCADOR_DE_FECHAMENTO, '');
-    const deslocamento = bloco.index + ABERTURA_DE_BLOCO.length + recuo;
+    const deslocamento = bloco.indice + ABERTURA_DE_BLOCO.length + recuo;
 
     // O parser é tolerante a `<% if (x) { %>`: o bloco não fecha, e a árvore parcial que ele
     // devolve ainda contém todos os literais, que é o que interessa aqui.
@@ -1538,21 +1869,25 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
         (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) &&
         !(ts.isPropertyAssignment(no.parent) && no.parent.name === no)
       ) {
-        const indice = deslocamento + no.getStart(origem);
-        contar(indice, no.text, no.getText(origem));
-        // Quem tem dono é apontado pelo dono: o achado que diz de ONDE importar vale mais do que o
-        // que diz apenas "escrito à mão". A regra do endereço fica com o que não tem dono nenhum,
-        // que é justamente a rota inventada no template — o caso para o qual ela existe.
-        const dono = donoNoCodigoDoTemplate(no.text, chaveQueCarrega(no));
-        if (dono !== undefined) {
-          registrar(
-            indice,
-            no.getText(origem),
-            `texto redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
-              'passe o valor pelo handler, via `it`',
+        conferirTexto(
+          deslocamento + no.getStart(origem),
+          no.text,
+          no.getText(origem),
+          chaveQueCarrega(no),
+          dentroDeTemplate,
+        );
+      } else if (ts.isTemplateExpression(no)) {
+        // O `+ 1` pula o delimitador com que cada pedaço começa — a crase, no primeiro, e o `}`
+        // que fecha a interpolação anterior, nos demais —, para que a coluna do achado seja a do
+        // texto e não a da costura.
+        for (const parte of [no.head, ...no.templateSpans.map((trecho) => trecho.literal)]) {
+          conferirTexto(
+            deslocamento + parte.getStart(origem) + 1,
+            parte.text,
+            parte.getText(origem),
+            chaveQueCarrega(no),
+            dentroDeTemplate,
           );
-        } else if (!dentroDeTemplate && ROTA_COM_SEGMENTO.test(no.text)) {
-          registrar(indice, no.getText(origem), MOTIVO_DE_ENDERECO_NO_TEMPLATE);
         }
       }
 
