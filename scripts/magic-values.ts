@@ -123,6 +123,18 @@
  *      caractere, e o verificador em silêncio nas duas. Ver o portão em `ehMarcaTipografica` e
  *      `IDENTIFICADOR`, que é onde coincidência é impossível, e a medição que o estreitou até ali.
  *
+ *   8. SUPRESSÃO MORTA — o marcador que não cala nada.
+ *
+ *      As regras 6 e 7 auditam a supressão, mas as duas leem a lista de literais CALADOS, e nela só
+ *      entra a supressão que algum portão chegou a consultar. Quem não cala nada nunca aparece: é
+ *      invisível por construção, do mesmo jeito que a repetição sem dono era antes da regra 4 — o
+ *      mesmo erro, um andar acima. Medido, dezenove dos trinta e cinco marcadores do repositório
+ *      não calam coisa alguma: nove justificam o par `id`/`for`, que uma passada anterior tirou do
+ *      verificador de propósito; oito calam a contagem de um texto que a regra 4 nunca acusaria; um
+ *      está três linhas acima do literal que diz cobrir; e um justifica um sobretítulo que ninguém
+ *      acusa. Ver `marcadoresDe`, que varre a FONTE porque o defeito é a AUSÊNCIA, e
+ *      `silenciadasVivas`, que é quem separa promessa de trabalho.
+ *
  * As exceções abaixo são a regra 6 do refactor, e cada uma tem um motivo que não é preguiça:
  *
  *   - Status HTTP são vocabulário do protocolo, não do produto. `c.redirect(destino, 303)` diz
@@ -147,7 +159,8 @@
  * Escape hatch, para o caso legítimo que a heurística não prevê: um comentário
  * `// magic-values: permitido — <motivo>` na linha do literal ou na linha acima dela. O motivo é
  * obrigatório, e é ele que faz a exceção ser revisável em vez de invisível — e agora ele é LIDO,
- * pelas regras 6 e 7, em vez de apenas honrado.
+ * pelas regras 6 e 7, em vez de apenas honrado. A regra 8 cobra o passo antes desse: escrever o
+ * marcador onde não há nada para calar é prometer uma exceção de máquina que não existe.
  */
 
 import { join, resolve } from 'node:path';
@@ -241,6 +254,19 @@ const STATUS_HTTP = new Set([
 const NUMEROS_NEUTROS = new Set([0, 1]);
 
 const SUPRESSAO = /\/\/\s*magic-values:\s*permitido\s*[—-]\s*(\S.*)$/;
+
+/**
+ * O MARCADOR como um leitor humano o reconhece: a promessa "aqui há exceção de máquina", com ou sem
+ * o `//` que a torna canônica.
+ *
+ * As duas expressões existem porque servem a perguntas opostas. `SUPRESSAO` decide QUEM CALA, e por
+ * isso continua exigindo a forma canônica — afrouxá-la seria criar um jeito novo de silenciar o
+ * verificador escrevendo prosa. Esta decide QUEM PROMETE, e por isso é frouxa: três marcadores do
+ * repositório (`login.eta`, `rede/ano_novo.eta`, `professor/painel.eta`) estão escritos sem o `//`,
+ * se leem exatamente como supressão e não calam nada. Quem lê o arquivo não distingue as duas
+ * formas; a regra da supressão morta cobra as duas.
+ */
+const MARCADOR_DE_SUPRESSAO = /magic-values:\s*permitido\s*[—-]\s*\S/;
 
 const LINHA_DE_COMENTARIO = /^\s*\/\//;
 
@@ -1043,6 +1069,11 @@ const ocorrencias: Ocorrencia[] = [];
  * O verificador HONRAVA o comentário sem o LER, e é a saída que fecha o achado sem ninguém validar
  * o texto. Guardar as duas coisas juntas — o valor calado e a frase que o calou — é o que permite
  * cobrar a frase.
+ *
+ * `fechou` separa as duas coisas MUITO diferentes que a supressão pode calar: um VEREDITO, que sem
+ * ela viraria linha de relatório, ou uma CONTAGEM da regra 4, que sem ela seria só mais um voto
+ * numa soma. Sem essa distinção as duas viram a mesma coisa, e é o que fazia as regras A e B
+ * cobrarem trinta e cinco supressões quando só dezesseis calam alguma coisa.
  */
 type Silenciado = {
   readonly arquivo: string;
@@ -1050,9 +1081,42 @@ type Silenciado = {
   readonly coluna: number;
   readonly valor: string;
   readonly justificativa: string;
+  readonly fechou: 'achado' | 'contagem';
 };
 
 const silenciados: Silenciado[] = [];
+
+/** Uma promessa de exceção escrita no arquivo, antes de se saber se ela cala alguma coisa. */
+type Marcador = {
+  readonly arquivo: string;
+  readonly linha: number;
+  readonly coluna: number;
+  readonly trecho: string;
+};
+
+const marcadores: Marcador[] = [];
+
+/**
+ * Todo marcador escrito num arquivo, tenha ele calado algo ou não.
+ *
+ * `silenciados` só sabe das supressões que ALGUM portão consultou, e é exatamente esse o ponto
+ * cego: supressão que não cala nada nunca chega lá, do mesmo jeito que a repetição sem dono não
+ * chegava a lugar nenhum antes da regra 4. O defeito é a AUSÊNCIA, e quem procura ausência tem de
+ * varrer a fonte, não a lista.
+ */
+const marcadoresDe = (arquivo: string, fonte: string): Marcador[] =>
+  fonte.split('\n').flatMap((linha, indice) => {
+    const encontro = MARCADOR_DE_SUPRESSAO.exec(linha);
+    if (encontro === null) return [];
+    return [
+      {
+        arquivo,
+        linha: indice + 1,
+        coluna: encontro.index + 1,
+        trecho: linha.trim().slice(0, 72),
+      },
+    ];
+  });
 
 /** Onde um valor com dono é CONSUMIDO pelo caminho dele, e não escrito à mão. */
 type Consumo = {
@@ -1191,16 +1255,22 @@ function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
   const achados: Achado[] = [];
   const geramTipo = nomesQueGeramTipo(origem);
 
-  const suprimida = (linha: number, coluna: number, valor: string): boolean => {
+  const suprimida = (
+    linha: number,
+    coluna: number,
+    valor: string,
+    fechou: Silenciado['fechou'],
+  ): boolean => {
     const justificativa = justificativaDa(linhas, linha);
     if (justificativa === undefined) return false;
-    silenciados.push({ arquivo, linha, coluna, valor, justificativa });
+    silenciados.push({ arquivo, linha, coluna, valor, justificativa, fechou });
     return true;
   };
 
   const registrar = (no: ts.Node, motivo: string): void => {
     const { line, character } = origem.getLineAndCharacterOfPosition(no.getStart(origem));
-    if (suprimida(line + 1, character + 1, textoDoLiteral(no) ?? no.getText(origem))) return;
+    if (suprimida(line + 1, character + 1, textoDoLiteral(no) ?? no.getText(origem), 'achado'))
+      return;
     achados.push({
       arquivo,
       linha: line + 1,
@@ -1220,7 +1290,7 @@ function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
   const contar = (no: ts.Node, texto: string): void => {
     if (!arquivo.startsWith(MODULO_DO_PRODUTO) || !ehTextoContavel(texto)) return;
     const { line, character } = origem.getLineAndCharacterOfPosition(no.getStart(origem));
-    if (suprimida(line + 1, character + 1, texto)) return;
+    if (suprimida(line + 1, character + 1, texto, 'contagem')) return;
     ocorrencias.push({
       texto,
       arquivo,
@@ -2085,10 +2155,15 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
   const linhas = fonte.split('\n');
   const achados: Achado[] = [];
 
-  const suprimida = (linha: number, coluna: number, valor: string): boolean => {
+  const suprimida = (
+    linha: number,
+    coluna: number,
+    valor: string,
+    fechou: Silenciado['fechou'],
+  ): boolean => {
     const justificativa = justificativaDa(linhas, linha);
     if (justificativa === undefined) return false;
-    silenciados.push({ arquivo, linha, coluna, valor, justificativa });
+    silenciados.push({ arquivo, linha, coluna, valor, justificativa, fechou });
     return true;
   };
 
@@ -2096,7 +2171,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
   const contar = (indice: number, texto: string, trecho: string): void => {
     if (!arquivo.startsWith(MODULO_DO_PRODUTO) || !ehTextoContavel(texto)) return;
     const { linha, coluna } = posicaoDe(fonte, indice);
-    if (suprimida(linha, coluna, texto)) return;
+    if (suprimida(linha, coluna, texto, 'contagem')) return;
     ocorrencias.push({
       texto,
       arquivo,
@@ -2113,7 +2188,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
    */
   const registrar = (indice: number, trecho: string, motivo: string, valor = trecho): void => {
     const { linha, coluna } = posicaoDe(fonte, indice);
-    if (suprimida(linha, coluna, valor)) return;
+    if (suprimida(linha, coluna, valor, 'achado')) return;
     achados.push({
       arquivo,
       linha,
@@ -2450,12 +2525,52 @@ for (const arquivo of alvos) {
   if (arquivo === ESTE_ARQUIVO || ARQUIVOS_DE_CONSTANTES.test(arquivo)) continue;
   const bruto = await Bun.file(join(RAIZ, arquivo)).text();
   const fonte = TEMPLATES_COM_SCRIPT_ISENTO.has(arquivo) ? semCorpoDeScript(bruto) : bruto;
+  marcadores.push(...marcadoresDe(arquivo, fonte));
   achados.push(
     ...(arquivo.endsWith(EXTENSAO_DE_TEMPLATE)
       ? analisarTemplate(arquivo, fonte)
       : analisarTypeScript(arquivo, fonte)),
   );
 }
+
+/* --- Quais supressões fazem trabalho ---------------------------------------- */
+
+/**
+ * Uma CONTAGEM calada trabalha quando o texto dela é dos que a regra 4 acusaria se ninguém o
+ * calasse: sem dono declarado e repetido o bastante, contando também as cópias caladas.
+ *
+ * A soma tem de incluir as caladas, e é o único jeito de a pergunta fazer sentido. "Situação"
+ * encabeça cinco vocabulários de estado diferentes e está calado nas SEIS telas em que aparece:
+ * medido uma supressão de cada vez, apagar qualquer uma delas deixa cinco, e cinco continuam
+ * calando — cada uma pareceria inerte, e as seis juntas seguram um achado real. Quem decide não é
+ * a supressão isolada, é o texto.
+ */
+const ocorrenciasPorTexto = new Map<string, number>();
+for (const ocorrencia of ocorrencias) {
+  ocorrenciasPorTexto.set(ocorrencia.texto, (ocorrenciasPorTexto.get(ocorrencia.texto) ?? 0) + 1);
+}
+
+const caladasPorTexto = new Map<string, number>();
+for (const { fechou, valor } of silenciados) {
+  if (fechou !== 'contagem') continue;
+  caladasPorTexto.set(valor, (caladasPorTexto.get(valor) ?? 0) + 1);
+}
+
+const contagemQueSegura = (texto: string): boolean =>
+  !indicePorValor.has(chaveDeTexto(texto)) &&
+  (ocorrenciasPorTexto.get(texto) ?? 0) + (caladasPorTexto.get(texto) ?? 0) >=
+    OCORRENCIAS_PARA_ACUSAR;
+
+/**
+ * As supressões que de fato calam alguma coisa — dezesseis das trinta e cinco do repositório.
+ *
+ * As regras A e B rodavam sobre TODAS, e a diferença não é de tamanho: cobrar a justificativa de um
+ * comentário que não cala nada é cobrar o texto errado. Quem não cala nada não é problema de
+ * redação, é problema de existência, e quem trata disso é a regra C.
+ */
+const silenciadasVivas = silenciados.filter(
+  (silenciado) => silenciado.fechou === 'achado' || contagemQueSegura(silenciado.valor),
+);
 
 /* --- Regras A e B: o verificador LÊ a supressão em vez de honrá-la ---------- */
 
@@ -2465,7 +2580,7 @@ for (const arquivo of alvos) {
  */
 const silenciadasPorLinha = (() => {
   const porLinha = new Map<string, Silenciado[]>();
-  for (const silenciado of silenciados) {
+  for (const silenciado of silenciadasVivas) {
     const chave = `${silenciado.arquivo}:${silenciado.linha}`;
     porLinha.set(chave, [...(porLinha.get(chave) ?? []), silenciado]);
   }
@@ -2555,7 +2670,7 @@ const prefixoComum = (aqui: string, ali: string): number => {
 };
 
 const contradicoes = new Set<string>();
-for (const silenciado of silenciados) {
+for (const silenciado of silenciadasVivas) {
   const { arquivo, linha, coluna, valor } = silenciado;
   if (!ehMarcaTipografica(valor) && !IDENTIFICADOR.test(valor)) continue;
   // O par nomeado é o MAIS PRÓXIMO no repositório — a tela irmã antes do handler de outro módulo.
@@ -2577,6 +2692,48 @@ for (const silenciado of silenciados) {
       'supressão que contradiz — este mesmo literal é CONSUMIDO da constante em ' +
       `${par.arquivo}:${par.linha} (\`${par.caminho}\`); ` +
       'a mesma forma não pode ser cópia lá e decisão própria aqui',
+  });
+}
+
+/* --- Regra C: o verificador cobra o marcador que não cala nada -------------- */
+
+/**
+ * REGRA C — A SUPRESSÃO MORTA.
+ *
+ * É o mesmo defeito das regras A e B, um andar acima: as duas AUDITAM a supressão, mas as duas leem
+ * `silenciados`, que só é populado quando um portão consulta o comentário. Supressão que não
+ * silencia nada nunca entra na lista — é invisível por construção, exatamente como a repetição sem
+ * dono era antes da regra 4. Quem procura ausência varre a FONTE, não a lista.
+ *
+ * São dezenove no repositório, e nenhuma cala coisa alguma: nove justificam o par `id`/`for`, que
+ * uma passada anterior tirou do verificador de propósito (medida, a regra rendia 222 achados); oito
+ * calam só a CONTAGEM da regra 4 de um texto que ela nunca acusaria — sete já têm dono num
+ * `constantes.ts` e o oitavo aparece uma vez só; uma está três linhas acima do literal que diz
+ * cobrir; e uma promete exceção para um sobretítulo que ninguém acusa. Três das dezenove estão
+ * escritas em prosa, sem o `//`, e é por isso que `MARCADOR_DE_SUPRESSAO` não o exige.
+ *
+ * Num repositório didático o estrago passa do ruído: o comentário ensina que existe uma regra ali,
+ * e não existe.
+ *
+ * O portão é a janela que a própria supressão usa — a linha do marcador e a de baixo, que é o que
+ * `justificativaDa` alcança. Medido, ele não produz nenhum falso: as dezenove são as dezenove, e as
+ * dezesseis que trabalham ficam caladas.
+ */
+const linhasComTrabalho = new Set(
+  silenciadasVivas.map((silenciado) => `${silenciado.arquivo}:${silenciado.linha}`),
+);
+
+for (const { arquivo, linha, coluna, trecho } of marcadores) {
+  if (linhasComTrabalho.has(`${arquivo}:${linha}`)) continue;
+  if (linhasComTrabalho.has(`${arquivo}:${linha + 1}`)) continue;
+  achados.push({
+    arquivo,
+    linha,
+    coluna,
+    trecho,
+    motivo:
+      'supressão morta — não cala nada, aqui nem na linha de baixo; apague o marcador, ' +
+      'que promete uma exceção de máquina que nenhuma regra pede (a prosa pode ficar)',
   });
 }
 
