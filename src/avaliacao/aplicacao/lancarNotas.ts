@@ -60,7 +60,7 @@ export async function lancarNotas(entrada: LancamentoDeNotas): Promise<Resultado
   if (turmaDisciplina === null) {
     return falhaDeCampo(
       CAMPOS.turmaDisciplinaId,
-      CODIGOS.naoEncontrada,
+      CODIGOS.turmaDisciplinaNaoEncontrada,
       MENSAGENS.turmaDisciplinaNaoEncontrada,
     );
   }
@@ -106,14 +106,14 @@ async function conferirMatriculas(
   if (enviadas.some((matriculaId) => !daTurma.has(matriculaId))) {
     return falhaDeCampo(
       CAMPOS.notas,
-      CODIGOS.matriculaForaDaTurma,
+      CODIGOS.notas.matriculaForaDaTurma,
       MENSAGENS.notas.matriculaForaDaTurma,
     );
   }
   if (new Set(enviadas).size !== enviadas.length) {
     return falhaDeCampo(
       CAMPOS.notas,
-      CODIGOS.matriculaRepetida,
+      CODIGOS.notas.matriculaRepetida,
       MENSAGENS.notas.matriculaRepetida,
     );
   }

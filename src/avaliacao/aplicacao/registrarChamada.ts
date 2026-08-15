@@ -99,14 +99,14 @@ async function conferirMatriculas(
   if (enviadas.some((matriculaId) => !daTurma.has(matriculaId))) {
     return falhaDeCampo(
       CAMPOS.linhas,
-      CODIGOS.matriculaForaDaTurma,
+      CODIGOS.chamada.matriculaForaDaTurma,
       MENSAGENS.chamada.matriculaForaDaTurma,
     );
   }
   if (new Set(enviadas).size !== enviadas.length) {
     return falhaDeCampo(
       CAMPOS.linhas,
-      CODIGOS.matriculaRepetida,
+      CODIGOS.chamada.matriculaRepetida,
       MENSAGENS.chamada.matriculaRepetida,
     );
   }

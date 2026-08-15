@@ -58,13 +58,23 @@ export const APROVACAO = {
 /* --- Formatos --------------------------------------------------------------- */
 
 /**
- * Meia-noite UTC anexada à data ISO para provar que o dia existe (rejeita `2026-02-30`).
+ * As duas horas UTC que se anexam a uma data ISO para transformá-la em instante. Vizinhas e
+ * SEPARADAS: valores diferentes, decisões independentes, e é por isso que são duas chaves.
  *
- * NÃO é o `T12:00:00Z` da camada web: lá o meio-dia é deliberado, para que somar um dia não
- * tropece em fuso ao navegar entre datas de chamada. Aqui basta a meia-noite porque só se compara
- * a volta ao texto. Valores diferentes, decisões independentes.
+ * A data da chamada é vocabulário deste módulo — quem diz o que é um dia letivo é quem registra a
+ * frequência —, e por isso as duas moram aqui, ainda que só uma seja usada dentro do domínio. A
+ * outra estava solta num arquivo de rota, onde nada a punha ao lado da irmã: quem trocasse uma
+ * pela outra não encontraria a diferença escrita em lugar nenhum.
  */
+
+/** Prova que o dia existe (rejeita `2026-02-30`): converte e compara a volta ao texto. */
 export const MEIA_NOITE_UTC = 'T00:00:00Z';
+
+/**
+ * Navega entre dias: longe da meia-noite, somar 24 h nunca tropeça em fuso nem em horário de
+ * verão. É o que a tela de chamada usa para ir ao dia anterior e ao seguinte.
+ */
+export const MEIO_DIA_UTC = 'T12:00:00Z';
 
 /* --- Nomes de campo --------------------------------------------------------- */
 
@@ -80,13 +90,23 @@ export const CAMPOS = {
 
 /* --- Códigos de erro -------------------------------------------------------- */
 
+/**
+ * O código é o que a máquina compara; a mensagem é o que a pessoa lê. Quando a recusa é distinta o
+ * bastante para exigir prosa própria em `MENSAGENS`, ela é um contrato próprio aqui também — ainda
+ * que o valor emitido hoje seja o mesmo texto. Chave separada com valor igual é a forma de dizer
+ * "coincidem hoje, e cada uma pode mudar sozinha amanhã"; chave compartilhada diz "mudam juntas por
+ * definição", que é o que o lançamento e a chamada NÃO fazem.
+ */
 export const CODIGOS = {
-  /** "A entidade referida não existe nesta rede" — turma na chamada e no fechamento. */
+  /** A TURMA não existe nesta rede — a recusa da chamada e a do fechamento. */
   naoEncontrada: 'nao_encontrada',
+  /**
+   * A DISCIPLINA DA TURMA não existe nesta rede. O par de `MENSAGENS.turmaDisciplinaNaoEncontrada`,
+   * que fala de disciplina e não de turma: outra entidade procurada, outro contrato.
+   */
+  turmaDisciplinaNaoEncontrada: 'nao_encontrada',
   anoLetivoAusente: 'ano_letivo_ausente',
   dataForaDoAnoLetivo: 'data_fora_do_ano_letivo',
-  matriculaForaDaTurma: 'matricula_fora_da_turma',
-  matriculaRepetida: 'matricula_repetida',
   /** Recusa de ALTERAR nota em bimestre fechado. */
   bimestreFechado: 'bimestre_fechado',
   /** Recusa de FECHAR de novo o que já está fechado. Outro evento, outro código. */
@@ -94,6 +114,17 @@ export const CODIGOS = {
   semDisciplina: 'sem_disciplina',
   semMatriculaAtiva: 'sem_matricula_ativa',
   fechamentoIncompleto: 'fechamento_incompleto',
+
+  /** Pares de `MENSAGENS.notas.*` — o lote do lançamento. */
+  notas: {
+    matriculaForaDaTurma: 'matricula_fora_da_turma',
+    matriculaRepetida: 'matricula_repetida',
+  },
+  /** Pares de `MENSAGENS.chamada.*` — o lote da chamada. Mesmos valores, outros contratos. */
+  chamada: {
+    matriculaForaDaTurma: 'matricula_fora_da_turma',
+    matriculaRepetida: 'matricula_repetida',
+  },
 } as const;
 
 /* --- Mensagens -------------------------------------------------------------- */
