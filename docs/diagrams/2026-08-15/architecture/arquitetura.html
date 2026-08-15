@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:">
+  <title>EscolaViva — Arquitetura</title>
+  <style>
+    :root { color-scheme: dark; --page:#0f0f1a; --panel:#0f172a; --border:#334155; --text:#e2e8f0; --muted:#94a3b8; --accent:#a855f7; }
+    html[data-theme="light"] { color-scheme:light; --page:#f8fafc; --panel:#fff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; --accent:#7c3aed; }
+    * { box-sizing:border-box; }
+    html,body { width:100%; height:100%; margin:0; overflow:hidden; background:linear-gradient(135deg,var(--page),#1a1a2e); color:var(--text); font-family:'SF Mono','Fira Code',ui-monospace,monospace; }
+    body { display:grid; grid-template-rows:auto 1fr; }
+    .toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 14px; background:color-mix(in srgb,var(--panel) 92%,transparent); border-bottom:1px solid var(--border); z-index:2; }
+    .title { margin-right:auto; font-size:13px; font-weight:700; }
+    button,select { min-height:34px; padding:6px 10px; color:var(--text); background:var(--panel); border:1px solid var(--border); border-radius:8px; font:inherit; cursor:pointer; }
+    button:hover,button:focus-visible,select:focus-visible { border-color:var(--accent); outline:2px solid color-mix(in srgb,var(--accent) 35%,transparent); outline-offset:1px; }
+    #stage { position:relative; overflow:hidden; touch-action:none; cursor:grab; }
+    #stage.dragging { cursor:grabbing; }
+    #canvas { width:100%; height:100%; display:grid; place-items:center; transform-origin:0 0; will-change:transform; }
+    #canvas svg { max-width:calc(100vw - 40px); max-height:calc(100vh - 92px); width:auto; height:auto; filter:drop-shadow(0 22px 60px rgba(0,0,0,.28)); user-select:none; }
+    #status { min-width:76px; color:var(--muted); font-size:12px; text-align:center; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
+  </style>
+</head>
+<body>
+  <header class="toolbar" aria-label="Diagram controls">
+    <span class="title">EscolaViva — Arquitetura</span>
+    <button type="button" data-action="zoom-out" aria-label="Zoom out">−</button>
+    <button type="button" data-action="reset" aria-label="Reset view">Reset</button>
+    <button type="button" data-action="zoom-in" aria-label="Zoom in">+</button>
+    <span id="status" aria-live="polite">100%</span>
+    <button type="button" data-action="theme" aria-label="Toggle theme">Theme</button>
+    <button type="button" data-action="copy" aria-label="Copy SVG source">Copy SVG</button>
+    <select id="scale" aria-label="Raster export scale"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option><option value="4">4×</option></select>
+    <select id="format" aria-label="Export format"><option>SVG</option><option>PNG</option><option>JPEG</option><option>WebP</option></select>
+    <button type="button" data-action="download">Export</button>
+  </header>
+  <main id="stage" tabindex="0" aria-label="Interactive diagram. Drag to pan; use plus and minus to zoom.">
+    <div id="canvas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 1400" width="1700" height="1400" role="img" focusable="false">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="seta-94a3b8" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#94a3b8" />
+    </marker>
+    <marker id="seta-dc2626" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#dc2626" />
+    </marker>
+    <marker id="seta-0d9488" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#0d9488" />
+    </marker>
+    <marker id="seta-2563eb" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#2563eb" />
+    </marker>
+    <marker id="seta-7c3aed" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#7c3aed" />
+    </marker>
+    <marker id="seta-16a34a" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#16a34a" />
+    </marker>
+    <marker id="seta-ea580c" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#ea580c" />
+    </marker>
+    <marker id="seta-475569" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#475569" />
+    </marker>
+    <marker id="seta-111827" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 9 3.5, 0 7" fill="#111827" />
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1700" height="1400" fill="#ffffff" />
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Arquitetura da aplicação</text>
+  <text x="36" y="70" font-size="13" fill="#6b7280" font-weight="400" text-anchor="start">Monolito modular · quatro bounded contexts · dependência sempre apontando para dentro · fronteiras verificadas por ferramenta, não por combinado</text>
+  <rect x="68" y="104" width="1096" height="92" rx="8" ry="8" fill="#111827" stroke="#374151" stroke-width="1.4" />
+  <text x="90" y="132" font-size="14" fill="#f9fafb" font-weight="600" text-anchor="start">src/main.ts — raiz de composição</text>
+  <text x="90" y="154" font-size="11" fill="#cbd5e1" font-weight="400" text-anchor="start">O primeiro import é config: valida o ambiente e lança. Processo que sobe sem DATABASE_URL descobre isso no meio de uma matrícula.</text>
+  <text x="90" y="172" font-size="11" fill="#cbd5e1" font-weight="400" text-anchor="start">Bun.serve({ fetch: app.fetch })   ·   iniciarAgendador([expurgoDeSessoes]) — o único ponto fora da web que chama um módulo direto</text>
+  <text x="90" y="188" font-size="11" fill="#94a3b8" font-weight="400" text-anchor="start">SIGTERM/SIGINT: para de aceitar → drena o que está em curso → fecha o pool. Nesta ordem, para a fila não crescer enquanto drena.</text>
+  <rect x="52" y="212" width="1128" height="188" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container" />
+  <text x="68" y="236" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">Interface (delivery) — src/web/ : HTTP entra, HTML sai. Nenhuma regra de negócio mora aqui.</text>
+  <rect x="68" y="258" width="344" height="124" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.4" />
+  <text x="84" y="280" font-size="12.5" fill="#2563eb" font-weight="600" text-anchor="start">src/web/app.ts</text>
+  <text x="84" y="300" font-size="10.5" fill="#111827" font-weight="400" text-anchor="start">Hono. A ordem da cadeia é a semântica:</text>
+  <text x="84" y="316" font-size="10.5" fill="#111827" font-weight="400" text-anchor="start">erros → correlação → cache → sessão → rotas</text>
+  <text x="84" y="332" font-size="10.5" fill="#6b7280" font-weight="400" text-anchor="start">onError repete o middleware de erros porque o</text>
+  <text x="84" y="348" font-size="10.5" fill="#6b7280" font-weight="400" text-anchor="start">Hono não deixa a exceção subir até o next().</text>
+  <text x="84" y="364" font-size="10.5" fill="#6b7280" font-weight="400" text-anchor="start">Serve /publico com allowlist de nome de arquivo.</text>
+  <rect x="444" y="258" width="344" height="124" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.4" />
+  <text x="460" y="280" font-size="12.5" fill="#2563eb" font-weight="600" text-anchor="start">src/web/rotas/</text>
+  <text x="460" y="300" font-size="10.5" fill="#111827" font-weight="400" text-anchor="start">7 routers montados por prefixo: login, conta,</text>
+  <text x="460" y="316" font-size="10.5" fill="#111827" font-weight="400" text-anchor="start">rede, secretaria, professor, responsavel,</text>
+  <text x="460" y="332" font-size="10.5" fill="#6b7280" font-weight="400" text-anchor="start">comunicados. mapa.ts dá ROTAS tipadas — o</text>
+  <text x="460" y="348" font-size="10.5" fill="#6b7280" font-weight="400" text-anchor="start">compilador cobra os :params, o .eta não.</text>
+  <text x="460" y="364" font-size="10.5" fill="#6b7280" font-weight="400" text-anchor="start">Idempotência só nos grupos que escrevem.</text>
+  <rect x="820" y="258" width="344" height="124" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.4" />
+  <text x="836" y="280" font-size="12.5" fill="#2563eb" font-weight="600" text-anchor="start">src/web/render.ts + templates/</text>
+  <text x="836" y="300" font-size="10.5" fill="#111827" font-weight="400" text-anchor="start">Eta com autoEscape: interpolar dado de usuário</text>
+  <text x="836" y="316" font-size="10.5" fill="#111827" font-weight="400" text-anchor="start">é seguro por padrão, e "~" vira decisão visível.</text>
+  <text x="836" y="332" font-size="10.5" fill="#6b7280" font-weight="400" text-anchor="start">45 arquivos .eta. Uma função monta toda página e</text>
+  <text x="836" y="348" font-size="10.5" fill="#6b7280" font-weight="400" text-anchor="start">injeta sessão, chave de idempotência, ROTAS e</text>
+  <text x="836" y="364" font-size="10.5" fill="#6b7280" font-weight="400" text-anchor="start">o nome versionado do CSS. POST-Redirect-GET.</text>
+  <path d="M 240,196 V 258" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#seta-475569)" />
+  <path d="M 412,320 H 444" fill="none" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#seta-94a3b8)" />
+  <path d="M 788,320 H 820" fill="none" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#seta-94a3b8)" />
+  <rect x="52" y="410" width="1128" height="540" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container" />
+  <text x="68" y="434" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">Módulos — quatro bounded contexts no mesmo processo. Cada um tem seu domínio, sua aplicação e sua infra; nenhum enxerga o interior do outro.</text>
+  <rect x="68" y="470" width="256" height="456" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container" />
+  <path d="M 70,482 V 914" stroke="#7c3aed" stroke-width="4" stroke-linecap="round" />
+  <text x="84" y="492" font-size="14" fill="#7c3aed" font-weight="600" text-anchor="start">identidade</text>
+  <text x="84" y="508" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">quem entra, com que papel</text>
+  <text x="84" y="521" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">e em qual unidade</text>
+  <rect x="88" y="530" width="216" height="44" rx="8" ry="8" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.5" />
+  <text x="100" y="550" font-size="12" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">index.ts</text>
+  <text x="100" y="566" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a única porta — linguagem publicada</text>
+  <rect x="88" y="594" width="216" height="90" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5" />
+  <text x="100" y="616" font-size="12" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">aplicacao/</text>
+  <text x="100" y="634" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">7 casos de uso</text>
+  <text x="100" y="652" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">zod valida na borda; o que muda</text>
+  <text x="100" y="668" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">estado abre unidadeDeTrabalho()</text>
+  <rect x="88" y="704" width="216" height="92" rx="8" ry="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.4" />
+  <text x="100" y="726" font-size="12" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">dominio/</text>
+  <text x="100" y="744" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">5 agregados — regra pura</text>
+  <text x="100" y="764" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">rede · unidade · usuario</text>
+  <text x="100" y="779" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">papel · sessao</text>
+  <rect x="88" y="816" width="216" height="88" rx="8" ry="8" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.5" />
+  <text x="100" y="838" font-size="12" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">infra/</text>
+  <text x="100" y="856" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">4 repositórios</text>
+  <text x="100" y="874" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">rede · sessao</text>
+  <text x="100" y="889" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">unidade · usuario</text>
+  <path d="M 196,574 V 594" fill="none" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#seta-7c3aed)" />
+  <path d="M 196,684 V 704" fill="none" stroke="#2563eb" stroke-width="1.4" marker-end="url(#seta-2563eb)" />
+  <path d="M 196,816 V 796" fill="none" stroke="#ea580c" stroke-width="1.4" marker-end="url(#seta-ea580c)" />
+  <path d="M 304,640 H 314 V 860 H 304" fill="none" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#seta-2563eb)" />
+  <path d="M 520,382 V 446 H 268 V 530" fill="none" stroke="#2563eb" stroke-width="1.3" marker-end="url(#seta-2563eb)" />
+  <rect x="348" y="470" width="256" height="456" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container" />
+  <path d="M 350,482 V 914" stroke="#2563eb" stroke-width="4" stroke-linecap="round" />
+  <text x="364" y="492" font-size="14" fill="#2563eb" font-weight="600" text-anchor="start">academico</text>
+  <text x="364" y="508" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">quem estuda, onde</text>
+  <text x="364" y="521" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">e com quem</text>
+  <rect x="368" y="530" width="216" height="44" rx="8" ry="8" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.5" />
+  <text x="380" y="550" font-size="12" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">index.ts</text>
+  <text x="380" y="566" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a única porta — linguagem publicada</text>
+  <rect x="368" y="594" width="216" height="90" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5" />
+  <text x="380" y="616" font-size="12" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">aplicacao/</text>
+  <text x="380" y="634" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">10 casos de uso</text>
+  <text x="380" y="652" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">zod valida na borda; o que muda</text>
+  <text x="380" y="668" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">estado abre unidadeDeTrabalho()</text>
+  <rect x="368" y="704" width="216" height="92" rx="8" ry="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.4" />
+  <text x="380" y="726" font-size="12" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">dominio/</text>
+  <text x="380" y="744" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">6 agregados — regra pura</text>
+  <text x="380" y="764" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">aluno · responsavel · turma</text>
+  <text x="380" y="779" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">disciplina · matricula · anoLetivo</text>
+  <rect x="368" y="816" width="216" height="88" rx="8" ry="8" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.5" />
+  <text x="380" y="838" font-size="12" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">infra/</text>
+  <text x="380" y="856" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">6 repositórios</text>
+  <text x="380" y="874" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">aluno · anoLetivo · disciplina</text>
+  <text x="380" y="889" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">matricula · responsavel · turma</text>
+  <path d="M 476,574 V 594" fill="none" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#seta-7c3aed)" />
+  <path d="M 476,684 V 704" fill="none" stroke="#2563eb" stroke-width="1.4" marker-end="url(#seta-2563eb)" />
+  <path d="M 476,816 V 796" fill="none" stroke="#ea580c" stroke-width="1.4" marker-end="url(#seta-ea580c)" />
+  <path d="M 584,640 H 594 V 860 H 584" fill="none" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#seta-2563eb)" />
+  <path d="M 580,382 V 451 H 548 V 530" fill="none" stroke="#2563eb" stroke-width="1.3" marker-end="url(#seta-2563eb)" />
+  <rect x="628" y="470" width="256" height="456" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container" />
+  <path d="M 630,482 V 914" stroke="#16a34a" stroke-width="4" stroke-linecap="round" />
+  <text x="644" y="492" font-size="14" fill="#16a34a" font-weight="600" text-anchor="start">avaliacao</text>
+  <text x="644" y="508" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">nota, presença e o</text>
+  <text x="644" y="521" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">fechamento do bimestre</text>
+  <rect x="648" y="530" width="216" height="44" rx="8" ry="8" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.5" />
+  <text x="660" y="550" font-size="12" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">index.ts</text>
+  <text x="660" y="566" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a única porta — linguagem publicada</text>
+  <rect x="648" y="594" width="216" height="90" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5" />
+  <text x="660" y="616" font-size="12" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">aplicacao/</text>
+  <text x="660" y="634" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">4 casos de uso</text>
+  <text x="660" y="652" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">zod valida na borda; o que muda</text>
+  <text x="660" y="668" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">estado abre unidadeDeTrabalho()</text>
+  <rect x="648" y="704" width="216" height="92" rx="8" ry="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.4" />
+  <text x="660" y="726" font-size="12" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">dominio/</text>
+  <text x="660" y="744" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">4 agregados — regra pura</text>
+  <text x="660" y="764" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">nota · frequencia</text>
+  <text x="660" y="779" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">boletim · fechamentoBimestre</text>
+  <rect x="648" y="816" width="216" height="88" rx="8" ry="8" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.5" />
+  <text x="660" y="838" font-size="12" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">infra/</text>
+  <text x="660" y="856" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">3 repositórios</text>
+  <text x="660" y="874" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">fechamento · frequencia</text>
+  <text x="660" y="889" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">nota</text>
+  <path d="M 756,574 V 594" fill="none" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#seta-7c3aed)" />
+  <path d="M 756,684 V 704" fill="none" stroke="#2563eb" stroke-width="1.4" marker-end="url(#seta-2563eb)" />
+  <path d="M 756,816 V 796" fill="none" stroke="#ea580c" stroke-width="1.4" marker-end="url(#seta-ea580c)" />
+  <path d="M 864,640 H 874 V 860 H 864" fill="none" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#seta-2563eb)" />
+  <path d="M 640,382 V 456 H 828 V 530" fill="none" stroke="#2563eb" stroke-width="1.3" marker-end="url(#seta-2563eb)" />
+  <rect x="908" y="470" width="256" height="456" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container" />
+  <path d="M 910,482 V 914" stroke="#ea580c" stroke-width="4" stroke-linecap="round" />
+  <text x="924" y="492" font-size="14" fill="#ea580c" font-weight="600" text-anchor="start">comunicacao</text>
+  <text x="924" y="508" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">o que a escola diz às</text>
+  <text x="924" y="521" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">famílias e quem leu</text>
+  <rect x="928" y="530" width="216" height="44" rx="8" ry="8" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.5" />
+  <text x="940" y="550" font-size="12" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">index.ts</text>
+  <text x="940" y="566" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a única porta — linguagem publicada</text>
+  <rect x="928" y="594" width="216" height="90" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5" />
+  <text x="940" y="616" font-size="12" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">aplicacao/</text>
+  <text x="940" y="634" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">3 casos de uso</text>
+  <text x="940" y="652" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">zod valida na borda; o que muda</text>
+  <text x="940" y="668" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">estado abre unidadeDeTrabalho()</text>
+  <rect x="928" y="704" width="216" height="92" rx="8" ry="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.4" />
+  <text x="940" y="726" font-size="12" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">dominio/</text>
+  <text x="940" y="744" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">2 agregados — regra pura</text>
+  <text x="940" y="764" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">comunicado</text>
+  <text x="940" y="779" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">destinatario</text>
+  <rect x="928" y="816" width="216" height="88" rx="8" ry="8" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.5" />
+  <text x="940" y="838" font-size="12" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">infra/</text>
+  <text x="940" y="856" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">1 repositório</text>
+  <text x="940" y="874" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">comunicado</text>
+  <path d="M 1036,574 V 594" fill="none" stroke="#7c3aed" stroke-width="1.4" marker-end="url(#seta-7c3aed)" />
+  <path d="M 1036,684 V 704" fill="none" stroke="#2563eb" stroke-width="1.4" marker-end="url(#seta-2563eb)" />
+  <path d="M 1036,816 V 796" fill="none" stroke="#ea580c" stroke-width="1.4" marker-end="url(#seta-ea580c)" />
+  <path d="M 1144,640 H 1154 V 860 H 1144" fill="none" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#seta-2563eb)" />
+  <path d="M 700,382 V 461 H 1108 V 530" fill="none" stroke="#2563eb" stroke-width="1.3" marker-end="url(#seta-2563eb)" />
+  <text x="68" y="462" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">a web só entra pelo index.ts</text>
+  <rect x="52" y="1022" width="1128" height="188" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container" />
+  <text x="68" y="1046" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">Núcleo compartilhado — src/shared/ : infraestrutura sem regra de negócio. A seta nunca sobe daqui para um módulo.</text>
+  <rect x="68" y="1066" width="372" height="124" rx="8" ry="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6" data-graph-role="container" />
+  <text x="82" y="1088" font-size="11" fill="#0d9488" font-weight="600" text-anchor="start">o que o domínio pode alcançar</text>
+  <rect x="82" y="1100" width="104" height="76" rx="6" ry="6" fill="#ffffff" stroke="#0d9488" stroke-width="1.3" />
+  <text x="92" y="1118" font-size="10.5" fill="#0d9488" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ports/</text>
+  <text x="92" y="1134" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">Clock, IdGenerator</text>
+  <text x="92" y="1147" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">onde o Mailer do E04</text>
+  <text x="92" y="1160" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">vai caber</text>
+  <rect x="202" y="1100" width="104" height="76" rx="6" ry="6" fill="#ffffff" stroke="#0d9488" stroke-width="1.3" />
+  <text x="212" y="1118" font-size="10.5" fill="#0d9488" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">resultado.ts</text>
+  <text x="212" y="1134" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">sucesso / falha</text>
+  <text x="212" y="1147" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">como valor, não</text>
+  <text x="212" y="1160" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">como throw</text>
+  <rect x="322" y="1100" width="104" height="76" rx="6" ry="6" fill="#ffffff" stroke="#0d9488" stroke-width="1.3" />
+  <text x="332" y="1118" font-size="10.5" fill="#0d9488" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">documento/</text>
+  <text x="332" y="1134" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">CPF é valor puro:</text>
+  <text x="332" y="1147" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">a mesma aritmética</text>
+  <text x="332" y="1160" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">serve os dois módulos</text>
+  <rect x="464" y="1066" width="700" height="124" rx="8" ry="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4" data-graph-role="container" />
+  <text x="478" y="1088" font-size="11" fill="#475569" font-weight="600" text-anchor="start">infraestrutura — aberta a aplicacao/ e infra/, fechada ao domínio</text>
+  <rect x="478" y="1100" width="102" height="76" rx="6" ry="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" />
+  <text x="487" y="1118" font-size="10.5" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">db/</text>
+  <text x="487" y="1134" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">leitura() / escrita()</text>
+  <text x="487" y="1147" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">unidadeDeTrabalho:</text>
+  <text x="487" y="1160" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">único ponto de commit</text>
+  <rect x="592" y="1100" width="102" height="76" rx="6" ry="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" />
+  <text x="601" y="1118" font-size="10.5" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">http/</text>
+  <text x="601" y="1134" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">sessão, autorização,</text>
+  <text x="601" y="1147" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">tenant, idempotência,</text>
+  <text x="601" y="1160" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">correlação, erros</text>
+  <rect x="706" y="1100" width="102" height="76" rx="6" ry="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" />
+  <text x="715" y="1118" font-size="10.5" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">log/</text>
+  <text x="715" y="1134" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">pino com redação</text>
+  <text x="715" y="1147" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">de campo sensível</text>
+  <text x="715" y="1160" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">no contexto da req.</text>
+  <rect x="820" y="1100" width="102" height="76" rx="6" ry="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" />
+  <text x="829" y="1118" font-size="10.5" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">jobs/</text>
+  <text x="829" y="1134" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">agendador e lock</text>
+  <text x="829" y="1147" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">por chave: seis</text>
+  <text x="829" y="1160" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">instâncias, um expurgo</text>
+  <rect x="934" y="1100" width="102" height="76" rx="6" ry="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" />
+  <text x="943" y="1118" font-size="10.5" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">config/</text>
+  <text x="943" y="1134" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">zod no boot;</text>
+  <text x="943" y="1147" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">falta de variável</text>
+  <text x="943" y="1160" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">derruba o processo</text>
+  <rect x="1048" y="1100" width="102" height="76" rx="6" ry="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" />
+  <text x="1057" y="1118" font-size="10.5" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">paginacao/</text>
+  <text x="1057" y="1134" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">fatiar() e página</text>
+  <text x="1057" y="1147" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">tipada, usados por</text>
+  <text x="1057" y="1160" font-size="8.5" fill="#6b7280" font-weight="400" text-anchor="start">todo repositório</text>
+  <path d="M 88,750 H 30 V 1128 H 68" fill="none" stroke="#16a34a" stroke-width="1.8" marker-end="url(#seta-16a34a)" />
+  <text x="22" y="930" font-size="10.5" fill="#16a34a" font-weight="600" text-anchor="middle" transform="rotate(-90 22 930)">a única saída do domínio</text>
+  <path d="M 584,750 H 616 V 962" fill="none" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="6,4" />
+  <circle cx="616" cy="972" r="9" fill="#ffffff" stroke="#dc2626" stroke-width="1.8" />
+  <path d="M 611,967 L 621,977 M 621,967 L 611,977" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round" />
+  <text x="632" y="976" font-size="10.5" fill="#dc2626" font-weight="600" text-anchor="start">dominio-puro</text>
+  <path d="M 756,904 V 1066" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#seta-475569)" />
+  <path d="M 1036,904 V 1066" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#seta-475569)" />
+  <text x="768" y="1010" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">aplicacao/ e infra/ usam tudo daqui</text>
+  <rect x="52" y="1226" width="1128" height="134" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container" />
+  <text x="68" y="1250" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">Infraestrutura</text>
+  <rect x="68" y="1266" width="700" height="84" rx="8" ry="8" fill="#f8fafc" stroke="#475569" stroke-width="1.5" />
+  <text x="82" y="1288" font-size="12" fill="#475569" font-weight="600" text-anchor="start">PostgreSQL — 19 tabelas, e toda linha carrega rede_id</text>
+  <text x="82" y="1306" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">identidade: rede, unidade, usuario, papel_usuario, sessao   ·   academico: ano_letivo, disciplina, turma,</text>
+  <text x="82" y="1320" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">turma_disciplina, aluno, responsavel, aluno_responsavel, matricula   ·   avaliacao: nota, frequencia,</text>
+  <text x="82" y="1334" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">fechamento_bimestre   ·   comunicacao: comunicado, comunicado_destinatario   ·   plataforma: requisicao_idempotente</text>
+  <rect x="792" y="1266" width="372" height="84" rx="8" ry="8" fill="#f8fafc" stroke="#475569" stroke-width="1.5" />
+  <text x="806" y="1288" font-size="12" fill="#475569" font-weight="600" text-anchor="start">publico/ — assets com hash no nome</text>
+  <text x="806" y="1306" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">app.&lt;hash&gt;.css gerado por bun run build:assets.</text>
+  <text x="806" y="1320" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O nome carrega o conteúdo, então Cache-Control</text>
+  <text x="806" y="1334" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">immutable por um ano é seguro.</text>
+  <path d="M 529,1176 V 1266" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#seta-475569)" />
+  <text x="540" y="1230" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">Bun.sql · transação aberta em um lugar só</text>
+  <rect x="1210" y="104" width="452" height="226" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container" />
+  <text x="1226" y="128" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">O grafo permitido entre os módulos</text>
+  <rect x="1234" y="150" width="124" height="38" rx="6" ry="6" fill="#ffffff" stroke="#ea580c" stroke-width="1.5" />
+  <text x="1296" y="174" font-size="11" fill="#ea580c" font-weight="600" text-anchor="middle">comunicacao</text>
+  <rect x="1234" y="206" width="124" height="38" rx="6" ry="6" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" />
+  <text x="1296" y="230" font-size="11" fill="#16a34a" font-weight="600" text-anchor="middle">avaliacao</text>
+  <rect x="1382" y="178" width="124" height="38" rx="6" ry="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" />
+  <text x="1444" y="202" font-size="11" fill="#2563eb" font-weight="600" text-anchor="middle">academico</text>
+  <rect x="1522" y="178" width="124" height="38" rx="6" ry="6" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" />
+  <text x="1584" y="202" font-size="11" fill="#7c3aed" font-weight="600" text-anchor="middle">identidade</text>
+  <path d="M 1358,169 H 1370 V 190 H 1382" fill="none" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#seta-94a3b8)" />
+  <path d="M 1358,225 H 1370 V 205 H 1382" fill="none" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#seta-94a3b8)" />
+  <path d="M 1506,197 H 1522" fill="none" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#seta-94a3b8)" />
+  <path d="M 1296,150 V 136 H 1584 V 178" fill="none" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#seta-94a3b8)" />
+  <text x="1226" y="272" font-size="10.5" fill="#6b7280" font-weight="400" text-anchor="start">identidade é a folha: não conhece ninguém — e é por isso</text>
+  <text x="1226" y="288" font-size="10.5" fill="#6b7280" font-weight="400" text-anchor="start">que os outros três podem apontar para lá.</text>
+  <text x="1226" y="310" font-size="10.5" fill="#111827" font-weight="400" text-anchor="start">Toda seta atravessa pelo index.ts. dominio/, aplicacao/ e infra/ são privados.</text>
+  <rect x="1210" y="346" width="452" height="300" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container" />
+  <text x="1226" y="370" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">Três regras que o `bun run check` recusa — config/.dependency-cruiser.js</text>
+  <rect x="1226" y="378" width="4" height="91" rx="2" fill="#7c3aed" />
+  <text x="1240" y="390" font-size="11" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">sem-atalho-entre-modulos</text>
+  <text x="1240" y="408" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">Um módulo só enxerga outro pelo index.ts. Caminho interno é</text>
+  <text x="1240" y="423" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">privado. É o que faz a pergunta "o que mais mexe nisso?" ter</text>
+  <text x="1240" y="438" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">resposta: quando cobranca/ for extraído no E14, a lista de</text>
+  <text x="1240" y="453" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">dependentes é exatamente quem importa o index — sem a regra,</text>
+  <text x="1240" y="468" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">a extração vira reescrita.</text>
+  <rect x="1226" y="487" width="4" height="61" rx="2" fill="#16a34a" />
+  <text x="1240" y="499" font-size="11" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">dominio-puro</text>
+  <text x="1240" y="517" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">O domínio não sabe que existe banco, HTTP, log, agendador ou</text>
+  <text x="1240" y="532" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">biblioteca de terceiro. Só alcança ports/, resultado.ts e</text>
+  <text x="1240" y="547" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">documento/. É o que torna o teste de regra um teste puro.</text>
+  <rect x="1226" y="566" width="4" height="61" rx="2" fill="#475569" />
+  <text x="1240" y="578" font-size="11" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">shared-nao-conhece-dominio</text>
+  <text x="1240" y="596" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">A dependência é sempre de fora para dentro: shared/ não importa</text>
+  <text x="1240" y="611" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">nenhum contexto. Por isso shared/http/sessao.ts declara a forma</text>
+  <text x="1240" y="626" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">do usuário em vez de importá-la de identidade.</text>
+  <rect x="1210" y="662" width="452" height="238" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container" />
+  <text x="1226" y="686" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">Decisões que a planta não mostra sozinha</text>
+  <text x="1226" y="708" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">Unit of Work</text>
+  <text x="1226" y="722" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">unidadeDeTrabalho() é o único ponto de commit da aplicação. O INSERT</text>
+  <text x="1226" y="735" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">na outbox, quando existir, entra ali e em nenhum outro lugar.</text>
+  <text x="1226" y="753" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">Réplica antes da réplica</text>
+  <text x="1226" y="767" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">leitura() e escrita() já são funções distintas, com um pool só por baixo.</text>
+  <text x="1226" y="780" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">Trocar pela réplica no E08 não toca em nenhum repositório.</text>
+  <text x="1226" y="798" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">A chave vem da aplicação</text>
+  <text x="1226" y="812" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">idGeneratorUuid gera o UUID: pai e filho na mesma transação, sem ida e</text>
+  <text x="1226" y="825" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">volta ao banco para descobrir o id do pai.</text>
+  <text x="1226" y="843" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">O portão</text>
+  <text x="1226" y="857" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">bun run verificar = typecheck → check (depcruise) → magic (literais sem</text>
+  <text x="1226" y="870" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">dono) → test. Nenhum dos quatro é opcional.</text>
+  <rect x="1210" y="916" width="452" height="150" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container" />
+  <text x="1226" y="940" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">O sistema em números</text>
+  <text x="1226" y="964" font-size="20" fill="#475569" font-weight="600" text-anchor="start">4</text>
+  <text x="1226" y="980" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">bounded contexts</text>
+  <text x="1332" y="964" font-size="20" fill="#475569" font-weight="600" text-anchor="start">24</text>
+  <text x="1332" y="980" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">casos de uso</text>
+  <text x="1438" y="964" font-size="20" fill="#475569" font-weight="600" text-anchor="start">17</text>
+  <text x="1438" y="980" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">agregados</text>
+  <text x="1544" y="964" font-size="20" fill="#475569" font-weight="600" text-anchor="start">14</text>
+  <text x="1544" y="980" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">repositórios</text>
+  <text x="1226" y="1010" font-size="20" fill="#475569" font-weight="600" text-anchor="start">19</text>
+  <text x="1226" y="1026" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">tabelas</text>
+  <text x="1332" y="1010" font-size="20" fill="#475569" font-weight="600" text-anchor="start">45</text>
+  <text x="1332" y="1026" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">templates .eta</text>
+  <text x="1438" y="1010" font-size="20" fill="#475569" font-weight="600" text-anchor="start">36</text>
+  <text x="1438" y="1026" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">arquivos de teste</text>
+  <text x="1544" y="1010" font-size="20" fill="#475569" font-weight="600" text-anchor="start">8</text>
+  <text x="1544" y="1026" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">migrações</text>
+  <rect x="1210" y="1082" width="452" height="270" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container" />
+  <text x="1226" y="1106" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">Legenda</text>
+  <path d="M 1226,1134 H 1260" fill="none" stroke="#2563eb" stroke-width="1.4" marker-end="url(#seta-2563eb)" />
+  <text x="1272" y="1138" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">seta cheia — import real, verificado em tempo de compilação</text>
+  <path d="M 1226,1158 H 1260" fill="none" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#seta-2563eb)" />
+  <text x="1272" y="1162" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">seta tracejada — aplicacao/ chama os repositórios de infra/</text>
+  <path d="M 1226,1182 H 1248" stroke="#dc2626" stroke-width="1.6" stroke-dasharray="6,4" fill="none" />
+  <circle cx="1256" cy="1182" r="7" fill="#ffffff" stroke="#dc2626" stroke-width="1.6" />
+  <path d="M 1252,1178 L 1260,1186 M 1260,1178 L 1252,1186" stroke="#dc2626" stroke-width="1.6" stroke-linecap="round" />
+  <text x="1272" y="1186" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">seta recusada pelo depcruise: o build quebra se alguém tentar</text>
+  <text x="1226" y="1212" font-size="10.5" fill="#111827" font-weight="600" text-anchor="start">As cores dizem a camada, não o módulo:</text>
+  <rect x="1226" y="1230" width="14" height="12" rx="3" fill="#7c3aed" opacity="0.25" stroke="#7c3aed" stroke-width="1.4" />
+  <text x="1250" y="1240" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">fachada — a única porta do bounded context</text>
+  <rect x="1226" y="1251" width="14" height="12" rx="3" fill="#2563eb" opacity="0.25" stroke="#2563eb" stroke-width="1.4" />
+  <text x="1250" y="1261" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">aplicação — orquestra, valida, abre transação</text>
+  <rect x="1226" y="1272" width="14" height="12" rx="3" fill="#16a34a" opacity="0.25" stroke="#16a34a" stroke-width="1.4" />
+  <text x="1250" y="1282" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">domínio — borda grossa: o núcleo, sem framework</text>
+  <rect x="1226" y="1293" width="14" height="12" rx="3" fill="#ea580c" opacity="0.25" stroke="#ea580c" stroke-width="1.4" />
+  <text x="1250" y="1303" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">infra — repositórios, SQL, linha de banco</text>
+  <rect x="1226" y="1314" width="14" height="12" rx="3" fill="#0d9488" opacity="0.25" stroke="#0d9488" stroke-width="1.4" />
+  <text x="1250" y="1324" font-size="10" fill="#6b7280" font-weight="400" text-anchor="start">portas — o que o domínio tem permissão de conhecer</text>
+  <text x="1226" y="1344" font-size="10" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">A planta é do Estágio 01. Ela já foi desenhada para o E14.</text>
+</svg></div>
+    <p class="sr-only">Keyboard shortcuts: plus and minus zoom, zero resets, T toggles theme, S exports.</p>
+  </main>
+  <script>
+  (() => {
+    'use strict';
+    const metadata = {"slug": "escolaviva-arquitetura"};
+    const stage = document.getElementById('stage');
+    const canvas = document.getElementById('canvas');
+    const svg = canvas.querySelector('svg');
+    const status = document.getElementById('status');
+    const scaleSelect = document.getElementById('scale');
+    const formatSelect = document.getElementById('format');
+    let view = { x:0, y:0, scale:1 };
+    let drag = null;
+    const clamp = value => Math.max(.2, Math.min(8, value));
+    const render = () => {
+      canvas.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.scale})`;
+      status.textContent = `${Math.round(view.scale * 100)}%`;
+    };
+    const zoom = (factor, originX=stage.clientWidth/2, originY=stage.clientHeight/2) => {
+      const next = clamp(view.scale * factor);
+      const ratio = next / view.scale;
+      view.x = originX - (originX - view.x) * ratio;
+      view.y = originY - (originY - view.y) * ratio;
+      view.scale = next; render();
+    };
+    const reset = () => { view = {x:0,y:0,scale:1}; render(); };
+    stage.addEventListener('wheel', event => { event.preventDefault(); const rect=stage.getBoundingClientRect(); zoom(event.deltaY < 0 ? 1.12 : .89, event.clientX-rect.left, event.clientY-rect.top); }, {passive:false});
+    stage.addEventListener('pointerdown', event => { drag={id:event.pointerId,x:event.clientX,y:event.clientY,vx:view.x,vy:view.y}; stage.setPointerCapture(event.pointerId); stage.classList.add('dragging'); });
+    stage.addEventListener('pointermove', event => { if(!drag||drag.id!==event.pointerId)return; view.x=drag.vx+event.clientX-drag.x; view.y=drag.vy+event.clientY-drag.y; render(); });
+    const endDrag = () => { drag=null; stage.classList.remove('dragging'); };
+    stage.addEventListener('pointerup', endDrag); stage.addEventListener('pointercancel', endDrag);
+    const source = () => new XMLSerializer().serializeToString(svg);
+    const saveBlob = (blob, extension) => { const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${(metadata.slug||'fireworks-tech-graph')}.${extension}`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); };
+    const copySource = async () => {
+      const value=source();
+      try { await navigator.clipboard.writeText(value); status.textContent='Copied'; return; } catch {}
+      const area=document.createElement('textarea'); area.value=value; area.setAttribute('readonly',''); area.style.position='fixed'; area.style.opacity='0'; document.body.appendChild(area); area.select();
+      status.textContent=document.execCommand('copy')?'Copied':'Copy failed'; area.remove();
+    };
+    const exportDiagram = async () => {
+      const format = formatSelect.value.toLowerCase();
+      if(format==='svg') { saveBlob(new Blob([source()],{type:'image/svg+xml;charset=utf-8'}),'svg'); return; }
+      const scale = Math.max(1,Math.min(4,Number(scaleSelect.value)||2));
+      const box = svg.viewBox.baseVal; const width=box.width||svg.clientWidth; const height=box.height||svg.clientHeight;
+      const image = new Image(); const url=URL.createObjectURL(new Blob([source()],{type:'image/svg+xml'}));
+      await new Promise((resolve,reject)=>{ image.onload=resolve; image.onerror=reject; image.src=url; });
+      const raster=document.createElement('canvas'); raster.width=Math.round(width*scale); raster.height=Math.round(height*scale);
+      const ctx=raster.getContext('2d'); if(format==='jpeg'){ctx.fillStyle='#ffffff';ctx.fillRect(0,0,raster.width,raster.height);} ctx.drawImage(image,0,0,raster.width,raster.height); URL.revokeObjectURL(url);
+      const mime=format==='jpeg'?'image/jpeg':format==='webp'?'image/webp':'image/png';
+      const blob=await new Promise(resolve=>raster.toBlob(resolve,mime,.94)); if(blob) saveBlob(blob,format==='jpeg'?'jpg':format);
+    };
+    document.querySelector('.toolbar').addEventListener('click', async event => {
+      const action=event.target.closest('[data-action]')?.dataset.action; if(!action)return;
+      if(action==='zoom-in')zoom(1.2); else if(action==='zoom-out')zoom(.83); else if(action==='reset')reset();
+      else if(action==='theme')document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';
+      else if(action==='download')await exportDiagram();
+      else if(action==='copy') await copySource();
+    });
+    document.addEventListener('keydown', event => {
+      if(event.target.matches('select'))return;
+      if(event.key==='+'||event.key==='=')zoom(1.2); else if(event.key==='-')zoom(.83); else if(event.key==='0'||event.key.toLowerCase()==='r')reset();
+      else if(event.key.toLowerCase()==='t')document.querySelector('[data-action=theme]').click(); else if(event.key.toLowerCase()==='s'){event.preventDefault();exportDiagram();}
+    });
+    render();
+  })();
+  </script>
+</body>
+</html>
