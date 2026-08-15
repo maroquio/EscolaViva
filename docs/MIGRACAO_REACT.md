@@ -119,7 +119,7 @@ Cole isto no briefing de toda tarefa de fase paralela:
 | `src/web/{app,health,paginacao}.ts` | `apps/api/src/http/…` |
 | `src/web/rotas/*.ts` | `apps/api/src/http/rotas/*.ts` |
 | `testes/` | `apps/api/testes/` |
-| `.dependency-cruiser.js` | `apps/api/.dependency-cruiser.js` |
+| `config/.dependency-cruiser.js` | `apps/api/.dependency-cruiser.js` (deixa `config/` vazia; remova a pasta) |
 | `testes/web/*.test.ts` | `apps/api/testes/api/*.test.ts` (reescritos ao longo das fases 1 e 2) |
 
 ### Removidos ao fim (Task 33)
@@ -383,8 +383,11 @@ depurar duas coisas ao mesmo tempo.
 
 **Files:**
 - Create: `apps/api/package.json`, `apps/api/tsconfig.json`
-- Modify: `package.json`, `tsconfig.json`, `bunfig.toml`, `Dockerfile`, `.dockerignore`
-- Move: `src/` → `apps/api/src/`, `testes/` → `apps/api/testes/`, `.dependency-cruiser.js` → `apps/api/.dependency-cruiser.js`
+- Modify: `package.json`, `tsconfig.json`, `bunfig.toml`, `infra/Dockerfile`, `.dockerignore`
+- Move: `src/` → `apps/api/src/`, `testes/` → `apps/api/testes/`, `config/.dependency-cruiser.js` → `apps/api/.dependency-cruiser.js`
+
+> `.dockerignore` continua na raiz mesmo com o Dockerfile em `infra/`: o Docker o procura na raiz
+> do contexto de build, não ao lado do Dockerfile. Ver "Onde mora cada coisa" no README.
 
 **Interfaces:**
 - Produces: raiz com `bun run verificar`, `bun run dev:api`, `bun run migrate`, `bun run seed` funcionando dos novos caminhos. Toda tarefa seguinte assume `apps/api/src/…`.
@@ -395,7 +398,8 @@ depurar duas coisas ao mesmo tempo.
 mkdir -p apps/api
 git mv src apps/api/src
 git mv testes apps/api/testes
-git mv .dependency-cruiser.js apps/api/.dependency-cruiser.js
+git mv config/.dependency-cruiser.js apps/api/.dependency-cruiser.js
+rmdir config
 ```
 
 - [ ] **Step 2: Criar `apps/api/package.json`**
@@ -464,7 +468,7 @@ Quatro pontos que apontam para `src/` e não são resolvidos pelo `git mv`:
 | `apps/api/testes/apoio/apoio.ts` | `RAIZ_DO_PROJETO` sobe dois níveis a mais; os `import('./src/web/app.ts')` dos processos separados viram `./apps/api/src/web/app.ts` |
 | `apps/api/testes/web/checklist.test.ts` | a varredura de "nenhum módulo grava arquivo" aponta para `apps/api/src` |
 | `scripts/*.ts` | imports de `../src/…` → `../apps/api/src/…` |
-| `Dockerfile`, `.dockerignore` | `COPY src` → `COPY apps/api/src`; idem `testes` |
+| `infra/Dockerfile`, `.dockerignore` | `COPY src` → `COPY apps/api/src`; idem `testes`. Os dois seguem em pastas diferentes de propósito — o contexto de build continua sendo a raiz. |
 
 - [ ] **Step 6: Rodar a verificação inteira**
 
@@ -475,7 +479,7 @@ Expected: PASS — mesma contagem de testes de antes da mudança. Nenhum teste n
 
 ```bash
 git status --short
-git add package.json tsconfig.json bunfig.toml Dockerfile .dockerignore \
+git add package.json tsconfig.json bunfig.toml infra/Dockerfile .dockerignore \
         apps/api/package.json apps/api/tsconfig.json apps/api/.dependency-cruiser.js \
         apps/api/src apps/api/testes scripts
 git commit -m "refactor: repositório em workspaces, backend em apps/api"
@@ -1315,8 +1319,8 @@ export function montarEstatico(app: AplicacaoWeb): void {
 ```
 
 `config.caminhoDoFront` entra em `shared/config/schema.ts` com `CAMINHO_DO_FRONT` vazio por padrão,
-resolvido para `<raiz do repositório>/apps/web/dist`. A variável existe para o `Dockerfile`, que
-copia o `dist` para outro lugar dentro da imagem.
+resolvido para `<raiz do repositório>/apps/web/dist`. A variável existe para o `infra/Dockerfile`,
+que copia o `dist` para outro lugar dentro da imagem.
 
 - [ ] **Step 4: Trocar o prefixo no `cacheControl.ts`**
 
@@ -3726,9 +3730,9 @@ git commit -m "refactor: remove o SSR em Eta"
 ### Task 34: Dockerfile, README e ambiente
 
 **Files:**
-- Modify: `Dockerfile`, `.dockerignore`, `README.md`, `.env.example`
+- Modify: `infra/Dockerfile`, `.dockerignore`, `README.md`, `.env.example`
 
-- [ ] **Step 1: Dockerfile em dois estágios**
+- [ ] **Step 1: `infra/Dockerfile` em dois estágios**
 
 O primeiro instala e roda `bun run build:web`; o segundo copia o `dist` e o código da API. Uma
 imagem só, tag = hash do commit — I19 intacta. `CAMINHO_DO_FRONT` aponta para onde o `dist` foi
@@ -3737,8 +3741,8 @@ copiado.
 - [ ] **Step 2: Reescrever a seção "Como subir" do README**
 
 ```bash
-docker compose up -d banco
 cp .env.example .env
+docker compose up -d banco
 bun install
 bun run migrate
 bun run seed
@@ -3746,6 +3750,8 @@ bun run dev          # API em :3000 e front em :5173
 ```
 
 `bun run build:assets` sai da lista. A tabela de comandos ganha `dev:web`, `build:web` e `e2e`.
+O `cp` continua vindo antes do `docker compose`: é do `.env` que sai o `COMPOSE_FILE` que aponta
+para `infra/docker-compose.yml`. Inverter os dois devolve `no configuration file provided`.
 
 - [ ] **Step 3: Documentar as três variáveis do Cloudflare**
 
@@ -3754,14 +3760,15 @@ inteiro e que a premissa é subdomínio do mesmo domínio registrável.
 
 - [ ] **Step 4: Verificar que a imagem sobe**
 
-Run: `docker build -t escolaviva:teste . && docker run --rm escolaviva:teste bun --version`
-Expected: build sem erro.
+Run: `docker build -f infra/Dockerfile -t escolaviva:teste . && docker run --rm escolaviva:teste bun --version`
+Expected: build sem erro. O `.` final é o contexto e tem que ser a raiz — é de lá que saem
+`apps/`, `migrations/` e `scripts/`, e é lá que está o `.dockerignore` que o build lê.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git status --short
-git add Dockerfile .dockerignore README.md .env.example
+git add infra/Dockerfile .dockerignore README.md .env.example
 git commit -m "docs: comandos, imagem em dois estágios e variáveis de publicação"
 ```
 

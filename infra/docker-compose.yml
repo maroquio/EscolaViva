@@ -1,6 +1,12 @@
 # Estágio 01 inteiro: um servidor de aplicação e um banco relacional. Nada mais.
 # Qualquer serviço a mais aqui cobraria aluguel permanente sem resolver problema que exista hoje.
 
+# Sem esta linha o nome do projeto viria da pasta que contém este arquivo — `infra` — e o
+# volume passaria a se chamar `infra_dados_do_banco`. Quem já tinha banco de desenvolvimento
+# não veria erro nenhum: veria um banco vazio, com os dados antigos parados num volume órfão.
+# Fixar o nome desacopla a identidade do projeto do lugar onde o arquivo mora.
+name: exemplo_saas
+
 services:
   banco:
     image: postgres:16-alpine
@@ -56,13 +62,19 @@ services:
       retries: 12
 
   app:
+    # O contexto é a raiz do repositório, não esta pasta: o Dockerfile copia `src/`,
+    # `migrations/` e `scripts/`, que vivem lá. Por consequência o `.dockerignore` lido é o
+    # da raiz — o Docker sempre o procura na raiz do contexto, nunca ao lado do Dockerfile.
+    # Movê-lo para cá não daria erro: ele apenas deixaria de ser lido, e a imagem passaria a
+    # carregar `node_modules`, `.git` e o `.env` com segredo real.
     build:
-      context: .
+      context: ..
+      dockerfile: infra/Dockerfile
     depends_on:
       banco:
         condition: service_healthy
     env_file:
-      - .env
+      - ../.env
     environment:
       # Dentro da rede do compose o banco atende pelo nome do serviço, não por localhost.
       DATABASE_URL: postgres://escolaviva:escolaviva_dev@banco:5432/escolaviva

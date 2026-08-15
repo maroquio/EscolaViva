@@ -76,7 +76,7 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
   ];
 
   const rodarCheck = (): Promise<{ codigo: number; saida: string; erro: string }> =>
-    rodarProcesso(['x', 'depcruise', 'src', '--config', '.dependency-cruiser.js'], {});
+    rodarProcesso(['x', 'depcruise', 'src', '--config', 'config/.dependency-cruiser.js'], {});
 
   /** O arquivo em falta some no `finally`: uma suíte que deixa lixo em `src/` quebra a seguinte. */
   const checarCom = async (violacao: Violacao): Promise<{ codigo: number; saida: string }> => {

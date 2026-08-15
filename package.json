@@ -11,7 +11,7 @@
     "seed": "bun scripts/seed.ts",
     "seed:volume": "bun scripts/seed-volume.ts",
     "golden": "bun scripts/golden.ts",
-    "check": "bunx depcruise src --config .dependency-cruiser.js",
+    "check": "bunx depcruise src --config config/.dependency-cruiser.js",
     "magic": "bun scripts/magic-values.ts",
     "typecheck": "bunx tsc --noEmit",
     "test": "bun test",

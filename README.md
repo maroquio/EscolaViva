@@ -30,9 +30,14 @@ ele serve e, quando não serve, usam o que já está dentro do container do banc
 qual escolheram. A restauração semanal de I7 não pode depender de instalar software — é
 justamente o item que o documento do estágio diz que é empurrado para o fim e nunca acontece.
 
+O `.env` vem antes do `docker compose` e a ordem não é decorativa: o compose mora em
+`infra/docker-compose.yml`, e é o `COMPOSE_FILE` declarado no `.env` que faz o Docker achar o
+arquivo a partir da raiz. Sem esse passo primeiro, o `up` responde `no configuration file
+provided: not found` — e é do `.env` que sai também o `PORTA_BANCO` com que o banco vai subir.
+
 ```bash
-docker compose up -d banco       # PostgreSQL 16 com pg_stat_statements ligado
 cp .env.example .env             # ajuste PORTA_BANCO se a 5432 já estiver ocupada na sua máquina
+docker compose up -d banco       # PostgreSQL 16 com pg_stat_statements ligado
 bun install
 bun run migrate                  # aplica migrations/*.sql em ordem, uma transação por arquivo
 bun run build:assets             # gera publico/app.<hash>.css e o manifest (I10)
@@ -41,6 +46,45 @@ bun run dev                      # http://localhost:3000
 ```
 
 Para rodar os testes, suba também o banco descartável: `docker compose up -d banco_teste`.
+
+> **Se você já tinha um `.env` antes desta versão**, o `cp` acima não roda e a linha nova não
+> chega sozinha. O sintoma é o `docker compose` falhar com `no configuration file provided: not
+> found` — mensagem que não sugere a causa, porque o problema não é o Docker, é o arquivo estar
+> em `infra/`. Acrescente a linha ao seu `.env`:
+>
+> ```bash
+> echo 'COMPOSE_FILE=infra/docker-compose.yml' >> .env
+> ```
+
+---
+
+## Onde mora cada coisa
+
+A raiz guarda o que a ferramenta exige que esteja na raiz. O resto desce um nível.
+
+| Pasta | O que tem |
+|---|---|
+| `src/` | Os quatro módulos e o `shared/`. |
+| `testes/` | A suíte. Espelha `src/`. |
+| `migrations/` | SQL numerado, aplicado em ordem por `bun run migrate`. |
+| `scripts/` | Ferramentas de linha de comando: migração, seed, build de assets, golden. |
+| `infra/` | `Dockerfile` e `docker-compose.yml`. |
+| `config/` | `.dependency-cruiser.js`. |
+| `docs/` | O documento do estágio e os planos. |
+
+**`.dockerignore` fica na raiz e não é descuido.** O Docker procura esse arquivo na raiz do
+*contexto de build*, nunca ao lado do Dockerfile — e o contexto aqui é a raiz do repositório,
+porque é de lá que saem `src/`, `migrations/` e `scripts/`. Movê-lo para `infra/` não produziria
+erro algum: ele simplesmente deixaria de ser lido, e a imagem passaria a carregar `node_modules`,
+`.git` e o `.env` com segredo real dentro de uma camada. É o tipo de falha que só aparece quando
+alguém abre a imagem publicada — o exemplo mais barato, neste repositório, de por que "arrumar a
+raiz" não é um critério que sobreponha o que a ferramenta impõe.
+
+Duas linhas pagam o aluguel dessa mudança, e vale saber quais:
+`COMPOSE_FILE=infra/docker-compose.yml` no `.env`, que mantém `docker compose up -d banco`
+funcionando da raiz sem `-f`; e `name: exemplo_saas` no compose, que fixa o nome do projeto.
+Sem a segunda, o nome passaria a vir da pasta `infra/`, e quem já tinha banco de desenvolvimento
+não veria erro nenhum — veria um banco vazio, com os dados antigos parados num volume órfão.
 
 ---
 
@@ -76,7 +120,7 @@ Dois detalhes plantados de propósito na base de demonstração:
 | Comando | O que faz |
 |---|---|
 | `bun run dev` | Sobe o servidor com recarga automática em `http://localhost:3000`. |
-| `bun run start` | Sobe o servidor sem recarga — é o comando que o `Dockerfile` executa. |
+| `bun run start` | Sobe o servidor sem recarga — é o comando que o `infra/Dockerfile` executa. |
 | `bun run migrate` | Aplica as migrações pendentes, uma transação por arquivo, com advisory lock. |
 | `bun run migrate:status` | Lista o que já foi aplicado e o que está pendente, sem escrever nada. |
 | `bun run build:assets` | Gera `publico/app.<hash>.css` e o `manifest.json` que o helper `asset()` lê. |
@@ -123,8 +167,8 @@ avaliacao ────┼──▶ academico ──▶ identidade
 `avaliacao` conhece `academico` (nota pertence a uma matrícula). `comunicacao` conhece os dois.
 
 **Quem verifica isso é `bun run check`**, não um combinado verbal. O
-[`.dependency-cruiser.js`](.dependency-cruiser.js) declara três regras, todas com severidade de
-erro:
+[`config/.dependency-cruiser.js`](config/.dependency-cruiser.js) declara três regras, todas com
+severidade de erro:
 
 1. `sem-atalho-entre-modulos` — um módulo só enxerga outro pelo `index.ts`.
 2. `dominio-puro` — `*/dominio/` não alcança `shared/db`, `shared/http`, `shared/log`,
@@ -209,7 +253,7 @@ Alvos do Estágio 01: **p95 do lançamento de notas abaixo de 300 ms**, **CPU do
 rode `bun run seed:volume --sim` e depois `ANALYZE frequencia;`.
 
 Uma vez, no primeiro dia: `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;` (o
-`docker-compose.yml` já sobe o banco com a biblioteca pré-carregada). Antes de cada medição, zere a
+`infra/docker-compose.yml` já sobe o banco com a biblioteca pré-carregada). Antes de cada medição, zere a
 janela com `SELECT pg_stat_statements_reset();` e use o sistema por alguns minutos.
 
 ```sql
