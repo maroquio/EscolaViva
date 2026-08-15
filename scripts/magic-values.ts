@@ -8,7 +8,7 @@
  * exatamente por isso que `.dependency-cruiser.js` existe, e este arquivo é o mesmo raciocínio
  * aplicado ao valor em vez da seta.
  *
- * Ele cobra três coisas, e as três são modos de falha distintos:
+ * Ele cobra quatro coisas, e as quatro são modos de falha distintos:
  *
  *   1. LITERAL SOLTO — um literal em posição de expressão que ninguém nomeou: `slice(0, 10)`,
  *      `'Cadastrar aluno'`, `` `${prefixo}/*` ``. Um literal que é o VALOR de uma `const MAIUSCULA`
@@ -43,6 +43,31 @@
  *      quebra compilação, quebra a tela de quem está usando o sistema. O template não passa pelo
  *      compilador, então o compilador não pode ser a rede — este script é.
  *
+ *      São três coisas que o template redeclara, e por muito tempo o script só via as duas que
+ *      moram DENTRO de um atributo: o endereço (`href`, `action`) e o limite (`maxlength`, `max`).
+ *      A terceira é o TEXTO DO CONTROLE — o que o `<a>`, o `<button>` e o `<h1>` escrevem entre as
+ *      tags —, e era a porta mais larga: `TITULOS` declara "Cadastrar responsável" uma vez,
+ *      `parciais/_navegacao.eta` já lê o mapa inteiro por `it.titulos`, e mesmo assim o `<button>`
+ *      do formulário e os `<a class="botao">` que levam até ele repetiam a frase palavra por
+ *      palavra. Três passadas de refactor fecharam os `<h1>` e o menu sem tocar nesses, porque o
+ *      verificador não olhava para texto de nó nenhum. Ver `ELEMENTOS_QUE_NOMEIAM` para por que a
+ *      regra para no controle e não vale para todo texto de tela.
+ *
+ *      E as três leituras param na MARCAÇÃO só enquanto o template deixa. O mesmo rótulo movido
+ *      para dentro de um `<% %>` — `{ titulo: 'Cadastrar responsável' }`, na tabela de atalhos de
+ *      `secretaria/painel.eta` — é o mesmo texto, na mesma tela, e ficava invisível só por ter
+ *      mudado de posição; o mesmo valia para `include("/parciais/_vazio")` e para o `'unidade'`
+ *      que o formulário de comunicado compara. Ver `donoNoCodigoDoTemplate`.
+ *
+ *   4. REPETIÇÃO SEM DONO — o texto que reaparece em `src/` e que nenhum `constantes.ts` declara.
+ *
+ *      As três regras acima têm um teto comum, e o teto não é a heurística: é o ÍNDICE. Todas
+ *      perguntam "este literal coincide com uma constante que já existe?", e nenhuma consegue
+ *      perguntar "este texto se repete sem que ninguém seja dono dele?". Dono faltando é invisível
+ *      por construção, e é onde estava o que quatro passadas de refactor deixaram para trás: doze
+ *      `<a class="botao botao--discreto">Cancelar</a>` em doze telas, com o verificador em
+ *      silêncio, porque não havia nada com o que coincidir. Ver `OCORRENCIAS_PARA_ACUSAR`.
+ *
  * As exceções abaixo são a regra 6 do refactor, e cada uma tem um motivo que não é preguiça:
  *
  *   - Status HTTP são vocabulário do protocolo, não do produto. `c.redirect(destino, 303)` diz
@@ -62,7 +87,7 @@
  *
  * Uso:
  *   bun scripts/magic-values.ts            relatório completo, sai 1 se houver achado
- *   bun scripts/magic-values.ts --resumo   só a contagem por arquivo
+ *   bun scripts/magic-values.ts --resumo   só as contagens: por arquivo, e por texto repetido
  *
  * Escape hatch, para o caso legítimo que a heurística não prevê: um comentário
  * `// magic-values: permitido — <motivo>` na linha do literal ou na linha acima dela. O motivo é
@@ -197,8 +222,17 @@ type Dono = { readonly caminho: string; readonly arquivo: string };
  * A identidade de um literal, para comparação. O tipo entra na chave de propósito: `'10'` e `10`
  * não são o mesmo valor, e fundir os dois faria um nome de campo colidir com um limite.
  */
+/**
+ * Como um texto entra e sai do índice. É uma função, e não um prefixo repetido nos dois lados,
+ * porque quem consulta o índice não é só quem o alimenta: a regra do texto de nó, lá no `.eta`,
+ * procura pela mesma chave que esta linha grava, e um prefixo escrito à mão nos dois lugares seria
+ * a segunda fonte da verdade que este script existe para fechar — silenciosa, ainda por cima, já
+ * que a busca simplesmente não acharia nada.
+ */
+const chaveDeTexto = (texto: string): string => `texto:${texto}`;
+
 const chaveDeValor = (no: ts.Node): string | undefined => {
-  if (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) return `texto:${no.text}`;
+  if (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) return chaveDeTexto(no.text);
   if (ts.isNumericLiteral(no)) return `numero:${Number(no.text.replaceAll('_', ''))}`;
   if (ts.isRegularExpressionLiteral(no)) return `expressao:${no.text}`;
   return undefined;
@@ -664,7 +698,12 @@ const ehEspelhoDaChave = (no: ts.StringLiteralLike): boolean => {
  */
 const ehExpressaoRegular = (no: ts.Node): boolean => ts.isRegularExpressionLiteral(no);
 
-const DUAS_PALAVRAS_SEGUIDAS = /[A-Za-zÀ-ÿ]{3,}\s+[A-Za-zÀ-ÿ]{3,}/;
+/** Uma palavra de verdade: três letras ou mais. `'utf8'`, `'.'` e `'0'` não têm nenhuma. */
+const PALAVRA_COM_CONTEUDO = '[A-Za-zÀ-ÿ]{3,}';
+
+const UMA_PALAVRA = new RegExp(PALAVRA_COM_CONTEUDO);
+
+const DUAS_PALAVRAS_SEGUIDAS = new RegExp(`${PALAVRA_COM_CONTEUDO}\\s+${PALAVRA_COM_CONTEUDO}`);
 
 const ehFrase = (no: ts.Node): boolean =>
   (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) &&
@@ -740,15 +779,105 @@ const donoDuplicado = (no: ts.Node, caminho: string, arquivo: string): Dono | un
   const chave = chaveDeValor(no);
   if (chave === undefined) return undefined;
   const donos = (indicePorValor.get(chave) ?? []).filter((dono) => dono.arquivo !== arquivo);
-  if (donos.length === 0) return undefined;
+  return escolherDono(donos, caminho, ehExpressaoRegular(no) || ehFrase(no));
+};
 
+/**
+ * Qual dos donos responde por uma coincidência de valor — e se algum responde.
+ *
+ * É uma função, e não o corpo de `donoDuplicado`, porque o `.eta` faz a mesma pergunta com outra
+ * matéria-prima: lá o literal chega como texto de atributo, sem nó de TypeScript para consultar.
+ * As duas provas são as descritas acima, e ficam num lugar só para que continuem sendo as mesmas.
+ */
+const escolherDono = (
+  donos: readonly Dono[],
+  caminho: string,
+  ehRedacao: boolean,
+): Dono | undefined => {
+  if (donos.length === 0) return undefined;
   if (caminho !== '') {
     const porNome = donos.find((dono) => mesmoNome(caminho, dono.caminho));
     if (porNome !== undefined) return porNome;
   }
-
-  return ehExpressaoRegular(no) || ehFrase(no) ? donos[0] : undefined;
+  return ehRedacao ? donos[0] : undefined;
 };
+
+/* --- Regra 4: o valor que se repete e não tem dono nenhum ------------------- */
+
+/**
+ * Uma aparição de um texto no código varrido. É o que a regra 4 conta, e o registro guarda a
+ * posição porque o relatório precisa apontar TODAS as cópias: quem for fechar o achado tem de
+ * visitar as doze, e uma lista de arquivos sem linha manda a pessoa procurar de novo o que este
+ * script já sabe.
+ */
+type Ocorrencia = {
+  readonly texto: string;
+  readonly arquivo: string;
+  readonly linha: number;
+  readonly coluna: number;
+  readonly trecho: string;
+};
+
+const ocorrencias: Ocorrencia[] = [];
+
+/**
+ * A partir de quantas cópias um texto sem dono vira achado. TRÊS, e o número é a regra inteira.
+ *
+ * DOIS é a menor repetição que existe, e é exatamente a que a regra 2 do refactor manda não fundir:
+ * duas telas escrevendo "Data" não são uma decisão dita duas vezes, são duas colunas que o
+ * português nomeia igual. Medido neste repositório, o portão em dois acusa 86 textos, e a maioria
+ * é par de vizinhos — "Taxa de leitura" duas vezes na MESMA tabela, "turma" e "turmas" na prosa de
+ * uma tela só, "Filtrar" em dois formulários que não se conhecem. Um verificador que manda fundir
+ * isso é um verificador que se aprende a ignorar.
+ *
+ * QUATRO deixa passar o que mais importa: "Ano letivo", "Ações", "Início", "Término", "Buscar
+ * aluno", "Voltar aos alunos" e "Nenhum aluno matriculado" aparecem três vezes cada — em três
+ * telas diferentes, que é o ponto. Um rótulo que atravessou três telas já é vocabulário do
+ * produto, e o custo de renomeá-lo pela metade já é o mesmo de "Cancelar".
+ *
+ * TRÊS é a menor contagem que não se explica por coincidência de par: a terceira cópia é a prova
+ * de que o texto está sendo REUSADO, e não redigido de novo por acaso. Não é o mesmo que dizer que
+ * as três são um conceito só — a regra 2 continua valendo, e a resposta certa para um achado
+ * destes tanto pode ser uma constante nova quanto um `// magic-values: permitido — <motivo>` em
+ * cada cópia. O que a regra cobra não é o merge; é a DECISÃO escrita em algum lugar.
+ *
+ * A supressão, aqui, apaga a cópia da CONTAGEM e não só do relatório — e é o comportamento certo:
+ * uma ocorrência justificada por escrito já foi decidida, e não é mais uma cópia à espera de dono.
+ * Justificar duas das três faz a terceira deixar de ser repetição, que é literalmente verdade.
+ */
+const OCORRENCIAS_PARA_ACUSAR = 3;
+
+/**
+ * A regra 4 mede `src/`, e só. `scripts/seed*.ts` está fora pela regra 6 — a tabela de nomes de
+ * amostra é dado, e um nome que se repete em três linhas de seed não é vocabulário de produto —, e
+ * `scripts/migrate.ts` e `build-assets.ts` são ferramenta, não tela.
+ */
+const MODULO_DO_PRODUTO = 'src/';
+
+/**
+ * Os atributos booleanos do HTML, pelo mesmo motivo que `RESULTADOS_DE_TYPEOF`: são vocabulário
+ * FECHADO de outra gramática, e ninguém os escolhe.
+ *
+ * `<%= marcado ? 'selected' : '' %>` escreve, do lado de dentro do bloco, exatamente o `selected`
+ * que a marcação escreve solto quando não depende de condição. São onze cópias no repositório, e
+ * dar um dono a elas seria criar uma constante para uma palavra-chave do HTML — enquanto a mesma
+ * palavra, escrita direto na tag, continua (corretamente) não sendo cobrada de ninguém. Uma regra
+ * que acusa a mesma palavra num lugar e não no outro está medindo a posição, não o valor.
+ */
+const VOCABULARIO_DO_HTML: ReadonlySet<string> = new Set([
+  'selected',
+  'checked',
+  'disabled',
+  'readonly',
+  'required',
+  'multiple',
+  'hidden',
+  'open',
+]);
+
+/** O que entra na contagem da regra 4: uma palavra de verdade, e nada de outra gramática. */
+const ehTextoContavel = (texto: string): boolean =>
+  UMA_PALAVRA.test(texto) && !VOCABULARIO_DO_HTML.has(texto);
 
 /* --- Análise de um arquivo `.ts` -------------------------------------------- */
 
@@ -793,6 +922,26 @@ function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
   };
 
   /**
+   * A contagem da regra 4, e ela roda em TODO texto — batizado, enterrado em tabela ou já acusado
+   * por outra regra. A contagem é uma medida do repositório, não um veredito: encolhê-la para o
+   * que sobrou depois das outras regras faria o total mentir, e "3x" é o argumento inteiro deste
+   * achado. Quem decide o que fazer com a posição é a emissão, lá no relatório, que não repete um
+   * lugar que já tem achado.
+   */
+  const contar = (no: ts.Node, texto: string): void => {
+    if (!arquivo.startsWith(MODULO_DO_PRODUTO) || !ehTextoContavel(texto)) return;
+    const { line, character } = origem.getLineAndCharacterOfPosition(no.getStart(origem));
+    if (suprimida(line + 1)) return;
+    ocorrencias.push({
+      texto,
+      arquivo,
+      linha: line + 1,
+      coluna: character + 1,
+      trecho: no.getText(origem).replaceAll('\n', '\\n').slice(0, 72),
+    });
+  };
+
+  /**
    * O que vale para TODO literal, batizado ou não, dentro de tabela de seed ou fora dela: a forma
    * que se reconhece sozinha (um endereço) e o valor que já tem dono. É esta metade que impede
    * escapar do relatório batizando ou enterrando a cópia.
@@ -809,6 +958,13 @@ function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
   };
 
   const conferir = (no: ts.Node, contexto: Contexto): void => {
+    if (
+      (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) &&
+      !(ts.isPropertyAssignment(no.parent) && no.parent.name === no) &&
+      !textoIsento(no)
+    ) {
+      contar(no, no.text);
+    }
     const copia = motivoDeCopia(no, contexto.caminho);
     if (copia !== undefined) {
       registrar(no, copia);
@@ -885,14 +1041,26 @@ function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
  * `web/rotas/professor.ts` já faz com `limiteDaJustificativa`, e é o padrão a replicar.
  */
 const ABERTURA_DE_BLOCO = '<%';
+
+/**
+ * Onde o Eta começa e onde termina — a fronteira entre o que o template EXECUTA e o que ele
+ * ESCREVE, e as três regras do `.eta` precisam dela pelas três razões:
+ *
+ *   - a do endereço apaga o bloco do valor de `href` para ver o que sobrou escrito à mão;
+ *   - a do texto apaga o bloco de dentro do documento, porque código não é texto que alguém lê;
+ *   - a do limite lê o que está DENTRO do bloco, que é o único pedaço de TypeScript do arquivo.
+ *
+ * É uma expressão só para as três, e não três iguais: um `<%_` que o Eta passasse a aceitar teria de
+ * ser reconhecido nas três leituras ao mesmo tempo, e três cópias divergiriam na primeira.
+ */
 const BLOCO_DE_ETA = /<%([\s\S]*?)%>/g;
+
 const MARCADOR_DE_ABERTURA = /^[=~_-]/;
 const MARCADOR_DE_FECHAMENTO = /[-_]$/;
 const COMENTARIO_DO_ETA = '#';
 
 /** `href` e `action` são os dois atributos que carregam endereço de rota numa tela deste sistema. */
 const ATRIBUTO_DE_ENDERECO = /\b(href|action)\s*=\s*"([^"]*)"/g;
-const INTERPOLACAO = /<%[\s\S]*?%>/g;
 
 /**
  * Os atributos em que o navegador recebe um LIMITE. Escrever o número neles à mão é a mesma
@@ -935,6 +1103,305 @@ const posicaoDe = (fonte: string, indice: number): Posicao => {
   return { linha: antes.split('\n').length, coluna: indice - inicioDaLinha + 1 };
 };
 
+/* --- Marcação: o texto que a pessoa lê -------------------------------------- */
+
+/**
+ * O terceiro jeito de o template redeclarar um valor: escrever o TEXTO à mão.
+ *
+ * As duas regras acima cobram o endereço e o limite, que são o que o template escreve DENTRO de um
+ * atributo. Sobrava o que ele escreve entre as tags, e era a porta mais larga das três: `TITULOS`
+ * declara "Cadastrar responsável" uma vez, `_navegacao.eta` já lê o mapa inteiro por `it.titulos`, e
+ * mesmo assim o `<button>` do formulário e os dois `<a class="botao">` que levam até ele repetiam a
+ * frase palavra por palavra. Três passadas de refactor fecharam os `<h1>` e o menu e não viram
+ * estas — porque o verificador não olhava para texto de nó nenhum.
+ *
+ * O que torna isso caro não é o texto duplicado: é que o rótulo do botão e o título da tela para
+ * onde ele leva são A MESMA DECISÃO. Renomear a tela sem varrer os botões deixa o sistema chamando
+ * o mesmo lugar por dois nomes — o do link e o do `<h1>` que ele abre —, e nada acusa: o `.eta` não
+ * passa pelo compilador, e o golden só percebe a diferença depois que ela já mudou a tela.
+ *
+ * DENTRO DE UM NÓ QUE NOMEIA, a coincidência de valor basta, e a assimetria contra o `.ts` é a
+ * mesma que `conferirLimite` documenta: um `.ts` pode legitimamente ser o dono do próprio conceito,
+ * um template não pode ser dono de nada — ele não tem `constantes.ts`, o Eta não importa
+ * TypeScript, e todo texto que ele mostra ou chega pelo `it` que o handler monta ou é uma cópia.
+ *
+ * A ênfase em "nó que nomeia" é o conserto de uma versão anterior desta regra, que cobrava
+ * coincidência de valor em QUALQUER texto de nó e por isso media o repositório inteiro contra a
+ * regra 2 do refactor — merge por conceito, nunca por valor. Ela acusava dezenove lugares em que a
+ * palavra bate e a decisão não: `<p class="sobretitulo">Secretaria</p>` contra
+ * `VOCABULARIO.papel.secretaria`, que nomeia um papel de ACESSO e não a área do produto;
+ * `<th scope="col">Responsável</th>` e o `<label>` do `select`, que nomeiam uma coluna e um campo;
+ * `<p class="cartao__rotulo">Turmas</p>` contra `TITULOS.secretaria.turmas`, que nomeia uma
+ * CONTAGEM; `<h2 id="lista">Turmas</h2>`, que nomeia a seção abaixo do filtro. Dezenove achados,
+ * dezenove falsos — o sinal de que o portão estava no lugar errado, e não de que faltavam
+ * dezenove exceções. Ver `ELEMENTOS_QUE_NOMEIAM` para onde ele passou a ficar.
+ *
+ * O portão de redação é UMA palavra de três letras, e não as DUAS que `ehFrase` exige de um literal
+ * `.ts`. A diferença é o que cada um dos dois precisa provar. No `.ts` a posição não diz nada —
+ * `'Turmas'` tanto pode ser um rótulo quanto uma chave, um token ou uma classe de CSS —, e o que
+ * separa cópia de coincidência é a redação: ninguém redige "Cadastrar aluno" duas vezes por acaso.
+ * No texto de um nó que nomeia, a posição já provou o que a redação provaria, e exigir duas
+ * palavras deixaria passar justamente os rótulos de uma palavra só: "Turmas", "Alunos",
+ * "Unidades", "Disciplinas", "Entrar". A palavra continua sendo exigida para que `·`, `—`, `0` e
+ * `%` não virem achado.
+ */
+const donoDoTexto = (texto: string): Dono | undefined =>
+  UMA_PALAVRA.test(texto) ? (indicePorValor.get(chaveDeTexto(texto)) ?? [])[0] : undefined;
+
+/**
+ * A marca que substitui o código, caractere a caractere: preserva toda posição do arquivo — o
+ * achado precisa apontar a linha e a coluna do arquivo de verdade, e não as de uma cópia encolhida
+ * — e ao mesmo tempo PARTE o texto em volta, para que cada pedaço que a pessoa digitou seja julgado
+ * por si. Em `<span><%= n %></span> turmas <%= quando %>` o que o template escreveu foi "turmas", e
+ * apagar o bloco para espaço grudaria os vizinhos num borrão que nada declara.
+ *
+ * Precisa ser um caractere que nenhum texto de tela contém, e não um espaço: recortar em espaço
+ * partiria "Cadastrar responsável" em duas palavras que nada declara.
+ */
+const MARCA_DE_CODIGO = '\u0000';
+
+/**
+ * `<script>` e `<style>` são outra gramática dentro do documento, como o SQL é dentro do `.ts`: o
+ * que está lá dentro é JavaScript e CSS, não texto que alguém lê. A isenção de conteúdo de
+ * `_script_avisos.eta` é sobre o mesmo lugar e continua valendo por si — esta linha é o que impede
+ * a regra de confundir um seletor ou uma string de JS com um rótulo de tela.
+ */
+const ELEMENTOS_QUE_NAO_SAO_TEXTO: ReadonlySet<string> = new Set(['script', 'style']);
+
+/**
+ * Os três nós cujo texto NOMEIA alguma coisa que tem nome declarado em outro lugar. É aqui que a
+ * regra cobra, e fora daqui ela não olha.
+ *
+ * O que os une não é serem visíveis — todo texto de tela é visível — e sim o que o texto deles
+ * PROMETE:
+ *
+ *   - `<a>` e `<button>` são o controle. O texto de um controle é o nome do lugar aonde ele leva
+ *     ou da ação que ele conclui, e esse lugar tem `<h1>`, e esse `<h1>` sai de `TITULOS`. São a
+ *     mesma decisão dita duas vezes, que é exatamente o defeito: renomear a tela sem varrer os
+ *     botões deixa o sistema chamando o mesmo lugar por dois nomes.
+ *   - `<h1>` é o nome da própria tela, que é a mesma chave vista do outro lado. Hoje nenhum `<h1>`
+ *     do repositório tem literal — as três primeiras passadas fecharam todos, e todo um deles é
+ *     `<%= it.titulo %>` —, então incluí-lo não acusa nada agora; ele está aqui para que a
+ *     regressão não passe calada, que é a única coisa que um verificador faz por quem vem depois.
+ *
+ * O que ficou de fora ficou por ser nome de outra coisa, e a lista é a razão de a regra existir
+ * nesta forma: `<h2>` nomeia uma SEÇÃO da página, `<th>` uma COLUNA da tabela, `<label>` um CAMPO
+ * do formulário, `<p class="cartao__rotulo">` uma CONTAGEM, `<p class="sobretitulo">` a ÁREA do
+ * produto. Nenhum deles aponta para uma tela, e quando o texto de um deles bate com uma constante
+ * é porque o domínio só tem uma palavra para a coisa — "Turmas" é a contagem, a coluna, a seção e
+ * a tela, e renomear a TELA para "Minhas turmas" não pode renomear a coluna da tabela.
+ *
+ * A regra é de descendência, não de filho direto: o rótulo do cartão de `rede/painel.eta` mora num
+ * `<span class="cartao__rotulo">` DENTRO do `<a class="cartao">`, e continua sendo o nome do
+ * destino do clique. O que nomeia é o controle inteiro, não o nó folha em que o texto caiu.
+ */
+const ELEMENTOS_QUE_NOMEIAM: ReadonlySet<string> = new Set(['a', 'button', 'h1']);
+
+const COMENTARIO_HTML = { abertura: '<!--', fechamento: '-->' } as const;
+
+const NOME_DA_TAG = /^<\s*(\/?)\s*([A-Za-z][A-Za-z0-9-]*)/;
+
+const ASPAS: ReadonlySet<string> = new Set(['"', "'"]);
+
+const ABRE_TAG = '<';
+const FECHA_TAG = '>';
+const FECHAMENTO_DE_TAG = '/';
+
+/**
+ * `<a/>` fecha a si mesmo e não abre nível nenhum. Nenhum dos três `ELEMENTOS_QUE_NOMEIAM` é vazio
+ * no HTML, então isto nunca aparece nos templates de hoje; está aqui porque a alternativa é uma
+ * contagem de aninhamento que erra para sempre a partir da primeira vez que aparecer.
+ */
+const TAG_QUE_SE_FECHA = '/>';
+
+/**
+ * Onde começa o `</nome>` que encerra um elemento de texto puro, a partir de `desde`.
+ *
+ * Existe porque dentro de `<script>` e `<style>` NADA é tag — é a regra do HTML para estes dois, e
+ * é o que o varredor genérico não consegue respeitar: um `if (a < b)` em JavaScript é um `<` que
+ * abre uma tag que ninguém fecha, e `fimDaTag` sairia procurando o `>` até engolir o `</script>`
+ * de verdade. O elemento nunca fecharia, e o resto do arquivo passaria calado — que é o pior
+ * defeito possível num verificador, porque ele sai com sucesso.
+ */
+const fechamentoDe = (fonte: string, nome: string, desde: number): number => {
+  const marca = new RegExp(`${ABRE_TAG}\\s*${FECHAMENTO_DE_TAG}\\s*${nome}\\b`, 'gi');
+  marca.lastIndex = desde;
+  return marca.exec(fonte)?.index ?? -1;
+};
+
+/** Onde a tag aberta em `inicio` termina. Aspas de atributo escondem um `>` e não o encerram. */
+const fimDaTag = (fonte: string, inicio: number): number => {
+  let aspa: string | undefined;
+  for (let i = inicio + 1; i < fonte.length; i += 1) {
+    const caractere = fonte[i] ?? '';
+    if (aspa !== undefined) {
+      if (caractere === aspa) aspa = undefined;
+    } else if (ASPAS.has(caractere)) {
+      aspa = caractere;
+    } else if (caractere === FECHA_TAG) {
+      return i + 1;
+    }
+  }
+  return fonte.length;
+};
+
+/**
+ * Um pedaço de texto do documento, e se ele está dentro de um nó que NOMEIA.
+ *
+ * As duas regras que leem texto de tela querem recortes diferentes do mesmo documento, e por isso
+ * a marca viaja com o texto em vez de sumir num filtro: a do valor com dono só olha o que está
+ * dentro de um `<a>`, `<button>` ou `<h1>` — fora dali, coincidir com uma constante é coincidir
+ * com o português —, enquanto a da repetição sem dono conta TODO texto, porque um "Situação" que
+ * atravessa seis telas é vocabulário do produto esteja ele num `<th>`, num `<label>` ou num botão.
+ */
+type Texto = { readonly indice: number; readonly texto: string; readonly nomeia: boolean };
+
+/**
+ * Os textos que NOMEIAM no template: o que sobra dentro de um `ELEMENTOS_QUE_NOMEIAM` depois que o
+ * código do Eta saiu.
+ *
+ * Cada trecho é recortado nas pontas, e é isso que faz o `<a>` de três linhas render o mesmo rótulo
+ * que o `<button>` de uma. O que NÃO é recortado é o miolo: um parágrafo com quebra de linha no
+ * meio continua sendo um texto diferente de qualquer frase declarada, e é assim que a prosa das
+ * telas não vira achado.
+ *
+ * O varredor precisa continuar pulando `<script>`/`<style>` mesmo agora que só recolhe dentro de um
+ * controle, e a razão ficou mais forte: não é mais só que um seletor de CSS não é rótulo de tela —
+ * é que o corpo de um script é a única parte do arquivo onde um `<` não abre tag, e um `'</a>'` em
+ * JavaScript desregularia a contagem de aninhamento de todo o resto do arquivo. Por isso o salto é
+ * até o `</script>` literal (`fechamentoDe`) e não uma varredura de tags com um estado a mais.
+ */
+const textosDoDocumento = (fonte: string): Texto[] => {
+  const marcado = fonte.replaceAll(BLOCO_DE_ETA, (bloco) =>
+    bloco.replaceAll(/[^\n]/g, MARCA_DE_CODIGO),
+  );
+  const textos: Texto[] = [];
+
+  const recolher = (inicio: number, fim: number, nomeia: boolean): void => {
+    let deslocamento = inicio;
+    for (const pedaco of marcado.slice(inicio, fim).split(MARCA_DE_CODIGO)) {
+      const recortado = pedaco.trim();
+      if (recortado !== '') {
+        textos.push({ indice: deslocamento + pedaco.indexOf(recortado), texto: recortado, nomeia });
+      }
+      deslocamento += pedaco.length + MARCA_DE_CODIGO.length;
+    }
+  };
+
+  let posicao = 0;
+  let aninhamento = 0;
+  while (posicao < marcado.length) {
+    const abertura = marcado.indexOf(ABRE_TAG, posicao);
+    recolher(posicao, abertura < 0 ? marcado.length : abertura, aninhamento > 0);
+    if (abertura < 0) break;
+
+    if (marcado.startsWith(COMENTARIO_HTML.abertura, abertura)) {
+      const fim = marcado.indexOf(COMENTARIO_HTML.fechamento, abertura);
+      posicao = fim < 0 ? marcado.length : fim + COMENTARIO_HTML.fechamento.length;
+      continue;
+    }
+
+    const fim = fimDaTag(marcado, abertura);
+    const textoDaTag = marcado.slice(abertura, fim);
+    const tag = NOME_DA_TAG.exec(textoDaTag);
+    const nome = (tag?.[2] ?? '').toLowerCase();
+    const ehFechamento = tag?.[1] === FECHAMENTO_DE_TAG;
+    const seFecha = ehFechamento || textoDaTag.endsWith(TAG_QUE_SE_FECHA);
+
+    if (ELEMENTOS_QUE_NAO_SAO_TEXTO.has(nome) && !seFecha) {
+      // Salta o corpo inteiro de uma vez: lá dentro nem `<` abre tag nem `>` fecha.
+      const fechamento = fechamentoDe(marcado, nome, fim);
+      if (fechamento < 0) break;
+      posicao = fimDaTag(marcado, fechamento);
+      continue;
+    }
+
+    if (ELEMENTOS_QUE_NOMEIAM.has(nome)) {
+      if (ehFechamento) aninhamento = Math.max(0, aninhamento - 1);
+      else if (!seFecha) aninhamento += 1;
+    }
+    posicao = fim;
+  }
+
+  return textos;
+};
+
+/* --- Código: o que o template escreve dentro de `<% %>` --------------------- */
+
+/**
+ * Um IDENTIFICADOR: nome de campo, alcance, caminho de parcial, sufixo de id. ASCII, começando em
+ * minúscula, sem espaço e sem acento — e é a forma que separa o que o servidor também escreve do
+ * que a pessoa lê na tela.
+ *
+ * `nome`, `turmaId`, `codigoInep`, `unidade`, `selecionados`, `/parciais/_vazio` e `-erro` estão
+ * de um lado; "Responsável", "Ativa", "Cadastrar responsável" e "responsável" estão do outro. A
+ * inicial minúscula é o que decide: rótulo de tela em português começa com maiúscula ou traz
+ * acento, e nenhum nome de campo deste sistema tem espaço.
+ */
+const IDENTIFICADOR = /^[/-]?[a-z][A-Za-z0-9_/-]*$/;
+
+/**
+ * O dono de um valor escrito no CÓDIGO do template — dentro de um `<% %>` ou num atributo que o
+ * navegador devolve ao servidor.
+ *
+ * A regra do texto de nó cobra coincidência simples, e pode: lá a POSIÇÃO já provou que aquilo
+ * nomeia uma tela (ver `ELEMENTOS_QUE_NOMEIAM`). Dentro de um bloco não há posição que prove nada
+ * — o mesmo `<%= %>` carrega o nome do campo, o rótulo do cartão e a prosa do parágrafo —, e
+ * cobrar toda coincidência aqui traria de volta os dezenove falsos que a regra do texto de nó
+ * levou três versões para eliminar: o `rotulo: 'Responsável'` do cartão de atalho é o nome de uma
+ * ENTIDADE e `VOCABULARIO.papel.responsavel` é o nome de um PAPEL DE ACESSO, e
+ * `quantos === 1 ? 'responsável' : 'responsáveis'` é a flexão de um substantivo, não a mensagem de
+ * reserva de `MENSAGENS.usuario.rotuloDeResponsavel`.
+ *
+ * São então dois portões, e cada um responde por metade do que um bloco escreve:
+ *
+ *   - IDENTIFICADOR. `'unidade'` comparado com `valores.alcance`, `'nome'` passado a `erroDe()`,
+ *     `"/parciais/_vazio"` entregue ao `include()`: nenhum deles é texto que alguém lê, e todos os
+ *     três o servidor também escreve — `ALCANCE`, `CAMPOS`, `TEMPLATES`. Escrever um deles errado
+ *     não deixa a tela feia, faz o envio cair no alcance errado ou a página morrer em tempo de
+ *     execução. Coincidiu, é cópia: o template não é dono de vocabulário nenhum.
+ *
+ *   - REDAÇÃO E NOME, que é o critério do `.ts` — `donoDuplicado`, com a CHAVE que carrega o
+ *     literal fazendo o papel do caminho. `{ titulo: 'Cadastrar responsável' }` é acusado duas
+ *     vezes por motivos independentes: são duas palavras redigidas igual às de
+ *     `TITULOS.secretaria.responsavelNovo`, e a chave `titulo` está dentro do nome do dono. Já
+ *     `{ rotulo: 'Responsável' }`, ao lado, não é nenhum dos dois. A chave é o caminho porque a
+ *     variável que a envolve (`atalhos`, `rotulos`) é andaime local: não nomeia nada fora do
+ *     arquivo, e o Eta nem a exporta.
+ */
+const donoNoCodigoDoTemplate = (texto: string, chave: string): Dono | undefined => {
+  // Texto vazio é elemento neutro, como o `0` e o `1`, e não valor: `it.valores.ano ?? ''` diz
+  // "nada digitado ainda", e não repete a decisão que `VALORES_INICIAIS.anoLetivo.ano` tomou.
+  // A regra do `.ts` já o isenta pelo mesmo motivo; aqui ele chegava pela porta da chave igual.
+  if (texto === '' || VOCABULARIO_DO_HTML.has(texto)) return undefined;
+  const donos = indicePorValor.get(chaveDeTexto(texto)) ?? [];
+  if (IDENTIFICADOR.test(texto)) return donos[0];
+  return escolherDono(donos, chave, DUAS_PALAVRAS_SEGUIDAS.test(texto));
+};
+
+/** A chave que carrega o literal dentro do bloco: `{ titulo: 'Cadastrar responsável' }` → `titulo`. */
+const chaveQueCarrega = (no: ts.Node): string => {
+  const pai = no.parent;
+  return ts.isPropertyAssignment(pai) && pai.initializer === no
+    ? (nomeDaPropriedade(pai.name) ?? '')
+    : '';
+};
+
+/**
+ * Os dois atributos cujo valor VOLTA ao servidor: `name` diz por qual chave o campo chega ao
+ * handler, `value` diz qual palavra do domínio o rádio envia. O handler lê os dois por `CAMPOS` e
+ * por `ALCANCE`, e `comunicados/novo.eta` escrevia `value="unidade"` e `=== 'unidade'` a duas
+ * linhas de distância — a mesma decisão, duas cópias, nenhuma acusada.
+ *
+ * O resto do atributo fica de fora porque é interno ao documento, e a diferença é de conceito:
+ * `id="cpf"` e `for="cpf"` nomeiam um elemento da página, `type="email"` é um tipo de campo do
+ * HTML, `aria-invalid="true"` é o valor booleano do ARIA — e trocá-lo por `BOOLEANOS_DE_AMBIENTE`,
+ * que é o `'true'` de variável de ambiente, seria fundir por valor exatamente o que a regra 2 manda
+ * separar. Medido: os três atributos internos sozinhos produzem 222 achados, e a maioria pede a
+ * linha ilegível que a regra 5 recusa (`id="<%= it.campos.turma.nome %><%= it.sufixos.erro %>"`).
+ */
+const ATRIBUTOS_QUE_VOLTAM = /\b(name|value)\s*=\s*"([^"]*)"/g;
+
 function analisarTemplate(arquivo: string, fonte: string): Achado[] {
   const linhas = fonte.split('\n');
   const achados: Achado[] = [];
@@ -943,6 +1410,20 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
     const atual = linhas[linha - 1] ?? '';
     const anterior = linhas[linha - 2] ?? '';
     return SUPRESSAO.test(atual) || SUPRESSAO.test(anterior);
+  };
+
+  /** A contagem da regra 4 no template. Vale o que vale no `.ts`: conta tudo, não julga nada. */
+  const contar = (indice: number, texto: string, trecho: string): void => {
+    if (!arquivo.startsWith(MODULO_DO_PRODUTO) || !ehTextoContavel(texto)) return;
+    const { linha, coluna } = posicaoDe(fonte, indice);
+    if (suprimida(linha)) return;
+    ocorrencias.push({
+      texto,
+      arquivo,
+      linha,
+      coluna,
+      trecho: trecho.replaceAll('\n', '\\n').slice(0, 72),
+    });
   };
 
   const registrar = (indice: number, trecho: string, motivo: string): void => {
@@ -984,12 +1465,43 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
   for (const atributo of fonte.matchAll(ATRIBUTO_DE_ENDERECO)) {
     const valor = atributo[2] ?? '';
     // O que o Eta interpola tem dono do outro lado; o que sobra é o que o template escreveu.
-    const escritoAMao = valor.replaceAll(INTERPOLACAO, '');
+    const escritoAMao = valor.replaceAll(BLOCO_DE_ETA, '');
     if (!ehEnderecoNoAtributo(escritoAMao)) continue;
     registrar(
       atributo.index,
       atributo[0],
       MOTIVO_DE_ENDERECO_NO_TEMPLATE,
+    );
+  }
+
+  /* --- Marcação: texto de nó que já tem dono -------------------------------- */
+
+  for (const { indice, texto, nomeia } of textosDoDocumento(fonte)) {
+    contar(indice, texto, texto);
+    const dono = nomeia ? donoDoTexto(texto) : undefined;
+    if (dono === undefined) continue;
+    registrar(
+      indice,
+      texto,
+      `texto redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+        'passe o valor pelo handler, via `it`',
+    );
+  }
+
+  /* --- Marcação: o valor de `name`/`value`, que volta ao servidor ----------- */
+
+  for (const atributo of fonte.matchAll(ATRIBUTOS_QUE_VOLTAM)) {
+    const valor = atributo[2] ?? '';
+    // O que o Eta interpola tem dono do outro lado; o que sobra é o que o template escreveu.
+    if (valor.includes(ABERTURA_DE_BLOCO)) continue;
+    contar(atributo.index, valor, atributo[0]);
+    const dono = donoNoCodigoDoTemplate(valor, '');
+    if (dono === undefined) continue;
+    registrar(
+      atributo.index,
+      atributo[0],
+      `valor redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+        'passe o valor pelo handler, via `it`',
     );
   }
 
@@ -999,7 +1511,7 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
     conferirLimite(atributo.index, atributo[0], Number((atributo[2] ?? '').replaceAll('_', '')));
   }
 
-  /* --- Código: limite redeclarado dentro de `<% %>` ------------------------- */
+  /* --- Código: o que o bloco `<% %>` redeclara ------------------------------ */
 
   for (const bloco of fonte.matchAll(BLOCO_DE_ETA)) {
     const bruto = bloco[1] ?? '';
@@ -1023,15 +1535,25 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
           Number(no.text.replaceAll('_', '')),
         );
       } else if (
-        !dentroDeTemplate &&
         (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) &&
-        ROTA_COM_SEGMENTO.test(no.text)
+        !(ts.isPropertyAssignment(no.parent) && no.parent.name === no)
       ) {
-        registrar(
-          deslocamento + no.getStart(origem),
-          no.getText(origem),
-          MOTIVO_DE_ENDERECO_NO_TEMPLATE,
-        );
+        const indice = deslocamento + no.getStart(origem);
+        contar(indice, no.text, no.getText(origem));
+        // Quem tem dono é apontado pelo dono: o achado que diz de ONDE importar vale mais do que o
+        // que diz apenas "escrito à mão". A regra do endereço fica com o que não tem dono nenhum,
+        // que é justamente a rota inventada no template — o caso para o qual ela existe.
+        const dono = donoNoCodigoDoTemplate(no.text, chaveQueCarrega(no));
+        if (dono !== undefined) {
+          registrar(
+            indice,
+            no.getText(origem),
+            `texto redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+              'passe o valor pelo handler, via `it`',
+          );
+        } else if (!dentroDeTemplate && ROTA_COM_SEGMENTO.test(no.text)) {
+          registrar(indice, no.getText(origem), MOTIVO_DE_ENDERECO_NO_TEMPLATE);
+        }
       }
 
       const chamada =
@@ -1072,6 +1594,44 @@ for (const arquivo of alvos) {
   );
 }
 
+/**
+ * A regra 4 só pode ser decidida com o repositório inteiro lido: "três vezes" é uma medida do
+ * conjunto, e nenhum arquivo sabe sozinho que é a terceira cópia. Por isso ela não roda dentro de
+ * `analisarTypeScript`/`analisarTemplate` — lá se CONTA, aqui se ACUSA.
+ */
+const repeticoesSemDono = (() => {
+  const porTexto = new Map<string, Ocorrencia[]>();
+  for (const ocorrencia of ocorrencias) {
+    porTexto.set(ocorrencia.texto, [...(porTexto.get(ocorrencia.texto) ?? []), ocorrencia]);
+  }
+  return [...porTexto]
+    .filter(
+      ([texto, lista]) =>
+        lista.length >= OCORRENCIAS_PARA_ACUSAR && !indicePorValor.has(chaveDeTexto(texto)),
+    )
+    .sort(([, aqui], [, ali]) => ali.length - aqui.length);
+})();
+
+/**
+ * Uma posição que já tem achado não ganha um segundo. A contagem continua valendo o que valia — um
+ * `href` escrito à mão que também se repete três vezes conta como a terceira cópia —, mas o
+ * relatório aponta cada lugar UMA vez, com o motivo mais específico que houver.
+ */
+const jaAcusado = new Set(achados.map((achado) => `${achado.arquivo}:${achado.linha}:${achado.coluna}`));
+
+for (const [, lista] of repeticoesSemDono) {
+  for (const ocorrencia of lista) {
+    if (jaAcusado.has(`${ocorrencia.arquivo}:${ocorrencia.linha}:${ocorrencia.coluna}`)) continue;
+    achados.push({
+      arquivo: ocorrencia.arquivo,
+      linha: ocorrencia.linha,
+      coluna: ocorrencia.coluna,
+      trecho: ocorrencia.trecho,
+      motivo: `repetido ${lista.length}× e sem dono — nenhum \`constantes.ts\` declara este texto`,
+    });
+  }
+}
+
 if (achados.length === 0) {
   process.stdout.write('✔ nenhum literal solto fora das exceções da regra 6\n');
   process.exit(0);
@@ -1088,13 +1648,32 @@ const linhasDoRelatorio: string[] = [];
 for (const [arquivo, lista] of [...porArquivo].sort((a, b) => b[1].length - a[1].length)) {
   linhasDoRelatorio.push(`${String(lista.length).padStart(5)}  ${arquivo}`);
   if (somenteResumo) continue;
-  for (const achado of lista) {
+  // Na ordem do arquivo: o relatório é uma lista de tarefas, e quem for fechá-la desce a tela uma
+  // vez só. A regra 4 entra depois de todas as outras e chegaria fora de ordem.
+  for (const achado of [...lista].sort((a, b) => a.linha - b.linha || a.coluna - b.coluna)) {
     const glosa = achado.motivo === '' ? '' : `  ← ${achado.motivo}`;
     linhasDoRelatorio.push(`         ${achado.linha}:${achado.coluna}  ${achado.trecho}${glosa}`);
   }
 }
 
 process.stdout.write(`${linhasDoRelatorio.join('\n')}\n`);
+
+if (repeticoesSemDono.length > 0) {
+  // A lista por VALOR, que o inventário por arquivo não consegue mostrar: é ela que responde
+  // "quantas telas mudam se eu declarar este texto?", e é por ela que se escolhe o dono.
+  const linhasDaRepeticao = repeticoesSemDono.flatMap(([texto, lista]) => {
+    const arquivos = [...new Set(lista.map((ocorrencia) => ocorrencia.arquivo))];
+    return [
+      `${String(lista.length).padStart(5)}×  ${JSON.stringify(texto)}`,
+      ...(somenteResumo ? [] : arquivos.map((arquivo) => `         ${arquivo}`)),
+    ];
+  });
+  process.stdout.write(
+    `\nRepetição sem dono — ${repeticoesSemDono.length} texto(s) com ` +
+      `${OCORRENCIAS_PARA_ACUSAR}+ cópias e nenhuma constante:\n${linhasDaRepeticao.join('\n')}\n`,
+  );
+}
+
 process.stdout.write(
   `\n✖ ${achados.length} literal(is) solto(s) em ${porArquivo.size} arquivo(s).\n` +
     'Mova cada um para o `constantes.ts` do módulo dono, ou justifique com\n' +
