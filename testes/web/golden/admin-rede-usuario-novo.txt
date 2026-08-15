@@ -1,0 +1,276 @@
+GET /rede/usuarios/novo
+papel: admin
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Convidar usuário · EscolaViva</title>
+  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="aplicacao">
+    <header class="cabecalho">
+  <a class="marca cabecalho__marca" href="/painel">Escola<em>Viva</em></a>
+
+    <div class="cabecalho__contexto">
+    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
+    <span class="cabecalho__unidade">
+              2 unidades
+          </span>
+  </div>
+
+  <div class="cabecalho__usuario">
+    <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
+    <form class="cabecalho__sair" method="post" action="/logout">
+      <input type="hidden" name="_chave" value="{{chave}}">
+      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navegacao" aria-label="Navegação principal">
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Rede</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/rede">Painel da rede</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/unidades">Unidades</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/usuarios" aria-current="page">Usuários</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/anos-letivos">Anos letivos</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Comunicação</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/comunicados">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Conta</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/conta/senha">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="conteudo" id="conteudo" tabindex="-1">
+      
+
+      <div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Rede · Usuários</p>
+    <h1 class="pagina__titulo">Convidar usuário</h1>
+    <p class="pagina__resumo">
+      A senha provisória é gerada agora e aparece uma única vez na lista, logo depois de criar.
+      Tenha onde anotá-la antes de enviar o formulário.
+    </p>
+  </div>
+</div>
+
+<div class="quadro">
+  <form class="formulario formulario--largo" method="post" action="/rede/usuarios">
+    <input type="hidden" name="_chave" value="{{chave}}">
+
+    <div class="formulario__linha">
+      <div class="campo">
+        <label class="campo__rotulo" for="nome">
+          Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="nome"
+          name="nome"
+          type="text"
+          required
+          maxlength="120"
+          autocomplete="off"
+          value=""
+                    >
+              </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="cpf">
+          CPF <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="cpf"
+          name="cpf"
+          type="text"
+          required
+          maxlength="14"
+          autocomplete="off"
+          value=""
+                    aria-describedby="cpf-ajuda">
+        <p class="campo__ajuda" id="cpf-ajuda">É por ele que a pessoa entra. Com ou sem pontos.</p>
+              </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="email">
+          E-mail <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          autocapitalize="none"
+          spellcheck="false"
+          autocomplete="off"
+          value=""
+                    aria-describedby="email-ajuda">
+        <p class="campo__ajuda" id="email-ajuda">Contato. Não é usado para entrar.</p>
+              </div>
+    </div>
+
+    <fieldset >
+      <legend>Atribuições</legend>
+      
+      <div class="pilha">
+                <div class="formulario__linha">
+          <div class="campo">
+            <label class="campo__rotulo" for="unidade-0">Unidade 1</label>
+            <select id="unidade-0" name="unidade[]">
+              <option value="">Sem atribuição</option>
+                            <option value="{{unidadeA}}" >Escola Central</option>
+                            <option value="{{unidadeB}}" >Escola do Bairro</option>
+                          </select>
+          </div>
+
+          <div class="campo">
+            <label class="campo__rotulo" for="papel-0">Papel 1</label>
+            <select id="papel-0" name="papel[]">
+              <option value="">Sem atribuição</option>
+                            <option value="admin_rede" >Administração da rede</option>
+                            <option value="secretaria" >Secretaria</option>
+                            <option value="professor" >Professor</option>
+                            <option value="responsavel" >Responsável</option>
+                          </select>
+          </div>
+        </div>
+                <div class="formulario__linha">
+          <div class="campo">
+            <label class="campo__rotulo" for="unidade-1">Unidade 2</label>
+            <select id="unidade-1" name="unidade[]">
+              <option value="">Sem atribuição</option>
+                            <option value="{{unidadeA}}" >Escola Central</option>
+                            <option value="{{unidadeB}}" >Escola do Bairro</option>
+                          </select>
+          </div>
+
+          <div class="campo">
+            <label class="campo__rotulo" for="papel-1">Papel 2</label>
+            <select id="papel-1" name="papel[]">
+              <option value="">Sem atribuição</option>
+                            <option value="admin_rede" >Administração da rede</option>
+                            <option value="secretaria" >Secretaria</option>
+                            <option value="professor" >Professor</option>
+                            <option value="responsavel" >Responsável</option>
+                          </select>
+          </div>
+        </div>
+                <div class="formulario__linha">
+          <div class="campo">
+            <label class="campo__rotulo" for="unidade-2">Unidade 3</label>
+            <select id="unidade-2" name="unidade[]">
+              <option value="">Sem atribuição</option>
+                            <option value="{{unidadeA}}" >Escola Central</option>
+                            <option value="{{unidadeB}}" >Escola do Bairro</option>
+                          </select>
+          </div>
+
+          <div class="campo">
+            <label class="campo__rotulo" for="papel-2">Papel 3</label>
+            <select id="papel-2" name="papel[]">
+              <option value="">Sem atribuição</option>
+                            <option value="admin_rede" >Administração da rede</option>
+                            <option value="secretaria" >Secretaria</option>
+                            <option value="professor" >Professor</option>
+                            <option value="responsavel" >Responsável</option>
+                          </select>
+          </div>
+        </div>
+              </div>
+    </fieldset>
+
+    <div class="campo">
+      <label class="campo__rotulo" for="responsavelId">Cadastro de responsável</label>
+      <select
+        id="responsavelId"
+        name="responsavelId"
+                aria-describedby="responsavelId-ajuda">
+        <option value="">Nenhum</option>
+                <option value="{{responsavel01}}" >Responsável 01 da Silva — responsavel01@golden.test</option>
+                <option value="{{responsavel02}}" >Responsável 02 da Silva — responsavel02@golden.test</option>
+                <option value="{{responsavel03}}" >Responsável 03 da Silva — responsavel03@golden.test</option>
+                <option value="{{responsavel04}}" >Responsável 04 da Silva — responsavel04@golden.test</option>
+                <option value="{{responsavel05}}" >Responsável 05 da Silva — responsavel05@golden.test</option>
+                <option value="{{responsavel06}}" >Responsável 06 da Silva — responsavel06@golden.test</option>
+                <option value="{{responsavel07}}" >Responsável 07 da Silva — responsavel07@golden.test</option>
+                <option value="{{responsavel08}}" >Responsável 08 da Silva — responsavel08@golden.test</option>
+                <option value="{{responsavel09}}" >Responsável 09 da Silva — responsavel09@golden.test</option>
+                <option value="{{responsavel10}}" >Responsável 10 da Silva — responsavel10@golden.test</option>
+                <option value="{{responsavel11}}" >Responsável 11 da Silva — responsavel11@golden.test</option>
+                <option value="{{responsavel12}}" >Responsável 12 da Silva — responsavel12@golden.test</option>
+              </select>
+      <p class="campo__ajuda" id="responsavelId-ajuda">
+        Obrigatório quando alguma atribuição acima for Responsável: é esse cadastro que liga a
+        conta aos alunos. A secretaria cria o cadastro antes do convite.
+      </p>
+          </div>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Criar usuário</button>
+      <a class="botao botao--discreto" href="/rede/usuarios">Cancelar</a>
+    </div>
+  </form>
+</div>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const avisos = document.querySelectorAll('.aviso');
+    if (avisos.length === 0) return;
+
+    const conteudo = document.getElementById('conteudo');
+
+    avisos.forEach((aviso) => {
+      const fechar = document.createElement('button');
+      fechar.type = 'button';
+      fechar.className = 'aviso__fechar';
+      fechar.setAttribute('aria-label', 'Fechar aviso');
+      fechar.textContent = '×';
+
+      fechar.addEventListener('click', () => {
+        const tinhaFoco = document.activeElement === fechar;
+        aviso.remove();
+        if (tinhaFoco && conteudo !== null) conteudo.focus({ preventScroll: true });
+      });
+
+      aviso.append(fechar);
+    });
+  })();
+</script>
+</body>
+</html>

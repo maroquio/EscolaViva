@@ -1,0 +1,7 @@
+GET /login
+papel: admin
+status: 303
+Location: /painel
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------

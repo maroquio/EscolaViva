@@ -1,0 +1,125 @@
+GET /login?ok=Sess%C3%A3o%20encerrada.
+papel: anonimo
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: no-store
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Entrar · EscolaViva</title>
+  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="publico">
+    <main class="publico__cartao" id="conteudo" tabindex="-1">
+      <header>
+        <span class="marca publico__marca">Escola<em>Viva</em></span>
+        <p class="publico__titulo">Portal da rede escolar</p>
+      </header>
+
+      <p class="aviso aviso--sucesso" role="status">Sessão encerrada.</p>
+
+
+      <h1>Entrar</h1>
+
+<form class="formulario" method="post" action="/login">
+  <input type="hidden" name="_chave" value="{{chave}}">
+
+  <div class="campo">
+    <label class="campo__rotulo" for="redeSlug">
+      Identificador da rede <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    </label>
+    <input
+      id="redeSlug"
+      name="redeSlug"
+      type="text"
+      required
+      autocomplete="organization"
+      autocapitalize="none"
+      spellcheck="false"
+      value=""
+            aria-describedby="redeSlug-ajuda">
+    <p class="campo__ajuda" id="redeSlug-ajuda">
+      O apelido curto da rede, informado pela secretaria — tudo minúsculo, sem espaço.
+    </p>
+      </div>
+
+  <div class="campo">
+    <label class="campo__rotulo" for="cpf">
+      CPF <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    </label>
+    <input
+      id="cpf"
+      name="cpf"
+      type="text"
+      required
+      inputmode="numeric"
+      autocomplete="username"
+      autocapitalize="none"
+      spellcheck="false"
+      value=""
+            aria-describedby="cpf-ajuda">
+    <p class="campo__ajuda" id="cpf-ajuda">
+      O CPF pode ser digitado com ou sem pontos e traço.
+    </p>
+      </div>
+
+  <div class="campo">
+    <label class="campo__rotulo" for="senha">
+      Senha <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    </label>
+    <input
+      id="senha"
+      name="senha"
+      type="password"
+      required
+      autocomplete="current-password"
+            >
+      </div>
+
+  <div class="acoes">
+    <button class="botao botao--primario" type="submit">Entrar</button>
+  </div>
+</form>
+
+      <p class="publico__rodape">
+        Sistema de uso restrito. O acesso é registrado.
+      </p>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const avisos = document.querySelectorAll('.aviso');
+    if (avisos.length === 0) return;
+
+    const conteudo = document.getElementById('conteudo');
+
+    avisos.forEach((aviso) => {
+      const fechar = document.createElement('button');
+      fechar.type = 'button';
+      fechar.className = 'aviso__fechar';
+      fechar.setAttribute('aria-label', 'Fechar aviso');
+      fechar.textContent = '×';
+
+      fechar.addEventListener('click', () => {
+        const tinhaFoco = document.activeElement === fechar;
+        aviso.remove();
+        if (tinhaFoco && conteudo !== null) conteudo.focus({ preventScroll: true });
+      });
+
+      aviso.append(fechar);
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+GET /painel
+papel: professor
+status: 303
+Location: /professor
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------

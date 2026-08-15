@@ -1,0 +1,312 @@
+GET /comunicados/novo?unidadeId={{unidadeA}}
+papel: admin
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Novo comunicado · EscolaViva</title>
+  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="aplicacao">
+    <header class="cabecalho">
+  <a class="marca cabecalho__marca" href="/painel">Escola<em>Viva</em></a>
+
+    <div class="cabecalho__contexto">
+    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
+    <span class="cabecalho__unidade">
+              2 unidades
+          </span>
+  </div>
+
+  <div class="cabecalho__usuario">
+    <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
+    <form class="cabecalho__sair" method="post" action="/logout">
+      <input type="hidden" name="_chave" value="{{chave}}">
+      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navegacao" aria-label="Navegação principal">
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Rede</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/rede">Painel da rede</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/unidades">Unidades</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/usuarios">Usuários</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/anos-letivos">Anos letivos</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Comunicação</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/comunicados" aria-current="page">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Conta</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/conta/senha">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="conteudo" id="conteudo" tabindex="-1">
+      
+
+      <header class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Comunicação</p>
+    <h1 class="pagina__titulo">Novo comunicado</h1>
+    <p class="pagina__resumo">
+      O comunicado aparece no mural dos responsáveis escolhidos, e a leitura de cada um passa a ser
+      medida a partir da publicação.
+    </p>
+  </div>
+  <p class="pagina__acoes">
+    <a class="botao botao--discreto" href="/comunicados">Voltar aos comunicados</a>
+  </p>
+</header>
+
+<section class="secao" aria-labelledby="titulo-mensagem">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-mensagem">Passo 2 · Mensagem</h2>
+    <p class="secao__nota">
+      Unidade <strong>Escola Central</strong> ·
+      <a href="/comunicados/novo">trocar unidade</a>
+    </p>
+  </div>
+
+  <form class="formulario formulario--largo" method="post" action="/comunicados/novo">
+    <input type="hidden" name="_chave" value="{{chave}}">
+    <input type="hidden" name="unidadeId" value="{{unidadeA}}">
+
+    <div class="campo leitura">
+      <label class="campo__rotulo" for="titulo">
+        Título <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      </label>
+      <input type="text" id="titulo" name="titulo" required
+             value=""
+             aria-describedby="titulo-ajuda"
+             >
+      <p class="campo__ajuda" id="titulo-ajuda">
+        É a linha que o responsável vê na lista do mural.
+      </p>
+          </div>
+
+    <div class="campo leitura">
+      <label class="campo__rotulo" for="corpo">
+        Mensagem <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      </label>
+      <textarea id="corpo" name="corpo" required rows="10"
+                                aria-describedby="corpo-ajuda"></textarea>
+      <p class="campo__ajuda" id="corpo-ajuda">
+        O texto aparece como foi digitado, com as quebras de linha preservadas.
+      </p>
+          </div>
+
+    <fieldset aria-describedby="destinatarios-ajuda">
+      <legend>Destinatários</legend>
+
+      <div class="pilha">
+        <div class="campo campo--opcao">
+          <input type="radio" id="alcance-unidade" name="alcance" value="unidade"
+                 checked>
+          <label class="campo__rotulo" for="alcance-unidade">
+            Todos os responsáveis da unidade
+            (<span class="numero">12</span>)
+          </label>
+        </div>
+
+        <div class="campo campo--opcao">
+          <input type="radio" id="alcance-selecionados" name="alcance" value="selecionados"
+                 >
+          <label class="campo__rotulo" for="alcance-selecionados">
+            Apenas os responsáveis marcados abaixo
+          </label>
+        </div>
+
+        <p class="campo__ajuda" id="destinatarios-ajuda">
+          Enviar para toda a unidade alcança quem tiver aluno com matrícula ativa no dia do envio.
+        </p>
+
+        
+                        <p class="linha">
+          <button class="botao botao--secundario botao--miudo" type="button"
+                  id="marcar-todos" hidden>Selecionar todos</button>
+        </p>
+
+        <ul class="grade-opcoes">
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel01}}"
+                   name="responsaveis[]" value="{{responsavel01}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel01}}">
+              Responsável 01 da Silva            </label>
+          </li>
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel02}}"
+                   name="responsaveis[]" value="{{responsavel02}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel02}}">
+              Responsável 02 da Silva            </label>
+          </li>
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel03}}"
+                   name="responsaveis[]" value="{{responsavel03}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel03}}">
+              Responsável 03 da Silva            </label>
+          </li>
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel04}}"
+                   name="responsaveis[]" value="{{responsavel04}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel04}}">
+              Responsável 04 da Silva            </label>
+          </li>
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel05}}"
+                   name="responsaveis[]" value="{{responsavel05}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel05}}">
+              Responsável 05 da Silva            </label>
+          </li>
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel06}}"
+                   name="responsaveis[]" value="{{responsavel06}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel06}}">
+              Responsável 06 da Silva            </label>
+          </li>
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel07}}"
+                   name="responsaveis[]" value="{{responsavel07}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel07}}">
+              Responsável 07 da Silva            </label>
+          </li>
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel08}}"
+                   name="responsaveis[]" value="{{responsavel08}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel08}}">
+              Responsável 08 da Silva            </label>
+          </li>
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel09}}"
+                   name="responsaveis[]" value="{{responsavel09}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel09}}">
+              Responsável 09 da Silva            </label>
+          </li>
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel10}}"
+                   name="responsaveis[]" value="{{responsavel10}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel10}}">
+              Responsável 10 da Silva            </label>
+          </li>
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel11}}"
+                   name="responsaveis[]" value="{{responsavel11}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel11}}">
+              Responsável 11 da Silva            </label>
+          </li>
+                    <li class="campo campo--opcao">
+            <input type="checkbox" id="responsavel-{{responsavel12}}"
+                   name="responsaveis[]" value="{{responsavel12}}"
+                   >
+            <label class="campo__rotulo" for="responsavel-{{responsavel12}}">
+              Responsável 12 da Silva            </label>
+          </li>
+                  </ul>
+              </div>
+    </fieldset>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Publicar comunicado</button>
+      <a class="botao botao--discreto" href="/comunicados">Cancelar</a>
+    </div>
+  </form>
+</section>
+
+<script>
+  (() => {
+    const botao = document.getElementById('marcar-todos');
+    const caixas = Array.from(document.querySelectorAll('input[name="responsaveis[]"]'));
+    const alcanceSelecionados = document.getElementById('alcance-selecionados');
+    if (botao === null || caixas.length === 0) return;
+
+    const todasMarcadas = () => caixas.every((caixa) => caixa.checked);
+    const atualizarRotulo = () => {
+      botao.textContent = todasMarcadas() ? 'Desmarcar todos' : 'Selecionar todos';
+    };
+
+    botao.addEventListener('click', () => {
+      const marcar = !todasMarcadas();
+      caixas.forEach((caixa) => { caixa.checked = marcar; });
+      if (marcar && alcanceSelecionados !== null) alcanceSelecionados.checked = true;
+      atualizarRotulo();
+    });
+
+    caixas.forEach((caixa) => caixa.addEventListener('change', atualizarRotulo));
+
+    atualizarRotulo();
+    botao.hidden = false;
+  })();
+</script>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const avisos = document.querySelectorAll('.aviso');
+    if (avisos.length === 0) return;
+
+    const conteudo = document.getElementById('conteudo');
+
+    avisos.forEach((aviso) => {
+      const fechar = document.createElement('button');
+      fechar.type = 'button';
+      fechar.className = 'aviso__fechar';
+      fechar.setAttribute('aria-label', 'Fechar aviso');
+      fechar.textContent = '×';
+
+      fechar.addEventListener('click', () => {
+        const tinhaFoco = document.activeElement === fechar;
+        aviso.remove();
+        if (tinhaFoco && conteudo !== null) conteudo.focus({ preventScroll: true });
+      });
+
+      aviso.append(fechar);
+    });
+  })();
+</script>
+</body>
+</html>

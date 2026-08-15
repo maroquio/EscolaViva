@@ -1,0 +1,6 @@
+GET /painel
+papel: anonimo
+status: 303
+Location: /login
+Cache-Control: no-store
+------------------------------------------------------------------------------

@@ -1,0 +1,7 @@
+GET /painel
+papel: admin
+status: 303
+Location: /rede
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------

@@ -1,0 +1,7 @@
+GET /painel
+papel: responsavel
+status: 303
+Location: /responsavel
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------

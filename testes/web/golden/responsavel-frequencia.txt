@@ -1,0 +1,288 @@
+GET /responsavel/matriculas/{{matricula01}}/frequencia
+papel: responsavel
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Frequência de Aluno 01 da Silva · EscolaViva</title>
+  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="aplicacao">
+    <header class="cabecalho">
+  <a class="marca cabecalho__marca" href="/painel">Escola<em>Viva</em></a>
+
+    <div class="cabecalho__contexto">
+    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
+    <span class="cabecalho__unidade">
+              Escola Central          </span>
+  </div>
+
+  <div class="cabecalho__usuario">
+    <span class="cabecalho__nome" title="portal01@golden.test">Responsável 01 da Silva</span>
+    <form class="cabecalho__sair" method="post" action="/logout">
+      <input type="hidden" name="_chave" value="{{chave}}">
+      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navegacao" aria-label="Navegação principal">
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Acompanhamento</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/responsavel" aria-current="page">Meus alunos</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/responsavel/mural">Mural</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Conta</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/conta/senha">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="conteudo" id="conteudo" tabindex="-1">
+      
+
+      <header class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Frequência</p>
+    <h1 class="pagina__titulo">Aluno 01 da Silva</h1>
+    <p class="pagina__resumo">
+      Turma 6A · ano letivo
+      <span class="numero">2026</span>
+    </p>
+  </div>
+  <p class="pagina__acoes">
+    <a class="botao botao--secundario"
+       href="/responsavel/matriculas/{{matricula01}}/boletim">Ver boletim</a>
+    <a class="botao botao--discreto" href="/responsavel">Voltar aos alunos</a>
+  </p>
+</header>
+
+<section class="secao" aria-labelledby="titulo-apuracao">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-apuracao">Apuração do ano</h2>
+    <p class="secao__nota">São necessários 75 % de presença para aprovação</p>
+  </div>
+
+  <div class="painel">
+    <div class="cartao">
+      <p class="cartao__rotulo">Frequência</p>
+      <p class="cartao__numero">83,3 %</p>
+      <p class="cartao__detalhe">Presenças sobre dias com chamada</p>
+    </div>
+
+    <div class="cartao">
+      <p class="cartao__rotulo">Presenças</p>
+      <p class="cartao__numero">10</p>
+      <p class="cartao__detalhe">
+        de <span class="numero">12</span> dias registrados
+      </p>
+    </div>
+
+    <div class="cartao">
+      <p class="cartao__rotulo">Faltas</p>
+      <p class="cartao__numero">2</p>
+      <p class="cartao__detalhe">Justificadas e não justificadas</p>
+    </div>
+  </div>
+</section>
+
+<section class="secao" aria-labelledby="titulo-dias">
+  <div class="secao__cabecalho">
+    <h2 id="titulo-dias">Dia a dia</h2>
+    <p class="secao__nota">Do dia mais recente para o mais antigo</p>
+  </div>
+
+    <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Chamada de Aluno 01 da Silva</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="celula-centro">Data</th>
+          <th scope="col" class="celula-centro">Situação</th>
+          <th scope="col" class="celula-texto celula-elastica">Justificativa</th>
+        </tr>
+      </thead>
+      <tbody>
+                <tr>
+          <th scope="row" class="celula-centro">
+            <time datetime="2026-03-12">12/03/2026</time>
+          </th>
+          <td class="celula-centro">
+            <span class="etiqueta etiqueta--ativa">Presente</span>
+          </td>
+          <td class="celula-texto celula-elastica">
+            —          </td>
+        </tr>
+                <tr>
+          <th scope="row" class="celula-centro">
+            <time datetime="2026-03-11">11/03/2026</time>
+          </th>
+          <td class="celula-centro">
+            <span class="etiqueta etiqueta--ativa">Presente</span>
+          </td>
+          <td class="celula-texto celula-elastica">
+            —          </td>
+        </tr>
+                <tr>
+          <th scope="row" class="celula-centro">
+            <time datetime="2026-03-10">10/03/2026</time>
+          </th>
+          <td class="celula-centro">
+            <span class="etiqueta etiqueta--transferida">Falta justificada</span>
+          </td>
+          <td class="celula-texto celula-elastica">
+            Consulta médica com atestado.          </td>
+        </tr>
+                <tr>
+          <th scope="row" class="celula-centro">
+            <time datetime="2026-03-09">09/03/2026</time>
+          </th>
+          <td class="celula-centro">
+            <span class="etiqueta etiqueta--ativa">Presente</span>
+          </td>
+          <td class="celula-texto celula-elastica">
+            —          </td>
+        </tr>
+                <tr>
+          <th scope="row" class="celula-centro">
+            <time datetime="2026-03-08">08/03/2026</time>
+          </th>
+          <td class="celula-centro">
+            <span class="etiqueta etiqueta--ativa">Presente</span>
+          </td>
+          <td class="celula-texto celula-elastica">
+            —          </td>
+        </tr>
+                <tr>
+          <th scope="row" class="celula-centro">
+            <time datetime="2026-03-07">07/03/2026</time>
+          </th>
+          <td class="celula-centro">
+            <span class="etiqueta etiqueta--ativa">Presente</span>
+          </td>
+          <td class="celula-texto celula-elastica">
+            —          </td>
+        </tr>
+                <tr>
+          <th scope="row" class="celula-centro">
+            <time datetime="2026-03-06">06/03/2026</time>
+          </th>
+          <td class="celula-centro">
+            <span class="etiqueta etiqueta--ativa">Presente</span>
+          </td>
+          <td class="celula-texto celula-elastica">
+            —          </td>
+        </tr>
+                <tr>
+          <th scope="row" class="celula-centro">
+            <time datetime="2026-03-05">05/03/2026</time>
+          </th>
+          <td class="celula-centro">
+            <span class="etiqueta etiqueta--transferida">Falta justificada</span>
+          </td>
+          <td class="celula-texto celula-elastica">
+            Consulta médica com atestado.          </td>
+        </tr>
+                <tr>
+          <th scope="row" class="celula-centro">
+            <time datetime="2026-03-04">04/03/2026</time>
+          </th>
+          <td class="celula-centro">
+            <span class="etiqueta etiqueta--ativa">Presente</span>
+          </td>
+          <td class="celula-texto celula-elastica">
+            —          </td>
+        </tr>
+                <tr>
+          <th scope="row" class="celula-centro">
+            <time datetime="2026-03-03">03/03/2026</time>
+          </th>
+          <td class="celula-centro">
+            <span class="etiqueta etiqueta--ativa">Presente</span>
+          </td>
+          <td class="celula-texto celula-elastica">
+            —          </td>
+        </tr>
+              </tbody>
+    </table>
+  </div>
+  <nav class="paginacao" aria-label="Paginação de dias registrados">
+  <p class="paginacao__contagem">
+    <span class="numero">1–10</span>
+    de <span class="numero">12</span> dias registrados  </p>
+
+    <ul class="paginacao__lista">
+    <li>
+            <span class="paginacao__passo paginacao__passo--inerte" aria-hidden="true">
+        &lsaquo; Anterior
+      </span>
+          </li>
+
+        <li>
+            <span class="paginacao__numero paginacao__numero--atual" aria-current="page">
+        1      </span>
+          </li>
+        <li>
+            <a class="paginacao__numero" href="/responsavel/matriculas/{{matricula01}}/frequencia?p=2" aria-label="Página 2">
+        2      </a>
+          </li>
+    
+    <li>
+            <a class="paginacao__passo" href="/responsavel/matriculas/{{matricula01}}/frequencia?p=2" rel="next">
+        Próxima <span aria-hidden="true">&rsaquo;</span>
+      </a>
+          </li>
+  </ul>
+  </nav>
+  </section>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const avisos = document.querySelectorAll('.aviso');
+    if (avisos.length === 0) return;
+
+    const conteudo = document.getElementById('conteudo');
+
+    avisos.forEach((aviso) => {
+      const fechar = document.createElement('button');
+      fechar.type = 'button';
+      fechar.className = 'aviso__fechar';
+      fechar.setAttribute('aria-label', 'Fechar aviso');
+      fechar.textContent = '×';
+
+      fechar.addEventListener('click', () => {
+        const tinhaFoco = document.activeElement === fechar;
+        aviso.remove();
+        if (tinhaFoco && conteudo !== null) conteudo.focus({ preventScroll: true });
+      });
+
+      aviso.append(fechar);
+    });
+  })();
+</script>
+</body>
+</html>

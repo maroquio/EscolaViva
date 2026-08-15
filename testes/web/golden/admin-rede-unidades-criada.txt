@@ -1,0 +1,165 @@
+GET /rede/unidades?ok=unidade-criada
+papel: admin
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Unidades · EscolaViva</title>
+  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="aplicacao">
+    <header class="cabecalho">
+  <a class="marca cabecalho__marca" href="/painel">Escola<em>Viva</em></a>
+
+    <div class="cabecalho__contexto">
+    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
+    <span class="cabecalho__unidade">
+              2 unidades
+          </span>
+  </div>
+
+  <div class="cabecalho__usuario">
+    <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
+    <form class="cabecalho__sair" method="post" action="/logout">
+      <input type="hidden" name="_chave" value="{{chave}}">
+      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navegacao" aria-label="Navegação principal">
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Rede</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/rede">Painel da rede</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/unidades" aria-current="page">Unidades</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/usuarios">Usuários</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/anos-letivos">Anos letivos</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Comunicação</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/comunicados">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Conta</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/conta/senha">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="conteudo" id="conteudo" tabindex="-1">
+      <p class="aviso aviso--sucesso" role="status">Unidade criada.</p>
+
+
+      <div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Rede</p>
+    <h1 class="pagina__titulo">Unidades</h1>
+    <p class="pagina__resumo">
+      Cada escola da rede é uma unidade. Papéis, turmas e comunicados existem sempre dentro de
+      uma — ninguém é "professor da rede".
+    </p>
+  </div>
+  <div class="pagina__acoes">
+    <a class="botao botao--primario" href="/rede/unidades/nova">Criar unidade</a>
+  </div>
+</div>
+
+<section class="secao" aria-labelledby="lista-unidades-titulo">
+  <div class="secao__cabecalho">
+    <h2 id="lista-unidades-titulo">Unidades da rede</h2>
+    <p class="secao__nota">2 no total</p>
+  </div>
+
+    <div class="tabela-rolagem">
+    <table class="tabela">
+      <caption>Unidades cadastradas</caption>
+      <thead>
+        <tr>
+          <th scope="col">Unidade</th>
+          <th scope="col">Código INEP</th>
+          <th scope="col">Situação</th>
+        </tr>
+      </thead>
+      <tbody>
+                <tr>
+          <th scope="row">Escola Central</th>
+          <td class="numero">32001234</td>
+          <td>
+            <span class="etiqueta etiqueta--ativa">Ativa</span>
+          </td>
+        </tr>
+                <tr>
+          <th scope="row">Escola do Bairro</th>
+          <td class="numero">32005678</td>
+          <td>
+            <span class="etiqueta etiqueta--ativa">Ativa</span>
+          </td>
+        </tr>
+              </tbody>
+    </table>
+  </div>
+  <nav class="paginacao" aria-label="Paginação de unidades">
+  <p class="paginacao__contagem">
+    <span class="numero">1–2</span>
+    de <span class="numero">2</span> unidades  </p>
+
+  </nav>
+  </section>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const avisos = document.querySelectorAll('.aviso');
+    if (avisos.length === 0) return;
+
+    const conteudo = document.getElementById('conteudo');
+
+    avisos.forEach((aviso) => {
+      const fechar = document.createElement('button');
+      fechar.type = 'button';
+      fechar.className = 'aviso__fechar';
+      fechar.setAttribute('aria-label', 'Fechar aviso');
+      fechar.textContent = '×';
+
+      fechar.addEventListener('click', () => {
+        const tinhaFoco = document.activeElement === fechar;
+        aviso.remove();
+        if (tinhaFoco && conteudo !== null) conteudo.focus({ preventScroll: true });
+      });
+
+      aviso.append(fechar);
+    });
+  })();
+</script>
+</body>
+</html>

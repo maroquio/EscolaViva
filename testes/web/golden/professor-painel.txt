@@ -1,0 +1,132 @@
+GET /professor
+papel: professor
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Minhas turmas · EscolaViva</title>
+  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="aplicacao">
+    <header class="cabecalho">
+  <a class="marca cabecalho__marca" href="/painel">Escola<em>Viva</em></a>
+
+    <div class="cabecalho__contexto">
+    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
+    <span class="cabecalho__unidade">
+              Escola Central          </span>
+  </div>
+
+  <div class="cabecalho__usuario">
+    <span class="cabecalho__nome" title="carla@golden.test">Carla Professora</span>
+    <form class="cabecalho__sair" method="post" action="/logout">
+      <input type="hidden" name="_chave" value="{{chave}}">
+      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navegacao" aria-label="Navegação principal">
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Ensino</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/professor" aria-current="page">Minhas turmas</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Conta</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/conta/senha">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="conteudo" id="conteudo" tabindex="-1">
+      
+
+      <div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Professor</p>
+    <h1 class="pagina__titulo">Minhas turmas</h1>
+    <p class="pagina__resumo">
+      As turmas em que você leciona nesta rede. Cada disciplina abre o diário de notas; a chamada e o
+      fechamento valem para a turma inteira.
+    </p>
+  </div>
+</div>
+
+
+<section class="secao" aria-labelledby="turma-{{turma1}}">
+  <div class="secao__cabecalho">
+    <h2 id="turma-{{turma1}}">6A</h2>
+    <p class="secao__nota">6º ano · turno matutino</p>
+  </div>
+
+  <div class="painel">
+        <a class="cartao" href="/professor/disciplinas/{{alocacao3}}/notas">
+      <span class="cartao__rotulo">Disciplina</span>
+      <strong>História</strong>
+      <span class="cartao__detalhe">Lançar notas do bimestre</span>
+    </a>
+        <a class="cartao" href="/professor/disciplinas/{{alocacao1}}/notas">
+      <span class="cartao__rotulo">Disciplina</span>
+      <strong>Língua Portuguesa</strong>
+      <span class="cartao__detalhe">Lançar notas do bimestre</span>
+    </a>
+        <a class="cartao" href="/professor/disciplinas/{{alocacao2}}/notas">
+      <span class="cartao__rotulo">Disciplina</span>
+      <strong>Matemática</strong>
+      <span class="cartao__detalhe">Lançar notas do bimestre</span>
+    </a>
+      </div>
+
+  <div class="acoes">
+    <a class="botao botao--secundario" href="/professor/turmas/{{turma1}}/chamada">Chamada do dia</a>
+    <a class="botao botao--secundario" href="/professor/turmas/{{turma1}}/fechamento">Fechamento de bimestre</a>
+  </div>
+</section>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const avisos = document.querySelectorAll('.aviso');
+    if (avisos.length === 0) return;
+
+    const conteudo = document.getElementById('conteudo');
+
+    avisos.forEach((aviso) => {
+      const fechar = document.createElement('button');
+      fechar.type = 'button';
+      fechar.className = 'aviso__fechar';
+      fechar.setAttribute('aria-label', 'Fechar aviso');
+      fechar.textContent = '×';
+
+      fechar.addEventListener('click', () => {
+        const tinhaFoco = document.activeElement === fechar;
+        aviso.remove();
+        if (tinhaFoco && conteudo !== null) conteudo.focus({ preventScroll: true });
+      });
+
+      aviso.append(fechar);
+    });
+  })();
+</script>
+</body>
+</html>

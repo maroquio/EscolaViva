@@ -1,0 +1,162 @@
+GET /rede/unidades/nova
+papel: admin
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Criar unidade · EscolaViva</title>
+  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="aplicacao">
+    <header class="cabecalho">
+  <a class="marca cabecalho__marca" href="/painel">Escola<em>Viva</em></a>
+
+    <div class="cabecalho__contexto">
+    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
+    <span class="cabecalho__unidade">
+              2 unidades
+          </span>
+  </div>
+
+  <div class="cabecalho__usuario">
+    <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
+    <form class="cabecalho__sair" method="post" action="/logout">
+      <input type="hidden" name="_chave" value="{{chave}}">
+      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navegacao" aria-label="Navegação principal">
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Rede</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/rede">Painel da rede</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/unidades" aria-current="page">Unidades</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/usuarios">Usuários</a>
+      </li>
+            <li>
+        <a class="navegacao__link" href="/rede/anos-letivos">Anos letivos</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Comunicação</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/comunicados">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navegacao__grupo">
+    <h2 class="navegacao__titulo">Conta</h2>
+    <ul class="navegacao__lista">
+            <li>
+        <a class="navegacao__link" href="/conta/senha">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="conteudo" id="conteudo" tabindex="-1">
+      
+
+      <div class="pagina__cabecalho">
+  <div>
+    <p class="sobretitulo">Rede · Unidades</p>
+    <h1 class="pagina__titulo">Criar unidade</h1>
+    <p class="pagina__resumo">
+      A unidade é onde tudo o mais acontece: sem ela não há turma, papel nem comunicado. O nome
+      precisa ser único dentro da rede.
+    </p>
+  </div>
+</div>
+
+<div class="quadro">
+  <form class="formulario" method="post" action="/rede/unidades">
+    <input type="hidden" name="_chave" value="{{chave}}">
+
+    <div class="formulario__linha">
+      <div class="campo">
+        <label class="campo__rotulo" for="nome">
+          Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="nome"
+          name="nome"
+          type="text"
+          required
+          maxlength="120"
+          autocomplete="off"
+          value=""
+                    aria-describedby="nome-ajuda">
+        <p class="campo__ajuda" id="nome-ajuda">Como a escola é chamada no dia a dia.</p>
+              </div>
+
+      <div class="campo">
+        <label class="campo__rotulo" for="codigoInep">Código INEP</label>
+        <input
+          id="codigoInep"
+          name="codigoInep"
+          type="text"
+          maxlength="20"
+          inputmode="numeric"
+          autocomplete="off"
+          value=""
+                    aria-describedby="codigoInep-ajuda">
+        <p class="campo__ajuda" id="codigoInep-ajuda">Opcional. Pode ser preenchido depois.</p>
+              </div>
+    </div>
+
+    <div class="acoes">
+      <button class="botao botao--primario" type="submit">Criar unidade</button>
+      <a class="botao botao--discreto" href="/rede/unidades">Cancelar</a>
+    </div>
+  </form>
+</div>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const avisos = document.querySelectorAll('.aviso');
+    if (avisos.length === 0) return;
+
+    const conteudo = document.getElementById('conteudo');
+
+    avisos.forEach((aviso) => {
+      const fechar = document.createElement('button');
+      fechar.type = 'button';
+      fechar.className = 'aviso__fechar';
+      fechar.setAttribute('aria-label', 'Fechar aviso');
+      fechar.textContent = '×';
+
+      fechar.addEventListener('click', () => {
+        const tinhaFoco = document.activeElement === fechar;
+        aviso.remove();
+        if (tinhaFoco && conteudo !== null) conteudo.focus({ preventScroll: true });
+      });
+
+      aviso.append(fechar);
+    });
+  })();
+</script>
+</body>
+</html>
