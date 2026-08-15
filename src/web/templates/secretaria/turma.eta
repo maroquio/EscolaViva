@@ -48,6 +48,18 @@
   `it.acoes.voltarPara` — `ACOES.voltarPara.turmas` (`src/web/constantes.ts`), o mesmo rótulo que as
   outras telas de turma imprimem para o mesmo caminho de volta.
 
+  O sobretítulo diz em que parte do menu a pessoa está, e é COMPOSTO, e não escrito: `it.areas` —
+  `AREAS.secretaria` (`src/web/constantes.ts`), o mesmo nome que o menu imprime —, mais
+  `it.apresentacao.separador` e o rótulo da entidade, `it.rotulos.turma`. À mão, "Secretaria · Turma"
+  seria uma terceira cópia da área e do rótulo: renomear a área no menu deixaria esta tela anunciando
+  o nome antigo, e nada acusa. O título DESTA página não serve aqui — `TITULOS.secretaria.turma` é
+  uma função que monta "Turma 3º A" com o nome dentro, e o nome já está no `<h1>` logo abaixo.
+
+  O mesmo `it.apresentacao.separador` — `APRESENTACAO.separador` (`src/web/constantes.ts`) — separa
+  os quatro atributos da linha de resumo: série, turno, unidade e ano letivo. É exatamente para isso
+  que ele existe, e os espaços em volta do "·" são metade do valor: quem apertar ou afrouxar o
+  espaçamento do sistema mexe num lugar só, e não em quatro pontos desta linha.
+
   Os nomes de dado vêm de `it.rotulos` — `ROTULOS` (`src/web/constantes.ts`). "Aluno" encabeça a
   mesma coluna em seis telas, "Ações" é a coluna dos botões de linha em toda tabela do sistema e
   "Matrículas ativas" é a mesma contagem que o cartão do painel e a coluna da lista de turmas
@@ -67,14 +79,21 @@ const matriculas = it.matriculas ?? [];
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Secretaria · Turma</p>
+    <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= it.rotulos.turma %></p>
     <h1 class="pagina__titulo"><%= turma.nome %></h1>
     <p class="pagina__resumo">
 <% // O bloco encosta na margem porque o Eta guarda como texto tudo o que vier antes da abertura
    // dele: indentado, empurraria a linha de baixo no HTML servido e o golden acusaria a tela.
+   //
+   // "Prosa em frase corrida" não basta para descartar `CONTAGEM.anoLetivo`, que também é o
+   // substantivo minúsculo de uma frase corrida. O que descarta é o número ao lado: o par
+   // singular/plural da CONTAGEM existe para o número que CONTA ("de 2 anos letivos", na
+   // paginação de `rede/anos.eta`), e o número desta linha é o NOME do ano — nenhum valor dele faz
+   // a palavra virar plural. O argumento inteiro está no cabeçalho de `rede/painel.eta`.
    // magic-values: permitido — "ano letivo" aqui é prosa no meio de uma frase corrida, e não o
-   // rótulo `ROTULOS.anoLetivo` ("Ano letivo"), que nomeia o filtro e a coluna da lista de turmas %>
-      <%= turma.serie %> · <%= turma.turno %> · <%= turma.unidadeNome %> · ano letivo
+   // rótulo `ROTULOS.anoLetivo` ("Ano letivo"), que nomeia o filtro e a coluna da lista de turmas,
+   // nem `CONTAGEM.anoLetivo`, que é o substantivo que um número conta %>
+      <%= turma.serie %><%= it.apresentacao.separador %><%= turma.turno %><%= it.apresentacao.separador %><%= turma.unidadeNome %><%= it.apresentacao.separador %>ano letivo
       <span class="numero"><%= turma.ano === null ? it.semValor : turma.ano %></span>
     </p>
   </div>

@@ -41,11 +41,33 @@
   das mesmas seis linhas, ninguém de fora os lê, e `for="titulo"` ao lado de `id="titulo"` é o HTML
   mais legível que um aluno pode encontrar.
 */
+
+/*
+  O "·" dos dois títulos de passo e o da nota da unidade compõem `it.apresentacao.separador` — o
+  `APRESENTACAO.separador` de `src/web/constantes.ts`, o mesmo que emenda dois valores lado a lado
+  em toda tela do sistema. Ele vale " · " COM os espaços em volta: o espaçamento é metade da
+  decisão, e é por isso que "Passo 1" e "Unidade" encostam na tag, sem espaço nenhum entre elas.
+
+  Na nota do passo 2 o separador entra por `separadorAntesDaQuebra`, e é a única concessão do
+  arquivo. Ali ele fecha a linha, e o espaço final dele seria seguido pela quebra que já separa o
+  "trocar unidade" do nome da unidade. Na tela os dois desenham a mesma coisa — o HTML colapsa
+  espaço em branco —, mas o HTML SERVIDO ganharia um espaço a mais no fim da linha, e a suíte de
+  golden compara byte a byte. Quem faz o papel do espaço final é a quebra de linha; o inicial, esse
+  continua vindo da constante, e trocar o "·" por outro símbolo continua sendo uma edição só.
+
+  A linha em branco logo abaixo dessa nota é a compensação do `autoTrim: [false, 'nl']` do Eta, que
+  come a quebra de linha imediatamente após `%>`: sem ela o `<a>` subiria para a mesma linha do "·".
+
+  "Unidade" e "Mensagem" nos dois `<h2>` ficam escritos aqui. Eles nomeiam o PASSO, e não o dado: o
+  rótulo do dado é o do `<label>` seis linhas abaixo (`it.rotulos.unidade`), e encurtar um não
+  encurta o outro. São dois títulos que existem uma vez só, e são decisão desta tela.
+*/
 const valores = it.valores;
 const responsaveis = it.responsaveis;
 const selecionados = new Set(valores.selecionados);
 const campos = it.campos.comunicado;
 const alcances = it.alcances;
+const separadorAntesDaQuebra = it.apresentacao.separador.trimEnd();
 const { erroDe, descricao, idDoErro, idDaAjuda } = it;
 %>
 <header class="pagina__cabecalho">
@@ -65,7 +87,7 @@ const { erroDe, descricao, idDoErro, idDaAjuda } = it;
 <% if (it.unidade === null) { %>
 <section class="secao" aria-labelledby="titulo-unidade">
   <div class="secao__cabecalho">
-    <h2 id="titulo-unidade">Passo 1 · Unidade</h2>
+    <h2 id="titulo-unidade">Passo 1<%= it.apresentacao.separador %>Unidade</h2>
     <p class="secao__nota">A lista de destinatários é a dos responsáveis desta unidade</p>
   </div>
 
@@ -118,9 +140,10 @@ const { erroDe, descricao, idDoErro, idDaAjuda } = it;
 <% } else { %>
 <section class="secao" aria-labelledby="titulo-mensagem">
   <div class="secao__cabecalho">
-    <h2 id="titulo-mensagem">Passo 2 · Mensagem</h2>
+    <h2 id="titulo-mensagem">Passo 2<%= it.apresentacao.separador %>Mensagem</h2>
     <p class="secao__nota">
-      <%= it.rotulos.unidade %> <strong><%= it.unidade.nome %></strong> ·
+      <%= it.rotulos.unidade %> <strong><%= it.unidade.nome %></strong><%= separadorAntesDaQuebra %>
+
       <a href="<%= it.rotas.comunicados.novo() %>">trocar unidade</a>
     </p>
   </div>

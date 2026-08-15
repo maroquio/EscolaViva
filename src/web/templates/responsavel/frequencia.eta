@@ -75,7 +75,13 @@ const situacaoDoDia = (dia) => {
 // de uma vez, em voz corrida, com o ano num `<span>` à parte porque a folha de estilo o destaca.
 // Só o separador tem dono (`it.apresentacao.separador`); trocar só ele partiria a sentença em
 // pedaços que ninguém mais lê como sentença, que é o que a regra de legibilidade recusa.
-// magic-values: permitido — "Turma" não é `it.rotulos.turma` (o `<th>` da coluna) e "ano letivo" não é `it.rotulos.anoLetivo` (o rótulo do filtro). %>
+//
+// "ano letivo" também não é `it.contagem.anoLetivo.singular`, ainda que seja o substantivo
+// minúsculo de uma frase corrida: o 2026 do `<span>` é o NOME do ano, e não uma quantidade de anos
+// letivos — nenhum valor dele faz a palavra virar plural. O par da CONTAGEM só trabalha onde um
+// número CONTA ("de 2 anos letivos", na paginação de `rede/anos.eta`); o argumento inteiro, com as
+// sete telas que escrevem esta prosa, está no cabeçalho de `rede/painel.eta`.
+// magic-values: permitido — "Turma" não é `it.rotulos.turma` (o `<th>` da coluna), "ano letivo" não é `it.rotulos.anoLetivo` (o rótulo do filtro) nem `it.contagem.anoLetivo` (o substantivo que um número conta). %>
       Turma <%= it.matricula.turmaNome %> · ano letivo
       <span class="numero"><%= it.matricula.ano %></span>
     </p>

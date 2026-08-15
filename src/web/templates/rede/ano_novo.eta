@@ -13,6 +13,14 @@
   O rótulo do botão que envia é o título DESTA tela, e por isso lê `it.titulos.rede.anoNovo` — a
   mesma chave que a rota passa como `it.titulo` no `<h1>` acima. São a mesma decisão dita uma vez:
   renomear a tela renomeia junto o botão que a cumpre, e a lista que traz até aqui.
+
+  O sobretítulo acima do `<h1>` diz de onde a pessoa veio, e por isso é COMPOSTO em vez de escrito:
+  `it.areas.rede` (`AREAS`, o nome da área no menu), o `it.apresentacao.separador` (`APRESENTACAO`,
+  que é " · " COM os espaços em volta — o espaçamento é metade da decisão) e `it.titulos.rede.anos`
+  (`TITULOS`, o nome da LISTA que traz até aqui), todos de `src/web/constantes.ts`. Escrever
+  "Rede · Anos letivos" à mão daria o mesmo texto hoje e uma tela mentindo amanhã: renomear a lista
+  nos títulos mudaria o botão que traz até esta tela e deixaria o sobretítulo apontando para um nome
+  que já não existe.
 */
 
 /*
@@ -42,7 +50,7 @@ const { erroDe, descricao } = it;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Rede · Anos letivos</p>
+    <p class="sobretitulo"><%= it.areas.rede %><%= it.apresentacao.separador %><%= it.titulos.rede.anos %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       O período define o que conta como "este ano" para matrícula, boletim e frequência. Não pode

@@ -21,11 +21,17 @@
   que passou a se chamar outra coisa.
 
   Pela mesma razão o caminho da parcial incluída chega em `it.parciais` e os dois separadores
-  chegam prontos: o " · turno " do sobretítulo em `it.separadorDeTurno`, e o " · " que emenda
-  data e turma na legenda da tabela em `it.separador` — o mesmo que junta atributos numa linha
-  só no sobretítulo da tela de notas. São `TEMPLATES.parciais` e `APRESENTACAO`, de
-  `src/web/constantes.ts`, carregados até aqui pela rota — o Eta não importa TypeScript, e
-  redigitá-los abriria a segunda fonte de verdade que a constante existe para fechar.
+  chegam prontos: o " · turno " do sobretítulo em `it.separadorDeTurno`, e o " · " de
+  `it.separador` — o mesmo que junta atributos numa linha só no sobretítulo da tela de notas.
+  São `TEMPLATES.parciais` e `APRESENTACAO`, de `src/web/constantes.ts`, carregados até aqui pela
+  rota — o Eta não importa TypeScript, e redigitá-los abriria a segunda fonte de verdade que a
+  constante existe para fechar.
+
+  `it.separador` aparece três vezes nesta tela, e sempre no mesmo papel: emendar dois atributos
+  do mesmo objeto numa linha só. Emenda data e turma na legenda da tabela, e emenda o rumo com a
+  data nos dois links de navegação do calendário — "Dia anterior · 12/03/2026". Os ESPAÇOS em
+  volta do ponto são parte da constante, não da frase que a usa: quem trocar o meio-espaço por
+  um travessão troca nos três de uma vez, sem passar por aqui.
 
   Duas palavras desta tela são de fora dela e chegam por `it`:
 
@@ -69,11 +75,11 @@ const legenda = `Chamada de ${it.formatarData(data)}${it.separador}${turma.turma
   <nav class="linha" aria-label="Dia da chamada">
     <a class="botao botao--secundario" rel="prev"
        href="<%= it.acaoDoFormulario %>?<%= it.campoData %>=<%= it.diaAnterior %>">
-      Dia anterior · <time class="numero" datetime="<%= it.diaAnterior %>"><%= it.formatarData(it.diaAnterior) %></time>
+      Dia anterior<%= it.separador %><time class="numero" datetime="<%= it.diaAnterior %>"><%= it.formatarData(it.diaAnterior) %></time>
     </a>
     <a class="botao botao--secundario" rel="next"
        href="<%= it.acaoDoFormulario %>?<%= it.campoData %>=<%= it.diaSeguinte %>">
-      Dia seguinte · <time class="numero" datetime="<%= it.diaSeguinte %>"><%= it.formatarData(it.diaSeguinte) %></time>
+      Dia seguinte<%= it.separador %><time class="numero" datetime="<%= it.diaSeguinte %>"><%= it.formatarData(it.diaSeguinte) %></time>
     </a>
   </nav>
 

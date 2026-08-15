@@ -50,8 +50,12 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
     <h1 class="pagina__titulo"><%= boletim.alunoNome %></h1>
     <p class="pagina__resumo">
 <% // "ano letivo" aqui não é o ROTULOS.anoLetivo que rotula o filtro e o select de quem ESCOLHE a %>
-<% // entidade: é o substantivo lido em voz corrida, minúsculo, com o número dentro de um span. %>
-<% // magic-values: permitido — prosa em frase corrida, e não rótulo de dado; o único pedaço repetido é o separador, que já tem dono em APRESENTACAO.separador %>
+<% // entidade — e também não é CONTAGEM.anoLetivo, por mais que seja o substantivo minúsculo lido %>
+<% // em voz corrida: o número do span é o NOME do ano, não uma quantidade dele, e por isso a %>
+<% // palavra ao lado nunca vira "anos letivos". O par singular/plural da CONTAGEM só trabalha onde %>
+<% // um número CONTA — "de 2 anos letivos", na paginação de rede/anos.eta. Argumento inteiro em %>
+<% // rede/painel.eta, que já leu a constante aqui por engano. %>
+<% // magic-values: permitido — prosa em frase corrida, e não rótulo de dado nem substantivo contado; o único pedaço repetido é o separador, que já tem dono em APRESENTACAO.separador %>
       <%= it.rotulos.turma %> <%= boletim.turmaNome %> · ano letivo <span class="numero"><%= boletim.ano %></span>
     </p>
   </div>

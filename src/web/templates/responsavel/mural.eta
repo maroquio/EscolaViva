@@ -23,6 +23,19 @@
   coisa em pesos diferentes — escrever o ternário duas vezes deixaria a metade lida do mural livre
   para divergir da não lida na palavra que ambas contam.
 */
+
+/*
+  Na linha de cada comunicado já lido, o "·" que separa a data de publicação da data de leitura é
+  `it.apresentacao.separador` — `APRESENTACAO` (`src/web/constantes.ts`), a mesma marca com que os
+  sobretítulos de nove telas juntam a área do menu e o nome da tela. O trabalho é o mesmo: emendar
+  dois fatos numa linha só. Escrito à mão, esta seria a décima ocorrência da marca tipográfica, e
+  trocá-la em `APRESENTACAO` deixaria o mural pontuando de um jeito que nenhuma outra tela usa.
+
+  O valor da constante é ` · `, com um espaço de cada lado: os espaços são metade da decisão, e não
+  indentação do template. Por isso a linha que a imprime começa UM espaço à esquerda das vizinhas —
+  o espaço que falta no recuo é o que a constante devolve, e o HTML servido sai com os mesmos oito
+  espaços de antes. Alinhá-la com as irmãs acrescentaria um nono espaço ao texto renderizado.
+*/
 const naoLidos = it.naoLidos;
 const lidos = it.lidos;
 %>
@@ -99,7 +112,7 @@ const lidos = it.lidos;
       <span class="suave">
         publicado em
         <time datetime="<%= item.publicadoEm %>"><%= it.formatarData(item.publicadoEm) %></time>
-        · lido em
+       <%= it.apresentacao.separador %>lido em
         <time datetime="<%= item.lidoEm %>"><%= it.formatarDataHora(item.lidoEm) %></time>
       </span>
     </li>

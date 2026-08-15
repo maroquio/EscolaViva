@@ -103,7 +103,11 @@ const ativa = it.ativa ?? null;
         <span class="suave">nenhuma</span>
         <% } else { %>
         <span class="etiqueta etiqueta--ativa"><%= ativa.situacaoNome %></span>
-<% // magic-values: permitido — "ano letivo" aqui é prosa da frase que resume a matrícula ativa, e não ROTULOS.anoLetivo, que nomeia a ENTIDADE escolhida num filtro ou num <select>; o "·" separa fragmentos de uma sentença com <span class="numero"> no meio, e não atributos de uma linha como o APRESENTACAO.separador %>
+<% // Nem CONTAGEM.anoLetivo, apesar de ser o substantivo minúsculo de uma frase corrida: o número %>
+<% // ao lado é o NOME do ano, não uma quantidade de anos letivos, e nenhum valor dele faz a %>
+<% // palavra virar plural. O par da CONTAGEM só trabalha onde um número CONTA, como na barra de %>
+<% // paginação de rede/anos.eta. O argumento inteiro está no cabeçalho de rede/painel.eta. %>
+<% // magic-values: permitido — "ano letivo" aqui é prosa da frase que resume a matrícula ativa, e não ROTULOS.anoLetivo, que nomeia a ENTIDADE escolhida num filtro ou num <select>, nem CONTAGEM.anoLetivo, que é o substantivo que um número conta; o "·" separa fragmentos de uma sentença com <span class="numero"> no meio, e não atributos de uma linha como o APRESENTACAO.separador %>
         <%= ativa.turmaNome %> · ano letivo <span class="numero"><%= ativa.ano %></span> ·
         matriculado em <span class="numero"><%= it.formatarData(ativa.dataMatricula) %></span>
         <% } %>

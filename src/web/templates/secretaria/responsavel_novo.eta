@@ -38,6 +38,13 @@
   onde saem os rótulos dos botões que trazem alguém até aqui — a lista de responsáveis e o vínculo
   feito pela ficha do aluno. "Cadastrar responsável" é uma decisão só, escrita em quatro lugares;
   renomeá-la em um e esquecer os outros deixa a tela se chamando de dois jeitos, e nada acusa.
+
+  O sobretítulo acima do `<h1>` não é um texto: é uma COMPOSIÇÃO de três decisões que já têm dono —
+  a ÁREA do menu (`AREAS.secretaria`), a marca tipográfica que separa os dois (`APRESENTACAO.separador`,
+  com os espaços em volta dentro dela) e o título da lista onde esta tela vive
+  (`TITULOS.secretaria.responsaveis`), todos de `src/web/constantes.ts`. Escrito à mão,
+  "Secretaria · Responsáveis" seria uma quarta cópia muda: renomear a área no menu ou a lista nos
+  títulos deixaria esta linha dizendo o nome antigo, e nada acusaria.
 */
 const valores = it.valores ?? {};
 const { erroDe, descricao } = it;
@@ -45,7 +52,7 @@ const campos = it.campos.responsavel;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo">Secretaria · Responsáveis</p>
+    <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= it.titulos.secretaria.responsaveis %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
       Quem recebe comunicado e acompanha boletim e frequência. Depois de cadastrar, vincule-o ao

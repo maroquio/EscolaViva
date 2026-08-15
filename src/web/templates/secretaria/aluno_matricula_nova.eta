@@ -47,6 +47,17 @@
   O botão que envia fica de fora: "Matricular" é curto porque o cabeçalho da página já disse em quem
   e em quê, e não é o título "Matricular em uma turma". São duas frases, e não a mesma dita duas
   vezes.
+
+  A opção do `<select>` identifica a turma por quatro atributos numa linha só — nome, série, turno e
+  unidade —, e o que os emenda é o `APRESENTACAO.separador` (`src/web/constantes.ts`), o mesmo " · "
+  que o sobretítulo logo acima usa e que a documentação dele descreve com este exato exemplo. São os
+  espaços em volta do ponto, tanto quanto o ponto, que fazem a decisão: escritos à mão três vezes na
+  mesma linha, apertar ou afrouxar o respiro no dono deixaria esta lista com o espaçamento antigo, e
+  a tela continuaria funcionando — só desalinhada das outras que compõem atributos assim.
+
+  A emenda mora no `rotuloDaTurma` em vez de repetir a tag três vezes dentro do `<option>`: com
+  `<%= it.apresentacao.separador %>` intercalado a linha passaria de duzentos caracteres e os quatro
+  dados sumiriam no meio da marcação. É o mesmo desenho da `legenda` de `professor/notas.eta`.
 */
 const aluno = it.aluno;
 const turmas = it.turmas ?? [];
@@ -72,6 +83,9 @@ const agrupar = (lista) => {
 
 const grupos = agrupar(turmas);
 const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
+
+const rotuloDaTurma = (turma) =>
+  [turma.nome, turma.serie, turma.turno, turma.unidadeNome].join(it.apresentacao.separador);
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -114,7 +128,7 @@ const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
           <optgroup label="<%= it.rotulos.anoLetivo %> <%= grupo.ano === null ? it.semValor : grupo.ano %>">
             <% grupo.turmas.forEach((turma) => { %>
             <option value="<%= turma.id %>" <%= valor(campos.turmaId, '') === turma.id ? 'selected' : '' %>>
-              <%= turma.nome %> · <%= turma.serie %> · <%= turma.turno %> · <%= turma.unidadeNome %>
+              <%= rotuloDaTurma(turma) %>
             </option>
             <% }) %>
           </optgroup>

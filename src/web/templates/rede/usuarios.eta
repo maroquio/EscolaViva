@@ -27,6 +27,13 @@
   `<label>` do convite, que edita estes mesmos dados. E o rótulo da paginação é
   `it.contagem.usuario.plural`, o substantivo que vem depois de um número; ele é outra decisão que
   o título "Usuários" da tela, ainda que hoje as duas palavras se pareçam.
+
+  Cada linha da coluna de papéis é COMPOSTA, e não escrita: papel e unidade são dois atributos de
+  uma mesma atribuição, unidos por `it.apresentacao.separador` — `APRESENTACAO.separador`
+  (`src/web/constantes.ts`), o mesmo "·" que separa série, turno e unidade no resumo da turma. É
+  exatamente para isso que ele existe, e os espaços em volta do sinal são metade do valor: quem
+  apertar ou afrouxar o espaçamento do sistema mexe num lugar só, e não em cada tela que enfileira
+  atributos numa linha.
 */
 const usuarios = it.usuarios ?? [];
 const papeis = it.papeis ?? [];
@@ -115,7 +122,7 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
             <span class="suave"><%= it.semPapel %></span>
             <% } else { %>
             <% usuario.papeis.forEach((atribuicao) => { %>
-            <div><%= rotuloDoPapel(atribuicao.papel) %> · <%= atribuicao.unidadeNome %></div>
+            <div><%= rotuloDoPapel(atribuicao.papel) %><%= it.apresentacao.separador %><%= atribuicao.unidadeNome %></div>
             <% }) %>
             <% } %>
           </td>

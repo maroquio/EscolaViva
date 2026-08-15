@@ -40,6 +40,15 @@
   `ROTULOS.ano`, que nomeia o NÚMERO numa coluna: aqui a palavra vem antes do número, para dizer de
   que ano letivo são as turmas do grupo.
 
+  Dentro de cada grupo, a opção emenda quatro atributos da turma numa linha só, e o que os une é
+  `it.apresentacao.separador` — `APRESENTACAO` (`src/web/constantes.ts`), cujo docblock descreve
+  literalmente este uso: "nome · série · turno". Os dois espaços em volta do `·` são metade da
+  decisão, e é por isso que ela tem um dono: escrito à mão aqui, apertar ou afrouxar o separador no
+  dono deixaria só esta lista com o espaçamento antigo, e nada acusa — a tela continua desenhando
+  os quatro valores lado a lado, apenas diferente de todas as outras. A emenda mora em
+  `rotuloDaTurma()`, no alto do arquivo, e não em três tags repetidas no meio do `<option>`: ali
+  elas esconderiam atrás da marcação justamente o texto que a secretaria lê para escolher a turma.
+
   O atalho do estado vazio se rotula com o título da tela para onde leva: `it.titulos` — `TITULOS`
   (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` da tela de cadastro de
   turma. Escrito à mão, renomear aquela tela deixaria este botão chamando-a pelo nome antigo, e nada
@@ -63,6 +72,9 @@ const { erroDe, descricao, acoes } = it;
 const campos = it.campos.transferencia;
 
 const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valores[campo]);
+
+const rotuloDaTurma = (turma) =>
+  [turma.nome, turma.serie, turma.turno, turma.unidadeNome].join(it.apresentacao.separador);
 
 const agrupar = (lista) => {
   const grupos = [];
@@ -126,7 +138,7 @@ const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
           <optgroup label="<%= it.rotulos.anoLetivo %> <%= grupo.ano === null ? it.semValor : grupo.ano %>">
             <% grupo.turmas.forEach((turma) => { %>
             <option value="<%= turma.id %>" <%= valor(campos.turmaDestinoId, '') === turma.id ? 'selected' : '' %>>
-              <%= turma.nome %> · <%= turma.serie %> · <%= turma.turno %> · <%= turma.unidadeNome %>
+              <%= rotuloDaTurma(turma) %>
             </option>
             <% }) %>
           </optgroup>
