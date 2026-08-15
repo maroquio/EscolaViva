@@ -17,12 +17,30 @@
   seria uma cópia do caminho de arquivo que nenhum compilador confere: renomear o parcial derruba a
   tela em tempo de execução, e não na compilação.
 */
+
+/*
+  O rótulo do botão que leva a uma tela é o título dela: `it.titulos` — `TITULOS`
+  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` desta página e de onde o
+  menu tira o nome de cada link. Escrito à mão, renomear a tela de destino deixaria o caminho até
+  ela chamando-a pelo nome antigo, e nada acusa: o botão continua levando ao lugar certo com a
+  legenda errada.
+
+  Vale para o cadastro de aluno, que é o primeiro atalho e também o botão do cabeçalho. Não vale
+  para os outros três atalhos: "Buscar e matricular", "Turmas e professores" e "Cadastrar
+  responsável" são manchetes de cartão, e não o nome da tela para onde levam — as duas primeiras
+  nem se parecem com o título do destino, e a terceira abre a LISTA de responsáveis ("Responsáveis"),
+  onde o cadastro ainda é um clique adiante. Coincidir com `TITULOS.secretaria.responsavelNovo` é
+  acidente de redação: renomear aquela tela não deve reescrever este cartão.
+
+  Os rótulos dos cartões de número e os cabeçalhos da tabela por unidade ("Turmas", "Disciplinas")
+  também são outra decisão: nomeiam a contagem daquela coluna, não a tela que os menus abrem.
+*/
 const unidades = it.unidades ?? [];
 const totais = it.totais;
 const anoCorrente = it.anoCorrente ?? null;
 
 const atalhos = [
-  { href: it.rotas.secretaria.alunoNovo(), rotulo: 'Aluno', titulo: 'Cadastrar aluno',
+  { href: it.rotas.secretaria.alunoNovo(), rotulo: 'Aluno', titulo: it.titulos.secretaria.alunoNovo,
     detalhe: 'Nome e data de nascimento. A matrícula vem depois, na ficha.' },
   { href: it.rotas.secretaria.alunos(), rotulo: 'Matrícula', titulo: 'Buscar e matricular',
     detalhe: 'Procure pelo nome para matricular, transferir ou vincular responsável.' },
@@ -42,7 +60,7 @@ const atalhos = [
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.alunoNovo() %>">Cadastrar aluno</a>
+    <a class="botao botao--primario" href="<%= it.rotas.secretaria.alunoNovo() %>"><%= it.titulos.secretaria.alunoNovo %></a>
     <a class="botao botao--secundario" href="<%= it.rotas.secretaria.alunos() %>">Buscar aluno</a>
   </div>
 </div>

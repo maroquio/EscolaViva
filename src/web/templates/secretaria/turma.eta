@@ -22,6 +22,20 @@
 /*
   O travessão do valor que não se resolveu é `it.semValor` — `AUSENTE` (`src/shared/constantes.ts`),
   o mesmo símbolo que as tabelas de todas as telas usam para célula vazia.
+
+  O rótulo do botão que leva ao formulário de alocação é o título dele: `it.titulos` — `TITULOS`
+  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` da página que o botão
+  abre. Escrito à mão, renomear aquela tela deixaria este botão chamando-a pelo nome antigo, e nada
+  acusa: ele continua levando ao lugar certo com a legenda errada.
+
+  A linha em branco depois desse rótulo não é descuido: o Eta come a quebra de linha que vem logo
+  após `%>` (`autoTrim: [false, 'nl']`), e sem a segunda quebra o `</a>` subiria para a mesma linha
+  do texto no HTML servido. É a mesma compensação que `_layout_publico.eta` faz no rodapé.
+
+  As duas ações dos estados vazios ficam de fora. "Alocar disciplina" é curto de propósito, dentro de
+  um cartão que já explica o resto, e não é o título "Alocar disciplina e professor"; "Buscar aluno"
+  não é como a tela de alunos se chama ("Alunos") — é o que se vai fazer nela. Nos dois casos são
+  duas frases, e não a mesma dita duas vezes.
 */
 const turma = it.turma;
 const alocacoes = it.alocacoes ?? [];
@@ -88,7 +102,8 @@ const matriculas = it.matriculas ?? [];
 
     <div class="acoes">
       <a class="botao botao--primario" href="<%= it.rotas.secretaria.turmaDisciplinaNova({ id: turma.id }) %>">
-        Alocar disciplina e professor
+        <%= it.titulos.secretaria.alocar %>
+
       </a>
     </div>
     <% } %>

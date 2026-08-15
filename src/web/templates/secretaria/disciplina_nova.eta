@@ -17,6 +17,12 @@
   `MENSAGENS.disciplina.nomeLongo` — que ele coincida com o do aluno é coincidência, são duas
   políticas independentes. Os sufixos são de `SUFIXOS_DE_ID`, os mesmos que `descricao()` usa para
   montar o `aria-describedby` do outro lado.
+
+  O rótulo do botão que envia é o título desta tela: `it.titulos` — `TITULOS`
+  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` do `<h1>` logo acima e de
+  onde saem os rótulos dos botões que trazem alguém até aqui — a lista de disciplinas e a alocação
+  feita na tela da turma. "Cadastrar disciplina" é uma decisão só, escrita em quatro lugares;
+  renomeá-la em um e esquecer os outros deixa a tela se chamando de dois jeitos, e nada acusa.
 */
 const valores = it.valores ?? {};
 const { erroDe, descricao, sufixos } = it;
@@ -57,7 +63,7 @@ const { erroDe, descricao, sufixos } = it;
     </div>
 
     <div class="acoes">
-      <button class="botao botao--primario" type="submit">Cadastrar disciplina</button>
+      <button class="botao botao--primario" type="submit"><%= it.titulos.secretaria.disciplinaNova %></button>
       <a class="botao botao--discreto" href="<%= it.rotas.secretaria.disciplinas() %>">Cancelar</a>
     </div>
   </form>

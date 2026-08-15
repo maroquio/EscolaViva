@@ -19,6 +19,12 @@
 */
 /*
   O travessão da célula sem valor é `it.semValor` — `AUSENTE` (`src/shared/constantes.ts`).
+
+  O rótulo dos dois caminhos para o cadastro é o título da tela de cadastro: `it.titulos` — `TITULOS`
+  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` desta página e de onde o
+  menu tira o nome de cada link. Escrito à mão, renomear a tela de destino deixaria o caminho até ela
+  chamando-a pelo nome antigo, e nada acusa: o botão continua levando ao lugar certo com a legenda
+  errada.
 */
 const responsaveis = it.responsaveis ?? [];
 %>
@@ -33,7 +39,7 @@ const responsaveis = it.responsaveis ?? [];
   </div>
   <div class="pagina__acoes">
     <a class="botao botao--secundario" href="<%= it.rotas.secretaria.alunos() %>">Buscar aluno</a>
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.responsavelNovo() %>">Cadastrar responsável</a>
+    <a class="botao botao--primario" href="<%= it.rotas.secretaria.responsavelNovo() %>"><%= it.titulos.secretaria.responsavelNovo %></a>
   </div>
 </div>
 
@@ -51,7 +57,7 @@ const responsaveis = it.responsaveis ?? [];
   <%~ include(it.parciais.vazio, {
     titulo: 'Nenhum responsável cadastrado',
     texto: 'O e-mail é único na rede: é por ele que o responsável recebe comunicado — não é usado para entrar.',
-    acao: { href: it.rotas.secretaria.responsavelNovo(), texto: 'Cadastrar responsável' }
+    acao: { href: it.rotas.secretaria.responsavelNovo(), texto: it.titulos.secretaria.responsavelNovo }
   }) %>
   <% } else { %>
   <div class="tabela-rolagem">

@@ -28,6 +28,17 @@
   (`src/web/constantes.ts`), o mesmo mapa que nomeia esta página. Escrito à mão, `"/parciais/_vazio"`
   seria uma cópia do caminho de arquivo que nenhum compilador confere: renomear o parcial derruba a
   tela em tempo de execução, e não na compilação.
+
+  E o rótulo dos botões que levam a outra tela é o título dela: `it.titulos` — `TITULOS`
+  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` desta página e de onde o
+  menu tira o nome de cada link. Escrito à mão, renomear a tela de destino deixaria o caminho até ela
+  chamando-a pelo nome antigo, e nada acusa: o botão continua levando ao lugar certo com a legenda
+  errada. O "Limpar filtro" do estado vazio fica de fora — ele não abre outra tela, recarrega esta
+  sem o filtro.
+
+  O `<h2>` da lista se escreve como o título da página por coincidência: ele nomeia a seção abaixo do
+  filtro, e continuaria "Turmas" mesmo que a tela passasse a se chamar de outro jeito. São duas
+  decisões, e ligá-las faria uma mudar por causa da outra.
 */
 const turmas = it.turmas ?? [];
 const unidades = it.unidades ?? [];
@@ -47,8 +58,8 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.disciplinas() %>">Disciplinas</a>
-    <a class="botao botao--primario" href="<%= cadastroDeTurma %>">Cadastrar turma</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.disciplinas() %>"><%= it.titulos.secretaria.disciplinas %></a>
+    <a class="botao botao--primario" href="<%= cadastroDeTurma %>"><%= it.titulos.secretaria.turmaNova %></a>
   </div>
 </div>
 
@@ -109,7 +120,7 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
     : {
         titulo: 'Nenhuma turma cadastrada',
         texto: 'Sem turma não há matrícula, alocação de professor nem chamada.',
-        acao: { href: cadastroDeTurma, texto: 'Cadastrar turma' }
+        acao: { href: cadastroDeTurma, texto: it.titulos.secretaria.turmaNova }
       }) %>
   <% } else { %>
   <div class="tabela-rolagem">

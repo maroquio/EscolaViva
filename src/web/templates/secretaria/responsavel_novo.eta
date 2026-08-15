@@ -20,6 +20,12 @@
   dígitos, dois pontos e um traço —, que limita o que cabe na caixa: quem decide se o CPF vale é
   `shared/documento`, que aceita com ou sem pontuação. Os sufixos são de `SUFIXOS_DE_ID`, os mesmos
   que `descricao()` usa para montar o `aria-describedby` do outro lado.
+
+  O rótulo do botão que envia é o título desta tela: `it.titulos` — `TITULOS`
+  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` do `<h1>` logo acima e de
+  onde saem os rótulos dos botões que trazem alguém até aqui — a lista de responsáveis e o vínculo
+  feito pela ficha do aluno. "Cadastrar responsável" é uma decisão só, escrita em quatro lugares;
+  renomeá-la em um e esquecer os outros deixa a tela se chamando de dois jeitos, e nada acusa.
 */
 const valores = it.valores ?? {};
 const { erroDe, descricao, sufixos } = it;
@@ -119,7 +125,7 @@ const { erroDe, descricao, sufixos } = it;
     </div>
 
     <div class="acoes">
-      <button class="botao botao--primario" type="submit">Cadastrar responsável</button>
+      <button class="botao botao--primario" type="submit"><%= it.titulos.secretaria.responsavelNovo %></button>
       <a class="botao botao--discreto" href="<%= it.rotas.secretaria.responsaveis() %>">Cancelar</a>
     </div>
   </form>

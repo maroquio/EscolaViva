@@ -17,6 +17,11 @@
   de `it.rotas`, o mesmo mapa que o router registra. URL literal em `.eta` não quebra compilação:
   quebra a tela de quem clica.
 
+  O RÓTULO dessa volta vem pelo mesmo caminho: `it.titulos.professor.painel` é o título da tela
+  para onde ela leva, e é dele que o menu lateral já tira o nome do mesmo link. Escrito à mão aqui,
+  renomear o painel do professor deixava três telas mandando o professor de volta para uma página
+  que passou a se chamar outra coisa.
+
   O `id=` do recado de pendência e o `aria-describedby` do botão que ele descreve são o MESMO
   valor escrito nas duas pontas: ele chega em `it.prefixos.pendencia` (`PREFIXOS_DE_ID`, em
   `src/web/constantes.ts`), e o " · turno " do sobretítulo em `it.separadorDeTurno`. Escritos à
@@ -38,7 +43,7 @@ const disciplinas = turma.disciplinas ?? [];
   </div>
   <p class="pagina__acoes">
     <a class="botao botao--discreto" href="<%= turma.hrefChamada %>">Chamada</a>
-    <a class="botao botao--discreto" href="<%= it.rotas.professor.painel() %>">Minhas turmas</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.professor.painel() %>"><%= it.titulos.professor.painel %></a>
   </p>
 </div>
 

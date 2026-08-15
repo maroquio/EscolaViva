@@ -28,6 +28,12 @@
   (`src/web/constantes.ts`), o mesmo mapa que nomeia esta página. Escrito à mão, `"/parciais/_vazio"`
   seria uma cópia do caminho de arquivo que nenhum compilador confere: renomear o parcial derruba a
   tela em tempo de execução, e não na compilação.
+
+  O rótulo dos dois caminhos para o cadastro é o título da tela de cadastro: `it.titulos` —
+  `TITULOS` (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` desta página e
+  de onde o menu tira o nome de cada link. Escrito à mão, renomear a tela de destino deixaria o
+  caminho até ela chamando-a pelo nome antigo, e nada acusa: o botão continua levando ao lugar certo
+  com a legenda errada.
 */
 const alunos = it.alunos ?? [];
 const termo = it.termo ?? '';
@@ -42,7 +48,7 @@ const buscou = it.buscou === true;
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.alunoNovo() %>">Cadastrar aluno</a>
+    <a class="botao botao--primario" href="<%= it.rotas.secretaria.alunoNovo() %>"><%= it.titulos.secretaria.alunoNovo %></a>
   </div>
 </div>
 
@@ -87,7 +93,7 @@ const buscou = it.buscou === true;
   <%~ include(it.parciais.vazio, {
     titulo: 'Nenhum aluno com esse nome',
     texto: 'Confira a grafia ou tente apenas o primeiro nome. Se o aluno ainda não existe nesta rede, cadastre-o agora.',
-    acao: { href: it.rotas.secretaria.alunoNovo(), texto: 'Cadastrar aluno' }
+    acao: { href: it.rotas.secretaria.alunoNovo(), texto: it.titulos.secretaria.alunoNovo }
   }) %>
   <% } else { %>
   <div class="tabela-rolagem">

@@ -9,6 +9,11 @@
   não diz se o CPF existe. Ela aparece uma vez, no aviso do topo montado por
   `_mensagens`; quando o erro tem campo, o mesmo texto marca o campo. A senha nunca volta
   preenchida.
+
+  O rótulo do botão que envia é o título DESTA tela, e por isso lê `it.titulos.login` — a mesma
+  chave que `rotas/login.ts` passa como `it.titulo` no `<h1>` acima. São a mesma decisão dita uma
+  vez, e não duas palavras que por acaso se escrevem igual: o "Entrar novamente" da página de erro
+  é outro texto e continua sendo outro.
 */
 const valores = it.valores ?? { redeSlug: '', cpf: '' };
 
@@ -86,6 +91,6 @@ const { erroDe, descricao } = it;
   </div>
 
   <div class="acoes">
-    <button class="botao botao--primario" type="submit">Entrar</button>
+    <button class="botao botao--primario" type="submit"><%= it.titulos.login %></button>
   </div>
 </form>

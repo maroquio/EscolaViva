@@ -4,6 +4,11 @@
 
   Nenhum dos três campos volta preenchido depois de um erro: senha digitada não é valor a
   preservar. O que volta é a mensagem, ligada ao campo por `aria-describedby`.
+
+  O rótulo do botão que envia é o título DESTA tela, e por isso lê `it.titulos.trocarSenha` — a
+  mesma chave que a rota passa como `it.titulo` no `<h1>` acima e que o menu já usa para nomear o
+  link do grupo "Conta". São a mesma decisão dita uma vez: renomear a tela renomeia junto o botão
+  que a cumpre e o caminho do menu que traz até aqui, em vez de exigir uma varredura pelos `.eta`.
 */
 const { erroDe, descricao } = it;
 %>
@@ -78,7 +83,7 @@ const { erroDe, descricao } = it;
     </div>
 
     <div class="acoes">
-      <button class="botao botao--primario" type="submit">Trocar senha</button>
+      <button class="botao botao--primario" type="submit"><%= it.titulos.trocarSenha %></button>
     </div>
   </form>
 </div>

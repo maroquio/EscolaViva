@@ -17,6 +17,14 @@
 
   Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
   `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
+
+  O "Alunos" do `<h2>` mais abaixo NÃO vem de `it.titulos`, e não é esquecimento. Ele nomeia uma
+  SEÇÃO desta página — a tabela de quem está sob a responsabilidade de quem abriu — e se escreve
+  igual a `TITULOS.secretaria.alunos` por serem a mesma palavra do domínio, não a mesma decisão: o
+  responsável nem enxerga a tela da secretaria, e renomeá-la não pode renomear esta seção. A
+  justificativa que `scripts/magic-values.ts` exige fica na linha acima do literal, e encostada na
+  margem de propósito: o Eta guarda o que vier ANTES de um `<%` como texto do documento, então
+  indentar o comentário empurraria a linha seguinte dois espaços para a direita no HTML servido.
 */
 const matriculas = it.matriculas;
 const naoLidos = it.naoLidos;
@@ -70,6 +78,7 @@ const ROTULO_DA_SITUACAO = {
 
 <section class="secao" aria-labelledby="titulo-alunos">
   <div class="secao__cabecalho">
+<% // magic-values: permitido — nomeia esta seção, não a tela `TITULOS.secretaria.alunos` %>
     <h2 id="titulo-alunos">Alunos</h2>
     <p class="secao__nota">Uma matrícula por ano letivo</p>
   </div>

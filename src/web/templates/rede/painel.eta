@@ -12,6 +12,19 @@
   O caminho da parcial incluída também não é escrito à mão: ele chega em `it.parciais`, o mesmo
   `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo. Renomear a parcial passa a ser uma
   edição só, e não uma caçada por aspas espalhadas pelos `.eta`.
+
+  Os DOIS cartões que são link levam a uma tela que já tem título em `TITULOS`, e o rótulo do
+  cartão é esse título: ele chega em `it.titulos`, injetado por `render.ts` do mesmo jeito que
+  `it.rotas`. Escrito à mão, o painel ficava livre para chamar a tela de "Unidades" aqui e de outra
+  coisa no `<h1>` que o clique abre — a mesma divergência silenciosa que o menu já não tem.
+
+  Os outros dois cartões NÃO são link, e por isso continuam com o rótulo escrito. "Turmas" e
+  "Matriculados" nomeiam uma CONTAGEM desta rede, não uma tela: coincidem com
+  `TITULOS.secretaria.turmas` por serem a mesma palavra do domínio, e não a mesma decisão —
+  renomear a tela da secretaria não deve renomear um número do painel da rede. A justificativa que
+  `scripts/magic-values.ts` exige fica na linha acima do literal, e encostada na margem de
+  propósito: o Eta guarda o que vier ANTES de um `<%` como texto do documento, então indentar o
+  comentário empurraria a linha seguinte dois espaços para a direita no HTML servido.
 */
 const contagens = it.contagens ?? { unidades: 0, usuarios: 0, turmas: 0, matriculados: 0 };
 const anoLetivo = it.anoLetivo ?? null;
@@ -37,18 +50,19 @@ const anoNoRotulo = anoLetivo === null ? 'sem ano letivo' : 'ano letivo ' + anoL
 
   <div class="painel">
     <a class="cartao" href="<%= it.rotas.rede.unidades() %>">
-      <span class="cartao__rotulo">Unidades</span>
+      <span class="cartao__rotulo"><%= it.titulos.rede.unidades %></span>
       <span class="cartao__numero"><%= contagens.unidades %></span>
       <span class="cartao__detalhe">Escolas ativas e inativas da rede</span>
     </a>
 
     <a class="cartao" href="<%= it.rotas.rede.usuarios() %>">
-      <span class="cartao__rotulo">Usuários</span>
+      <span class="cartao__rotulo"><%= it.titulos.rede.usuarios %></span>
       <span class="cartao__numero"><%= contagens.usuarios %></span>
       <span class="cartao__detalhe">Pessoas com acesso, somando todos os papéis</span>
     </a>
 
     <div class="cartao">
+<% // magic-values: permitido — nomeia a contagem desta rede, não a tela `TITULOS.secretaria.turmas` %>
       <span class="cartao__rotulo">Turmas</span>
       <span class="cartao__numero"><%= contagens.turmas %></span>
       <span class="cartao__detalhe">Abertas no <%= anoNoRotulo %></span>
@@ -74,7 +88,9 @@ const anoNoRotulo = anoLetivo === null ? 'sem ano letivo' : 'ano letivo ' + anoL
     <%~ include(it.parciais.vazio, {
       titulo: 'Nenhum ano letivo definido',
       texto: 'Sem ano letivo não existe turma nem matrícula. É o primeiro passo depois de criar as unidades.',
-      acao: { href: it.rotas.rede.anosLetivos(), texto: 'Definir ano letivo' }
+      /* O rótulo nomeia a AÇÃO da tela `ano_novo` e por isso lê o título dela; o `href` passa
+         pela lista de propósito, para o administrador ver o calendário antes de definir. */
+      acao: { href: it.rotas.rede.anosLetivos(), texto: it.titulos.rede.anoNovo }
     }) %>
   <% } else { %>
   <div class="quadro">

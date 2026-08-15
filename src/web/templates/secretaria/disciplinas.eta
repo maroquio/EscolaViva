@@ -17,6 +17,15 @@
   (`src/web/constantes.ts`), o mesmo mapa que nomeia esta página. Escrito à mão, `"/parciais/_vazio"`
   seria uma cópia do caminho de arquivo que nenhum compilador confere: renomear o parcial derruba a
   tela em tempo de execução, e não na compilação.
+
+  E o rótulo de cada um desses três botões é o título da tela para onde ele leva: `it.titulos` —
+  `TITULOS` (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` desta página e
+  de onde o menu tira o nome de cada link. Escrito à mão, renomear a tela de destino deixaria o
+  caminho até ela chamando-a pelo nome antigo, e nada acusa: o botão continua levando ao lugar certo
+  com a legenda errada.
+
+  O `<h2>` da seção não entra nisso: "Cadastradas na rede" nomeia a lista dentro da página, e não a
+  página — as duas frases mudam por motivos diferentes.
 */
 const disciplinas = it.disciplinas ?? [];
 %>
@@ -30,8 +39,8 @@ const disciplinas = it.disciplinas ?? [];
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.turmas() %>">Turmas</a>
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.disciplinaNova() %>">Cadastrar disciplina</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.turmas() %>"><%= it.titulos.secretaria.turmas %></a>
+    <a class="botao botao--primario" href="<%= it.rotas.secretaria.disciplinaNova() %>"><%= it.titulos.secretaria.disciplinaNova %></a>
   </div>
 </div>
 
@@ -49,7 +58,7 @@ const disciplinas = it.disciplinas ?? [];
   <%~ include(it.parciais.vazio, {
     titulo: 'Nenhuma disciplina cadastrada',
     texto: 'Sem disciplina não há alocação de professor, e sem alocação não há lançamento de nota.',
-    acao: { href: it.rotas.secretaria.disciplinaNova(), texto: 'Cadastrar disciplina' }
+    acao: { href: it.rotas.secretaria.disciplinaNova(), texto: it.titulos.secretaria.disciplinaNova }
   }) %>
   <% } else { %>
   <div class="tabela-rolagem">

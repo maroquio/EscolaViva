@@ -21,6 +21,12 @@
   `MARCADO` (`src/web/constantes.ts`) — caixa desmarcada não é enviada pelo navegador, e é a ausência
   do nome, não o valor, que o servidor lê como "não". `it.opcaoVazia` é `APRESENTACAO.opcaoVazia`, e
   os sufixos são de `SUFIXOS_DE_ID`, os mesmos que `descricao()` usa do outro lado.
+
+  Os dois rótulos de ação também: `it.titulos` — `TITULOS` (`src/web/constantes.ts`), o mesmo mapa de
+  onde a rota tira o `it.titulo` do `<h1>`. O botão que envia carrega o título desta tela, e a saída
+  do estado vazio carrega o título da tela de cadastro de responsável, que é para onde ela leva.
+  Escritos à mão, renomear qualquer uma das duas telas deixaria a outra ponta chamando-a pelo nome
+  antigo, e nada acusa: o botão continua funcionando com a legenda errada.
 */
 const aluno = it.aluno;
 const disponiveis = it.disponiveis ?? [];
@@ -53,7 +59,7 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
     <% } %>
   </p>
   <div class="acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.responsavelNovo() %>">Cadastrar responsável</a>
+    <a class="botao botao--primario" href="<%= it.rotas.secretaria.responsavelNovo() %>"><%= it.titulos.secretaria.responsavelNovo %></a>
     <a class="botao botao--discreto" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>">Voltar à ficha</a>
   </div>
   <% } else { %>
@@ -121,7 +127,7 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
     </div>
 
     <div class="acoes">
-      <button class="botao botao--primario" type="submit">Vincular responsável</button>
+      <button class="botao botao--primario" type="submit"><%= it.titulos.secretaria.vincularResponsavel %></button>
       <a class="botao botao--discreto" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>">Cancelar</a>
     </div>
   </form>

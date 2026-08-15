@@ -19,6 +19,14 @@
   `SUFIXOS_DE_ID` (`src/web/constantes.ts`). O Eta não importa TypeScript, e reescrevê-los aqui
   criaria uma segunda decisão ao lado da do dono — no caso dos sufixos, um id apontado pelo
   `aria-describedby` que `descricao()` monta e que esta página não escreveria igual.
+
+  O atalho do estado vazio se rotula com o título da tela para onde leva: `it.titulos` — `TITULOS`
+  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` da tela de cadastro de
+  disciplina. Escrito à mão, renomear aquela tela deixaria este botão chamando-a pelo nome antigo, e
+  nada acusa: ele continua levando ao lugar certo com a legenda errada.
+
+  O botão que envia fica de fora: "Alocar" é curto porque o cabeçalho da página já disse o resto, e
+  não é o título "Alocar disciplina e professor". São duas frases, e não a mesma dita duas vezes.
 */
 const turma = it.turma;
 const disciplinas = it.disciplinas ?? [];
@@ -54,7 +62,7 @@ const paginaDaTurma = it.rotas.secretaria.turma({ id: turma.id });
   </p>
   <div class="acoes">
     <% if (disciplinas.length === 0) { %>
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.disciplinaNova() %>">Cadastrar disciplina</a>
+    <a class="botao botao--primario" href="<%= it.rotas.secretaria.disciplinaNova() %>"><%= it.titulos.secretaria.disciplinaNova %></a>
     <% } %>
     <a class="botao botao--discreto" href="<%= paginaDaTurma %>">Voltar à turma</a>
   </div>

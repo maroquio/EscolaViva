@@ -22,6 +22,23 @@
   seria uma cópia do caminho de arquivo que nenhum compilador confere: renomear o parcial derruba a
   tela em tempo de execução, e não na compilação.
 */
+
+/*
+  O rótulo do botão que leva a cada uma dessas três telas é o título dela: `it.titulos` — `TITULOS`
+  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` da página que o botão
+  abre e de onde o menu tira o nome de cada link. Escrito à mão, renomear a tela de destino deixaria
+  o caminho até ela chamando-a pelo nome antigo, e nada acusa: o botão continua levando ao lugar
+  certo com a legenda errada.
+
+  A linha em branco depois de cada um desses três rótulos não é descuido: o Eta come a quebra de
+  linha que vem logo após `%>` (`autoTrim: [false, 'nl']`), e sem a segunda quebra o `</a>` subiria
+  para a mesma linha do texto no HTML servido. É a mesma compensação que `_layout_publico.eta` faz
+  no rodapé.
+
+  A ação do estado vazio de matrículas escapa: "Matricular" é curto de propósito, dentro de um
+  cartão que já explica o resto, e não é o título "Matricular em uma turma". São duas frases, e não
+  a mesma dita duas vezes.
+*/
 const aluno = it.aluno;
 const vinculos = it.vinculos ?? [];
 const matriculas = it.matriculas ?? [];
@@ -88,7 +105,7 @@ const ativa = it.ativa ?? null;
       texto: 'O responsável é quem recebe comunicado e acompanha boletim e frequência deste aluno.',
       acao: {
         href: it.rotas.secretaria.alunoResponsavelNovo({ id: aluno.id }),
-        texto: 'Vincular responsável'
+        texto: it.titulos.secretaria.vincularResponsavel
       }
     }) %>
     <% } else { %>
@@ -121,7 +138,8 @@ const ativa = it.ativa ?? null;
 
     <div class="acoes">
       <a class="botao botao--primario" href="<%= it.rotas.secretaria.alunoResponsavelNovo({ id: aluno.id }) %>">
-        Vincular responsável
+        <%= it.titulos.secretaria.vincularResponsavel %>
+
       </a>
     </div>
     <% } %>
@@ -178,11 +196,13 @@ const ativa = it.ativa ?? null;
 
     <div class="acoes">
       <a class="botao botao--primario" href="<%= it.rotas.secretaria.alunoMatricular({ id: aluno.id }) %>">
-        Matricular em uma turma
+        <%= it.titulos.secretaria.matricular %>
+
       </a>
       <% if (ativa !== null) { %>
       <a class="botao botao--secundario" href="<%= it.rotas.secretaria.matriculaTransferir({ id: ativa.id }) %>">
-        Transferir de turma
+        <%= it.titulos.secretaria.transferir %>
+
       </a>
       <% } %>
       <p class="secao__nota">Um aluno tem, no máximo, uma matrícula ativa por ano letivo.</p>

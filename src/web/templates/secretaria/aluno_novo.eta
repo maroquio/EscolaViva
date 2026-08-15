@@ -19,6 +19,12 @@
   excedente com `MENSAGENS.aluno.nomeLongo`; o `maxlength` só adianta a recusa no navegador. O mesmo
   vale para `-erro` e `-ajuda`: quem monta o `aria-describedby` é `descricao()`, com `SUFIXOS_DE_ID`,
   e escrever o sufixo à mão aqui é o jeito de apontar para um id que não existe.
+
+  O rótulo do botão que envia é o título desta tela: `it.titulos` — `TITULOS`
+  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` do `<h1>` logo acima e de
+  onde saem os rótulos dos botões que trazem alguém até aqui. "Cadastrar aluno" é uma decisão só,
+  escrita no cabeçalho, no botão e em cada caminho de entrada; renomeá-la em um lugar e esquecer os
+  outros deixa a tela se chamando de dois jeitos, e nada acusa.
 */
 const valores = it.valores ?? {};
 const { erroDe, descricao, sufixos } = it;
@@ -79,7 +85,7 @@ const { erroDe, descricao, sufixos } = it;
     </div>
 
     <div class="acoes">
-      <button class="botao botao--primario" type="submit">Cadastrar aluno</button>
+      <button class="botao botao--primario" type="submit"><%= it.titulos.secretaria.alunoNovo %></button>
       <a class="botao botao--discreto" href="<%= it.rotas.secretaria.alunos() %>">Cancelar</a>
     </div>
   </form>

@@ -13,6 +13,11 @@
   cópias do endereço que podem divergir de um lado só, e URL literal em `.eta` não quebra
   compilação: quebra a tela de quem clica.
 
+  O RÓTULO dos dois vem pelo mesmo caminho, e pelo mesmo motivo: `it.titulos.rede.anoNovo` é o
+  título da tela para onde eles levam — o mesmo que a rota passa como `it.titulo` lá — e chega aqui
+  em `it.titulos`, injetado por `render.ts`. Escrito à mão, renomear a tela de definição deixava
+  dois botões prometendo "Definir ano letivo" para uma página que passou a se chamar outra coisa.
+
   Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
   `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
 */
@@ -28,7 +33,7 @@ const anos = it.anos ?? [];
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.rede.anoLetivoNovo() %>">Definir ano letivo</a>
+    <a class="botao botao--primario" href="<%= it.rotas.rede.anoLetivoNovo() %>"><%= it.titulos.rede.anoNovo %></a>
   </div>
 </div>
 
@@ -42,7 +47,7 @@ const anos = it.anos ?? [];
     <%~ include(it.parciais.vazio, {
       titulo: 'Nenhum ano letivo definido',
       texto: 'Enquanto não houver um ano definido, a secretaria não consegue criar turmas nem matricular alunos.',
-      acao: { href: it.rotas.rede.anoLetivoNovo(), texto: 'Definir ano letivo' }
+      acao: { href: it.rotas.rede.anoLetivoNovo(), texto: it.titulos.rede.anoNovo }
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">

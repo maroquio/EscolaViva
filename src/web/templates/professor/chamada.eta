@@ -15,6 +15,11 @@
   "Minhas turmas" sai de `it.rotas`, o mesmo mapa que o router registra. URL literal em `.eta` não
   quebra compilação: quebra a tela de quem clica.
 
+  O RÓTULO dessa volta vem pelo mesmo caminho: `it.titulos.professor.painel` é o título da tela
+  para onde ela leva, e é dele que o menu lateral já tira o nome do mesmo link. Escrito à mão aqui,
+  renomear o painel do professor deixava três telas mandando o professor de volta para uma página
+  que passou a se chamar outra coisa.
+
   Pela mesma razão o caminho da parcial incluída chega em `it.parciais` e o " · turno " do
   sobretítulo chega em `it.separadorDeTurno`: são `TEMPLATES.parciais` e `APRESENTACAO`, de
   `src/web/constantes.ts`, carregados até aqui pela rota — o Eta não importa TypeScript, e
@@ -36,7 +41,7 @@ const legenda = `Chamada de ${it.formatarData(data)} · ${turma.turmaNome}`;
   </div>
   <p class="pagina__acoes">
     <a class="botao botao--discreto" href="<%= turma.hrefFechamento %>">Fechamento</a>
-    <a class="botao botao--discreto" href="<%= it.rotas.professor.painel() %>">Minhas turmas</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.professor.painel() %>"><%= it.titulos.professor.painel %></a>
   </p>
 </div>
 

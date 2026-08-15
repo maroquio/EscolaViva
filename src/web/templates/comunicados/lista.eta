@@ -8,6 +8,13 @@
 
   A taxa chega de `comunicacao` como fração de 0 a 1, e é `it.formatarTaxa` quem a leva para a
   escala de 0 a 100 — nenhuma conta aqui, para que resumo e linhas não possam divergir.
+
+  O rótulo do botão do cabeçalho é o título da tela para onde ele leva, e por isso lê
+  `it.titulos.comunicados.novo` — a mesma chave que `rotas/comunicados.ts` passa como `it.titulo`
+  lá. Renomear a tela de publicação renomeia junto o caminho até ela.
+
+  A ação do estado vazio, mais abaixo, NÃO é o mesmo texto e por isso continua escrita: "Publicar o
+  primeiro comunicado" é o convite de uma lista que nunca teve linha, e não o nome da tela.
 */
 const comunicados = it.comunicados;
 const resumo = it.resumo;
@@ -21,7 +28,7 @@ const resumo = it.resumo;
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.comunicados.novo() %>">Novo comunicado</a>
+    <a class="botao botao--primario" href="<%= it.rotas.comunicados.novo() %>"><%= it.titulos.comunicados.novo %></a>
   </p>
 </header>
 

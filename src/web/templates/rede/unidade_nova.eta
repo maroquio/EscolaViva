@@ -9,6 +9,10 @@
   Os dois endereços da tela — o destino do formulário e o "Cancelar" — vêm de `it.rotas`, o mesmo
   mapa que o router registra. São o mesmo endereço escrito duas vezes, e escrevê-lo à mão aqui não
   quebraria compilação: quebraria a tela de quem clica, porque `.eta` não passa pelo compilador.
+
+  O rótulo do botão que envia é o título DESTA tela, e por isso lê `it.titulos.rede.unidadeNova` —
+  a mesma chave que a rota passa como `it.titulo` no `<h1>` acima. São a mesma decisão dita uma
+  vez: renomear a tela renomeia junto o botão que a cumpre, e a lista que traz até aqui.
 */
 
 /*
@@ -77,7 +81,7 @@ const { erroDe, descricao, sufixos } = it;
     </div>
 
     <div class="acoes">
-      <button class="botao botao--primario" type="submit">Criar unidade</button>
+      <button class="botao botao--primario" type="submit"><%= it.titulos.rede.unidadeNova %></button>
       <a class="botao botao--discreto" href="<%= it.rotas.rede.unidades() %>">Cancelar</a>
     </div>
   </form>

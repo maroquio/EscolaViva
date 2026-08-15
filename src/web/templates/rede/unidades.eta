@@ -14,6 +14,11 @@
   cópias do endereço que podem divergir de um lado só, e URL literal em `.eta` não quebra
   compilação: quebra a tela de quem clica.
 
+  O RÓTULO dos dois vem pelo mesmo caminho, e pelo mesmo motivo: `it.titulos.rede.unidadeNova` é o
+  título da tela para onde eles levam — o mesmo que a rota passa como `it.titulo` lá — e chega aqui
+  em `it.titulos`, injetado por `render.ts`. Escrito à mão, renomear a tela de cadastro deixava
+  dois botões prometendo "Criar unidade" para uma página que passou a se chamar outra coisa.
+
   Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
   `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
 */
@@ -43,7 +48,7 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.rede.unidadeNova() %>">Criar unidade</a>
+    <a class="botao botao--primario" href="<%= it.rotas.rede.unidadeNova() %>"><%= it.titulos.rede.unidadeNova %></a>
   </div>
 </div>
 
@@ -57,7 +62,7 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
     <%~ include(it.parciais.vazio, {
       titulo: 'Nenhuma unidade criada',
       texto: 'A primeira unidade abre o caminho para os usuários e as turmas.',
-      acao: { href: it.rotas.rede.unidadeNova(), texto: 'Criar unidade' }
+      acao: { href: it.rotas.rede.unidadeNova(), texto: it.titulos.rede.unidadeNova }
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">

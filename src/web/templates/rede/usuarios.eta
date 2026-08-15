@@ -13,6 +13,11 @@
   do endereço que podem divergir de um lado só, e URL literal em `.eta` não quebra compilação:
   quebra a tela de quem clica — justamente a tela por onde todo acesso à rede começa.
 
+  O RÓTULO dos dois vem pelo mesmo caminho, e pelo mesmo motivo: `it.titulos.rede.usuarioNovo` é o
+  título da tela para onde eles levam — o mesmo que a rota passa como `it.titulo` lá — e chega aqui
+  em `it.titulos`, injetado por `render.ts`. Escrito à mão, renomear a tela do convite deixava dois
+  botões prometendo "Convidar usuário" para uma página que passou a se chamar outra coisa.
+
   Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
   `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
 */
@@ -49,7 +54,7 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.rede.usuarioNovo() %>">Convidar usuário</a>
+    <a class="botao botao--primario" href="<%= it.rotas.rede.usuarioNovo() %>"><%= it.titulos.rede.usuarioNovo %></a>
   </div>
 </div>
 
@@ -76,7 +81,7 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
     <%~ include(it.parciais.vazio, {
       titulo: 'Nenhum usuário cadastrado',
       texto: 'Convide a secretaria primeiro: é ela quem cadastra alunos, responsáveis e turmas.',
-      acao: { href: it.rotas.rede.usuarioNovo(), texto: 'Convidar usuário' }
+      acao: { href: it.rotas.rede.usuarioNovo(), texto: it.titulos.rede.usuarioNovo }
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">
