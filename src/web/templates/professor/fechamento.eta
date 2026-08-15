@@ -34,6 +34,12 @@
   mesmo caminho. Redigitar `º bimestre` aqui faria o dia em que o produto passasse a dizer
   "1º trimestre" chegar em quatro telas e faltar nesta.
 
+  A palavra da etiqueta — Fechado ou Aberto — chega em `it.rotuloDoFechamento`: é o
+  `VOCABULARIO.fechamento` de `avaliacao`, pelo mesmo motivo do rótulo do bimestre, e pelo mesmo
+  caminho que o boletim usa para `it.rotuloDaSituacao`. Quem decide que um bimestre está fechado é
+  quem o fecha, e é dele a palavra. Escrita à mão, a constante ficou órfã: nasceu dona deste literal
+  e nunca teve leitor, e uma constante sem leitor é a mesma cópia vista do outro lado.
+
   A linha em branco depois desse rótulo, dentro do botão, não é descuido: o Eta come a quebra de
   linha que vem logo após um `%>`, e sem ela o `</button>` subia para a mesma linha do texto no HTML
   servido. É a mesma compensação que `_layout_publico.eta` faz no rodapé. No `<h2>` acima ela não é
@@ -42,6 +48,7 @@
 const estados = it.estados ?? [];
 const turma = it.turma;
 const disciplinas = turma.disciplinas ?? [];
+const ROTULO_DO_FECHAMENTO = it.rotuloDoFechamento;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -65,7 +72,7 @@ const disciplinas = turma.disciplinas ?? [];
     <div class="secao__cabecalho">
       <h2><%= it.rotuloDeBimestre(estado.bimestre) %></h2>
       <span class="etiqueta <%= estado.fechado ? 'etiqueta--aprovado' : 'etiqueta--em-curso' %>">
-        <%= estado.fechado ? 'Fechado' : 'Aberto' %>
+        <%= estado.fechado ? ROTULO_DO_FECHAMENTO.fechado : ROTULO_DO_FECHAMENTO.aberto %>
       </span>
     </div>
 

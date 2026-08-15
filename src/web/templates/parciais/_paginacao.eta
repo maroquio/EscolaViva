@@ -23,16 +23,21 @@
 */
 
 /*
-  Espelho de `PAGINACAO.rotuloPadrao` (`src/web/constantes.ts`), e não uma segunda decisão. É a
-  única cópia que este refactor não conseguiu apagar, e a razão é estrutural: o Eta não importa
-  TypeScript, e `include` NÃO herda o `it` de quem inclui — a parcial enxerga exatamente o objeto
-  do ponto de chamada, e nada do contexto onde `render.ts` injeta as constantes da camada web.
-  Não há, portanto, dono a consumir daqui.
+  O texto de socorro para a inclusão que esquecer o `rotulo`. Todas as de hoje informam o seu — sem
+  este, a barra anunciaria "de 12 undefined" para quem usa leitor de tela.
 
-  Todas as inclusões de hoje informam o `rotulo`; este é o texto de socorro para a que esquecer —
-  sem ele, a barra anunciaria "de 12 undefined" para quem usa leitor de tela.
+  Ele é decidido aqui porque aqui é o único lado que enxerga o que a barra imprime: o Eta não
+  importa TypeScript, e `include` NÃO herda o `it` de quem inclui — a parcial recebe exatamente o
+  objeto do ponto de chamada, `{ navegacao, rotulo }`, e nada do contexto onde `render.ts` injeta
+  as constantes da camada web. Nenhuma das inclusões manda constante alguma para cá.
 */
-// magic-values: permitido — este 'itens' É PAGINACAO.rotuloPadrao, e não outro conceito que coincide por valor; a parcial não tem como consumi-lo, pelo motivo acima.
+// A palavra desta linha não é PAGINACAO.rotuloPadrao, e a distância entre as duas não é de redação:
+// é de dono. Aquela declaração não é lida por ninguém — `src/web/paginacao.ts` consome do grupo só
+// a janela, `render.ts` nem o importa, e nenhum template a alcança. Valor que consumidor nenhum lê
+// não é fonte da verdade de nada; a fonte do que a barra imprime é esta linha, o único lugar onde o
+// include deixa a parcial ler. Quem tem de sair é a declaração sem consumidor, em
+// `src/web/constantes.ts`, e não a palavra sem a qual a tela para de dizer o que está contando.
+// magic-values: permitido — este 'itens' não é PAGINACAO.rotuloPadrao: aquela declaração não tem consumidor nenhum, e a fonte do que a barra imprime é esta linha.
 const ROTULO_PADRAO = 'itens';
 
 const nav = it.navegacao ?? null;

@@ -28,9 +28,12 @@
   Vale para o cadastro de aluno, que é o primeiro atalho e também o botão do cabeçalho. Não vale
   para os outros três atalhos: "Buscar e matricular", "Turmas e professores" e "Cadastrar
   responsável" são manchetes de cartão, e não o nome da tela para onde levam — as duas primeiras
-  nem se parecem com o título do destino, e a terceira abre a LISTA de responsáveis ("Responsáveis"),
-  onde o cadastro ainda é um clique adiante. Coincidir com `TITULOS.secretaria.responsavelNovo` é
-  acidente de redação: renomear aquela tela não deve reescrever este cartão.
+  nem se parecem com o título do destino, e a terceira não é `TITULOS.secretaria.responsaveis`,
+  título da tela que ela de fato abre, nem `TITULOS.secretaria.responsavelNovo`, título de uma tela
+  que ela NÃO abre: a manchete diz o que a pessoa vai fazer depois de chegar na lista, e o cadastro
+  ainda é um clique adiante. Quem carrega o nome daquela tela é o BOTÃO que leva até ela, na lista
+  de responsáveis e na ficha do aluno, e lá o nome vem do mapa. Renomeá-la reescreve os dois botões,
+  e não pode reescrever esta manchete.
 */
 
 /*
@@ -71,9 +74,9 @@ const atalhos = [
     titulo: 'Turmas e professores',
     detalhe: 'Abra a turma para alocar disciplina e professor da unidade.' },
   { href: it.rotas.secretaria.responsaveis(), rotulo: it.rotulos.responsavel,
-    // Manchete deste cartão, que abre a LISTA de responsáveis — o cadastro é um clique adiante,
-    // e renomear a tela de cadastro não deve reescrever esta manchete.
-    // magic-values: permitido — coincide com TITULOS.secretaria.responsavelNovo por acidente.
+    // Manchete deste cartão, que abre a LISTA de responsáveis: o cadastro ainda é um clique
+    // adiante, e quem carrega o nome daquela tela é o botão que leva até ela — ver o topo.
+    // magic-values: permitido — a manchete não é `TITULOS.secretaria.responsavelNovo`, título da tela de cadastro que este cartão NÃO abre; nem é `TITULOS.secretaria.responsaveis`, título da tela que ele abre
     titulo: 'Cadastrar responsável',
     detalhe: 'Quem recebe comunicado e responde pelo aluno.' },
 ];

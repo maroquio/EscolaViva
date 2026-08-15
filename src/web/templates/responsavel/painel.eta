@@ -18,6 +18,15 @@
   Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
   `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
 
+  O `rotulo` que vai para a barra de paginação também não se escreve aqui. É o substantivo contável
+  pelado — sem recorte, sem adjetivo —, e substantivo contável tem dono: `CONTAGEM.matricula`, que
+  chega em `it.contagem`, o mesmo par singular/plural que o cartão dos comunicados lê algumas linhas
+  acima e que `secretaria/aluno.eta` passa a ESTE mesmo include, no MESMO parâmetro, para ESTA mesma
+  palavra. Fossem duas cópias, renomear o substantivo numa tela deixaria a outra contando a palavra
+  antiga. O que fica escrito na tela são os rótulos QUALIFICADOS, do tipo dos que a lista de alunos e
+  a tela de frequência usam: aqueles descrevem o recorte daquela tabela, existem uma vez só e são
+  decisão de quem desenhou a tela — não do substantivo.
+
   O "Alunos" do `<h2>` mais abaixo NÃO vem de `it.titulos`, e não é esquecimento. Ele nomeia uma
   SEÇÃO desta página — a tabela de quem está sob a responsabilidade de quem abriu — e se escreve
   igual a `TITULOS.secretaria.alunos` por serem a mesma palavra do domínio, não a mesma decisão: o
@@ -136,7 +145,7 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'matrículas' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.matricula.plural }) %>
   <% } %>
 </section>
 

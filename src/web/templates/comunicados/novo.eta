@@ -104,18 +104,23 @@ const { erroDe, descricao, idDoErro, idDaAjuda } = it;
       </label>
 <%
 /*
-  O `name` deste `<select>` NÃO é `CAMPOS.comunicado.unidadeId`. Aquele é o campo do CORPO do POST, e
-  aparece no passo 2, no `input` oculto. Este formulário é GET: o que o `name` monta é o parâmetro de
-  QUERY que a rota lê em `PARAMETROS.unidadeId` — outra decisão, de outro mapa, que hoje se escreve
-  igual por coincidência. `PARAMETROS` não chega ao template, e apontar para o mapa errado só porque
-  os dois valem "unidadeId" hoje seria juntar por valor o que está separado por conceito.
+  O `name` deste `<select>` NÃO é `CAMPOS.comunicado.unidadeId`, e não é `CAMPOS.turma.unidadeId`.
+  Aqueles nomeiam campos do CORPO de um POST — o primeiro aparece no passo 2, no `input` oculto logo
+  abaixo. Este formulário é GET, e o que o `name` monta é o parâmetro de QUERY da URL que traz a
+  pessoa de volta a esta mesma tela já com a unidade escolhida. Trocar um pelo outro não quebra
+  compilação nenhuma: o passo 1 apenas deixa de escolher unidade.
+
+  O parâmetro de query, esse, TEM dono — é `PARAMETROS.unidadeId`, de `src/web/constantes.ts`, por
+  onde a rota lê a escolha ao montar o contexto de envio. Este `name` é a outra ponta daquele
+  contrato, e por isso chega pelo `it`, em `it.campoDaUnidade`: a rota passa o nome do parâmetro à
+  tela, do mesmo jeito que `rotas/secretaria.ts` o passa para o filtro da lista de turmas. As duas
+  pontas leem a mesma constante, e renomear o parâmetro renomeia o `name` junto.
 
   O ERRO do campo, esse sim, é chaveado por `campos.unidadeId`: quem o emite é
   `ERROS_DE_FORMULARIO.unidadeAusente`, e o `campo` dele vem de `CAMPOS.comunicado.unidadeId`.
 */
 %>
-<% // magic-values: permitido — é o parâmetro de query PARAMETROS.unidadeId (formulário GET), e não CAMPOS.comunicado.unidadeId; ver o bloco acima %>
-      <select id="unidadeId" name="unidadeId" required
+      <select id="unidadeId" name="<%= it.campoDaUnidade %>" required
               aria-describedby="<%= descricao(campos.unidadeId, true) %>"
               <% if (erroDe(campos.unidadeId) !== '') { %>aria-invalid="true"<% } %>>
         <option value="">Escolha a unidade</option>

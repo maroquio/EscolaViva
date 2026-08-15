@@ -16,6 +16,16 @@
 
   O caminho da parcial incluída segue a mesma regra: chega em `it.parciais`, o mesmo
   `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
+
+  O "·" que emenda o nome da turma ao ano letivo, no resumo do cabeçalho, é
+  `it.apresentacao.separador` — `APRESENTACAO` (`src/web/constantes.ts`), a mesma marca com que a
+  ficha da turma junta série, turno e unidade, e com que o mural emenda a data de publicação à data
+  de leitura. A FRASE é desta tela; a marca que costura os dois fatos é de todas, e escrevê-la à mão
+  aqui deixaria o boletim pontuando de um jeito próprio no dia em que ela mudasse.
+
+  O valor da constante é ` · `, com um espaço de cada lado: os espaços são metade da decisão, e não
+  indentação do template. Por isso a expressão que a imprime encosta no nome da turma de um lado e na
+  palavra "ano" do outro — um espaço escrito em volta seria um segundo espaço no HTML servido.
 */
 const boletim = it.boletim;
 
@@ -55,8 +65,8 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
 <% // palavra ao lado nunca vira "anos letivos". O par singular/plural da CONTAGEM só trabalha onde %>
 <% // um número CONTA — "de 2 anos letivos", na paginação de rede/anos.eta. Argumento inteiro em %>
 <% // rede/painel.eta, que já leu a constante aqui por engano. %>
-<% // magic-values: permitido — prosa em frase corrida, e não rótulo de dado nem substantivo contado; o único pedaço repetido é o separador, que já tem dono em APRESENTACAO.separador %>
-      <%= it.rotulos.turma %> <%= boletim.turmaNome %> · ano letivo <span class="numero"><%= boletim.ano %></span>
+<% // magic-values: permitido — prosa em frase corrida, e não ROTULOS.anoLetivo, que rotula o dado escolhido, nem CONTAGEM.anoLetivo, que é o substantivo de um número %>
+      <%= it.rotulos.turma %> <%= boletim.turmaNome %><%= it.apresentacao.separador %>ano letivo <span class="numero"><%= boletim.ano %></span>
     </p>
   </div>
   <p class="pagina__acoes">

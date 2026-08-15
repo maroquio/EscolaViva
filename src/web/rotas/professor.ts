@@ -17,7 +17,13 @@
 
 import { Hono, type Context } from 'hono';
 import { academico } from '../../academico';
-import { BIMESTRES, LIMITES_DA_AVALIACAO, MEIO_DIA_UTC, avaliacao } from '../../avaliacao';
+import {
+  BIMESTRES,
+  LIMITES_DA_AVALIACAO,
+  MEIO_DIA_UTC,
+  VOCABULARIO_DA_AVALIACAO,
+  avaliacao,
+} from '../../avaliacao';
 import { PAPEL } from '../../identidade';
 import {
   FORMATOS,
@@ -367,6 +373,7 @@ const telaDeFechamento = (
   estados,
   acaoDoFormulario: ROTAS.professor.fechamento({ turmaId: turma.turmaId }),
   campoBimestre: CAMPOS.bimestre,
+  rotuloDoFechamento: VOCABULARIO_DA_AVALIACAO.fechamento,
   bimestreRecusado,
   erros: problemas,
 });

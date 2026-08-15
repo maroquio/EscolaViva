@@ -125,6 +125,8 @@ rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
 
   return renderizar(c, TEMPLATES.comunicados.lista, {
     titulo: TITULOS.comunicados.lista,
+    // O `name` do seletor do filtro é o parâmetro de query que esta mesma rota lê acima.
+    campoDaUnidade: PARAMETROS.unidadeId,
     comunicados: pagina.itens,
     navegacao: navegacao(c, pagina),
     resumo: {
@@ -203,6 +205,8 @@ const paginaDeEnvio = (
 ): Response =>
   renderizar(c, TEMPLATES.comunicados.novo, {
     titulo: TITULOS.comunicados.novo,
+    // O `name` do seletor do passo 1 é o parâmetro de query que a rota lê para montar o contexto.
+    campoDaUnidade: PARAMETROS.unidadeId,
     linhasDaMensagem: LINHAS_DA_MENSAGEM,
     ...contexto,
     valores,

@@ -15,6 +15,14 @@
 
   Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
   `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
+
+  A linha de resumo do cabeçalho emenda dois atributos da matrícula — a turma e o ano letivo — e a
+  marca que os separa é `it.apresentacao.separador`, `APRESENTACAO.separador`
+  (`src/web/constantes.ts`). É exatamente o trabalho para o qual ele existe, e é o mesmo que
+  `secretaria/turma.eta` já lhe dá na linha que junta série, turno, unidade e ano letivo. Os espaços
+  em volta do "·" são metade do valor: quem apertar ou afrouxar o espaçamento do sistema mexe num
+  lugar só. Por isso a palavra seguinte encosta na tag, sem espaço entre as duas — o espaço que falta
+  no texto é o que a constante devolve, e o HTML servido sai igual ao de antes.
 */
 const boletim = it.boletim;
 const dias = it.dias;
@@ -71,18 +79,18 @@ const situacaoDoDia = (dia) => {
     <h1 class="pagina__titulo"><%= it.matricula.alunoNome %></h1>
     <p class="pagina__resumo">
 <%
-// A linha abaixo é uma FRASE, e não uma sequência de rótulos: "Turma 5º A · ano letivo 2026" se lê
-// de uma vez, em voz corrida, com o ano num `<span>` à parte porque a folha de estilo o destaca.
-// Só o separador tem dono (`it.apresentacao.separador`); trocar só ele partiria a sentença em
-// pedaços que ninguém mais lê como sentença, que é o que a regra de legibilidade recusa.
+// A linha abaixo se lê de uma vez, em voz corrida — "Turma 5º A · ano letivo 2026" —, com o ano num
+// `<span>` à parte porque a folha de estilo o destaca. Ler em voz corrida não faz da marca do meio
+// outra coisa: ela emenda dois atributos numa linha só, que é o trabalho do separador, e vem da
+// constante como vem em `secretaria/turma.eta`. O que fica escrito aqui são as PALAVRAS.
 //
-// "ano letivo" também não é `it.contagem.anoLetivo.singular`, ainda que seja o substantivo
+// "ano letivo" não é `it.contagem.anoLetivo.singular`, ainda que seja o substantivo
 // minúsculo de uma frase corrida: o 2026 do `<span>` é o NOME do ano, e não uma quantidade de anos
 // letivos — nenhum valor dele faz a palavra virar plural. O par da CONTAGEM só trabalha onde um
 // número CONTA ("de 2 anos letivos", na paginação de `rede/anos.eta`); o argumento inteiro, com as
 // sete telas que escrevem esta prosa, está no cabeçalho de `rede/painel.eta`.
 // magic-values: permitido — "Turma" não é `it.rotulos.turma` (o `<th>` da coluna), "ano letivo" não é `it.rotulos.anoLetivo` (o rótulo do filtro) nem `it.contagem.anoLetivo` (o substantivo que um número conta). %>
-      Turma <%= it.matricula.turmaNome %> · ano letivo
+      Turma <%= it.matricula.turmaNome %><%= it.apresentacao.separador %>ano letivo
       <span class="numero"><%= it.matricula.ano %></span>
     </p>
   </div>

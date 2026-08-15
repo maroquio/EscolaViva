@@ -63,10 +63,27 @@
   o recorte daquela tabela — os vínculos deste aluno —, existe uma vez só e é decisão desta tela. O
   da segunda sai, porque é o substantivo puro.
 */
+
+/*
+  O " · " que emenda os atributos da matrícula ativa é o `APRESENTACAO.separador`
+  (`src/web/constantes.ts`), o mesmo do sobretítulo logo acima e o mesmo que as telas irmãs já leem:
+  `secretaria/turma.eta` e `secretaria/turma_disciplina_nova.eta` emendam assim série, turno e
+  unidade, e `secretaria/aluno_matricula_nova.eta` emenda assim os quatro atributos de cada
+  `<option>`. São os espaços em volta do ponto, tanto quanto o ponto, que fazem a decisão: apertar
+  ou afrouxar o respiro no dono deixaria esta ficha com o espaçamento antigo, e ela continuaria
+  funcionando — só desalinhada das irmãs que compõem a mesma frase.
+
+  A segunda emenda dessa frase cai no FIM de uma linha do HTML servido, e ali quem dá o respiro da
+  direita é a quebra de linha, não o separador. Daí o `separadorAoFimDaLinha`: é o MESMO valor com o
+  espaço final devolvido à quebra de linha — trocar o sinal no dono continua valendo nas duas
+  posições —, e escrever " ·" à mão seria a cópia que a tela irmã não tem. A linha em branco logo
+  depois dele é a compensação de sempre: o Eta come a quebra de linha que vem após `%>`.
+*/
 const aluno = it.aluno;
 const vinculos = it.vinculos ?? [];
 const matriculas = it.matriculas ?? [];
 const ativa = it.ativa ?? null;
+const separadorAoFimDaLinha = it.apresentacao.separador.trimEnd();
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -107,8 +124,9 @@ const ativa = it.ativa ?? null;
 <% // ao lado é o NOME do ano, não uma quantidade de anos letivos, e nenhum valor dele faz a %>
 <% // palavra virar plural. O par da CONTAGEM só trabalha onde um número CONTA, como na barra de %>
 <% // paginação de rede/anos.eta. O argumento inteiro está no cabeçalho de rede/painel.eta. %>
-<% // magic-values: permitido — "ano letivo" aqui é prosa da frase que resume a matrícula ativa, e não ROTULOS.anoLetivo, que nomeia a ENTIDADE escolhida num filtro ou num <select>, nem CONTAGEM.anoLetivo, que é o substantivo que um número conta; o "·" separa fragmentos de uma sentença com <span class="numero"> no meio, e não atributos de uma linha como o APRESENTACAO.separador %>
-        <%= ativa.turmaNome %> · ano letivo <span class="numero"><%= ativa.ano %></span> ·
+<% // magic-values: permitido — "ano letivo" aqui é prosa da frase que resume a matrícula ativa, e não ROTULOS.anoLetivo, que nomeia a ENTIDADE escolhida num filtro ou num <select>, nem CONTAGEM.anoLetivo, que é o substantivo que um número conta %>
+        <%= ativa.turmaNome %><%= it.apresentacao.separador %>ano letivo <span class="numero"><%= ativa.ano %></span><%= separadorAoFimDaLinha %>
+
         matriculado em <span class="numero"><%= it.formatarData(ativa.dataMatricula) %></span>
         <% } %>
       </dd>
