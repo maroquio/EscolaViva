@@ -1,10 +1,51 @@
 import { SQL } from 'bun';
 import { join, resolve } from 'node:path';
 import { config } from '../src/shared/config/index';
+import { CHAVES_DE_LOCK, MIGRACOES } from '../src/shared/constantes';
 
-/** Chave fixa: todo processo que migrar este banco disputa exatamente esta. */
-const CHAVE_DE_LOCK = 4242;
-const DIRETORIO_DE_MIGRACOES = resolve(import.meta.dir, '..', 'migrations');
+/**
+ * O diretório e o glob vêm de `shared/constantes` porque a migração não é a única coisa que
+ * precisa saber onde os `.sql` moram; o resto deste arquivo — bandeiras de linha de comando e
+ * texto de console — tem exatamente um consumidor, este script, e por isso fica aqui.
+ */
+const DIRETORIO_DE_MIGRACOES = resolve(import.meta.dir, '..', MIGRACOES.diretorio);
+
+const ARGUMENTOS = {
+  status: '--status',
+  url: '--url',
+  /** Prefixo que distingue uma bandeira de um valor: `--url --status` é URL faltando, não URL. */
+  prefixo: '--',
+  /** `Bun.argv` abre com o runtime e o caminho do script; o que o usuário digitou vem depois. */
+  primeiroDoUsuario: 2,
+} as const;
+
+/**
+ * O `  aplicada  ` do status e o `  aplicada  ` do progresso têm o mesmo prefixo por coincidência
+ * e são duas mensagens: uma lista o que já estava no banco, com o instante em que entrou; a outra
+ * narra o que este processo acabou de aplicar, com quanto tempo levou. Quem for reformatar o
+ * relatório de `--status` não deve reformatar junto o log de aplicação.
+ */
+const MENSAGENS = {
+  urlSemValor: `${ARGUMENTOS.url} exige a URL de conexão logo em seguida.`,
+  argumentoDesconhecido: (argumento: string): string =>
+    `Argumento desconhecido: ${argumento}. Use ${ARGUMENTOS.status} e ${ARGUMENTOS.url} <postgres://...>.`,
+  destino: (banco: string): string => `Banco: ${banco}`,
+  falha: (motivo: string): string => `Falha ao migrar: ${motivo}`,
+  status: {
+    pendente: (versao: string): string => `  pendente  ${versao}`,
+    aplicada: (versao: string, instante: string): string => `  aplicada  ${versao}  (${instante})`,
+    semArquivo: (versao: string): string => `  registrada sem arquivo  ${versao}`,
+    resumo: (aplicadas: number, pendentes: number): string =>
+      `${aplicadas} aplicada(s), ${pendentes} pendente(s).`,
+  },
+  aplicacao: {
+    nadaAAplicar: 'Nada a aplicar: o banco já está na última migração.',
+    aplicada: (versao: string, duracaoMs: number): string =>
+      `  aplicada  ${versao}  (${duracaoMs} ms)`,
+    uma: '1 migração aplicada.',
+    varias: (total: number): string => `${total} migrações aplicadas.`,
+  },
+} as const;
 
 type Argumentos = { readonly somenteStatus: boolean; readonly url: string };
 
@@ -15,19 +56,19 @@ function lerArgumentos(argv: readonly string[]): Argumentos {
 
   while (restantes.length > 0) {
     const argumento = restantes.shift();
-    if (argumento === '--status') {
+    if (argumento === ARGUMENTOS.status) {
       somenteStatus = true;
       continue;
     }
-    if (argumento === '--url') {
+    if (argumento === ARGUMENTOS.url) {
       const valor = restantes.shift();
-      if (valor === undefined || valor.startsWith('--')) {
-        throw new Error('--url exige a URL de conexão logo em seguida.');
+      if (valor === undefined || valor.startsWith(ARGUMENTOS.prefixo)) {
+        throw new Error(MENSAGENS.urlSemValor);
       }
       url = valor;
       continue;
     }
-    throw new Error(`Argumento desconhecido: ${String(argumento)}. Use --status e --url <postgres://...>.`);
+    throw new Error(MENSAGENS.argumentoDesconhecido(String(argumento)));
   }
 
   return { somenteStatus, url };
@@ -41,7 +82,7 @@ function destinoLegivel(url: string): string {
 
 async function arquivosDeMigracao(): Promise<string[]> {
   const nomes: string[] = [];
-  for await (const nome of new Bun.Glob('*.sql').scan({ cwd: DIRETORIO_DE_MIGRACOES })) {
+  for await (const nome of new Bun.Glob(MIGRACOES.glob).scan({ cwd: DIRETORIO_DE_MIGRACOES })) {
     nomes.push(nome);
   }
   return nomes.sort();
@@ -83,17 +124,17 @@ function imprimirStatus(arquivos: readonly string[], aplicadas: ReadonlyMap<stri
     const aplicadaEm = aplicadas.get(versao);
     if (aplicadaEm === undefined) {
       pendentes += 1;
-      console.log(`  pendente  ${versao}`);
+      console.log(MENSAGENS.status.pendente(versao));
       continue;
     }
-    console.log(`  aplicada  ${versao}  (${aplicadaEm.toISOString()})`);
+    console.log(MENSAGENS.status.aplicada(versao, aplicadaEm.toISOString()));
   }
   for (const versao of aplicadas.keys()) {
     if (!arquivos.includes(versao)) {
-      console.log(`  registrada sem arquivo  ${versao}`);
+      console.log(MENSAGENS.status.semArquivo(versao));
     }
   }
-  console.log(`${arquivos.length - pendentes} aplicada(s), ${pendentes} pendente(s).`);
+  console.log(MENSAGENS.status.resumo(arquivos.length - pendentes, pendentes));
 }
 
 async function aplicarPendentes(sql: SQL, arquivos: readonly string[]): Promise<void> {
@@ -102,25 +143,27 @@ async function aplicarPendentes(sql: SQL, arquivos: readonly string[]): Promise<
   const pendentes = arquivos.filter((versao) => !aplicadas.has(versao));
 
   if (pendentes.length === 0) {
-    console.log('Nada a aplicar: o banco já está na última migração.');
+    console.log(MENSAGENS.aplicacao.nadaAAplicar);
     return;
   }
 
   for (const versao of pendentes) {
     const inicio = Date.now();
     await aplicar(sql, versao);
-    console.log(`  aplicada  ${versao}  (${Date.now() - inicio} ms)`);
+    console.log(MENSAGENS.aplicacao.aplicada(versao, Date.now() - inicio));
   }
-  console.log(pendentes.length === 1 ? '1 migração aplicada.' : `${pendentes.length} migrações aplicadas.`);
+  console.log(
+    pendentes.length === 1 ? MENSAGENS.aplicacao.uma : MENSAGENS.aplicacao.varias(pendentes.length),
+  );
 }
 
 async function executar(): Promise<void> {
-  const argumentos = lerArgumentos(Bun.argv.slice(2));
+  const argumentos = lerArgumentos(Bun.argv.slice(ARGUMENTOS.primeiroDoUsuario));
   // Uma conexão só no pool: o advisory lock pertence à sessão, e a sessão é a conexão.
   const sql = new SQL({ url: argumentos.url, max: 1 });
 
   try {
-    console.log(`Banco: ${destinoLegivel(argumentos.url)}`);
+    console.log(MENSAGENS.destino(destinoLegivel(argumentos.url)));
     const arquivos = await arquivosDeMigracao();
 
     if (argumentos.somenteStatus) {
@@ -130,12 +173,12 @@ async function executar(): Promise<void> {
 
     // O lock vem antes de qualquer DDL: `CREATE TABLE IF NOT EXISTS` não é seguro contra
     // corrida, e dois processos subindo ao mesmo tempo derrubariam um ao outro.
-    await sql`SELECT pg_advisory_lock(${CHAVE_DE_LOCK})`;
+    await sql`SELECT pg_advisory_lock(${CHAVES_DE_LOCK.migracao})`;
     try {
       await garantirTabelaDeControle(sql);
       await aplicarPendentes(sql, arquivos);
     } finally {
-      await sql`SELECT pg_advisory_unlock(${CHAVE_DE_LOCK})`;
+      await sql`SELECT pg_advisory_unlock(${CHAVES_DE_LOCK.migracao})`;
     }
   } finally {
     await sql.close();
@@ -145,6 +188,6 @@ async function executar(): Promise<void> {
 try {
   await executar();
 } catch (erro) {
-  console.error(`Falha ao migrar: ${erro instanceof Error ? erro.message : String(erro)}`);
+  console.error(MENSAGENS.falha(erro instanceof Error ? erro.message : String(erro)));
   process.exitCode = 1;
 }

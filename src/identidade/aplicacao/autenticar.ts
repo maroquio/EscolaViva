@@ -11,6 +11,7 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, EVENTOS_DE_LOG, MENSAGENS, SEGURANCA } from '../constantes';
 import { redeAtiva } from '../dominio/rede';
 import { expiracaoDaSessao, type Sessao } from '../dominio/sessao';
 import { usuarioAutenticado, type UsuarioAutenticado } from '../dominio/usuario';
@@ -19,24 +20,16 @@ import * as sessaoRepositorio from '../infra/sessaoRepositorio';
 import * as usuarioRepositorio from '../infra/usuarioRepositorio';
 
 const schema = z.object({
-  redeSlug: z.string().trim().min(1, 'informe a rede'),
-  identificador: z.string().trim().min(1, 'informe o CPF'),
-  senha: z.string().min(1, 'informe a senha'),
+  redeSlug: z.string().trim().min(1, MENSAGENS.login.redeObrigatoria),
+  identificador: z.string().trim().min(1, MENSAGENS.login.cpfObrigatorio),
+  senha: z.string().min(1, MENSAGENS.login.senhaObrigatoria),
   ip: z.string(),
 });
 
-/**
- * Hash fixo conferido quando ninguém é encontrado pelo CPF informado.
- * Sem ele a resposta volta em um milissegundo para CPF desconhecido e em cerca de cem
- * para CPF cadastrado, e o relógio passa a responder quem estuda ou trabalha na rede.
- */
-const HASH_DE_USUARIO_INEXISTENTE =
-  '$argon2id$v=19$m=65536,t=2,p=1$XMdb31Dd1P5tOekJsaneq6Yl0CU6HnbV15d11ekBprQ$jxM302vDpER0f7uF9xQRIwAkDNaDTukAT0y3bg04lhQ';
-
 /** Uma única mensagem para identificador inexistente e para senha errada: a tela não é um oráculo. */
 const CREDENCIAIS_INVALIDAS = {
-  codigo: 'credenciais_invalidas',
-  mensagem: 'CPF ou senha inválidos',
+  codigo: CODIGOS.credenciaisInvalidas,
+  mensagem: MENSAGENS.login.credenciaisInvalidas,
 };
 
 async function criarSessao(redeId: string, usuarioId: string, ip: string): Promise<Sessao> {
@@ -70,7 +63,11 @@ export async function autenticar(entrada: {
   // A rede é dita pelo próprio usuário na tela e não é segredo; esconder que ela está suspensa
   // só transformaria uma cobrança em atraso em chamado de "minha senha parou de funcionar".
   if (rede === null || !redeAtiva(rede)) {
-    return falhaDeCampo('redeSlug', 'rede_indisponivel', 'rede não encontrada ou fora de operação');
+    return falhaDeCampo(
+      CAMPOS.login.redeSlug,
+      CODIGOS.redeIndisponivel,
+      MENSAGENS.login.redeIndisponivel,
+    );
   }
 
   const credenciais = await usuarioRepositorio.credenciaisPorCpf(
@@ -80,16 +77,16 @@ export async function autenticar(entrada: {
   );
   const senhaConfere = await Bun.password.verify(
     dados.senha,
-    credenciais?.senhaHash ?? HASH_DE_USUARIO_INEXISTENTE,
+    credenciais?.senhaHash ?? SEGURANCA.hashDeUsuarioInexistente,
   );
   if (credenciais === null || !senhaConfere) {
-    logger.warn({ rede_id: rede.id }, 'tentativa de autenticação recusada');
+    logger.warn({ rede_id: rede.id }, EVENTOS_DE_LOG.autenticacaoRecusada);
     return falha(CREDENCIAIS_INVALIDAS);
   }
 
   const papeis = await usuarioRepositorio.papeisDoUsuario(sql, rede.id, credenciais.usuario.id);
   const sessao = await criarSessao(rede.id, credenciais.usuario.id, dados.ip);
-  logger.info({ rede_id: rede.id, usuario_id: sessao.usuarioId }, 'sessão aberta');
+  logger.info({ rede_id: rede.id, usuario_id: sessao.usuarioId }, EVENTOS_DE_LOG.sessaoAberta);
   return sucesso({
     sessaoId: sessao.id,
     usuario: usuarioAutenticado(credenciais.usuario, rede, papeis),

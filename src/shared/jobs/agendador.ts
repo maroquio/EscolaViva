@@ -1,3 +1,4 @@
+import { MENSAGENS_DE_PROCESSO } from '../constantes';
 import { logger } from '../log';
 import { comLockExclusivo } from './lock';
 
@@ -29,11 +30,11 @@ async function executarJob(job: Job): Promise<void> {
   try {
     const resultado = await comLockExclusivo(job.chaveDeLock, () => job.executar());
     if (resultado === null) {
-      logger.debug({ job: job.nome }, 'job ignorado: lock em outra instancia');
+      logger.debug({ job: job.nome }, MENSAGENS_DE_PROCESSO.jobIgnorado);
     }
   } catch (erro) {
     // Job que quebra vira linha de log: derrubar o processo tiraria o site do ar por um expurgo.
-    logger.error({ job: job.nome, erro: descrever(erro) }, 'job falhou');
+    logger.error({ job: job.nome, erro: descrever(erro) }, MENSAGENS_DE_PROCESSO.jobFalhou);
   }
 }
 

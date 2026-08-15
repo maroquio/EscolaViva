@@ -5,13 +5,28 @@
   A lista de professores vem da unidade desta turma — quem não tem o papel ali não aparece, e o
   servidor recusa se a lista for burlada. Faltando disciplina ou professor, a página diz o que
   falta em vez de oferecer um seletor vazio.
+
+  Os cinco endereços da tela — o destino do formulário, o atalho para cadastrar disciplina e os três
+  caminhos de volta à turma — vêm de `it.rotas`, o mesmo mapa que o router registra. A página da
+  turma aparece três vezes (cabeçalho, estado vazio e "Cancelar"): escritas à mão seriam três cópias
+  do mesmo endereço, que podem divergir de uma só, e URL literal em `.eta` não quebra compilação —
+  quebra a tela de quem clica.
+*/
+
+/*
+  O travessão da célula sem valor, o rótulo da opção em branco e os sufixos de id chegam prontos
+  pelo `it`: são de `AUSENTE` (`src/shared/constantes.ts`), de `APRESENTACAO.opcaoVazia` e de
+  `SUFIXOS_DE_ID` (`src/web/constantes.ts`). O Eta não importa TypeScript, e reescrevê-los aqui
+  criaria uma segunda decisão ao lado da do dono — no caso dos sufixos, um id apontado pelo
+  `aria-describedby` que `descricao()` monta e que esta página não escreveria igual.
 */
 const turma = it.turma;
 const disciplinas = it.disciplinas ?? [];
 const professores = it.professores ?? [];
 const valores = it.valores ?? {};
-const { erroDe, descricao } = it;
+const { erroDe, descricao, sufixos } = it;
 const podeAlocar = disciplinas.length > 0 && professores.length > 0;
+const paginaDaTurma = it.rotas.secretaria.turma({ id: turma.id });
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -19,11 +34,11 @@ const podeAlocar = disciplinas.length > 0 && professores.length > 0;
     <h1 class="pagina__titulo">Alocar disciplina e professor</h1>
     <p class="pagina__resumo">
       <%= turma.serie %> · <%= turma.turno %> · <%= turma.unidadeNome %> · ano letivo
-      <span class="numero"><%= turma.ano === null ? '—' : turma.ano %></span>
+      <span class="numero"><%= turma.ano === null ? it.semValor : turma.ano %></span>
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="/secretaria/turmas/<%= turma.id %>">Voltar à turma</a>
+    <a class="botao botao--secundario" href="<%= paginaDaTurma %>">Voltar à turma</a>
   </div>
 </div>
 
@@ -39,12 +54,12 @@ const podeAlocar = disciplinas.length > 0 && professores.length > 0;
   </p>
   <div class="acoes">
     <% if (disciplinas.length === 0) { %>
-    <a class="botao botao--primario" href="/secretaria/disciplinas/nova">Cadastrar disciplina</a>
+    <a class="botao botao--primario" href="<%= it.rotas.secretaria.disciplinaNova() %>">Cadastrar disciplina</a>
     <% } %>
-    <a class="botao botao--discreto" href="/secretaria/turmas/<%= turma.id %>">Voltar à turma</a>
+    <a class="botao botao--discreto" href="<%= paginaDaTurma %>">Voltar à turma</a>
   </div>
   <% } else { %>
-  <form class="formulario" method="post" action="/secretaria/turmas/<%= turma.id %>/disciplinas">
+  <form class="formulario" method="post" action="<%= it.rotas.secretaria.turmaDisciplinas({ id: turma.id }) %>">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
 
     <div class="formulario__linha">
@@ -58,18 +73,18 @@ const podeAlocar = disciplinas.length > 0 && professores.length > 0;
           required
           <% if (erroDe('disciplinaId') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('disciplinaId', true) %>">
-          <option value="">Selecione…</option>
+          <option value=""><%= it.opcaoVazia %></option>
           <% disciplinas.forEach((disciplina) => { %>
           <option value="<%= disciplina.id %>" <%= (valores.disciplinaId ?? '') === disciplina.id ? 'selected' : '' %>>
             <%= disciplina.nome %>
           </option>
           <% }) %>
         </select>
-        <p class="campo__ajuda" id="disciplinaId-ajuda">
+        <p class="campo__ajuda" id="disciplinaId<%= sufixos.ajuda %>">
           Cada disciplina entra uma única vez por turma.
         </p>
         <% if (erroDe('disciplinaId') !== '') { %>
-        <p class="campo__erro" id="disciplinaId-erro"><%= erroDe('disciplinaId') %></p>
+        <p class="campo__erro" id="disciplinaId<%= sufixos.erro %>"><%= erroDe('disciplinaId') %></p>
         <% } %>
       </div>
 
@@ -83,25 +98,25 @@ const podeAlocar = disciplinas.length > 0 && professores.length > 0;
           required
           <% if (erroDe('professorUsuarioId') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('professorUsuarioId', true) %>">
-          <option value="">Selecione…</option>
+          <option value=""><%= it.opcaoVazia %></option>
           <% professores.forEach((professor) => { %>
           <option value="<%= professor.id %>" <%= (valores.professorUsuarioId ?? '') === professor.id ? 'selected' : '' %>>
             <%= professor.nome %>
           </option>
           <% }) %>
         </select>
-        <p class="campo__ajuda" id="professorUsuarioId-ajuda">
+        <p class="campo__ajuda" id="professorUsuarioId<%= sufixos.ajuda %>">
           Somente quem tem papel de professor em <%= turma.unidadeNome %>.
         </p>
         <% if (erroDe('professorUsuarioId') !== '') { %>
-        <p class="campo__erro" id="professorUsuarioId-erro"><%= erroDe('professorUsuarioId') %></p>
+        <p class="campo__erro" id="professorUsuarioId<%= sufixos.erro %>"><%= erroDe('professorUsuarioId') %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Alocar</button>
-      <a class="botao botao--discreto" href="/secretaria/turmas/<%= turma.id %>">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= paginaDaTurma %>">Cancelar</a>
     </div>
   </form>
   <% } %>

@@ -3,8 +3,8 @@
  *
  * Uma única função monta toda página: `renderizar` injeta em `it` o que nenhuma rota deveria
  * precisar lembrar de passar — o usuário da sessão, a chave de idempotência do formulário (I4), o
- * nome versionado do CSS (I10), os formatadores de número e data, e as mensagens que voltam na
- * query depois de um POST-Redirect-GET. Rota que esquece um desses não existe.
+ * nome versionado do CSS (I10), o mapa de rotas, os formatadores de número e data, e as mensagens
+ * que voltam na query depois de um POST-Redirect-GET. Rota que esquece um desses não existe.
  *
  * O escape é automático (`autoEscape`): interpolação de dado do usuário é segura por padrão, e
  * escrever `<%~ %>` passa a ser uma decisão visível na revisão.
@@ -15,6 +15,7 @@ import { join } from 'node:path';
 import { Eta } from 'eta';
 import type { Context } from 'hono';
 import { config } from '../shared/config';
+import { AMBIENTE_DESENVOLVIMENTO, ATIVOS, AUSENTE } from '../shared/constantes';
 import { formatarCpf } from '../shared/documento';
 import {
   contextoAtual,
@@ -22,19 +23,29 @@ import {
   usuarioAtualOuNulo,
   type StatusDeErro,
 } from '../shared/http';
+import {
+  APRESENTACAO,
+  CURINGA_DE_ASSET,
+  DETALHES_DE_ERRO,
+  PARAMETROS,
+  ROTAS,
+  SUFIXOS_DE_ID,
+  TEMPLATES,
+  TITULOS,
+  TITULOS_DE_ERRO,
+} from './constantes';
 
 const RAIZ = join(import.meta.dir, '..', '..');
-const CAMINHO_DO_MANIFESTO = join(RAIZ, 'publico', 'manifest.json');
+const CAMINHO_DO_MANIFESTO = join(RAIZ, ATIVOS.diretorio, ATIVOS.manifesto);
 
-const LAYOUT_APLICACAO = '/_layout';
-const LAYOUT_PUBLICO = '/_layout_publico';
-const TEMPLATE_DE_ERRO = '/erro';
+/** Codificação do manifesto lido do disco — arquivo de texto gerado pelo build (I10). */
+const CODIFICACAO_DO_MANIFESTO = 'utf8';
 
-const emDesenvolvimento = config.ambiente === 'development';
+const emDesenvolvimento = config.ambiente === AMBIENTE_DESENVOLVIMENTO;
 
 // Cache ligado fora de desenvolvimento: em produção o template não muda sem novo processo.
 const eta = new Eta({
-  views: join(import.meta.dir, 'templates'),
+  views: join(import.meta.dir, TEMPLATES.diretorio),
   autoEscape: true,
   cache: !emDesenvolvimento,
   cacheFilepaths: !emDesenvolvimento,
@@ -46,7 +57,7 @@ let manifesto: Record<string, string> | null = null;
 
 const lerManifesto = (): Record<string, string> => {
   try {
-    const bruto: unknown = JSON.parse(readFileSync(CAMINHO_DO_MANIFESTO, 'utf8'));
+    const bruto: unknown = JSON.parse(readFileSync(CAMINHO_DO_MANIFESTO, CODIFICACAO_DO_MANIFESTO));
     if (typeof bruto !== 'object' || bruto === null) return {};
     return bruto as Record<string, string>;
   } catch {
@@ -64,13 +75,21 @@ export function asset(nome: string): string {
 
 /* --- Formatadores ---------------------------------------------------------- */
 
-const AUSENTE = '—';
+/**
+ * Extrai ano, mês e dia de um carimbo que COMEÇA com uma data ISO. Parente, e não igual, do
+ * `FORMATOS.dataIso` de `shared`: aquele valida `AAAA-MM-DD` inteiro e sem grupos, este recorta o
+ * dia de um `2026-03-15T14:30:00Z` que chega do banco.
+ */
 const DATA_ISO = /^(\d{4})-(\d{2})-(\d{2})/;
+
+/** O separador decimal que `toFixed` produz — ponto, fixo pela linguagem e alheio ao locale. */
+const SEPARADOR_DECIMAL_DO_TO_FIXED = '.';
 
 type ValorDeData = string | Date | null | undefined;
 type ValorNumerico = number | string | null | undefined;
 
-const doisDigitos = (valor: number): string => String(valor).padStart(2, '0');
+const doisDigitos = (valor: number): string =>
+  String(valor).padStart(APRESENTACAO.colunaDeDoisDigitos, APRESENTACAO.preenchimentoDeDigito);
 
 const comoData = (valor: ValorDeData): Date | null => {
   if (valor === null || valor === undefined || valor === '') return null;
@@ -90,8 +109,10 @@ const comoNumero = (valor: ValorNumerico): number | null => {
  * impresso e o número que decidiu é justamente o que o domínio proíbe.
  */
 const umaCasaTruncada = (valor: number): string => {
-  const decimos = Math.trunc(valor * 10);
-  return (decimos / 10).toFixed(1).replace('.', ',');
+  const decimos = Math.trunc(valor * APRESENTACAO.fatorDeUmaCasa);
+  return (decimos / APRESENTACAO.fatorDeUmaCasa)
+    .toFixed(1)
+    .replace(SEPARADOR_DECIMAL_DO_TO_FIXED, APRESENTACAO.separadorDecimal);
 };
 
 /** `2026-03-15` ou um `Date` viram `15/03/2026`. */
@@ -123,7 +144,7 @@ export function formatarNota(valor: ValorNumerico): string {
 /** Frequência já vem na escala de 0 a 100. */
 export function formatarPercentual(valor: ValorNumerico): string {
   const numero = comoNumero(valor);
-  return numero === null ? AUSENTE : `${umaCasaTruncada(numero)} %`;
+  return numero === null ? AUSENTE : `${umaCasaTruncada(numero)}${APRESENTACAO.sufixoDePercentual}`;
 }
 
 /**
@@ -133,25 +154,45 @@ export function formatarPercentual(valor: ValorNumerico): string {
  */
 export function formatarTaxa(fracao: ValorNumerico): string {
   const numero = comoNumero(fracao);
-  return numero === null ? AUSENTE : formatarPercentual(numero * 100);
+  return numero === null ? AUSENTE : formatarPercentual(numero * APRESENTACAO.fatorPercentual);
 }
 
 /* --- Montagem do contexto de template -------------------------------------- */
 
 export type DadosDeTemplate = Record<string, unknown>;
 
-const LIMITE_DA_MENSAGEM = 160;
+/**
+ * As chaves do próprio contexto que este arquivo lê de volta depois de montá-lo. São nomes de
+ * campo do `it` que o `.eta` recebe, e não parâmetros de query: `CHAVES_DO_CONTEXTO.erro` e
+ * `PARAMETROS.erro` se escrevem igual hoje e respondem a decisões diferentes — renomear o campo do
+ * template não pode mudar a URL que volta do redirecionamento.
+ */
+const CHAVES_DO_CONTEXTO = {
+  erros: 'erros',
+  mensagem: 'mensagem',
+  erro: 'erro',
+  usuario: 'usuario',
+} as const;
 
 /** A mensagem volta na URL depois do redirecionamento; entra na página curta e escapada. */
 const textoDaQuery = (c: Context, nome: string): string | null => {
   const bruto = c.req.query(nome);
   if (bruto === undefined) return null;
-  const texto = bruto.trim().slice(0, LIMITE_DA_MENSAGEM);
+  const texto = bruto.trim().slice(0, APRESENTACAO.limiteDaMensagem);
   return texto === '' ? null : texto;
 };
 
+/**
+ * Os dois layouts montam o `href` da folha trocando o curinga de `ROTAS.publicas.publico` pelo nome
+ * versionado. As duas pontas dessa troca são decisões de `constantes.ts` — o `*` do padrão e o nome
+ * lógico que o build publica —, e chegam ao `.eta` por aqui: o Eta não importa TypeScript, e
+ * redigitá-las no template servia uma folha inexistente sem erro em lugar nenhum.
+ */
 const auxiliares = {
   asset,
+  curingaDeAsset: CURINGA_DE_ASSET,
+  nomeLogicoDaFolha: ATIVOS.nomeLogicoDaFolha,
+  rotas: ROTAS,
   formatarCpf,
   formatarData,
   formatarDataHora,
@@ -165,9 +206,12 @@ const auxiliares = {
 type Problema = { readonly campo: string; readonly mensagem: string };
 
 const problemasDe = (dados: DadosDeTemplate): readonly Problema[] => {
-  const erros = dados['erros'];
+  const erros = dados[CHAVES_DO_CONTEXTO.erros];
   return Array.isArray(erros) ? (erros as readonly Problema[]) : [];
 };
+
+/** `aria-describedby` é lista de ids separada por espaço — gramática do HTML, não do produto. */
+const SEPARADOR_DE_IDS = ' ';
 
 /**
  * Todo formulário mostra o erro embaixo do campo e aponta o `aria-describedby` para ele. Escrever
@@ -184,15 +228,18 @@ const auxiliaresDeErro = (dados: DadosDeTemplate) => {
 
   /** Ids que o campo descreve: a ajuda fixa, quando existe, e o erro, quando há. */
   const descricao = (campo: string, temAjuda = false): string =>
-    [temAjuda ? `${campo}-ajuda` : '', erroDe(campo) === '' ? '' : `${campo}-erro`]
+    [
+      temAjuda ? `${campo}${SUFIXOS_DE_ID.ajuda}` : '',
+      erroDe(campo) === '' ? '' : `${campo}${SUFIXOS_DE_ID.erro}`,
+    ]
       .filter((id) => id !== '')
-      .join(' ');
+      .join(SEPARADOR_DE_IDS);
 
   return { erroDe, descricao };
 };
 
 const contextoDeTemplate = (c: Context, dados: DadosDeTemplate): DadosDeTemplate => ({
-  titulo: 'EscolaViva',
+  titulo: TITULOS.produto,
   ...dados,
   ...auxiliares,
   ...auxiliaresDeErro(dados),
@@ -202,8 +249,8 @@ const contextoDeTemplate = (c: Context, dados: DadosDeTemplate): DadosDeTemplate
   chave: crypto.randomUUID(),
   caminhoAtual: c.req.path,
   correlacaoId: contextoAtual()?.correlacaoId ?? '',
-  mensagem: dados['mensagem'] ?? textoDaQuery(c, 'ok'),
-  erro: dados['erro'] ?? textoDaQuery(c, 'erro'),
+  mensagem: dados[CHAVES_DO_CONTEXTO.mensagem] ?? textoDaQuery(c, PARAMETROS.ok),
+  erro: dados[CHAVES_DO_CONTEXTO.erro] ?? textoDaQuery(c, PARAMETROS.erro),
 });
 
 const DOCUMENTO_COMPLETO = /^\s*<!doctype/i;
@@ -216,7 +263,7 @@ const envolver = (html: string, contexto: DadosDeTemplate, layout: string): stri
   DOCUMENTO_COMPLETO.test(html) ? html : eta.render(layout, { ...contexto, body: html });
 
 const layoutPadrao = (contexto: DadosDeTemplate): string =>
-  contexto['usuario'] === null ? LAYOUT_PUBLICO : LAYOUT_APLICACAO;
+  contexto[CHAVES_DO_CONTEXTO.usuario] === null ? TEMPLATES.layoutPublico : TEMPLATES.layout;
 
 /** Renderiza um template de `src/web/templates` como resposta HTML completa. */
 export function renderizar(c: Context, template: string, dados: DadosDeTemplate = {}): Response {
@@ -227,24 +274,6 @@ export function renderizar(c: Context, template: string, dados: DadosDeTemplate 
 
 /* --- Páginas de erro ------------------------------------------------------- */
 
-const TITULOS: Record<StatusDeErro, string> = {
-  400: 'Requisição inválida',
-  401: 'Entre para continuar',
-  403: 'Acesso não permitido',
-  404: 'Página não encontrada',
-  422: 'Não foi possível concluir',
-  500: 'Erro inesperado',
-};
-
-const DETALHES: Record<StatusDeErro, string> = {
-  400: 'O formulário chegou incompleto ou com um campo que o sistema não reconhece. Volte, confira os dados e envie de novo.',
-  401: 'A sessão terminou ou ainda não foi aberta. Entre novamente para continuar de onde parou.',
-  403: 'Sua conta não tem permissão para esta tela. Se você deveria ter, peça ao administrador da rede.',
-  404: 'O endereço não existe, ou o registro pertence a outra rede. Use o menu para voltar a uma tela conhecida.',
-  422: 'Os dados estão consistentes, mas a situação atual não permite concluir esta operação.',
-  500: 'Algo falhou do nosso lado. A ocorrência foi registrada com o código abaixo.',
-};
-
 /** Página de erro dentro do layout, com o código que o suporte usa para achar o rastro no log. */
 export function renderizarErro(
   c: Context,
@@ -253,7 +282,7 @@ export function renderizarErro(
   detalhe: string,
 ): Response {
   const contexto = contextoDeTemplate(c, { titulo, detalhe, status });
-  const corpo = eta.render(TEMPLATE_DE_ERRO, contexto);
+  const corpo = eta.render(TEMPLATES.erro, contexto);
   return c.html(envolver(corpo, contexto, layoutPadrao(contexto)), status);
 }
 
@@ -265,8 +294,8 @@ export function renderizarErro(
 registrarRenderizadorDeErro((status, correlacaoId) => {
   const dados: DadosDeTemplate = {
     ...auxiliares,
-    titulo: TITULOS[status],
-    detalhe: DETALHES[status],
+    titulo: TITULOS_DE_ERRO[status],
+    detalhe: DETALHES_DE_ERRO[status],
     status,
     correlacaoId,
     usuario: null,
@@ -275,5 +304,5 @@ registrarRenderizadorDeErro((status, correlacaoId) => {
     mensagem: null,
     erro: null,
   };
-  return eta.render(LAYOUT_PUBLICO, { ...dados, body: eta.render(TEMPLATE_DE_ERRO, dados) });
+  return eta.render(TEMPLATES.layoutPublico, { ...dados, body: eta.render(TEMPLATES.erro, dados) });
 });

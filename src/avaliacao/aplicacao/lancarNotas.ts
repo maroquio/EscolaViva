@@ -8,6 +8,7 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import { bimestreValido, valorDeNotaValido } from '../dominio/nota';
 import * as fechamentoRepositorio from '../infra/fechamentoRepositorio';
 import * as notaRepositorio from '../infra/notaRepositorio';
@@ -25,7 +26,7 @@ type NotaEnviada = { matriculaId: string; valor: number | null };
 const esquema = z.object({
   redeId: z.string().uuid(),
   turmaDisciplinaId: z.string().uuid(),
-  bimestre: z.number().refine(bimestreValido, 'O bimestre precisa ser 1, 2, 3 ou 4.'),
+  bimestre: z.number().refine(bimestreValido, MENSAGENS.bimestreInvalido),
   lancadaPor: z.string().uuid(),
   notas: z
     .array(
@@ -36,11 +37,11 @@ const esquema = z.object({
           .nullable()
           .refine(
             (valor) => valor === null || valorDeNotaValido(valor),
-            'A nota precisa ficar entre 0 e 10.',
+            MENSAGENS.notaForaDaEscala,
           ),
       }),
     )
-    .min(1, 'Nenhuma nota foi enviada.'),
+    .min(1, MENSAGENS.loteDeNotasVazio),
 });
 
 /**
@@ -58,9 +59,9 @@ export async function lancarNotas(entrada: LancamentoDeNotas): Promise<Resultado
   const turmaDisciplina = await academico.turmaDisciplinaPorId(redeId, turmaDisciplinaId);
   if (turmaDisciplina === null) {
     return falhaDeCampo(
-      'turmaDisciplinaId',
-      'nao_encontrada',
-      'Disciplina da turma não encontrada nesta rede.',
+      CAMPOS.turmaDisciplinaId,
+      CODIGOS.naoEncontrada,
+      MENSAGENS.turmaDisciplinaNaoEncontrada,
     );
   }
 
@@ -78,9 +79,9 @@ export async function lancarNotas(entrada: LancamentoDeNotas): Promise<Resultado
     );
     if (fechado) {
       return falhaDeCampo(
-        'bimestre',
-        'bimestre_fechado',
-        'O bimestre já foi fechado para esta turma; as notas não podem mais ser alteradas.',
+        CAMPOS.bimestre,
+        CODIGOS.bimestreFechado,
+        MENSAGENS.bimestreFechadoParaLancamento,
       );
     }
     return sucesso(
@@ -104,13 +105,17 @@ async function conferirMatriculas(
   const enviadas = notas.map((nota) => nota.matriculaId);
   if (enviadas.some((matriculaId) => !daTurma.has(matriculaId))) {
     return falhaDeCampo(
-      'notas',
-      'matricula_fora_da_turma',
-      'Há aluno sem matrícula ativa nesta turma no lançamento.',
+      CAMPOS.notas,
+      CODIGOS.matriculaForaDaTurma,
+      MENSAGENS.notas.matriculaForaDaTurma,
     );
   }
   if (new Set(enviadas).size !== enviadas.length) {
-    return falhaDeCampo('notas', 'matricula_repetida', 'O mesmo aluno aparece duas vezes.');
+    return falhaDeCampo(
+      CAMPOS.notas,
+      CODIGOS.matriculaRepetida,
+      MENSAGENS.notas.matriculaRepetida,
+    );
   }
   return null;
 }

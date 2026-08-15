@@ -5,9 +5,24 @@
   O responsável nasce solto: é o vínculo, feito depois na ficha do aluno, que o liga a uma criança
   e, por ela, a uma unidade. Cadastrar aqui não dá acesso ao sistema — o acesso é um convite de
   usuário, criado pelo administrador da rede a partir deste cadastro.
+
+  Os dois endereços da tela — o destino do formulário e o "Cancelar" — vêm de `it.rotas`, o mesmo
+  mapa que o router registra. São o mesmo endereço escrito duas vezes, e escrevê-lo à mão aqui não
+  quebraria compilação: quebraria a tela de quem clica, porque `.eta` não passa pelo compilador.
+*/
+
+/*
+  Os quatro limites e os sufixos de id chegam prontos pelo `it`, e por isso não há número nenhum
+  escrito nesta página. Os donos de três deles são `LIMITES.responsavel.nome`, `.email` e
+  `.telefone` (`src/academico/constantes.ts`), que `cadastrarResponsavel` faz valer com
+  `MENSAGENS.responsavel.nomeLongo`, `.emailLongo` e `.telefoneLongo`; o `maxlength` só adianta a
+  recusa no navegador. O quarto é `TAMANHO_DO_CPF_COM_MASCARA` (`src/shared/constantes.ts`) — onze
+  dígitos, dois pontos e um traço —, que limita o que cabe na caixa: quem decide se o CPF vale é
+  `shared/documento`, que aceita com ou sem pontuação. Os sufixos são de `SUFIXOS_DE_ID`, os mesmos
+  que `descricao()` usa para montar o `aria-describedby` do outro lado.
 */
 const valores = it.valores ?? {};
-const { erroDe, descricao } = it;
+const { erroDe, descricao, sufixos } = it;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -21,7 +36,7 @@ const { erroDe, descricao } = it;
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="post" action="/secretaria/responsaveis">
+  <form class="formulario" method="post" action="<%= it.rotas.secretaria.responsaveis() %>">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
 
     <div class="campo">
@@ -33,13 +48,13 @@ const { erroDe, descricao } = it;
         name="nome"
         type="text"
         required
-        maxlength="120"
+        maxlength="<%= it.limiteDoNome %>"
         autocomplete="off"
         value="<%= valores.nome ?? '' %>"
         <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
         <% if (descricao('nome') !== '') { %>aria-describedby="<%= descricao('nome') %>"<% } %>>
       <% if (erroDe('nome') !== '') { %>
-      <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+      <p class="campo__erro" id="nome<%= sufixos.erro %>"><%= erroDe('nome') %></p>
       <% } %>
     </div>
 
@@ -53,16 +68,16 @@ const { erroDe, descricao } = it;
           name="email"
           type="email"
           required
-          maxlength="254"
+          maxlength="<%= it.limiteDoEmail %>"
           autocomplete="off"
           value="<%= valores.email ?? '' %>"
           <% if (erroDe('email') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('email', true) %>">
-        <p class="campo__ajuda" id="email-ajuda">
+        <p class="campo__ajuda" id="email<%= sufixos.ajuda %>">
           Único na rede. É por ele que o responsável recebe comunicado — não é usado para entrar.
         </p>
         <% if (erroDe('email') !== '') { %>
-        <p class="campo__erro" id="email-erro"><%= erroDe('email') %></p>
+        <p class="campo__erro" id="email<%= sufixos.erro %>"><%= erroDe('email') %></p>
         <% } %>
       </div>
 
@@ -72,16 +87,16 @@ const { erroDe, descricao } = it;
           id="cpf"
           name="cpf"
           type="text"
-          maxlength="14"
+          maxlength="<%= it.limiteDoCpfComMascara %>"
           autocomplete="off"
           value="<%= valores.cpf ?? '' %>"
           <% if (erroDe('cpf') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('cpf', true) %>">
-        <p class="campo__ajuda" id="cpf-ajuda">
+        <p class="campo__ajuda" id="cpf<%= sufixos.ajuda %>">
           Opcional. Sem CPF a pessoa fica como contato e não recebe acesso ao portal.
         </p>
         <% if (erroDe('cpf') !== '') { %>
-        <p class="campo__erro" id="cpf-erro"><%= erroDe('cpf') %></p>
+        <p class="campo__erro" id="cpf<%= sufixos.erro %>"><%= erroDe('cpf') %></p>
         <% } %>
       </div>
 
@@ -91,21 +106,21 @@ const { erroDe, descricao } = it;
           id="telefone"
           name="telefone"
           type="tel"
-          maxlength="30"
+          maxlength="<%= it.limiteDoTelefone %>"
           autocomplete="off"
           value="<%= valores.telefone ?? '' %>"
           <% if (erroDe('telefone') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('telefone', true) %>">
-        <p class="campo__ajuda" id="telefone-ajuda">Opcional. Em branco significa sem telefone.</p>
+        <p class="campo__ajuda" id="telefone<%= sufixos.ajuda %>">Opcional. Em branco significa sem telefone.</p>
         <% if (erroDe('telefone') !== '') { %>
-        <p class="campo__erro" id="telefone-erro"><%= erroDe('telefone') %></p>
+        <p class="campo__erro" id="telefone<%= sufixos.erro %>"><%= erroDe('telefone') %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Cadastrar responsável</button>
-      <a class="botao botao--discreto" href="/secretaria/responsaveis">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.secretaria.responsaveis() %>">Cancelar</a>
     </div>
   </form>
 </div>

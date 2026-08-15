@@ -11,6 +11,16 @@
   recusa vem com nomes e quantidades: "Matemática (5)" manda abrir uma tela, "faltam notas" manda
   procurar. Os links abaixo de cada bimestre aberto levam direto ao diário das disciplinas que são
   deste professor; o que for de outro colega, a mensagem nomeia para que ele saiba a quem falar.
+
+  Nenhum endereço desta tela é escrito à mão. Os que dependem da turma — a ação do formulário e o
+  link da chamada — chegam prontos da rota, montados uma vez só; a volta para "Minhas turmas" sai
+  de `it.rotas`, o mesmo mapa que o router registra. URL literal em `.eta` não quebra compilação:
+  quebra a tela de quem clica.
+
+  O `id=` do recado de pendência e o `aria-describedby` do botão que ele descreve são o MESMO
+  valor escrito nas duas pontas: ele chega em `it.prefixos.pendencia` (`PREFIXOS_DE_ID`, em
+  `src/web/constantes.ts`), e o " · turno " do sobretítulo em `it.separadorDeTurno`. Escritos à
+  mão, a próxima mudança acerta uma ponta e deixa a outra apontando para o vazio.
 */
 const estados = it.estados ?? [];
 const turma = it.turma;
@@ -18,7 +28,7 @@ const disciplinas = turma.disciplinas ?? [];
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= turma.serie %> · turno <%= turma.turno %></p>
+    <p class="sobretitulo"><%= turma.serie %><%= it.separadorDeTurno %><%= turma.turno %></p>
     <h1 class="pagina__titulo">Fechamento · <%= turma.turmaNome %></h1>
     <p class="pagina__resumo">
       Fechar um bimestre confere as notas de todos os alunos em todas as disciplinas da turma antes
@@ -28,7 +38,7 @@ const disciplinas = turma.disciplinas ?? [];
   </div>
   <p class="pagina__acoes">
     <a class="botao botao--discreto" href="<%= turma.hrefChamada %>">Chamada</a>
-    <a class="botao botao--discreto" href="/professor">Minhas turmas</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.professor.painel() %>">Minhas turmas</a>
   </p>
 </div>
 
@@ -51,7 +61,7 @@ const disciplinas = turma.disciplinas ?? [];
     <% } else { %>
 
     <% if (it.bimestreRecusado === estado.bimestre) { %>
-    <p class="campo__erro" id="pendencia-<%= estado.bimestre %>">
+    <p class="campo__erro" id="<%= it.prefixos.pendencia %><%= estado.bimestre %>">
       Este bimestre não foi fechado: o aviso no topo da página diz quantas notas faltam e em quais
       disciplinas.
     </p>
@@ -72,7 +82,7 @@ const disciplinas = turma.disciplinas ?? [];
       <input type="hidden" name="_chave" value="<%= it.chave %>">
       <input type="hidden" name="<%= it.campoBimestre %>" value="<%= estado.bimestre %>">
       <button class="botao botao--primario" type="submit"
-              <% if (it.bimestreRecusado === estado.bimestre) { %>aria-describedby="pendencia-<%= estado.bimestre %>"<% } %>>
+              <% if (it.bimestreRecusado === estado.bimestre) { %>aria-describedby="<%= it.prefixos.pendencia %><%= estado.bimestre %>"<% } %>>
         Fechar <%= estado.bimestre %>º bimestre
       </button>
       <span class="suave">A conferência é feita agora, com a página aberta.</span>

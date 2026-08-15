@@ -4,44 +4,51 @@
   desabilitado nem tela que responde 403 depois do clique — o menu é a lista do que a pessoa
   realmente pode fazer.
 
+  Os catorze endereços vêm de `it.rotas`, o mesmo mapa que o router registra. Escritos à mão, eles
+  eram a maior concentração de URL literal do sistema: renomear `/rede/anos-letivos` quebrava este
+  menu em silêncio, porque `.eta` não passa pelo compilador e link quebrado só aparece no clique.
+
   `aria-current="page"` marca UM item: o de caminho mais longo que casa com a URL atual, para que
-  `/secretaria/alunos` não acenda também `/secretaria`.
+  `/secretaria/alunos` não acenda também `/secretaria`. A comparação é feita sobre o mesmo `href`
+  que sai do mapa, então o destaque acompanha qualquer renomeação de rota sem retoque aqui.
 */
 const usuario = it.usuario;
 const papeis = new Set(usuario === null ? [] : usuario.papeis.map((p) => p.papel));
 
 const grupos = [
   { titulo: 'Rede', papeis: ['admin_rede'], itens: [
-    { href: '/rede', texto: 'Painel da rede' },
-    { href: '/rede/unidades', texto: 'Unidades' },
-    { href: '/rede/usuarios', texto: 'Usuários' },
-    { href: '/rede/anos-letivos', texto: 'Anos letivos' },
+    { href: it.rotas.rede.painel(), texto: 'Painel da rede' },
+    { href: it.rotas.rede.unidades(), texto: 'Unidades' },
+    { href: it.rotas.rede.usuarios(), texto: 'Usuários' },
+    { href: it.rotas.rede.anosLetivos(), texto: 'Anos letivos' },
   ] },
   { titulo: 'Secretaria', papeis: ['secretaria'], itens: [
-    { href: '/secretaria', texto: 'Painel da secretaria' },
-    { href: '/secretaria/alunos', texto: 'Alunos' },
-    { href: '/secretaria/responsaveis', texto: 'Responsáveis' },
-    { href: '/secretaria/turmas', texto: 'Turmas' },
-    { href: '/secretaria/disciplinas', texto: 'Disciplinas' },
+    { href: it.rotas.secretaria.painel(), texto: 'Painel da secretaria' },
+    { href: it.rotas.secretaria.alunos(), texto: 'Alunos' },
+    { href: it.rotas.secretaria.responsaveis(), texto: 'Responsáveis' },
+    { href: it.rotas.secretaria.turmas(), texto: 'Turmas' },
+    { href: it.rotas.secretaria.disciplinas(), texto: 'Disciplinas' },
   ] },
   { titulo: 'Ensino', papeis: ['professor'], itens: [
-    { href: '/professor', texto: 'Minhas turmas' },
+    { href: it.rotas.professor.painel(), texto: 'Minhas turmas' },
   ] },
   { titulo: 'Acompanhamento', papeis: ['responsavel'], itens: [
-    { href: '/responsavel', texto: 'Meus alunos' },
-    { href: '/responsavel/mural', texto: 'Mural' },
+    { href: it.rotas.responsavel.painel(), texto: 'Meus alunos' },
+    { href: it.rotas.responsavel.mural(), texto: 'Mural' },
   ] },
   { titulo: 'Comunicação', papeis: ['admin_rede', 'secretaria'], itens: [
-    { href: '/comunicados', texto: 'Comunicados' },
+    { href: it.rotas.comunicados.lista(), texto: 'Comunicados' },
   ] },
   { titulo: 'Conta', papeis: ['admin_rede', 'secretaria', 'professor', 'responsavel'], itens: [
-    { href: '/conta/senha', texto: 'Trocar senha' },
+    { href: it.rotas.conta.senha(), texto: 'Trocar senha' },
   ] },
 ].filter((grupo) => grupo.papeis.some((papel) => papeis.has(papel)));
 
 const caminho = it.caminhoAtual ?? '';
 const candidatos = grupos
   .flatMap((grupo) => grupo.itens.map((item) => item.href))
+  // O `/` abaixo delimita o segmento: é ele que faz `/secretaria` casar com `/secretaria/alunos` e
+  // não com `/secretariaX`. Os dois lados da comparação já saem de `ROTAS`; o que sobra é a barra.
   .filter((href) => caminho === href || caminho.startsWith(href + '/'));
 const atual = candidatos.sort((a, b) => b.length - a.length)[0] ?? '';
 %>

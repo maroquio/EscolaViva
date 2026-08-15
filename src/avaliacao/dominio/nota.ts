@@ -1,3 +1,5 @@
+import { LIMITES } from '../constantes';
+
 /**
  * Nota de uma matrícula em uma disciplina da turma, num bimestre.
  *
@@ -21,13 +23,15 @@ export const BIMESTRES: readonly number[] = [1, 2, 3, 4];
 
 export const QUANTIDADE_DE_BIMESTRES = BIMESTRES.length;
 
-const VALOR_MINIMO = 0;
-const VALOR_MAXIMO = 10;
-
 export function bimestreValido(bimestre: number): boolean {
   return Number.isInteger(bimestre) && bimestre >= 1 && bimestre <= QUANTIDADE_DE_BIMESTRES;
 }
 
+/**
+ * A escala vem de `LIMITES.nota`, e não de uma `const` privada daqui: o mesmo par mínimo/máximo
+ * alimenta a mensagem `notaForaDaEscala` e o `min`/`max` do campo na tela do professor. Com duas
+ * cópias, mudar a escala aceita a nota num lugar e a recusa no outro.
+ */
 export function valorDeNotaValido(valor: number): boolean {
-  return Number.isFinite(valor) && valor >= VALOR_MINIMO && valor <= VALOR_MAXIMO;
+  return Number.isFinite(valor) && valor >= LIMITES.nota.minimo && valor <= LIMITES.nota.maximo;
 }

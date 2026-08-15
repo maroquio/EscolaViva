@@ -9,7 +9,8 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
-import type { Matricula } from '../dominio/matricula';
+import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
+import { MATRICULA_ATIVA, type Matricula } from '../dominio/matricula';
 import type { Turma } from '../dominio/turma';
 import * as alunos from '../infra/alunoRepositorio';
 import * as anosLetivos from '../infra/anoLetivoRepositorio';
@@ -18,10 +19,10 @@ import * as turmas from '../infra/turmaRepositorio';
 
 const entrada = z.object({
   redeId: z.string().uuid(),
-  alunoId: z.string().uuid('Selecione um aluno.'),
-  turmaId: z.string().uuid('Selecione uma turma.'),
-  anoLetivoId: z.string().uuid('Selecione o ano letivo.'),
-  dataMatricula: z.string().date('Informe a data da matrícula no formato AAAA-MM-DD.'),
+  alunoId: z.string().uuid(MENSAGENS.alunoObrigatorio),
+  turmaId: z.string().uuid(MENSAGENS.matricula.turmaObrigatoria),
+  anoLetivoId: z.string().uuid(MENSAGENS.anoLetivoObrigatorio),
+  dataMatricula: z.string().date(MENSAGENS.matricula.dataFormato),
 });
 
 type Alvo = { redeId: string; alunoId: string; turmaId: string; anoLetivoId: string };
@@ -34,25 +35,33 @@ type ContextoDaMatricula = { alunoNome: string; turma: Turma; ano: number };
 async function contexto(sql: Conexao, alvo: Alvo): Promise<Resultado<ContextoDaMatricula>> {
   const aluno = await alunos.porId(sql, alvo.redeId, alvo.alunoId);
   if (aluno === null) {
-    return falhaDeCampo('alunoId', 'aluno_nao_encontrado', 'Aluno não encontrado nesta rede.');
+    return falhaDeCampo(
+      CAMPOS.matricula.alunoId,
+      CODIGOS.alunoNaoEncontrado,
+      MENSAGENS.alunoNaoEncontrado,
+    );
   }
   const turma = await turmas.porId(sql, alvo.redeId, alvo.turmaId);
   if (turma === null) {
-    return falhaDeCampo('turmaId', 'turma_nao_encontrada', 'Turma não encontrada nesta rede.');
+    return falhaDeCampo(
+      CAMPOS.matricula.turmaId,
+      CODIGOS.turmaNaoEncontrada,
+      MENSAGENS.turmaNaoEncontrada,
+    );
   }
   const anoLetivo = await anosLetivos.porId(sql, alvo.redeId, alvo.anoLetivoId);
   if (anoLetivo === null) {
     return falhaDeCampo(
-      'anoLetivoId',
-      'ano_letivo_nao_encontrado',
-      'Ano letivo não encontrado nesta rede.',
+      CAMPOS.matricula.anoLetivoId,
+      CODIGOS.anoLetivoNaoEncontrado,
+      MENSAGENS.anoLetivoNaoEncontrado,
     );
   }
   if (turma.anoLetivoId !== alvo.anoLetivoId) {
     return falhaDeCampo(
-      'turmaId',
-      'turma_de_outro_ano',
-      'A turma não pertence ao ano letivo informado.',
+      CAMPOS.matricula.turmaId,
+      CODIGOS.matricula.turmaDeOutroAno,
+      MENSAGENS.matricula.turmaDeOutroAno,
     );
   }
   return sucesso({ alunoNome: aluno.nome, turma, ano: anoLetivo.ano });
@@ -85,14 +94,14 @@ export async function matricular(e: {
       anoLetivoId,
       ano,
       dataMatricula,
-      situacao: 'ativa',
+      situacao: MATRICULA_ATIVA,
     };
     const criada = await matriculas.inserir(sql, matricula);
     if (!criada) {
       return falhaDeCampo(
-        'alunoId',
-        'matricula_ativa_duplicada',
-        'Este aluno já tem matrícula ativa neste ano letivo.',
+        CAMPOS.matricula.alunoId,
+        CODIGOS.matricula.ativaDuplicada,
+        MENSAGENS.matricula.ativaDuplicada,
       );
     }
     return sucesso(matricula);

@@ -8,15 +8,49 @@
   A etiqueta carrega a cor, o texto carrega o significado — "Falta justificada" continua se lendo
   em preto e branco, e a diferença entre falta com e sem justificativa não depende de enxergar
   âmbar ou vermelho.
+
+  Os dois endereços da tela — o boletim da mesma matrícula e a volta para a lista de alunos — saem
+  de `it.rotas`, o mesmo mapa que o router registra, e o `:id` é preenchido por quem sabe escapá-lo.
+  URL literal em `.eta` não quebra compilação: quebra a tela de quem clica.
+
+  Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
+  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
 */
 const boletim = it.boletim;
 const dias = it.dias;
 const faltas = boletim.totalDias - boletim.presencas;
 
+/*
+  `VOCABULARIO.presenca` (`src/avaliacao/constantes.ts`) entregue pela rota em `it.rotuloDaPresenca`.
+  O Eta não importa TypeScript, então quem lê `constantes.ts` é o handler — e as três palavras
+  existem uma vez só, no módulo que decide o que conta como falta justificada.
+*/
+const ROTULO_DA_PRESENCA = it.rotuloDaPresenca;
+
+/*
+  A cor da etiqueta acompanha o rótulo, e não o substitui. Classe de CSS é vocabulário da folha de
+  estilo, e por isso mora aqui e não em `constantes.ts`.
+*/
+const CLASSE_DA_PRESENCA = {
+  presente: 'etiqueta--ativa',
+  faltaJustificada: 'etiqueta--transferida',
+  falta: 'etiqueta--reprovado',
+};
+
+/** `AUSENTE` (`src/shared/constantes.ts`), pela rota: célula sem valor mostra um travessão. */
+const SEM_VALOR = it.semValor;
+
 const situacaoDoDia = (dia) => {
-  if (dia.presente) return { classe: 'etiqueta--ativa', rotulo: 'Presente' };
-  if (dia.justificativa) return { classe: 'etiqueta--transferida', rotulo: 'Falta justificada' };
-  return { classe: 'etiqueta--reprovado', rotulo: 'Falta' };
+  if (dia.presente) {
+    return { classe: CLASSE_DA_PRESENCA.presente, rotulo: ROTULO_DA_PRESENCA.presente };
+  }
+  if (dia.justificativa) {
+    return {
+      classe: CLASSE_DA_PRESENCA.faltaJustificada,
+      rotulo: ROTULO_DA_PRESENCA.faltaJustificada,
+    };
+  }
+  return { classe: CLASSE_DA_PRESENCA.falta, rotulo: ROTULO_DA_PRESENCA.falta };
 };
 %>
 <header class="pagina__cabecalho">
@@ -30,8 +64,8 @@ const situacaoDoDia = (dia) => {
   </div>
   <p class="pagina__acoes">
     <a class="botao botao--secundario"
-       href="/responsavel/matriculas/<%= it.matricula.id %>/boletim">Ver boletim</a>
-    <a class="botao botao--discreto" href="/responsavel">Voltar aos alunos</a>
+       href="<%= it.rotas.responsavel.boletim({ id: it.matricula.id }) %>">Ver boletim</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.painel() %>">Voltar aos alunos</a>
   </p>
 </header>
 
@@ -71,7 +105,7 @@ const situacaoDoDia = (dia) => {
   </div>
 
   <% if (dias.length === 0) { %>
-    <%~ include("/parciais/_vazio", {
+    <%~ include(it.parciais.vazio, {
       titulo: 'Nenhum dia de chamada registrado',
       texto: 'A frequência aparece aqui assim que o professor registrar a primeira chamada da turma.',
     }) %>
@@ -96,13 +130,13 @@ const situacaoDoDia = (dia) => {
             <span class="etiqueta <%= situacao.classe %>"><%= situacao.rotulo %></span>
           </td>
           <td class="celula-texto celula-elastica">
-            <%= dia.justificativa ? dia.justificativa : '—' %>
+            <%= dia.justificativa ? dia.justificativa : SEM_VALOR %>
           </td>
         </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
-  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'dias registrados' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'dias registrados' }) %>
   <% } %>
 </section>

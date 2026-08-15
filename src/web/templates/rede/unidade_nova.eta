@@ -2,12 +2,24 @@
 /*
   Criação de unidade.
 
-  Página só de formulário: a lista fica em `/rede/unidades`. `required` e `maxlength` servem para o
-  retorno rápido no navegador — a validação que decide é a do servidor (I22), e é dela que vêm as
-  mensagens abaixo dos campos.
+  Página só de formulário: a lista fica em `it.rotas.rede.unidades()`. `required` e `maxlength`
+  servem para o retorno rápido no navegador — a validação que decide é a do servidor (I22), e é dela
+  que vêm as mensagens abaixo dos campos.
+
+  Os dois endereços da tela — o destino do formulário e o "Cancelar" — vêm de `it.rotas`, o mesmo
+  mapa que o router registra. São o mesmo endereço escrito duas vezes, e escrevê-lo à mão aqui não
+  quebraria compilação: quebraria a tela de quem clica, porque `.eta` não passa pelo compilador.
+*/
+
+/*
+  Os dois tamanhos e os sufixos de id chegam prontos da rota: o Eta não importa TypeScript, então
+  `LIMITES.unidade` (`src/identidade/constantes.ts`) e `SUFIXOS_DE_ID` (`src/web/constantes.ts`)
+  atravessam por `it`. Quem recusa de verdade é `criarUnidade`, com `MENSAGENS.unidade.nomeLongo` e
+  `.inepLongo`; o `maxlength` só adianta a recusa no navegador, e redigitá-lo aqui faria a caixa
+  aceitar o que o caso de uso devolve como erro.
 */
 const valores = it.valores ?? { nome: '', codigoInep: '' };
-const { erroDe, descricao } = it;
+const { erroDe, descricao, sufixos } = it;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -21,7 +33,7 @@ const { erroDe, descricao } = it;
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="post" action="/rede/unidades">
+  <form class="formulario" method="post" action="<%= it.rotas.rede.unidades() %>">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
 
     <div class="formulario__linha">
@@ -34,14 +46,14 @@ const { erroDe, descricao } = it;
           name="nome"
           type="text"
           required
-          maxlength="120"
+          maxlength="<%= it.limiteDoNome %>"
           autocomplete="off"
           value="<%= valores.nome %>"
           <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('nome', true) %>">
-        <p class="campo__ajuda" id="nome-ajuda">Como a escola é chamada no dia a dia.</p>
+        <p class="campo__ajuda" id="nome<%= sufixos.ajuda %>">Como a escola é chamada no dia a dia.</p>
         <% if (erroDe('nome') !== '') { %>
-        <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+        <p class="campo__erro" id="nome<%= sufixos.erro %>"><%= erroDe('nome') %></p>
         <% } %>
       </div>
 
@@ -51,22 +63,22 @@ const { erroDe, descricao } = it;
           id="codigoInep"
           name="codigoInep"
           type="text"
-          maxlength="20"
+          maxlength="<%= it.limiteDoCodigoInep %>"
           inputmode="numeric"
           autocomplete="off"
           value="<%= valores.codigoInep %>"
           <% if (erroDe('codigoInep') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('codigoInep', true) %>">
-        <p class="campo__ajuda" id="codigoInep-ajuda">Opcional. Pode ser preenchido depois.</p>
+        <p class="campo__ajuda" id="codigoInep<%= sufixos.ajuda %>">Opcional. Pode ser preenchido depois.</p>
         <% if (erroDe('codigoInep') !== '') { %>
-        <p class="campo__erro" id="codigoInep-erro"><%= erroDe('codigoInep') %></p>
+        <p class="campo__erro" id="codigoInep<%= sufixos.erro %>"><%= erroDe('codigoInep') %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Criar unidade</button>
-      <a class="botao botao--discreto" href="/rede/unidades">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.rede.unidades() %>">Cancelar</a>
     </div>
   </form>
 </div>

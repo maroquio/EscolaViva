@@ -2,20 +2,31 @@
  * As telas do responsável: quem ele acompanha, o boletim em tela, a frequência dia a dia e o mural
  * de comunicados.
  *
- * `exigirPapel('responsavel')` diz que a pessoa é responsável por alguém — não diz por quem. Qual
- * matrícula e qual comunicado pertencem a ela é decidido a cada requisição, perguntando aos módulos
- * com o `responsavelId` que veio da sessão. Id de outra família responde **404**, nunca 403: para
- * quem pergunta não pode haver diferença entre "não é seu" e "não existe", porque a diferença já
- * seria a resposta.
+ * `exigirPapel(PAPEL.responsavel)` diz que a pessoa é responsável por alguém — não diz por quem.
+ * Qual matrícula e qual comunicado pertencem a ela é decidido a cada requisição, perguntando aos
+ * módulos com o `responsavelId` que veio da sessão. Id de outra família responde **404**, nunca
+ * 403: para quem pergunta não pode haver diferença entre "não é seu" e "não existe", porque a
+ * diferença já seria a resposta.
  *
  * Nenhuma conta destas telas é feita aqui. Média, percentual de frequência e situação vêm de
- * `avaliacao`, que é dona da regra; a camada web formata o que recebe e não recalcula nada.
+ * `avaliacao`, que é dona da regra; a camada web formata o que recebe e não recalcula nada. O
+ * `CRITERIO_DE_APROVACAO` logo abaixo não é exceção: ele não decide nada, só põe os dois pisos do
+ * módulo na escala em que a tela os escreve, com a constante do próprio módulo que os pôs em
+ * centésimos. Redigitá-los como "6,0" e "75 %" dentro do `.eta` era o que fazia a tela prometer uma
+ * regra e o domínio aplicar outra.
  */
 
 import { Hono, type Context } from 'hono';
 import { academico, type Matricula } from '../../academico';
-import { avaliacao, type Boletim } from '../../avaliacao';
+import {
+  APROVACAO,
+  ARITMETICA,
+  VOCABULARIO_DA_AVALIACAO,
+  avaliacao,
+  type Boletim,
+} from '../../avaliacao';
 import { comunicacao, type ItemDoMural } from '../../comunicacao';
+import { PAPEL } from '../../identidade';
 import {
   NaoEncontrado,
   exigirPapel,
@@ -24,14 +35,59 @@ import {
   type Variaveis,
 } from '../../shared/http';
 import { paginaVazia } from '../../shared/paginacao';
+import {
+  APRESENTACAO,
+  AUSENTE,
+  AVISOS,
+  DIAGNOSTICOS,
+  PARAMETROS,
+  ROTAS,
+  TEMPLATES,
+  TITULOS,
+} from '../constantes';
 import { navegacao, paginaDaQuery } from '../paginacao';
-import { renderizar } from '../render';
-
-const MURAL = '/responsavel/mural';
+import { formatarNota, renderizar } from '../render';
 
 export const rotasResponsavel = new Hono<{ Variables: Variaveis }>();
 
-rotasResponsavel.use(exigirPapel('responsavel'));
+rotasResponsavel.use(exigirPapel(PAPEL.responsavel));
+
+/**
+ * O que o `.eta` não tem como importar chega por `it`, e é este o único caminho: o Eta não lê
+ * TypeScript, então redigitar `/parciais/_vazio` dentro do template abriria a segunda fonte de
+ * verdade que `TEMPLATES.parciais` existe para fechar. Quem sabe ler `constantes.ts` é o handler.
+ *
+ * Vai para as quatro telas que incluem `_vazio` ou `_paginacao` — painel, boletim, frequência e
+ * mural. A do comunicado não inclui parcial nenhuma: ela é uma página só, sem lista.
+ */
+const PARCIAIS = { parciais: TEMPLATES.parciais };
+
+/**
+ * O rótulo de cada valor fechado do domínio — "Aprovado", "Falta justificada" — pela mesma porta.
+ * O dono é `avaliacao`, que é quem acrescenta uma situação ou um estado de presença; enquanto as
+ * palavras estavam redigitadas dentro do `.eta`, acrescentar um valor lá deixava a tabela mostrando
+ * o código cru aqui, e nada acusava. A classe de CSS continua no template: aquela é vocabulário da
+ * folha de estilo, e não tem dono em `constantes.ts`.
+ */
+const ROTULOS_DA_AVALIACAO = {
+  rotuloDaSituacao: VOCABULARIO_DA_AVALIACAO.situacaoFinal,
+  rotuloDaPresenca: VOCABULARIO_DA_AVALIACAO.presenca,
+};
+
+/**
+ * O critério escrito na tela do boletim, derivado dos dois pisos de `avaliacao`.
+ *
+ * A página existe para que quem lê um "reprovado" veja ali mesmo a regra que o produziu — e uma
+ * regra escrita à mão no `.eta` é exatamente o que passa a mentir no dia em que o piso muda. Aqui
+ * não há conta de boletim nenhuma: os pisos moram em centésimos porque é assim que o domínio
+ * compara, e `ARITMETICA.centesimos` é a mesma constante que os pôs nessa escala.
+ */
+const naEscalaDaTela = (emCentesimos: number): number => emCentesimos / ARITMETICA.centesimos;
+
+const CRITERIO_DE_APROVACAO = {
+  media: formatarNota(naEscalaDaTela(APROVACAO.mediaMinimaEmCentesimos)),
+  frequencia: `${naEscalaDaTela(APROVACAO.frequenciaMinimaEmCentesimos)}${APRESENTACAO.sufixoDePercentual}`,
+};
 
 /**
  * O papel `responsavel` mora em `identidade`; a pessoa que assina pelo aluno mora em `academico`.
@@ -46,11 +102,13 @@ const responsavelDaSessao = (c: Context): string | null => usuarioAtual(c).respo
  */
 const matriculaSobResponsabilidade = async (c: Context, matriculaId: string): Promise<Matricula> => {
   const responsavelId = responsavelDaSessao(c);
-  if (responsavelId === null) throw new NaoEncontrado('conta sem responsável vinculado');
+  if (responsavelId === null) throw new NaoEncontrado(DIAGNOSTICOS.contaSemResponsavel);
 
   const matriculas = await academico.matriculasDoResponsavel(redeAtual(c), responsavelId);
   const matricula = matriculas.find((linha) => linha.id === matriculaId);
-  if (matricula === undefined) throw new NaoEncontrado('matrícula fora da responsabilidade');
+  if (matricula === undefined) {
+    throw new NaoEncontrado(DIAGNOSTICOS.matriculaForaDaResponsabilidade);
+  }
   return matricula;
 };
 
@@ -69,13 +127,14 @@ const comMensagem = (destino: string, aviso: Record<string, string>): string =>
  * inteiro vinha para cá para que dois `length` fossem lidos — quatro anos de comunicados
  * carregados para escrever dois números na tela.
  */
-rotasResponsavel.get('/', async (c) => {
+rotasResponsavel.get(ROTAS.responsavel.painel.padrao, async (c) => {
   const redeId = redeAtual(c);
   const responsavelId = responsavelDaSessao(c);
 
   if (responsavelId === null) {
-    return renderizar(c, '/responsavel/painel', {
-      titulo: 'Meus alunos',
+    return renderizar(c, TEMPLATES.responsavel.painel, {
+      ...PARCIAIS,
+      titulo: TITULOS.responsavel.painel,
       matriculas: [],
       navegacao: navegacao(c, paginaVazia<Matricula>()),
       naoLidos: [],
@@ -90,8 +149,9 @@ rotasResponsavel.get('/', async (c) => {
     comunicacao.contagemDoMural(redeId, responsavelId),
   ]);
 
-  return renderizar(c, '/responsavel/painel', {
-    titulo: 'Meus alunos',
+  return renderizar(c, TEMPLATES.responsavel.painel, {
+    ...PARCIAIS,
+    titulo: TITULOS.responsavel.painel,
     matriculas: pagina.itens,
     navegacao: navegacao(c, pagina),
     naoLidos: naoLidos.itens,
@@ -102,23 +162,32 @@ rotasResponsavel.get('/', async (c) => {
 
 /* --- Boletim e frequência --------------------------------------------------- */
 
-rotasResponsavel.get('/matriculas/:id/boletim', async (c) => {
-  const matriculaId = c.req.param('id');
+/**
+ * O nome do `:param` não é redigitado: `c.req.param()` devolve o objeto que o Hono deriva do
+ * próprio `.padrao`, e desestruturá-lo faz o compilador conferir a leitura contra o mapa de rotas.
+ * `const { ind } = c.req.param()` não compila — antes disto, o mesmo engano só apareceria como 404
+ * na tela de quem estivesse usando o sistema.
+ */
+rotasResponsavel.get(ROTAS.responsavel.boletim.padrao, async (c) => {
+  const { id: matriculaId } = c.req.param();
   await matriculaSobResponsabilidade(c, matriculaId);
 
   const boletim = await avaliacao.boletim(redeAtual(c), matriculaId);
-  if (boletim === null) throw new NaoEncontrado('matrícula sem boletim');
+  if (boletim === null) throw new NaoEncontrado(DIAGNOSTICOS.matriculaSemBoletim);
 
-  return renderizar(c, '/responsavel/boletim', {
-    titulo: `Boletim de ${boletim.alunoNome}`,
+  return renderizar(c, TEMPLATES.responsavel.boletim, {
+    ...PARCIAIS,
+    rotuloDaSituacao: ROTULOS_DA_AVALIACAO.rotuloDaSituacao,
+    criterio: CRITERIO_DE_APROVACAO,
+    titulo: TITULOS.responsavel.boletim(boletim.alunoNome),
     matriculaId,
     boletim,
     bimestres: bimestresDe(boletim),
   });
 });
 
-rotasResponsavel.get('/matriculas/:id/frequencia', async (c) => {
-  const matriculaId = c.req.param('id');
+rotasResponsavel.get(ROTAS.responsavel.frequencia.padrao, async (c) => {
+  const { id: matriculaId } = c.req.param();
   const redeId = redeAtual(c);
   const matricula = await matriculaSobResponsabilidade(c, matriculaId);
 
@@ -128,10 +197,13 @@ rotasResponsavel.get('/matriculas/:id/frequencia', async (c) => {
     avaliacao.paginaDeFrequencia(redeId, matriculaId, paginaDaQuery(c)),
     avaliacao.boletim(redeId, matriculaId),
   ]);
-  if (boletim === null) throw new NaoEncontrado('matrícula sem apuração de frequência');
+  if (boletim === null) throw new NaoEncontrado(DIAGNOSTICOS.matriculaSemFrequencia);
 
-  return renderizar(c, '/responsavel/frequencia', {
-    titulo: `Frequência de ${matricula.alunoNome}`,
+  return renderizar(c, TEMPLATES.responsavel.frequencia, {
+    ...PARCIAIS,
+    rotuloDaPresenca: ROTULOS_DA_AVALIACAO.rotuloDaPresenca,
+    semValor: AUSENTE,
+    titulo: TITULOS.responsavel.frequencia(matricula.alunoNome),
     matricula,
     boletim,
     dias: dias.itens,
@@ -146,33 +218,44 @@ rotasResponsavel.get('/matriculas/:id/frequencia', async (c) => {
  * página: marcar um comunicado como lido move uma linha de uma lista para a outra, e as duas
  * precisam poder andar sem arrastar a vizinha.
  */
-rotasResponsavel.get('/mural', async (c) => {
+rotasResponsavel.get(ROTAS.responsavel.mural.padrao, async (c) => {
   const responsavelId = responsavelDaSessao(c);
   const redeId = redeAtual(c);
   const [naoLidos, lidos] =
     responsavelId === null
       ? [paginaVazia<ItemDoMural>(), paginaVazia<ItemDoMural>()]
       : await Promise.all([
-          comunicacao.paginaDoMural(redeId, responsavelId, false, paginaDaQuery(c, 'pNaoLidos')),
-          comunicacao.paginaDoMural(redeId, responsavelId, true, paginaDaQuery(c, 'pLidos')),
+          comunicacao.paginaDoMural(
+            redeId,
+            responsavelId,
+            false,
+            paginaDaQuery(c, PARAMETROS.paginaDeNaoLidos),
+          ),
+          comunicacao.paginaDoMural(
+            redeId,
+            responsavelId,
+            true,
+            paginaDaQuery(c, PARAMETROS.paginaDeLidos),
+          ),
         ]);
 
-  return renderizar(c, '/responsavel/mural', {
-    titulo: 'Mural de comunicados',
+  return renderizar(c, TEMPLATES.responsavel.mural, {
+    ...PARCIAIS,
+    titulo: TITULOS.responsavel.mural,
     naoLidos: naoLidos.itens,
-    navegacaoNaoLidos: navegacao(c, naoLidos, 'pNaoLidos'),
+    navegacaoNaoLidos: navegacao(c, naoLidos, PARAMETROS.paginaDeNaoLidos),
     totalNaoLidos: naoLidos.total,
     lidos: lidos.itens,
-    navegacaoLidos: navegacao(c, lidos, 'pLidos'),
+    navegacaoLidos: navegacao(c, lidos, PARAMETROS.paginaDeLidos),
     totalLidos: lidos.total,
   });
 });
 
-rotasResponsavel.get('/mural/:comunicadoId', async (c) => {
-  const comunicadoId = c.req.param('comunicadoId');
+rotasResponsavel.get(ROTAS.responsavel.comunicado.padrao, async (c) => {
+  const { comunicadoId } = c.req.param();
   const redeId = redeAtual(c);
   const responsavelId = responsavelDaSessao(c);
-  if (responsavelId === null) throw new NaoEncontrado('conta sem responsável vinculado');
+  if (responsavelId === null) throw new NaoEncontrado(DIAGNOSTICOS.contaSemResponsavel);
 
   // Abrir a página não marca leitura: ler é escrita, e escrita não pode ser efeito colateral de
   // navegação — um GET repetido pelo botão "voltar" ou por um pré-carregamento do navegador
@@ -181,9 +264,9 @@ rotasResponsavel.get('/mural/:comunicadoId', async (c) => {
     comunicacao.comunicadoParaResponsavel(redeId, responsavelId, comunicadoId),
     comunicacao.muralDoResponsavel(redeId, responsavelId),
   ]);
-  if (comunicado === null) throw new NaoEncontrado('comunicado fora do mural do responsável');
+  if (comunicado === null) throw new NaoEncontrado(DIAGNOSTICOS.comunicadoForaDoMural);
 
-  return renderizar(c, '/responsavel/comunicado', {
+  return renderizar(c, TEMPLATES.responsavel.comunicado, {
     titulo: comunicado.titulo,
     comunicado,
     lidoEm: mural.find((item) => item.comunicadoId === comunicadoId)?.lidoEm ?? null,
@@ -195,20 +278,26 @@ rotasResponsavel.get('/mural/:comunicadoId', async (c) => {
  * do Estágio 04. Enquanto o comunicado só existe no mural do portal, essa data é a medição que
  * separa "a escola avisou" de "o responsável leu".
  */
-rotasResponsavel.post('/mural/:comunicadoId/lido', async (c) => {
-  const comunicadoId = c.req.param('comunicadoId');
+rotasResponsavel.post(ROTAS.responsavel.comunicadoLido.padrao, async (c) => {
+  const { comunicadoId } = c.req.param();
   const redeId = redeAtual(c);
   const responsavelId = responsavelDaSessao(c);
-  if (responsavelId === null) throw new NaoEncontrado('conta sem responsável vinculado');
+  if (responsavelId === null) throw new NaoEncontrado(DIAGNOSTICOS.contaSemResponsavel);
 
   const comunicado = await comunicacao.comunicadoParaResponsavel(redeId, responsavelId, comunicadoId);
-  if (comunicado === null) throw new NaoEncontrado('comunicado fora do mural do responsável');
+  if (comunicado === null) throw new NaoEncontrado(DIAGNOSTICOS.comunicadoForaDoMural);
 
   const resultado = await comunicacao.marcarComoLido({ redeId, comunicadoId, responsavelId });
   if (!resultado.ok) {
-    const mensagem = resultado.erros[0]?.mensagem ?? 'Não foi possível registrar a leitura.';
-    return c.redirect(comMensagem(`${MURAL}/${comunicadoId}`, { erro: mensagem }), 303);
+    const mensagem = resultado.erros[0]?.mensagem ?? AVISOS.leituraNaoRegistrada;
+    return c.redirect(
+      comMensagem(ROTAS.responsavel.comunicado({ comunicadoId }), { [PARAMETROS.erro]: mensagem }),
+      303,
+    );
   }
 
-  return c.redirect(comMensagem(MURAL, { ok: 'Comunicado marcado como lido.' }), 303);
+  return c.redirect(
+    comMensagem(ROTAS.responsavel.mural(), { [PARAMETROS.ok]: AVISOS.comunicadoLido }),
+    303,
+  );
 });

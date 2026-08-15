@@ -7,20 +7,19 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import * as alunos from '../infra/alunoRepositorio';
 import * as responsaveis from '../infra/responsavelRepositorio';
 
-const PARENTESCO_MAXIMO = 40;
-
 const entrada = z.object({
   redeId: z.string().uuid(),
-  alunoId: z.string().uuid('Selecione um aluno.'),
-  responsavelId: z.string().uuid('Selecione um responsável.'),
+  alunoId: z.string().uuid(MENSAGENS.alunoObrigatorio),
+  responsavelId: z.string().uuid(MENSAGENS.vinculo.responsavelObrigatorio),
   parentesco: z
     .string()
     .trim()
-    .min(1, 'Informe o parentesco.')
-    .max(PARENTESCO_MAXIMO, `O parentesco precisa ter até ${PARENTESCO_MAXIMO} caracteres.`),
+    .min(1, MENSAGENS.vinculo.parentescoObrigatorio)
+    .max(LIMITES.parentesco.descricao, MENSAGENS.vinculo.parentescoLongo),
   financeiro: z.boolean(),
 });
 
@@ -39,23 +38,27 @@ export async function vincularResponsavel(e: {
     // As chaves estrangeiras garantem que aluno e responsável existem, não que sejam desta rede.
     const aluno = await alunos.porId(sql, redeId, alunoId);
     if (aluno === null) {
-      return falhaDeCampo('alunoId', 'aluno_nao_encontrado', 'Aluno não encontrado nesta rede.');
+      return falhaDeCampo(
+        CAMPOS.vinculo.alunoId,
+        CODIGOS.alunoNaoEncontrado,
+        MENSAGENS.alunoNaoEncontrado,
+      );
     }
     const responsavel = await responsaveis.porId(sql, redeId, responsavelId);
     if (responsavel === null) {
       return falhaDeCampo(
-        'responsavelId',
-        'responsavel_nao_encontrado',
-        'Responsável não encontrado nesta rede.',
+        CAMPOS.vinculo.responsavelId,
+        CODIGOS.responsavelNaoEncontrado,
+        MENSAGENS.responsavelNaoEncontrado,
       );
     }
 
     const vinculado = await responsaveis.vincular(sql, { ...validada.data });
     if (!vinculado) {
       return falhaDeCampo(
-        'responsavelId',
-        'vinculo_duplicado',
-        'Este responsável já está vinculado a este aluno.',
+        CAMPOS.vinculo.responsavelId,
+        CODIGOS.vinculo.duplicado,
+        MENSAGENS.vinculo.duplicado,
       );
     }
     return sucesso<void>(undefined);

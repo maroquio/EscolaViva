@@ -1,4 +1,5 @@
 import type { Context } from 'hono';
+import { MOTIVOS_INTERNOS } from '../constantes';
 import { NaoAutorizado } from './erros';
 import { usuarioAtualOuNulo } from './sessao';
 
@@ -9,6 +10,6 @@ import { usuarioAtualOuNulo } from './sessao';
  */
 export function redeAtual(c: Context): string {
   const usuario = usuarioAtualOuNulo(c);
-  if (usuario === null) throw new NaoAutorizado('rede indisponível sem sessão');
+  if (usuario === null) throw new NaoAutorizado(MOTIVOS_INTERNOS.redeIndisponivelSemSessao);
   return usuario.redeId;
 }

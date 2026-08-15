@@ -6,16 +6,29 @@
   várias linhas de unidade + papel. Sem JavaScript no cliente, as linhas são fixas: as que ficarem
   vazias são simplesmente ignoradas, e as preenchidas pela metade voltam com erro.
 
-  As duas listas de seleção não são paginadas, ao contrário da tabela em `/rede/usuarios`: recortar
-  o que a pessoa lê é cuidado com o banco, recortar o que ela pode escolher seria esconder opção
-  sem avisar.
+  As duas listas de seleção não são paginadas, ao contrário da tabela em `it.rotas.rede.usuarios()`:
+  recortar o que a pessoa lê é cuidado com o banco, recortar o que ela pode escolher seria esconder
+  opção sem avisar.
+
+  Os dois endereços da tela — o destino do formulário e o "Cancelar" — vêm de `it.rotas`, o mesmo
+  mapa que o router registra. São o mesmo endereço escrito duas vezes, e escrevê-lo à mão aqui não
+  quebraria compilação: quebraria a tela de quem clica, porque `.eta` não passa pelo compilador.
+*/
+
+/*
+  Os dois tamanhos e os sufixos de id chegam prontos da rota: o Eta não importa TypeScript, então
+  `LIMITES.usuario.nome` (`src/identidade/constantes.ts`), `TAMANHO_DO_CPF_COM_MASCARA`
+  (`src/shared/constantes.ts`) e `SUFIXOS_DE_ID` (`src/web/constantes.ts`) atravessam por `it`.
+  Quem recusa o nome longo é `convidarUsuario`, com `MENSAGENS.usuario.nomeLongo`, e quem decide se
+  o CPF vale é `shared/documento`, que aceita com ou sem pontuação — o `maxlength` só limita o que
+  cabe na caixa.
 */
 const unidades = it.unidades ?? [];
 const responsaveis = it.responsaveis ?? [];
 const papeis = it.papeis ?? [];
 const linhas = it.linhas ?? [];
 const valores = it.valores ?? { nome: '', email: '', cpf: '', responsavelId: '' };
-const { erroDe, descricao } = it;
+const { erroDe, descricao, sufixos } = it;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -29,7 +42,7 @@ const { erroDe, descricao } = it;
 </div>
 
 <div class="quadro">
-  <form class="formulario formulario--largo" method="post" action="/rede/usuarios">
+  <form class="formulario formulario--largo" method="post" action="<%= it.rotas.rede.usuarios() %>">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
 
     <div class="formulario__linha">
@@ -42,13 +55,13 @@ const { erroDe, descricao } = it;
           name="nome"
           type="text"
           required
-          maxlength="120"
+          maxlength="<%= it.limiteDoNome %>"
           autocomplete="off"
           value="<%= valores.nome %>"
           <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
           <% if (descricao('nome') !== '') { %>aria-describedby="<%= descricao('nome') %>"<% } %>>
         <% if (erroDe('nome') !== '') { %>
-        <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+        <p class="campo__erro" id="nome<%= sufixos.erro %>"><%= erroDe('nome') %></p>
         <% } %>
       </div>
 
@@ -61,14 +74,14 @@ const { erroDe, descricao } = it;
           name="cpf"
           type="text"
           required
-          maxlength="14"
+          maxlength="<%= it.tamanhoDoCpf %>"
           autocomplete="off"
           value="<%= valores.cpf %>"
           <% if (erroDe('cpf') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('cpf', true) %>">
-        <p class="campo__ajuda" id="cpf-ajuda">É por ele que a pessoa entra. Com ou sem pontos.</p>
+        <p class="campo__ajuda" id="cpf<%= sufixos.ajuda %>">É por ele que a pessoa entra. Com ou sem pontos.</p>
         <% if (erroDe('cpf') !== '') { %>
-        <p class="campo__erro" id="cpf-erro"><%= erroDe('cpf') %></p>
+        <p class="campo__erro" id="cpf<%= sufixos.erro %>"><%= erroDe('cpf') %></p>
         <% } %>
       </div>
 
@@ -87,17 +100,17 @@ const { erroDe, descricao } = it;
           value="<%= valores.email %>"
           <% if (erroDe('email') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('email', true) %>">
-        <p class="campo__ajuda" id="email-ajuda">Contato. Não é usado para entrar.</p>
+        <p class="campo__ajuda" id="email<%= sufixos.ajuda %>">Contato. Não é usado para entrar.</p>
         <% if (erroDe('email') !== '') { %>
-        <p class="campo__erro" id="email-erro"><%= erroDe('email') %></p>
+        <p class="campo__erro" id="email<%= sufixos.erro %>"><%= erroDe('email') %></p>
         <% } %>
       </div>
     </div>
 
-    <fieldset <% if (erroDe('atribuicoes') !== '') { %>aria-describedby="atribuicoes-erro"<% } %>>
+    <fieldset <% if (erroDe('atribuicoes') !== '') { %>aria-describedby="atribuicoes<%= sufixos.erro %>"<% } %>>
       <legend>Atribuições</legend>
       <% if (erroDe('atribuicoes') !== '') { %>
-      <p class="campo__erro" id="atribuicoes-erro"><%= erroDe('atribuicoes') %></p>
+      <p class="campo__erro" id="atribuicoes<%= sufixos.erro %>"><%= erroDe('atribuicoes') %></p>
       <% } %>
 
       <div class="pilha">
@@ -139,18 +152,18 @@ const { erroDe, descricao } = it;
         <option value="<%= responsavel.id %>" <% if (responsavel.id === valores.responsavelId) { %>selected<% } %>><%= responsavel.nome %> — <%= responsavel.email %></option>
         <% }) %>
       </select>
-      <p class="campo__ajuda" id="responsavelId-ajuda">
+      <p class="campo__ajuda" id="responsavelId<%= sufixos.ajuda %>">
         Obrigatório quando alguma atribuição acima for Responsável: é esse cadastro que liga a
         conta aos alunos. A secretaria cria o cadastro antes do convite.
       </p>
       <% if (erroDe('responsavelId') !== '') { %>
-      <p class="campo__erro" id="responsavelId-erro"><%= erroDe('responsavelId') %></p>
+      <p class="campo__erro" id="responsavelId<%= sufixos.erro %>"><%= erroDe('responsavelId') %></p>
       <% } %>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Criar usuário</button>
-      <a class="botao botao--discreto" href="/rede/usuarios">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.rede.usuarios() %>">Cancelar</a>
     </div>
   </form>
 </div>

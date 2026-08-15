@@ -1,10 +1,6 @@
 import type { MiddlewareHandler } from 'hono';
+import { ATIVOS, CABECALHOS, CACHE } from '../constantes';
 import { usuarioAtualOuNulo } from './sessao';
-
-const PREFIXO_PUBLICO = '/publico/';
-const CACHE_DE_ASSET = 'public, max-age=31536000, immutable';
-const CACHE_AUTENTICADO = 'private, no-store';
-const CACHE_ANONIMO = 'no-store';
 
 /**
  * I11: não existe cache neste sistema, mas existe cabeçalho. Boletim de um aluno servido do cache
@@ -16,16 +12,16 @@ const CACHE_ANONIMO = 'no-store';
 export const middlewareCacheControl: MiddlewareHandler = async (c, next) => {
   await next();
 
-  if (c.req.path.startsWith(PREFIXO_PUBLICO)) {
-    c.header('Cache-Control', CACHE_DE_ASSET);
+  if (c.req.path.startsWith(ATIVOS.prefixoDeUrl)) {
+    c.header(CABECALHOS.cacheControl, CACHE.asset);
     return;
   }
 
   if (usuarioAtualOuNulo(c) !== null) {
-    c.header('Cache-Control', CACHE_AUTENTICADO);
-    c.header('Vary', 'Cookie');
+    c.header(CABECALHOS.cacheControl, CACHE.autenticado);
+    c.header(CABECALHOS.vary, CABECALHOS.cookie);
     return;
   }
 
-  c.header('Cache-Control', CACHE_ANONIMO);
+  c.header(CABECALHOS.cacheControl, CACHE.anonimo);
 };

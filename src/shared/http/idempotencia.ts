@@ -1,19 +1,28 @@
 import type { MiddlewareHandler } from 'hono';
+import {
+  CABECALHOS,
+  CAMINHOS_DE_ENTRADA,
+  CAMPO_CHAVE,
+  FORMATOS,
+  HASH_DE_RESPOSTA,
+  METODOS,
+  MOTIVOS_INTERNOS,
+  VARIAVEIS_DE_CONTEXTO,
+} from '../constantes';
 import type { Conexao } from '../db';
 import { escrita } from '../db';
 import { logger, redigir } from '../log';
 import { paginaDeErro } from './erros';
 import { usuarioAtualOuNulo } from './sessao';
 
-export const CAMPO_CHAVE = '_chave';
+/**
+ * O nome do campo oculto mora em `shared/constantes.ts`, junto do resto do vocabulário de
+ * infraestrutura — os `.eta` que o escrevem e este middleware que o lê passaram a ler do mesmo
+ * lugar. Segue reexportado daqui porque é por aqui que o `index.ts` do módulo o publica.
+ */
+export { CAMPO_CHAVE };
 
 export type CorpoDeFormulario = Record<string, string | File | (string | File)[]>;
-
-const VARIAVEL_CORPO = 'corpo';
-const FORMATO_CHAVE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/** Quando a requisição original ainda está em curso, não há destino gravado para reapresentar. */
-const DESTINO_PADRAO = '/painel';
 
 const liberarChave = async (sql: Conexao, chave: string): Promise<void> => {
   await sql`DELETE FROM requisicao_idempotente WHERE chave = ${chave}`;
@@ -31,11 +40,11 @@ const ehRedirecionamento = (status: number): boolean => status >= 300 && status 
  * por exemplo — usa esta mesma tabela sem uma linha de mudança.
  */
 export const middlewareIdempotencia: MiddlewareHandler = async (c, next) => {
-  if (c.req.method !== 'POST') return next();
+  if (c.req.method !== METODOS.post) return next();
 
   // O corpo é lido uma única vez e fica no contexto: as rotas o reaproveitam sem reler o fluxo.
   const corpo = await c.req.parseBody();
-  c.set(VARIAVEL_CORPO, corpo);
+  c.set(VARIAVEIS_DE_CONTEXTO.corpo, corpo);
 
   const usuario = usuarioAtualOuNulo(c);
   // A linha exige `usuario_id`; a única escrita anônima é o próprio login, e ela não tem o que
@@ -43,9 +52,9 @@ export const middlewareIdempotencia: MiddlewareHandler = async (c, next) => {
   if (usuario === null) return next();
 
   const chave = corpo[CAMPO_CHAVE];
-  if (typeof chave !== 'string' || !FORMATO_CHAVE.test(chave)) {
+  if (typeof chave !== 'string' || !FORMATOS.chaveDeIdempotencia.test(chave)) {
     const campos = { rota: c.req.path, usuario_id: usuario.id };
-    logger.warn(redigir(campos), 'escrita sem chave de idempotência');
+    logger.warn(redigir(campos), MOTIVOS_INTERNOS.escritaSemChave);
     return c.html(paginaDeErro(400), 400);
   }
 
@@ -60,7 +69,8 @@ export const middlewareIdempotencia: MiddlewareHandler = async (c, next) => {
     const gravadas: { resposta_local: string }[] = await sql`
       SELECT resposta_local FROM requisicao_idempotente WHERE chave = ${chave}`;
     const destino = gravadas[0]?.resposta_local ?? '';
-    return c.redirect(destino === '' ? DESTINO_PADRAO : destino, 303);
+    // Quando a requisição original ainda está em curso, não há destino gravado para reapresentar.
+    return c.redirect(destino === '' ? CAMINHOS_DE_ENTRADA.painel : destino, 303);
   }
 
   try {
@@ -70,7 +80,7 @@ export const middlewareIdempotencia: MiddlewareHandler = async (c, next) => {
     throw erro;
   }
 
-  const local = c.res.headers.get('Location');
+  const local = c.res.headers.get(CABECALHOS.location);
   if (local === null || !ehRedirecionamento(c.res.status)) {
     // Sem redirecionamento não houve escrita concluída (a página voltou com erros de validação):
     // a chave é devolvida para que a correção possa ser enviada.
@@ -78,7 +88,9 @@ export const middlewareIdempotencia: MiddlewareHandler = async (c, next) => {
     return;
   }
 
-  const hash = new Bun.CryptoHasher('sha256').update(local).digest('hex');
+  const hash = new Bun.CryptoHasher(HASH_DE_RESPOSTA.algoritmo)
+    .update(local)
+    .digest(HASH_DE_RESPOSTA.codificacao);
   await sql`
     UPDATE requisicao_idempotente
        SET resposta_local = ${local}, resposta_hash = ${hash}

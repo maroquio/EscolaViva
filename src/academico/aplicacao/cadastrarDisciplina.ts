@@ -8,18 +8,17 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import type { Disciplina } from '../dominio/disciplina';
 import * as disciplinas from '../infra/disciplinaRepositorio';
-
-const NOME_MAXIMO = 120;
 
 const entrada = z.object({
   redeId: z.string().uuid(),
   nome: z
     .string()
     .trim()
-    .min(1, 'Informe o nome da disciplina.')
-    .max(NOME_MAXIMO, `O nome precisa ter até ${NOME_MAXIMO} caracteres.`),
+    .min(1, MENSAGENS.disciplina.nomeObrigatorio)
+    .max(LIMITES.disciplina.nome, MENSAGENS.disciplina.nomeLongo),
 });
 
 export async function cadastrarDisciplina(e: {
@@ -33,9 +32,9 @@ export async function cadastrarDisciplina(e: {
   const criada = await unidadeDeTrabalho(({ sql }) => disciplinas.inserir(sql, disciplina));
   if (!criada) {
     return falhaDeCampo(
-      'nome',
-      'disciplina_duplicada',
-      'Esta rede já tem uma disciplina com este nome.',
+      CAMPOS.disciplina.nome,
+      CODIGOS.disciplina.duplicada,
+      MENSAGENS.disciplina.duplicada,
     );
   }
   return sucesso(disciplina);

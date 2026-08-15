@@ -15,9 +15,17 @@
 
 import { Hono, type Context } from 'hono';
 import { deleteCookie, getSignedCookie, setSignedCookie } from 'hono/cookie';
-import { academico, type Turma } from '../../academico';
-import { identidade, type Papel } from '../../identidade';
+import { LIMITES_DO_ACADEMICO, academico, type Turma } from '../../academico';
+import {
+  LIMITES_DE_IDENTIDADE,
+  PAPEIS,
+  PAPEL,
+  VOCABULARIO_DE_IDENTIDADE,
+  identidade,
+  type Papel,
+} from '../../identidade';
 import { config } from '../../shared/config';
+import { TAMANHO_DO_CPF_COM_MASCARA, VARIAVEIS_DE_CONTEXTO } from '../../shared/constantes';
 import {
   ehIdentificador,
   exigirPapel,
@@ -26,57 +34,60 @@ import {
   type Variaveis,
 } from '../../shared/http';
 import { logger } from '../../shared/log';
-import type { ErroDeAplicacao } from '../../shared/resultado';
+import {
+  ANO_EM_QUATRO_DIGITOS,
+  AUSENTE,
+  AVISOS,
+  CAMPOS,
+  CODIGOS_DE_AVISO,
+  COOKIE_DO_CONVITE,
+  ERROS_DE_FORMULARIO,
+  EVENTOS_DE_LOG,
+  LINHAS_DE_ATRIBUICAO,
+  PARAMETROS,
+  ROTAS,
+  SUFIXOS_DE_ID,
+  TEMPLATES,
+  TITULOS,
+  VALORES_INICIAIS,
+} from '../constantes';
 import { navegacao, paginaDaQuery } from '../paginacao';
 import { renderizar, type DadosDeTemplate } from '../render';
 
-const TEMPLATE_PAINEL = '/rede/painel';
-const TEMPLATE_UNIDADES = '/rede/unidades';
-const TEMPLATE_UNIDADE_NOVA = '/rede/unidade_nova';
-const TEMPLATE_USUARIOS = '/rede/usuarios';
-const TEMPLATE_USUARIO_NOVO = '/rede/usuario_novo';
-const TEMPLATE_ANOS = '/rede/anos';
-const TEMPLATE_ANO_NOVO = '/rede/ano_novo';
-
-const ROTA_UNIDADES = '/rede/unidades';
-const ROTA_USUARIOS = '/rede/usuarios';
-const ROTA_ANOS = '/rede/anos-letivos';
-
 /** O código volta na URL depois do POST-Redirect-GET; a frase que a pessoa lê nasce aqui. */
 const MENSAGENS: Record<string, string> = {
-  'unidade-criada': 'Unidade criada.',
-  'usuario-convidado': 'Usuário criado. A senha provisória está logo abaixo.',
-  'ano-definido': 'Ano letivo definido.',
+  [CODIGOS_DE_AVISO.unidadeCriada]: AVISOS.unidadeCriada,
+  [CODIGOS_DE_AVISO.usuarioConvidado]: AVISOS.usuarioConvidado,
+  [CODIGOS_DE_AVISO.anoDefinido]: AVISOS.anoDefinido,
 };
 
-/** A lista é fechada e igual à do domínio; aqui ela só ganha o nome que aparece na tela. */
-const PAPEIS_DA_TELA: readonly { valor: Papel; rotulo: string }[] = [
-  { valor: 'admin_rede', rotulo: 'Administração da rede' },
-  { valor: 'secretaria', rotulo: 'Secretaria' },
-  { valor: 'professor', rotulo: 'Professor' },
-  { valor: 'responsavel', rotulo: 'Responsável' },
-];
+/**
+ * A lista é fechada e igual à do domínio; aqui ela só ganha o nome que aparece na tela.
+ *
+ * Derivada de `PAPEIS`, e não redigitada: a ordem das opções do formulário passa a ser a ordem do
+ * domínio, e um papel novo aparece nas duas listas de seleção sem que ninguém precise lembrar.
+ */
+const PAPEIS_DA_TELA: readonly { valor: Papel; rotulo: string }[] = PAPEIS.map((valor) => ({
+  valor,
+  rotulo: VOCABULARIO_DE_IDENTIDADE.papel[valor],
+}));
 
-/** Sem JavaScript no cliente, "uma ou mais atribuições" são linhas fixas que podem ficar vazias. */
-const LINHAS_DE_ATRIBUICAO = 3;
-
-const ANO_EM_QUATRO_DIGITOS = /^\d{4}$/;
-
-const ANO_INVALIDO: ErroDeAplicacao = {
-  campo: 'ano',
-  codigo: 'ano_invalido',
-  mensagem: 'Informe o ano com quatro dígitos.',
-};
-
-const ATRIBUICAO_INCOMPLETA: ErroDeAplicacao = {
-  campo: 'atribuicoes',
-  codigo: 'atribuicao_incompleta',
-  mensagem: 'Cada atribuição precisa de uma unidade e de um papel.',
-};
+/**
+ * O que o `.eta` não tem como importar chega por `it`, e é este o único caminho: o Eta não lê
+ * TypeScript, então redigitar `/parciais/_vazio`, `-erro` ou `120` dentro do template abriria a
+ * segunda fonte de verdade que a constante existe para fechar. Quem sabe ler `constantes.ts` é o
+ * handler, e é ele que carrega o valor até a tela.
+ *
+ * `PARCIAIS` vai para as três listas e para o painel, que incluem `_vazio` e `_paginacao`;
+ * `SUFIXOS` vai para os três formulários, cujos `id=` precisam casar, byte a byte, com o que
+ * `descricao()` monta em `render.ts`.
+ */
+const PARCIAIS = { parciais: TEMPLATES.parciais };
+const SUFIXOS = { sufixos: SUFIXOS_DE_ID };
 
 export const rotasRede = new Hono<{ Variables: Variaveis }>();
 
-rotasRede.use(exigirPapel('admin_rede'));
+rotasRede.use(exigirPapel(PAPEL.adminRede));
 
 /* --- Leitura do formulário -------------------------------------------------- */
 
@@ -92,7 +103,8 @@ const lista = (corpo: CorpoDeFormulario, campo: string): string[] => {
   return typeof valor === 'string' ? [valor.trim()] : [];
 };
 
-const mensagemDaQuery = (c: Context): string | undefined => MENSAGENS[c.req.query('ok') ?? ''];
+const mensagemDaQuery = (c: Context): string | undefined =>
+  MENSAGENS[c.req.query(PARAMETROS.ok) ?? ''];
 
 /* --- Painel da rede --------------------------------------------------------- */
 
@@ -118,14 +130,15 @@ const contarRede = async (redeId: string, anoLetivoId: string | null): Promise<C
   };
 };
 
-rotasRede.get('/', async (c) => {
+rotasRede.get(ROTAS.rede.painel.padrao, async (c) => {
   const redeId = redeAtual(c);
   // `listarAnosLetivos` devolve do mais recente para o mais antigo: o primeiro é o ano em vigor.
   const anos = await academico.listarAnosLetivos(redeId);
   const anoLetivo = anos[0] ?? null;
   const contagens = await contarRede(redeId, anoLetivo === null ? null : anoLetivo.id);
-  return renderizar(c, TEMPLATE_PAINEL, {
-    titulo: 'Painel da rede',
+  return renderizar(c, TEMPLATES.rede.painel, {
+    ...PARCIAIS,
+    titulo: TITULOS.rede.painel,
     contagens,
     anoLetivo,
     anosDefinidos: anos.length,
@@ -136,8 +149,13 @@ rotasRede.get('/', async (c) => {
 
 const telaDeUnidades = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
   const pagina = await identidade.paginaDeUnidades(redeAtual(c), paginaDaQuery(c));
-  return renderizar(c, TEMPLATE_UNIDADES, {
-    titulo: 'Unidades',
+  return renderizar(c, TEMPLATES.rede.unidades, {
+    ...PARCIAIS,
+    titulo: TITULOS.rede.unidades,
+    // A etiqueta e o travessão da célula vazia são vocabulário de quem os decide: a situação da
+    // unidade é da identidade, o travessão é de `shared`. O `.eta` só os recebe.
+    rotuloDaSituacao: VOCABULARIO_DE_IDENTIDADE.unidadeAtiva,
+    ausente: AUSENTE,
     unidades: pagina.itens,
     navegacao: navegacao(c, pagina),
     ...dados,
@@ -146,21 +164,29 @@ const telaDeUnidades = async (c: Context, dados: DadosDeTemplate = {}): Promise<
 
 /** O formulário não lê a lista: recusar um nome repetido não custa a consulta paginada. */
 const formDeUnidade = (c: Context, dados: DadosDeTemplate = {}): Response =>
-  renderizar(c, TEMPLATE_UNIDADE_NOVA, {
-    titulo: 'Criar unidade',
-    valores: { nome: '', codigoInep: '' },
+  renderizar(c, TEMPLATES.rede.unidadeNova, {
+    ...SUFIXOS,
+    titulo: TITULOS.rede.unidadeNova,
+    valores: VALORES_INICIAIS.unidade,
+    limiteDoNome: LIMITES_DE_IDENTIDADE.unidade.nome,
+    limiteDoCodigoInep: LIMITES_DE_IDENTIDADE.unidade.codigoInep,
     erros: [],
     ...dados,
   });
 
-rotasRede.get('/unidades', (c) => telaDeUnidades(c, { mensagem: mensagemDaQuery(c) }));
+rotasRede.get(ROTAS.rede.unidades.padrao, (c) =>
+  telaDeUnidades(c, { mensagem: mensagemDaQuery(c) }),
+);
 
-rotasRede.get('/unidades/nova', (c) => formDeUnidade(c));
+rotasRede.get(ROTAS.rede.unidadeNova.padrao, (c) => formDeUnidade(c));
 
-rotasRede.post('/unidades', async (c) => {
+rotasRede.post(ROTAS.rede.unidades.padrao, async (c) => {
   const redeId = redeAtual(c);
-  const corpo = c.get('corpo');
-  const valores = { nome: texto(corpo, 'nome'), codigoInep: texto(corpo, 'codigoInep') };
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const valores = {
+    nome: texto(corpo, CAMPOS.unidade.nome),
+    codigoInep: texto(corpo, CAMPOS.unidade.codigoInep),
+  };
 
   const resultado = await identidade.criarUnidade({
     redeId,
@@ -169,14 +195,14 @@ rotasRede.post('/unidades', async (c) => {
   });
   if (!resultado.ok) return formDeUnidade(c, { valores, erros: resultado.erros });
 
-  logger.info({ rede_id: redeId, unidade_id: resultado.valor.id }, 'unidade criada');
-  return c.redirect(`${ROTA_UNIDADES}?ok=unidade-criada`, 303);
+  logger.info({ rede_id: redeId, unidade_id: resultado.valor.id }, EVENTOS_DE_LOG.unidadeCriada);
+  return c.redirect(
+    `${ROTAS.rede.unidades()}?${PARAMETROS.ok}=${CODIGOS_DE_AVISO.unidadeCriada}`,
+    303,
+  );
 });
 
 /* --- Usuários --------------------------------------------------------------- */
-
-const COOKIE_DO_CONVITE = 'ev_convite';
-const VALIDADE_DO_CONVITE_S = 120;
 
 /**
  * A senha provisória precisa atravessar o redirecionamento do POST-Redirect-GET e aparecer uma
@@ -185,21 +211,30 @@ const VALIDADE_DO_CONVITE_S = 120;
  * a própria tela de destino apaga ao ler.
  */
 const guardarConvite = (c: Context, usuarioId: string, senha: string): Promise<void> =>
-  setSignedCookie(c, COOKIE_DO_CONVITE, `${usuarioId}:${senha}`, config.sessionSecret, {
-    path: ROTA_USUARIOS,
-    httpOnly: true,
-    secure: config.cookieSeguro,
-    sameSite: 'Lax',
-    maxAge: VALIDADE_DO_CONVITE_S,
-  });
+  setSignedCookie(
+    c,
+    COOKIE_DO_CONVITE.nome,
+    `${usuarioId}${COOKIE_DO_CONVITE.separador}${senha}`,
+    config.sessionSecret,
+    {
+      path: ROTAS.rede.usuarios(),
+      httpOnly: true,
+      secure: config.cookieSeguro,
+      sameSite: COOKIE_DO_CONVITE.sameSite,
+      maxAge: COOKIE_DO_CONVITE.validadeEmSegundos,
+    },
+  );
 
 const retirarConvite = async (
   c: Context,
 ): Promise<{ usuarioId: string; senha: string } | null> => {
-  const valor = await getSignedCookie(c, config.sessionSecret, COOKIE_DO_CONVITE);
+  const valor = await getSignedCookie(c, config.sessionSecret, COOKIE_DO_CONVITE.nome);
   if (typeof valor !== 'string') return null;
-  deleteCookie(c, COOKIE_DO_CONVITE, { path: ROTA_USUARIOS, secure: config.cookieSeguro });
-  const corte = valor.indexOf(':');
+  deleteCookie(c, COOKIE_DO_CONVITE.nome, {
+    path: ROTAS.rede.usuarios(),
+    secure: config.cookieSeguro,
+  });
+  const corte = valor.indexOf(COOKIE_DO_CONVITE.separador);
   if (corte <= 0) return null;
   return { usuarioId: valor.slice(0, corte), senha: valor.slice(corte + 1) };
 };
@@ -211,8 +246,8 @@ const ehPapel = (valor: string): valor is Papel =>
 
 /** As linhas voltam inteiras para a tela quando o convite é recusado, inclusive as vazias. */
 const linhasDoFormulario = (corpo: CorpoDeFormulario): LinhaDeAtribuicao[] => {
-  const unidades = lista(corpo, 'unidade[]');
-  const papeis = lista(corpo, 'papel[]');
+  const unidades = lista(corpo, CAMPOS.usuario.unidades);
+  const papeis = lista(corpo, CAMPOS.usuario.papeis);
   const total = Math.max(unidades.length, papeis.length, LINHAS_DE_ATRIBUICAO);
   return Array.from({ length: total }, (_, indice) => ({
     unidadeId: unidades[indice] ?? '',
@@ -230,8 +265,12 @@ const linhasVazias = (): LinhaDeAtribuicao[] =>
  */
 const telaDeUsuarios = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
   const pagina = await identidade.paginaDeUsuarios(redeAtual(c), paginaDaQuery(c));
-  return renderizar(c, TEMPLATE_USUARIOS, {
-    titulo: 'Usuários',
+  return renderizar(c, TEMPLATES.rede.usuarios, {
+    ...PARCIAIS,
+    titulo: TITULOS.rede.usuarios,
+    // Mesma regra da lista de unidades: a palavra que a etiqueta mostra é da identidade.
+    rotuloDaSituacao: VOCABULARIO_DE_IDENTIDADE.ativo,
+    semPapel: VOCABULARIO_DE_IDENTIDADE.semPapel,
     usuarios: pagina.itens,
     navegacao: navegacao(c, pagina),
     papeis: PAPEIS_DA_TELA,
@@ -252,33 +291,38 @@ const formDeUsuario = async (c: Context, dados: DadosDeTemplate = {}): Promise<R
     identidade.listarUnidades(redeId),
     academico.listarResponsaveis(redeId),
   ]);
-  return renderizar(c, TEMPLATE_USUARIO_NOVO, {
-    titulo: 'Convidar usuário',
+  return renderizar(c, TEMPLATES.rede.usuarioNovo, {
+    ...SUFIXOS,
+    titulo: TITULOS.rede.usuarioNovo,
     unidades,
     responsaveis,
     papeis: PAPEIS_DA_TELA,
-    valores: { nome: '', email: '', cpf: '', responsavelId: '' },
+    valores: VALORES_INICIAIS.usuario,
+    limiteDoNome: LIMITES_DE_IDENTIDADE.usuario.nome,
+    // Limita o que cabe na caixa; quem decide se o CPF vale é `shared/documento`, que aceita com
+    // ou sem pontuação.
+    tamanhoDoCpf: TAMANHO_DO_CPF_COM_MASCARA,
     linhas: linhasVazias(),
     erros: [],
     ...dados,
   });
 };
 
-rotasRede.get('/usuarios', async (c) => {
+rotasRede.get(ROTAS.rede.usuarios.padrao, async (c) => {
   const convite = await retirarConvite(c);
   return await telaDeUsuarios(c, { convite, mensagem: mensagemDaQuery(c) });
 });
 
-rotasRede.get('/usuarios/novo', (c) => formDeUsuario(c));
+rotasRede.get(ROTAS.rede.usuarioNovo.padrao, (c) => formDeUsuario(c));
 
-rotasRede.post('/usuarios', async (c) => {
+rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
   const redeId = redeAtual(c);
-  const corpo = c.get('corpo');
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
   const valores = {
-    nome: texto(corpo, 'nome'),
-    email: texto(corpo, 'email'),
-    cpf: texto(corpo, 'cpf'),
-    responsavelId: texto(corpo, 'responsavelId'),
+    nome: texto(corpo, CAMPOS.usuario.nome),
+    email: texto(corpo, CAMPOS.usuario.email),
+    cpf: texto(corpo, CAMPOS.usuario.cpf),
+    responsavelId: texto(corpo, CAMPOS.usuario.responsavelId),
   };
   const linhas = linhasDoFormulario(corpo);
 
@@ -289,7 +333,11 @@ rotasRede.post('/usuarios', async (c) => {
       : [],
   );
   if (atribuicoes.length !== preenchidas.length) {
-    return await formDeUsuario(c, { valores, linhas, erros: [ATRIBUICAO_INCOMPLETA] });
+    return await formDeUsuario(c, {
+      valores,
+      linhas,
+      erros: [ERROS_DE_FORMULARIO.atribuicaoIncompleta],
+    });
   }
 
   // Só a camada web enxerga identidade e academico ao mesmo tempo (I1): é aqui, e só aqui, que o
@@ -314,18 +362,22 @@ rotasRede.post('/usuarios', async (c) => {
   // A senha provisória não entra no log — nem aqui, nem em lugar nenhum.
   logger.info(
     { rede_id: redeId, usuario_id: resultado.valor.usuarioId, atribuicoes: atribuicoes.length },
-    'usuário convidado',
+    EVENTOS_DE_LOG.usuarioConvidado,
   );
   await guardarConvite(c, resultado.valor.usuarioId, resultado.valor.senhaProvisoria);
-  return c.redirect(`${ROTA_USUARIOS}?ok=usuario-convidado`, 303);
+  return c.redirect(
+    `${ROTAS.rede.usuarios()}?${PARAMETROS.ok}=${CODIGOS_DE_AVISO.usuarioConvidado}`,
+    303,
+  );
 });
 
 /* --- Anos letivos ----------------------------------------------------------- */
 
 const telaDeAnos = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
   const pagina = await academico.paginaDeAnosLetivos(redeAtual(c), paginaDaQuery(c));
-  return renderizar(c, TEMPLATE_ANOS, {
-    titulo: 'Anos letivos',
+  return renderizar(c, TEMPLATES.rede.anos, {
+    ...PARCIAIS,
+    titulo: TITULOS.rede.anos,
     anos: pagina.itens,
     navegacao: navegacao(c, pagina),
     ...dados,
@@ -333,29 +385,36 @@ const telaDeAnos = async (c: Context, dados: DadosDeTemplate = {}): Promise<Resp
 };
 
 const formDeAno = (c: Context, dados: DadosDeTemplate = {}): Response =>
-  renderizar(c, TEMPLATE_ANO_NOVO, {
-    titulo: 'Definir ano letivo',
-    valores: { ano: '', dataInicio: '', dataFim: '' },
+  renderizar(c, TEMPLATES.rede.anoNovo, {
+    ...SUFIXOS,
+    titulo: TITULOS.rede.anoNovo,
+    valores: VALORES_INICIAIS.anoLetivo,
+    // A faixa é do caso de uso, que recusa o mesmo intervalo com `MENSAGENS.anoLetivo.*`; no
+    // formulário ela só adianta a recusa no navegador.
+    anoMinimo: LIMITES_DO_ACADEMICO.anoLetivo.anoMinimo,
+    anoMaximo: LIMITES_DO_ACADEMICO.anoLetivo.anoMaximo,
     erros: [],
     ...dados,
   });
 
-rotasRede.get('/anos-letivos', (c) => telaDeAnos(c, { mensagem: mensagemDaQuery(c) }));
+rotasRede.get(ROTAS.rede.anosLetivos.padrao, (c) =>
+  telaDeAnos(c, { mensagem: mensagemDaQuery(c) }),
+);
 
-rotasRede.get('/anos-letivos/novo', (c) => formDeAno(c));
+rotasRede.get(ROTAS.rede.anoLetivoNovo.padrao, (c) => formDeAno(c));
 
-rotasRede.post('/anos-letivos', async (c) => {
+rotasRede.post(ROTAS.rede.anosLetivos.padrao, async (c) => {
   const redeId = redeAtual(c);
-  const corpo = c.get('corpo');
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
   const valores = {
-    ano: texto(corpo, 'ano'),
-    dataInicio: texto(corpo, 'dataInicio'),
-    dataFim: texto(corpo, 'dataFim'),
+    ano: texto(corpo, CAMPOS.anoLetivo.ano),
+    dataInicio: texto(corpo, CAMPOS.anoLetivo.dataInicio),
+    dataFim: texto(corpo, CAMPOS.anoLetivo.dataFim),
   };
 
   // O caso de uso recebe número; converter texto vazio em 0 devolveria a mensagem errada.
   if (!ANO_EM_QUATRO_DIGITOS.test(valores.ano)) {
-    return formDeAno(c, { valores, erros: [ANO_INVALIDO] });
+    return formDeAno(c, { valores, erros: [ERROS_DE_FORMULARIO.anoInvalido] });
   }
 
   const resultado = await academico.definirAnoLetivo({
@@ -366,6 +425,12 @@ rotasRede.post('/anos-letivos', async (c) => {
   });
   if (!resultado.ok) return formDeAno(c, { valores, erros: resultado.erros });
 
-  logger.info({ rede_id: redeId, ano_letivo_id: resultado.valor.id }, 'ano letivo definido');
-  return c.redirect(`${ROTA_ANOS}?ok=ano-definido`, 303);
+  logger.info(
+    { rede_id: redeId, ano_letivo_id: resultado.valor.id },
+    EVENTOS_DE_LOG.anoLetivoDefinido,
+  );
+  return c.redirect(
+    `${ROTAS.rede.anosLetivos()}?${PARAMETROS.ok}=${CODIGOS_DE_AVISO.anoDefinido}`,
+    303,
+  );
 });

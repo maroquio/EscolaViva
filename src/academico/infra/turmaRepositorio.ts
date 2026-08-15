@@ -1,5 +1,6 @@
 import type { Conexao } from '../../shared/db';
 import { recorte, type Faixa } from '../../shared/paginacao';
+import { ERROS_INTERNOS } from '../constantes';
 import {
   turnoValido,
   type Turma,
@@ -36,7 +37,7 @@ type LinhaDeTurmaDisciplinaDoProfessor = LinhaDeTurmaDisciplina & {
 
 /** O CHECK `turno_valido` garante o conjunto no banco; aqui ele volta a ser tipo. */
 function paraTurno(valor: string): Turno {
-  if (!turnoValido(valor)) throw new Error(`turno fora do conjunto conhecido: ${valor}`);
+  if (!turnoValido(valor)) throw new Error(ERROS_INTERNOS.turnoDesconhecido(valor));
   return valor;
 }
 
@@ -102,6 +103,11 @@ export type FiltroDeTurma = {
   anoLetivoId?: string;
 };
 
+/**
+ * O `'TEXT'` abaixo é o tipo do array do lado do Postgres, e não uma decisão do produto: é o mesmo
+ * argumento que `contarPorUnidade` passa dentro do `` sql`…` ``, onde a regra 6 já o deixa de fora.
+ * Aqui ele só está fora do template porque a condição é montada antes da consulta.
+ */
 const condicoesDoFiltro = (sql: Conexao, filtro?: FiltroDeTurma) => ({
   unidadeId: filtro?.unidadeId ?? null,
   unidadeIds:

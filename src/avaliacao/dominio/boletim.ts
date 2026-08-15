@@ -18,9 +18,22 @@
  * decidiu a situação.
  */
 
+import { APROVACAO, ARITMETICA } from '../constantes';
 import { QUANTIDADE_DE_BIMESTRES } from './nota';
 
-export type SituacaoFinal = 'em_curso' | 'aprovado' | 'reprovado';
+/**
+ * Os três estados possíveis do ano do aluno. Moram aqui, e não em `constantes.ts`, pela mesma razão
+ * de `BIMESTRES`: são a fonte do tipo `SituacaoFinal`, e quem decide qual deles vale é a função no
+ * fim deste arquivo. `VOCABULARIO.situacaoFinal` traduz cada código destes para a etiqueta que o
+ * boletim imprime — são duas coisas, e é o código que atravessa o banco e a URL.
+ */
+export const SITUACOES_FINAIS = {
+  emCurso: 'em_curso',
+  aprovado: 'aprovado',
+  reprovado: 'reprovado',
+} as const;
+
+export type SituacaoFinal = (typeof SITUACOES_FINAIS)[keyof typeof SITUACOES_FINAIS];
 
 export type LinhaDeBoletim = {
   disciplinaNome: string;
@@ -42,30 +55,25 @@ export type Boletim = {
   situacao: SituacaoFinal;
 };
 
-const CENTESIMOS = 100;
-const PERCENTUAL = 100;
-const MEDIA_MINIMA_EM_CENTESIMOS = 600;
-const FREQUENCIA_MINIMA_EM_CENTESIMOS = 7500;
-
-/** Cabe aqui o erro de representação do double, e só ele: 1 centésimo é dez mil vezes maior. */
-const TOLERANCIA_DE_REPRESENTACAO = 1e-6;
-
 /**
  * Leva um valor para centésimos inteiros, cortando da terceira casa em diante. O arredondamento
  * só é aceito dentro da tolerância, e é essa distinção que decide a aprovação: 7,45 chega do banco
  * como 744,9999999999 e vale 745; 5,995 chega como 599,5000000001 e vale 599 — reprova.
  */
 const emCentesimos = (valor: number): number => {
-  const bruto = valor * CENTESIMOS;
+  const bruto = valor * ARITMETICA.centesimos;
   const inteiro = Math.round(bruto);
-  return Math.abs(bruto - inteiro) <= TOLERANCIA_DE_REPRESENTACAO ? inteiro : Math.floor(bruto);
+  return Math.abs(bruto - inteiro) <= ARITMETICA.toleranciaDeRepresentacao
+    ? inteiro
+    : Math.floor(bruto);
 };
 
 /**
  * Corta os centésimos fracionários de uma divisão exata entre inteiros: 599,75 vira 5,99, jamais
  * 6,00.
  */
-const truncarEmCentesimos = (centesimos: number): number => Math.floor(centesimos) / CENTESIMOS;
+const truncarEmCentesimos = (centesimos: number): number =>
+  Math.floor(centesimos) / ARITMETICA.centesimos;
 
 /**
  * Média de uma disciplina no ano. Bimestre sem nota devolve `null`: enquanto falta lançamento não
@@ -122,7 +130,7 @@ export function percentualFrequencia(presencas: number, total: number): number {
   // o boletim mostra `presencas` e `totalDias` ao lado, então "0 de 0 dias" se lê sem ambiguidade
   // — e evita inventar presença que a escola nunca registrou.
   if (total <= 0) return 0;
-  return truncarEmCentesimos((presencas * PERCENTUAL * CENTESIMOS) / total);
+  return truncarEmCentesimos((presencas * ARITMETICA.percentual * ARITMETICA.centesimos) / total);
 }
 
 export function situacaoFinal(
@@ -132,9 +140,9 @@ export function situacaoFinal(
 ): SituacaoFinal {
   // Com bimestre aberto ou disciplina sem média o ano ainda está em curso: ninguém é reprovado
   // por nota que o professor ainda não lançou.
-  if (!todosFechados || media === null) return 'em_curso';
+  if (!todosFechados || media === null) return SITUACOES_FINAIS.emCurso;
   const aprovado =
-    emCentesimos(media) >= MEDIA_MINIMA_EM_CENTESIMOS &&
-    emCentesimos(frequencia) >= FREQUENCIA_MINIMA_EM_CENTESIMOS;
-  return aprovado ? 'aprovado' : 'reprovado';
+    emCentesimos(media) >= APROVACAO.mediaMinimaEmCentesimos &&
+    emCentesimos(frequencia) >= APROVACAO.frequenciaMinimaEmCentesimos;
+  return aprovado ? SITUACOES_FINAIS.aprovado : SITUACOES_FINAIS.reprovado;
 }

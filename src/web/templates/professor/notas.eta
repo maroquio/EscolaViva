@@ -14,6 +14,18 @@
 
   O seletor de bimestre é feito de links, não de <select>: sem JavaScript, um <select> precisaria de
   um botão "aplicar" para navegar, e quatro links fazem o mesmo trabalho com o teclado.
+
+  Nenhum endereço desta tela é escrito à mão. Os que dependem da alocação — a ação do formulário,
+  os quatro links de bimestre e os atalhos de chamada e fechamento — chegam prontos da rota,
+  montados uma vez só; a volta para "Minhas turmas" sai de `it.rotas`, o mesmo mapa que o router
+  registra. URL literal em `.eta` não quebra compilação: quebra a tela de quem clica.
+
+  O mesmo vale para o que não é endereço. O `id=` do erro da célula e o `aria-describedby` do campo
+  que ele descreve são o MESMO valor nas duas pontas, e chegam em `it.prefixos.erroDeCelula`
+  (`PREFIXOS_DE_ID`); os separadores do sobretítulo chegam em `it.separador` e
+  `it.separadorDeTurno` (`APRESENTACAO`); o caminho da parcial, em `it.parciais`. Todos vêm de
+  `src/web/constantes.ts` pela rota: o Eta não importa TypeScript, e redigitá-los aqui abriria a
+  segunda fonte de verdade que a constante existe para fechar.
 */
 const linhas = it.linhas ?? [];
 const fechado = it.fechado === true;
@@ -23,7 +35,7 @@ const legenda = `Notas do ${bimestre}º bimestre · ${alocacao.disciplinaNome} �
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= alocacao.turmaNome %> · <%= alocacao.serie %> · turno <%= alocacao.turno %></p>
+    <p class="sobretitulo"><%= alocacao.turmaNome %><%= it.separador %><%= alocacao.serie %><%= it.separadorDeTurno %><%= alocacao.turno %></p>
     <h1 class="pagina__titulo"><%= alocacao.disciplinaNome %></h1>
     <p class="pagina__resumo">
       Lançamento de notas de 0 a 10, com uma casa decimal. O que estiver em branco no envio deixa de
@@ -33,7 +45,7 @@ const legenda = `Notas do ${bimestre}º bimestre · ${alocacao.disciplinaNome} �
   <p class="pagina__acoes">
     <a class="botao botao--discreto" href="<%= it.hrefChamada %>">Chamada</a>
     <a class="botao botao--discreto" href="<%= it.hrefFechamento %>">Fechamento</a>
-    <a class="botao botao--discreto" href="/professor">Minhas turmas</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.professor.painel() %>">Minhas turmas</a>
   </p>
 </div>
 
@@ -54,7 +66,7 @@ const legenda = `Notas do ${bimestre}º bimestre · ${alocacao.disciplinaNome} �
 <% } %>
 
 <% if (linhas.length === 0) { %>
-<%~ include("/parciais/_vazio", {
+<%~ include(it.parciais.vazio, {
   titulo: 'Nenhum aluno matriculado',
   texto: 'Esta turma não tem matrícula ativa, então não há nota a lançar. A matrícula é feita pela secretaria.',
 }) %>
@@ -99,9 +111,9 @@ const legenda = `Notas do ${bimestre}º bimestre · ${alocacao.disciplinaNome} �
                    id="<%= it.prefixoNota %><%= linha.matriculaId %>"
                    name="<%= it.prefixoNota %><%= linha.matriculaId %>"
                    value="<%= linha.valor %>"
-                   <% if (linha.erro) { %>aria-invalid="true" aria-describedby="erro-<%= linha.matriculaId %>"<% } %>>
+                   <% if (linha.erro) { %>aria-invalid="true" aria-describedby="<%= it.prefixos.erroDeCelula %><%= linha.matriculaId %>"<% } %>>
             <% if (linha.erro) { %>
-            <p class="campo__erro" id="erro-<%= linha.matriculaId %>"><%= linha.erro %></p>
+            <p class="campo__erro" id="<%= it.prefixos.erroDeCelula %><%= linha.matriculaId %>"><%= linha.erro %></p>
             <% } %>
             <% } %>
           </td>

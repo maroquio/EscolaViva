@@ -1,35 +1,13 @@
+import { CHAVES_PROIBIDAS, LOG } from '../constantes';
+
 export type CamposDeLog = Record<string, unknown>;
 
 /**
- * I17: o log carrega identificador, nunca conteúdo. Aluno é menor de idade — nome, nascimento,
- * nota e contato do responsável não podem existir em linha de log, e segredo nenhum tampouco.
+ * A lista mora em `shared/constantes.ts` (I17) e continua saindo por aqui: `shared/log/index.ts`
+ * é a porta pública do log, e quem consome a redação não precisa saber onde ela é declarada.
  */
-export const CHAVES_PROIBIDAS: readonly string[] = [
-  'nome',
-  'nome_completo',
-  'aluno_nome',
-  'email',
-  'senha',
-  'senha_hash',
-  'senha_provisoria',
-  'cpf',
-  'telefone',
-  'valor',
-  'nota',
-  'notas',
-  'justificativa',
-  'titulo',
-  'corpo',
-  'data_nascimento',
-  'authorization',
-  'cookie',
-  'set-cookie',
-  'session_secret',
-  'database_url',
-];
+export { CHAVES_PROIBIDAS } from '../constantes';
 
-const VALOR_REDIGIDO = '[redigido]';
-const PROFUNDIDADE_MAXIMA = 6;
 const PROIBIDAS = new Set(CHAVES_PROIBIDAS.map((chave) => chave.toLowerCase()));
 
 /** Devolve uma cópia com os valores proibidos trocados, preservando chaves e estrutura. */
@@ -45,7 +23,7 @@ function redigirRamo(
   const saida: Record<string, unknown> = {};
   for (const [chave, valor] of Object.entries(objeto)) {
     saida[chave] = PROIBIDAS.has(chave.toLowerCase())
-      ? VALOR_REDIGIDO
+      ? LOG.valorRedigido
       : redigirValor(valor, profundidade, visitados);
   }
   return saida;
@@ -54,8 +32,8 @@ function redigirRamo(
 function redigirValor(valor: unknown, profundidade: number, visitados: WeakSet<object>): unknown {
   if (!ehLista(valor) && !ehObjetoSimples(valor)) return valor;
   // Passado o limite não há como garantir a redação do ramo, então ele é cortado inteiro.
-  if (profundidade >= PROFUNDIDADE_MAXIMA) return VALOR_REDIGIDO;
-  if (visitados.has(valor)) return VALOR_REDIGIDO;
+  if (profundidade >= LOG.profundidadeMaxima) return LOG.valorRedigido;
+  if (visitados.has(valor)) return LOG.valorRedigido;
 
   visitados.add(valor);
   const redigido = ehLista(valor)

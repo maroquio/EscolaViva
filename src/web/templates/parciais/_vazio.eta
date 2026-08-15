@@ -8,6 +8,11 @@
     include("/parciais/_vazio", { titulo, texto, acao })
 
   com `texto` e `acao` opcionais, e `acao` no formato `{ href, texto }`.
+
+  Por receber o próprio objeto, esta parcial não enxerga `it.rotas` — o mapa de rotas está no `it`
+  de quem inclui, não no dela. O `href` da ação é, então, montado no ponto de chamada
+  (`acao: { href: it.rotas.rede.unidadeNova(), texto: 'Criar unidade' }`) e nunca escrito à mão.
+  Aqui ele chega pronto e só é impresso: é a única URL do arquivo, e não é uma decisão desta tela.
 */
 const acao = it.acao ?? null;
 %>

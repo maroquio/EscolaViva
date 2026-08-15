@@ -9,15 +9,16 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import type { TurmaDisciplina } from '../dominio/turma';
 import * as disciplinas from '../infra/disciplinaRepositorio';
 import * as turmas from '../infra/turmaRepositorio';
 
 const entrada = z.object({
   redeId: z.string().uuid(),
-  turmaId: z.string().uuid('Selecione a turma.'),
-  disciplinaId: z.string().uuid('Selecione a disciplina.'),
-  professorUsuarioId: z.string().uuid('Selecione o professor.'),
+  turmaId: z.string().uuid(MENSAGENS.alocacao.turmaObrigatoria),
+  disciplinaId: z.string().uuid(MENSAGENS.alocacao.disciplinaObrigatoria),
+  professorUsuarioId: z.string().uuid(MENSAGENS.alocacao.professorObrigatorio),
 });
 
 export async function alocarProfessor(e: {
@@ -33,14 +34,18 @@ export async function alocarProfessor(e: {
   return unidadeDeTrabalho(async ({ sql }): Promise<Resultado<TurmaDisciplina>> => {
     const turma = await turmas.porId(sql, redeId, turmaId);
     if (turma === null) {
-      return falhaDeCampo('turmaId', 'turma_nao_encontrada', 'Turma não encontrada nesta rede.');
+      return falhaDeCampo(
+        CAMPOS.alocacao.turmaId,
+        CODIGOS.turmaNaoEncontrada,
+        MENSAGENS.turmaNaoEncontrada,
+      );
     }
     const disciplina = await disciplinas.porId(sql, redeId, disciplinaId);
     if (disciplina === null) {
       return falhaDeCampo(
-        'disciplinaId',
-        'disciplina_nao_encontrada',
-        'Disciplina não encontrada nesta rede.',
+        CAMPOS.alocacao.disciplinaId,
+        CODIGOS.disciplinaNaoEncontrada,
+        MENSAGENS.disciplinaNaoEncontrada,
       );
     }
     // Quem leciona precisa ter o papel na unidade da turma: é `identidade` quem responde isso,
@@ -52,9 +57,9 @@ export async function alocarProfessor(e: {
     );
     if (!ehProfessor) {
       return falhaDeCampo(
-        'professorUsuarioId',
-        'sem_papel_de_professor',
-        'Este usuário não tem papel de professor na unidade desta turma.',
+        CAMPOS.alocacao.professorUsuarioId,
+        CODIGOS.alocacao.semPapelDeProfessor,
+        MENSAGENS.alocacao.semPapelDeProfessor,
       );
     }
 
@@ -69,9 +74,9 @@ export async function alocarProfessor(e: {
     const criada = await turmas.inserirDisciplina(sql, alocacao);
     if (!criada) {
       return falhaDeCampo(
-        'disciplinaId',
-        'disciplina_ja_alocada',
-        'Esta disciplina já está alocada nesta turma.',
+        CAMPOS.alocacao.disciplinaId,
+        CODIGOS.alocacao.disciplinaJaAlocada,
+        MENSAGENS.alocacao.disciplinaJaAlocada,
       );
     }
     return sucesso(alocacao);

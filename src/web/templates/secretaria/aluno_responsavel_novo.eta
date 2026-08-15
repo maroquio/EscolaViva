@@ -5,12 +5,28 @@
   Quem já responde pelo aluno sai da lista: vincular duas vezes é o mesmo vínculo. Se não sobrar
   ninguém, a página diz por quê e aponta o caminho — cadastrar um responsável novo — em vez de
   mostrar um seletor vazio.
+
+  Os cinco endereços da tela saem de `it.rotas`, o mesmo mapa que o router registra: são três
+  destinos, e a volta à ficha sozinha aparece três vezes — no cabeçalho, no estado vazio e no
+  "Cancelar". Quatro dos cinco carregam o `:id` do aluno. Escrito à mão, cada um seria uma cópia que
+  pode divergir sozinha, com o id concatenado por conta própria — e URL literal em `.eta` não quebra
+  compilação: quebra a tela de quem clica.
+*/
+
+/*
+  O limite do parentesco, o rótulo da opção em branco, o valor que a caixa envia quando marcada e os
+  sufixos de id chegam prontos pelo `it`. O dono do tamanho é `LIMITES.parentesco.descricao`
+  (`src/academico/constantes.ts`), que `vincularResponsavel` faz valer com
+  `MENSAGENS.vinculo.parentescoLongo`; o `maxlength` só adianta a recusa no navegador. `it.marcado` é
+  `MARCADO` (`src/web/constantes.ts`) — caixa desmarcada não é enviada pelo navegador, e é a ausência
+  do nome, não o valor, que o servidor lê como "não". `it.opcaoVazia` é `APRESENTACAO.opcaoVazia`, e
+  os sufixos são de `SUFIXOS_DE_ID`, os mesmos que `descricao()` usa do outro lado.
 */
 const aluno = it.aluno;
 const disponiveis = it.disponiveis ?? [];
 const temResponsaveis = it.temResponsaveis === true;
 const valores = it.valores ?? {};
-const { erroDe, descricao } = it;
+const { erroDe, descricao, sufixos } = it;
 
 const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valores[campo]);
 %>
@@ -23,7 +39,7 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="/secretaria/alunos/<%= aluno.id %>">Voltar à ficha</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>">Voltar à ficha</a>
   </div>
 </div>
 
@@ -37,11 +53,11 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
     <% } %>
   </p>
   <div class="acoes">
-    <a class="botao botao--primario" href="/secretaria/responsaveis/novo">Cadastrar responsável</a>
-    <a class="botao botao--discreto" href="/secretaria/alunos/<%= aluno.id %>">Voltar à ficha</a>
+    <a class="botao botao--primario" href="<%= it.rotas.secretaria.responsavelNovo() %>">Cadastrar responsável</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>">Voltar à ficha</a>
   </div>
   <% } else { %>
-  <form class="formulario" method="post" action="/secretaria/alunos/<%= aluno.id %>/responsaveis">
+  <form class="formulario" method="post" action="<%= it.rotas.secretaria.alunoResponsaveis({ id: aluno.id }) %>">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
 
     <div class="formulario__linha">
@@ -55,7 +71,7 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
           required
           <% if (erroDe('responsavelId') !== '') { %>aria-invalid="true"<% } %>
           <% if (descricao('responsavelId') !== '') { %>aria-describedby="<%= descricao('responsavelId') %>"<% } %>>
-          <option value="">Selecione…</option>
+          <option value=""><%= it.opcaoVazia %></option>
           <% disponiveis.forEach((pessoa) => { %>
           <option value="<%= pessoa.id %>" <%= valor('responsavelId', '') === pessoa.id ? 'selected' : '' %>>
             <%= pessoa.nome %> — <%= pessoa.email %>
@@ -63,7 +79,7 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
           <% }) %>
         </select>
         <% if (erroDe('responsavelId') !== '') { %>
-        <p class="campo__erro" id="responsavelId-erro"><%= erroDe('responsavelId') %></p>
+        <p class="campo__erro" id="responsavelId<%= sufixos.erro %>"><%= erroDe('responsavelId') %></p>
         <% } %>
       </div>
 
@@ -76,13 +92,13 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
           name="parentesco"
           type="text"
           required
-          maxlength="40"
+          maxlength="<%= it.limiteDoParentesco %>"
           value="<%= valor('parentesco', '') %>"
           <% if (erroDe('parentesco') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('parentesco', true) %>">
-        <p class="campo__ajuda" id="parentesco-ajuda">Mãe, pai, avó, tutor legal.</p>
+        <p class="campo__ajuda" id="parentesco<%= sufixos.ajuda %>">Mãe, pai, avó, tutor legal.</p>
         <% if (erroDe('parentesco') !== '') { %>
-        <p class="campo__erro" id="parentesco-erro"><%= erroDe('parentesco') %></p>
+        <p class="campo__erro" id="parentesco<%= sufixos.erro %>"><%= erroDe('parentesco') %></p>
         <% } %>
       </div>
     </div>
@@ -93,12 +109,12 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
           id="financeiro"
           name="financeiro"
           type="checkbox"
-          value="sim"
+          value="<%= it.marcado %>"
           <%= valor('financeiro', false) === true ? 'checked' : '' %>
-          aria-describedby="financeiro-ajuda">
+          aria-describedby="financeiro<%= sufixos.ajuda %>">
         <label class="campo__rotulo" for="financeiro">Responsável financeiro</label>
       </div>
-      <p class="campo__ajuda" id="financeiro-ajuda">
+      <p class="campo__ajuda" id="financeiro<%= sufixos.ajuda %>">
         Marque quem responde pela cobrança. O aluno pode ter mais de um responsável, e apenas um
         deles precisa ser o financeiro.
       </p>
@@ -106,7 +122,7 @@ const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valore
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Vincular responsável</button>
-      <a class="botao botao--discreto" href="/secretaria/alunos/<%= aluno.id %>">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>">Cancelar</a>
     </div>
   </form>
   <% } %>

@@ -1,54 +1,72 @@
 import { z } from 'zod';
+import {
+  AMBIENTES,
+  AMBIENTE_PRODUCAO,
+  BOOLEANOS_DE_AMBIENTE,
+  MENSAGENS_DE_CONFIG,
+  NIVEIS_DE_LOG,
+  PADROES_DE_CONFIG,
+  SEPARADOR_DE_LISTA_DE_AMBIENTE,
+  TAMANHO_MINIMO_DO_SEGREDO,
+  VERDADEIRO_DE_AMBIENTE,
+} from '../constantes';
 
+/**
+ * Os dois campos de conjunto fechado nascem das MESMAS listas que o schema valida: repetir a união
+ * aqui criaria um segundo lugar para acrescentar um ambiente, e o tipo continuaria compilando
+ * enquanto o schema recusasse o valor em tempo de execução.
+ */
 export type Config = {
-  ambiente: 'development' | 'test' | 'production';
+  ambiente: (typeof AMBIENTES)[number];
   porta: number;
   databaseUrl: string;
   sessionSecret: string;
   sessaoDuracaoHoras: number;
   httpTimeoutMs: number;
   proxiesConfiaveis: string[];
-  logLevel: 'debug' | 'info' | 'warn' | 'error';
+  logLevel: (typeof NIVEIS_DE_LOG)[number];
   cookieSeguro: boolean;
 };
 
-const AMBIENTES = ['development', 'test', 'production'] as const;
-const NIVEIS_DE_LOG = ['debug', 'info', 'warn', 'error'] as const;
-const TAMANHO_MINIMO_DO_SEGREDO = 32;
+/** O `path` do zod vem segmentado; o relatório o mostra como um caminho só. */
+const SEPARADOR_DE_CAMINHO = '.';
 
-const booleano = z.enum(['true', 'false'], {
-  errorMap: () => ({ message: 'use true ou false' }),
+/** O relatório é lido no terminal: um problema por linha. */
+const QUEBRA_DE_LINHA = '\n';
+
+const booleano = z.enum(BOOLEANOS_DE_AMBIENTE, {
+  errorMap: () => ({ message: MENSAGENS_DE_CONFIG.booleanoInvalido }),
 });
 
 export const schemaDeAmbiente = z.object({
   APP_ENV: z
-    .enum(AMBIENTES, { errorMap: () => ({ message: 'use development, test ou production' }) })
-    .default('development'),
+    .enum(AMBIENTES, { errorMap: () => ({ message: MENSAGENS_DE_CONFIG.ambienteInvalido }) })
+    .default(PADROES_DE_CONFIG.ambiente),
   PORT: z.coerce
-    .number({ invalid_type_error: 'precisa ser um número inteiro de porta' })
+    .number({ invalid_type_error: MENSAGENS_DE_CONFIG.portaInvalida })
     .int()
     .positive()
-    .default(3000),
+    .default(PADROES_DE_CONFIG.porta),
   DATABASE_URL: z
-    .string({ required_error: 'obrigatória — conexão do PostgreSQL primário' })
-    .min(1, 'obrigatória — conexão do PostgreSQL primário'),
+    .string({ required_error: MENSAGENS_DE_CONFIG.databaseUrlAusente })
+    .min(1, MENSAGENS_DE_CONFIG.databaseUrlAusente),
   SESSION_SECRET: z
-    .string({ required_error: 'obrigatória — segredo que assina o cookie de sessão' })
-    .min(TAMANHO_MINIMO_DO_SEGREDO, `precisa de no mínimo ${TAMANHO_MINIMO_DO_SEGREDO} caracteres`),
+    .string({ required_error: MENSAGENS_DE_CONFIG.sessionSecretAusente })
+    .min(TAMANHO_MINIMO_DO_SEGREDO, MENSAGENS_DE_CONFIG.sessionSecretCurto),
   SESSAO_DURACAO_HORAS: z.coerce
-    .number({ invalid_type_error: 'precisa ser um número de horas' })
+    .number({ invalid_type_error: MENSAGENS_DE_CONFIG.duracaoInvalida })
     .int()
     .positive()
-    .default(12),
+    .default(PADROES_DE_CONFIG.sessaoDuracaoHoras),
   HTTP_TIMEOUT_MS: z.coerce
-    .number({ invalid_type_error: 'precisa ser um número de milissegundos' })
+    .number({ invalid_type_error: MENSAGENS_DE_CONFIG.timeoutInvalido })
     .int()
     .positive()
-    .default(25000),
+    .default(PADROES_DE_CONFIG.httpTimeoutMs),
   PROXIES_CONFIAVEIS: z.string().default(''),
   LOG_LEVEL: z
-    .enum(NIVEIS_DE_LOG, { errorMap: () => ({ message: 'use debug, info, warn ou error' }) })
-    .default('info'),
+    .enum(NIVEIS_DE_LOG, { errorMap: () => ({ message: MENSAGENS_DE_CONFIG.logLevelInvalido }) })
+    .default(PADROES_DE_CONFIG.logLevel),
   COOKIE_SEGURO: booleano.optional(),
 });
 
@@ -69,21 +87,22 @@ const semValoresVazios = (
 
 const listaSeparadaPorVirgula = (valor: string): string[] =>
   valor
-    .split(',')
+    .split(SEPARADOR_DE_LISTA_DE_AMBIENTE)
     .map((item) => item.trim())
     .filter((item) => item !== '');
 
 const mensagemDeConfigInvalida = (
   issues: readonly { path: (string | number)[]; message: string }[],
 ): string => {
-  const linhas = issues.map(
-    (problema) => `  - ${problema.path.join('.') || 'ambiente'}: ${problema.message}`,
-  );
+  const linhas = issues.map((problema) => {
+    const onde = problema.path.join(SEPARADOR_DE_CAMINHO) || MENSAGENS_DE_CONFIG.rotuloDaRaiz;
+    return `  - ${onde}: ${problema.message}`;
+  });
   return [
-    'Configuração de ambiente inválida — o processo não sobe (I18).',
+    MENSAGENS_DE_CONFIG.cabecalhoDoRelatorio,
     ...linhas,
-    'Consulte .env.example.',
-  ].join('\n');
+    MENSAGENS_DE_CONFIG.rodapeDoRelatorio,
+  ].join(QUEBRA_DE_LINHA);
 };
 
 /**
@@ -110,7 +129,7 @@ export function carregarConfig(env: Record<string, string | undefined>): Config 
     logLevel: bruto.LOG_LEVEL,
     cookieSeguro:
       bruto.COOKIE_SEGURO === undefined
-        ? bruto.APP_ENV === 'production'
-        : bruto.COOKIE_SEGURO === 'true',
+        ? bruto.APP_ENV === AMBIENTE_PRODUCAO
+        : bruto.COOKIE_SEGURO === VERDADEIRO_DE_AMBIENTE,
   };
 }

@@ -1,12 +1,11 @@
 import type { Conexao } from '../../shared/db';
 import { recorte, type Faixa } from '../../shared/paginacao';
+import { PAPEL } from '../constantes';
 import { paraPapel, type Papel, type PapelEmUnidade } from '../dominio/papel';
 import type { Usuario, UsuarioResumo } from '../dominio/usuario';
 
 /** A senha nunca sai junto do usuário para a aplicação sem que o nome diga o que está saindo. */
 export type Credenciais = { usuario: Usuario; senhaHash: string };
-
-const PAPEL_PROFESSOR: Papel = 'professor';
 
 type LinhaDeUsuario = {
   id: string;
@@ -183,7 +182,7 @@ export async function ehProfessorNaUnidade(
     WHERE rede_id = ${redeId}
       AND usuario_id = ${usuarioId}
       AND unidade_id = ${unidadeId}
-      AND papel = ${PAPEL_PROFESSOR}
+      AND papel = ${PAPEL.professor}
     LIMIT 1
   `;
   return linhas.length > 0;
@@ -200,7 +199,7 @@ export async function professoresDaUnidade(
     JOIN papel_usuario pu ON pu.usuario_id = u.id AND pu.rede_id = u.rede_id
     WHERE u.rede_id = ${redeId}
       AND pu.unidade_id = ${unidadeId}
-      AND pu.papel = ${PAPEL_PROFESSOR}
+      AND pu.papel = ${PAPEL.professor}
       AND u.ativo
     ORDER BY u.nome
   `;

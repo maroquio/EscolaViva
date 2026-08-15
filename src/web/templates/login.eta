@@ -18,7 +18,7 @@ const { erroDe, descricao } = it;
 %>
 <h1>Entrar</h1>
 
-<form class="formulario" method="post" action="/login">
+<form class="formulario" method="post" action="<%= it.rotas.publicas.login() %>">
   <input type="hidden" name="_chave" value="<%= it.chave %>">
 
   <div class="campo">

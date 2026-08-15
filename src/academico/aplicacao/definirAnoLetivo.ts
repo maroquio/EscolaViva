@@ -8,21 +8,19 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import { periodoCoerente, type AnoLetivo } from '../dominio/anoLetivo';
 import * as anosLetivos from '../infra/anoLetivoRepositorio';
-
-const ANO_MINIMO = 2000;
-const ANO_MAXIMO = 2100;
 
 const entrada = z.object({
   redeId: z.string().uuid(),
   ano: z
     .number()
-    .int('O ano precisa ser um número inteiro.')
-    .min(ANO_MINIMO, `O ano precisa ser a partir de ${ANO_MINIMO}.`)
-    .max(ANO_MAXIMO, `O ano precisa ser até ${ANO_MAXIMO}.`),
-  dataInicio: z.string().date('Informe a data de início no formato AAAA-MM-DD.'),
-  dataFim: z.string().date('Informe a data de término no formato AAAA-MM-DD.'),
+    .int(MENSAGENS.anoLetivo.anoNaoInteiro)
+    .min(LIMITES.anoLetivo.anoMinimo, MENSAGENS.anoLetivo.anoAbaixoDoMinimo)
+    .max(LIMITES.anoLetivo.anoMaximo, MENSAGENS.anoLetivo.anoAcimaDoMaximo),
+  dataInicio: z.string().date(MENSAGENS.anoLetivo.dataInicioFormato),
+  dataFim: z.string().date(MENSAGENS.anoLetivo.dataFimFormato),
 });
 
 export async function definirAnoLetivo(e: {
@@ -37,16 +35,20 @@ export async function definirAnoLetivo(e: {
   const { redeId, ano, dataInicio, dataFim } = validada.data;
   if (!periodoCoerente(dataInicio, dataFim)) {
     return falhaDeCampo(
-      'dataFim',
-      'periodo_incoerente',
-      'A data de término precisa ser posterior à data de início.',
+      CAMPOS.anoLetivo.dataFim,
+      CODIGOS.anoLetivo.periodoIncoerente,
+      MENSAGENS.anoLetivo.periodoIncoerente,
     );
   }
 
   const anoLetivo: AnoLetivo = { id: idGeneratorUuid.novo(), redeId, ano, dataInicio, dataFim };
   const criado = await unidadeDeTrabalho(({ sql }) => anosLetivos.inserir(sql, anoLetivo));
   if (!criado) {
-    return falhaDeCampo('ano', 'ano_duplicado', `Esta rede já tem o ano letivo ${ano} definido.`);
+    return falhaDeCampo(
+      CAMPOS.anoLetivo.ano,
+      CODIGOS.anoLetivo.duplicado,
+      MENSAGENS.anoLetivo.duplicado(ano),
+    );
   }
   return sucesso(anoLetivo);
 }

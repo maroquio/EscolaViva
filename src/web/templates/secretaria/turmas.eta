@@ -1,17 +1,41 @@
 <%
 /*
   Turmas das unidades em que a pessoa é secretaria: a lista e o filtro dela. O cadastro mora em
-  `/secretaria/turmas/nova`.
+  `it.rotas.secretaria.turmaNova()`.
 
   O filtro vive na URL, não em estado do servidor: a tela filtrada é um endereço que se guarda e se
   envia a outra pessoa. Só aparecem no seletor as unidades da própria secretaria — filtrar por uma
   unidade de fora não é uma opção que a tela ofereça.
+
+  Todo endereço desta tela sai de `it.rotas`, o mesmo mapa que o router registra. A própria lista
+  aparece três vezes — como ação do formulário de filtro, como "limpar filtro" e como saída do
+  estado vazio filtrado —, o cadastro aparece duas, e ainda há a tela de cada turma, que carrega o
+  `:id`. À mão seriam seis cópias que podem divergir de um lado só, uma delas com o id concatenado
+  por conta própria, e URL literal em `.eta` não quebra compilação: quebra a tela de quem clica.
+*/
+
+/*
+  O `name` de cada seletor do filtro é `it.campoDaUnidade` e `it.campoDoAno` — `PARAMETROS.unidade` e
+  `PARAMETROS.ano` (`src/web/constantes.ts`). O formulário é um GET: o nome que sai daqui é o
+  parâmetro que a rota lê de volta, e se divergirem o filtro escolhido não chega ao servidor, sem
+  erro nenhum na tela — a lista volta como se ninguém tivesse filtrado. Os `id` logo abaixo se
+  escrevem igual por coincidência e são outra decisão: pertencem ao documento, junto do `for` do
+  rótulo. O travessão da célula sem valor é `AUSENTE` (`src/shared/constantes.ts`).
+*/
+
+/*
+  O caminho de cada parcial incluído vem de `it.parciais` — `TEMPLATES.parciais`
+  (`src/web/constantes.ts`), o mesmo mapa que nomeia esta página. Escrito à mão, `"/parciais/_vazio"`
+  seria uma cópia do caminho de arquivo que nenhum compilador confere: renomear o parcial derruba a
+  tela em tempo de execução, e não na compilação.
 */
 const turmas = it.turmas ?? [];
 const unidades = it.unidades ?? [];
 const anosLetivos = it.anosLetivos ?? [];
 const filtro = it.filtro ?? { unidadeId: '', anoLetivoId: '' };
 const filtrando = filtro.unidadeId !== '' || filtro.anoLetivoId !== '';
+const listaDeTurmas = it.rotas.secretaria.turmas();
+const cadastroDeTurma = it.rotas.secretaria.turmaNova();
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -23,17 +47,17 @@ const filtrando = filtro.unidadeId !== '' || filtro.anoLetivoId !== '';
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="/secretaria/disciplinas">Disciplinas</a>
-    <a class="botao botao--primario" href="/secretaria/turmas/nova">Cadastrar turma</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.disciplinas() %>">Disciplinas</a>
+    <a class="botao botao--primario" href="<%= cadastroDeTurma %>">Cadastrar turma</a>
   </div>
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="get" action="/secretaria/turmas">
+  <form class="formulario" method="get" action="<%= listaDeTurmas %>">
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="unidade">Unidade</label>
-        <select id="unidade" name="unidade">
+        <select id="unidade" name="<%= it.campoDaUnidade %>">
           <option value="">Todas as suas unidades</option>
           <% unidades.forEach((unidade) => { %>
           <option value="<%= unidade.id %>" <%= filtro.unidadeId === unidade.id ? 'selected' : '' %>>
@@ -45,7 +69,7 @@ const filtrando = filtro.unidadeId !== '' || filtro.anoLetivoId !== '';
 
       <div class="campo">
         <label class="campo__rotulo" for="ano">Ano letivo</label>
-        <select id="ano" name="ano">
+        <select id="ano" name="<%= it.campoDoAno %>">
           <option value="">Todos os anos</option>
           <% anosLetivos.forEach((anoLetivo) => { %>
           <option value="<%= anoLetivo.id %>" <%= filtro.anoLetivoId === anoLetivo.id ? 'selected' : '' %>>
@@ -59,7 +83,7 @@ const filtrando = filtro.unidadeId !== '' || filtro.anoLetivoId !== '';
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Filtrar</button>
       <% if (filtrando) { %>
-      <a class="botao botao--discreto" href="/secretaria/turmas">Limpar filtro</a>
+      <a class="botao botao--discreto" href="<%= listaDeTurmas %>">Limpar filtro</a>
       <% } %>
     </div>
   </form>
@@ -76,16 +100,16 @@ const filtrando = filtro.unidadeId !== '' || filtro.anoLetivoId !== '';
   </div>
 
   <% if (turmas.length === 0) { %>
-  <%~ include("/parciais/_vazio", filtrando
+  <%~ include(it.parciais.vazio, filtrando
     ? {
         titulo: 'Nenhuma turma nesse filtro',
         texto: 'Nenhuma turma das suas unidades combina com a unidade e o ano letivo escolhidos. Limpe o filtro para ver todas.',
-        acao: { href: '/secretaria/turmas', texto: 'Limpar filtro' }
+        acao: { href: listaDeTurmas, texto: 'Limpar filtro' }
       }
     : {
         titulo: 'Nenhuma turma cadastrada',
         texto: 'Sem turma não há matrícula, alocação de professor nem chamada.',
-        acao: { href: '/secretaria/turmas/nova', texto: 'Cadastrar turma' }
+        acao: { href: cadastroDeTurma, texto: 'Cadastrar turma' }
       }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -108,10 +132,10 @@ const filtrando = filtro.unidadeId !== '' || filtro.anoLetivoId !== '';
           <td class="celula-centro"><%= turma.serie %></td>
           <td class="celula-centro"><%= turma.turno %></td>
           <td class="celula-centro"><%= turma.unidadeNome %></td>
-          <td class="numero celula-centro"><%= turma.ano === null ? '—' : turma.ano %></td>
+          <td class="numero celula-centro"><%= turma.ano === null ? it.semValor : turma.ano %></td>
           <td class="celula-centro">
             <div class="tabela__acoes">
-              <a class="botao botao--secundario botao--miudo" href="/secretaria/turmas/<%= turma.id %>">
+              <a class="botao botao--secundario botao--miudo" href="<%= it.rotas.secretaria.turma({ id: turma.id }) %>">
                 Abrir<span class="visualmente-oculto"> turma <%= turma.nome %></span>
               </a>
             </div>
@@ -121,6 +145,6 @@ const filtrando = filtro.unidadeId !== '' || filtro.anoLetivoId !== '';
       </tbody>
     </table>
   </div>
-  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'turmas' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'turmas' }) %>
   <% } %>
 </section>

@@ -8,8 +8,27 @@
   por dia e não por disciplina, e o fechamento, que é por bimestre e por turma.
 
   Um professor sem alocação não vê uma lista vazia: vê o que precisa acontecer para ele existir aqui.
+
+  Nenhum endereço desta tela é escrito à mão. Os três que ela oferece — o diário de cada disciplina,
+  a chamada e o fechamento — dependem de um id, e por isso chegam prontos da rota (`comLinks`, em
+  `src/web/rotas/professor.ts`), montados uma vez só sobre `ROTAS`, o mesmo mapa que o router
+  registra e que os outros templates leem como `it.rotas`. O vazio desta tela não oferece ação
+  porque não há nenhuma para oferecer: alocar professor é da secretaria. URL literal em `.eta` não
+  quebra compilação: quebra a tela de quem clica.
+
+  O caminho da parcial incluída segue a mesma regra e chega em `it.parciais`; o " · turno " da nota
+  da seção, em `it.separadorDeTurno`. São `TEMPLATES.parciais` e `APRESENTACAO`, de
+  `src/web/constantes.ts`, carregados até aqui pela rota.
 */
 const turmas = it.turmas ?? [];
+
+/*
+  O id do título e o `aria-labelledby` da seção que ele nomeia são o mesmo valor escrito nas duas
+  pontas. Escrito à mão, a próxima mudança acerta uma ponta e deixa a outra apontando para o vazio,
+  e quem usa leitor de tela ouve a seção sem nome. É id de apresentação, e não nome de campo que o
+  servidor leia de volta: nasce e morre neste arquivo.
+*/
+const idDaTurma = (turmaId) => `turma-${turmaId}`;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -23,17 +42,17 @@ const turmas = it.turmas ?? [];
 </div>
 
 <% if (turmas.length === 0) { %>
-<%~ include("/parciais/_vazio", {
+<%~ include(it.parciais.vazio, {
   titulo: 'Nenhuma turma alocada',
   texto: 'Você ainda não foi alocado como professor em nenhuma disciplina desta rede. A alocação é feita pela secretaria, na tela da turma.',
 }) %>
 <% } %>
 
 <% turmas.forEach((turma) => { %>
-<section class="secao" aria-labelledby="turma-<%= turma.turmaId %>">
+<section class="secao" aria-labelledby="<%= idDaTurma(turma.turmaId) %>">
   <div class="secao__cabecalho">
-    <h2 id="turma-<%= turma.turmaId %>"><%= turma.turmaNome %></h2>
-    <p class="secao__nota"><%= turma.serie %> · turno <%= turma.turno %></p>
+    <h2 id="<%= idDaTurma(turma.turmaId) %>"><%= turma.turmaNome %></h2>
+    <p class="secao__nota"><%= turma.serie %><%= it.separadorDeTurno %><%= turma.turno %></p>
   </div>
 
   <div class="painel">

@@ -17,6 +17,7 @@
 import { join } from 'node:path';
 import { Hono } from 'hono';
 import { identidade } from '../identidade';
+import { ATIVOS } from '../shared/constantes';
 import {
   criarMiddlewareSessao,
   exigirLogin,
@@ -26,37 +27,28 @@ import {
   temPapel,
   usuarioAtual,
   usuarioAtualOuNulo,
-  type PapelDaSessao,
   type Variaveis,
 } from '../shared/http';
+import {
+  DETALHES_DE_ERRO,
+  ERRO_INESPERADO_EM_TEXTO,
+  NOME_DE_ASSET,
+  PAGINAS_DE_ERRO,
+  PAINEL_POR_PAPEL,
+  PREFIXO_PUBLICO,
+  ROTAS,
+  TIPOS_DE_ASSET,
+  TIPO_DE_ASSET_PADRAO,
+  TITULOS_DE_ERRO,
+} from './constantes';
 import { rotasSaude } from './health';
 import { renderizarErro } from './render';
 import { montarRotas } from './rotas';
 
-const PASTA_PUBLICO = join(import.meta.dir, '..', '..', 'publico');
-const PREFIXO_PUBLICO = '/publico/';
+const PASTA_PUBLICO = join(import.meta.dir, '..', '..', ATIVOS.diretorio);
 
-/** O nome do asset é gerado pelo build (`app.<hash>.css`): nada além disso é servido daqui. */
-const NOME_DE_ASSET = /^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,127})$/;
-
-const TIPOS_DE_ASSET: Record<string, string> = {
-  css: 'text/css; charset=utf-8',
-  js: 'text/javascript; charset=utf-8',
-  svg: 'image/svg+xml',
-  ico: 'image/x-icon',
-  woff2: 'font/woff2',
-};
-
-/**
- * Ordem de precedência do painel: uma pessoa pode acumular papéis — a secretária que também é mãe
- * de aluno —, e a tela inicial é a do papel de maior alcance na rede.
- */
-const PAINEL_POR_PAPEL: readonly { papel: PapelDaSessao; destino: string }[] = [
-  { papel: 'admin_rede', destino: '/rede' },
-  { papel: 'secretaria', destino: '/secretaria' },
-  { papel: 'professor', destino: '/professor' },
-  { papel: 'responsavel', destino: '/responsavel' },
-];
+/** O ponto que separa nome de extensão: gramática do nome de arquivo, não política do produto. */
+const SEPARADOR_DE_EXTENSAO = '.';
 
 export const app = new Hono<{ Variables: Variaveis }>();
 
@@ -76,27 +68,37 @@ app.use(criarMiddlewareSessao(identidade.sessaoValida));
  */
 app.onError(async (erro, c) => {
   const resposta = await middlewareErros(c, () => Promise.reject(erro));
-  return resposta ?? c.text('Erro inesperado', 500);
+  return resposta ?? c.text(ERRO_INESPERADO_EM_TEXTO, 500);
 });
 
 /* --- Arquivos publicados (I10) --------------------------------------------- */
 
 const tipoDoAsset = (nome: string): string => {
-  const extensao = nome.slice(nome.lastIndexOf('.') + 1).toLowerCase();
-  return TIPOS_DE_ASSET[extensao] ?? 'application/octet-stream';
+  const extensao = nome.slice(nome.lastIndexOf(SEPARADOR_DE_EXTENSAO) + 1).toLowerCase();
+  return TIPOS_DE_ASSET[extensao] ?? TIPO_DE_ASSET_PADRAO;
 };
 
 // O `Cache-Control: public, max-age=31536000, immutable` vem do middleware de cache, que reconhece
 // o prefixo `/publico/`: o nome carrega o hash do conteúdo, então guardar para sempre é seguro.
-app.get('/publico/*', async (c) => {
+app.get(ROTAS.publicas.publico.padrao, async (c) => {
   const nome = c.req.path.slice(PREFIXO_PUBLICO.length);
   if (!NOME_DE_ASSET.test(nome)) {
-    return renderizarErro(c, 404, 'Arquivo não encontrado', 'Este endereço não corresponde a nenhum arquivo publicado.');
+    return renderizarErro(
+      c,
+      404,
+      PAGINAS_DE_ERRO.assetNomeInvalido.titulo,
+      PAGINAS_DE_ERRO.assetNomeInvalido.detalhe,
+    );
   }
 
   const arquivo = Bun.file(join(PASTA_PUBLICO, nome));
   if (!(await arquivo.exists())) {
-    return renderizarErro(c, 404, 'Arquivo não encontrado', 'O arquivo pedido não faz parte desta versão do sistema.');
+    return renderizarErro(
+      c,
+      404,
+      PAGINAS_DE_ERRO.assetInexistente.titulo,
+      PAGINAS_DE_ERRO.assetInexistente.detalhe,
+    );
   }
 
   return new Response(arquivo, { headers: { 'Content-Type': tipoDoAsset(nome) } });
@@ -104,19 +106,24 @@ app.get('/publico/*', async (c) => {
 
 /* --- Entradas do sistema ---------------------------------------------------- */
 
-app.route('/', rotasSaude);
+app.route(ROTAS.publicas.prefixo, rotasSaude);
 
-app.get('/', (c) => c.redirect(usuarioAtualOuNulo(c) === null ? '/login' : '/painel', 303));
+app.get(ROTAS.publicas.raiz.padrao, (c) =>
+  c.redirect(
+    usuarioAtualOuNulo(c) === null ? ROTAS.publicas.login() : ROTAS.publicas.painel(),
+    303,
+  ),
+);
 
-app.get('/painel', exigirLogin(), (c) => {
+app.get(ROTAS.publicas.painel.padrao, exigirLogin(), (c) => {
   const usuario = usuarioAtual(c);
   const painel = PAINEL_POR_PAPEL.find(({ papel }) => temPapel(usuario, papel));
   if (painel === undefined) {
     return renderizarErro(
       c,
       403,
-      'Conta sem papel atribuído',
-      'Seu acesso existe, mas ainda não foi ligado a nenhuma unidade. Peça ao administrador da rede para atribuir um papel.',
+      PAGINAS_DE_ERRO.contaSemPapel.titulo,
+      PAGINAS_DE_ERRO.contaSemPapel.detalhe,
     );
   }
   return c.redirect(painel.destino, 303);
@@ -124,11 +131,4 @@ app.get('/painel', exigirLogin(), (c) => {
 
 montarRotas(app);
 
-app.notFound((c) =>
-  renderizarErro(
-    c,
-    404,
-    'Página não encontrada',
-    'O endereço não existe, ou o registro pertence a outra rede. Use o menu para voltar a uma tela conhecida.',
-  ),
-);
+app.notFound((c) => renderizarErro(c, 404, TITULOS_DE_ERRO[404], DETALHES_DE_ERRO[404]));

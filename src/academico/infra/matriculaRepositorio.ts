@@ -1,5 +1,6 @@
 import type { Conexao } from '../../shared/db';
 import { recorte, type Faixa } from '../../shared/paginacao';
+import { ERROS_INTERNOS } from '../constantes';
 import { situacaoValida, type Matricula, type SituacaoMatricula } from '../dominio/matricula';
 
 type LinhaDeMatricula = {
@@ -18,7 +19,7 @@ type LinhaDeMatricula = {
 
 /** O CHECK `situacao_valida` garante o conjunto no banco; aqui ele volta a ser tipo. */
 function paraSituacao(valor: string): SituacaoMatricula {
-  if (!situacaoValida(valor)) throw new Error(`situação de matrícula desconhecida: ${valor}`);
+  if (!situacaoValida(valor)) throw new Error(ERROS_INTERNOS.situacaoDesconhecida(valor));
   return valor;
 }
 

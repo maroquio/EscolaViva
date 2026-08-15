@@ -11,24 +11,26 @@
 
 import { Hono, type Context } from 'hono';
 import { identidade } from '../../identidade';
+import { VARIAVEIS_DE_CONTEXTO } from '../../shared/constantes';
 import { exigirLogin, usuarioAtual, type CorpoDeFormulario, type Variaveis } from '../../shared/http';
 import { logger } from '../../shared/log';
 import type { ErroDeAplicacao } from '../../shared/resultado';
+import {
+  AVISOS,
+  CAMPOS,
+  CODIGOS_DE_AVISO,
+  ERROS_DE_FORMULARIO,
+  EVENTOS_DE_LOG,
+  PARAMETROS,
+  ROTAS,
+  TEMPLATES,
+  TITULOS,
+} from '../constantes';
 import { renderizar } from '../render';
-
-const TEMPLATE = '/conta/senha';
-const TITULO = 'Trocar senha';
-const ROTA = '/conta/senha';
 
 /** O código volta na URL depois do POST-Redirect-GET; a frase que a pessoa lê nasce aqui. */
 const MENSAGENS: Record<string, string> = {
-  'senha-alterada': 'Senha alterada. Use a senha nova no próximo acesso.',
-};
-
-const CONFIRMACAO_DIFERENTE: ErroDeAplicacao = {
-  campo: 'senhaConfirmacao',
-  codigo: 'confirmacao_diferente',
-  mensagem: 'A confirmação não confere com a senha nova.',
+  [CODIGOS_DE_AVISO.senhaAlterada]: AVISOS.senhaAlterada,
 };
 
 export const rotasConta = new Hono<{ Variables: Variaveis }>();
@@ -42,32 +44,37 @@ const senha = (corpo: CorpoDeFormulario, campo: string): string => {
 };
 
 const telaDeSenha = (c: Context, erros: ErroDeAplicacao[]): Response =>
-  renderizar(c, TEMPLATE, { titulo: TITULO, erros });
+  renderizar(c, TEMPLATES.conta.senha, { titulo: TITULOS.trocarSenha, erros });
 
-rotasConta.get('/senha', (c) =>
-  renderizar(c, TEMPLATE, {
-    titulo: TITULO,
+rotasConta.get(ROTAS.conta.senha.padrao, (c) =>
+  renderizar(c, TEMPLATES.conta.senha, {
+    titulo: TITULOS.trocarSenha,
     erros: [],
-    mensagem: MENSAGENS[c.req.query('ok') ?? ''],
+    mensagem: MENSAGENS[c.req.query(PARAMETROS.ok) ?? ''],
   }),
 );
 
-rotasConta.post('/senha', async (c) => {
+rotasConta.post(ROTAS.conta.senha.padrao, async (c) => {
   const usuario = usuarioAtual(c);
-  const corpo = c.get('corpo');
-  const senhaNova = senha(corpo, 'senhaNova');
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const senhaNova = senha(corpo, CAMPOS.senha.nova);
 
   // Conferir a confirmação antes de chamar o caso de uso evita gastar cem milissegundos de
   // verificação de hash para descobrir que a pessoa se enganou ao redigitar.
-  if (senhaNova !== senha(corpo, 'senhaConfirmacao')) return telaDeSenha(c, [CONFIRMACAO_DIFERENTE]);
+  if (senhaNova !== senha(corpo, CAMPOS.senha.confirmacao)) {
+    return telaDeSenha(c, [ERROS_DE_FORMULARIO.confirmacaoDiferente]);
+  }
 
   const resultado = await identidade.trocarSenha({
     usuarioId: usuario.id,
-    senhaAtual: senha(corpo, 'senhaAtual'),
+    senhaAtual: senha(corpo, CAMPOS.senha.atual),
     senhaNova,
   });
   if (!resultado.ok) return telaDeSenha(c, resultado.erros);
 
-  logger.info({ usuario_id: usuario.id }, 'senha alterada pelo próprio usuário');
-  return c.redirect(`${ROTA}?ok=senha-alterada`, 303);
+  logger.info({ usuario_id: usuario.id }, EVENTOS_DE_LOG.senhaAlterada);
+  return c.redirect(
+    `${ROTAS.conta.senha()}?${PARAMETROS.ok}=${CODIGOS_DE_AVISO.senhaAlterada}`,
+    303,
+  );
 });

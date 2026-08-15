@@ -9,16 +9,17 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
-import { podeTransferir, type Matricula } from '../dominio/matricula';
+import { CAMPOS, CODIGOS, ERROS_INTERNOS, MENSAGENS } from '../constantes';
+import { MATRICULA_ATIVA, podeTransferir, type Matricula } from '../dominio/matricula';
 import type { Turma } from '../dominio/turma';
 import * as matriculas from '../infra/matriculaRepositorio';
 import * as turmas from '../infra/turmaRepositorio';
 
 const entrada = z.object({
   redeId: z.string().uuid(),
-  matriculaId: z.string().uuid('Selecione a matrícula.'),
-  turmaDestinoId: z.string().uuid('Selecione a turma de destino.'),
-  data: z.string().date('Informe a data da transferência no formato AAAA-MM-DD.'),
+  matriculaId: z.string().uuid(MENSAGENS.transferencia.matriculaObrigatoria),
+  turmaDestinoId: z.string().uuid(MENSAGENS.transferencia.turmaDestinoObrigatoria),
+  data: z.string().date(MENSAGENS.transferencia.dataFormato),
 });
 
 /**
@@ -34,9 +35,9 @@ async function trocarDeTurma(
   const encerrada = await matriculas.marcarComoTransferida(sql, origem.redeId, origem.id);
   if (!encerrada) {
     return falhaDeCampo(
-      'matriculaId',
-      'matricula_nao_ativa',
-      'Esta matrícula deixou de estar ativa antes da transferência ser concluída.',
+      CAMPOS.transferencia.matriculaId,
+      CODIGOS.transferencia.perdeuACorrida,
+      MENSAGENS.transferencia.perdeuACorrida,
     );
   }
 
@@ -51,12 +52,12 @@ async function trocarDeTurma(
     anoLetivoId: origem.anoLetivoId,
     ano: origem.ano,
     dataMatricula: data,
-    situacao: 'ativa',
+    situacao: MATRICULA_ATIVA,
   };
   const criada = await matriculas.inserir(sql, nova);
   // A vaga no índice único parcial foi liberada pelo UPDATE acima, nesta mesma transação: um
   // conflito aqui só viria de escrita concorrente, e então a transferência inteira volta atrás.
-  if (!criada) throw new Error('conflito de matrícula ativa durante a transferência');
+  if (!criada) throw new Error(ERROS_INTERNOS.conflitoDeMatriculaNaTransferencia);
   return sucesso(nova);
 }
 
@@ -74,39 +75,39 @@ export async function transferir(e: {
     const origem = await matriculas.porId(sql, redeId, matriculaId);
     if (origem === null) {
       return falhaDeCampo(
-        'matriculaId',
-        'matricula_nao_encontrada',
-        'Matrícula não encontrada nesta rede.',
+        CAMPOS.transferencia.matriculaId,
+        CODIGOS.transferencia.matriculaNaoEncontrada,
+        MENSAGENS.transferencia.matriculaNaoEncontrada,
       );
     }
     if (!podeTransferir(origem)) {
       return falhaDeCampo(
-        'matriculaId',
-        'matricula_nao_ativa',
-        'Apenas uma matrícula ativa pode ser transferida.',
+        CAMPOS.transferencia.matriculaId,
+        CODIGOS.transferencia.somenteAtivaTransfere,
+        MENSAGENS.transferencia.somenteAtivaTransfere,
       );
     }
     if (origem.turmaId === turmaDestinoId) {
       return falhaDeCampo(
-        'turmaDestinoId',
-        'mesma_turma',
-        'A turma de destino é a mesma turma da matrícula atual.',
+        CAMPOS.transferencia.turmaDestinoId,
+        CODIGOS.transferencia.mesmaTurma,
+        MENSAGENS.transferencia.mesmaTurma,
       );
     }
 
     const destino = await turmas.porId(sql, redeId, turmaDestinoId);
     if (destino === null) {
       return falhaDeCampo(
-        'turmaDestinoId',
-        'turma_nao_encontrada',
-        'Turma de destino não encontrada nesta rede.',
+        CAMPOS.transferencia.turmaDestinoId,
+        CODIGOS.transferencia.turmaDestinoNaoEncontrada,
+        MENSAGENS.transferencia.turmaDestinoNaoEncontrada,
       );
     }
     if (destino.anoLetivoId !== origem.anoLetivoId) {
       return falhaDeCampo(
-        'turmaDestinoId',
-        'turma_de_outro_ano',
-        'A turma de destino pertence a outro ano letivo.',
+        CAMPOS.transferencia.turmaDestinoId,
+        CODIGOS.transferencia.turmaDeOutroAno,
+        MENSAGENS.transferencia.turmaDeOutroAno,
       );
     }
 

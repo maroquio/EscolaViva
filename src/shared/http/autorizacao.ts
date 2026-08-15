@@ -1,10 +1,9 @@
 import type { Context, MiddlewareHandler } from 'hono';
+import { CAMINHOS_DE_ENTRADA, METODOS, MOTIVOS_INTERNOS } from '../constantes';
 import { logger, redigir } from '../log';
 import { NaoAutorizado, paginaDeErro } from './erros';
 import type { PapelDaSessao, UsuarioDaSessao } from './sessao';
 import { usuarioAtualOuNulo } from './sessao';
-
-const ROTA_LOGIN = '/login';
 
 export function temPapel(u: UsuarioDaSessao, papel: PapelDaSessao): boolean {
   return u.papeis.some((atribuicao) => atribuicao.papel === papel);
@@ -19,8 +18,8 @@ export function unidadesDoPapel(u: UsuarioDaSessao, papel: PapelDaSessao): strin
  * Redirecionar um POST perderia o formulário sem dizer por quê.
  */
 const recusarAnonimo = (c: Context): Response => {
-  if (c.req.method === 'GET') return c.redirect(ROTA_LOGIN, 303);
-  throw new NaoAutorizado('requisição sem sessão');
+  if (c.req.method === METODOS.get) return c.redirect(CAMINHOS_DE_ENTRADA.login, 303);
+  throw new NaoAutorizado(MOTIVOS_INTERNOS.requisicaoSemSessao);
 };
 
 export function exigirLogin(): MiddlewareHandler {
@@ -38,7 +37,7 @@ export function exigirPapel(...papeis: PapelDaSessao[]): MiddlewareHandler {
     if (!papeis.some((papel) => temPapel(usuario, papel))) {
       // Acesso negado que não aparece em lugar nenhum vira chamado de suporte sem resposta.
       const campos = { rota: c.req.path, usuario_id: usuario.id, papeis_exigidos: papeis };
-      logger.warn(redigir(campos), 'acesso negado por papel');
+      logger.warn(redigir(campos), MOTIVOS_INTERNOS.acessoNegadoPorPapel);
       return c.html(paginaDeErro(403), 403);
     }
 

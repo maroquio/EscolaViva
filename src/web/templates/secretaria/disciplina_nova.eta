@@ -5,9 +5,21 @@
   Um campo, e nenhum a mais: quem leciona a disciplina em cada turma se decide na tela da turma,
   depois que a disciplina existe. O nome é único na rede, e é a constraint do banco que garante
   isso — a mensagem aqui só traduz a recusa para o campo certo.
+
+  Os dois endereços da tela — o destino do formulário e o "Cancelar" — vêm de `it.rotas`, o mesmo
+  mapa que o router registra. São o mesmo endereço escrito duas vezes, e escrevê-lo à mão aqui não
+  quebraria compilação: quebraria a tela de quem clica, porque `.eta` não passa pelo compilador.
+*/
+
+/*
+  O limite do campo e os sufixos de id chegam prontos pelo `it`. O dono do tamanho é
+  `LIMITES.disciplina.nome` (`src/academico/constantes.ts`), que `cadastrarDisciplina` faz valer com
+  `MENSAGENS.disciplina.nomeLongo` — que ele coincida com o do aluno é coincidência, são duas
+  políticas independentes. Os sufixos são de `SUFIXOS_DE_ID`, os mesmos que `descricao()` usa para
+  montar o `aria-describedby` do outro lado.
 */
 const valores = it.valores ?? {};
-const { erroDe, descricao } = it;
+const { erroDe, descricao, sufixos } = it;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -21,7 +33,7 @@ const { erroDe, descricao } = it;
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="post" action="/secretaria/disciplinas">
+  <form class="formulario" method="post" action="<%= it.rotas.secretaria.disciplinas() %>">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
 
     <div class="campo">
@@ -33,20 +45,20 @@ const { erroDe, descricao } = it;
         name="nome"
         type="text"
         required
-        maxlength="120"
+        maxlength="<%= it.limiteDoNome %>"
         autocomplete="off"
         value="<%= valores.nome ?? '' %>"
         <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
         aria-describedby="<%= descricao('nome', true) %>">
-      <p class="campo__ajuda" id="nome-ajuda">Único na rede: não há duas “Matemática”.</p>
+      <p class="campo__ajuda" id="nome<%= sufixos.ajuda %>">Único na rede: não há duas “Matemática”.</p>
       <% if (erroDe('nome') !== '') { %>
-      <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+      <p class="campo__erro" id="nome<%= sufixos.erro %>"><%= erroDe('nome') %></p>
       <% } %>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Cadastrar disciplina</button>
-      <a class="botao botao--discreto" href="/secretaria/disciplinas">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.secretaria.disciplinas() %>">Cancelar</a>
     </div>
   </form>
 </div>

@@ -1,15 +1,18 @@
 import { z } from 'zod';
 import { leitura, unidadeDeTrabalho } from '../../shared/db';
 import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import { TAMANHO_MINIMO_DE_SENHA } from '../dominio/usuario';
 import * as usuarioRepositorio from '../infra/usuarioRepositorio';
 
 const schema = z.object({
-  usuarioId: z.string().uuid('usuário inválido'),
-  senhaAtual: z.string().min(1, 'informe a senha atual'),
+  usuarioId: z.string().uuid(MENSAGENS.senha.usuarioInvalido),
+  senhaAtual: z.string().min(1, MENSAGENS.senha.atualObrigatoria),
+  // O mínimo é do domínio e a frase é do módulo: a mensagem recebe o próprio limite para que os
+  // dois nunca divirjam — mudar o número em um lugar já corrige o texto da tela.
   senhaNova: z
     .string()
-    .min(TAMANHO_MINIMO_DE_SENHA, `a senha nova precisa de ao menos ${TAMANHO_MINIMO_DE_SENHA} caracteres`),
+    .min(TAMANHO_MINIMO_DE_SENHA, MENSAGENS.senha.novaCurta(TAMANHO_MINIMO_DE_SENHA)),
 });
 
 export async function trocarSenha(entrada: {
@@ -23,12 +26,15 @@ export async function trocarSenha(entrada: {
 
   const credenciais = await usuarioRepositorio.credenciaisPorId(leitura(), dados.usuarioId);
   if (credenciais === null) {
-    return falha({ codigo: 'usuario_inexistente', mensagem: 'usuário não encontrado' });
+    return falha({
+      codigo: CODIGOS.usuarioInexistente,
+      mensagem: MENSAGENS.senha.usuarioInexistente,
+    });
   }
 
   const confere = await Bun.password.verify(dados.senhaAtual, credenciais.senhaHash);
   if (!confere) {
-    return falhaDeCampo('senhaAtual', 'senha_incorreta', 'a senha atual não confere');
+    return falhaDeCampo(CAMPOS.senha.atual, CODIGOS.senhaIncorreta, MENSAGENS.senha.atualNaoConfere);
   }
 
   // Gerar o hash custa cerca de cem milissegundos: fica fora da transação para não segurar

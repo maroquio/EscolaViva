@@ -1,12 +1,20 @@
 <%
 /*
-  Anos letivos da rede: a lista, e só. O formulário mora em `/rede/anos-letivos/novo`.
+  Anos letivos da rede: a lista, e só. O formulário mora em `it.rotas.rede.anoLetivoNovo()`.
 
   É o calendário que sustenta turma e matrícula: sem ano definido, a secretaria não tem onde
   matricular ninguém.
 
   Datas aparecem em fonte monoespaçada, como todo número desta interface, para que a coluna possa
   ser comparada de relance.
+
+  Os dois caminhos para o formulário — o botão do cabeçalho e a ação do estado vazio — levam ao
+  mesmo lugar e saem de `it.rotas`, o mesmo mapa que o router registra. Escritos à mão, seriam duas
+  cópias do endereço que podem divergir de um lado só, e URL literal em `.eta` não quebra
+  compilação: quebra a tela de quem clica.
+
+  Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
+  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
 */
 const anos = it.anos ?? [];
 %>
@@ -20,7 +28,7 @@ const anos = it.anos ?? [];
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="/rede/anos-letivos/novo">Definir ano letivo</a>
+    <a class="botao botao--primario" href="<%= it.rotas.rede.anoLetivoNovo() %>">Definir ano letivo</a>
   </div>
 </div>
 
@@ -31,10 +39,10 @@ const anos = it.anos ?? [];
   </div>
 
   <% if (anos.length === 0) { %>
-    <%~ include("/parciais/_vazio", {
+    <%~ include(it.parciais.vazio, {
       titulo: 'Nenhum ano letivo definido',
       texto: 'Enquanto não houver um ano definido, a secretaria não consegue criar turmas nem matricular alunos.',
-      acao: { href: '/rede/anos-letivos/novo', texto: 'Definir ano letivo' }
+      acao: { href: it.rotas.rede.anoLetivoNovo(), texto: 'Definir ano letivo' }
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -58,6 +66,6 @@ const anos = it.anos ?? [];
       </tbody>
     </table>
   </div>
-  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'anos letivos' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'anos letivos' }) %>
   <% } %>
 </section>

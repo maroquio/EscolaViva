@@ -8,10 +8,22 @@
  * Este módulo não conhece banco nem HTTP. Ele descreve o recorte (`Faixa`), o resultado
  * (`Pagina`) e a ordem em que as duas consultas acontecem — quem sabe consultar é o repositório,
  * e é ele que chega aqui como função.
+ *
+ * `TAMANHO_PADRAO` é declarado em `shared/constantes.ts` e reexportado aqui: o número que decide
+ * quantas linhas cabem numa tela é do mesmo tipo de decisão que o tamanho do pool e o prazo de
+ * conexão, e o arquivo de constantes é onde essas três moram lado a lado — vizinhas justamente
+ * para que ninguém as funda por valerem 10 as três. Quem consome continua importando de
+ * `shared/paginacao`, como o `aplicacao/consultas.ts` dos quatro módulos já faz.
+ *
+ * O que sobra neste arquivo é aritmética de recorte, e ela fica NELE: `0` e `1` aqui são índice,
+ * primeira página e elemento neutro antes de serem valores; `PRIMEIRA_PAGINA` ao lado de
+ * `(atual - 1) * tamanho` nomearia um dos dois `1` e deixaria o outro, que é o que converte
+ * página em deslocamento.
  */
 
-/** Dez linhas: a tabela inteira cabe na tela sem rolagem interna e a contagem segue legível. */
-export const TAMANHO_PADRAO = 10;
+import { TAMANHO_PADRAO } from '../constantes';
+
+export { TAMANHO_PADRAO };
 
 /** O recorte como o SQL o entende. `deslocamento` já vem calculado a partir da página. */
 export type Faixa = {

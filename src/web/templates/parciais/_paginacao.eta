@@ -11,11 +11,26 @@
   está sendo contado ("responsáveis", "turmas"), para que quem usa leitor de tela ouça de qual das
   tabelas da página esta barra fala.
 
+  Nenhum endereço é decidido aqui. `anterior`, `proxima` e `links[].href` chegam prontos de
+  `navegacao()` (`src/web/paginacao.ts`), que monta cada um sobre o caminho atual preservando o
+  resto da query — filtro de unidade, ano letivo, termo de busca e a página das outras tabelas da
+  mesma tela. Por receber o próprio objeto, esta parcial também não enxerga `it.rotas`: o mapa de
+  rotas está no `it` de quem inclui, e esta barra pagina o endereço em que já se está, e não uma
+  rota nomeada. É por isso que o arquivo não tem nem um `href` escrito à mão.
+
   Página única não desenha botão, mas continua dizendo quantos itens existem: some o controle,
   não a informação.
 */
+
+/*
+  Espelho de `PAGINACAO.rotuloPadrao` (`src/web/constantes.ts`), e não uma segunda decisão: o Eta
+  não importa TypeScript e a parcial só enxerga o que o ponto de chamada passa. Todas as inclusões
+  de hoje informam o `rotulo`; este é o texto de socorro para a que esquecer.
+*/
+const ROTULO_PADRAO = 'itens';
+
 const nav = it.navegacao ?? null;
-const rotulo = it.rotulo ?? 'itens';
+const rotulo = it.rotulo ?? ROTULO_PADRAO;
 %>
 <% if (nav !== null && nav.total > 0) { %>
 <nav class="paginacao" aria-label="Paginação de <%= rotulo %>">

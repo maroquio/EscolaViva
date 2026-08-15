@@ -1,4 +1,5 @@
 import type { Context, MiddlewareHandler } from 'hono';
+import { ENTIDADES_HTML, EVENTOS_DE_LOG_HTTP, TITULOS_DE_ERRO } from '../constantes';
 import { logger, redigir } from '../log';
 import { contextoAtual } from './correlacao';
 
@@ -15,15 +16,6 @@ export type StatusDeErro = 400 | 401 | 403 | 404 | 422 | 500;
 
 export type RenderizadorDeErro = (status: StatusDeErro, correlacaoId: string) => string;
 
-const TITULOS: Record<StatusDeErro, string> = {
-  400: 'Requisição inválida',
-  401: 'Entre para continuar',
-  403: 'Acesso não permitido',
-  404: 'Página não encontrada',
-  422: 'Não foi possível concluir',
-  500: 'Erro inesperado',
-};
-
 // A camada web injeta a página com layout no boot. Enquanto ninguém injeta, o HTML mínimo abaixo
 // responde — um erro nunca fica sem resposta por falta de motor de template.
 let renderizador: RenderizadorDeErro | null = null;
@@ -34,21 +26,36 @@ export function registrarRenderizadorDeErro(f: RenderizadorDeErro): void {
 
 const escaparHtml = (texto: string): string =>
   texto
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, ENTIDADES_HTML.ecomercial)
+    .replace(/</g, ENTIDADES_HTML.menorQue)
+    .replace(/>/g, ENTIDADES_HTML.maiorQue)
+    .replace(/"/g, ENTIDADES_HTML.aspasDuplas);
 
-const paginaMinima = (status: StatusDeErro, correlacaoId: string): string => {
-  const titulo = escaparHtml(TITULOS[status]);
-  return (
-    '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
-    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-    `<title>${titulo}</title></head><body><main><h1>${titulo}</h1>` +
-    `<p>Informe este código ao pedir ajuda: <code>${escaparHtml(correlacaoId)}</code></p>` +
-    '<p><a href="/">Voltar ao início</a></p></main></body></html>'
-  );
-};
+/**
+ * A marcação da página de reserva: documento inteiro, sem folha de estilo e sem template.
+ *
+ * Recebe os dois valores JÁ ESCAPADOS — o escape é do chamador porque o título vem de uma tabela
+ * e a correlação vem da requisição, e misturar as duas origens aqui dentro esconderia qual delas
+ * precisa de cuidado. O idioma repete o `DOCUMENTO.idioma` da camada web por causa da fronteira
+ * que impede este arquivo de olhar para cima — a mesma que levou `TITULOS_DE_ERRO` a ser declarado
+ * em `shared/constantes.ts` — e não é o `LOCALE` de lá, que governa ordenação e formatação de
+ * número no terminal.
+ */
+const PAGINA_DE_RESERVA = (titulo: string, correlacaoId: string): string =>
+  '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+  '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+  `<title>${titulo}</title></head><body><main><h1>${titulo}</h1>` +
+  `<p>Informe este código ao pedir ajuda: <code>${correlacaoId}</code></p>` +
+  '<p><a href="/">Voltar ao início</a></p></main></body></html>';
+
+/**
+ * Os títulos são os MESMOS que a camada web mostra, e vêm de `shared/constantes.ts` porque é o
+ * lado da fronteira que os dois alcançam: `shared/` é infraestrutura e não enxerga a camada web,
+ * a mesma razão pela qual `CAMINHOS_DE_ENTRADA` mora embaixo e `ROTAS.publicas` é montado a partir
+ * dele. Declarar embaixo e reexportar em cima é o que mantém os seis textos existindo uma vez só.
+ */
+const paginaMinima = (status: StatusDeErro, correlacaoId: string): string =>
+  PAGINA_DE_RESERVA(escaparHtml(TITULOS_DE_ERRO[status]), escaparHtml(correlacaoId));
 
 /** Página de erro para o navegador: título, código de correlação e nada mais. */
 export function paginaDeErro(status: StatusDeErro): string {
@@ -75,10 +82,10 @@ const registrarFalha = (c: Context, status: StatusDeErro, erro: unknown): void =
   };
   const campos = redigir(status === 500 && erro instanceof Error ? { ...base, pilha: erro.stack } : base);
   if (status === 500) {
-    logger.error(campos, 'falha ao atender requisição');
+    logger.error(campos, EVENTOS_DE_LOG_HTTP.falhaAoAtender);
     return;
   }
-  logger.warn(campos, 'requisição recusada');
+  logger.warn(campos, EVENTOS_DE_LOG_HTTP.requisicaoRecusada);
 };
 
 /**

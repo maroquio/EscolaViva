@@ -4,6 +4,15 @@ import type { Rede } from './rede';
 /**
  * Comprimento mínimo de senha. Mora no domínio porque é regra do produto; a camada de aplicação
  * apenas a aplica na validação de entrada.
+ *
+ * O valor fica AQUI, e não em `constantes.ts`, porque já é a fonte única do produto e regra de
+ * domínio é o que `dominio/` guarda — quem está fora do módulo o encontra reexportado pelo
+ * `index.ts`. A mensagem que o cita é derivada dele (`MENSAGENS.senha.novaCurta(minimo)`), de modo
+ * que o número continua escrito uma vez só.
+ *
+ * Não confundir com `SEGURANCA.tamanhoDaSenhaProvisoria`, que vale 12: este é o mínimo que a
+ * pessoa pode ESCOLHER, aquele é quantos símbolos o sistema SORTEIA. Igualá-los por coincidência
+ * de valor faria uma senha gerada nascer no limite da outra regra.
  */
 export const TAMANHO_MINIMO_DE_SENHA = 10;
 

@@ -5,9 +5,20 @@
   Um ano por rede — a repetição é recusada pelo banco e volta como erro no campo, não como falha do
   sistema. O ano vem como texto e é conferido em quatro dígitos antes de virar número: converter
   vazio em 0 devolveria a mensagem errada.
+
+  Os dois endereços da tela — o destino do formulário e o "Cancelar" — vêm de `it.rotas`, o mesmo
+  mapa que o router registra. São o mesmo endereço escrito duas vezes, e escrevê-lo à mão aqui não
+  quebraria compilação: quebraria a tela de quem clica, porque `.eta` não passa pelo compilador.
+*/
+
+/*
+  A faixa aceita e os sufixos de id chegam prontos da rota: o Eta não importa TypeScript, então
+  `LIMITES.anoLetivo` (`src/academico/constantes.ts`) e `SUFIXOS_DE_ID` (`src/web/constantes.ts`)
+  atravessam por `it`. Redigitar 2000 aqui faria a tela recusar uma faixa e o caso de uso outra;
+  redigitar "-erro" faria o `aria-describedby` apontar para um id que não existe.
 */
 const valores = it.valores ?? { ano: '', dataInicio: '', dataFim: '' };
-const { erroDe, descricao } = it;
+const { erroDe, descricao, sufixos } = it;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -21,7 +32,7 @@ const { erroDe, descricao } = it;
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="post" action="/rede/anos-letivos">
+  <form class="formulario" method="post" action="<%= it.rotas.rede.anosLetivos() %>">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
 
     <div class="formulario__linha">
@@ -34,15 +45,15 @@ const { erroDe, descricao } = it;
           name="ano"
           type="number"
           required
-          min="2000"
-          max="2100"
+          min="<%= it.anoMinimo %>"
+          max="<%= it.anoMaximo %>"
           step="1"
           inputmode="numeric"
           value="<%= valores.ano %>"
           <% if (erroDe('ano') !== '') { %>aria-invalid="true"<% } %>
           <% if (descricao('ano') !== '') { %>aria-describedby="<%= descricao('ano') %>"<% } %>>
         <% if (erroDe('ano') !== '') { %>
-        <p class="campo__erro" id="ano-erro"><%= erroDe('ano') %></p>
+        <p class="campo__erro" id="ano<%= sufixos.erro %>"><%= erroDe('ano') %></p>
         <% } %>
       </div>
 
@@ -59,7 +70,7 @@ const { erroDe, descricao } = it;
           <% if (erroDe('dataInicio') !== '') { %>aria-invalid="true"<% } %>
           <% if (descricao('dataInicio') !== '') { %>aria-describedby="<%= descricao('dataInicio') %>"<% } %>>
         <% if (erroDe('dataInicio') !== '') { %>
-        <p class="campo__erro" id="dataInicio-erro"><%= erroDe('dataInicio') %></p>
+        <p class="campo__erro" id="dataInicio<%= sufixos.erro %>"><%= erroDe('dataInicio') %></p>
         <% } %>
       </div>
 
@@ -75,16 +86,16 @@ const { erroDe, descricao } = it;
           value="<%= valores.dataFim %>"
           <% if (erroDe('dataFim') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('dataFim', true) %>">
-        <p class="campo__ajuda" id="dataFim-ajuda">Precisa ser posterior à data de início.</p>
+        <p class="campo__ajuda" id="dataFim<%= sufixos.ajuda %>">Precisa ser posterior à data de início.</p>
         <% if (erroDe('dataFim') !== '') { %>
-        <p class="campo__erro" id="dataFim-erro"><%= erroDe('dataFim') %></p>
+        <p class="campo__erro" id="dataFim<%= sufixos.erro %>"><%= erroDe('dataFim') %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Definir ano letivo</button>
-      <a class="botao botao--discreto" href="/rede/anos-letivos">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.rede.anosLetivos() %>">Cancelar</a>
     </div>
   </form>
 </div>

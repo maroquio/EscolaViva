@@ -5,7 +5,16 @@
   rede, porque nada disso é conhecido antes do login.
 
   O título da página vem do <h1> do próprio conteúdo; aqui só a marca e o rodapé.
+
+  O endereço da folha não é escrito à mão, pela mesma razão do `_layout`: `it.rotas.publicas.publico`
+  é a MESMA rota curinga que serve os arquivos publicados (I10), e o nome versionado que `it.asset`
+  resolve entra no lugar do curinga. Com o `/publico/` digitado aqui, mudar o prefixo publicado em
+  `ROTAS` fazia a aplicação seguir e esta tela — mais TODA página de erro, que também usa este
+  layout — perder o CSS em silêncio.
 */
+const folhaDeEstilo = it.rotas.publicas
+  .publico()
+  .replace(it.curingaDeAsset, it.asset(it.nomeLogicoDaFolha));
 %><!doctype html>
 <html lang="pt-BR">
 <head>
@@ -14,7 +23,7 @@
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title><%= it.titulo %> · EscolaViva</title>
-  <link rel="stylesheet" href="/publico/<%= it.asset('app.css') %>">
+  <link rel="stylesheet" href="<%= folhaDeEstilo %>">
   <%~ include("/parciais/_icone") %>
 </head>
 <body>

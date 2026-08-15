@@ -13,9 +13,10 @@
 
 import { Hono, type Context } from 'hono';
 import { academico } from '../../academico';
-import { comunicacao, type EstatisticaDeLeitura } from '../../comunicacao';
+import { ALCANCE, comunicacao, type Alcance, type EstatisticaDeLeitura } from '../../comunicacao';
+import { PAPEL, identidade, type Unidade } from '../../identidade';
+import { VARIAVEIS_DE_CONTEXTO } from '../../shared/constantes';
 import { paginaVazia } from '../../shared/paginacao';
-import { identidade, type Unidade } from '../../identidade';
 import {
   NaoEncontrado,
   exigirPapel,
@@ -27,19 +28,18 @@ import {
   type Variaveis,
 } from '../../shared/http';
 import type { ErroDeAplicacao } from '../../shared/resultado';
+import {
+  AVISOS,
+  CAMPOS,
+  DIAGNOSTICOS,
+  ERROS_DE_FORMULARIO,
+  PARAMETROS,
+  ROTAS,
+  TEMPLATES,
+  TITULOS,
+} from '../constantes';
 import { navegacao, paginaDaQuery } from '../paginacao';
 import { renderizar } from '../render';
-
-const LISTA = '/comunicados';
-const TITULO_NOVO = 'Novo comunicado';
-
-/**
- * O sufixo `[]` não é decoração: é assim que o leitor de formulário do Hono monta uma lista. Sem
- * ele, a segunda caixa marcada sobrescreveria a primeira e o comunicado sairia com um destinatário.
- */
-const CAMPO_RESPONSAVEIS = 'responsaveis[]';
-
-type Alcance = 'unidade' | 'selecionados';
 
 type ValoresDoComunicado = {
   unidadeId: string;
@@ -57,7 +57,7 @@ type ContextoDeEnvio = {
 
 export const rotasComunicados = new Hono<{ Variables: Variaveis }>();
 
-rotasComunicados.use(exigirPapel('secretaria', 'admin_rede'));
+rotasComunicados.use(exigirPapel(PAPEL.secretaria, PAPEL.adminRede));
 
 /* --- Alcance do usuário ----------------------------------------------------- */
 
@@ -67,7 +67,7 @@ const unidadesDoUsuario = async (
 ): Promise<Unidade[]> => {
   const unidades = await identidade.listarUnidades(usuario.redeId);
   if (veTodaARede) return unidades;
-  const permitidas = new Set(unidadesDoPapel(usuario, 'secretaria'));
+  const permitidas = new Set(unidadesDoPapel(usuario, PAPEL.secretaria));
   return unidades.filter((unidade) => permitidas.has(unidade.id));
 };
 
@@ -82,7 +82,7 @@ const recorteDaLista = (
 ): string | null => {
   if (pedida !== '') {
     if (!unidades.some((unidade) => unidade.id === pedida)) {
-      throw new NaoEncontrado('unidade fora do alcance do usuário');
+      throw new NaoEncontrado(DIAGNOSTICOS.unidadeForaDoAlcance);
     }
     return pedida;
   }
@@ -101,11 +101,15 @@ const SEM_RESUMO = { destinatarios: 0, leituras: 0, taxa: 0 };
  * quem?". Uma taxa que se recalculasse a cada clique em "próxima" responderia outra pergunta, bem
  * menos útil — a de quanto foi lido entre estes vinte comunicados aqui.
  */
-rotasComunicados.get('/', async (c) => {
+rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
   const usuario = usuarioAtual(c);
-  const veTodaARede = temPapel(usuario, 'admin_rede');
+  const veTodaARede = temPapel(usuario, PAPEL.adminRede);
   const unidades = await unidadesDoUsuario(usuario, veTodaARede);
-  const recorte = recorteDaLista(unidades, c.req.query('unidadeId') ?? '', veTodaARede);
+  const recorte = recorteDaLista(
+    unidades,
+    c.req.query(PARAMETROS.unidadeId) ?? '',
+    veTodaARede,
+  );
 
   // Secretaria sem unidade atribuída não cai na rede inteira por omissão: sem recorte, sem lista.
   const semAlcance = recorte === null && !veTodaARede;
@@ -118,8 +122,8 @@ rotasComunicados.get('/', async (c) => {
       : comunicacao.resumoDeComunicados(usuario.redeId, recorte ?? undefined),
   ]);
 
-  return renderizar(c, '/comunicados/lista', {
-    titulo: 'Comunicados',
+  return renderizar(c, TEMPLATES.comunicados.lista, {
+    titulo: TITULOS.comunicados.lista,
     comunicados: pagina.itens,
     navegacao: navegacao(c, pagina),
     resumo: {
@@ -148,11 +152,14 @@ const listaDoCampo = (formulario: CorpoDeFormulario, campo: string): string[] =>
 };
 
 const valoresDoFormulario = (formulario: CorpoDeFormulario): ValoresDoComunicado => ({
-  unidadeId: textoDoCampo(formulario, 'unidadeId'),
-  titulo: textoDoCampo(formulario, 'titulo'),
-  corpo: textoDoCampo(formulario, 'corpo'),
-  alcance: textoDoCampo(formulario, 'alcance') === 'selecionados' ? 'selecionados' : 'unidade',
-  selecionados: listaDoCampo(formulario, CAMPO_RESPONSAVEIS),
+  unidadeId: textoDoCampo(formulario, CAMPOS.comunicado.unidadeId),
+  titulo: textoDoCampo(formulario, CAMPOS.comunicado.titulo),
+  corpo: textoDoCampo(formulario, CAMPOS.comunicado.corpo),
+  alcance:
+    textoDoCampo(formulario, CAMPOS.comunicado.alcance) === ALCANCE.selecionados
+      ? ALCANCE.selecionados
+      : ALCANCE.unidade,
+  selecionados: listaDoCampo(formulario, CAMPOS.comunicado.responsaveis),
 });
 
 /**
@@ -163,11 +170,11 @@ const contextoDeEnvio = async (
   usuario: UsuarioDaSessao,
   unidadeIdPedida: string,
 ): Promise<ContextoDeEnvio> => {
-  const todas = await unidadesDoUsuario(usuario, temPapel(usuario, 'admin_rede'));
+  const todas = await unidadesDoUsuario(usuario, temPapel(usuario, PAPEL.adminRede));
   const unidades = todas.filter((unidade) => unidade.ativa);
   const unidade = unidades.find((item) => item.id === unidadeIdPedida) ?? null;
   if (unidadeIdPedida !== '' && unidade === null) {
-    throw new NaoEncontrado('unidade fora do alcance do usuário');
+    throw new NaoEncontrado(DIAGNOSTICOS.unidadeForaDoAlcance);
   }
   const responsaveis =
     unidade === null ? [] : await academico.responsaveisDaUnidade(usuario.redeId, unidade.id);
@@ -180,15 +187,33 @@ const paginaDeEnvio = (
   valores: ValoresDoComunicado,
   erros: ErroDeAplicacao[],
 ): Response =>
-  renderizar(c, '/comunicados/novo', { titulo: TITULO_NOVO, ...contexto, valores, erros });
+  renderizar(c, TEMPLATES.comunicados.novo, {
+    titulo: TITULOS.comunicados.novo,
+    ...contexto,
+    valores,
+    erros,
+  });
 
 const valoresIniciais = (unidadeId: string): ValoresDoComunicado => ({
   unidadeId,
   titulo: '',
   corpo: '',
-  alcance: 'unidade',
+  alcance: ALCANCE.unidade,
   selecionados: [],
 });
+
+/**
+ * A recusa por lista vazia, com o campo e o código de `ERROS_DE_FORMULARIO.semSelecao`.
+ *
+ * A frase fica aqui porque a constante da camada web reescreveu o texto ("Marque ao menos um
+ * responsável, ou envie para a unidade inteira.") e este refactor não muda um byte do que a tela
+ * diz. Reconciliar as duas redações é decisão de produto, não de extração de constante: no dia em
+ * que ela for tomada, esta `const` some e o objeto de `ERROS_DE_FORMULARIO` é usado inteiro.
+ */
+const SEM_SELECAO: ErroDeAplicacao = {
+  ...ERROS_DE_FORMULARIO.semSelecao,
+  mensagem: 'Marque ao menos um responsável ou escolha enviar para toda a unidade.',
+};
 
 /**
  * Destinatário marcado é entrada externa: a lista que volta do navegador é conferida contra a
@@ -199,41 +224,26 @@ const conferirDestinatarios = (
   valores: ValoresDoComunicado,
   responsaveis: readonly { id: string }[],
 ): ErroDeAplicacao | null => {
-  if (valores.alcance === 'unidade') return null;
-  if (valores.selecionados.length === 0) {
-    return {
-      campo: 'destinatarios',
-      codigo: 'sem_selecao',
-      mensagem: 'Marque ao menos um responsável ou escolha enviar para toda a unidade.',
-    };
-  }
+  if (valores.alcance === ALCANCE.unidade) return null;
+  if (valores.selecionados.length === 0) return SEM_SELECAO;
   const daUnidade = new Set(responsaveis.map((responsavel) => responsavel.id));
   if (valores.selecionados.every((id) => daUnidade.has(id))) return null;
-  return {
-    campo: 'destinatarios',
-    codigo: 'destinatario_fora_da_unidade',
-    mensagem: 'Um dos responsáveis marcados não pertence à unidade escolhida.',
-  };
+  return ERROS_DE_FORMULARIO.destinatarioForaDaUnidade;
 };
 
-rotasComunicados.get('/novo', async (c) => {
+rotasComunicados.get(ROTAS.comunicados.novo.padrao, async (c) => {
   const usuario = usuarioAtual(c);
-  const contexto = await contextoDeEnvio(usuario, c.req.query('unidadeId') ?? '');
+  const contexto = await contextoDeEnvio(usuario, c.req.query(PARAMETROS.unidadeId) ?? '');
   return paginaDeEnvio(c, contexto, valoresIniciais(contexto.unidade?.id ?? ''), []);
 });
 
-rotasComunicados.post('/novo', async (c) => {
+rotasComunicados.post(ROTAS.comunicados.novo.padrao, async (c) => {
   const usuario = usuarioAtual(c);
-  const valores = valoresDoFormulario(c.get('corpo'));
+  const valores = valoresDoFormulario(c.get(VARIAVEIS_DE_CONTEXTO.corpo));
   const contexto = await contextoDeEnvio(usuario, valores.unidadeId);
 
   if (contexto.unidade === null) {
-    const erro = {
-      campo: 'unidadeId',
-      codigo: 'unidade_ausente',
-      mensagem: 'Escolha a unidade que vai enviar o comunicado.',
-    };
-    return paginaDeEnvio(c, contexto, valores, [erro]);
+    return paginaDeEnvio(c, contexto, valores, [ERROS_DE_FORMULARIO.unidadeAusente]);
   }
 
   const recusa = conferirDestinatarios(valores, contexto.responsaveis);
@@ -248,15 +258,15 @@ rotasComunicados.post('/novo', async (c) => {
     corpo: valores.corpo,
     autorUsuarioId: usuario.id,
     destinatarios:
-      valores.alcance === 'unidade'
+      valores.alcance === ALCANCE.unidade
         ? []
         : valores.selecionados.map((responsavelId) => ({ responsavelId })),
   });
   if (!resultado.ok) return paginaDeEnvio(c, contexto, valores, resultado.erros);
 
   const destino = new URLSearchParams({
-    unidadeId: contexto.unidade.id,
-    ok: 'Comunicado publicado. A taxa de leitura começa a contar agora.',
+    [PARAMETROS.unidadeId]: contexto.unidade.id,
+    [PARAMETROS.ok]: AVISOS.comunicadoPublicado,
   });
-  return c.redirect(`${LISTA}?${destino.toString()}`, 303);
+  return c.redirect(`${ROTAS.comunicados.lista()}?${destino.toString()}`, 303);
 });

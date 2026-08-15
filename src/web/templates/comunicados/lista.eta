@@ -21,11 +21,11 @@ const resumo = it.resumo;
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--primario" href="/comunicados/novo">Novo comunicado</a>
+    <a class="botao botao--primario" href="<%= it.rotas.comunicados.novo() %>">Novo comunicado</a>
   </p>
 </header>
 
-<form class="filtro" method="get" action="/comunicados">
+<form class="filtro" method="get" action="<%= it.rotas.comunicados.lista() %>">
   <label class="campo__rotulo" for="filtro-unidade">Unidade</label>
   <select id="filtro-unidade" name="unidadeId">
     <% if (it.veTodaARede) { %>
@@ -85,7 +85,7 @@ const resumo = it.resumo;
     <%~ include("/parciais/_vazio", {
       titulo: 'Nenhum comunicado neste recorte',
       texto: 'Ainda não há comunicado publicado para a unidade escolhida. O primeiro envio já entra nesta lista com a medição de leitura.',
-      acao: { href: '/comunicados/novo', texto: 'Publicar o primeiro comunicado' },
+      acao: { href: it.rotas.comunicados.novo(), texto: 'Publicar o primeiro comunicado' },
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">

@@ -19,7 +19,7 @@ const { erroDe, descricao } = it;
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="post" action="/conta/senha">
+  <form class="formulario" method="post" action="<%= it.rotas.conta.senha() %>">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
 
     <div class="campo">

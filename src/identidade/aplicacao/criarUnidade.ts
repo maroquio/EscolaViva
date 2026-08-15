@@ -2,18 +2,21 @@ import { z } from 'zod';
 import { unidadeDeTrabalho } from '../../shared/db';
 import { idGeneratorUuid } from '../../shared/ports';
 import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import type { Unidade } from '../dominio/unidade';
 import * as unidadeRepositorio from '../infra/unidadeRepositorio';
 
-const TAMANHO_MAXIMO_DO_INEP = 20;
-
 const schema = z.object({
-  redeId: z.string().uuid('rede inválida'),
-  nome: z.string().trim().min(1, 'informe o nome da unidade').max(120, 'nome longo demais'),
+  redeId: z.string().uuid(MENSAGENS.unidade.redeInvalida),
+  nome: z
+    .string()
+    .trim()
+    .min(1, MENSAGENS.unidade.nomeObrigatorio)
+    .max(LIMITES.unidade.nome, MENSAGENS.unidade.nomeLongo),
   codigoInep: z
     .string()
     .trim()
-    .max(TAMANHO_MAXIMO_DO_INEP, 'código INEP longo demais')
+    .max(LIMITES.unidade.codigoInep, MENSAGENS.unidade.inepLongo)
     .nullable()
     .optional(),
 });
@@ -41,7 +44,7 @@ export async function criarUnidade(entrada: {
     // A constraint `unidade_nome_unico_na_rede` é quem garante (I8); esta leitura existe só para
     // devolver a mensagem no campo certo em vez de um erro de banco na cara da secretaria.
     if (await unidadeRepositorio.existeNome(sql, unidade.redeId, unidade.nome)) {
-      return falhaDeCampo('nome', 'nome_em_uso', 'já existe unidade com este nome na rede');
+      return falhaDeCampo(CAMPOS.unidade.nome, CODIGOS.nomeEmUso, MENSAGENS.unidade.nomeEmUso);
     }
     await unidadeRepositorio.inserir(sql, unidade);
     return sucesso(unidade);

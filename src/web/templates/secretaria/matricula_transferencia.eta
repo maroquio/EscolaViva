@@ -5,12 +5,26 @@
   A turma de origem sai da lista de destino — transferir para onde já se está não é transferência.
   A operação é uma só: a matrícula atual passa a "transferida" e uma nova matrícula ativa nasce no
   destino, as duas escritas na mesma transação.
+
+  Os cinco endereços da tela — o destino do formulário, o atalho para cadastrar turma e os três
+  caminhos de volta à ficha — vêm de `it.rotas`, o mesmo mapa que o router registra. A ficha aparece
+  três vezes (cabeçalho, estado vazio e "Cancelar"): escritas à mão seriam três cópias do mesmo
+  endereço, que podem divergir de uma só, e URL literal em `.eta` não quebra compilação — quebra a
+  tela de quem clica.
+*/
+
+/*
+  O travessão da célula sem valor, o rótulo da opção em branco e os sufixos de id chegam prontos
+  pelo `it`: são de `AUSENTE` (`src/shared/constantes.ts`), de `APRESENTACAO.opcaoVazia` e de
+  `SUFIXOS_DE_ID` (`src/web/constantes.ts`). O Eta não importa TypeScript, e reescrevê-los aqui
+  criaria uma segunda decisão ao lado da do dono — no caso dos sufixos, um id apontado pelo
+  `aria-describedby` que `descricao()` monta e que esta página não escreveria igual.
 */
 const aluno = it.aluno;
 const ativa = it.ativa;
 const turmas = it.turmas ?? [];
 const valores = it.valores ?? {};
-const { erroDe, descricao } = it;
+const { erroDe, descricao, sufixos } = it;
 
 const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valores[campo]);
 
@@ -28,6 +42,7 @@ const agrupar = (lista) => {
 };
 
 const grupos = agrupar(turmas);
+const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -39,7 +54,7 @@ const grupos = agrupar(turmas);
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="/secretaria/alunos/<%= aluno.id %>">Voltar à ficha</a>
+    <a class="botao botao--secundario" href="<%= fichaDoAluno %>">Voltar à ficha</a>
   </div>
 </div>
 
@@ -47,8 +62,8 @@ const grupos = agrupar(turmas);
   <% if (grupos.length === 0) { %>
   <p class="suave leitura">Não há outra turma nas suas unidades para receber esta matrícula.</p>
   <div class="acoes">
-    <a class="botao botao--primario" href="/secretaria/turmas/nova">Cadastrar turma</a>
-    <a class="botao botao--discreto" href="/secretaria/alunos/<%= aluno.id %>">Voltar à ficha</a>
+    <a class="botao botao--primario" href="<%= it.rotas.secretaria.turmaNova() %>">Cadastrar turma</a>
+    <a class="botao botao--discreto" href="<%= fichaDoAluno %>">Voltar à ficha</a>
   </div>
   <% } else { %>
   <p class="suave leitura">
@@ -56,7 +71,7 @@ const grupos = agrupar(turmas);
     matrícula ativa é aberta na turma de destino — as duas escritas na mesma transação.
   </p>
 
-  <form class="formulario" method="post" action="/secretaria/matriculas/<%= ativa.id %>/transferir">
+  <form class="formulario" method="post" action="<%= it.rotas.secretaria.matriculaTransferir({ id: ativa.id }) %>">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
 
     <div class="formulario__linha">
@@ -70,9 +85,9 @@ const grupos = agrupar(turmas);
           required
           <% if (erroDe('turmaDestinoId') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('turmaDestinoId', true) %>">
-          <option value="">Selecione…</option>
+          <option value=""><%= it.opcaoVazia %></option>
           <% grupos.forEach((grupo) => { %>
-          <optgroup label="Ano letivo <%= grupo.ano === null ? '—' : grupo.ano %>">
+          <optgroup label="Ano letivo <%= grupo.ano === null ? it.semValor : grupo.ano %>">
             <% grupo.turmas.forEach((turma) => { %>
             <option value="<%= turma.id %>" <%= valor('turmaDestinoId', '') === turma.id ? 'selected' : '' %>>
               <%= turma.nome %> · <%= turma.serie %> · <%= turma.turno %> · <%= turma.unidadeNome %>
@@ -81,11 +96,11 @@ const grupos = agrupar(turmas);
           </optgroup>
           <% }) %>
         </select>
-        <p class="campo__ajuda" id="turmaDestinoId-ajuda">
+        <p class="campo__ajuda" id="turmaDestinoId<%= sufixos.ajuda %>">
           Precisa pertencer ao mesmo ano letivo da matrícula atual.
         </p>
         <% if (erroDe('turmaDestinoId') !== '') { %>
-        <p class="campo__erro" id="turmaDestinoId-erro"><%= erroDe('turmaDestinoId') %></p>
+        <p class="campo__erro" id="turmaDestinoId<%= sufixos.erro %>"><%= erroDe('turmaDestinoId') %></p>
         <% } %>
       </div>
 
@@ -102,14 +117,14 @@ const grupos = agrupar(turmas);
           <% if (erroDe('data') !== '') { %>aria-invalid="true"<% } %>
           <% if (descricao('data') !== '') { %>aria-describedby="<%= descricao('data') %>"<% } %>>
         <% if (erroDe('data') !== '') { %>
-        <p class="campo__erro" id="data-erro"><%= erroDe('data') %></p>
+        <p class="campo__erro" id="data<%= sufixos.erro %>"><%= erroDe('data') %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Transferir matrícula</button>
-      <a class="botao botao--discreto" href="/secretaria/alunos/<%= aluno.id %>">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= fichaDoAluno %>">Cancelar</a>
     </div>
   </form>
   <% } %>

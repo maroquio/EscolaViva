@@ -4,6 +4,10 @@
  * chamada é uma linha por aluno por dia, e é isso que a constraint `frequencia_unica_por_dia`
  * garante no banco.
  */
+
+import { FORMATOS, TAMANHO_DA_DATA_ISO } from '../../shared/constantes';
+import { MEIA_NOITE_UTC } from '../constantes';
+
 export type LinhaDeChamada = {
   matriculaId: string;
   alunoNome: string;
@@ -20,14 +24,11 @@ export type ResumoFrequencia = { data: string; presente: boolean; justificativa:
 /** Dias registrados e quantos deles foram de presença — a base do percentual do boletim. */
 export type ApuracaoDeFrequencia = { totalDias: number; presencas: number };
 
-const FORMATO_ISO = /^\d{4}-\d{2}-\d{2}$/;
-const TAMANHO_DA_DATA_ISO = 10;
-
 export function dataDeChamadaValida(data: string): boolean {
-  if (!FORMATO_ISO.test(data)) return false;
+  if (!FORMATOS.dataIso.test(data)) return false;
   // O formato sozinho aceita 2026-02-30. Converter e comparar a volta ao texto é o que separa
   // uma data que existe de uma sequência de dígitos plausível.
-  const convertida = new Date(`${data}T00:00:00Z`);
+  const convertida = new Date(`${data}${MEIA_NOITE_UTC}`);
   if (Number.isNaN(convertida.getTime())) return false;
   return convertida.toISOString().slice(0, TAMANHO_DA_DATA_ISO) === data;
 }

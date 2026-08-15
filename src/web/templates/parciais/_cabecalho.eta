@@ -5,12 +5,16 @@
   de unidades vem dos papéis, sem inventar uma "unidade atual" que o sistema não guarda.
 
   É filho direto da grade `.aplicacao` (área `cabecalho`), por isso a tag fica aqui e não no layout.
+
+  Os dois endereços da barra — a marca, que leva ao painel, e o formulário de sair — vêm de
+  `it.rotas`, o mesmo mapa que o router registra. Endereço escrito à mão aqui não quebra
+  compilação: quebra a tela de quem clica.
 */
 const usuario = it.usuario;
 const unidades = usuario === null ? [] : [...new Set(usuario.papeis.map((p) => p.unidadeNome))];
 %>
 <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/painel">Escola<em>Viva</em></a>
+  <a class="marca cabecalho__marca" href="<%= it.rotas.publicas.painel() %>">Escola<em>Viva</em></a>
 
   <% if (usuario !== null) { %>
   <div class="cabecalho__contexto">
@@ -28,7 +32,7 @@ const unidades = usuario === null ? [] : [...new Set(usuario.papeis.map((p) => p
 
   <div class="cabecalho__usuario">
     <span class="cabecalho__nome" title="<%= usuario.email %>"><%= usuario.nome %></span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+    <form class="cabecalho__sair" method="post" action="<%= it.rotas.publicas.logout() %>">
       <input type="hidden" name="_chave" value="<%= it.chave %>">
       <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
     </form>

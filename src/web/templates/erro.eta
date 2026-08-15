@@ -30,7 +30,7 @@ const correlacaoId = it.correlacaoId ?? '';
   <% } %>
 
   <p class="linha">
-    <a class="botao botao--secundario" href="/painel">Voltar ao painel</a>
-    <a class="botao botao--discreto" href="/login">Entrar novamente</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.publicas.painel() %>">Voltar ao painel</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.publicas.login() %>">Entrar novamente</a>
   </p>
 </div>

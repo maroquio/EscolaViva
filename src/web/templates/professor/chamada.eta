@@ -9,6 +9,16 @@
   A caixa abre marcada. Numa turma de trinta alunos a presença é a regra e a falta é a exceção, então
   o trabalho do professor é desmarcar duas caixas, não marcar vinte e oito. Reenviar a mesma data
   corrige o registro em vez de duplicá-lo, o que torna a tela segura de revisitar no fim do dia.
+
+  Nenhum endereço desta tela é escrito à mão. Os que dependem da turma — a ação do formulário e o
+  link do fechamento — chegam prontos do arquivo de rotas, montados uma vez só; a volta para
+  "Minhas turmas" sai de `it.rotas`, o mesmo mapa que o router registra. URL literal em `.eta` não
+  quebra compilação: quebra a tela de quem clica.
+
+  Pela mesma razão o caminho da parcial incluída chega em `it.parciais` e o " · turno " do
+  sobretítulo chega em `it.separadorDeTurno`: são `TEMPLATES.parciais` e `APRESENTACAO`, de
+  `src/web/constantes.ts`, carregados até aqui pela rota — o Eta não importa TypeScript, e
+  redigitá-los abriria a segunda fonte de verdade que a constante existe para fechar.
 */
 const linhas = it.linhas ?? [];
 const data = it.data;
@@ -17,7 +27,7 @@ const legenda = `Chamada de ${it.formatarData(data)} · ${turma.turmaNome}`;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= turma.serie %> · turno <%= turma.turno %></p>
+    <p class="sobretitulo"><%= turma.serie %><%= it.separadorDeTurno %><%= turma.turno %></p>
     <h1 class="pagina__titulo">Chamada · <%= turma.turmaNome %></h1>
     <p class="pagina__resumo">
       Presença de um dia inteiro. A justificativa é o que o responsável informou sobre a falta, e
@@ -26,7 +36,7 @@ const legenda = `Chamada de ${it.formatarData(data)} · ${turma.turmaNome}`;
   </div>
   <p class="pagina__acoes">
     <a class="botao botao--discreto" href="<%= turma.hrefFechamento %>">Fechamento</a>
-    <a class="botao botao--discreto" href="/professor">Minhas turmas</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.professor.painel() %>">Minhas turmas</a>
   </p>
 </div>
 
@@ -52,7 +62,7 @@ const legenda = `Chamada de ${it.formatarData(data)} · ${turma.turmaNome}`;
 </div>
 
 <% if (linhas.length === 0) { %>
-<%~ include("/parciais/_vazio", {
+<%~ include(it.parciais.vazio, {
   titulo: 'Nenhum aluno matriculado',
   texto: 'Esta turma não tem matrícula ativa, então não há chamada a registrar. A matrícula é feita pela secretaria.',
 }) %>

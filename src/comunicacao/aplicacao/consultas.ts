@@ -1,6 +1,7 @@
 import { identidade } from '../../identidade';
 import { leitura } from '../../shared/db';
 import { TAMANHO_PADRAO, consultarPagina, type Pagina } from '../../shared/paginacao';
+import { ERROS_INTERNOS } from '../constantes';
 import { comAutor, estaPublicado, type Comunicado } from '../dominio/comunicado';
 import {
   taxaDeLeitura,
@@ -72,7 +73,7 @@ export async function comunicadoParaResponsavel(
   const nomes = await identidade.nomesDeUsuarios(redeId, [armazenado.autorUsuarioId]);
   const autorNome = nomes.get(armazenado.autorUsuarioId);
   // A FK garante o usuário; nome ausente significa autor em outra rede — dado inconsistente.
-  if (autorNome === undefined) throw new Error('Comunicado com autor fora da rede');
+  if (autorNome === undefined) throw new Error(ERROS_INTERNOS.autorForaDaRede);
   return comAutor(armazenado, autorNome);
 }
 

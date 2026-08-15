@@ -12,12 +12,13 @@
 
 import type { Context } from 'hono';
 import { paginaPedida, type Pagina } from '../shared/paginacao';
+import { PAGINACAO, PARAMETROS } from './constantes';
 
-/** O nome do parâmetro para a tela de uma tabela só. */
-export const PARAMETRO_PADRAO = 'p';
-
-/** Sete números cabem na barra sem quebrar a linha no celular. */
-const JANELA = 7;
+/**
+ * Quantos números ficam de cada lado do atual. É aritmética da centralização, derivada da janela:
+ * mudar `PAGINACAO.janela` reacomoda a barra sozinho.
+ */
+const METADE_DA_JANELA = Math.floor(PAGINACAO.janela / 2);
 
 export type LinkDePagina = { numero: number; href: string; atual: boolean };
 
@@ -38,7 +39,7 @@ export type Navegacao = {
   readonly varias: boolean;
 };
 
-export function paginaDaQuery(c: Context, parametro: string = PARAMETRO_PADRAO): number {
+export function paginaDaQuery(c: Context, parametro: string = PARAMETROS.paginaPadrao): number {
   return paginaPedida(c.req.query(parametro));
 }
 
@@ -56,16 +57,15 @@ const enderecoDaPagina = (c: Context, parametro: string, numero: number): string
 
 /** A janela desliza para manter a página atual no meio, sem passar das pontas. */
 const janelaDe = (atual: number, paginas: number): number[] => {
-  if (paginas <= JANELA) return Array.from({ length: paginas }, (_, i) => i + 1);
-  const metade = Math.floor(JANELA / 2);
-  const inicio = Math.min(Math.max(1, atual - metade), paginas - JANELA + 1);
-  return Array.from({ length: JANELA }, (_, i) => inicio + i);
+  if (paginas <= PAGINACAO.janela) return Array.from({ length: paginas }, (_, i) => i + 1);
+  const inicio = Math.min(Math.max(1, atual - METADE_DA_JANELA), paginas - PAGINACAO.janela + 1);
+  return Array.from({ length: PAGINACAO.janela }, (_, i) => inicio + i);
 };
 
 export function navegacao(
   c: Context,
   pagina: Pagina<unknown>,
-  parametro: string = PARAMETRO_PADRAO,
+  parametro: string = PARAMETROS.paginaPadrao,
 ): Navegacao {
   const { pagina: atual, paginas, total, tamanho, itens } = pagina;
   const primeiro = total === 0 ? 0 : (atual - 1) * tamanho + 1;

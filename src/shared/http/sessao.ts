@@ -1,6 +1,7 @@
 import type { Context, MiddlewareHandler } from 'hono';
 import { deleteCookie, getSignedCookie, setSignedCookie } from 'hono/cookie';
 import { config } from '../config';
+import { COOKIE, MOTIVOS_INTERNOS, TEMPO, VARIAVEIS_DE_CONTEXTO } from '../constantes';
 import { comContexto, contextoAtual } from './correlacao';
 import { NaoAutorizado } from './erros';
 
@@ -20,26 +21,26 @@ export type UsuarioDaSessao = {
   responsavelId: string | null;
 };
 
-export const COOKIE_SESSAO = 'ev_sessao';
+/**
+ * O nome do cookie continua exportado daqui porque `shared/http/index.ts` o reexporta, mas o valor
+ * mora em `COOKIE`, ao lado do caminho e do `sameSite` que precisam mudar junto com ele.
+ */
+export const COOKIE_SESSAO = COOKIE.sessao;
 
 /** Quem sabe resolver um id de sessão em usuário é injetado pela camada web. */
 export type CarregadorDeUsuario = (sessaoId: string) => Promise<UsuarioDaSessao | null>;
 
-const VARIAVEL_USUARIO = 'usuario';
-const VARIAVEL_SESSAO = 'sessaoId';
-const SEGUNDOS_POR_HORA = 3600;
-
 const opcoesDoCookie = () => ({
-  path: '/',
+  path: COOKIE.caminho,
   httpOnly: true,
   secure: config.cookieSeguro,
-  sameSite: 'Lax' as const,
-  maxAge: config.sessaoDuracaoHoras * SEGUNDOS_POR_HORA,
+  sameSite: COOKIE.sameSite,
+  maxAge: config.sessaoDuracaoHoras * TEMPO.segundosPorHora,
 });
 
 const guardar = (c: Context, sessaoId: string | null, usuario: UsuarioDaSessao | null): void => {
-  c.set(VARIAVEL_SESSAO, sessaoId);
-  c.set(VARIAVEL_USUARIO, usuario);
+  c.set(VARIAVEIS_DE_CONTEXTO.sessaoId, sessaoId);
+  c.set(VARIAVEIS_DE_CONTEXTO.usuario, usuario);
 };
 
 const sessaoIdDoCookie = async (c: Context): Promise<string | null> => {
@@ -77,22 +78,22 @@ export async function abrirSessao(c: Context, sessaoId: string): Promise<void> {
 }
 
 export async function fecharSessao(c: Context): Promise<void> {
-  deleteCookie(c, COOKIE_SESSAO, { path: '/', secure: config.cookieSeguro });
+  deleteCookie(c, COOKIE_SESSAO, { path: COOKIE.caminho, secure: config.cookieSeguro });
   guardar(c, null, null);
 }
 
 export function sessaoIdAtual(c: Context): string | null {
-  const sessaoId: string | null | undefined = c.get(VARIAVEL_SESSAO);
+  const sessaoId: string | null | undefined = c.get(VARIAVEIS_DE_CONTEXTO.sessaoId);
   return sessaoId ?? null;
 }
 
 export function usuarioAtualOuNulo(c: Context): UsuarioDaSessao | null {
-  const usuario: UsuarioDaSessao | null | undefined = c.get(VARIAVEL_USUARIO);
+  const usuario: UsuarioDaSessao | null | undefined = c.get(VARIAVEIS_DE_CONTEXTO.usuario);
   return usuario ?? null;
 }
 
 export function usuarioAtual(c: Context): UsuarioDaSessao {
   const usuario = usuarioAtualOuNulo(c);
-  if (usuario === null) throw new NaoAutorizado('requisição sem sessão');
+  if (usuario === null) throw new NaoAutorizado(MOTIVOS_INTERNOS.requisicaoSemSessao);
   return usuario;
 }

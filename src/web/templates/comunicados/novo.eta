@@ -34,7 +34,7 @@ const descricaoDe = (campo, ajudaId) =>
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="/comunicados">Voltar aos comunicados</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.comunicados.lista() %>">Voltar aos comunicados</a>
   </p>
 </header>
 
@@ -51,7 +51,7 @@ const descricaoDe = (campo, ajudaId) =>
       texto: 'Comunicado é sempre de uma unidade para os responsáveis dela. Peça ao administrador da rede uma unidade ativa com o seu papel.',
     }) %>
   <% } else { %>
-  <form class="formulario" method="get" action="/comunicados/novo">
+  <form class="formulario" method="get" action="<%= it.rotas.comunicados.novo() %>">
     <div class="campo">
       <label class="campo__rotulo" for="unidadeId">
         Unidade <span class="campo__obrigatorio" aria-hidden="true">*</span>
@@ -84,11 +84,11 @@ const descricaoDe = (campo, ajudaId) =>
     <h2 id="titulo-mensagem">Passo 2 · Mensagem</h2>
     <p class="secao__nota">
       Unidade <strong><%= it.unidade.nome %></strong> ·
-      <a href="/comunicados/novo">trocar unidade</a>
+      <a href="<%= it.rotas.comunicados.novo() %>">trocar unidade</a>
     </p>
   </div>
 
-  <form class="formulario formulario--largo" method="post" action="/comunicados/novo">
+  <form class="formulario formulario--largo" method="post" action="<%= it.rotas.comunicados.novo() %>">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
     <input type="hidden" name="unidadeId" value="<%= it.unidade.id %>">
 
@@ -187,7 +187,7 @@ const descricaoDe = (campo, ajudaId) =>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Publicar comunicado</button>
-      <a class="botao botao--discreto" href="/comunicados">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= it.rotas.comunicados.lista() %>">Cancelar</a>
     </div>
   </form>
 </section>

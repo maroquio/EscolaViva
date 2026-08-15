@@ -9,29 +9,27 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import { turnoValido, type Turma } from '../dominio/turma';
 import * as anosLetivos from '../infra/anoLetivoRepositorio';
 import * as turmas from '../infra/turmaRepositorio';
 
-const NOME_MAXIMO = 60;
-const SERIE_MAXIMA = 60;
-
 const entrada = z.object({
   redeId: z.string().uuid(),
-  unidadeId: z.string().uuid('Selecione a unidade.'),
-  anoLetivoId: z.string().uuid('Selecione o ano letivo.'),
+  unidadeId: z.string().uuid(MENSAGENS.turma.unidadeObrigatoria),
+  anoLetivoId: z.string().uuid(MENSAGENS.anoLetivoObrigatorio),
   nome: z
     .string()
     .trim()
-    .min(1, 'Informe o nome da turma.')
-    .max(NOME_MAXIMO, `O nome precisa ter até ${NOME_MAXIMO} caracteres.`),
+    .min(1, MENSAGENS.turma.nomeObrigatorio)
+    .max(LIMITES.turma.nome, MENSAGENS.turma.nomeLongo),
   serie: z
     .string()
     .trim()
-    .min(1, 'Informe a série.')
-    .max(SERIE_MAXIMA, `A série precisa ter até ${SERIE_MAXIMA} caracteres.`),
+    .min(1, MENSAGENS.turma.serieObrigatoria)
+    .max(LIMITES.turma.serie, MENSAGENS.turma.serieLonga),
   // A regra do turno mora no domínio; o schema apenas a consulta.
-  turno: z.string().trim().refine(turnoValido, 'Turno inválido.'),
+  turno: z.string().trim().refine(turnoValido, MENSAGENS.turma.turnoInvalido),
 });
 
 export async function cadastrarTurma(e: {
@@ -50,28 +48,24 @@ export async function cadastrarTurma(e: {
     const unidade = await identidade.unidadePorId(redeId, unidadeId);
     if (unidade === null) {
       return falhaDeCampo(
-        'unidadeId',
-        'unidade_nao_encontrada',
-        'Unidade não encontrada nesta rede.',
+        CAMPOS.turma.unidadeId,
+        CODIGOS.turma.unidadeNaoEncontrada,
+        MENSAGENS.turma.unidadeNaoEncontrada,
       );
     }
     const anoLetivo = await anosLetivos.porId(sql, redeId, anoLetivoId);
     if (anoLetivo === null) {
       return falhaDeCampo(
-        'anoLetivoId',
-        'ano_letivo_nao_encontrado',
-        'Ano letivo não encontrado nesta rede.',
+        CAMPOS.turma.anoLetivoId,
+        CODIGOS.anoLetivoNaoEncontrado,
+        MENSAGENS.anoLetivoNaoEncontrado,
       );
     }
 
     const turma: Turma = { id: idGeneratorUuid.novo(), ...validada.data };
     const criada = await turmas.inserir(sql, turma);
     if (!criada) {
-      return falhaDeCampo(
-        'nome',
-        'turma_duplicada',
-        'Esta unidade já tem uma turma com este nome neste ano letivo.',
-      );
+      return falhaDeCampo(CAMPOS.turma.nome, CODIGOS.turma.duplicada, MENSAGENS.turma.duplicada);
     }
     return sucesso(turma);
   });

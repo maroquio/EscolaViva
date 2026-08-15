@@ -1,9 +1,24 @@
 <%
 /*
-  Responsáveis da rede: a lista, e só. O cadastro mora em `/secretaria/responsaveis/novo`.
+  Responsáveis da rede: a lista, e só. O cadastro mora em `it.rotas.secretaria.responsavelNovo()`.
 
   O responsável pertence à rede, não a uma unidade: o vínculo com a unidade nasce da matrícula do
   aluno. Por isso a lista é a da rede inteira, e é na ficha do aluno que o vínculo se faz.
+
+  Os três endereços da tela — o atalho para a busca de aluno, o botão do cabeçalho e a ação do
+  estado vazio — saem de `it.rotas`, o mesmo mapa que o router registra. Escritos à mão, seriam três
+  cópias de endereço que podem divergir de um lado só, e URL literal em `.eta` não quebra
+  compilação: quebra a tela de quem clica.
+*/
+
+/*
+  O caminho de cada parcial incluído vem de `it.parciais` — `TEMPLATES.parciais`
+  (`src/web/constantes.ts`), o mesmo mapa que nomeia esta página. Escrito à mão, `"/parciais/_vazio"`
+  seria uma cópia do caminho de arquivo que nenhum compilador confere: renomear o parcial derruba a
+  tela em tempo de execução, e não na compilação.
+*/
+/*
+  O travessão da célula sem valor é `it.semValor` — `AUSENTE` (`src/shared/constantes.ts`).
 */
 const responsaveis = it.responsaveis ?? [];
 %>
@@ -17,8 +32,8 @@ const responsaveis = it.responsaveis ?? [];
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="/secretaria/alunos">Buscar aluno</a>
-    <a class="botao botao--primario" href="/secretaria/responsaveis/novo">Cadastrar responsável</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.alunos() %>">Buscar aluno</a>
+    <a class="botao botao--primario" href="<%= it.rotas.secretaria.responsavelNovo() %>">Cadastrar responsável</a>
   </div>
 </div>
 
@@ -33,10 +48,10 @@ const responsaveis = it.responsaveis ?? [];
   </div>
 
   <% if (responsaveis.length === 0) { %>
-  <%~ include("/parciais/_vazio", {
+  <%~ include(it.parciais.vazio, {
     titulo: 'Nenhum responsável cadastrado',
     texto: 'O e-mail é único na rede: é por ele que o responsável recebe comunicado — não é usado para entrar.',
-    acao: { href: '/secretaria/responsaveis/novo', texto: 'Cadastrar responsável' }
+    acao: { href: it.rotas.secretaria.responsavelNovo(), texto: 'Cadastrar responsável' }
   }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -56,12 +71,12 @@ const responsaveis = it.responsaveis ?? [];
           <th scope="row" class="celula-elastica"><%= pessoa.nome %></th>
           <td class="numero celula-centro"><%= it.formatarCpf(pessoa.cpf ?? '') %></td>
           <td class="celula-texto"><%= pessoa.email %></td>
-          <td class="numero celula-centro"><%= pessoa.telefone === null ? '—' : pessoa.telefone %></td>
+          <td class="numero celula-centro"><%= pessoa.telefone === null ? it.semValor : pessoa.telefone %></td>
         </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
-  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'responsáveis' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'responsáveis' }) %>
   <% } %>
 </section>

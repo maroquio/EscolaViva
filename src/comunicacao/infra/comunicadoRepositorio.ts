@@ -1,5 +1,6 @@
 import type { Conexao } from '../../shared/db';
 import { recorte, type Faixa } from '../../shared/paginacao';
+import { ERROS_INTERNOS } from '../constantes';
 import type { ComunicadoArmazenado } from '../dominio/comunicado';
 import type { ContagemDeLeitura, ItemDoMural } from '../dominio/destinatario';
 
@@ -76,7 +77,7 @@ export async function inserirPublicado(
     RETURNING publicado_em
   `;
   const linha = linhas[0];
-  if (linha === undefined) throw new Error('INSERT em comunicado não devolveu publicado_em');
+  if (linha === undefined) throw new Error(ERROS_INTERNOS.insercaoSemPublicadoEm);
   return {
     id: novo.id,
     redeId: novo.redeId,

@@ -8,6 +8,15 @@
 
   Nada nesta tela marca leitura. Abrir o comunicado é navegação; marcar como lido é uma escrita
   que o responsável faz por escolha, com um botão, na página do próprio comunicado.
+
+  As duas listas levam ao mesmo endereço de comunicado, e ele sai de `it.rotas` — o mesmo mapa que
+  o router registra —, com o `:comunicadoId` preenchido por quem sabe escapá-lo. Escrito à mão,
+  seriam duas cópias do caminho que podem divergir de um lado só, e a metade lida do mural
+  continuaria apontando para o lugar certo enquanto a não lida apontaria para o vazio. URL literal
+  em `.eta` não quebra compilação: quebra a tela de quem clica.
+
+  Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
+  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
 */
 const naoLidos = it.naoLidos;
 const lidos = it.lidos;
@@ -21,7 +30,7 @@ const lidos = it.lidos;
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="/responsavel">Voltar aos alunos</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.painel() %>">Voltar aos alunos</a>
   </p>
 </header>
 
@@ -35,7 +44,7 @@ const lidos = it.lidos;
   </div>
 
   <% if (naoLidos.length === 0) { %>
-    <%~ include("/parciais/_vazio", {
+    <%~ include(it.parciais.vazio, {
       titulo: 'Nada por ler',
       texto: 'Todos os comunicados enviados a você já foram marcados como lidos.',
     }) %>
@@ -45,7 +54,7 @@ const lidos = it.lidos;
     <li class="quadro">
       <div class="linha linha--entre">
         <h3>
-          <a href="/responsavel/mural/<%= item.comunicadoId %>"><%= item.titulo %></a>
+          <a href="<%= it.rotas.responsavel.comunicado({ comunicadoId: item.comunicadoId }) %>"><%= item.titulo %></a>
         </h3>
         <span class="linha">
           <time class="suave" datetime="<%= item.publicadoEm %>">
@@ -57,7 +66,7 @@ const lidos = it.lidos;
     </li>
     <% }) %>
   </ul>
-  <%~ include("/parciais/_paginacao", {
+  <%~ include(it.parciais.paginacao, {
     navegacao: it.navegacaoNaoLidos, rotulo: 'comunicados não lidos'
   }) %>
   <% } %>
@@ -73,7 +82,7 @@ const lidos = it.lidos;
   </div>
 
   <% if (lidos.length === 0) { %>
-    <%~ include("/parciais/_vazio", {
+    <%~ include(it.parciais.vazio, {
       titulo: 'Nenhum comunicado marcado como lido',
       texto: 'Ao abrir um comunicado, use o botão "Marcar como lido" para que a escola saiba que a mensagem chegou.',
     }) %>
@@ -81,7 +90,7 @@ const lidos = it.lidos;
   <ul class="pilha">
     <% lidos.forEach((item) => { %>
     <li class="linha">
-      <a href="/responsavel/mural/<%= item.comunicadoId %>"><%= item.titulo %></a>
+      <a href="<%= it.rotas.responsavel.comunicado({ comunicadoId: item.comunicadoId }) %>"><%= item.titulo %></a>
       <span class="suave">
         publicado em
         <time datetime="<%= item.publicadoEm %>"><%= it.formatarData(item.publicadoEm) %></time>
@@ -91,7 +100,7 @@ const lidos = it.lidos;
     </li>
     <% }) %>
   </ul>
-  <%~ include("/parciais/_paginacao", {
+  <%~ include(it.parciais.paginacao, {
     navegacao: it.navegacaoLidos, rotulo: 'comunicados lidos'
   }) %>
   <% } %>

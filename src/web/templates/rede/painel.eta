@@ -8,6 +8,10 @@
 
   Turmas e matriculados são do ano letivo em vigor; unidades e usuários são da rede inteira. O
   rótulo de cada cartão diz qual é qual, porque somar anos diferentes daria um número sem uso.
+
+  O caminho da parcial incluída também não é escrito à mão: ele chega em `it.parciais`, o mesmo
+  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo. Renomear a parcial passa a ser uma
+  edição só, e não uma caçada por aspas espalhadas pelos `.eta`.
 */
 const contagens = it.contagens ?? { unidades: 0, usuarios: 0, turmas: 0, matriculados: 0 };
 const anoLetivo = it.anoLetivo ?? null;
@@ -32,13 +36,13 @@ const anoNoRotulo = anoLetivo === null ? 'sem ano letivo' : 'ano letivo ' + anoL
   </div>
 
   <div class="painel">
-    <a class="cartao" href="/rede/unidades">
+    <a class="cartao" href="<%= it.rotas.rede.unidades() %>">
       <span class="cartao__rotulo">Unidades</span>
       <span class="cartao__numero"><%= contagens.unidades %></span>
       <span class="cartao__detalhe">Escolas ativas e inativas da rede</span>
     </a>
 
-    <a class="cartao" href="/rede/usuarios">
+    <a class="cartao" href="<%= it.rotas.rede.usuarios() %>">
       <span class="cartao__rotulo">Usuários</span>
       <span class="cartao__numero"><%= contagens.usuarios %></span>
       <span class="cartao__detalhe">Pessoas com acesso, somando todos os papéis</span>
@@ -67,10 +71,10 @@ const anoNoRotulo = anoLetivo === null ? 'sem ano letivo' : 'ano letivo ' + anoL
   </div>
 
   <% if (anoLetivo === null) { %>
-    <%~ include("/parciais/_vazio", {
+    <%~ include(it.parciais.vazio, {
       titulo: 'Nenhum ano letivo definido',
       texto: 'Sem ano letivo não existe turma nem matrícula. É o primeiro passo depois de criar as unidades.',
-      acao: { href: '/rede/anos-letivos', texto: 'Definir ano letivo' }
+      acao: { href: it.rotas.rede.anosLetivos(), texto: 'Definir ano letivo' }
     }) %>
   <% } else { %>
   <div class="quadro">

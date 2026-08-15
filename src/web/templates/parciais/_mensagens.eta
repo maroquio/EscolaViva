@@ -8,6 +8,18 @@
 
   `role="status"` anuncia sem interromper; `role="alert"` interrompe — é a diferença entre "salvo"
   e "não salvo", e leitor de tela precisa dela.
+
+  Nada aqui é endereço: este parcial não tem um único `href` nem `action`, então não há o que vir
+  de `it.rotas`. O que ele mostra chega pronto em `it.mensagem`, `it.erro` e `it.erros` — as frases
+  já nasceram nomeadas em `AVISOS`, em `ERROS_DE_FORMULARIO` e nas `MENSAGENS` de cada módulo, e
+  atravessam o redirecionamento como texto.
+
+  O título "Não foi possível concluir" é o texto DESTA tela e fica escrito aqui. Ele coincide, byte
+  a byte, com `TITULOS_DE_ERRO[422]` de `src/web/constantes.ts`, e a coincidência é só isso: aquele
+  nomeia uma página de erro que substituiu o formulário inteiro; este encabeça a lista de recusas
+  de um formulário que continua na tela, preenchido, esperando correção. Uma das duas pode ser
+  reescrita sem que a outra mude — juntá-las numa constante só amarraria duas decisões que nunca
+  foram tomadas juntas.
 */
 %>
 <% if (it.mensagem) { %>

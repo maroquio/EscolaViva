@@ -8,6 +8,7 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import { mensagemDePendencias, pendenciasDoFechamento } from '../dominio/fechamentoBimestre';
 import { bimestreValido } from '../dominio/nota';
 import * as fechamentoRepositorio from '../infra/fechamentoRepositorio';
@@ -23,7 +24,7 @@ export type FechamentoDeBimestre = {
 const esquema = z.object({
   redeId: z.string().uuid(),
   turmaId: z.string().uuid(),
-  bimestre: z.number().refine(bimestreValido, 'O bimestre precisa ser 1, 2, 3 ou 4.'),
+  bimestre: z.number().refine(bimestreValido, MENSAGENS.bimestreInvalido),
   fechadoPor: z.string().uuid(),
 });
 
@@ -45,30 +46,30 @@ export async function fecharBimestre(entrada: FechamentoDeBimestre): Promise<Res
 
   const turma = await academico.turmaPorId(redeId, turmaId);
   if (turma === null) {
-    return falhaDeCampo('turmaId', 'nao_encontrada', 'Turma não encontrada nesta rede.');
+    return falhaDeCampo(CAMPOS.turmaId, CODIGOS.naoEncontrada, MENSAGENS.turmaNaoEncontrada);
   }
 
   const disciplinas = await academico.listarTurmaDisciplinas(redeId, turmaId);
   if (disciplinas.length === 0) {
     return falhaDeCampo(
-      'turmaId',
-      'sem_disciplina',
-      'A turma não tem disciplina alocada; não há bimestre a fechar.',
+      CAMPOS.turmaId,
+      CODIGOS.semDisciplina,
+      MENSAGENS.fechamento.semDisciplina,
     );
   }
 
   const matriculas = await academico.matriculasAtivasDaTurma(redeId, turmaId);
   if (matriculas.length === 0) {
     return falhaDeCampo(
-      'turmaId',
-      'sem_matricula_ativa',
-      'A turma não tem matrícula ativa; não há bimestre a fechar.',
+      CAMPOS.turmaId,
+      CODIGOS.semMatriculaAtiva,
+      MENSAGENS.fechamento.semMatriculaAtiva,
     );
   }
 
   return await unidadeDeTrabalho<Resultado<void>>(async ({ sql }) => {
     if (await fechamentoRepositorio.estaFechado(sql, redeId, turmaId, bimestre)) {
-      return falhaDeCampo('bimestre', 'ja_fechado', 'Este bimestre já está fechado para a turma.');
+      return falhaDeCampo(CAMPOS.bimestre, CODIGOS.jaFechado, MENSAGENS.fechamento.jaFechado);
     }
 
     const lancadas = await notaRepositorio.contagemPorDisciplina(
@@ -80,7 +81,11 @@ export async function fecharBimestre(entrada: FechamentoDeBimestre): Promise<Res
     );
     const pendencias = pendenciasDoFechamento(disciplinas, matriculas.length, lancadas);
     if (pendencias.length > 0) {
-      return falhaDeCampo('bimestre', 'fechamento_incompleto', mensagemDePendencias(pendencias));
+      return falhaDeCampo(
+        CAMPOS.bimestre,
+        CODIGOS.fechamentoIncompleto,
+        mensagemDePendencias(pendencias),
+      );
     }
 
     await fechamentoRepositorio.registrar(sql, { redeId, turmaId, bimestre, fechadoPor });

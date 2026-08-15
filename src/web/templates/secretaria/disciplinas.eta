@@ -1,9 +1,22 @@
 <%
 /*
-  Disciplinas da rede: a lista, e só. O cadastro mora em `/secretaria/disciplinas/nova`.
+  Disciplinas da rede: a lista, e só. O cadastro mora em `it.rotas.secretaria.disciplinaNova()`.
 
   A disciplina é da rede inteira: "Matemática" é a mesma em todas as unidades. O que varia por
   turma é quem a leciona, e essa alocação se faz na tela da turma.
+
+  Os dois caminhos para o cadastro — o botão do cabeçalho e a ação do estado vazio — levam ao mesmo
+  lugar e saem de `it.rotas`, o mesmo mapa que o router registra; o atalho para as turmas, que é
+  onde a disciplina vira aula de alguém, sai de lá também. Escritos à mão, seriam três cópias de
+  endereço que podem divergir de um lado só, e URL literal em `.eta` não quebra compilação: quebra
+  a tela de quem clica.
+*/
+
+/*
+  O caminho de cada parcial incluído vem de `it.parciais` — `TEMPLATES.parciais`
+  (`src/web/constantes.ts`), o mesmo mapa que nomeia esta página. Escrito à mão, `"/parciais/_vazio"`
+  seria uma cópia do caminho de arquivo que nenhum compilador confere: renomear o parcial derruba a
+  tela em tempo de execução, e não na compilação.
 */
 const disciplinas = it.disciplinas ?? [];
 %>
@@ -17,8 +30,8 @@ const disciplinas = it.disciplinas ?? [];
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="/secretaria/turmas">Turmas</a>
-    <a class="botao botao--primario" href="/secretaria/disciplinas/nova">Cadastrar disciplina</a>
+    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.turmas() %>">Turmas</a>
+    <a class="botao botao--primario" href="<%= it.rotas.secretaria.disciplinaNova() %>">Cadastrar disciplina</a>
   </div>
 </div>
 
@@ -33,10 +46,10 @@ const disciplinas = it.disciplinas ?? [];
   </div>
 
   <% if (disciplinas.length === 0) { %>
-  <%~ include("/parciais/_vazio", {
+  <%~ include(it.parciais.vazio, {
     titulo: 'Nenhuma disciplina cadastrada',
     texto: 'Sem disciplina não há alocação de professor, e sem alocação não há lançamento de nota.',
-    acao: { href: '/secretaria/disciplinas/nova', texto: 'Cadastrar disciplina' }
+    acao: { href: it.rotas.secretaria.disciplinaNova(), texto: 'Cadastrar disciplina' }
   }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -56,6 +69,6 @@ const disciplinas = it.disciplinas ?? [];
       </tbody>
     </table>
   </div>
-  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'disciplinas' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'disciplinas' }) %>
   <% } %>
 </section>

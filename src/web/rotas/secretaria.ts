@@ -10,8 +10,23 @@
  */
 
 import { Hono, type Context } from 'hono';
-import { academico, type Aluno, type AnoLetivo, type Matricula, type Turma } from '../../academico';
-import { identidade } from '../../identidade';
+import {
+  LIMITES_DO_ACADEMICO,
+  VOCABULARIO_DO_ACADEMICO,
+  academico,
+  type Aluno,
+  type AnoLetivo,
+  type Matricula,
+  type Turma,
+} from '../../academico';
+import { PAPEL, identidade } from '../../identidade';
+import {
+  AUSENTE,
+  LOCALE,
+  TAMANHO_DA_DATA_ISO,
+  TAMANHO_DO_CPF_COM_MASCARA,
+  VARIAVEIS_DE_CONTEXTO,
+} from '../../shared/constantes';
 import {
   ehIdentificador,
   exigirPapel,
@@ -23,8 +38,22 @@ import {
 import { fatiar } from '../../shared/paginacao';
 import { clockDoSistema } from '../../shared/ports';
 import type { ErroDeAplicacao } from '../../shared/resultado';
+import {
+  APRESENTACAO,
+  AVISOS,
+  CAMPOS,
+  MARCADO,
+  PAGINAS_DE_ERRO,
+  PARAMETROS,
+  ROTAS,
+  SUFIXOS_DE_ID,
+  TEMPLATES,
+  TITULOS,
+  VALORES_INICIAIS,
+} from '../constantes';
 import { navegacao, paginaDaQuery } from '../paginacao';
 import { renderizar, renderizarErro } from '../render';
+import type { Params } from './mapa';
 
 type Contexto = Context<{ Variables: Variaveis }>;
 type Valores = Record<string, string | boolean>;
@@ -32,21 +61,64 @@ type Erros = readonly ErroDeAplicacao[];
 type Unidade = { id: string; nome: string };
 type Dados = Record<string, unknown>;
 
-const PAPEL = 'secretaria' as const;
-const BASE = '/secretaria';
-const REDIRECIONAMENTO = 303;
-
-const NOME_DO_TURNO: Record<string, string> = {
-  matutino: 'Matutino', vespertino: 'Vespertino', noturno: 'Noturno', integral: 'Integral',
+/** A turma como as telas da secretaria a mostram: já com o nome da unidade e o ano resolvidos. */
+type TurmaEmLista = {
+  id: string;
+  nome: string;
+  serie: string;
+  turno: string;
+  anoLetivoId: string;
+  unidadeNome: string;
+  ano: number | null;
 };
+
+/**
+ * Os nomes dos `:params` deste grupo, conferidos contra os próprios padrões de `ROTAS.secretaria`.
+ *
+ * A montagem do endereço já é checada pelo compilador — `ROTAS.secretaria.aluno({ id })` não compila
+ * com a chave errada. A leitura, `c.req.param('id')`, é a outra ponta do mesmo nome e é só uma
+ * string: o `satisfies` a amarra ao mapa, de modo que renomear o parâmetro na declaração da rota
+ * quebre a compilação aqui em vez de devolver 404 em produção. Os oito padrões entram na união
+ * porque são os oito que este arquivo lê — todos por `:id`, e é o mapa que diz isso, não o comentário.
+ */
+const PARAMETROS_DE_ROTA = {
+  id: 'id',
+} as const satisfies Params<
+  | typeof ROTAS.secretaria.aluno.padrao
+  | typeof ROTAS.secretaria.alunoResponsavelNovo.padrao
+  | typeof ROTAS.secretaria.alunoResponsaveis.padrao
+  | typeof ROTAS.secretaria.alunoMatricular.padrao
+  | typeof ROTAS.secretaria.matriculaTransferir.padrao
+  | typeof ROTAS.secretaria.turma.padrao
+  | typeof ROTAS.secretaria.turmaDisciplinaNova.padrao
+  | typeof ROTAS.secretaria.turmaDisciplinas.padrao
+>;
+
+/**
+ * O que o Eta não consegue importar e toda tela desta secretaria usa.
+ *
+ * O `.eta` não passa pelo compilador e não lê TypeScript: até aqui cada template redeclarava o
+ * caminho dos seus parciais, o travessão da célula vazia, o rótulo da opção em branco e o sufixo de
+ * id que `descricao()` monta do outro lado, em `render.ts`. Eram cópias que só divergiam na tela —
+ * um `-erro` escrito à mão de um lado e um `SUFIXOS_DE_ID.erro` do outro, e o `aria-describedby`
+ * apontando para um id que não existe. Vai em todo `renderizar` deste arquivo pelo mesmo motivo que
+ * `render.ts` injeta `it.rotas` em todos: é contexto da camada, não dado de uma tela.
+ */
+const DA_CAMADA = {
+  parciais: TEMPLATES.parciais,
+  sufixos: SUFIXOS_DE_ID,
+  semValor: AUSENTE,
+  opcaoVazia: APRESENTACAO.opcaoVazia,
+} as const;
+
+/** O vocabulário é do acadêmico; aqui ele só vira tabela de tradução para a tela. */
+const NOME_DO_TURNO: Record<string, string> = VOCABULARIO_DO_ACADEMICO.turno;
 const TURNOS = Object.entries(NOME_DO_TURNO).map(([valor, nome]) => ({ valor, nome }));
 
-const NOME_DA_SITUACAO: Record<string, string> = {
-  ativa: 'Ativa', transferida: 'Transferida', cancelada: 'Cancelada', concluida: 'Concluída',
-};
+const NOME_DA_SITUACAO: Record<string, string> = VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula;
 
-const hoje = (): string => clockDoSistema.agora().toISOString().slice(0, 10);
-const porNome = (a: Unidade, b: Unidade): number => a.nome.localeCompare(b.nome, 'pt-BR');
+const hoje = (): string => clockDoSistema.agora().toISOString().slice(0, TAMANHO_DA_DATA_ISO);
+const porNome = (a: Unidade, b: Unidade): number => a.nome.localeCompare(b.nome, LOCALE);
 
 const texto = (corpo: CorpoDeFormulario, campo: string): string => {
   const valor = corpo[campo];
@@ -59,11 +131,15 @@ const escolhido = (valor: string | undefined, permitidos: readonly string[]): st
   valor !== undefined && permitidos.includes(valor) ? valor : null;
 
 const concluir = (c: Contexto, destino: string, mensagem: string): Response =>
-  c.redirect(`${destino}?ok=${encodeURIComponent(mensagem)}`, REDIRECIONAMENTO);
+  c.redirect(`${destino}?${PARAMETROS.ok}=${encodeURIComponent(mensagem)}`, 303);
 
 const naoEncontrado = (c: Contexto): Response =>
-  renderizarErro(c, 404, 'Registro não encontrado',
-    'O endereço não existe, ou o registro pertence a outra unidade. Use o menu para voltar a uma tela conhecida.');
+  renderizarErro(
+    c,
+    404,
+    PAGINAS_DE_ERRO.registroForaDoAlcance.titulo,
+    PAGINAS_DE_ERRO.registroForaDoAlcance.detalhe,
+  );
 
 /* --- Alcance da secretaria -------------------------------------------------- */
 
@@ -71,7 +147,9 @@ const naoEncontrado = (c: Contexto): Response =>
 const unidadesDaSecretaria = (c: Contexto): Unidade[] => {
   const nomePorId = new Map<string, string>();
   for (const atribuicao of usuarioAtual(c).papeis) {
-    if (atribuicao.papel === PAPEL) nomePorId.set(atribuicao.unidadeId, atribuicao.unidadeNome);
+    if (atribuicao.papel === PAPEL.secretaria) {
+      nomePorId.set(atribuicao.unidadeId, atribuicao.unidadeNome);
+    }
   }
   return [...nomePorId].map(([id, nome]) => ({ id, nome })).sort(porNome);
 };
@@ -102,13 +180,17 @@ const turmaNoAlcance = async (c: Contexto, turmaId: string): Promise<Turma | nul
 
 /* --- Modelos de exibição ---------------------------------------------------- */
 
-const turmaEmLista = (turma: Turma, ano: ReadonlyMap<string, number>, unidade: ReadonlyMap<string, string>): Dados => ({
+const turmaEmLista = (
+  turma: Turma,
+  ano: ReadonlyMap<string, number>,
+  unidade: ReadonlyMap<string, string>,
+): TurmaEmLista => ({
   id: turma.id,
   nome: turma.nome,
   serie: turma.serie,
   turno: NOME_DO_TURNO[turma.turno] ?? turma.turno,
   anoLetivoId: turma.anoLetivoId,
-  unidadeNome: unidade.get(turma.unidadeId) ?? '—',
+  unidadeNome: unidade.get(turma.unidadeId) ?? AUSENTE,
   ano: ano.get(turma.anoLetivoId) ?? null,
 });
 
@@ -119,7 +201,7 @@ const matriculaEmLista = (matricula: Matricula): Dados => ({
 
 export const rotasSecretaria = new Hono<{ Variables: Variaveis }>();
 
-rotasSecretaria.use(exigirPapel(PAPEL));
+rotasSecretaria.use(exigirPapel(PAPEL.secretaria));
 
 /* --- Painel ----------------------------------------------------------------- */
 
@@ -129,7 +211,7 @@ rotasSecretaria.use(exigirPapel(PAPEL));
  * pendurar o LIMIT. O que era caro aqui não era a lista de unidades, e sim as contagens: uma
  * consulta por unidade, mais uma por turma. Agora são três agregações, e só para a página aberta.
  */
-rotasSecretaria.get('/', async (c) => {
+rotasSecretaria.get(ROTAS.secretaria.painel.padrao, async (c) => {
   const redeId = redeAtual(c);
   const unidades = unidadesDaSecretaria(c);
   const pagina = fatiar(unidades, paginaDaQuery(c));
@@ -145,8 +227,9 @@ rotasSecretaria.get('/', async (c) => {
     ...(porUnidade.get(unidade.id) ?? { turmas: 0, matriculas: 0, responsaveis: 0 }),
   }));
 
-  return renderizar(c, '/secretaria/painel', {
-    titulo: 'Painel da secretaria',
+  return renderizar(c, TEMPLATES.secretaria.painel, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.painel,
     unidades: contagens,
     navegacao: navegacao(c, pagina),
     anoCorrente: anosLetivos[0] ?? null,
@@ -156,9 +239,9 @@ rotasSecretaria.get('/', async (c) => {
 
 /* --- Alunos ----------------------------------------------------------------- */
 
-rotasSecretaria.get('/alunos', async (c) => {
+rotasSecretaria.get(ROTAS.secretaria.alunos.padrao, async (c) => {
   const redeId = redeAtual(c);
-  const termo = (c.req.query('q') ?? '').trim();
+  const termo = (c.req.query(PARAMETROS.busca) ?? '').trim();
   const pagina =
     termo === ''
       ? fatiar<Aluno>([], 1)
@@ -187,8 +270,12 @@ rotasSecretaria.get('/alunos', async (c) => {
     };
   });
 
-  return renderizar(c, '/secretaria/alunos', {
-    titulo: 'Alunos',
+  return renderizar(c, TEMPLATES.secretaria.alunos, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.alunos,
+    // O `name` do campo é o parâmetro que esta mesma rota lê de volta: um GET fecha o ciclo aqui.
+    campoDaBusca: PARAMETROS.busca,
+    limiteDoNome: LIMITES_DO_ACADEMICO.aluno.nome,
     termo,
     buscou: termo !== '',
     alunos,
@@ -196,21 +283,34 @@ rotasSecretaria.get('/alunos', async (c) => {
   });
 });
 
-rotasSecretaria.get('/alunos/novo', (c) =>
-  renderizar(c, '/secretaria/aluno_novo', {
-    titulo: 'Cadastrar aluno',
-    valores: { nome: '', dataNascimento: '' },
-    erros: [],
-  }));
-
-rotasSecretaria.post('/alunos', async (c) => {
-  const corpo = c.get('corpo');
-  const valores = { nome: texto(corpo, 'nome'), dataNascimento: texto(corpo, 'dataNascimento') };
-  const resultado = await academico.cadastrarAluno({ redeId: redeAtual(c), ...valores });
-  if (resultado.ok) return concluir(c, `${BASE}/alunos/${resultado.valor.id}`, 'Aluno cadastrado.');
-  return renderizar(c, '/secretaria/aluno_novo', {
-    titulo: 'Cadastrar aluno', valores, erros: resultado.erros,
+/** O formulário de aluno, em branco no GET e de volta com o que foi digitado quando recusado. */
+const formDeAluno = (c: Contexto, valores: Valores, erros: Erros): Response =>
+  renderizar(c, TEMPLATES.secretaria.alunoNovo, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.alunoNovo,
+    limiteDoNome: LIMITES_DO_ACADEMICO.aluno.nome,
+    valores,
+    erros,
   });
+
+rotasSecretaria.get(ROTAS.secretaria.alunoNovo.padrao, (c) =>
+  formDeAluno(c, VALORES_INICIAIS.aluno, []));
+
+rotasSecretaria.post(ROTAS.secretaria.alunos.padrao, async (c) => {
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const valores = {
+    nome: texto(corpo, CAMPOS.aluno.nome),
+    dataNascimento: texto(corpo, CAMPOS.aluno.dataNascimento),
+  };
+  const resultado = await academico.cadastrarAluno({ redeId: redeAtual(c), ...valores });
+  if (resultado.ok) {
+    return concluir(
+      c,
+      ROTAS.secretaria.aluno({ id: resultado.valor.id }),
+      AVISOS.alunoCadastrado,
+    );
+  }
+  return formDeAluno(c, valores, resultado.erros);
 });
 
 /**
@@ -253,8 +353,17 @@ const fichaDoAluno = async (c: Contexto, alunoId: string): Promise<Dados | null>
 
   const [aluno, vinculos, historico, ativas, temMatricula] = await Promise.all([
     academico.alunoPorId(redeId, alunoId),
-    academico.paginaDeResponsaveisDoAluno(redeId, alunoId, paginaDaQuery(c, 'pResponsaveis')),
-    academico.paginaDeMatriculasDoAluno(redeId, alunoId, unidadeIds, paginaDaQuery(c, 'pMatriculas')),
+    academico.paginaDeResponsaveisDoAluno(
+      redeId,
+      alunoId,
+      paginaDaQuery(c, PARAMETROS.paginaDeResponsaveis),
+    ),
+    academico.paginaDeMatriculasDoAluno(
+      redeId,
+      alunoId,
+      unidadeIds,
+      paginaDaQuery(c, PARAMETROS.paginaDeMatriculas),
+    ),
     academico.matriculasAtivasDosAlunos(redeId, [alunoId], unidadeIds),
     academico.alunoTemMatricula(redeId, alunoId),
   ]);
@@ -264,19 +373,20 @@ const fichaDoAluno = async (c: Contexto, alunoId: string): Promise<Dados | null>
   const ativa = ativas[0] ?? null;
 
   return {
-    titulo: 'Ficha do aluno',
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.aluno,
     aluno,
     vinculos: vinculos.itens,
-    navegacaoVinculos: navegacao(c, vinculos, 'pResponsaveis'),
+    navegacaoVinculos: navegacao(c, vinculos, PARAMETROS.paginaDeResponsaveis),
     matriculas: historico.itens.map(matriculaEmLista),
-    navegacaoMatriculas: navegacao(c, historico, 'pMatriculas'),
+    navegacaoMatriculas: navegacao(c, historico, PARAMETROS.paginaDeMatriculas),
     ativa: ativa === null ? null : matriculaEmLista(ativa),
   };
 };
 
-rotasSecretaria.get('/alunos/:id', async (c) => {
-  const ficha = await fichaDoAluno(c, c.req.param('id'));
-  return ficha === null ? naoEncontrado(c) : renderizar(c, '/secretaria/aluno', ficha);
+rotasSecretaria.get(ROTAS.secretaria.aluno.padrao, async (c) => {
+  const ficha = await fichaDoAluno(c, c.req.param(PARAMETROS_DE_ROTA.id));
+  return ficha === null ? naoEncontrado(c) : renderizar(c, TEMPLATES.secretaria.aluno, ficha);
 });
 
 /**
@@ -297,8 +407,12 @@ const formDeVinculo = async (
   ]);
   const jaVinculados = new Set(vinculados.itens.map((vinculo) => vinculo.responsavelId));
 
-  return renderizar(c, '/secretaria/aluno_responsavel_novo', {
-    titulo: 'Vincular responsável',
+  return renderizar(c, TEMPLATES.secretaria.alunoResponsavelNovo, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.vincularResponsavel,
+    limiteDoParentesco: LIMITES_DO_ACADEMICO.parentesco.descricao,
+    // O que a caixa de responsável financeiro envia quando marcada; o dono do valor é `MARCADO`.
+    marcado: MARCADO,
     aluno,
     disponiveis: responsaveis.filter((pessoa) => !jaVinculados.has(pessoa.id)),
     temResponsaveis: responsaveis.length > 0,
@@ -307,27 +421,29 @@ const formDeVinculo = async (
   });
 };
 
-rotasSecretaria.get('/alunos/:id/responsaveis/novo', async (c) => {
-  const aluno = await alunoNoAlcance(c, c.req.param('id'));
+rotasSecretaria.get(ROTAS.secretaria.alunoResponsavelNovo.padrao, async (c) => {
+  const aluno = await alunoNoAlcance(c, c.req.param(PARAMETROS_DE_ROTA.id));
   return aluno === null ? naoEncontrado(c) : await formDeVinculo(c, aluno, {}, []);
 });
 
-rotasSecretaria.post('/alunos/:id/responsaveis', async (c) => {
-  const aluno = await alunoNoAlcance(c, c.req.param('id'));
+rotasSecretaria.post(ROTAS.secretaria.alunoResponsaveis.padrao, async (c) => {
+  const aluno = await alunoNoAlcance(c, c.req.param(PARAMETROS_DE_ROTA.id));
   if (aluno === null) return naoEncontrado(c);
 
-  const corpo = c.get('corpo');
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
   const valores = {
-    responsavelId: texto(corpo, 'responsavelId'),
-    parentesco: texto(corpo, 'parentesco'),
-    financeiro: marcado(corpo, 'financeiro'),
+    responsavelId: texto(corpo, CAMPOS.vinculo.responsavelId),
+    parentesco: texto(corpo, CAMPOS.vinculo.parentesco),
+    financeiro: marcado(corpo, CAMPOS.vinculo.financeiro),
   };
   const resultado = await academico.vincularResponsavel({
     redeId: redeAtual(c),
     alunoId: aluno.id,
     ...valores,
   });
-  if (resultado.ok) return concluir(c, `${BASE}/alunos/${aluno.id}`, 'Responsável vinculado.');
+  if (resultado.ok) {
+    return concluir(c, ROTAS.secretaria.aluno({ id: aluno.id }), AVISOS.responsavelVinculado);
+  }
   return await formDeVinculo(c, aluno, valores, resultado.erros);
 });
 
@@ -337,7 +453,9 @@ rotasSecretaria.post('/alunos/:id/responsaveis', async (c) => {
  * O que os dois seletores de turma precisam: as turmas do alcance, já com o ano e o nome da
  * unidade, e a lista de anos letivos — que sai da mesma consulta que nomeia o ano de cada turma.
  */
-const opcoesDeTurma = async (c: Contexto): Promise<{ turmas: Dados[]; anosLetivos: AnoLetivo[] }> => {
+const opcoesDeTurma = async (
+  c: Contexto,
+): Promise<{ turmas: TurmaEmLista[]; anosLetivos: AnoLetivo[] }> => {
   const redeId = redeAtual(c);
   const unidades = unidadesDaSecretaria(c);
   const [turmas, anosLetivos] = await Promise.all([
@@ -356,8 +474,9 @@ const formDeMatricula = async (
   erros: Erros,
 ): Promise<Response> => {
   const { turmas, anosLetivos } = await opcoesDeTurma(c);
-  return renderizar(c, '/secretaria/aluno_matricula_nova', {
-    titulo: 'Matricular em uma turma',
+  return renderizar(c, TEMPLATES.secretaria.alunoMatriculaNova, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.matricular,
     aluno,
     turmas,
     anosLetivos,
@@ -367,20 +486,20 @@ const formDeMatricula = async (
   });
 };
 
-rotasSecretaria.get('/alunos/:id/matricular', async (c) => {
-  const aluno = await alunoNoAlcance(c, c.req.param('id'));
+rotasSecretaria.get(ROTAS.secretaria.alunoMatricular.padrao, async (c) => {
+  const aluno = await alunoNoAlcance(c, c.req.param(PARAMETROS_DE_ROTA.id));
   return aluno === null ? naoEncontrado(c) : await formDeMatricula(c, aluno, {}, []);
 });
 
-rotasSecretaria.post('/matriculas', async (c) => {
-  const corpo = c.get('corpo');
-  const aluno = await alunoNoAlcance(c, texto(corpo, 'alunoId'));
+rotasSecretaria.post(ROTAS.secretaria.matriculas.padrao, async (c) => {
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const aluno = await alunoNoAlcance(c, texto(corpo, CAMPOS.matricula.alunoId));
   if (aluno === null) return naoEncontrado(c);
 
   const valores = {
-    turmaId: texto(corpo, 'turmaId'),
-    anoLetivoId: texto(corpo, 'anoLetivoId'),
-    dataMatricula: texto(corpo, 'dataMatricula'),
+    turmaId: texto(corpo, CAMPOS.matricula.turmaId),
+    anoLetivoId: texto(corpo, CAMPOS.matricula.anoLetivoId),
+    dataMatricula: texto(corpo, CAMPOS.matricula.dataMatricula),
   };
   // Turma de outra unidade responde 404 aqui, e não erro de campo: a tela não confirma que ela existe.
   if (valores.turmaId !== '' && (await turmaNoAlcance(c, valores.turmaId)) === null) {
@@ -392,7 +511,9 @@ rotasSecretaria.post('/matriculas', async (c) => {
     alunoId: aluno.id,
     ...valores,
   });
-  if (resultado.ok) return concluir(c, `${BASE}/alunos/${aluno.id}`, 'Matrícula registrada.');
+  if (resultado.ok) {
+    return concluir(c, ROTAS.secretaria.aluno({ id: aluno.id }), AVISOS.matriculaRegistrada);
+  }
   return await formDeMatricula(c, aluno, valores, resultado.erros);
 });
 
@@ -418,37 +539,45 @@ const formDeTransferencia = async (
   erros: Erros,
 ): Promise<Response> => {
   const { turmas } = await opcoesDeTurma(c);
-  return renderizar(c, '/secretaria/matricula_transferencia', {
-    titulo: 'Transferir de turma',
+  return renderizar(c, TEMPLATES.secretaria.matriculaTransferencia, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.transferir,
     aluno,
     ativa: matriculaEmLista(matricula),
-    turmas: turmas.filter((turma) => turma['id'] !== matricula.turmaId),
+    turmas: turmas.filter((turma) => turma.id !== matricula.turmaId),
     hoje: hoje(),
     valores,
     erros,
   });
 };
 
-rotasSecretaria.get('/matriculas/:id/transferir', async (c) => {
-  const alvo = await transferenciaNoAlcance(c, c.req.param('id'));
+rotasSecretaria.get(ROTAS.secretaria.matriculaTransferir.padrao, async (c) => {
+  const alvo = await transferenciaNoAlcance(c, c.req.param(PARAMETROS_DE_ROTA.id));
   if (alvo === null) return naoEncontrado(c);
   return await formDeTransferencia(c, alvo.matricula, alvo.aluno, {}, []);
 });
 
-rotasSecretaria.post('/matriculas/:id/transferir', async (c) => {
-  const matriculaId = c.req.param('id');
+rotasSecretaria.post(ROTAS.secretaria.matriculaTransferir.padrao, async (c) => {
+  const matriculaId = c.req.param(PARAMETROS_DE_ROTA.id);
   const alvo = await transferenciaNoAlcance(c, matriculaId);
   if (alvo === null) return naoEncontrado(c);
 
-  const corpo = c.get('corpo');
-  const valores = { turmaDestinoId: texto(corpo, 'turmaDestinoId'), data: texto(corpo, 'data') };
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const valores = {
+    turmaDestinoId: texto(corpo, CAMPOS.transferencia.turmaDestinoId),
+    data: texto(corpo, CAMPOS.transferencia.data),
+  };
   if (valores.turmaDestinoId !== '' && (await turmaNoAlcance(c, valores.turmaDestinoId)) === null) {
     return naoEncontrado(c);
   }
 
   const resultado = await academico.transferir({ redeId: redeAtual(c), matriculaId, ...valores });
   if (resultado.ok) {
-    return concluir(c, `${BASE}/alunos/${alvo.aluno.id}`, 'Transferência concluída.');
+    return concluir(
+      c,
+      ROTAS.secretaria.aluno({ id: alvo.aluno.id }),
+      AVISOS.transferenciaConcluida,
+    );
   }
   return await formDeTransferencia(c, alvo.matricula, alvo.aluno, valores, resultado.erros);
 });
@@ -457,35 +586,44 @@ rotasSecretaria.post('/matriculas/:id/transferir', async (c) => {
 
 const telaDeResponsaveis = async (c: Contexto): Promise<Response> => {
   const pagina = await academico.paginaDeResponsaveis(redeAtual(c), paginaDaQuery(c));
-  return renderizar(c, '/secretaria/responsaveis', {
-    titulo: 'Responsáveis',
+  return renderizar(c, TEMPLATES.secretaria.responsaveis, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.responsaveis,
     responsaveis: pagina.itens,
     navegacao: navegacao(c, pagina),
   });
 };
 
 const formDeResponsavel = (c: Contexto, valores: Valores, erros: Erros): Response =>
-  renderizar(c, '/secretaria/responsavel_novo', {
-    titulo: 'Cadastrar responsável',
+  renderizar(c, TEMPLATES.secretaria.responsavelNovo, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.responsavelNovo,
+    limiteDoNome: LIMITES_DO_ACADEMICO.responsavel.nome,
+    limiteDoEmail: LIMITES_DO_ACADEMICO.responsavel.email,
+    limiteDoTelefone: LIMITES_DO_ACADEMICO.responsavel.telefone,
+    // Só o que cabe na caixa: quem decide se o CPF vale é `shared/documento`, com ou sem pontuação.
+    limiteDoCpfComMascara: TAMANHO_DO_CPF_COM_MASCARA,
     valores,
     erros,
   });
 
-rotasSecretaria.get('/responsaveis', (c) => telaDeResponsaveis(c));
+rotasSecretaria.get(ROTAS.secretaria.responsaveis.padrao, (c) => telaDeResponsaveis(c));
 
-rotasSecretaria.get('/responsaveis/novo', (c) =>
-  formDeResponsavel(c, { nome: '', email: '', telefone: '', cpf: '' }, []));
+rotasSecretaria.get(ROTAS.secretaria.responsavelNovo.padrao, (c) =>
+  formDeResponsavel(c, VALORES_INICIAIS.responsavel, []));
 
-rotasSecretaria.post('/responsaveis', async (c) => {
-  const corpo = c.get('corpo');
+rotasSecretaria.post(ROTAS.secretaria.responsaveis.padrao, async (c) => {
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
   const valores = {
-    nome: texto(corpo, 'nome'),
-    email: texto(corpo, 'email'),
-    telefone: texto(corpo, 'telefone'),
-    cpf: texto(corpo, 'cpf'),
+    nome: texto(corpo, CAMPOS.responsavel.nome),
+    email: texto(corpo, CAMPOS.responsavel.email),
+    telefone: texto(corpo, CAMPOS.responsavel.telefone),
+    cpf: texto(corpo, CAMPOS.responsavel.cpf),
   };
   const resultado = await academico.cadastrarResponsavel({ redeId: redeAtual(c), ...valores });
-  if (resultado.ok) return concluir(c, `${BASE}/responsaveis`, 'Responsável cadastrado.');
+  if (resultado.ok) {
+    return concluir(c, ROTAS.secretaria.responsaveis(), AVISOS.responsavelCadastrado);
+  }
   return formDeResponsavel(c, valores, resultado.erros);
 });
 
@@ -497,8 +635,8 @@ const telaDeTurmas = async (c: Contexto): Promise<Response> => {
   const anosLetivos = await academico.listarAnosLetivos(redeId);
 
   // Filtro fora do alcance não filtra por ele: vale como "todas", e nunca vira consulta.
-  const unidadeId = escolhido(c.req.query('unidade'), idsDe(unidades));
-  const anoLetivoId = escolhido(c.req.query('ano'), anosLetivos.map(({ id }) => id));
+  const unidadeId = escolhido(c.req.query(PARAMETROS.unidade), idsDe(unidades));
+  const anoLetivoId = escolhido(c.req.query(PARAMETROS.ano), anosLetivos.map(({ id }) => id));
   const alvo = unidadeId === null ? unidades : unidades.filter(({ id }) => id === unidadeId);
 
   // A ordenação é a da consulta — série e nome. Reordenar por unidade em memória valeria só para
@@ -512,8 +650,12 @@ const telaDeTurmas = async (c: Contexto): Promise<Response> => {
   const anoPorId = new Map(anosLetivos.map((anoLetivo) => [anoLetivo.id, anoLetivo.ano]));
   const nomePorUnidade = new Map(unidades.map(({ id, nome }) => [id, nome]));
 
-  return renderizar(c, '/secretaria/turmas', {
-    titulo: 'Turmas',
+  return renderizar(c, TEMPLATES.secretaria.turmas, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.turmas,
+    // O `name` de cada seletor do filtro é o parâmetro que esta mesma rota lê de volta acima.
+    campoDaUnidade: PARAMETROS.unidade,
+    campoDoAno: PARAMETROS.ano,
     unidades,
     anosLetivos,
     filtro: { unidadeId: unidadeId ?? '', anoLetivoId: anoLetivoId ?? '' },
@@ -527,8 +669,11 @@ const telaDeTurmas = async (c: Contexto): Promise<Response> => {
  * recusar um nome repetido deixou de custar a consulta que monta a lista.
  */
 const formDeTurma = async (c: Contexto, valores: Valores, erros: Erros): Promise<Response> =>
-  renderizar(c, '/secretaria/turma_nova', {
-    titulo: 'Cadastrar turma',
+  renderizar(c, TEMPLATES.secretaria.turmaNova, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.turmaNova,
+    limiteDoNome: LIMITES_DO_ACADEMICO.turma.nome,
+    limiteDaSerie: LIMITES_DO_ACADEMICO.turma.serie,
     unidades: unidadesDaSecretaria(c),
     anosLetivos: await academico.listarAnosLetivos(redeAtual(c)),
     turnos: TURNOS,
@@ -536,19 +681,19 @@ const formDeTurma = async (c: Contexto, valores: Valores, erros: Erros): Promise
     erros,
   });
 
-rotasSecretaria.get('/turmas', (c) => telaDeTurmas(c));
+rotasSecretaria.get(ROTAS.secretaria.turmas.padrao, (c) => telaDeTurmas(c));
 
-rotasSecretaria.get('/turmas/nova', (c) =>
-  formDeTurma(c, { nome: '', serie: '', turno: '', unidadeId: '', anoLetivoId: '' }, []));
+rotasSecretaria.get(ROTAS.secretaria.turmaNova.padrao, (c) =>
+  formDeTurma(c, VALORES_INICIAIS.turma, []));
 
-rotasSecretaria.post('/turmas', async (c) => {
-  const corpo = c.get('corpo');
+rotasSecretaria.post(ROTAS.secretaria.turmas.padrao, async (c) => {
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
   const valores = {
-    nome: texto(corpo, 'nome'),
-    serie: texto(corpo, 'serie'),
-    turno: texto(corpo, 'turno'),
-    unidadeId: texto(corpo, 'unidadeId'),
-    anoLetivoId: texto(corpo, 'anoLetivoId'),
+    nome: texto(corpo, CAMPOS.turma.nome),
+    serie: texto(corpo, CAMPOS.turma.serie),
+    turno: texto(corpo, CAMPOS.turma.turno),
+    unidadeId: texto(corpo, CAMPOS.turma.unidadeId),
+    anoLetivoId: texto(corpo, CAMPOS.turma.anoLetivoId),
   };
   const unidades = unidadesDaSecretaria(c);
   if (valores.unidadeId !== '' && !unidades.some(({ id }) => id === valores.unidadeId)) {
@@ -556,12 +701,14 @@ rotasSecretaria.post('/turmas', async (c) => {
   }
 
   const resultado = await academico.cadastrarTurma({ redeId: redeAtual(c), ...valores });
-  if (resultado.ok) return concluir(c, `${BASE}/turmas/${resultado.valor.id}`, 'Turma cadastrada.');
+  if (resultado.ok) {
+    return concluir(c, ROTAS.secretaria.turma({ id: resultado.valor.id }), AVISOS.turmaCadastrada);
+  }
   return formDeTurma(c, valores, resultado.erros);
 });
 
 /** O cabeçalho da turma, do jeito que as duas telas dela mostram. */
-const turmaParaTela = async (c: Contexto, turma: Turma): Promise<Dados> => {
+const turmaParaTela = async (c: Contexto, turma: Turma): Promise<TurmaEmLista> => {
   const anosLetivos = await academico.listarAnosLetivos(redeAtual(c));
   const anoPorId = new Map(anosLetivos.map((anoLetivo) => [anoLetivo.id, anoLetivo.ano]));
   const nomePorUnidade = new Map(unidadesDaSecretaria(c).map(({ id, nome }) => [id, nome]));
@@ -572,8 +719,16 @@ const turmaParaTela = async (c: Contexto, turma: Turma): Promise<Dados> => {
 const telaDaTurma = async (c: Contexto, turma: Turma): Promise<Response> => {
   const redeId = redeAtual(c);
   const [alocacoes, matriculas] = await Promise.all([
-    academico.paginaDeTurmaDisciplinas(redeId, turma.id, paginaDaQuery(c, 'pDisciplinas')),
-    academico.paginaDeMatriculasAtivasDaTurma(redeId, turma.id, paginaDaQuery(c, 'pMatriculas')),
+    academico.paginaDeTurmaDisciplinas(
+      redeId,
+      turma.id,
+      paginaDaQuery(c, PARAMETROS.paginaDeDisciplinas),
+    ),
+    academico.paginaDeMatriculasAtivasDaTurma(
+      redeId,
+      turma.id,
+      paginaDaQuery(c, PARAMETROS.paginaDeMatriculas),
+    ),
   ]);
   // Uma consulta por tela, não uma por linha: o professor alocado pode já não estar na unidade.
   const nomes = await identidade.nomesDeUsuarios(
@@ -581,22 +736,23 @@ const telaDaTurma = async (c: Contexto, turma: Turma): Promise<Response> => {
     alocacoes.itens.map((a) => a.professorUsuarioId),
   );
 
-  return renderizar(c, '/secretaria/turma', {
-    titulo: `Turma ${turma.nome}`,
+  return renderizar(c, TEMPLATES.secretaria.turma, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.turma(turma.nome),
     turma: await turmaParaTela(c, turma),
     alocacoes: alocacoes.itens.map((alocacao) => ({
       id: alocacao.id,
       disciplinaNome: alocacao.disciplinaNome,
-      professorNome: nomes.get(alocacao.professorUsuarioId) ?? '—',
+      professorNome: nomes.get(alocacao.professorUsuarioId) ?? AUSENTE,
     })),
-    navegacaoAlocacoes: navegacao(c, alocacoes, 'pDisciplinas'),
+    navegacaoAlocacoes: navegacao(c, alocacoes, PARAMETROS.paginaDeDisciplinas),
     matriculas: matriculas.itens.map(matriculaEmLista),
-    navegacaoMatriculas: navegacao(c, matriculas, 'pMatriculas'),
+    navegacaoMatriculas: navegacao(c, matriculas, PARAMETROS.paginaDeMatriculas),
   });
 };
 
-rotasSecretaria.get('/turmas/:id', async (c) => {
-  const turma = await turmaNoAlcance(c, c.req.param('id'));
+rotasSecretaria.get(ROTAS.secretaria.turma.padrao, async (c) => {
+  const turma = await turmaNoAlcance(c, c.req.param(PARAMETROS_DE_ROTA.id));
   return turma === null ? naoEncontrado(c) : await telaDaTurma(c, turma);
 });
 
@@ -612,8 +768,9 @@ const formDeAlocacao = async (
     academico.listarDisciplinas(redeId),
     identidade.professoresDaUnidade(redeId, turma.unidadeId),
   ]);
-  return renderizar(c, '/secretaria/turma_disciplina_nova', {
-    titulo: 'Alocar disciplina e professor',
+  return renderizar(c, TEMPLATES.secretaria.turmaDisciplinaNova, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.alocar,
     turma: await turmaParaTela(c, turma),
     disciplinas,
     professores,
@@ -622,24 +779,26 @@ const formDeAlocacao = async (
   });
 };
 
-rotasSecretaria.get('/turmas/:id/disciplinas/nova', async (c) => {
-  const turma = await turmaNoAlcance(c, c.req.param('id'));
+rotasSecretaria.get(ROTAS.secretaria.turmaDisciplinaNova.padrao, async (c) => {
+  const turma = await turmaNoAlcance(c, c.req.param(PARAMETROS_DE_ROTA.id));
   if (turma === null) return naoEncontrado(c);
   return await formDeAlocacao(c, turma, { disciplinaId: '', professorUsuarioId: '' }, []);
 });
 
-rotasSecretaria.post('/turmas/:id/disciplinas', async (c) => {
-  const turmaId = c.req.param('id');
+rotasSecretaria.post(ROTAS.secretaria.turmaDisciplinas.padrao, async (c) => {
+  const turmaId = c.req.param(PARAMETROS_DE_ROTA.id);
   const turma = await turmaNoAlcance(c, turmaId);
   if (turma === null) return naoEncontrado(c);
 
-  const corpo = c.get('corpo');
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
   const valores = {
-    disciplinaId: texto(corpo, 'disciplinaId'),
-    professorUsuarioId: texto(corpo, 'professorUsuarioId'),
+    disciplinaId: texto(corpo, CAMPOS.alocacao.disciplinaId),
+    professorUsuarioId: texto(corpo, CAMPOS.alocacao.professorUsuarioId),
   };
   const resultado = await academico.alocarProfessor({ redeId: redeAtual(c), turmaId, ...valores });
-  if (resultado.ok) return concluir(c, `${BASE}/turmas/${turmaId}`, 'Disciplina alocada.');
+  if (resultado.ok) {
+    return concluir(c, ROTAS.secretaria.turma({ id: turmaId }), AVISOS.disciplinaAlocada);
+  }
   return await formDeAlocacao(c, turma, valores, resultado.erros);
 });
 
@@ -647,27 +806,33 @@ rotasSecretaria.post('/turmas/:id/disciplinas', async (c) => {
 
 const telaDeDisciplinas = async (c: Contexto): Promise<Response> => {
   const pagina = await academico.paginaDeDisciplinas(redeAtual(c), paginaDaQuery(c));
-  return renderizar(c, '/secretaria/disciplinas', {
-    titulo: 'Disciplinas',
+  return renderizar(c, TEMPLATES.secretaria.disciplinas, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.disciplinas,
     disciplinas: pagina.itens,
     navegacao: navegacao(c, pagina),
   });
 };
 
 const formDeDisciplina = (c: Contexto, valores: Valores, erros: Erros): Response =>
-  renderizar(c, '/secretaria/disciplina_nova', {
-    titulo: 'Cadastrar disciplina',
+  renderizar(c, TEMPLATES.secretaria.disciplinaNova, {
+    ...DA_CAMADA,
+    titulo: TITULOS.secretaria.disciplinaNova,
+    limiteDoNome: LIMITES_DO_ACADEMICO.disciplina.nome,
     valores,
     erros,
   });
 
-rotasSecretaria.get('/disciplinas', (c) => telaDeDisciplinas(c));
+rotasSecretaria.get(ROTAS.secretaria.disciplinas.padrao, (c) => telaDeDisciplinas(c));
 
-rotasSecretaria.get('/disciplinas/nova', (c) => formDeDisciplina(c, { nome: '' }, []));
+rotasSecretaria.get(ROTAS.secretaria.disciplinaNova.padrao, (c) =>
+  formDeDisciplina(c, VALORES_INICIAIS.disciplina, []));
 
-rotasSecretaria.post('/disciplinas', async (c) => {
-  const valores = { nome: texto(c.get('corpo'), 'nome') };
+rotasSecretaria.post(ROTAS.secretaria.disciplinas.padrao, async (c) => {
+  const valores = { nome: texto(c.get(VARIAVEIS_DE_CONTEXTO.corpo), CAMPOS.disciplina.nome) };
   const resultado = await academico.cadastrarDisciplina({ redeId: redeAtual(c), ...valores });
-  if (resultado.ok) return concluir(c, `${BASE}/disciplinas`, 'Disciplina cadastrada.');
+  if (resultado.ok) {
+    return concluir(c, ROTAS.secretaria.disciplinas(), AVISOS.disciplinaCadastrada);
+  }
   return formDeDisciplina(c, valores, resultado.erros);
 });

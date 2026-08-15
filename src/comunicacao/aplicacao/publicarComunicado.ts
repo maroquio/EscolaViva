@@ -11,6 +11,7 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import {
   CORPO_TAMANHO_MAXIMO,
   TITULO_TAMANHO_MAXIMO,
@@ -45,16 +46,16 @@ type DadosValidados = z.infer<typeof esquema>;
 function conferirTexto(dados: DadosValidados): Resultado<void> {
   if (!tituloValido(dados.titulo)) {
     return falhaDeCampo(
-      'titulo',
-      'titulo_invalido',
-      `Informe um título de 1 a ${TITULO_TAMANHO_MAXIMO} caracteres.`,
+      CAMPOS.titulo,
+      CODIGOS.tituloInvalido,
+      MENSAGENS.tituloInvalido(TITULO_TAMANHO_MAXIMO),
     );
   }
   if (!corpoValido(dados.corpo)) {
     return falhaDeCampo(
-      'corpo',
-      'corpo_invalido',
-      `Informe um corpo de 1 a ${CORPO_TAMANHO_MAXIMO} caracteres.`,
+      CAMPOS.corpo,
+      CODIGOS.corpoInvalido,
+      MENSAGENS.corpoInvalido(CORPO_TAMANHO_MAXIMO),
     );
   }
   return sucesso<void>(undefined);
@@ -109,19 +110,27 @@ export async function publicarComunicado(
     identidade.nomesDeUsuarios(dados.redeId, [dados.autorUsuarioId]),
   ]);
   if (unidade === null) {
-    return falhaDeCampo('unidadeId', 'unidade_desconhecida', 'Unidade não encontrada nesta rede.');
+    return falhaDeCampo(
+      CAMPOS.unidadeId,
+      CODIGOS.unidadeDesconhecida,
+      MENSAGENS.unidadeDesconhecida,
+    );
   }
   const autorNome = nomes.get(dados.autorUsuarioId);
   if (autorNome === undefined) {
-    return falhaDeCampo('autorUsuarioId', 'autor_desconhecido', 'Autor não encontrado nesta rede.');
+    return falhaDeCampo(
+      CAMPOS.autorUsuarioId,
+      CODIGOS.autorDesconhecido,
+      MENSAGENS.autorDesconhecido,
+    );
   }
 
   const responsaveisIds = await responsaveisAlvo(dados);
   if (responsaveisIds.length === 0) {
     return falhaDeCampo(
-      'destinatarios',
-      'sem_destinatarios',
-      'Não há responsável para receber este comunicado.',
+      CAMPOS.destinatarios,
+      CODIGOS.semDestinatarios,
+      MENSAGENS.semDestinatarios,
     );
   }
 

@@ -8,6 +8,7 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import { dataDeChamadaValida, dataDentroDoAnoLetivo } from '../dominio/frequencia';
 import * as frequenciaRepositorio from '../infra/frequenciaRepositorio';
 
@@ -18,12 +19,10 @@ export type RegistroDeChamada = {
   linhas: { matriculaId: string; presente: boolean; justificativa?: string | null }[];
 };
 
-const JUSTIFICATIVA_MAXIMA = 500;
-
 const esquema = z.object({
   redeId: z.string().uuid(),
   turmaId: z.string().uuid(),
-  data: z.string().refine(dataDeChamadaValida, 'Informe uma data válida no formato AAAA-MM-DD.'),
+  data: z.string().refine(dataDeChamadaValida, MENSAGENS.chamada.dataInvalida),
   linhas: z
     .array(
       z.object({
@@ -31,12 +30,12 @@ const esquema = z.object({
         presente: z.boolean(),
         justificativa: z
           .string()
-          .max(JUSTIFICATIVA_MAXIMA, 'A justificativa é longa demais.')
+          .max(LIMITES.justificativa, MENSAGENS.chamada.justificativaLonga)
           .nullable()
           .optional(),
       }),
     )
-    .min(1, 'Nenhuma linha de chamada foi enviada.'),
+    .min(1, MENSAGENS.chamada.loteVazio),
 });
 
 /**
@@ -50,20 +49,24 @@ export async function registrarChamada(entrada: RegistroDeChamada): Promise<Resu
 
   const turma = await academico.turmaPorId(redeId, turmaId);
   if (turma === null) {
-    return falhaDeCampo('turmaId', 'nao_encontrada', 'Turma não encontrada nesta rede.');
+    return falhaDeCampo(CAMPOS.turmaId, CODIGOS.naoEncontrada, MENSAGENS.turmaNaoEncontrada);
   }
 
   const anoLetivo = (await academico.listarAnosLetivos(redeId)).find(
     (ano) => ano.id === turma.anoLetivoId,
   );
   if (anoLetivo === undefined) {
-    return falhaDeCampo('turmaId', 'ano_letivo_ausente', 'A turma não tem ano letivo definido.');
+    return falhaDeCampo(
+      CAMPOS.turmaId,
+      CODIGOS.anoLetivoAusente,
+      MENSAGENS.chamada.anoLetivoAusente,
+    );
   }
   if (!dataDentroDoAnoLetivo(data, anoLetivo.dataInicio, anoLetivo.dataFim)) {
     return falhaDeCampo(
-      'data',
-      'data_fora_do_ano_letivo',
-      `A chamada precisa cair entre ${anoLetivo.dataInicio} e ${anoLetivo.dataFim}.`,
+      CAMPOS.data,
+      CODIGOS.dataForaDoAnoLetivo,
+      MENSAGENS.chamada.dataForaDoAnoLetivo(anoLetivo.dataInicio, anoLetivo.dataFim),
     );
   }
 
@@ -95,13 +98,17 @@ async function conferirMatriculas(
   const enviadas = linhas.map((linha) => linha.matriculaId);
   if (enviadas.some((matriculaId) => !daTurma.has(matriculaId))) {
     return falhaDeCampo(
-      'linhas',
-      'matricula_fora_da_turma',
-      'Há aluno sem matrícula ativa nesta turma na chamada.',
+      CAMPOS.linhas,
+      CODIGOS.matriculaForaDaTurma,
+      MENSAGENS.chamada.matriculaForaDaTurma,
     );
   }
   if (new Set(enviadas).size !== enviadas.length) {
-    return falhaDeCampo('linhas', 'matricula_repetida', 'O mesmo aluno aparece duas vezes.');
+    return falhaDeCampo(
+      CAMPOS.linhas,
+      CODIGOS.matriculaRepetida,
+      MENSAGENS.chamada.matriculaRepetida,
+    );
   }
   return null;
 }

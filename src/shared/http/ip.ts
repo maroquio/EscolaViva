@@ -1,8 +1,8 @@
-const CABECALHO_ENCAMINHADO = 'X-Forwarded-For';
+import { CABECALHOS, SEPARADOR_DE_ENCAMINHAMENTO } from '../constantes';
 
 const cadeiaEncaminhada = (req: Request): string[] =>
-  (req.headers.get(CABECALHO_ENCAMINHADO) ?? '')
-    .split(',')
+  (req.headers.get(CABECALHOS.encaminhado) ?? '')
+    .split(SEPARADOR_DE_ENCAMINHAMENTO)
     .map((endereco) => endereco.trim())
     .filter((endereco) => endereco.length > 0);
 

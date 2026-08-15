@@ -1,13 +1,9 @@
 import { SQL } from 'bun';
 import { config } from '../config';
+import { BANCO } from '../constantes';
 
 /** Conexão com o banco. Todo repositório a recebe como primeiro parâmetro — nunca a obtém sozinho. */
 export type Conexao = SQL;
-
-const MAX_CONEXOES = 10;
-// As opções de tempo do Bun.sql são em SEGUNDOS, não em milissegundos.
-const TEMPO_OCIOSO_SEGUNDOS = 30;
-const TEMPO_DE_CONEXAO_SEGUNDOS = 10;
 
 let pool: SQL | undefined;
 
@@ -15,9 +11,9 @@ let pool: SQL | undefined;
 function primario(): Conexao {
   pool ??= new SQL({
     url: config.databaseUrl,
-    max: MAX_CONEXOES,
-    idleTimeout: TEMPO_OCIOSO_SEGUNDOS,
-    connectionTimeout: TEMPO_DE_CONEXAO_SEGUNDOS,
+    max: BANCO.maxConexoes,
+    idleTimeout: BANCO.tempoOciosoSegundos,
+    connectionTimeout: BANCO.tempoDeConexaoSegundos,
   });
   return pool;
 }

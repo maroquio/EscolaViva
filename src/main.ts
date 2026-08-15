@@ -10,40 +10,50 @@
  * de fechar o pool (I13).
  */
 
-import { identidade } from './identidade';
+import { EVENTOS_DE_LOG_DE_IDENTIDADE, EXPURGO_DE_SESSOES, identidade } from './identidade';
 import { config } from './shared/config';
+import {
+  CHAVES_DE_LOCK,
+  MENSAGENS_DE_PROCESSO,
+  MINUTO_MS,
+  SERVIDOR,
+  TEMPO,
+} from './shared/constantes';
 import { encerrar } from './shared/db';
 import { iniciarAgendador, type Job } from './shared/jobs';
 import { logger } from './shared/log';
 import { app } from './web/app';
 
-const MILISSEGUNDOS_POR_SEGUNDO = 1000;
-const MINUTO_MS = 60 * MILISSEGUNDOS_POR_SEGUNDO;
-/** Teto do `idleTimeout` do Bun.serve, em segundos. */
-const OCIOSIDADE_MAXIMA_S = 255;
-/** Folga sobre o prazo da aplicação antes de cortar conexões que não terminaram. */
-const MARGEM_DE_DRENAGEM_MS = 5000;
-
-const INTERVALO_DO_EXPURGO_MS = 15 * MINUTO_MS;
-const CHAVE_DE_LOCK_DO_EXPURGO = 1001;
+/**
+ * Os dois desfechos possíveis da corrida da drenagem. Ficam locais de propósito: não são vocabulário
+ * do produto nem de infraestrutura compartilhada — nascem e morrem dentro de `aguardarDrenagem`, e
+ * só existem nomeados para que o `Promise.race` seja lido por palavra em vez de por posição.
+ */
+const DESFECHO_DA_DRENAGEM = { drenou: 'drenou', expirou: 'expirou' } as const;
 
 /**
  * O único job do Estágio 01. Com uma instância o lock é redundante; com seis (E08) é o que evita
  * seis expurgos simultâneos varrendo a mesma tabela.
  */
 const expurgoDeSessoes: Job = {
-  nome: 'expurgo-de-sessoes',
-  chaveDeLock: CHAVE_DE_LOCK_DO_EXPURGO,
-  intervaloMs: INTERVALO_DO_EXPURGO_MS,
+  nome: EXPURGO_DE_SESSOES.nome,
+  chaveDeLock: CHAVES_DE_LOCK.expurgoDeSessoes,
+  intervaloMs: EXPURGO_DE_SESSOES.intervaloEmMinutos * MINUTO_MS,
   async executar(): Promise<void> {
     const removidas = await identidade.expurgarSessoesExpiradas();
-    logger.info({ job: 'expurgo-de-sessoes', removidas }, 'sessões expiradas removidas');
+    logger.info(
+      { job: EXPURGO_DE_SESSOES.nome, removidas },
+      EVENTOS_DE_LOG_DE_IDENTIDADE.sessoesExpiradasRemovidas,
+    );
   },
 };
 
 /** I14: o prazo do Bun é em segundos e tem teto; o da aplicação vem em milissegundos do ambiente. */
 const ociosidadeEmSegundos = (timeoutMs: number): number =>
-  Math.min(Math.max(1, Math.ceil(timeoutMs / MILISSEGUNDOS_POR_SEGUNDO)), OCIOSIDADE_MAXIMA_S);
+  Math.min(
+    Math.max(1, Math.ceil(timeoutMs / TEMPO.msPorSegundo)),
+    SERVIDOR.ociosidadeMaximaSegundos,
+  );
 
 const servidor = Bun.serve({
   port: config.porta,
@@ -60,7 +70,7 @@ logger.info(
     ociosidade_s: ociosidadeEmSegundos(config.httpTimeoutMs),
     jobs: [expurgoDeSessoes.nome],
   },
-  'escolaviva no ar',
+  MENSAGENS_DE_PROCESSO.noAr,
 );
 
 /**
@@ -68,22 +78,25 @@ logger.info(
  * teria estourado o timeout do cliente de qualquer forma: aí a conexão é cortada, com registro.
  */
 async function aguardarDrenagem(drenagem: Promise<void>): Promise<void> {
-  const prazo = config.httpTimeoutMs + MARGEM_DE_DRENAGEM_MS;
+  const prazo = config.httpTimeoutMs + SERVIDOR.margemDeDrenagemMs;
   let temporizador: ReturnType<typeof setTimeout> | undefined;
-  const expirou = new Promise<'expirou'>((resolver) => {
-    temporizador = setTimeout(() => resolver('expirou'), prazo);
+  const expirou = new Promise<typeof DESFECHO_DA_DRENAGEM.expirou>((resolver) => {
+    temporizador = setTimeout(() => resolver(DESFECHO_DA_DRENAGEM.expirou), prazo);
   });
 
   try {
-    const desfecho = await Promise.race([drenagem.then(() => 'drenou' as const), expirou]);
-    if (desfecho === 'drenou') return;
+    const desfecho = await Promise.race([
+      drenagem.then(() => DESFECHO_DA_DRENAGEM.drenou),
+      expirou,
+    ]);
+    if (desfecho === DESFECHO_DA_DRENAGEM.drenou) return;
   } finally {
     clearTimeout(temporizador);
   }
 
   logger.warn(
     { pendentes: servidor.pendingRequests, prazo_ms: prazo },
-    'prazo de drenagem esgotado: encerrando conexões em curso',
+    MENSAGENS_DE_PROCESSO.drenagemEsgotada,
   );
   await servidor.stop(true);
 }
@@ -93,7 +106,10 @@ let desligando = false;
 async function desligar(sinal: string): Promise<void> {
   if (desligando) return;
   desligando = true;
-  logger.info({ sinal, pendentes: servidor.pendingRequests }, 'desligamento iniciado');
+  logger.info(
+    { sinal, pendentes: servidor.pendingRequests },
+    MENSAGENS_DE_PROCESSO.desligamentoIniciado,
+  );
 
   // A ordem importa: parar de aceitar vem antes de tudo, para que a fila não cresça enquanto drena.
   const drenagem = servidor.stop(false);
@@ -101,11 +117,11 @@ async function desligar(sinal: string): Promise<void> {
   await aguardarDrenagem(drenagem);
   await encerrar();
 
-  logger.info({ sinal }, 'desligamento concluído');
+  logger.info({ sinal }, MENSAGENS_DE_PROCESSO.desligamentoConcluido);
   process.exit(0);
 }
 
-for (const sinal of ['SIGTERM', 'SIGINT'] as const) {
+for (const sinal of SERVIDOR.sinaisDeDesligamento) {
   process.on(sinal, () => {
     void desligar(sinal);
   });

@@ -17,7 +17,14 @@
 
 import { Hono, type Context } from 'hono';
 import { academico } from '../../academico';
-import { avaliacao } from '../../avaliacao';
+import { BIMESTRES, LIMITES_DA_AVALIACAO, avaliacao } from '../../avaliacao';
+import { PAPEL } from '../../identidade';
+import {
+  FORMATOS,
+  TAMANHO_DA_DATA_ISO,
+  TEMPO,
+  VARIAVEIS_DE_CONTEXTO,
+} from '../../shared/constantes';
 import {
   NaoEncontrado,
   RegraDeNegocio,
@@ -29,7 +36,21 @@ import {
 } from '../../shared/http';
 import { clockDoSistema } from '../../shared/ports';
 import type { ErroDeAplicacao } from '../../shared/resultado';
+import {
+  APRESENTACAO,
+  AVISOS,
+  CAMPOS,
+  DIAGNOSTICOS,
+  ERROS_DE_FORMULARIO,
+  NOTA_FORA_DA_FAIXA,
+  PARAMETROS,
+  PREFIXOS_DE_ID,
+  ROTAS,
+  TEMPLATES,
+  TITULOS,
+} from '../constantes';
 import { formatarData, renderizar, type DadosDeTemplate } from '../render';
+import type { Params } from './mapa';
 
 type ContextoWeb = Context<{ Variables: Variaveis }>;
 
@@ -56,39 +77,62 @@ type ChamadaRecusada = {
   problemas: readonly ErroDeAplicacao[];
 };
 
-const RAIZ = '/professor';
-const TELA_DE_PAINEL = '/professor/painel';
-const TELA_DE_NOTAS = '/professor/notas';
-const TELA_DE_CHAMADA = '/professor/chamada';
-const TELA_DE_FECHAMENTO = '/professor/fechamento';
+/**
+ * Os nomes dos `:params` deste grupo, conferidos contra os próprios padrões de `ROTAS.professor`.
+ *
+ * A montagem do endereço já é checada pelo compilador — `ROTAS.professor.chamada({ turmaId })` não
+ * compila com a chave errada. A leitura, `c.req.param('turmaId')`, é a outra ponta do mesmo nome e
+ * é só uma string: o `satisfies` a amarra ao mapa, de modo que renomear o parâmetro na declaração
+ * da rota quebre a compilação aqui em vez de devolver 404 em produção.
+ */
+const PARAMETROS_DE_ROTA = {
+  turmaDisciplinaId: 'turmaDisciplinaId',
+  turmaId: 'turmaId',
+} as const satisfies Params<
+  typeof ROTAS.professor.notas.padrao | typeof ROTAS.professor.chamada.padrao
+>;
 
-// Os nomes de campo são compartilhados com o template para que rota e tela não possam divergir.
-const PREFIXO_NOTA = 'nota_';
-const PREFIXO_PRESENCA = 'presenca_';
-const PREFIXO_JUSTIFICATIVA = 'justificativa_';
-const CAMPO_BIMESTRE = 'bimestre';
-const CAMPO_DATA = 'data';
-
-const BIMESTRES: readonly number[] = [1, 2, 3, 4];
+/** O bimestre que a tela de notas abre quando a URL não pede outro. */
 const BIMESTRE_PADRAO = 1;
-const NOTA_MINIMA = 0;
-const NOTA_MAXIMA = 10;
-/** Espelha o limite que `avaliacao` valida: o navegador avisa antes, o domínio decide depois. */
-const LIMITE_DA_JUSTIFICATIVA = 500;
+
+/**
+ * O que o `.eta` não tem como importar chega por `it`, e é este o único caminho: o Eta não lê
+ * TypeScript, então redigitar `/parciais/_vazio`, `erro-` ou `· turno` dentro do template abriria
+ * a segunda fonte de verdade que a constante existe para fechar. Quem sabe ler `constantes.ts` é
+ * o handler, e é ele que carrega o valor até a tela.
+ *
+ * `PARCIAIS` vai para as três telas que incluem `_vazio` — painel, notas e chamada; o fechamento
+ * não tem estado vazio a mostrar. `SEPARADORES` vai para as quatro, cujo sobretítulo emenda turma,
+ * série e turno numa linha só. `PREFIXOS` vai para as duas que dão `id=` a um recado de erro: a
+ * célula recusada do diário (`erro-<matriculaId>`) e o bimestre que não fechou
+ * (`pendencia-<bimestre>`), cada um apontado por um `aria-describedby` que precisa casar byte a
+ * byte com ele.
+ */
+const PARCIAIS = { parciais: TEMPLATES.parciais };
+const SEPARADORES = {
+  separador: APRESENTACAO.separador,
+  separadorDeTurno: APRESENTACAO.separadorDeTurno,
+};
+const PREFIXOS = { prefixos: PREFIXOS_DE_ID };
 
 /** Curto: mora dentro da célula. A explicação inteira está no resumo do topo e no rodapé. */
-const NOTA_INVALIDA = `Use um número de ${NOTA_MINIMA} a ${NOTA_MAXIMA}.`;
+const NOTA_INVALIDA = NOTA_FORA_DA_FAIXA(
+  LIMITES_DA_AVALIACAO.nota.minimo,
+  LIMITES_DA_AVALIACAO.nota.maximo,
+);
 
+/**
+ * O resumo no topo do formulário, distinto do erro que aparece em cada célula.
+ *
+ * O campo e o código vêm de `ERROS_DE_FORMULARIO.notaInvalida`; a frase não. A constante da camada
+ * web redigiu o texto de outro jeito ("a nota precisa ser um número de 0 a 10") e este refactor não
+ * muda um byte do que a tela diz. Reconciliar as duas redações é decisão de produto: no dia em que
+ * ela for tomada, esta `const` some e o objeto de `ERROS_DE_FORMULARIO` é usado inteiro.
+ */
 const RESUMO_DE_NOTAS_INVALIDAS: ErroDeAplicacao = {
-  campo: 'notas',
-  codigo: 'nota_invalida',
-  mensagem: `Confira os campos destacados: há nota fora do intervalo de ${NOTA_MINIMA} a ${NOTA_MAXIMA}.`,
+  ...ERROS_DE_FORMULARIO.notaInvalida,
+  mensagem: `Confira os campos destacados: há nota fora do intervalo de ${LIMITES_DA_AVALIACAO.nota.minimo} a ${LIMITES_DA_AVALIACAO.nota.maximo}.`,
 };
-
-const caminhoDeNotas = (turmaDisciplinaId: string): string =>
-  `${RAIZ}/disciplinas/${turmaDisciplinaId}/notas`;
-const caminhoDeChamada = (turmaId: string): string => `${RAIZ}/turmas/${turmaId}/chamada`;
-const caminhoDeFechamento = (turmaId: string): string => `${RAIZ}/turmas/${turmaId}/fechamento`;
 
 const comParametros = (caminho: string, parametros: Record<string, string>): string =>
   `${caminho}?${new URLSearchParams(parametros).toString()}`;
@@ -111,31 +155,45 @@ const bimestreOuNulo = (bruto: string | undefined): number | null => {
   return BIMESTRES.includes(numero) ? numero : null;
 };
 
-const FORMATO_DATA = /^\d{4}-\d{2}-\d{2}$/;
-const TAMANHO_DA_DATA = 10;
-const MS_POR_DIA = 86_400_000;
-/** Longe da meia-noite: somar um dia nunca tropeça em fuso nem em horário de verão. */
+/**
+ * Longe da meia-noite: somar um dia nunca tropeça em fuso nem em horário de verão.
+ *
+ * NÃO é o `MEIA_NOITE_UTC` de `avaliacao`, que anexa `T00:00:00Z` só para provar que o dia existe.
+ * Aqui o meio-dia é deliberado, porque esta camada NAVEGA entre datas; lá não se soma nada. Mesma
+ * forma, decisões independentes — por isso a constante mora neste arquivo, com o motivo junto.
+ */
 const MEIO_DIA_UTC = 'T12:00:00Z';
 
-const doisDigitos = (valor: number): string => String(valor).padStart(2, '0');
+/** `Number` só entende ponto; quem digita usa a vírgula do teclado. */
+const SEPARADOR_DECIMAL_DO_NUMBER = '.';
 
-/** "Hoje" é o dia do relógio local da escola, não o dia UTC. */
+const doisDigitos = (valor: number): string =>
+  String(valor).padStart(APRESENTACAO.colunaDeDoisDigitos, APRESENTACAO.preenchimentoDeDigito);
+
+/**
+ * "Hoje" é o dia do relógio local da escola, não o dia UTC.
+ *
+ * Homônima da `hoje()` de `academico/aplicacao/cadastrarAluno.ts` e deliberadamente não fundida com
+ * ela: aquela é UTC, porque compara com uma data de nascimento gravada; esta abre a chamada do dia
+ * de quem está na sala. Às 21h de Brasília as duas devolvem datas diferentes, e é a diferença que
+ * está certa.
+ */
 const hoje = (): string => {
   const d = clockDoSistema.agora();
   return `${d.getFullYear()}-${doisDigitos(d.getMonth() + 1)}-${doisDigitos(d.getDate())}`;
 };
 
 const dataOuNula = (bruto: string | undefined): string | null => {
-  if (bruto === undefined || !FORMATO_DATA.test(bruto)) return null;
+  if (bruto === undefined || !FORMATOS.dataIso.test(bruto)) return null;
   // O formato sozinho aceita 2026-02-30: converter e comparar a volta separa data de sequência.
   const convertida = new Date(`${bruto}${MEIO_DIA_UTC}`);
   if (Number.isNaN(convertida.getTime())) return null;
-  return convertida.toISOString().slice(0, TAMANHO_DA_DATA) === bruto ? bruto : null;
+  return convertida.toISOString().slice(0, TAMANHO_DA_DATA_ISO) === bruto ? bruto : null;
 };
 
 const deslocarDia = (data: string, dias: number): string => {
   const base = new Date(`${data}${MEIO_DIA_UTC}`).getTime();
-  return new Date(base + dias * MS_POR_DIA).toISOString().slice(0, TAMANHO_DA_DATA);
+  return new Date(base + dias * TEMPO.msPorDia).toISOString().slice(0, TAMANHO_DA_DATA_ISO);
 };
 
 /* --- Autorização: o professor só enxerga o que leciona ---------------------- */
@@ -160,20 +218,23 @@ function agruparPorTurma(alocacoes: readonly Alocacao[]): TurmaDoProfessor[] {
 /** Todo endereço da área do professor nasce aqui: nenhum template monta caminho por conta. */
 const comLinks = (turma: TurmaDoProfessor) => ({
   ...turma,
-  hrefChamada: caminhoDeChamada(turma.turmaId),
-  hrefFechamento: caminhoDeFechamento(turma.turmaId),
-  disciplinas: turma.disciplinas.map((d) => ({ ...d, hrefNotas: caminhoDeNotas(d.id) })),
+  hrefChamada: ROTAS.professor.chamada({ turmaId: turma.turmaId }),
+  hrefFechamento: ROTAS.professor.fechamento({ turmaId: turma.turmaId }),
+  disciplinas: turma.disciplinas.map((d) => ({
+    ...d,
+    hrefNotas: ROTAS.professor.notas({ turmaDisciplinaId: d.id }),
+  })),
 });
 
 function alocacaoOu404(alocacoes: readonly Alocacao[], turmaDisciplinaId: string): Alocacao {
   const alocacao = alocacoes.find((candidata) => candidata.id === turmaDisciplinaId);
-  if (alocacao === undefined) throw new NaoEncontrado('disciplina fora do quadro do professor');
+  if (alocacao === undefined) throw new NaoEncontrado(DIAGNOSTICOS.disciplinaForaDoQuadro);
   return alocacao;
 }
 
 function turmaOu404(alocacoes: readonly Alocacao[], turmaId: string): TurmaDoProfessor {
   const turma = agruparPorTurma(alocacoes).find((candidata) => candidata.turmaId === turmaId);
-  if (turma === undefined) throw new NaoEncontrado('turma fora do quadro do professor');
+  if (turma === undefined) throw new NaoEncontrado(DIAGNOSTICOS.turmaForaDoQuadro);
   return turma;
 }
 
@@ -182,8 +243,16 @@ function turmaOu404(alocacoes: readonly Alocacao[], turmaId: string): TurmaDoPro
 /** Campo em branco apaga a nota; vírgula e ponto são o mesmo separador para quem digita. */
 const comoNota = (digitado: string): number | null | undefined => {
   if (digitado === '') return null;
-  const numero = Number(digitado.replace(',', '.'));
-  if (!Number.isFinite(numero) || numero < NOTA_MINIMA || numero > NOTA_MAXIMA) return undefined;
+  const numero = Number(
+    digitado.replace(APRESENTACAO.separadorDecimal, SEPARADOR_DECIMAL_DO_NUMBER),
+  );
+  if (
+    !Number.isFinite(numero) ||
+    numero < LIMITES_DA_AVALIACAO.nota.minimo ||
+    numero > LIMITES_DA_AVALIACAO.nota.maximo
+  ) {
+    return undefined;
+  }
   return numero;
 };
 
@@ -191,7 +260,7 @@ function lerNotas(corpo: CorpoDeFormulario, matriculas: readonly { id: string }[
   const valores = new Map<string, string>();
   const porMatricula = new Map<string, string>();
   const notas = matriculas.map((matricula) => {
-    const digitado = campo(corpo, `${PREFIXO_NOTA}${matricula.id}`);
+    const digitado = campo(corpo, `${CAMPOS.diario.nota}${matricula.id}`);
     valores.set(matricula.id, digitado);
     const valor = comoNota(digitado);
     if (valor === undefined) porMatricula.set(matricula.id, NOTA_INVALIDA);
@@ -215,18 +284,21 @@ async function telaDeNotas(
   ]);
 
   return {
-    titulo: `${alocacao.disciplinaNome} · ${alocacao.turmaNome}`,
+    ...PARCIAIS,
+    ...SEPARADORES,
+    ...PREFIXOS,
+    titulo: TITULOS.professor.notas(alocacao.disciplinaNome, alocacao.turmaNome),
     alocacao,
     bimestre,
     bimestres: BIMESTRES,
     fechado: estados.some((estado) => estado.bimestre === bimestre && estado.fechado),
-    acaoDoFormulario: caminhoDeNotas(alocacao.id),
-    hrefChamada: caminhoDeChamada(alocacao.turmaId),
-    hrefFechamento: caminhoDeFechamento(alocacao.turmaId),
-    campoBimestre: CAMPO_BIMESTRE,
-    prefixoNota: PREFIXO_NOTA,
-    notaMinima: NOTA_MINIMA,
-    notaMaxima: NOTA_MAXIMA,
+    acaoDoFormulario: ROTAS.professor.notas({ turmaDisciplinaId: alocacao.id }),
+    hrefChamada: ROTAS.professor.chamada({ turmaId: alocacao.turmaId }),
+    hrefFechamento: ROTAS.professor.fechamento({ turmaId: alocacao.turmaId }),
+    campoBimestre: CAMPOS.bimestre,
+    prefixoNota: CAMPOS.diario.nota,
+    notaMinima: LIMITES_DA_AVALIACAO.nota.minimo,
+    notaMaxima: LIMITES_DA_AVALIACAO.nota.maximo,
     // O digitado tem precedência sobre o gravado: a tela recusada volta como o professor a deixou.
     linhas: matriculas.map((matricula) => ({
       matriculaId: matricula.id,
@@ -239,8 +311,8 @@ async function telaDeNotas(
 }
 
 const mensagemDeNotas = (gravadas: number): string => {
-  if (gravadas === 0) return 'Lançamento salvo: nenhuma nota preenchida.';
-  return gravadas === 1 ? '1 nota gravada.' : `${gravadas} notas gravadas.`;
+  if (gravadas === 0) return AVISOS.notasNenhuma;
+  return gravadas === 1 ? AVISOS.notaUma : AVISOS.notasVarias(gravadas);
 };
 
 async function telaDeChamada(
@@ -256,16 +328,18 @@ async function telaDeChamada(
   ]);
 
   return {
-    titulo: `Chamada · ${turma.turmaNome}`,
+    ...PARCIAIS,
+    ...SEPARADORES,
+    titulo: TITULOS.professor.chamada(turma.turmaNome),
     turma: comLinks(turma),
     data,
     diaAnterior: deslocarDia(data, -1),
     diaSeguinte: deslocarDia(data, 1),
-    acaoDoFormulario: caminhoDeChamada(turma.turmaId),
-    campoData: CAMPO_DATA,
-    prefixoPresenca: PREFIXO_PRESENCA,
-    prefixoJustificativa: PREFIXO_JUSTIFICATIVA,
-    limiteDaJustificativa: LIMITE_DA_JUSTIFICATIVA,
+    acaoDoFormulario: ROTAS.professor.chamada({ turmaId: turma.turmaId }),
+    campoData: CAMPOS.data,
+    prefixoPresenca: CAMPOS.diario.presenca,
+    prefixoJustificativa: CAMPOS.diario.justificativa,
+    limiteDaJustificativa: LIMITES_DA_AVALIACAO.justificativa,
     // Sem registro no dia, a tela abre com todo mundo presente: a falta é que é a exceção.
     linhas: matriculas.map(({ id, alunoNome }) => {
       const informada = recusada?.informadas.get(id);
@@ -287,11 +361,13 @@ const telaDeFechamento = (
   problemas: readonly ErroDeAplicacao[],
   bimestreRecusado: number | null,
 ): DadosDeTemplate => ({
-  titulo: `Fechamento · ${turma.turmaNome}`,
+  ...SEPARADORES,
+  ...PREFIXOS,
+  titulo: TITULOS.professor.fechamento(turma.turmaNome),
   turma: comLinks(turma),
   estados,
-  acaoDoFormulario: caminhoDeFechamento(turma.turmaId),
-  campoBimestre: CAMPO_BIMESTRE,
+  acaoDoFormulario: ROTAS.professor.fechamento({ turmaId: turma.turmaId }),
+  campoBimestre: CAMPOS.bimestre,
   bimestreRecusado,
   erros: problemas,
 });
@@ -300,33 +376,48 @@ const telaDeFechamento = (
 
 export const rotasProfessor = new Hono<{ Variables: Variaveis }>();
 
-rotasProfessor.use('*', exigirPapel('professor'));
+rotasProfessor.use(exigirPapel(PAPEL.professor));
 
-rotasProfessor.get('/', async (c) => {
+rotasProfessor.get(ROTAS.professor.painel.padrao, async (c) => {
   const turmas = agruparPorTurma(await alocacoesDoProfessor(c)).map(comLinks);
-  return renderizar(c, TELA_DE_PAINEL, { titulo: 'Minhas turmas', turmas });
+  return renderizar(c, TEMPLATES.professor.painel, {
+    ...PARCIAIS,
+    ...SEPARADORES,
+    titulo: TITULOS.professor.painel,
+    turmas,
+  });
 });
 
-rotasProfessor.get('/disciplinas/:turmaDisciplinaId/notas', async (c) => {
-  const alocacao = alocacaoOu404(await alocacoesDoProfessor(c), c.req.param('turmaDisciplinaId'));
+rotasProfessor.get(ROTAS.professor.notas.padrao, async (c) => {
+  const alocacao = alocacaoOu404(
+    await alocacoesDoProfessor(c),
+    c.req.param(PARAMETROS_DE_ROTA.turmaDisciplinaId),
+  );
   // Bimestre digitado à mão na URL cai no primeiro em vez de virar erro: é navegação, não escrita.
-  const bimestre = bimestreOuNulo(c.req.query(CAMPO_BIMESTRE)) ?? BIMESTRE_PADRAO;
-  return renderizar(c, TELA_DE_NOTAS, await telaDeNotas(c, alocacao, bimestre, null));
+  const bimestre = bimestreOuNulo(c.req.query(PARAMETROS.bimestre)) ?? BIMESTRE_PADRAO;
+  return renderizar(c, TEMPLATES.professor.notas, await telaDeNotas(c, alocacao, bimestre, null));
 });
 
-rotasProfessor.post('/disciplinas/:turmaDisciplinaId/notas', async (c) => {
-  const alocacao = alocacaoOu404(await alocacoesDoProfessor(c), c.req.param('turmaDisciplinaId'));
-  const corpo = c.get('corpo');
-  const bimestre = bimestreOuNulo(campo(corpo, CAMPO_BIMESTRE));
+rotasProfessor.post(ROTAS.professor.notas.padrao, async (c) => {
+  const alocacao = alocacaoOu404(
+    await alocacoesDoProfessor(c),
+    c.req.param(PARAMETROS_DE_ROTA.turmaDisciplinaId),
+  );
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const bimestre = bimestreOuNulo(campo(corpo, CAMPOS.bimestre));
   // No POST o bimestre veio de um campo oculto que esta aplicação escreveu: valor fora do conjunto
   // não é engano de quem digita, e não vira tela de formulário.
-  if (bimestre === null) throw new RegraDeNegocio('bimestre fora do conjunto no lançamento');
+  if (bimestre === null) throw new RegraDeNegocio(DIAGNOSTICOS.bimestreNoLancamento);
 
   const redeId = redeAtual(c);
   const matriculas = await academico.matriculasAtivasDaTurma(redeId, alocacao.turmaId);
   const { valores, porMatricula, notas } = lerNotas(corpo, matriculas);
   const recusar = async (problemas: readonly ErroDeAplicacao[]): Promise<Response> =>
-    renderizar(c, TELA_DE_NOTAS, await telaDeNotas(c, alocacao, bimestre, { valores, porMatricula, problemas }));
+    renderizar(
+      c,
+      TEMPLATES.professor.notas,
+      await telaDeNotas(c, alocacao, bimestre, { valores, porMatricula, problemas }),
+    );
 
   if (porMatricula.size > 0) return await recusar([RESUMO_DE_NOTAS_INVALIDAS]);
 
@@ -335,28 +426,34 @@ rotasProfessor.post('/disciplinas/:turmaDisciplinaId/notas', async (c) => {
   });
   if (!resultado.ok) return await recusar(resultado.erros);
 
-  const parametros = { bimestre: String(bimestre), ok: mensagemDeNotas(resultado.valor) };
-  return c.redirect(comParametros(caminhoDeNotas(alocacao.id), parametros), 303);
+  const parametros = {
+    [PARAMETROS.bimestre]: String(bimestre),
+    [PARAMETROS.ok]: mensagemDeNotas(resultado.valor),
+  };
+  return c.redirect(
+    comParametros(ROTAS.professor.notas({ turmaDisciplinaId: alocacao.id }), parametros),
+    303,
+  );
 });
 
-rotasProfessor.get('/turmas/:turmaId/chamada', async (c) => {
-  const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param('turmaId'));
-  const data = dataOuNula(c.req.query(CAMPO_DATA)) ?? hoje();
-  return renderizar(c, TELA_DE_CHAMADA, await telaDeChamada(c, turma, data, null));
+rotasProfessor.get(ROTAS.professor.chamada.padrao, async (c) => {
+  const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param(PARAMETROS_DE_ROTA.turmaId));
+  const data = dataOuNula(c.req.query(PARAMETROS.data)) ?? hoje();
+  return renderizar(c, TEMPLATES.professor.chamada, await telaDeChamada(c, turma, data, null));
 });
 
-rotasProfessor.post('/turmas/:turmaId/chamada', async (c) => {
-  const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param('turmaId'));
-  const corpo = c.get('corpo');
-  const data = dataOuNula(campo(corpo, CAMPO_DATA));
-  if (data === null) throw new RegraDeNegocio('data de chamada malformada');
+rotasProfessor.post(ROTAS.professor.chamada.padrao, async (c) => {
+  const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param(PARAMETROS_DE_ROTA.turmaId));
+  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const data = dataOuNula(campo(corpo, CAMPOS.data));
+  if (data === null) throw new RegraDeNegocio(DIAGNOSTICOS.dataDeChamadaMalformada);
 
   const redeId = redeAtual(c);
   const matriculas = await academico.matriculasAtivasDaTurma(redeId, turma.turmaId);
   const informadas = new Map<string, { presente: boolean; justificativa: string }>();
   const linhas = matriculas.map((matricula) => {
-    const presente = marcado(corpo, `${PREFIXO_PRESENCA}${matricula.id}`);
-    const justificativa = campo(corpo, `${PREFIXO_JUSTIFICATIVA}${matricula.id}`);
+    const presente = marcado(corpo, `${CAMPOS.diario.presenca}${matricula.id}`);
+    const justificativa = campo(corpo, `${CAMPOS.diario.justificativa}${matricula.id}`);
     informadas.set(matricula.id, { presente, justificativa });
     return { matriculaId: matricula.id, presente, justificativa: ouNulo(justificativa) };
   });
@@ -366,23 +463,33 @@ rotasProfessor.post('/turmas/:turmaId/chamada', async (c) => {
   });
   if (!resultado.ok) {
     const tela = await telaDeChamada(c, turma, data, { informadas, problemas: resultado.erros });
-    return renderizar(c, TELA_DE_CHAMADA, tela);
+    return renderizar(c, TEMPLATES.professor.chamada, tela);
   }
 
-  const parametros = { data, ok: `Chamada de ${formatarData(data)} registrada.` };
-  return c.redirect(comParametros(caminhoDeChamada(turma.turmaId), parametros), 303);
+  const parametros = {
+    [PARAMETROS.data]: data,
+    [PARAMETROS.ok]: AVISOS.chamadaRegistrada(formatarData(data)),
+  };
+  return c.redirect(
+    comParametros(ROTAS.professor.chamada({ turmaId: turma.turmaId }), parametros),
+    303,
+  );
 });
 
-rotasProfessor.get('/turmas/:turmaId/fechamento', async (c) => {
-  const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param('turmaId'));
+rotasProfessor.get(ROTAS.professor.fechamento.padrao, async (c) => {
+  const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param(PARAMETROS_DE_ROTA.turmaId));
   const estados = await avaliacao.estadoDeFechamento(redeAtual(c), turma.turmaId);
-  return renderizar(c, TELA_DE_FECHAMENTO, telaDeFechamento(turma, estados, [], null));
+  return renderizar(
+    c,
+    TEMPLATES.professor.fechamento,
+    telaDeFechamento(turma, estados, [], null),
+  );
 });
 
-rotasProfessor.post('/turmas/:turmaId/fechamento', async (c) => {
-  const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param('turmaId'));
-  const bimestre = bimestreOuNulo(campo(c.get('corpo'), CAMPO_BIMESTRE));
-  if (bimestre === null) throw new RegraDeNegocio('bimestre fora do conjunto no fechamento');
+rotasProfessor.post(ROTAS.professor.fechamento.padrao, async (c) => {
+  const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param(PARAMETROS_DE_ROTA.turmaId));
+  const bimestre = bimestreOuNulo(campo(c.get(VARIAVEIS_DE_CONTEXTO.corpo), CAMPOS.bimestre));
+  if (bimestre === null) throw new RegraDeNegocio(DIAGNOSTICOS.bimestreNoFechamento);
 
   const redeId = redeAtual(c);
   // Síncrono de propósito: a conferência de todas as notas da turma acontece com o navegador
@@ -392,9 +499,16 @@ rotasProfessor.post('/turmas/:turmaId/fechamento', async (c) => {
   });
   if (!resultado.ok) {
     const estados = await avaliacao.estadoDeFechamento(redeId, turma.turmaId);
-    return renderizar(c, TELA_DE_FECHAMENTO, telaDeFechamento(turma, estados, resultado.erros, bimestre));
+    return renderizar(
+      c,
+      TEMPLATES.professor.fechamento,
+      telaDeFechamento(turma, estados, resultado.erros, bimestre),
+    );
   }
 
-  const ok = `${bimestre}º bimestre fechado para a turma ${turma.turmaNome}.`;
-  return c.redirect(comParametros(caminhoDeFechamento(turma.turmaId), { ok }), 303);
+  const parametros = { [PARAMETROS.ok]: AVISOS.bimestreFechado(bimestre, turma.turmaNome) };
+  return c.redirect(
+    comParametros(ROTAS.professor.fechamento({ turmaId: turma.turmaId }), parametros),
+    303,
+  );
 });

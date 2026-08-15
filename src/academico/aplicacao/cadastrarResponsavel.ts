@@ -9,31 +9,28 @@ import {
   sucesso,
   type Resultado,
 } from '../../shared/resultado';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import type { Responsavel } from '../dominio/responsavel';
 import * as responsaveis from '../infra/responsavelRepositorio';
-
-const NOME_MAXIMO = 120;
-const EMAIL_MAXIMO = 254;
-const TELEFONE_MAXIMO = 30;
 
 const entrada = z.object({
   redeId: z.string().uuid(),
   nome: z
     .string()
     .trim()
-    .min(1, 'Informe o nome do responsável.')
-    .max(NOME_MAXIMO, `O nome precisa ter até ${NOME_MAXIMO} caracteres.`),
+    .min(1, MENSAGENS.responsavel.nomeObrigatorio)
+    .max(LIMITES.responsavel.nome, MENSAGENS.responsavel.nomeLongo),
   email: z
     .string()
     .trim()
     .toLowerCase()
-    .email('Informe um e-mail válido.')
-    .max(EMAIL_MAXIMO, `O e-mail precisa ter até ${EMAIL_MAXIMO} caracteres.`),
+    .email(MENSAGENS.responsavel.emailInvalido)
+    .max(LIMITES.responsavel.email, MENSAGENS.responsavel.emailLongo),
   // Campo em branco no formulário é ausência de telefone, não um telefone vazio.
   telefone: z
     .string()
     .trim()
-    .max(TELEFONE_MAXIMO, `O telefone precisa ter até ${TELEFONE_MAXIMO} caracteres.`)
+    .max(LIMITES.responsavel.telefone, MENSAGENS.responsavel.telefoneLongo)
     .nullish()
     .transform((valor) => (valor === undefined || valor === '' ? null : valor)),
   // Campo em branco é ausência de CPF, não CPF vazio: o responsável estrangeiro existe como
@@ -43,7 +40,7 @@ const entrada = z.object({
     .trim()
     .nullish()
     .transform((valor) => (valor ? normalizarCpf(valor) : null))
-    .refine((valor) => valor === null || cpfValido(valor), 'Informe um CPF válido.'),
+    .refine((valor) => valor === null || cpfValido(valor), MENSAGENS.responsavel.cpfInvalido),
 });
 
 export async function cadastrarResponsavel(e: {
@@ -60,9 +57,9 @@ export async function cadastrarResponsavel(e: {
   const criado = await unidadeDeTrabalho(({ sql }) => responsaveis.inserir(sql, responsavel));
   if (!criado) {
     return falhaDeCampo(
-      'email',
-      'email_duplicado',
-      'Esta rede já tem um responsável com este e-mail.',
+      CAMPOS.responsavel.email,
+      CODIGOS.responsavel.emailDuplicado,
+      MENSAGENS.responsavel.emailDuplicado,
     );
   }
   return sucesso(responsavel);

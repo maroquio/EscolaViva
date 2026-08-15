@@ -5,12 +5,30 @@
   A turma nasce dentro de uma unidade e de um ano letivo, e é isso que a torna possível de existir
   duas vezes com o mesmo nome em escolas diferentes. Faltando qualquer um dos dois, a página não
   finge um formulário que não teria o que oferecer: diz o que falta e para onde ir.
+
+  Os três endereços da tela — o destino do formulário e os dois caminhos de volta à lista — vêm de
+  `it.rotas`, o mesmo mapa que o router registra. A lista de turmas aparece três vezes (estado
+  vazio, `action` e "Cancelar"): escritas à mão seriam três cópias do mesmo endereço, que podem
+  divergir de uma só, e URL literal em `.eta` não quebra compilação — quebra a tela de quem clica.
+*/
+
+/*
+  Os dois limites, o rótulo da opção em branco e os sufixos de id chegam prontos pelo `it`, e por
+  isso não há número nenhum escrito nesta página. Os donos dos tamanhos são `LIMITES.turma.nome` e
+  `LIMITES.turma.serie` (`src/academico/constantes.ts`), que `cadastrarTurma` faz valer com
+  `MENSAGENS.turma.nomeLongo` e `.serieLonga` — são duas políticas, coincidentes hoje e livres para
+  divergir amanhã, e o `maxlength` só adianta a recusa no navegador. `it.opcaoVazia` é
+  `APRESENTACAO.opcaoVazia`, a primeira opção de todo seletor: os três desta página usam a mesma, e
+  o `required` do HTML é que recusa o envio com ela. Os sufixos são de `SUFIXOS_DE_ID`, os mesmos
+  que `descricao()` usa para montar o `aria-describedby` do outro lado.
 */
 const unidades = it.unidades ?? [];
 const anosLetivos = it.anosLetivos ?? [];
 const turnos = it.turnos ?? [];
 const valores = it.valores ?? {};
-const { erroDe, descricao } = it;
+const { erroDe, descricao, sufixos } = it;
+
+const listaDeTurmas = it.rotas.secretaria.turmas();
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -34,10 +52,10 @@ const { erroDe, descricao } = it;
     <% } %>
   </p>
   <div class="acoes">
-    <a class="botao botao--discreto" href="/secretaria/turmas">Voltar às turmas</a>
+    <a class="botao botao--discreto" href="<%= listaDeTurmas %>">Voltar às turmas</a>
   </div>
   <% } else { %>
-  <form class="formulario formulario--largo" method="post" action="/secretaria/turmas">
+  <form class="formulario formulario--largo" method="post" action="<%= listaDeTurmas %>">
     <input type="hidden" name="_chave" value="<%= it.chave %>">
 
     <div class="formulario__linha">
@@ -50,14 +68,14 @@ const { erroDe, descricao } = it;
           name="nome"
           type="text"
           required
-          maxlength="60"
+          maxlength="<%= it.limiteDoNome %>"
           autocomplete="off"
           value="<%= valores.nome ?? '' %>"
           <% if (erroDe('nome') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('nome', true) %>">
-        <p class="campo__ajuda" id="nome-ajuda">Único na unidade dentro do mesmo ano letivo.</p>
+        <p class="campo__ajuda" id="nome<%= sufixos.ajuda %>">Único na unidade dentro do mesmo ano letivo.</p>
         <% if (erroDe('nome') !== '') { %>
-        <p class="campo__erro" id="nome-erro"><%= erroDe('nome') %></p>
+        <p class="campo__erro" id="nome<%= sufixos.erro %>"><%= erroDe('nome') %></p>
         <% } %>
       </div>
 
@@ -70,14 +88,14 @@ const { erroDe, descricao } = it;
           name="serie"
           type="text"
           required
-          maxlength="60"
+          maxlength="<%= it.limiteDaSerie %>"
           autocomplete="off"
           value="<%= valores.serie ?? '' %>"
           <% if (erroDe('serie') !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= descricao('serie', true) %>">
-        <p class="campo__ajuda" id="serie-ajuda">Como a rede chama: 6º ano, 1ª série, Maternal II.</p>
+        <p class="campo__ajuda" id="serie<%= sufixos.ajuda %>">Como a rede chama: 6º ano, 1ª série, Maternal II.</p>
         <% if (erroDe('serie') !== '') { %>
-        <p class="campo__erro" id="serie-erro"><%= erroDe('serie') %></p>
+        <p class="campo__erro" id="serie<%= sufixos.erro %>"><%= erroDe('serie') %></p>
         <% } %>
       </div>
 
@@ -91,7 +109,7 @@ const { erroDe, descricao } = it;
           required
           <% if (erroDe('turno') !== '') { %>aria-invalid="true"<% } %>
           <% if (descricao('turno') !== '') { %>aria-describedby="<%= descricao('turno') %>"<% } %>>
-          <option value="">Selecione…</option>
+          <option value=""><%= it.opcaoVazia %></option>
           <% turnos.forEach((turno) => { %>
           <option value="<%= turno.valor %>" <%= (valores.turno ?? '') === turno.valor ? 'selected' : '' %>>
             <%= turno.nome %>
@@ -99,7 +117,7 @@ const { erroDe, descricao } = it;
           <% }) %>
         </select>
         <% if (erroDe('turno') !== '') { %>
-        <p class="campo__erro" id="turno-erro"><%= erroDe('turno') %></p>
+        <p class="campo__erro" id="turno<%= sufixos.erro %>"><%= erroDe('turno') %></p>
         <% } %>
       </div>
     </div>
@@ -115,7 +133,7 @@ const { erroDe, descricao } = it;
           required
           <% if (erroDe('unidadeId') !== '') { %>aria-invalid="true"<% } %>
           <% if (descricao('unidadeId') !== '') { %>aria-describedby="<%= descricao('unidadeId') %>"<% } %>>
-          <option value="">Selecione…</option>
+          <option value=""><%= it.opcaoVazia %></option>
           <% unidades.forEach((unidade) => { %>
           <option value="<%= unidade.id %>" <%= (valores.unidadeId ?? '') === unidade.id ? 'selected' : '' %>>
             <%= unidade.nome %>
@@ -123,7 +141,7 @@ const { erroDe, descricao } = it;
           <% }) %>
         </select>
         <% if (erroDe('unidadeId') !== '') { %>
-        <p class="campo__erro" id="unidadeId-erro"><%= erroDe('unidadeId') %></p>
+        <p class="campo__erro" id="unidadeId<%= sufixos.erro %>"><%= erroDe('unidadeId') %></p>
         <% } %>
       </div>
 
@@ -137,7 +155,7 @@ const { erroDe, descricao } = it;
           required
           <% if (erroDe('anoLetivoId') !== '') { %>aria-invalid="true"<% } %>
           <% if (descricao('anoLetivoId') !== '') { %>aria-describedby="<%= descricao('anoLetivoId') %>"<% } %>>
-          <option value="">Selecione…</option>
+          <option value=""><%= it.opcaoVazia %></option>
           <% anosLetivos.forEach((anoLetivo) => { %>
           <option value="<%= anoLetivo.id %>" <%= (valores.anoLetivoId ?? '') === anoLetivo.id ? 'selected' : '' %>>
             <%= anoLetivo.ano %>
@@ -145,14 +163,14 @@ const { erroDe, descricao } = it;
           <% }) %>
         </select>
         <% if (erroDe('anoLetivoId') !== '') { %>
-        <p class="campo__erro" id="anoLetivoId-erro"><%= erroDe('anoLetivoId') %></p>
+        <p class="campo__erro" id="anoLetivoId<%= sufixos.erro %>"><%= erroDe('anoLetivoId') %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Cadastrar turma</button>
-      <a class="botao botao--discreto" href="/secretaria/turmas">Cancelar</a>
+      <a class="botao botao--discreto" href="<%= listaDeTurmas %>">Cancelar</a>
     </div>
   </form>
   <% } %>

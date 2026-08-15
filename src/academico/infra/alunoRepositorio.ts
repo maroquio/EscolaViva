@@ -1,8 +1,7 @@
 import type { Conexao } from '../../shared/db';
 import type { Faixa } from '../../shared/paginacao';
+import { LIMITES } from '../constantes';
 import type { Aluno } from '../dominio/aluno';
-
-const LIMITE_DA_BUSCA = 50;
 
 type LinhaDeAluno = {
   id: string;
@@ -42,8 +41,9 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<A
  * estágio: com dezoito mil alunos, o índice (rede_id, nome) prende a varredura à rede e o ILIKE
  * resolve o trecho em milissegundos.
  *
- * Sem faixa, o teto de 50 continua valendo: quem chama sem pedir página está pedindo uma amostra,
- * e uma consulta de busca nunca deve poder devolver a rede inteira por omissão.
+ * Sem faixa, o teto de `LIMITES.aluno.busca` continua valendo: quem chama sem pedir página está
+ * pedindo uma amostra, e uma consulta de busca nunca deve poder devolver a rede inteira por
+ * omissão.
  */
 export async function buscar(
   sql: Conexao,
@@ -57,7 +57,7 @@ export async function buscar(
       FROM aluno
      WHERE rede_id = ${redeId} AND nome ILIKE ${padrao}
      ORDER BY nome
-     LIMIT ${faixa?.limite ?? LIMITE_DA_BUSCA} OFFSET ${faixa?.deslocamento ?? 0}`;
+     LIMIT ${faixa?.limite ?? LIMITES.aluno.busca} OFFSET ${faixa?.deslocamento ?? 0}`;
   return linhas.map(paraAluno);
 }
 

@@ -25,7 +25,7 @@ const lidoEm = it.lidoEm;
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="/responsavel/mural">Voltar ao mural</a>
+    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.mural() %>">Voltar ao mural</a>
   </p>
 </header>
 
@@ -36,7 +36,7 @@ const lidoEm = it.lidoEm;
 
   <footer class="acoes">
     <% if (lidoEm === null) { %>
-    <form method="post" action="/responsavel/mural/<%= comunicado.id %>/lido">
+    <form method="post" action="<%= it.rotas.responsavel.comunicadoLido({ comunicadoId: comunicado.id }) %>">
       <input type="hidden" name="_chave" value="<%= it.chave %>">
       <button class="botao botao--primario" type="submit">Marcar como lido</button>
     </form>

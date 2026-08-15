@@ -3,20 +3,35 @@ import { unidadeDeTrabalho } from '../../shared/db';
 import { cpfValido, normalizarCpf } from '../../shared/documento';
 import { idGeneratorUuid } from '../../shared/ports';
 import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/resultado';
+import {
+  CAMPOS,
+  CODIGOS,
+  LIMITES,
+  MENSAGENS,
+  PAPEL,
+  SEGURANCA,
+  SEPARADOR_DE_ATRIBUICAO,
+} from '../constantes';
 import { PAPEIS, type Papel } from '../dominio/papel';
 import { emailNormalizado, type Usuario } from '../dominio/usuario';
 import * as unidadeRepositorio from '../infra/unidadeRepositorio';
 import * as usuarioRepositorio from '../infra/usuarioRepositorio';
 
 const schema = z.object({
-  redeId: z.string().uuid('rede inválida'),
-  nome: z.string().trim().min(1, 'informe o nome').max(120, 'nome longo demais'),
-  email: z.string().trim().min(1, 'informe o e-mail').email('e-mail inválido'),
+  redeId: z.string().uuid(MENSAGENS.usuario.redeInvalida),
+  nome: z
+    .string()
+    .trim()
+    .min(1, MENSAGENS.usuario.nomeObrigatorio)
+    .max(LIMITES.usuario.nome, MENSAGENS.usuario.nomeLongo),
+  email: z.string().trim().min(1, MENSAGENS.usuario.emailObrigatorio).email(
+    MENSAGENS.usuario.emailInvalido,
+  ),
   cpf: z
     .string()
     .trim()
     .transform(normalizarCpf)
-    .refine(cpfValido, 'Informe um CPF válido.'),
+    .refine(cpfValido, MENSAGENS.usuario.cpfInvalido),
   // O cadastro do responsável vive em `academico`, e `identidade` não pode alcançá-lo: quem o
   // busca é a camada web, que já orquestra os dois módulos. Aqui chega só o que a regra compara.
   cpfDoCadastro: z.string().nullable().optional(),
@@ -24,23 +39,21 @@ const schema = z.object({
   atribuicoes: z
     .array(
       z.object({
-        unidadeId: z.string().uuid('unidade inválida'),
-        papel: z.enum(PAPEIS, { errorMap: () => ({ message: 'papel desconhecido' }) }),
+        unidadeId: z.string().uuid(MENSAGENS.usuario.unidadeInvalida),
+        papel: z.enum(PAPEIS, {
+          errorMap: () => ({ message: MENSAGENS.usuario.papelDesconhecido }),
+        }),
       }),
     )
-    .min(1, 'escolha ao menos uma unidade e um papel'),
-  responsavelId: z.string().uuid('responsável inválido').nullable().optional(),
+    .min(1, MENSAGENS.usuario.semAtribuicao),
+  responsavelId: z.string().uuid(MENSAGENS.usuario.responsavelInvalido).nullable().optional(),
 });
 
-// Sem I, O, 0 e 1: a senha provisória é ditada por telefone e digitada de novo por quem recebe.
-const ALFABETO_SEM_AMBIGUIDADE = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const TAMANHO_DA_SENHA_PROVISORIA = 12;
-
 function senhaProvisoria(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(TAMANHO_DA_SENHA_PROVISORIA));
+  const bytes = crypto.getRandomValues(new Uint8Array(SEGURANCA.tamanhoDaSenhaProvisoria));
   // O alfabeto tem 32 símbolos e 256 é múltiplo de 32: o resto não distorce o sorteio.
   return Array.from(bytes, (byte) =>
-    ALFABETO_SEM_AMBIGUIDADE.charAt(byte % ALFABETO_SEM_AMBIGUIDADE.length),
+    SEGURANCA.alfabetoSemAmbiguidade.charAt(byte % SEGURANCA.alfabetoSemAmbiguidade.length),
   ).join('');
 }
 
@@ -50,7 +63,10 @@ type Atribuicao = { unidadeId: string; papel: Papel };
 function atribuicoesDistintas(atribuicoes: Atribuicao[]): Atribuicao[] {
   const porChave = new Map<string, Atribuicao>();
   for (const atribuicao of atribuicoes) {
-    porChave.set(`${atribuicao.unidadeId}:${atribuicao.papel}`, atribuicao);
+    porChave.set(
+      `${atribuicao.unidadeId}${SEPARADOR_DE_ATRIBUICAO}${atribuicao.papel}`,
+      atribuicao,
+    );
   }
   return [...porChave.values()];
 }
@@ -75,16 +91,16 @@ async function gravar(convite: Convite): Promise<Resultado<ConviteAceito>> {
     const unidadesDaRede = await unidadeRepositorio.idsNaRede(sql, usuario.redeId, unidadesPedidas);
     if (unidadesPedidas.some((id) => !unidadesDaRede.has(id))) {
       return falhaDeCampo(
-        'atribuicoes',
-        'unidade_de_outra_rede',
-        'unidade não pertence a esta rede',
+        CAMPOS.usuario.atribuicoes,
+        CODIGOS.unidadeDeOutraRede,
+        MENSAGENS.usuario.unidadeDeOutraRede,
       );
     }
     if (await usuarioRepositorio.existeEmail(sql, usuario.redeId, usuario.email)) {
-      return falhaDeCampo('email', 'email_em_uso', 'já existe usuário com este e-mail na rede');
+      return falhaDeCampo(CAMPOS.usuario.email, CODIGOS.emailEmUso, MENSAGENS.usuario.emailEmUso);
     }
     if (await usuarioRepositorio.existeCpf(sql, usuario.redeId, usuario.cpf)) {
-      return falhaDeCampo('cpf', 'cpf_em_uso', 'já existe usuário com este CPF na rede');
+      return falhaDeCampo(CAMPOS.usuario.cpf, CODIGOS.cpfEmUso, MENSAGENS.usuario.cpfEmUso);
     }
 
     await usuarioRepositorio.inserir(sql, usuario, convite.senhaHash);
@@ -111,12 +127,12 @@ export async function convidarUsuario(entrada: {
 
   const atribuicoes = atribuicoesDistintas(dados.atribuicoes);
   const responsavelId = dados.responsavelId ?? null;
-  const entraComoResponsavel = atribuicoes.some(({ papel }) => papel === 'responsavel');
+  const entraComoResponsavel = atribuicoes.some(({ papel }) => papel === PAPEL.responsavel);
   if (entraComoResponsavel && responsavelId === null) {
     return falhaDeCampo(
-      'responsavelId',
-      'responsavel_obrigatorio',
-      'quem entra como responsável precisa estar ligado a um cadastro de responsável',
+      CAMPOS.usuario.responsavelId,
+      CODIGOS.responsavelObrigatorio,
+      MENSAGENS.usuario.responsavelObrigatorio,
     );
   }
 
@@ -125,9 +141,11 @@ export async function convidarUsuario(entrada: {
   const cpfDoCadastro = dados.cpfDoCadastro ?? null;
   if (cpfDoCadastro !== null && cpfDoCadastro !== dados.cpf) {
     return falhaDeCampo(
-      'cpf',
-      'cpf_diverge_do_cadastro',
-      `O CPF não confere com o do cadastro de ${dados.nomeDoCadastro ?? 'responsável'}.`,
+      CAMPOS.usuario.cpf,
+      CODIGOS.cpfDivergeDoCadastro,
+      MENSAGENS.usuario.cpfDivergeDoCadastro(
+        dados.nomeDoCadastro ?? MENSAGENS.usuario.rotuloDeResponsavel,
+      ),
     );
   }
 

@@ -1,3 +1,4 @@
+import { MENSAGENS } from '../constantes';
 import { BIMESTRES } from './nota';
 
 /** Um bimestre encerrado para uma turma. `fechadoEm` é um instante ISO em UTC. */
@@ -52,9 +53,11 @@ export function pendenciasDoFechamento(
 export function mensagemDePendencias(pendencias: readonly PendenciaDeFechamento[]): string {
   const total = pendencias.reduce((soma, pendencia) => soma + pendencia.faltando, 0);
   const detalhe = pendencias
-    .map((pendencia) => `${pendencia.disciplinaNome} (${pendencia.faltando})`)
-    .join(', ');
+    .map((pendencia) =>
+      MENSAGENS.fechamento.pendencia(pendencia.disciplinaNome, pendencia.faltando),
+    )
+    .join(MENSAGENS.fechamento.separadorDePendencias);
   return total === 1
-    ? `Falta 1 nota para fechar o bimestre: ${detalhe}.`
-    : `Faltam ${total} notas para fechar o bimestre: ${detalhe}.`;
+    ? MENSAGENS.fechamento.pendenciaSingular(detalhe)
+    : MENSAGENS.fechamento.pendenciaPlural(total, detalhe);
 }

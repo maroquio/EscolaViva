@@ -10,7 +10,16 @@
   requisição de rede além do próprio HTML e do CSS versionado. O único script do layout é o botão
   de fechar dos avisos, embutido no fim do documento; uma página pode embutir o seu, desde que a
   tela continue inteira sem ele.
+
+  O endereço da folha não é escrito à mão. `it.rotas.publicas.publico` é a MESMA rota curinga que
+  serve os arquivos publicados (I10), e o nome versionado que `it.asset` resolve entra no lugar do
+  curinga: mudar o prefixo publicado passa a ser uma edição só, em `ROTAS`, em vez de um `href`
+  aqui que ninguém lembra de acompanhar — e `href` errado em `.eta` não quebra compilação, quebra
+  a tela de quem está usando o sistema.
 */
+const folhaDeEstilo = it.rotas.publicas
+  .publico()
+  .replace(it.curingaDeAsset, it.asset(it.nomeLogicoDaFolha));
 %><!doctype html>
 <html lang="pt-BR">
 <head>
@@ -19,7 +28,7 @@
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title><%= it.titulo %> · EscolaViva</title>
-  <link rel="stylesheet" href="/publico/<%= it.asset('app.css') %>">
+  <link rel="stylesheet" href="<%= folhaDeEstilo %>">
   <%~ include("/parciais/_icone") %>
 </head>
 <body>

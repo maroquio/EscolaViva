@@ -2,13 +2,36 @@
 /*
   Unidades da rede: a lista, e só.
 
-  O cadastro mora em `/rede/unidades/nova`. Separar as duas coisas dá um assunto a cada página e
-  faz o erro de validação voltar para o formulário sem arrastar junto a consulta paginada da lista.
+  O cadastro mora em `it.rotas.rede.unidadeNova()`. Separar as duas coisas dá um assunto a cada
+  página e faz o erro de validação voltar para o formulário sem arrastar junto a consulta paginada
+  da lista.
 
   O nome é único dentro da rede, e é a constraint do banco que garante isso (I8); a mensagem que
   aparece no formulário só traduz a recusa para o campo certo.
+
+  Os dois caminhos para o formulário — o botão do cabeçalho e a ação do estado vazio — levam ao
+  mesmo lugar e saem de `it.rotas`, o mesmo mapa que o router registra. Escritos à mão, seriam duas
+  cópias do endereço que podem divergir de um lado só, e URL literal em `.eta` não quebra
+  compilação: quebra a tela de quem clica.
+
+  Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
+  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
 */
 const unidades = it.unidades ?? [];
+
+/*
+  O rótulo da situação é `VOCABULARIO.unidadeAtiva` (`src/identidade/constantes.ts`) e o travessão
+  da célula vazia é `AUSENTE` (`src/shared/constantes.ts`), ambos entregues pela rota. O Eta não
+  importa TypeScript: escrever "Inativa" aqui faria a tela e o módulo dono divergirem em silêncio.
+*/
+const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
+const SEM_VALOR = it.ausente;
+
+/*
+  A cor da etiqueta acompanha o rótulo, e não o substitui: quem lê em preto e branco lê "Inativa".
+  Classe de CSS é vocabulário da folha de estilo, e por isso mora aqui e não em `constantes.ts`.
+*/
+const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -20,7 +43,7 @@ const unidades = it.unidades ?? [];
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="/rede/unidades/nova">Criar unidade</a>
+    <a class="botao botao--primario" href="<%= it.rotas.rede.unidadeNova() %>">Criar unidade</a>
   </div>
 </div>
 
@@ -31,10 +54,10 @@ const unidades = it.unidades ?? [];
   </div>
 
   <% if (unidades.length === 0) { %>
-    <%~ include("/parciais/_vazio", {
+    <%~ include(it.parciais.vazio, {
       titulo: 'Nenhuma unidade criada',
       texto: 'A primeira unidade abre o caminho para os usuários e as turmas.',
-      acao: { href: '/rede/unidades/nova', texto: 'Criar unidade' }
+      acao: { href: it.rotas.rede.unidadeNova(), texto: 'Criar unidade' }
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -51,15 +74,15 @@ const unidades = it.unidades ?? [];
         <% unidades.forEach((unidade) => { %>
         <tr>
           <th scope="row"><%= unidade.nome %></th>
-          <td class="numero"><%= unidade.codigoInep === null ? '—' : unidade.codigoInep %></td>
+          <td class="numero"><%= unidade.codigoInep === null ? SEM_VALOR : unidade.codigoInep %></td>
           <td>
-            <span class="<%= unidade.ativa ? 'etiqueta etiqueta--ativa' : 'etiqueta' %>"><%= unidade.ativa ? 'Ativa' : 'Inativa' %></span>
+            <span class="<%= unidade.ativa ? CLASSE_DA_SITUACAO.sim : CLASSE_DA_SITUACAO.nao %>"><%= unidade.ativa ? ROTULO_DA_SITUACAO.sim : ROTULO_DA_SITUACAO.nao %></span>
           </td>
         </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
-  <%~ include("/parciais/_paginacao", { navegacao: it.navegacao, rotulo: 'unidades' }) %>
+  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'unidades' }) %>
   <% } %>
 </section>
