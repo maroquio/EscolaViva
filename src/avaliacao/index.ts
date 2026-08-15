@@ -43,6 +43,10 @@ export const avaliacao = {
  *
  * `MEIO_DIA_UTC` sai pela mesma razão que `MEIA_NOITE_UTC`: a tela de chamada NAVEGA entre datas
  * do diário, e o sufixo que ela anexa é o do módulo que decide o que é um dia de chamada.
+ *
+ * `ROTULO_DE_BIMESTRE` sai porque cinco telas ESCREVEM o número do bimestre — boletim, notas,
+ * fechamento — e o aviso de "bimestre fechado" o escreve uma sexta vez, do lado de lá da fronteira.
+ * O nome já carrega o dono, e por isso não ganha sufixo.
  */
 export {
   APROVACAO,
@@ -51,6 +55,7 @@ export {
   LIMITES as LIMITES_DA_AVALIACAO,
   MEIA_NOITE_UTC,
   MEIO_DIA_UTC,
+  ROTULO_DE_BIMESTRE,
   VOCABULARIO as VOCABULARIO_DA_AVALIACAO,
 } from './constantes';
 

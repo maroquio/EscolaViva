@@ -14,6 +14,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Eta } from 'eta';
 import type { Context } from 'hono';
+import { ROTULO_DE_BIMESTRE } from '../avaliacao';
+import { ALCANCE } from '../comunicacao';
 import { PAPEL } from '../identidade';
 import { config } from '../shared/config';
 import { AMBIENTE_DESENVOLVIMENTO, ATIVOS, AUSENTE, CAMPO_CHAVE } from '../shared/constantes';
@@ -25,16 +27,23 @@ import {
   type StatusDeErro,
 } from '../shared/http';
 import {
+  ACOES,
   APRESENTACAO,
+  AREAS,
+  CAMPOS,
+  CONTAGEM,
   CURINGA_DE_ASSET,
   DETALHES_DE_ERRO,
   DOCUMENTO,
   PARAMETROS,
   ROTAS,
+  ROTULOS,
+  SEM_ALUNO_MATRICULADO,
   SUFIXOS_DE_ID,
   TEMPLATES,
   TITULOS,
   TITULOS_DE_ERRO,
+  type SubstantivoContavel,
 } from './constantes';
 
 const RAIZ = join(import.meta.dir, '..', '..');
@@ -159,6 +168,42 @@ export function formatarTaxa(fracao: ValorNumerico): string {
   return numero === null ? AUSENTE : formatarPercentual(numero * APRESENTACAO.fatorPercentual);
 }
 
+/**
+ * Escolhe entre as duas metades de um substantivo de `CONTAGEM` — "1 disciplina", "3 disciplinas".
+ *
+ * Existe pela legibilidade do template, e não pela regra: a regra é um `=== 1`, que qualquer `.eta`
+ * sabe escrever. O que o `.eta` não escreve sem ficar ilegível é o ternário INTEIRO depois que as
+ * duas pontas viram constante — `it.totalNaoLidos === 1 ? it.contagem.comunicado.singular :
+ * it.contagem.comunicado.plural` é pior de ler que a linha que ele substitui, e trocar duplicação
+ * por linha ilegível não é progresso. Com o auxiliar sobra
+ * `it.pluralizar(it.totalNaoLidos, it.contagem.comunicado)`, que diz a mesma coisa em uma leitura.
+ */
+export function pluralizar(quantidade: number, substantivo: SubstantivoContavel): string {
+  return quantidade === 1 ? substantivo.singular : substantivo.plural;
+}
+
+/* --- Ids que descrevem um campo -------------------------------------------- */
+
+/**
+ * O OUTRO lado de `descricao()`, aqui embaixo: ela monta o `aria-describedby` do `<input>`, e estas
+ * duas montam os `id` para onde aquela lista aponta.
+ *
+ * A regra — id do erro é `<campo>-erro`, id da ajuda é `<campo>-ajuda` — já estava escrita uma vez,
+ * dentro de `descricao()`. A outra ponta estava escrita à mão em cada `.eta`, ora inteira
+ * (`id="unidadeId-ajuda"`), ora pela metade (`id="dataInicio<%= sufixos.erro %>"`). Divergindo, o
+ * `aria-describedby` aponta para um id que não existe: a caixa recusa, o texto do erro aparece na
+ * tela, e o leitor de tela não lê nenhum dos dois. Nada falha, e ninguém que enxerga percebe.
+ *
+ * São funções, e não a concatenação escrita no template, por causa da legibilidade — que aqui é
+ * requisito. Com o nome do campo vindo de `CAMPOS`, a forma direta seria
+ * `id="<%= campos.dataInicio %><%= sufixos.erro %>"`: dois blocos colados, um contrato partido ao
+ * meio e uma linha que um aluno lê duas vezes. `id="<%= it.idDoErro(campos.dataInicio) %>"` diz a
+ * mesma coisa uma vez só, e é a mesma forma que o `.eta` já usa para `erroDe()` e `descricao()`.
+ */
+export const idDoErro = (campo: string): string => `${campo}${SUFIXOS_DE_ID.erro}`;
+
+export const idDaAjuda = (campo: string): string => `${campo}${SUFIXOS_DE_ID.ajuda}`;
+
 /* --- Montagem do contexto de template -------------------------------------- */
 
 export type DadosDeTemplate = Record<string, unknown>;
@@ -207,6 +252,37 @@ const textoDaQuery = (c: Context, nome: string): string | null => {
  *
  * `it.titulo` continua sendo o título DESTA página, que a rota passa; `it.titulos` é o mapa inteiro,
  * de onde o menu tira o rótulo da tela para onde cada link leva.
+ *
+ * `alcances` entra ao lado de `papel` e pelo mesmo motivo: é vocabulário FECHADO de domínio que o
+ * `.eta` compara. O formulário de comunicado escreve o alcance no `value` do rádio e o relê no
+ * `checked`; do outro lado, `comunicacao` decide por ele qual consulta de destinatários roda.
+ * Escrever "selecionados" errado aqui não falha em lugar nenhum — o envio cai no outro alcance, e um
+ * comunicado dirigido a três pessoas chega à unidade inteira. Nenhuma rota deveria precisar lembrar
+ * de passar isso, como nenhuma precisa lembrar de passar `papel`.
+ *
+ * `areas`, `rotulos`, `contagem`, `acoes`, `semAlunoMatriculado`, `rotuloDeBimestre` e `pluralizar`
+ * chegam pela mesma porta, e pelo mesmo motivo. É o vocabulário de tela: o nome da área no
+ * sobretítulo, o nome do dado no cabeçalho da coluna, o substantivo contado, o texto do botão que
+ * sai da tela. Nenhum deles pertence a UMA rota — "Cancelar" está em doze telas de cinco arquivos de
+ * rota diferentes, "Voltar à ficha" em três, "Aluno" em seis —, e pedir a cada rota que passe o que
+ * a tela escreve daria certo até a primeira que esquecesse. O sintoma seria discreto e pior que uma
+ * moldura sumindo: o `.eta` imprimiria a string vazia, e a coluna ficaria sem cabeçalho.
+ *
+ * `pluralizar` viaja junto com `contagem` porque é o par dela: o mapa guarda as duas metades do
+ * substantivo, o auxiliar escolhe qual sai. Separá-los deixaria o template escrevendo o `=== 1` na
+ * mão em nove lugares.
+ *
+ * `campos` é o `CAMPOS` da camada web — o mapa que aponta para o `CAMPOS` de cada um dos quatro
+ * módulos. Cada `.eta` de formulário tira dele um apelido curto no bloco do topo
+ * (`const campos = it.campos.anoLetivo;`) e escreve `name="<%= campos.dataInicio %>"` e
+ * `erroDe(campos.dataInicio)`: o nome que ATRAVESSA o arquivo — a rota lê o corpo por ele, e o
+ * `falhaDeCampo` do caso de uso o devolve — passa a ter uma origem só. O `id` e o `for` da própria
+ * caixa continuam literais: eles casam um com o outro dentro das mesmas seis linhas, e `for="ano"`
+ * ao lado de `id="ano"` é o HTML mais legível que um aluno pode encontrar.
+ *
+ * `idDoErro` e `idDaAjuda` fecham o terceiro lado desse triângulo, e é por causa deles que o `id` da
+ * caixa pode continuar literal sem risco: o `id` do parágrafo de erro é o que `descricao()` promete
+ * no `aria-describedby`, e essa promessa atravessa daqui até o `.eta`.
  */
 const auxiliares = {
   asset,
@@ -219,12 +295,23 @@ const auxiliares = {
   apresentacao: APRESENTACAO,
   titulos: TITULOS,
   papel: PAPEL,
+  alcances: ALCANCE,
+  campos: CAMPOS,
+  idDoErro,
+  idDaAjuda,
+  areas: AREAS,
+  rotulos: ROTULOS,
+  contagem: CONTAGEM,
+  acoes: ACOES,
+  semAlunoMatriculado: SEM_ALUNO_MATRICULADO,
+  rotuloDeBimestre: ROTULO_DE_BIMESTRE,
   formatarCpf,
   formatarData,
   formatarDataHora,
   formatarNota,
   formatarPercentual,
   formatarTaxa,
+  pluralizar,
 } as const;
 
 /* --- Erros de campo -------------------------------------------------------- */
@@ -254,10 +341,7 @@ const auxiliaresDeErro = (dados: DadosDeTemplate) => {
 
   /** Ids que o campo descreve: a ajuda fixa, quando existe, e o erro, quando há. */
   const descricao = (campo: string, temAjuda = false): string =>
-    [
-      temAjuda ? `${campo}${SUFIXOS_DE_ID.ajuda}` : '',
-      erroDe(campo) === '' ? '' : `${campo}${SUFIXOS_DE_ID.erro}`,
-    ]
+    [temAjuda ? idDaAjuda(campo) : '', erroDe(campo) === '' ? '' : idDoErro(campo)]
       .filter((id) => id !== '')
       .join(SEPARADOR_DE_IDS);
 

@@ -184,3 +184,19 @@ export const VOCABULARIO = {
   presenca: { presente: 'Presente', faltaJustificada: 'Falta justificada', falta: 'Falta' },
   fechamento: { fechado: 'Fechado', aberto: 'Aberto' },
 } as const;
+
+/**
+ * Como um bimestre se ESCREVE quando aparece numerado na tela: `1º bimestre`.
+ *
+ * É função, e não constante de texto, porque o número não é decoração — é ele que diz de qual
+ * bimestre se fala. Junto com o número vem a decisão do ordinal masculino (`º`, e não `ª` nem `°`)
+ * e do substantivo em minúscula, e são essas duas que estavam redigitadas em sete lugares: a coluna
+ * do boletim, o título e o botão da tela de notas, o aviso de bimestre fechado, o cartão do
+ * fechamento. Escrito à mão, o dia em que o produto passar a dizer "trimestre" deixa o sistema
+ * falando dos dois jeitos, e nada acusa.
+ *
+ * Mora no módulo de avaliação, e não em `web/`, pelo mesmo motivo de `VOCABULARIO`: quem decide o
+ * que é um bimestre é quem fecha um. `BIMESTRES` (em `dominio/nota.ts`) diz QUAIS existem; esta
+ * função diz como cada um se chama para quem lê.
+ */
+export const ROTULO_DE_BIMESTRE = (numero: number): string => `${numero}º bimestre`;

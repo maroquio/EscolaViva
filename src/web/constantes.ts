@@ -16,7 +16,7 @@
  */
 
 import { CAMPOS_DO_ACADEMICO } from '../academico';
-import { CAMPOS_DA_AVALIACAO } from '../avaliacao';
+import { CAMPOS_DA_AVALIACAO, ROTULO_DE_BIMESTRE } from '../avaliacao';
 import { CAMPOS_DA_COMUNICACAO } from '../comunicacao';
 import { CAMPOS_DE_IDENTIDADE, PAPEL } from '../identidade';
 import { ATIVOS, AUSENTE, CAMINHOS_DE_ENTRADA, CAMINHOS_DE_SAUDE } from '../shared/constantes';
@@ -383,6 +383,176 @@ export const TITULOS = {
   comunicados: { lista: 'Comunicados', novo: 'Novo comunicado' },
 } as const;
 
+/* --- Áreas do sistema ------------------------------------------------------- */
+
+/**
+ * O nome de cada área: o rótulo do grupo no menu (`parciais/_navegacao.eta`) e o sobretítulo que
+ * toda tela daquela área imprime acima do `<h1>` — "Rede", "Secretaria", "Acompanhamento".
+ *
+ * São a mesma decisão nas duas pontas, e é isso que justifica um dono só: o sobretítulo existe para
+ * dizer em que parte do menu a pessoa está. Renomear o grupo e esquecer as treze telas de secretaria
+ * deixaria o menu e o cabeçalho chamando o mesmo lugar por dois nomes.
+ *
+ * Distinto de `TITULOS`, que é o nome de uma TELA. "Unidades" é título; "Rede" é a área onde aquele
+ * título mora, e o sobretítulo das telas internas compõe os dois — `Rede · Unidades` — com o
+ * `APRESENTACAO.separador`.
+ *
+ * `ensino` é o grupo do professor no menu, e a tela dele diz "Professor" no sobretítulo. A
+ * divergência é real e está preservada: são as únicas duas pontas que hoje NÃO combinam, e
+ * uniformizá-las mudaria a tela. Por isso o `'Professor'` de `professor/painel.eta` continua escrito
+ * lá, sozinho, e não vira um sétimo membro deste mapa fingindo ser o mesmo valor.
+ */
+export const AREAS = {
+  rede: 'Rede',
+  secretaria: 'Secretaria',
+  ensino: 'Ensino',
+  acompanhamento: 'Acompanhamento',
+  comunicacao: 'Comunicação',
+  conta: 'Conta',
+} as const;
+
+/* --- Rótulos de dado -------------------------------------------------------- */
+
+/**
+ * O nome que cada dado tem na tela: o `<th>` que encabeça a coluna, o `<dt>` da ficha, o
+ * `cartao__rotulo` do cartão e o `<label>` da caixa que edita aquele mesmo dado.
+ *
+ * UMA CHAVE POR COISA NOMEADA, e não uma por posição. A tentação era separar "cabeçalho de coluna"
+ * de "rótulo de campo", já que a mesma palavra aparece nos dois. Mas o repositório mostra que a
+ * divergência real não é de posição, é de SIGNIFICADO: em `secretaria/turmas.eta` o filtro diz
+ * "Ano letivo" e a coluna diz "Ano" — e não porque um é `<label>` e o outro é `<th>`, e sim porque
+ * o filtro escolhe o ano letivo (a entidade) enquanto a coluna mostra o ano (o número). São duas
+ * coisas, e por isso são `anoLetivo` e `ano`. Onde a coisa é a mesma — "Unidade" no filtro e na
+ * coluna, na mesma tela — a palavra é a mesma por decisão, e não por acaso.
+ *
+ * Mora em `web/`, ao lado de `TITULOS`, e não no módulo de domínio: ao contrário de
+ * `VOCABULARIO_DO_ACADEMICO.turno`, nenhum destes rótulos é o par de um valor fechado do domínio.
+ * Acrescentar um turno obriga a nomeá-lo; acrescentar uma coluna é decisão de quem desenha a tela.
+ *
+ * "Situação" NÃO está aqui, de propósito — ver o comentário logo abaixo do mapa.
+ */
+export const ROTULOS = {
+  aluno: 'Aluno',
+  turma: 'Turma',
+  unidade: 'Unidade',
+  disciplina: 'Disciplina',
+  responsavel: 'Responsável',
+  /** O NÚMERO do ano, que é o que a coluna e o `<dt>` mostram. */
+  ano: 'Ano',
+  /** A ENTIDADE ano letivo, que é o que o filtro e o `<select>` escolhem. */
+  anoLetivo: 'Ano letivo',
+  matricula: 'Matrícula',
+  /** Uma coisa só: a contagem de matrículas ativas, no cartão, na coluna e no `<h2>`. */
+  matriculasAtivas: 'Matrículas ativas',
+  nome: 'Nome',
+  cpf: 'CPF',
+  email: 'E-mail',
+  inicio: 'Início',
+  termino: 'Término',
+  frequencia: 'Frequência',
+  destinatarios: 'Destinatários',
+  /** A coluna dos botões de linha. Convenção da tabela, e não nome de dado — mas mora junto. */
+  acoes: 'Ações',
+} as const;
+
+/**
+ * "Situação" fica FORA de `ROTULOS`, e a decisão é o exemplo mais claro do que este arquivo evita.
+ *
+ * A palavra encabeça cinco colunas, e cada uma mostra um vocabulário fechado diferente, de quatro
+ * módulos diferentes: a unidade é Ativa/Inativa (`VOCABULARIO_DE_IDENTIDADE.unidadeAtiva`), o
+ * usuário é Ativo/Inativo (`.ativo`), a matrícula é Ativa/Transferida/Cancelada/Concluída
+ * (`VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula`), o dia de aula é Presente/Falta
+ * (`VOCABULARIO_DA_AVALIACAO.presenca`) e o boletim é Aprovado/Reprovado/Em curso (`.situacaoFinal`).
+ *
+ * "Situação" é o substantivo genérico do português que serve de cabeça para os cinco. Um dono único
+ * prometeria que as cinco mudam juntas, e elas não mudam: decidir que a tabela de frequência passa a
+ * dizer "Presença" é uma mudança da tela de frequência, e não pode renomear a coluna da lista de
+ * unidades. As cinco ocorrências ficam escritas onde estão, com `// magic-values: permitido`.
+ */
+
+/* --- Substantivos contáveis ------------------------------------------------- */
+
+/**
+ * O substantivo de cada coisa, no singular e no plural, minúsculo: o que vai depois do número na
+ * linha "3 disciplinas" e no rótulo da barra de paginação.
+ *
+ * Singular e plural são UMA decisão, e é por isso que cada entrada é um par e não duas chaves
+ * soltas: quem trocar "responsável" por "contato" tem de trocar "responsáveis" no mesmo movimento,
+ * e hoje as duas metades estão escritas na mesma linha do `.eta` justamente porque ninguém consegue
+ * mudar uma sem a outra.
+ *
+ * É outra decisão que `ROTULOS`, ainda que as palavras se pareçam. `ROTULOS.disciplina` é "Disciplina",
+ * o nome do dado no alto de uma coluna; `CONTAGEM.disciplina.plural` é "disciplinas", o substantivo
+ * no meio de uma frase contada. A maiúscula não é enfeite: uma nomeia, a outra é lida em voz
+ * corrida — e é por isso que o dia em que o produto quiser encurtar o cabeçalho da coluna a frase
+ * "3 disciplinas" não muda junto.
+ *
+ * Os rótulos de paginação QUALIFICADOS — "responsáveis vinculados", "disciplinas alocadas",
+ * "comunicados não lidos", "alunos encontrados" — não saem daqui: cada um descreve o recorte
+ * daquela tabela, existe uma vez só e é decisão da tela, não do substantivo.
+ */
+export const CONTAGEM = {
+  aluno: { singular: 'aluno', plural: 'alunos' },
+  turma: { singular: 'turma', plural: 'turmas' },
+  unidade: { singular: 'unidade', plural: 'unidades' },
+  disciplina: { singular: 'disciplina', plural: 'disciplinas' },
+  responsavel: { singular: 'responsável', plural: 'responsáveis' },
+  matricula: { singular: 'matrícula', plural: 'matrículas' },
+  comunicado: { singular: 'comunicado', plural: 'comunicados' },
+  usuario: { singular: 'usuário', plural: 'usuários' },
+  anoLetivo: { singular: 'ano letivo', plural: 'anos letivos' },
+} as const;
+
+/** A forma de um substantivo contável, para quem escreve o auxiliar que escolhe entre as duas. */
+export type SubstantivoContavel = { readonly singular: string; readonly plural: string };
+
+/* --- Rótulos de ação -------------------------------------------------------- */
+
+/**
+ * O texto dos botões e links que TIRAM a pessoa da tela em que ela está.
+ *
+ * `cancelar` e `voltarPara` são uma família só, e em dois níveis, porque respondem à mesma pergunta
+ * de dois jeitos. Na mesma tela de matrícula, o link do alto diz "Voltar à ficha" e o botão ao pé do
+ * formulário diz "Cancelar" — os dois apontam para o MESMO endereço. O de cima nomeia o destino; o
+ * de baixo nomeia o que se está abandonando, e por isso é uma palavra só, igual nos doze formulários
+ * do sistema. Fundi-los faria o formulário dizer "Voltar à ficha" no botão de desistir; separá-los
+ * em dois mapas esconderia que são a mesma decisão de produto — como se sai daqui.
+ *
+ * `buscarAluno` é a terceira forma: não é saída, é a chamada que três telas fazem para a MESMA busca
+ * — o botão do painel, o botão da lista de responsáveis e a ação do estado vazio da turma. Mora aqui
+ * porque é rótulo de link de navegação, e o que a distingue está escrito no nome da chave.
+ *
+ * O membro de `voltarPara` é o DESTINO, e não a tela de origem: `ficha` aparece em três telas que
+ * voltam para a ficha do aluno. Quem acrescentar uma quarta encontra o rótulo pronto em vez de
+ * escrever "Voltar para a ficha" e deixar o sistema com duas redações para o mesmo caminho.
+ */
+export const ACOES = {
+  cancelar: 'Cancelar',
+  buscarAluno: 'Buscar aluno',
+  voltarPara: {
+    painel: 'Voltar ao painel',
+    busca: 'Voltar à busca',
+    ficha: 'Voltar à ficha',
+    alunos: 'Voltar aos alunos',
+    turma: 'Voltar à turma',
+    turmas: 'Voltar às turmas',
+    mural: 'Voltar ao mural',
+    comunicados: 'Voltar aos comunicados',
+  },
+} as const;
+
+/* --- Estados vazios --------------------------------------------------------- */
+
+/**
+ * O título do estado vazio das três telas que dependem de aluno matriculado: a chamada, o
+ * lançamento de notas e a ficha da turma.
+ *
+ * Só o TÍTULO tem dono. O parágrafo abaixo dele é diferente nas três — "não há chamada a registrar",
+ * "não há nota a lançar", "matricule pela ficha do aluno" — porque cada tela diz o que fazer a
+ * seguir, e o que fazer a seguir depende de onde a pessoa está. O fato constatado, esse é um só.
+ */
+export const SEM_ALUNO_MATRICULADO = 'Nenhum aluno matriculado';
+
 /* --- Avisos de sucesso ------------------------------------------------------ */
 
 /** O que a pessoa lê depois do POST-Redirect-GET. */
@@ -407,8 +577,9 @@ export const AVISOS = {
   notaUma: '1 nota gravada.',
   notasVarias: (total: number): string => `${total} notas gravadas.`,
   chamadaRegistrada: (data: string): string => `Chamada de ${data} registrada.`,
+  /** O "1º bimestre" sai de `ROTULO_DE_BIMESTRE`: é o mesmo que as três telas do diário imprimem. */
   bimestreFechado: (bimestre: number, turma: string): string =>
-    `${bimestre}º bimestre fechado para a turma ${turma}.`,
+    `${ROTULO_DE_BIMESTRE(bimestre)} fechado para a turma ${turma}.`,
 } as const;
 
 /** Os códigos que voltam na query; a frase que a pessoa lê nasce do mapa acima. */
