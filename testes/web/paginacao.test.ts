@@ -17,6 +17,8 @@ import {
   type Cenario,
 } from '../apoio/fabricas';
 import { TAMANHO_PADRAO } from '../../src/shared/paginacao';
+import { PARAMETROS } from '../../src/web/constantes';
+import { idDaAjuda } from '../../src/web/render';
 import { abrir, entrar } from './apoio';
 
 beforeEach(limparBanco);
@@ -191,5 +193,50 @@ describe('portal do responsável', () => {
     );
 
     expect(resposta.status).toBe(200);
+  });
+});
+
+describe('a ajuda da busca de alunos promete o recorte que a tela entrega', () => {
+  const AJUDA = new RegExp(`id="${idDaAjuda(PARAMETROS.busca)}"[^>]*>([\\s\\S]*?)</p>`);
+
+  const numerosDaAjuda = (pagina: string): number[] =>
+    ((AJUDA.exec(pagina)?.[1] ?? '').match(/\d+/g) ?? []).map(Number);
+
+  test('o único número da ajuda é o número de linhas que a página traz', async () => {
+    const cenario = await cenarioCompleto();
+    for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
+      await criarAluno({ redeId: cenario.rede.id, nome: `Silva ${String(i).padStart(3, '0')}` });
+    }
+
+    const pagina = await html('/secretaria/alunos?q=Silva', await entrarComoSecretaria(cenario));
+
+    expect(numerosDaAjuda(pagina)).toEqual([linhasDaTabela(pagina)]);
+    expect(numerosDaAjuda(pagina)).toEqual([TAMANHO]);
+  });
+
+  test('a ajuda não promete um teto: a paginação alcança todos os encontrados', async () => {
+    const cenario = await cenarioCompleto();
+    for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
+      await criarAluno({ redeId: cenario.rede.id, nome: `Silva ${String(i).padStart(3, '0')}` });
+    }
+    const cookie = await entrarComoSecretaria(cenario);
+
+    const primeira = await html('/secretaria/alunos?q=Silva', cookie);
+    const ultima = await html('/secretaria/alunos?q=Silva&p=2', cookie);
+
+    const encontrados = linhasDaTabela(primeira) + linhasDaTabela(ultima);
+    expect(numerosDaAjuda(primeira)).toEqual(numerosDaAjuda(ultima));
+    expect(encontrados).toBeGreaterThan(numerosDaAjuda(primeira)[0] ?? 0);
+  });
+
+  test('a tela sem busca declara o mesmo recorte da tela com resultado', async () => {
+    const cenario = await cenarioCompleto();
+    const cookie = await entrarComoSecretaria(cenario);
+
+    const semBusca = await html('/secretaria/alunos', cookie);
+    const comBusca = await html('/secretaria/alunos?q=Silva', cookie);
+
+    expect(numerosDaAjuda(semBusca)).toEqual(numerosDaAjuda(comBusca));
+    expect(numerosDaAjuda(semBusca)).toEqual([TAMANHO]);
   });
 });

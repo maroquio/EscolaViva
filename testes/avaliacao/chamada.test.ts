@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { avaliacao } from '../../src/avaliacao';
+import { avaliacao, LIMITES_DA_AVALIACAO } from '../../src/avaliacao';
 import {
   dataDeChamadaValida,
   dataDentroDoAnoLetivo,
@@ -352,7 +352,28 @@ describe('registrarChamada', () => {
     });
   });
 
-  test('recusa justificativa longa demais', async () => {
+  test('aceita justificativa com exatamente o limite em caracteres', async () => {
+    const justificativa = 'x'.repeat(LIMITES_DA_AVALIACAO.caracteresDaJustificativa);
+
+    const resultado = await avaliacao.registrarChamada({
+      redeId: cenario.rede.id,
+      turmaId: cenario.turmas[0].id,
+      data: DIA_LETIVO,
+      linhas: [{ matriculaId: cenario.matriculas[0].id, presente: false, justificativa }],
+    });
+
+    expect(resultado).toEqual({ ok: true, valor: 1 });
+    const registrada = await avaliacao.chamadaDoDia(
+      cenario.rede.id,
+      cenario.turmas[0].id,
+      DIA_LETIVO,
+    );
+    expect(registrada.get(cenario.matriculas[0].id)?.justificativa?.length).toBe(
+      LIMITES_DA_AVALIACAO.caracteresDaJustificativa,
+    );
+  });
+
+  test('recusa justificativa com um caractere além do limite', async () => {
     const resultado = await avaliacao.registrarChamada({
       redeId: cenario.rede.id,
       turmaId: cenario.turmas[0].id,
@@ -361,7 +382,7 @@ describe('registrarChamada', () => {
         {
           matriculaId: cenario.matriculas[0].id,
           presente: false,
-          justificativa: 'x'.repeat(501),
+          justificativa: 'x'.repeat(LIMITES_DA_AVALIACAO.caracteresDaJustificativa + 1),
         },
       ],
     });

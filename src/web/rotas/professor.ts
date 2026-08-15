@@ -264,7 +264,7 @@ async function telaDeChamada(
     campoData: CAMPOS.data,
     prefixoPresenca: CAMPOS.diario.presenca,
     prefixoJustificativa: CAMPOS.diario.justificativa,
-    limiteDaJustificativa: LIMITES_DA_AVALIACAO.justificativa,
+    limiteDaJustificativa: LIMITES_DA_AVALIACAO.caracteresDaJustificativa,
     linhas: matriculas.map(({ id, alunoNome }) => {
       const informada = recusada?.informadas.get(id);
       const registrada = registradas.get(id);

@@ -1,6 +1,6 @@
 export const LIMITES = {
   nota: { minimo: 0, maximo: 10 },
-  justificativa: 500,
+  caracteresDaJustificativa: 500,
 } as const;
 
 export const ARITMETICA = {

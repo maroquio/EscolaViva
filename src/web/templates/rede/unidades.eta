@@ -40,7 +40,7 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
         <tr>
           <th scope="col"><%= it.rotulos.unidade %></th>
           <th scope="col">Código INEP</th>
-<% // magic-values: permitido — não é um `ROTULOS.situacao`, nem o `VOCABULARIO_DE_IDENTIDADE.unidadeAtiva` da célula abaixo %>
+<% // magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em ROTULOS; nem é o `VOCABULARIO_DE_IDENTIDADE.unidadeAtiva` da célula abaixo %>
           <th scope="col">Situação</th>
         </tr>
       </thead>

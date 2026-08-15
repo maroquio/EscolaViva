@@ -30,7 +30,7 @@ const esquema = z.object({
         presente: z.boolean(),
         justificativa: z
           .string()
-          .max(LIMITES.justificativa, MENSAGENS.chamada.justificativaLonga)
+          .max(LIMITES.caracteresDaJustificativa, MENSAGENS.chamada.justificativaLonga)
           .nullable()
           .optional(),
       }),

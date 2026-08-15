@@ -19,11 +19,11 @@ const campos = it.campos.aluno;
     <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
     <div class="campo">
-      <label class="campo__rotulo" for="nome">
+      <label class="campo__rotulo" for="<%= campos.nome %>">
         Nome completo <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
       <input
-        id="nome"
+        id="<%= campos.nome %>"
         name="<%= campos.nome %>"
         type="text"
         required
@@ -39,11 +39,11 @@ const campos = it.campos.aluno;
     </div>
 
     <div class="campo">
-      <label class="campo__rotulo" for="dataNascimento">
+      <label class="campo__rotulo" for="<%= campos.dataNascimento %>">
         Data de nascimento <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
       <input
-        id="dataNascimento"
+        id="<%= campos.dataNascimento %>"
         name="<%= campos.dataNascimento %>"
         type="date"
         required
