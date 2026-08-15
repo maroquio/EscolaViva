@@ -10,11 +10,13 @@
     "build:assets": "bun scripts/build-assets.ts",
     "seed": "bun scripts/seed.ts",
     "seed:volume": "bun scripts/seed-volume.ts",
+    "golden": "bun scripts/golden.ts",
     "check": "bunx depcruise src --config .dependency-cruiser.js",
+    "magic": "bun scripts/magic-values.ts",
     "typecheck": "bunx tsc --noEmit",
     "test": "bun test",
     "test:cobertura": "bun test --coverage",
-    "verificar": "bun run typecheck && bun run check && bun run test"
+    "verificar": "bun run typecheck && bun run check && bun run magic && bun run test"
   },
   "dependencies": {
     "eta": "^3",
