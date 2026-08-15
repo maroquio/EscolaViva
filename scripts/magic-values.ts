@@ -8,7 +8,7 @@
  * exatamente por isso que `.dependency-cruiser.js` existe, e este arquivo é o mesmo raciocínio
  * aplicado ao valor em vez da seta.
  *
- * Ele cobra quatro coisas, e as quatro são modos de falha distintos:
+ * Ele cobra cinco coisas, e as cinco são modos de falha distintos:
  *
  *   1. LITERAL SOLTO — um literal em posição de expressão que ninguém nomeou: `slice(0, 10)`,
  *      `'Cadastrar aluno'`, `` `${prefixo}/*` ``. Um literal que é o VALOR de uma `const MAIUSCULA`
@@ -61,7 +61,7 @@
  *
  *      Cada uma das leituras acima nasceu olhando para UMA posição, e é assim que um verificador
  *      fica simétrico num eixo e cego nos outros. Fechar a cegueira é olhar para o mesmo valor onde
- *      ele não costuma estar, e foram três lugares:
+ *      ele não costuma estar, e foram quatro lugares:
  *
  *        - o NÚMERO na prosa da tela. "Mostra os 50 primeiros" e "notas de 0 a 10" são o mesmo teto
  *          que o handler já passa por `it`, escrito por extenso — e quando o dono muda, a frase
@@ -70,6 +70,12 @@
  *          para quem usa leitor de tela, e `<form aria-label="Buscar aluno">` era a quarta cópia de
  *          `ACOES.buscarAluno`, invisível porque o varredor pula o interior da tag inteira. Ver
  *          `ATRIBUTOS_DE_TEXTO`.
+ *        - a MARCA TIPOGRÁFICA na marcação. `ehMarcaTipografica` já existia, e só
+ *          `donoNoCodigoDoTemplate` a consultava — dentro de um `<% %>`. Na marcação quem julga é
+ *          `donoDoTexto`, que exige uma palavra de três letras e por isso nunca via um `·`: a
+ *          passada que trocou três separadores dentro de blocos deixou vinte na marcação, entre
+ *          eles o `nome · série · turno` de dois `<option>` — que é literalmente o exemplo
+ *          escrito no docblock de `APRESENTACAO.separador`. Ver `conferirMarcas`.
  *        - o PEDAÇO FIXO de um template com interpolação. `` `Notas do ${…} · ${…}` `` não é
  *          `isStringLiteral` nem `isNoSubstitutionTemplateLiteral`, então escapava das duas regras
  *          de uma vez — enquanto o `it.separador` correto estava quatro linhas abaixo, na mesma
@@ -83,6 +89,18 @@
  *      por construção, e é onde estava o que quatro passadas de refactor deixaram para trás: doze
  *      `<a class="botao botao--discreto">Cancelar</a>` em doze telas, com o verificador em
  *      silêncio, porque não havia nada com o que coincidir. Ver `OCORRENCIAS_PARA_ACUSAR`.
+ *
+ *   5. VALOR COMPOSTO — o texto que não é a CÓPIA de uma constante e sim a EMENDA de várias.
+ *
+ *      As quatro regras acima comparam o pedaço INTEIRO com o índice, e por isso um valor MONTADO
+ *      passa por todas elas: `<button>ano letivo</button>` é acusado e `<button>· ano letivo</button>`
+ *      cala. O defeito é o mesmo, e o repositório o descreve por escrito em `secretaria/aluno.eta`,
+ *      onde o sobretítulo compõe `AREAS.secretaria` com `APRESENTACAO.separador` e
+ *      `TITULOS.secretaria.aluno` "em vez de repetir 'Secretaria · Ficha do aluno' à mão". Nove
+ *      telas irmãs compõem assim; quatro escreviam o resultado, e renomear a área no menu as
+ *      deixava com o nome antigo sem que nada acusasse. Ver `composicaoDe` para o portão — e ele
+ *      é estreito de propósito, porque esta é a regra deste arquivo com mais jeito de produzir
+ *      falso positivo.
  *
  * As exceções abaixo são a regra 6 do refactor, e cada uma tem um motivo que não é preguiça:
  *
@@ -246,6 +264,12 @@ type Dono = { readonly caminho: string; readonly arquivo: string };
  * que a busca simplesmente não acharia nada.
  */
 const chaveDeTexto = (texto: string): string => `texto:${texto}`;
+
+/** Todo mundo que declarou este texto, na ordem em que os `constantes.ts` foram lidos. */
+const donosDe = (texto: string): readonly Dono[] => indicePorValor.get(chaveDeTexto(texto)) ?? [];
+
+/** Quem declarou este texto primeiro, se alguém declarou. */
+const primeiroDono = (texto: string): Dono | undefined => donosDe(texto)[0];
 
 const chaveDeValor = (no: ts.Node): string | undefined => {
   if (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) return chaveDeTexto(no.text);
@@ -1279,11 +1303,18 @@ const posicaoDe = (fonte: string, indice: number): Posicao => {
  * separa cópia de coincidência é a redação: ninguém redige "Cadastrar aluno" duas vezes por acaso.
  * No texto de um nó que nomeia, a posição já provou o que a redação provaria, e exigir duas
  * palavras deixaria passar justamente os rótulos de uma palavra só: "Turmas", "Alunos",
- * "Unidades", "Disciplinas", "Entrar". A palavra continua sendo exigida para que `·`, `—`, `0` e
- * `%` não virem achado.
+ * "Unidades", "Disciplinas", "Entrar". A palavra continua sendo exigida para que `0` e `%` não
+ * virem achado.
+ *
+ * A MARCA TIPOGRÁFICA entra por fora desse portão — e é por isso que `ehMarcaTipografica`, que só
+ * `donoNoCodigoDoTemplate` consultava, passa a valer também aqui. Um símbolo fora do ASCII não tem
+ * português com que coincidir, então não há o que a posição precise provar: o `·` da marcação vale
+ * o que vale o de dentro do bloco. Era exatamente essa a assimetria entre as duas metades do
+ * template — a passada que trocou três separadores dentro de `<% %>` deixou vinte na marcação,
+ * calados. Ver `conferirMarcas`, que é quem recorta a sequência antes de perguntar.
  */
 const donoDoTexto = (texto: string): Dono | undefined =>
-  UMA_PALAVRA.test(texto) ? (indicePorValor.get(chaveDeTexto(texto)) ?? [])[0] : undefined;
+  UMA_PALAVRA.test(texto) || ehMarcaTipografica(texto) ? primeiroDono(texto) : undefined;
 
 /**
  * A marca que substitui o código, caractere a caractere: preserva toda posição do arquivo — o
@@ -1383,7 +1414,19 @@ const fimDaTag = (fonte: string, inicio: number): number => {
 };
 
 /** Um pedaço que a pessoa digitou, e onde ele começa no arquivo. */
-type Recorte = { readonly indice: number; readonly texto: string };
+type Recorte = {
+  readonly indice: number;
+  readonly texto: string;
+  /**
+   * O mesmo pedaço ANTES do recorte das pontas, e onde ele começa. O espaço em volta é conteúdo
+   * para a regra da marca tipográfica e ruído para todas as outras: `APRESENTACAO.separador` vale
+   * ` · ` COM os dois espaços — eles são metade da decisão —, e o pedaço entre dois `<%= %>` é
+   * exatamente ` · `. Recortado, ele vira `·`, que nenhum `constantes.ts` declara, e o achado
+   * sumia por causa de dois espaços.
+   */
+  readonly bruto: string;
+  readonly indiceDoBruto: number;
+};
 
 /**
  * Um pedaço de texto do documento, e se ele está dentro de um nó que NOMEIA.
@@ -1433,7 +1476,12 @@ const recortesEscritosAMao = (marcado: string): Recorte[] => {
   for (const pedaco of marcado.split(MARCA_DE_CODIGO)) {
     const recortado = pedaco.trim();
     if (recortado !== '') {
-      recortes.push({ indice: deslocamento + pedaco.indexOf(recortado), texto: recortado });
+      recortes.push({
+        indice: deslocamento + pedaco.indexOf(recortado),
+        texto: recortado,
+        bruto: pedaco,
+        indiceDoBruto: deslocamento,
+      });
     }
     deslocamento += pedaco.length + MARCA_DE_CODIGO.length;
   }
@@ -1461,7 +1509,12 @@ const textosDoDocumento = (fonte: string): Texto[] => {
 
   const recolher = (inicio: number, fim: number, nomeia: boolean): void => {
     for (const recorte of recortesEscritosAMao(marcado.slice(inicio, fim))) {
-      textos.push({ indice: inicio + recorte.indice, texto: recorte.texto, nomeia });
+      textos.push({
+        ...recorte,
+        indice: inicio + recorte.indice,
+        indiceDoBruto: inicio + recorte.indiceDoBruto,
+        nomeia,
+      });
     }
   };
 
@@ -1544,6 +1597,148 @@ const foraDoAscii = (texto: string): boolean =>
 const ehMarcaTipografica = (texto: string): boolean =>
   SEM_LETRA_NEM_DIGITO.test(texto) && foraDoAscii(texto);
 
+/** A maior sequência sem letra e sem dígito: é onde uma marca tipográfica pode estar. */
+const SEQUENCIA_SEM_LETRA_NEM_DIGITO = /[^A-Za-zÀ-ÿ0-9]+/g;
+
+const ESPACO_EM_BRANCO = /\s+/g;
+
+const NAO_ESPACO = /\S/;
+
+/**
+ * O texto como o navegador o desenha: toda sequência de espaço em branco vira um espaço só. É
+ * regra do HTML, e é o que faz ` ·\n      ` e ` · ` serem o mesmo separador na tela.
+ */
+const comoOHtmlDesenha = (texto: string): string => texto.replaceAll(ESPACO_EM_BRANCO, ' ');
+
+/* --- Composição: o valor que não é copiado, é MONTADO ---------------------- */
+
+/**
+ * Quantos PEDAÇOS COM PALAVRA uma composição precisa ter para ser acusada. DOIS, e é o portão
+ * inteiro junto com a cobertura total — ver `composicaoDe`.
+ */
+const PEDACOS_MINIMOS_DA_COMPOSICAO = 2;
+
+/**
+ * Até onde vale procurar composição. Uma frase de tela tem o tamanho de um sobretítulo; um
+ * parágrafo de prosa não é montado a partir de constante nenhuma, e varrê-lo é só custo.
+ */
+const TAMANHO_MAXIMO_DA_COMPOSICAO = 80;
+
+/** Um pedaço de uma composição: o texto e quem já é dono dele. */
+type Pedaco = { readonly texto: string; readonly dono: Dono };
+
+/**
+ * Corta o texto em pedaços que TODOS têm dono, ou desiste.
+ *
+ * A COBERTURA É TOTAL, do primeiro ao último caractere, e é ela que impede
+ * `TITULOS.secretaria.alunos` ("Alunos") de casar dentro de "Alunos matriculados": o resto seria
+ * " matriculados", que nenhum `constantes.ts` declara, e a decomposição falha inteira. Uma regra
+ * que aceitasse subsequência acusaria toda frase que contém um substantivo do domínio, que é
+ * metade das telas.
+ *
+ * E cada pedaço precisa ser UMA PALAVRA DE VERDADE — três letras ou mais, o mesmo `UMA_PALAVRA`
+ * das outras regras — ou uma MARCA TIPOGRÁFICA. Sem esse mínimo, `'0'`, `'.'` e `' '`, que têm
+ * dono em algum `constantes.ts`, costurariam decomposições inventadas em cima de qualquer texto.
+ * A pontuação ASCII fica de fora aqui pelo mesmo motivo que fica em `ehMarcaTipografica`: ela é o
+ * alfabeto da composição de máquina, e cada camada é dona legítima da sua.
+ *
+ * A busca é gulosa pelo pedaço mais LONGO e volta atrás quando o resto não fecha, o que basta para
+ * "Anos letivos" não ser lido como "Anos" mais um resto órfão.
+ */
+const pedacosDe = (texto: string): string[] | undefined => {
+  if (texto.length > TAMANHO_MAXIMO_DA_COMPOSICAO) return undefined;
+  const memoria = new Map<number, string[] | undefined>();
+
+  const desde = (inicio: number): string[] | undefined => {
+    if (inicio === texto.length) return [];
+    if (memoria.has(inicio)) return memoria.get(inicio);
+    // A desistência fica gravada, e não só o sucesso: se este começo não fecha, ele não fecha
+    // tampouco quando outro galho voltar a ele, e sem a marca a busca refaria a subárvore inteira.
+    memoria.set(inicio, undefined);
+    for (let fim = texto.length; fim > inicio; fim -= 1) {
+      const pedaco = texto.slice(inicio, fim);
+      if (!UMA_PALAVRA.test(pedaco) && !ehMarcaTipografica(pedaco)) continue;
+      if (donosDe(pedaco).length === 0) continue;
+      const resto = desde(fim);
+      if (resto === undefined) continue;
+      const inteiro = [pedaco, ...resto];
+      memoria.set(inicio, inteiro);
+      return inteiro;
+    }
+    return undefined;
+  };
+
+  return desde(0);
+};
+
+/**
+ * De qual camada a composição fala — e por que a pergunta precisa ser feita.
+ *
+ * "Secretaria" tem DOIS donos: `VOCABULARIO.papel.secretaria`, que nomeia um papel de acesso, e
+ * `AREAS.secretaria`, que nomeia a área do produto. São conceitos diferentes com o mesmo texto, e
+ * a regra 2 do refactor manda mantê-los separados — apontar o primeiro do índice mandaria o leitor
+ * importar exatamente a constante errada, que é o falso positivo que `ELEMENTOS_QUE_NOMEIAM`
+ * documenta.
+ *
+ * Numa composição, porém, os pedaços que NÃO são ambíguos dizem de que camada a frase fala:
+ * "Rede · Anos letivos" tem `APRESENTACAO.separador` e `TITULOS.rede.anos`, os dois de
+ * `web/constantes.ts`, e é de lá que sai o dono certo de "Rede". O desempate é o arquivo em que a
+ * maioria dos pedaços sem ambiguidade mora.
+ */
+const arquivoDaComposicao = (pedacos: readonly string[]): string | undefined => {
+  const contagem = new Map<string, number>();
+  for (const pedaco of pedacos) {
+    const donos = donosDe(pedaco);
+    const unico = donos.length === 1 ? donos[0] : undefined;
+    if (unico === undefined) continue;
+    contagem.set(unico.arquivo, (contagem.get(unico.arquivo) ?? 0) + 1);
+  }
+  return [...contagem].sort(([, aqui], [, ali]) => ali - aqui)[0]?.[0];
+};
+
+/**
+ * O texto que não é a CÓPIA de uma constante e sim a EMENDA de várias — e quem são elas.
+ *
+ * É o defeito que o próprio repositório descreve por escrito, em `secretaria/aluno.eta`: o
+ * sobretítulo compõe `AREAS.secretaria` com `APRESENTACAO.separador` e `TITULOS.secretaria.aluno`
+ * "em vez de repetir 'Secretaria · Ficha do aluno' à mão". Nove telas irmãs compõem assim, e
+ * quatro escreviam o resultado. Nenhuma das regras anteriores as via, porque todas comparam o
+ * pedaço INTEIRO recortado com o índice e "Secretaria · Responsáveis" não é igual a nada: medido,
+ * `<button>ano letivo</button>` acusa e `<button>· ano letivo</button>` cala.
+ *
+ * ESTE É O TIPO DE REGRA QUE PRODUZ FALSO POSITIVO COM FACILIDADE — e a resposta a isso, quando um
+ * caso escapa, é APERTAR O PORTÃO, nunca abrir exceção. São dois portões, e o segundo é este:
+ *
+ *   - a decomposição precisa cobrir o texto inteiro (ver `pedacosDe`);
+ *   - e precisa sobrar DOIS PEDAÇOS COM PALAVRA, no mínimo. Um só é a coincidência de valor que a
+ *     regra do texto de nó já mede — e cujo portão de posição (`ELEMENTOS_QUE_NOMEIAM`) levou três
+ *     versões para acertar, depois de dezenove falsos. Dois é o que prova MONTAGEM: ninguém emenda
+ *     duas frases declaradas por acaso, e é por isso que aqui a POSIÇÃO não entra no portão —
+ *     `<p class="sobretitulo">` não nomeia tela nenhuma, e mesmo assim compõe.
+ *
+ * A marca tipográfica conta como pedaço e NÃO como palavra: em "Rede · Anos letivos" quem prova a
+ * montagem são "Rede" e "Anos letivos", e o ` · ` é o `APRESENTACAO.separador` que os une.
+ *
+ * O que fica de fora fica de propósito: `<p class="sobretitulo">Conta</p>`, em `conta/senha.eta`, é
+ * `AREAS.conta` byte a byte e continua passando calado — um pedaço só não é composição, e cobrar
+ * coincidência de valor num `<p>` é exatamente o que produziu os dezenove falsos. Medido, o portão
+ * acima acusa quatro composições no repositório e nenhum falso; afrouxá-lo para um pedaço acusaria
+ * também `<p class="sobretitulo">Frequência</p>`, que é `ROTULOS.frequencia` — o nome de um DADO, e
+ * não da área.
+ */
+const composicaoDe = (texto: string): Pedaco[] | undefined => {
+  const pedacos = pedacosDe(texto);
+  if (pedacos === undefined) return undefined;
+  const comPalavra = pedacos.filter((pedaco) => UMA_PALAVRA.test(pedaco));
+  if (comPalavra.length < PEDACOS_MINIMOS_DA_COMPOSICAO) return undefined;
+  const camada = arquivoDaComposicao(pedacos);
+  return pedacos.flatMap((pedaco) => {
+    const donos = donosDe(pedaco);
+    const dono = donos.find((candidato) => candidato.arquivo === camada) ?? donos[0];
+    return dono === undefined ? [] : [{ texto: pedaco, dono }];
+  });
+};
+
 /**
  * O dono de um valor escrito no CÓDIGO do template — dentro de um `<% %>` ou num atributo que o
  * navegador devolve ao servidor.
@@ -1583,7 +1778,7 @@ const donoNoCodigoDoTemplate = (texto: string, chave: string): Dono | undefined 
   // "nada digitado ainda", e não repete a decisão que `VALORES_INICIAIS.anoLetivo.ano` tomou.
   // A regra do `.ts` já o isenta pelo mesmo motivo; aqui ele chegava pela porta da chave igual.
   if (texto === '' || VOCABULARIO_DO_HTML.has(texto)) return undefined;
-  const donos = indicePorValor.get(chaveDeTexto(texto)) ?? [];
+  const donos = donosDe(texto);
   if (IDENTIFICADOR.test(texto) || ehMarcaTipografica(texto)) return donos[0];
   return escolherDono(donos, chave, DUAS_PALAVRAS_SEGUIDAS.test(texto));
 };
@@ -1724,6 +1919,62 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
   };
 
   /**
+   * A MARCA TIPOGRÁFICA na MARCAÇÃO — a metade do template que a regra não olhava.
+   *
+   * `ehMarcaTipografica` só era consultada por `donoNoCodigoDoTemplate`, dentro de um `<% %>`. Na
+   * marcação quem julga é `donoDoTexto`, que exige uma palavra de três letras e por isso nunca via
+   * um `·`: a passada que trocou três separadores dentro de blocos deixou vinte na marcação, entre
+   * eles o `<%= turma.nome %> · <%= turma.serie %> · <%= turma.turno %>` de dois `<option>` — que é
+   * LITERALMENTE o exemplo escrito no docblock de `APRESENTACAO.separador` ("nome · série ·
+   * turno"). O mesmo valor, na mesma tela, acusado de um lado da fronteira e calado do outro.
+   *
+   * O recorte é a MAIOR sequência sem letra e sem dígito, e ela sai do texto CRU, não do recortado:
+   * `APRESENTACAO.separador` vale ` · ` COM os dois espaços — eles são metade da decisão —, e o
+   * recorte das pontas os comia, deixando um `·` que nenhum `constantes.ts` declara. O espaço em
+   * branco é colapsado porque é o que o HTML faz: `</strong> ·\n      <a` desenha ` · ` na tela, e
+   * a quebra de linha é do arquivo, não do texto.
+   *
+   * A POSIÇÃO não entra no portão, e é a diferença para o texto de nó: um símbolo fora do ASCII não
+   * compõe caminho, id nem chave, ninguém o digita por acaso, e a única decisão que ele pode
+   * carregar é como a tela apresenta dois valores lado a lado. Não há coincidência de português a
+   * temer, então não há `ELEMENTOS_QUE_NOMEIAM` a exigir — o `·` de um `<option>` é tão separador
+   * quanto o de um `<a>`.
+   */
+  const conferirMarcas = (inicio: number, bruto: string): void => {
+    for (const sequencia of bruto.matchAll(SEQUENCIA_SEM_LETRA_NEM_DIGITO)) {
+      const desenhada = comoOHtmlDesenha(sequencia[0]);
+      const dono = donoDoTexto(desenhada);
+      if (dono === undefined) continue;
+      // Aponta o SÍMBOLO, e não o espaço que o antecede: a sequência pode começar na quebra de
+      // linha da linha anterior, e o achado tem de cair onde a pessoa vê a marca.
+      registrar(
+        inicio + sequencia.index + sequencia[0].search(NAO_ESPACO),
+        desenhada,
+        `separador redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+          'passe o valor pelo handler, via `it`',
+      );
+    }
+  };
+
+  /**
+   * A COMPOSIÇÃO: o sobretítulo que EMENDA a área, o separador e o título em vez de compô-los.
+   *
+   * Devolve se acusou, porque a metade do código precisa da resposta — lá a composição concorre com
+   * a regra do endereço pela mesma posição, e um lugar tem direito a um achado só.
+   */
+  const acusarComposicao = (indice: number, trecho: string, texto: string): boolean => {
+    const pedacos = composicaoDe(texto);
+    if (pedacos === undefined) return false;
+    const donos = pedacos.map((pedaco) => `${pedaco.dono.caminho} (${pedaco.dono.arquivo})`);
+    registrar(
+      indice,
+      trecho,
+      `texto composto — ${donos.join(' + ')}; ` + 'componha no handler e passe via `it`',
+    );
+    return true;
+  };
+
+  /**
    * O texto que o bloco `<% %>` escreve — venha ele de um literal inteiro ou de um PEDAÇO FIXO de
    * template, que é a mesma coisa vista de outro ângulo.
    *
@@ -1763,7 +2014,14 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
         `texto redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
           'passe o valor pelo handler, via `it`',
       );
-    } else if (!dentroDeTemplate && ROTA_COM_SEGMENTO.test(texto)) {
+      return;
+    }
+    // A composição vale nas DUAS metades do template pelo motivo de sempre: um rótulo montado à mão
+    // não deixa de ser montado por ter mudado de posição. Hoje ela não acusa nada aqui — os quatro
+    // sobretítulos compostos estão todos na marcação —, e é justamente por isso que a linha entra
+    // agora: mover um deles para dentro de um `<% %>` não pode apagá-lo do relatório.
+    if (acusarComposicao(indice, trecho, texto)) return;
+    if (!dentroDeTemplate && ROTA_COM_SEGMENTO.test(texto)) {
       registrar(indice, trecho, MOTIVO_DE_ENDERECO_NO_TEMPLATE);
     }
   };
@@ -1784,11 +2042,13 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
 
   /* --- Marcação: texto de nó que já tem dono -------------------------------- */
 
-  for (const { indice, texto, nomeia } of textosDoDocumento(fonte)) {
+  for (const { indice, texto, bruto, indiceDoBruto, nomeia } of textosDoDocumento(fonte)) {
     contar(indice, texto, texto);
     for (const numero of texto.matchAll(NUMERO_NA_PROSA)) {
       conferirLimiteNaProsa(indice + numero.index, texto, Number(numero[0]));
     }
+    conferirMarcas(indiceDoBruto, bruto);
+    acusarComposicao(indice, texto, texto);
     const dono = nomeia ? donoDoTexto(texto) : undefined;
     if (dono === undefined) continue;
     registrar(
@@ -1823,6 +2083,11 @@ function analisarTemplate(arquivo: string, fonte: string): Achado[] {
     for (const recorte of recortesEscritosAMao(comCodigoMarcado(atributo[2] ?? ''))) {
       const indice = inicio + recorte.indice;
       contar(indice, recorte.texto, atributo[0]);
+      // As mesmas duas leituras do texto de nó, pela razão de sempre: uma regra que vale numa
+      // posição e não na outra mede a posição, não o valor. Hoje nenhum `aria-label` do
+      // repositório traz marca ou composição — as duas linhas existem para que a próxima traga.
+      conferirMarcas(inicio + recorte.indiceDoBruto, recorte.bruto);
+      acusarComposicao(indice, recorte.texto, recorte.texto);
       // Vale a coincidência simples, como no texto de nó e pela mesma razão: o `aria-label` de um
       // controle é o NOME dele, e a posição já provou o que a redação provaria.
       const dono = donoDoTexto(recorte.texto);
