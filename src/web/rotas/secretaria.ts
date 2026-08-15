@@ -221,6 +221,7 @@ rotasSecretaria.get(ROTAS.secretaria.alunos.padrao, async (c) => {
     titulo: TITULOS.secretaria.alunos,
     campoDaBusca: PARAMETROS.busca,
     limiteDoNome: LIMITES_DO_ACADEMICO.aluno.nome,
+    linhasPorPagina: pagina.tamanho,
     termo,
     buscou: termo !== '',
     alunos,
