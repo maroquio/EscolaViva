@@ -1,0 +1,224 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1460 1836" width="1460" height="1836">
+  <defs>
+    <style>
+      text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', sans-serif; }
+    </style>
+    <marker id="seta-include" markerWidth="11" markerHeight="8" refX="10" refY="4" orient="auto">
+      <path d="M 0,0 L 10,4 L 0,8" fill="none" stroke="#7c3aed" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="seta-extend" markerWidth="11" markerHeight="8" refX="10" refY="4" orient="auto">
+      <path d="M 0,0 L 10,4 L 0,8" fill="none" stroke="#ea580c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="triangulo-geral" markerWidth="14" markerHeight="12" refX="13" refY="6" orient="auto">
+      <path d="M 0,0 L 13,6 L 0,12 Z" fill="#ffffff" stroke="#111827" stroke-width="1.4" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1460" height="1836" fill="#ffffff"/>
+  <text x="30" y="46" font-size="22" font-weight="600" fill="#111827">EscolaViva — Diagrama UML de Casos de Uso</text>
+  <text x="30" y="70" font-size="13" fill="#6b7280">Funcionalidades de usuário derivadas das rotas HTTP em src/web/rotas e dos casos de aplicação em src/&lt;modulo&gt;/aplicacao</text>
+  <rect x="250" y="96" width="1160" height="1506" rx="14" ry="14" fill="#fdfdfe" stroke="#9ca3af" stroke-width="1.6" stroke-dasharray="9,6"/>
+  <text x="268" y="126" font-size="15" font-weight="600" fill="#374151">Sistema EscolaViva — plataforma escolar SaaS multi-tenant</text>
+  <rect x="284" y="140" width="1112" height="136" rx="12" ry="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <text x="300" y="164" font-size="13" font-weight="600" fill="#475569">Acesso e conta — qualquer usuário autenticado</text>
+  <rect x="284" y="298" width="1112" height="236" rx="12" ry="12" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <text x="300" y="322" font-size="13" font-weight="600" fill="#7c3aed">Administração da rede</text>
+  <rect x="284" y="556" width="1112" height="148" rx="12" ry="12" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <text x="300" y="580" font-size="13" font-weight="600" fill="#ea580c">Comunicação com as famílias</text>
+  <rect x="284" y="726" width="1112" height="336" rx="12" ry="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <text x="300" y="750" font-size="13" font-weight="600" fill="#2563eb">Secretaria acadêmica</text>
+  <rect x="284" y="1084" width="1112" height="236" rx="12" ry="12" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <text x="300" y="1108" font-size="13" font-weight="600" fill="#16a34a">Diário do professor</text>
+  <rect x="284" y="1342" width="1112" height="236" rx="12" ry="12" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <text x="300" y="1366" font-size="13" font-weight="600" fill="#0d9488">Acompanhamento do responsável</text>
+  <g stroke="#111827" stroke-width="1.4" fill="none">
+    <path d="M 70,1484 V 232"/>
+    <path d="M 140,440 H 70"/>
+    <path d="M 140,918 H 70"/>
+    <path d="M 140,1226 H 70"/>
+    <path d="M 140,1484 H 70"/>
+    <path d="M 70,232 H 136" marker-end="url(#triangulo-geral)"/>
+  </g>
+  <text x="58" y="858" font-size="11" fill="#6b7280" transform="rotate(-90 58 858)" text-anchor="middle">generalização de atores</text>
+  <path d="M 180,232 H 268 V 232 H 295" fill="none" stroke="#475569" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,232 H 268 V 182 H 618 V 201" fill="none" stroke="#475569" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,232 H 268 V 182 H 840 V 201" fill="none" stroke="#475569" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,440 H 262 V 390 H 295" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,440 H 262 V 340 H 618 V 359" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,440 H 262 V 340 H 840 V 359" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,440 H 262 V 340 H 1062 V 359" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,440 H 262 V 648 H 295" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,440 H 262 V 598 H 618 V 617" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 690 H 395 V 679" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 690 H 618 V 679" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 818 H 295" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 768 H 618 V 787" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 768 H 840 V 787" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 768 H 1062 V 787" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 768 H 1285 V 787" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 918 H 295" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 868 H 618 V 887" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 868 H 840 V 887" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 868 H 1062 V 887" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 868 H 1285 V 887" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,918 H 270 V 1018 H 295" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,1226 H 268 V 1176 H 295" fill="none" stroke="#16a34a" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,1226 H 268 V 1126 H 618 V 1145" fill="none" stroke="#16a34a" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,1226 H 268 V 1126 H 840 V 1145" fill="none" stroke="#16a34a" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,1226 H 268 V 1126 H 1062 V 1145" fill="none" stroke="#16a34a" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,1484 H 268 V 1434 H 295" fill="none" stroke="#0d9488" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,1484 H 268 V 1384 H 618 V 1403" fill="none" stroke="#0d9488" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,1484 H 268 V 1384 H 840 V 1403" fill="none" stroke="#0d9488" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,1484 H 268 V 1384 H 1062 V 1403" fill="none" stroke="#0d9488" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 180,1484 H 268 V 1384 H 1285 V 1403" fill="none" stroke="#0d9488" stroke-width="1.2" opacity="0.75"/>
+  <path d="M 1062,421 V 459" fill="none" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#seta-include)"/>
+  <text x="1074" y="444" font-size="11.5" font-style="italic" fill="#7c3aed">«include»</text>
+  <path d="M 618,949 V 987" fill="none" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#seta-include)"/>
+  <text x="630" y="972" font-size="11.5" font-style="italic" fill="#7c3aed">«include»</text>
+  <path d="M 1062,1207 V 1245" fill="none" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#seta-include)"/>
+  <text x="1074" y="1230" font-size="11.5" font-style="italic" fill="#7c3aed">«include»</text>
+  <path d="M 1285,1503 V 1465" fill="none" stroke="#ea580c" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#seta-extend)"/>
+  <text x="1297" y="1488" font-size="11.5" font-style="italic" fill="#ea580c">«extend»</text>
+  <ellipse cx="395" cy="232" rx="100" ry="31" fill="#f1f5f9" stroke="#475569" stroke-width="1.6"/>
+  <text x="395" y="237" font-size="13" fill="#111827" text-anchor="middle">Autenticar</text>
+  <ellipse cx="618" cy="232" rx="100" ry="31" fill="#f1f5f9" stroke="#475569" stroke-width="1.6"/>
+  <text x="618" y="237" font-size="13" fill="#111827" text-anchor="middle">Encerrar sessão</text>
+  <ellipse cx="840" cy="232" rx="100" ry="31" fill="#f1f5f9" stroke="#475569" stroke-width="1.6"/>
+  <text x="840" y="237" font-size="13" fill="#111827" text-anchor="middle">Trocar a própria senha</text>
+  <ellipse cx="395" cy="390" rx="100" ry="31" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6"/>
+  <text x="395" y="395" font-size="13" fill="#111827" text-anchor="middle">Ver painel da rede</text>
+  <ellipse cx="618" cy="390" rx="100" ry="31" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6"/>
+  <text x="618" y="395" font-size="13" fill="#111827" text-anchor="middle">Criar unidade</text>
+  <ellipse cx="840" cy="390" rx="100" ry="31" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6"/>
+  <text x="840" y="395" font-size="13" fill="#111827" text-anchor="middle">Definir ano letivo</text>
+  <ellipse cx="1062" cy="390" rx="100" ry="31" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6"/>
+  <text x="1062" y="395" font-size="13" fill="#111827" text-anchor="middle">Convidar usuário</text>
+  <ellipse cx="1062" cy="490" rx="100" ry="31" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="6,4"/>
+  <text x="1062" y="487" font-size="13" fill="#111827" text-anchor="middle">Gerar senha</text>
+  <text x="1062" y="505" font-size="13" fill="#111827" text-anchor="middle">provisória</text>
+  <ellipse cx="395" cy="648" rx="100" ry="31" fill="#fff7ed" stroke="#ea580c" stroke-width="1.6"/>
+  <text x="395" y="653" font-size="13" fill="#111827" text-anchor="middle">Publicar comunicado</text>
+  <ellipse cx="618" cy="648" rx="100" ry="31" fill="#fff7ed" stroke="#ea580c" stroke-width="1.6"/>
+  <text x="618" y="645" font-size="13" fill="#111827" text-anchor="middle">Acompanhar leitura</text>
+  <text x="618" y="663" font-size="13" fill="#111827" text-anchor="middle">dos comunicados</text>
+  <ellipse cx="395" cy="818" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="395" y="815" font-size="13" fill="#111827" text-anchor="middle">Ver painel da</text>
+  <text x="395" y="833" font-size="13" fill="#111827" text-anchor="middle">secretaria</text>
+  <ellipse cx="618" cy="818" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="618" y="823" font-size="13" fill="#111827" text-anchor="middle">Cadastrar aluno</text>
+  <ellipse cx="840" cy="818" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="840" y="815" font-size="13" fill="#111827" text-anchor="middle">Consultar ficha</text>
+  <text x="840" y="833" font-size="13" fill="#111827" text-anchor="middle">do aluno</text>
+  <ellipse cx="1062" cy="818" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="1062" y="823" font-size="13" fill="#111827" text-anchor="middle">Cadastrar responsável</text>
+  <ellipse cx="1285" cy="818" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="1285" y="815" font-size="13" fill="#111827" text-anchor="middle">Vincular responsável</text>
+  <text x="1285" y="833" font-size="13" fill="#111827" text-anchor="middle">ao aluno</text>
+  <ellipse cx="395" cy="918" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="395" y="923" font-size="13" fill="#111827" text-anchor="middle">Matricular aluno</text>
+  <ellipse cx="618" cy="918" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="618" y="923" font-size="13" fill="#111827" text-anchor="middle">Transferir matrícula</text>
+  <ellipse cx="840" cy="918" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="840" y="923" font-size="13" fill="#111827" text-anchor="middle">Cadastrar turma</text>
+  <ellipse cx="1062" cy="918" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="1062" y="923" font-size="13" fill="#111827" text-anchor="middle">Consultar turma</text>
+  <ellipse cx="1285" cy="918" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="1285" y="915" font-size="13" fill="#111827" text-anchor="middle">Alocar professor</text>
+  <text x="1285" y="933" font-size="13" fill="#111827" text-anchor="middle">em disciplina</text>
+  <ellipse cx="395" cy="1018" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="395" y="1023" font-size="13" fill="#111827" text-anchor="middle">Cadastrar disciplina</text>
+  <ellipse cx="618" cy="1018" rx="100" ry="31" fill="#ffffff" stroke="#2563eb" stroke-width="1.6" stroke-dasharray="6,4"/>
+  <text x="618" y="1015" font-size="13" fill="#111827" text-anchor="middle">Encerrar matrícula</text>
+  <text x="618" y="1033" font-size="13" fill="#111827" text-anchor="middle">de origem</text>
+  <ellipse cx="395" cy="1176" rx="100" ry="31" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+  <text x="395" y="1173" font-size="13" fill="#111827" text-anchor="middle">Ver painel do</text>
+  <text x="395" y="1191" font-size="13" fill="#111827" text-anchor="middle">professor</text>
+  <ellipse cx="618" cy="1176" rx="100" ry="31" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+  <text x="618" y="1181" font-size="13" fill="#111827" text-anchor="middle">Lançar notas</text>
+  <ellipse cx="840" cy="1176" rx="100" ry="31" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+  <text x="840" y="1181" font-size="13" fill="#111827" text-anchor="middle">Registrar chamada</text>
+  <ellipse cx="1062" cy="1176" rx="100" ry="31" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+  <text x="1062" y="1181" font-size="13" fill="#111827" text-anchor="middle">Fechar bimestre</text>
+  <ellipse cx="1062" cy="1276" rx="100" ry="31" fill="#ffffff" stroke="#16a34a" stroke-width="1.6" stroke-dasharray="6,4"/>
+  <text x="1062" y="1273" font-size="13" fill="#111827" text-anchor="middle">Conferir pendências</text>
+  <text x="1062" y="1291" font-size="13" fill="#111827" text-anchor="middle">do bimestre</text>
+  <ellipse cx="395" cy="1434" rx="100" ry="31" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6"/>
+  <text x="395" y="1431" font-size="13" fill="#111827" text-anchor="middle">Ver painel do</text>
+  <text x="395" y="1449" font-size="13" fill="#111827" text-anchor="middle">responsável</text>
+  <ellipse cx="618" cy="1434" rx="100" ry="31" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6"/>
+  <text x="618" y="1439" font-size="13" fill="#111827" text-anchor="middle">Consultar boletim</text>
+  <ellipse cx="840" cy="1434" rx="100" ry="31" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6"/>
+  <text x="840" y="1439" font-size="13" fill="#111827" text-anchor="middle">Consultar frequência</text>
+  <ellipse cx="1062" cy="1434" rx="100" ry="31" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6"/>
+  <text x="1062" y="1431" font-size="13" fill="#111827" text-anchor="middle">Ver mural de</text>
+  <text x="1062" y="1449" font-size="13" fill="#111827" text-anchor="middle">comunicados</text>
+  <ellipse cx="1285" cy="1434" rx="100" ry="31" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6"/>
+  <text x="1285" y="1439" font-size="13" fill="#111827" text-anchor="middle">Ler comunicado</text>
+  <ellipse cx="1285" cy="1534" rx="100" ry="31" fill="#ffffff" stroke="#0d9488" stroke-width="1.6" stroke-dasharray="6,4"/>
+  <text x="1285" y="1531" font-size="13" fill="#111827" text-anchor="middle">Marcar comunicado</text>
+  <text x="1285" y="1549" font-size="13" fill="#111827" text-anchor="middle">como lido</text>
+  <g stroke="#475569" stroke-width="2" fill="none" stroke-linecap="round">
+    <circle cx="160" cy="210" r="11" fill="#ffffff"/>
+    <path d="M 160,221 V 246"/>
+    <path d="M 144,230 H 176"/>
+    <path d="M 160,246 L 147,264"/>
+    <path d="M 160,246 L 173,264"/>
+  </g>
+  <text x="160" y="282" font-size="13.5" font-weight="600" fill="#111827" text-anchor="middle">Usuário</text>
+  <text x="160" y="298" font-size="11.5" fill="#6b7280" text-anchor="middle">autenticado</text>
+  <g stroke="#7c3aed" stroke-width="2" fill="none" stroke-linecap="round">
+    <circle cx="160" cy="418" r="11" fill="#ffffff"/>
+    <path d="M 160,429 V 454"/>
+    <path d="M 144,438 H 176"/>
+    <path d="M 160,454 L 147,472"/>
+    <path d="M 160,454 L 173,472"/>
+  </g>
+  <text x="160" y="490" font-size="13.5" font-weight="600" fill="#111827" text-anchor="middle">Admin de Rede</text>
+  <g stroke="#2563eb" stroke-width="2" fill="none" stroke-linecap="round">
+    <circle cx="160" cy="896" r="11" fill="#ffffff"/>
+    <path d="M 160,907 V 932"/>
+    <path d="M 144,916 H 176"/>
+    <path d="M 160,932 L 147,950"/>
+    <path d="M 160,932 L 173,950"/>
+  </g>
+  <text x="160" y="968" font-size="13.5" font-weight="600" fill="#111827" text-anchor="middle">Secretaria</text>
+  <g stroke="#16a34a" stroke-width="2" fill="none" stroke-linecap="round">
+    <circle cx="160" cy="1204" r="11" fill="#ffffff"/>
+    <path d="M 160,1215 V 1240"/>
+    <path d="M 144,1224 H 176"/>
+    <path d="M 160,1240 L 147,1258"/>
+    <path d="M 160,1240 L 173,1258"/>
+  </g>
+  <text x="160" y="1276" font-size="13.5" font-weight="600" fill="#111827" text-anchor="middle">Professor</text>
+  <g stroke="#0d9488" stroke-width="2" fill="none" stroke-linecap="round">
+    <circle cx="160" cy="1462" r="11" fill="#ffffff"/>
+    <path d="M 160,1473 V 1498"/>
+    <path d="M 144,1482 H 176"/>
+    <path d="M 160,1498 L 147,1516"/>
+    <path d="M 160,1498 L 173,1516"/>
+  </g>
+  <text x="160" y="1534" font-size="13.5" font-weight="600" fill="#111827" text-anchor="middle">Responsável</text>
+  <g id="legend" class="legend">
+  <rect x="250" y="1632" width="700" height="172" rx="10" ry="10" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1.2"/>
+  <text x="266" y="1656" font-size="12.5" font-weight="600" fill="#374151">Legenda</text>
+  <path d="M 266,1680 H 300" stroke="#2563eb" stroke-width="1.4" fill="none"/>
+  <text x="310" y="1684" font-size="12" fill="#374151">Associação — o ator executa o caso de uso</text>
+  <path d="M 266,1704 H 290" stroke="#111827" stroke-width="1.4" fill="none" marker-end="url(#triangulo-geral)"/>
+  <text x="310" y="1708" font-size="12" fill="#374151">Generalização — todo papel é um usuário autenticado</text>
+  <path d="M 266,1728 H 292" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="6,4" fill="none" marker-end="url(#seta-include)"/>
+  <text x="310" y="1732" font-size="12" fill="#374151">«include» — comportamento sempre executado pelo caso base</text>
+  <path d="M 266,1752 H 292" stroke="#ea580c" stroke-width="1.4" stroke-dasharray="6,4" fill="none" marker-end="url(#seta-extend)"/>
+  <text x="310" y="1756" font-size="12" fill="#374151">«extend» — comportamento opcional que estende o caso base</text>
+  <text x="266" y="1788" font-size="11.5" fill="#6b7280">Elipse tracejada = caso de uso incluído/estendido, nunca iniciado direto pelo ator.</text>
+  </g>
+  <path d="M 976,1632 H 1390 L 1410,1652 V 1804 H 976 Z" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.2"/>
+  <path d="M 1390,1632 V 1652 H 1410" fill="none" stroke="#fcd34d" stroke-width="1.2"/>
+  <text x="992" y="1658" font-size="12.5" font-weight="600" fill="#92400e">Recorte multi-tenant</text>
+  <text x="992" y="1680" font-size="11.5" fill="#78350f">Todo caso de uso ocorre dentro de uma rede: o rede_id da</text>
+  <text x="992" y="1696" font-size="11.5" fill="#78350f">sessão recorta o que cada papel enxerga. Papéis são atribuídos</text>
+  <text x="992" y="1712" font-size="11.5" fill="#78350f">por unidade — a mesma pessoa pode ser secretaria em uma</text>
+  <text x="992" y="1728" font-size="11.5" fill="#78350f">unidade e responsável em outra, e exigirPapel() só verifica</text>
+  <text x="992" y="1744" font-size="11.5" fill="#78350f">que o papel existe, não sobre quais registros ele vale.</text>
+  <text x="992" y="1760" font-size="11.5" fill="#78350f"></text>
+  <text x="992" y="1776" font-size="11.5" fill="#78350f">Publicar comunicado e Acompanhar leitura são os dois únicos</text>
+  <text x="992" y="1792" font-size="11.5" fill="#78350f">casos compartilhados entre dois atores primários.</text>
+</svg>
