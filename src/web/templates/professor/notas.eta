@@ -1,68 +1,4 @@
 <%
-/*
-  Diário de notas de uma disciplina da turma, em um bimestre.
-
-  A tela inteira é uma tabela: uma linha por matrícula ativa, um campo por linha, um envio só. O
-  professor lança a turma de uma vez porque é assim que ele trabalha — com o diário aberto ao lado —
-  e porque salvar aluno a aluno seria trinta escritas onde uma basta.
-
-  Campo em branco não é campo esquecido: é a decisão de apagar a nota daquele aluno, e o rodapé do
-  formulário diz isso antes de alguém descobrir do jeito difícil.
-
-  Com o bimestre fechado a mesma tabela aparece sem campo nenhum. Esconder a tela seria pior do que
-  mostrá-la travada: o professor precisa ver o que foi lançado mesmo depois de não poder mudá-lo.
-
-  O seletor de bimestre é feito de links, não de <select>: sem JavaScript, um <select> precisaria de
-  um botão "aplicar" para navegar, e quatro links fazem o mesmo trabalho com o teclado.
-
-  Nenhum endereço desta tela é escrito à mão. Os que dependem da alocação — a ação do formulário,
-  os quatro links de bimestre e os atalhos de chamada e fechamento — chegam prontos da rota,
-  montados uma vez só; a volta para "Minhas turmas" sai de `it.rotas`, o mesmo mapa que o router
-  registra. URL literal em `.eta` não quebra compilação: quebra a tela de quem clica.
-
-  O RÓTULO dessa volta vem pelo mesmo caminho: `it.titulos.professor.painel` é o título da tela
-  para onde ela leva, e é dele que o menu lateral já tira o nome do mesmo link. Escrito à mão aqui,
-  renomear o painel do professor deixava três telas mandando o professor de volta para uma página
-  que passou a se chamar outra coisa.
-
-  O mesmo vale para o que não é endereço. O `id=` do erro da célula e o `aria-describedby` do campo
-  que ele descreve são o MESMO valor nas duas pontas, e chegam em `it.prefixos.erroDeCelula`
-  (`PREFIXOS_DE_ID`); os separadores do sobretítulo E da legenda da tabela chegam em `it.separador`
-  e `it.separadorDeTurno` (`APRESENTACAO`); o caminho da parcial, em `it.parciais`. Todos vêm de
-  `src/web/constantes.ts` pela rota: o Eta não importa TypeScript, e redigitá-los aqui abriria a
-  segunda fonte de verdade que a constante existe para fechar.
-
-  O INTERVALO DA NOTA é o mesmo caso, e a tela já o lia certo em dois dos três lugares: o cabeçalho
-  da coluna e o `min=`/`max=` do campo saem de `it.notaMinima` e `it.notaMaxima`, que a rota tira de
-  `LIMITES.nota` (`avaliacao`) — a mesma escala que o caso de uso aplica ao recusar e que o banco
-  repete em `valor_valido`. Só o resumo do alto da página dizia "de 0 a 10" à mão. Mudar a escala da
-  rede movia a caixa, o cabeçalho, a recusa do servidor e a restrição da tabela de uma vez, e
-  deixava a primeira frase que o professor lê prometendo o intervalo antigo. Agora os três leem o
-  mesmo par.
-
-  E o mesmo vale, por fim, para o TEXTO. Três coisas que esta tela diz também são ditas fora dela:
-
-    - `it.rotuloDeBimestre(n)` escreve "1º bimestre". A tela o escreve quatro vezes — na legenda da
-      tabela, no aviso de bimestre fechado, no rótulo oculto de cada campo e no botão de salvar —, e
-      o boletim e as duas telas de fechamento escrevem o mesmo. O dono é `ROTULO_DE_BIMESTRE`, em
-      `avaliacao`, porque quem decide o que é um bimestre é quem fecha um; o `AVISOS.bimestreFechado`
-      da camada web já compõe a frase de sucesso com ele. Redigitar `º bimestre` faria o dia em que
-      o produto passasse a dizer "1º trimestre" chegar em cinco telas e faltar na sexta.
-    - `it.rotulos.aluno` é o nome do dado "Aluno" no alto da coluna, o mesmo que encabeça as tabelas
-      de aluno das outras telas.
-    - `it.semAlunoMatriculado` é o TÍTULO do estado vazio que a chamada e a ficha da turma também
-      mostram: o fato constatado é um só. O parágrafo abaixo dele fica aqui porque é só desta tela —
-      cada uma diz o que fazer a seguir, e daqui a saída é a secretaria.
-
-  O `<%= numero %>º` dos quatro links de bimestre NÃO usa `it.rotuloDeBimestre`: ali está o ordinal
-  sozinho, sem o substantivo, porque o `aria-label` do `<nav>` já disse "Bimestre" e repeti-lo em
-  cada link deixaria o leitor de tela ouvindo "bimestre" cinco vezes seguidas. É outra decisão.
-
-  A LINHA EM BRANCO dentro do `<label>` oculto, logo depois de `it.rotuloDeBimestre(...)`, não é
-  descuido: o Eta está configurado com `autoTrim: [false, 'nl']` e come a quebra de linha que vem
-  logo após um `%>`. Com a tag no fim da linha, o `</label>` subia para junto do texto. A linha em
-  branco repõe a quebra que o Eta consome, e o HTML sai igual ao de antes — byte a byte.
-*/
 const linhas = it.linhas ?? [];
 const fechado = it.fechado === true;
 const bimestre = it.bimestre;
@@ -108,9 +44,6 @@ const legenda = `Notas do ${it.rotuloDeBimestre(bimestre)}${it.separador}${aloca
 }) %>
 <% } else { %>
 
-<%
-/* O <form> só existe quando há o que enviar: com o bimestre fechado a tabela é a mesma, sem campos. */
-%>
 <% if (!fechado) { %>
 <form class="formulario formulario--largo" method="post" action="<%= it.acaoDoFormulario %>">
   <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">

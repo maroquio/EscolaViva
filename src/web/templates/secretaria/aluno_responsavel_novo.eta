@@ -1,47 +1,4 @@
 <%
-/*
-  Vínculo de responsável a um aluno.
-
-  Quem já responde pelo aluno sai da lista: vincular duas vezes é o mesmo vínculo. Se não sobrar
-  ninguém, a página diz por quê e aponta o caminho — cadastrar um responsável novo — em vez de
-  mostrar um seletor vazio.
-
-  Os cinco endereços da tela saem de `it.rotas`, o mesmo mapa que o router registra: são três
-  destinos, e a volta à ficha sozinha aparece três vezes — no cabeçalho, no estado vazio e no
-  "Cancelar". Quatro dos cinco carregam o `:id` do aluno. Escrito à mão, cada um seria uma cópia que
-  pode divergir sozinha, com o id concatenado por conta própria — e URL literal em `.eta` não quebra
-  compilação: quebra a tela de quem clica.
-*/
-
-/*
-  O limite do parentesco, o rótulo da opção em branco e o valor que a caixa envia quando marcada
-  chegam prontos pelo `it`. O dono do tamanho é `LIMITES.parentesco.descricao`
-  (`src/academico/constantes.ts`), que `vincularResponsavel` faz valer com
-  `MENSAGENS.vinculo.parentescoLongo`; o `maxlength` só adianta a recusa no navegador. `it.marcado` é
-  `MARCADO` (`src/web/constantes.ts`) — caixa desmarcada não é enviada pelo navegador, e é a ausência
-  do nome, não o valor, que o servidor lê como "não". `it.opcaoVazia` é `APRESENTACAO.opcaoVazia`.
-
-  Os dois rótulos de ação também: `it.titulos` — `TITULOS` (`src/web/constantes.ts`), o mesmo mapa de
-  onde a rota tira o `it.titulo` do `<h1>`. O botão que envia carrega o título desta tela, e a saída
-  do estado vazio carrega o título da tela de cadastro de responsável, que é para onde ela leva.
-  Escritos à mão, renomear qualquer uma das duas telas deixaria a outra ponta chamando-a pelo nome
-  antigo, e nada acusa: o botão continua funcionando com a legenda errada.
-
-  O sobretítulo compõe `it.areas.secretaria` com o `it.apresentacao.separador`, e os três rótulos de
-  saída — as duas voltas à ficha e o "Cancelar" do pé do formulário — saem de `it.acoes`: "Voltar à
-  ficha" nomeia o DESTINO e aparece em três telas, "Cancelar" nomeia o que se abandona e é a mesma
-  palavra nos doze formulários do sistema.
-
-  `campos` é `CAMPOS.vinculo` (`src/academico/constantes.ts`, alcançado pelo `CAMPOS` da camada web):
-  é o nome que ATRAVESSA arquivos — a rota lê o corpo por ele e `vincularResponsavel` devolve
-  `falhaDeCampo` com ele —, e é por isso que o `name=`, o `erroDe()`, o `descricao()` e o `valor()`
-  o leem daqui em vez de repetirem a string. Já o `id=` do controle e o `for=` do `<label>` continuam
-  escritos à mão: casam um com o outro dentro desta caixa e não atravessam arquivo; quem
-  atravessa é o `name=`, e esse vem de `campos`.
-  Os ids do erro e da ajuda, ao contrário, atravessam: são o alvo do `aria-describedby` que
-  `descricao()` monta do outro lado, e por isso saem de `it.idDoErro` / `it.idDaAjuda`, as funções
-  que guardam a mesma regra que ela.
-*/
 const aluno = it.aluno;
 const disponiveis = it.disponiveis ?? [];
 const temResponsaveis = it.temResponsaveis === true;

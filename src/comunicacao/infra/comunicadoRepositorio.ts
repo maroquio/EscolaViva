@@ -44,7 +44,6 @@ export type ChaveDeDestinatario = {
   responsavelId: string;
 };
 
-/** `timestamptz` chega do driver como Date; para fora do módulo todo instante é texto ISO em UTC. */
 function emTexto(instante: Date): string {
   return instante.toISOString();
 }
@@ -65,7 +64,6 @@ function paraComunicado(linha: LinhaDeComunicado): ComunicadoArmazenado {
   };
 }
 
-/** `publicado_em` é o relógio do banco: o instante gravado é o mesmo que a transação enxerga. */
 export async function inserirPublicado(
   sql: Conexao,
   novo: NovoComunicado,
@@ -89,7 +87,6 @@ export async function inserirPublicado(
   };
 }
 
-/** Uma instrução para a lista inteira: 300 responsáveis não podem virar 300 idas ao banco. */
 export async function inserirDestinatarios(
   sql: Conexao,
   entrada: { redeId: string; comunicadoId: string; responsaveisIds: readonly string[] },
@@ -102,16 +99,6 @@ export async function inserirDestinatarios(
   await sql`INSERT INTO comunicado_destinatario ${sql(linhas)}`;
 }
 
-/**
- * O mural é montado do lado do destinatário — o índice que serve aqui é
- * `comunicado_destinatario (rede_id, responsavel_id)`; a ordem por `publicado_em DESC` é a mesma
- * que o índice de `comunicado` materializa.
- */
-/**
- * `lido` separa as duas metades do mural no banco, e não depois de trazer tudo. Filtrar em memória
- * obrigaria a carregar o mural inteiro para mostrar as vinte linhas não lidas de quem acumulou
- * quatro anos de comunicados.
- */
 export type FiltroDoMural = { lido?: boolean };
 
 export async function listarDoResponsavel(
@@ -161,7 +148,6 @@ export async function contarDoResponsavel(
   return linhas[0]?.total ?? 0;
 }
 
-/** O JOIN com destinatário é a regra de visibilidade: quem não recebeu não lê. */
 export async function buscarParaResponsavel(
   sql: Conexao,
   redeId: string,
@@ -180,7 +166,6 @@ export async function buscarParaResponsavel(
   return linha === undefined ? null : paraComunicado(linha);
 }
 
-/** `lido_em IS NULL` no WHERE: a segunda abertura do comunicado não apaga a primeira leitura. */
 export async function marcarLeitura(sql: Conexao, chave: ChaveDeDestinatario): Promise<void> {
   await sql`
     UPDATE comunicado_destinatario
@@ -192,10 +177,6 @@ export async function marcarLeitura(sql: Conexao, chave: ChaveDeDestinatario): P
   `;
 }
 
-/**
- * Destinatários, leituras e ordem em uma consulta só. O parâmetro de unidade é comparado como
- * `uuid` porque `$n IS NULL` sozinho não dá ao Postgres contexto para inferir o tipo.
- */
 export async function contarLeituras(
   sql: Conexao,
   redeId: string,
@@ -240,12 +221,6 @@ export async function contarComunicados(
   return linhas[0]?.total ?? 0;
 }
 
-/**
- * Destinatários e leituras do recorte inteiro, não da página.
- *
- * O número do topo da tela mede o alcance da comunicação da unidade — se ele mudasse a cada
- * clique em "próxima", deixaria de medir alguma coisa e viraria mais uma soma de vinte linhas.
- */
 export async function somarLeituras(
   sql: Conexao,
   redeId: string,

@@ -7,8 +7,6 @@ export async function porTurma(
   redeId: string,
   turmaId: string,
 ): Promise<FechamentoBimestre[]> {
-  // `timestamptz` volta do driver como objeto de data; o `to_char` sobre o instante em UTC entrega
-  // sempre o mesmo texto ISO à aplicação, sem depender do fuso da sessão do banco.
   const linhas: { bimestre: number; fechado_em: string }[] = await sql`
     SELECT bimestre,
            to_char(fechado_em AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS fechado_em

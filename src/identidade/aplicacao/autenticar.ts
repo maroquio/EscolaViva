@@ -26,7 +26,6 @@ const schema = z.object({
   ip: z.string(),
 });
 
-/** Uma única mensagem para identificador inexistente e para senha errada: a tela não é um oráculo. */
 const CREDENCIAIS_INVALIDAS = {
   codigo: CODIGOS.credenciaisInvalidas,
   mensagem: MENSAGENS.login.credenciaisInvalidas,
@@ -60,8 +59,6 @@ export async function autenticar(entrada: {
 
   const sql = leitura();
   const rede = await redeRepositorio.porSlug(sql, dados.redeSlug);
-  // A rede é dita pelo próprio usuário na tela e não é segredo; esconder que ela está suspensa
-  // só transformaria uma cobrança em atraso em chamado de "minha senha parou de funcionar".
   if (rede === null || !redeAtiva(rede)) {
     return falhaDeCampo(
       CAMPOS.login.redeSlug,

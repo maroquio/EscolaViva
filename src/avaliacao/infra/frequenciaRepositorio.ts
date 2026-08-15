@@ -1,12 +1,3 @@
-/*
- * `frequencia` é a maior tabela do sistema — cerca de 3,6 milhões de linhas por ano letivo na
- * escala de referência. Todas as consultas abaixo entram pelo índice
- * `frequencia (rede_id, matricula_id, data)`, na ordem das colunas dele.
- *
- * `date` volta do driver como objeto de data; o `to_char` fixa o texto ISO na fronteira do banco,
- * independente do `DateStyle` da sessão, e é esse texto que circula pela aplicação.
- */
-
 import type { Conexao } from '../../shared/db';
 import { recorte, type Faixa } from '../../shared/paginacao';
 import { idGeneratorUuid } from '../../shared/ports';
@@ -43,10 +34,6 @@ export async function porMatriculasEData(
   );
 }
 
-/**
- * Duzentos dias letivos por matrícula, e o responsável só olha os últimos. O recorte entra pelo
- * mesmo índice da ordenação — `LIMIT` sobre `(rede_id, matricula_id, data)` lê a página e para.
- */
 export async function porMatricula(
   sql: Conexao,
   redeId: string,
@@ -80,7 +67,6 @@ export async function contarPorMatricula(
   return linhas[0]?.total ?? 0;
 }
 
-/** Total de dias e presenças da matrícula, contados no banco — o boletim não traz as linhas. */
 export async function apuracaoDaMatricula(
   sql: Conexao,
   redeId: string,
@@ -97,10 +83,6 @@ export async function apuracaoDaMatricula(
   return { totalDias: apurado.total_dias, presencas: apurado.presencas };
 }
 
-/**
- * A chamada do dia inteira vai num `INSERT` só. `ON CONFLICT` é o que permite ao professor
- * reabrir a tela, corrigir uma falta e reenviar sem duplicar o dia.
- */
 export async function gravarEmLote(
   sql: Conexao,
   chamada: { redeId: string; data: string; linhas: LinhaParaGravar[] },

@@ -1,67 +1,4 @@
 <%
-/*
-  Publicação de comunicado, em dois passos.
-
-  A lista de destinatários só pode ser montada depois que a unidade é conhecida, e quem a conhece
-  é o servidor — então o primeiro passo é um GET que apenas escolhe a unidade, e o segundo é o
-  formulário de envio, já com os responsáveis daquela unidade em mãos. Dois passos honestos valem
-  mais que uma tela que finge escolher sozinha.
-
-  No fim do arquivo está o único script que uma tela traz por conta própria — o de fechar avisos
-  vem no layout, em toda página. Ele liga o botão de marcar todos e é enriquecimento e nada mais:
-  nenhum campo, nenhuma validação e nenhum passo dependem dele.
-
-  Nenhum limite de tamanho é repetido aqui: quem conhece o tamanho do título e do corpo é
-  `comunicacao`, e é de lá que vem a mensagem quando o texto não cabe. A altura da caixa de
-  mensagem também não: `it.linhasDaMensagem` chega da rota, onde a decisão está nomeada e o
-  compilador a enxerga.
-*/
-
-/*
-  Os nomes de campo e os auxiliares de erro chegam de fora, e pelo mesmo motivo: o `.eta` não passa
-  pelo compilador, e as duas pontas de cada contrato moram em outro arquivo.
-
-  `it.campos.comunicado` é o `CAMPOS` do módulo de comunicação — o mesmo mapa que a rota usa para ler
-  o corpo do formulário e que o caso de uso devolve em `falhaDeCampo`. Um `name=` redigitado faz o
-  campo chegar vazio ao servidor, que recusa por obrigatório o que a pessoa acabou de preencher.
-
-  `it.alcances` é o `ALCANCE` do mesmo módulo, e é o par do `name=`: o `campos.alcance` diz COMO o
-  valor se chama, `alcances` diz QUAIS valores existem. Os dois rádios abaixo escrevem um deles no
-  `value` e o releem no `checked`, e é o mesmo par que a rota compara para decidir se o comunicado
-  vai à unidade inteira ou só aos marcados. Escrever "selecionados" errado aqui não quebra nada
-  visível: o envio cai silenciosamente no outro alcance.
-
-  `erroDe` e `descricao` vêm de `render.ts`, já fechados sobre os erros DESTE render, e substituem o
-  par que este arquivo mantinha à mão — era a única tela do sistema com cópia própria dos dois.
-  `idDoErro` e `idDaAjuda` são a outra ponta do que `descricao` promete no `aria-describedby`:
-  escrever "-erro" aqui faria a lista apontar para um id inexistente, e nada falharia — só quem usa
-  leitor de tela deixaria de ouvir a mensagem que está na tela.
-
-  O `id` da caixa e o `for` do rótulo continuam literais de propósito: casam um com o outro dentro
-  das mesmas seis linhas, ninguém de fora os lê, e `for="titulo"` ao lado de `id="titulo"` é o HTML
-  mais legível que um aluno pode encontrar.
-*/
-
-/*
-  O "·" dos dois títulos de passo e o da nota da unidade compõem `it.apresentacao.separador` — o
-  `APRESENTACAO.separador` de `src/web/constantes.ts`, o mesmo que emenda dois valores lado a lado
-  em toda tela do sistema. Ele vale " · " COM os espaços em volta: o espaçamento é metade da
-  decisão, e é por isso que "Passo 1" e "Unidade" encostam na tag, sem espaço nenhum entre elas.
-
-  Na nota do passo 2 o separador entra por `separadorAntesDaQuebra`, e é a única concessão do
-  arquivo. Ali ele fecha a linha, e o espaço final dele seria seguido pela quebra que já separa o
-  "trocar unidade" do nome da unidade. Na tela os dois desenham a mesma coisa — o HTML colapsa
-  espaço em branco —, mas o HTML SERVIDO ganharia um espaço a mais no fim da linha, e a suíte de
-  golden compara byte a byte. Quem faz o papel do espaço final é a quebra de linha; o inicial, esse
-  continua vindo da constante, e trocar o "·" por outro símbolo continua sendo uma edição só.
-
-  A linha em branco logo abaixo dessa nota é a compensação do `autoTrim: [false, 'nl']` do Eta, que
-  come a quebra de linha imediatamente após `%>`: sem ela o `<a>` subiria para a mesma linha do "·".
-
-  "Unidade" e "Mensagem" nos dois `<h2>` ficam escritos aqui. Eles nomeiam o PASSO, e não o dado: o
-  rótulo do dado é o do `<label>` seis linhas abaixo (`it.rotulos.unidade`), e encurtar um não
-  encurta o outro. São dois títulos que existem uma vez só, e são decisão desta tela.
-*/
 const valores = it.valores;
 const responsaveis = it.responsaveis;
 const selecionados = new Set(valores.selecionados);
@@ -102,24 +39,6 @@ const { erroDe, descricao, idDoErro, idDaAjuda } = it;
       <label class="campo__rotulo" for="unidadeId">
         <%= it.rotulos.unidade %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
-<%
-/*
-  O `name` deste `<select>` NÃO é `CAMPOS.comunicado.unidadeId`, e não é `CAMPOS.turma.unidadeId`.
-  Aqueles nomeiam campos do CORPO de um POST — o primeiro aparece no passo 2, no `input` oculto logo
-  abaixo. Este formulário é GET, e o que o `name` monta é o parâmetro de QUERY da URL que traz a
-  pessoa de volta a esta mesma tela já com a unidade escolhida. Trocar um pelo outro não quebra
-  compilação nenhuma: o passo 1 apenas deixa de escolher unidade.
-
-  O parâmetro de query, esse, TEM dono — é `PARAMETROS.unidadeId`, de `src/web/constantes.ts`, por
-  onde a rota lê a escolha ao montar o contexto de envio. Este `name` é a outra ponta daquele
-  contrato, e por isso chega pelo `it`, em `it.campoDaUnidade`: a rota passa o nome do parâmetro à
-  tela, do mesmo jeito que `rotas/secretaria.ts` o passa para o filtro da lista de turmas. As duas
-  pontas leem a mesma constante, e renomear o parâmetro renomeia o `name` junto.
-
-  O ERRO do campo, esse sim, é chaveado por `campos.unidadeId`: quem o emite é
-  `ERROS_DE_FORMULARIO.unidadeAusente`, e o `campo` dele vem de `CAMPOS.comunicado.unidadeId`.
-*/
-%>
       <select id="unidadeId" name="<%= it.campoDaUnidade %>" required
               aria-describedby="<%= descricao(campos.unidadeId, true) %>"
               <% if (erroDe(campos.unidadeId) !== '') { %>aria-invalid="true"<% } %>>
@@ -223,13 +142,7 @@ const { erroDe, descricao, idDoErro, idDaAjuda } = it;
             texto: 'Só recebe comunicado quem está vinculado a um aluno com matrícula ativa aqui. A secretaria faz esse vínculo na ficha do aluno.',
           }) %>
         <% } else { %>
-        <%
-        /*
-          O botão nasce escondido e só o script o revela: sem JavaScript ele não faria nada, e um
-          botão inerte na tela é pior que botão nenhum. A lista abaixo continua marcável à mão.
-        */
-        %>
-        <p class="linha">
+                <p class="linha">
           <button class="botao botao--secundario botao--miudo" type="button"
                   id="marcar-todos" hidden>Selecionar todos</button>
         </p>
@@ -257,21 +170,6 @@ const { erroDe, descricao, idDoErro, idDaAjuda } = it;
   </form>
 </section>
 
-<%
-/*
-  O único script que uma tela traz por conta própria, e por escolha: marcar trinta caixas uma a uma
-  é trabalho que a máquina faz melhor. É enriquecimento puro — sem ele o formulário continua
-  completo, porque o botão só aparece se este código rodar, e quem publica ainda tem o "todos da
-  unidade" ao lado.
-
-  Marcar todos também liga o rádio de seleção: caixa marcada com o alcance em "unidade" seria um
-  clique sem efeito, já que o servidor ignora a lista quando o comunicado vai para a unidade toda.
-
-  O seletor das caixas é interpolado a partir de `campos.responsaveis`, e não redigitado: se ele
-  divergisse do `name=` acima, o botão deixaria de encontrar caixa nenhuma e ficaria escondido para
-  sempre — a página inteira continuaria de pé, e ninguém saberia que a comodidade sumiu.
-*/
-%>
 <script>
   (() => {
     const botao = document.getElementById('marcar-todos');

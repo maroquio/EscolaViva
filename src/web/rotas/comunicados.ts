@@ -1,16 +1,3 @@
-/**
- * As telas de quem publica no mural: a lista com a taxa de leitura e o formulário de envio.
- *
- * A taxa é o motivo desta tela existir. Um comunicado publicado não é um comunicado lido, e
- * enquanto o mural for o único canal essa diferença é invisível — a menos que alguém a meça. É por
- * isso que a lista mostra destinatários, leituras e a razão entre os dois em vez de apenas dizer
- * "publicado".
- *
- * O alcance de quem publica vem do papel: `admin_rede` enxerga a rede inteira; `secretaria` só as
- * unidades onde tem o papel. Unidade fora desse alcance responde 404, venha ela da query ou de um
- * campo oculto adulterado.
- */
-
 import { Hono, type Context } from 'hono';
 import { academico } from '../../academico';
 import { ALCANCE, comunicacao, type Alcance, type EstatisticaDeLeitura } from '../../comunicacao';
@@ -60,8 +47,6 @@ export const rotasComunicados = new Hono<{ Variables: Variaveis }>();
 
 rotasComunicados.use(exigirPapel(PAPEL.secretaria, PAPEL.adminRede));
 
-/* --- Alcance do usuário ----------------------------------------------------- */
-
 const unidadesDoUsuario = async (
   usuario: UsuarioDaSessao,
   veTodaARede: boolean,
@@ -72,10 +57,6 @@ const unidadesDoUsuario = async (
   return unidades.filter((unidade) => permitidas.has(unidade.id));
 };
 
-/**
- * Devolve a unidade que recorta a lista, ou `null` para "toda a rede". A secretaria vê uma unidade
- * por vez — a omissão a leva à primeira das suas, nunca à rede inteira.
- */
 const recorteDaLista = (
   unidades: readonly Unidade[],
   pedida: string,
@@ -93,15 +74,6 @@ const recorteDaLista = (
 
 const SEM_RESUMO = { destinatarios: 0, leituras: 0, taxa: 0 };
 
-/* --- Lista ------------------------------------------------------------------ */
-
-/**
- * O resumo do topo mede o recorte inteiro, e não as linhas da página.
- *
- * A taxa de leitura é o motivo desta tela existir: ela responde "o que a escola disse chegou a
- * quem?". Uma taxa que se recalculasse a cada clique em "próxima" responderia outra pergunta, bem
- * menos útil — a de quanto foi lido entre estes vinte comunicados aqui.
- */
 rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
   const usuario = usuarioAtual(c);
   const veTodaARede = temPapel(usuario, PAPEL.adminRede);
@@ -112,7 +84,6 @@ rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
     veTodaARede,
   );
 
-  // Secretaria sem unidade atribuída não cai na rede inteira por omissão: sem recorte, sem lista.
   const semAlcance = recorte === null && !veTodaARede;
   const [pagina, resumo] = await Promise.all([
     semAlcance
@@ -125,7 +96,6 @@ rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
 
   return renderizar(c, TEMPLATES.comunicados.lista, {
     titulo: TITULOS.comunicados.lista,
-    // O `name` do seletor do filtro é o parâmetro de query que esta mesma rota lê acima.
     campoDaUnidade: PARAMETROS.unidadeId,
     comunicados: pagina.itens,
     navegacao: navegacao(c, pagina),
@@ -139,8 +109,6 @@ rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
     veTodaARede,
   });
 });
-
-/* --- Publicação -------------------------------------------------------------- */
 
 const textoDoCampo = (formulario: CorpoDeFormulario, campo: string): string => {
   const valor = formulario[campo];
@@ -165,10 +133,6 @@ const valoresDoFormulario = (formulario: CorpoDeFormulario): ValoresDoComunicado
   selecionados: listaDoCampo(formulario, CAMPOS.comunicado.responsaveis),
 });
 
-/**
- * Sem JavaScript, a lista de destinatários só pode ser montada depois que a unidade é conhecida —
- * por isso o envio tem dois passos, e o primeiro é um GET que apenas escolhe a unidade.
- */
 const contextoDeEnvio = async (
   usuario: UsuarioDaSessao,
   unidadeIdPedida: string,
@@ -184,17 +148,6 @@ const contextoDeEnvio = async (
   return { unidades, unidade, responsaveis };
 };
 
-/**
- * Altura da caixa de mensagem, em linhas de texto.
- *
- * NÃO é o `TAMANHO_PADRAO` da paginação, que também vale dez: aquele é quantas LINHAS DE TABELA
- * cabem na tela, este é quantas LINHAS DE DIGITAÇÃO o autor vê antes de a caixa rolar. Mudar um
- * pelo outro é o engano que a vizinhança de valores iguais convida.
- *
- * Mora nesta rota, e não no `.eta`, porque `rows="9"` escrito no template não quebra compilação
- * nenhuma — e porque é a única tela do sistema com caixa de texto longo: um dono na camada de
- * apresentação inteira prometeria uma política que não existe.
- */
 const LINHAS_DA_MENSAGEM = 10;
 
 const paginaDeEnvio = (
@@ -205,7 +158,6 @@ const paginaDeEnvio = (
 ): Response =>
   renderizar(c, TEMPLATES.comunicados.novo, {
     titulo: TITULOS.comunicados.novo,
-    // O `name` do seletor do passo 1 é o parâmetro de query que a rota lê para montar o contexto.
     campoDaUnidade: PARAMETROS.unidadeId,
     linhasDaMensagem: LINHAS_DA_MENSAGEM,
     ...contexto,
@@ -221,23 +173,11 @@ const valoresIniciais = (unidadeId: string): ValoresDoComunicado => ({
   selecionados: [],
 });
 
-/**
- * A recusa por lista vazia, com o campo e o código de `ERROS_DE_FORMULARIO.semSelecao`.
- *
- * A frase é `SEM_SELECAO_NO_ENVIO`, ao lado das demais frases da camada web. Aquele objeto não
- * declara `mensagem` porque este é o único lugar que emite esta recusa, e o texto é da tela de
- * envio: uma frase declarada lá seria letra morta, sobrescrita na única linha que a usaria.
- */
 const SEM_SELECAO: ErroDeAplicacao = {
   ...ERROS_DE_FORMULARIO.semSelecao,
   mensagem: SEM_SELECAO_NO_ENVIO,
 };
 
-/**
- * Destinatário marcado é entrada externa: a lista que volta do navegador é conferida contra a
- * lista que saiu, e um id de outra unidade recusa o envio inteiro em vez de ser silenciosamente
- * descartado — o remetente precisa saber para quem o comunicado foi.
- */
 const conferirDestinatarios = (
   valores: ValoresDoComunicado,
   responsaveis: readonly { id: string }[],
@@ -267,8 +207,6 @@ rotasComunicados.post(ROTAS.comunicados.novo.padrao, async (c) => {
   const recusa = conferirDestinatarios(valores, contexto.responsaveis);
   if (recusa !== null) return paginaDeEnvio(c, contexto, valores, [recusa]);
 
-  // Lista vazia é o contrato de `publicarComunicado` para "toda a unidade": quem decide quem são
-  // os responsáveis alcançados é o módulo, com os dados do dia do envio.
   const resultado = await comunicacao.publicarComunicado({
     redeId: usuario.redeId,
     unidadeId: contexto.unidade.id,

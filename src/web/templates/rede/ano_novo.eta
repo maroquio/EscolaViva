@@ -1,49 +1,4 @@
 <%
-/*
-  Definição de ano letivo.
-
-  Um ano por rede — a repetição é recusada pelo banco e volta como erro no campo, não como falha do
-  sistema. O ano vem como texto e é conferido em quatro dígitos antes de virar número: converter
-  vazio em 0 devolveria a mensagem errada.
-
-  Os dois endereços da tela — o destino do formulário e o "Cancelar" — vêm de `it.rotas`, o mesmo
-  mapa que o router registra. São o mesmo endereço escrito duas vezes, e escrevê-lo à mão aqui não
-  quebraria compilação: quebraria a tela de quem clica, porque `.eta` não passa pelo compilador.
-
-  O rótulo do botão que envia é o título DESTA tela, e por isso lê `it.titulos.rede.anoNovo` — a
-  mesma chave que a rota passa como `it.titulo` no `<h1>` acima. São a mesma decisão dita uma vez:
-  renomear a tela renomeia junto o botão que a cumpre, e a lista que traz até aqui.
-
-  O sobretítulo acima do `<h1>` diz de onde a pessoa veio, e por isso é COMPOSTO em vez de escrito:
-  `it.areas.rede` (`AREAS`, o nome da área no menu), o `it.apresentacao.separador` (`APRESENTACAO`,
-  que é " · " COM os espaços em volta — o espaçamento é metade da decisão) e `it.titulos.rede.anos`
-  (`TITULOS`, o nome da LISTA que traz até aqui), todos de `src/web/constantes.ts`. Escrever
-  "Rede · Anos letivos" à mão daria o mesmo texto hoje e uma tela mentindo amanhã: renomear a lista
-  nos títulos mudaria o botão que traz até esta tela e deixaria o sobretítulo apontando para um nome
-  que já não existe.
-*/
-
-/*
-  A faixa aceita e os nomes de campo chegam prontos por `it`: o Eta não importa TypeScript, então
-  `LIMITES.anoLetivo` e `CAMPOS.anoLetivo` (`src/academico/constantes.ts`) atravessam a fronteira
-  pela rota e por `render.ts`. Redigitar 2000 aqui faria a tela recusar uma faixa e o caso de uso
-  outra.
-
-  `campos` é o apelido curto do mapa de nomes deste formulário. O que ele guarda é o nome que
-  ATRAVESSA o arquivo: a rota lê o corpo do POST por ele e `falhaDeCampo` o devolve na recusa, que é
-  o que `erroDe()` e `descricao()` procuram. Divergindo, o campo chega vazio ao servidor, que recusa
-  por obrigatório o que a pessoa acabou de preencher.
-
-  `it.idDoErro` e `it.idDaAjuda` são o outro lado de `descricao()`: ela monta o `aria-describedby`, e
-  eles montam o `id` para onde essa lista aponta. Escrever "-erro" à mão aqui faria o
-  `aria-describedby` apontar para um id inexistente — nada falha, ninguém que enxerga percebe, e o
-  leitor de tela não lê nem a ajuda nem o erro.
-
-  O `id` do `<input>` e o `for` do `<label>`, esses continuam escritos à mão de propósito: casam um
-  com o outro dentro das mesmas seis linhas, nada fora deste arquivo os lê, e `for="ano"` ao lado de
-  `id="ano"` é o HTML mais legível que se pode deixar para quem está aprendendo. O nome que
-  atravessa o arquivo é o do `name=`, não o do `id`/`for`.
-*/
 const valores = it.valores ?? { ano: '', dataInicio: '', dataFim: '' };
 const campos = it.campos.anoLetivo;
 const { erroDe, descricao } = it;

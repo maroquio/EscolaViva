@@ -1,18 +1,3 @@
-/*
- * Dados de demonstração da aula: uma rede pequena, completa e previsível. É idempotente por
- * apagar e recriar — a rede de slug `demo` sai inteira e volta igual, então rodar duas vezes
- * deixa o banco no mesmo estado da primeira. O sorteio tem semente fixa: os nomes, as notas e
- * as faltas são os mesmos em toda máquina, e a captura de tela do professor continua batendo
- * com o que o aluno vê. O bimestre 3 nasce incompleto de propósito — fechá-lo falha, e é assim
- * que a aula demonstra a validação de `fecharBimestre` sem estragar dado na hora.
- *
- * As TABELAS DE DADO deste arquivo — nomes de pessoa, disciplinas, turmas, títulos de comunicado
- * e os tamanhos da amostra — continuam literais de propósito: são a amostra, e não política do
- * produto. O que foi nomeado é a LÓGICA em volta delas, e o que é vocabulário de outro módulo
- * (papel, status de rede, situação de matrícula, turno) passou a vir do módulo dono, pelo
- * `index.ts` dele.
- */
-
 import { MATRICULA_ATIVA, TURNOS } from '../src/academico';
 import { PAPEL, REDE_ATIVA, type Papel } from '../src/identidade';
 import { config } from '../src/shared/config';
@@ -29,7 +14,6 @@ import { idGeneratorUuid } from '../src/shared/ports';
 const SLUG = 'demo';
 const REDE = 'Rede Municipal de Demonstração';
 const SENHA = 'escolaviva';
-// `.test` é reservado pela RFC 2606: nenhum endereço daqui existe fora desta base.
 const DOMINIO = 'escolaviva.test';
 const ALUNOS_POR_TURMA = 20;
 const DIAS_LETIVOS = 60;
@@ -38,7 +22,6 @@ const TAXA_DE_JUSTIFICATIVA = 0.4;
 const TAXA_DE_LEITURA = 0.12;
 const LOTE = 2000;
 
-/** A semente do sorteio. Fixa: é ela que faz a mesma turma nascer em toda máquina. */
 const SEMENTE_DO_SORTEIO = 20260201;
 
 type Linha = Record<string, string | number | boolean | null>;
@@ -47,14 +30,12 @@ type Turma = {
   id: string;
   unidadeIndice: number;
   nome: string;
-  /** O turno vem do vocabulário fechado do acadêmico: turno escrito errado não compila. */
   turno: (typeof TURNOS)[number];
   idade: number;
 };
 
 const novoId = (): string => idGeneratorUuid.novo();
 
-/** Sorteio determinístico (mulberry32): mesma semente, mesma turma, mesmas notas, toda vez. */
 function sorteador(semente: number): () => number {
   let estado = semente >>> 0;
   return () => {
@@ -72,7 +53,6 @@ function sorteador(semente: number): () => number {
 const aleatorio = sorteador(SEMENTE_DO_SORTEIO);
 const entre = (min: number, max: number): number => min + Math.floor(aleatorio() * (max - min + 1));
 
-/** Texto de `throw` deste script: falha de programação do seed, não erro de quem o roda. */
 const ERROS = {
   sorteioSobreListaVazia: 'sorteio sobre lista vazia',
   unidadeDoProfessor: 'unidade do professor não encontrada',
@@ -106,7 +86,6 @@ const JUSTIFICATIVAS = [
 
 const nomeDePessoa = (): string => `${umDe(PRIMEIROS)} ${umDe(SOBRENOMES)} ${umDe(SOBRENOMES)}`;
 
-/** As peças do endereço montado a partir do nome, e as reservas para quando o nome não tem partes. */
 const EMAIL = {
   normalizacao: 'NFD',
   separadorDoNome: ' ',
@@ -114,7 +93,6 @@ const EMAIL = {
   ultimoDeReserva: 'demo',
 } as const;
 
-/** Primeiro nome, último sobrenome e o índice: `usuario (rede_id, email)` é único e o nome repete. */
 function emailDe(nome: string, indice: number): string {
   const partes = nome
     .normalize(EMAIL.normalizacao)
@@ -138,14 +116,8 @@ const TURMAS: readonly Omit<Turma, 'id'>[] = [
   { unidadeIndice: 1, nome: '9º B', turno: 'integral', idade: 14 },
 ];
 
-/** A série sai do nome da turma: `6º A` vira `6º ano`. */
 const SERIE = { digitosDoNome: 2, sufixo: ' ano' } as const;
 
-/**
- * Os nomes de tabela que o `inserir()` recebe como ARGUMENTO — o `sql` marcado continua fora do
- * alcance da regra, mas aqui o nome viaja como valor e precisa existir uma vez só. A fonte é a
- * migração; este mapa é o espelho local dela, e é o que as três listas abaixo consultam.
- */
 const TABELA = {
   unidade: 'unidade',
   usuario: 'usuario',
@@ -166,15 +138,12 @@ const TABELA = {
   comunicadoDestinatario: 'comunicado_destinatario',
 } as const;
 
-/** Um `INSERT` por lote: 7 mil linhas de frequência não podem virar 7 mil idas ao banco. */
 async function inserir(sql: Conexao, tabela: string, linhas: readonly Linha[]): Promise<void> {
   for (let inicio = 0; inicio < linhas.length; inicio += LOTE) {
     await sql`INSERT INTO ${sql(tabela)} ${sql(linhas.slice(inicio, inicio + LOTE))}`;
   }
 }
 
-// Ordem de remoção: filha antes de mãe, sempre. `requisicao_idempotente` sai primeiro porque é
-// tabela de plataforma — não tem `rede_id` e aponta para `usuario`.
 const APAGAR_EM_ORDEM = [
   TABELA.comunicadoDestinatario, TABELA.comunicado, TABELA.frequencia, TABELA.nota,
   TABELA.fechamentoBimestre, TABELA.matricula, TABELA.alunoResponsavel, TABELA.turmaDisciplina,
@@ -197,11 +166,6 @@ type Estrutura = {
   ano: number; disciplinas: Registro[]; turmas: Turma[];
 };
 
-/**
- * O calendário da demonstração, em um lugar só: o ano letivo vai de 1º de fevereiro a 15 de
- * dezembro, e todo mundo entra no mesmo dia, 5 de fevereiro. As datas são da amostra, mas
- * viajam pela lógica de três inserções diferentes e precisam concordar entre si.
- */
 const CALENDARIO = {
   inicioDoAnoLetivo: (ano: number): string => `${ano}-02-01`,
   fimDoAnoLetivo: (ano: number): string => `${ano}-12-15`,
@@ -215,8 +179,6 @@ async function criarEstrutura(sql: Conexao, ano: number): Promise<Estrutura> {
   const disciplinas = DISCIPLINAS.map((nome) => ({ id: novoId(), nome }));
   const turmas = TURMAS.map((turma) => ({ ...turma, id: novoId() }));
 
-  // O `status` é vocabulário da identidade — o mesmo `'ativa'` que `redePorSlug` cobra no login.
-  // Escrito à mão aqui, uma rede semeada com outro rótulo entraria no banco e só falharia na tela.
   await sql`INSERT INTO rede (id, nome, slug, status)
             VALUES (${redeId}, ${REDE}, ${SLUG}, ${REDE_ATIVA})`;
   await inserir(sql, TABELA.unidade, unidades.map((u) => ({
@@ -241,26 +203,19 @@ type Equipe = {
   secretarias: string[]; professores: string[];
 };
 
-/** O nome da caixa antes do `@` — é endereço fixo da equipe, e não o papel de mesmo nome. */
 const CAIXA = { admin: 'admin', secretaria: 'secretaria', professor: 'professor' } as const;
 const NOME_DO_ADMIN = 'Marina Alves Correia';
 
-/** Três professores por unidade, seis ao todo, cada um com duas disciplinas em cada turma. */
 const PROFESSORES = { total: 6, porUnidade: 3, disciplinasPorProfessor: 2 } as const;
 
-/** Separa as unidades na coluna "onde" das credenciais impressas. */
 const SEPARADOR_DE_UNIDADES = ' + ';
 
-/** Admin, secretaria e professores. Todos com a mesma senha — é base de aula, e o README a publica. */
 async function criarEquipe(sql: Conexao, e: Estrutura, hash: string): Promise<Equipe> {
   const usuarios: Linha[] = [];
   const papeis: Linha[] = [];
   const credenciais: Equipe['credenciais'] = [];
   const secretarias: string[] = [];
   const professores: string[] = [];
-  // Índice próprio, e não o `i` do laço de unidade nem o `p` do laço de professor: os dois
-  // reiniciam em zero, e reaproveitá-los faria secretaria e professor caírem no mesmo CPF
-  // dentro da mesma rede — o índice do e-mail garante unicidade por papel, não entre papéis.
   let indice = 0;
   const registrar = (nome: string, email: string, papel: Papel, unidades: Registro[]): string => {
     const id = novoId();
@@ -277,14 +232,12 @@ async function criarEquipe(sql: Conexao, e: Estrutura, hash: string): Promise<Eq
     });
     return id;
   };
-  // O admin da rede responde pelas duas unidades: `papel_usuario` só existe por unidade.
   registrar(NOME_DO_ADMIN, `${CAIXA.admin}@${DOMINIO}`, PAPEL.adminRede, e.unidades);
   e.unidades.forEach((unidade, i) => {
     const alvo = [unidade];
     const email = `${CAIXA.secretaria}${i + 1}@${DOMINIO}`;
     secretarias.push(registrar(nomeDePessoa(), email, PAPEL.secretaria, alvo));
   });
-  // Três professores por unidade, cada um com duas disciplinas nas três turmas de lá.
   for (let p = 0; p < PROFESSORES.total; p += 1) {
     const unidade = e.unidades[Math.floor(p / PROFESSORES.porUnidade)];
     if (unidade === undefined) throw new Error(ERROS.unidadeDoProfessor);
@@ -301,23 +254,15 @@ type Povoamento = {
   responsaveisPorUnidade: string[][]; contas: { email: string; cpf: string }[];
 };
 
-/** A maior parte dos alunos tem dois responsáveis; o restante tem um. */
 const TAXA_DE_DOIS_RESPONSAVEIS = 0.65;
 const RESPONSAVEIS_POR_ALUNO = { maximo: 2, minimo: 1 } as const;
 
-/**
- * Quantas posições do índice cada aluno reserva para os responsáveis dele. Dez cabem de sobra
- * para os dois de hoje, e é o que mantém e-mail e CPF únicos sem depender da ordem do laço.
- */
 const PASSO_DO_INDICE_DE_RESPONSAVEL = 10;
 
-/** A data de nascimento sorteada: mês cheio, e dia que existe até em fevereiro. */
 const NASCIMENTO = { ultimoMes: 12, ultimoDia: 28 } as const;
 
-/** Mês e dia saem com duas casas e zero à esquerda, como manda o `AAAA-MM-DD`. */
 const DOIS_DIGITOS = { casas: 2, preenchimento: '0' } as const;
 
-/** Telefone fictício: DDD do Espírito Santo, o nono dígito e dois blocos de quatro. */
 const TELEFONE = {
   prefixo: '(27) 9',
   separador: '-',
@@ -325,7 +270,6 @@ const TELEFONE = {
   ultimoDoBloco: 9999,
 } as const;
 
-/** Aluno, responsáveis, o usuário de cada responsável e a matrícula, tudo na mesma transação. */
 async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<Povoamento> {
   const alunos: Linha[] = [];
   const responsaveis: Linha[] = [];
@@ -358,16 +302,12 @@ async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<P
         const respId = novoId();
         const usuarioId = novoId();
         const nome = nomeDePessoa();
-        // O mesmo índice que dá unicidade ao e-mail dá unicidade ao CPF: responsável e o
-        // usuário pelo qual ele acessa são a mesma pessoa, então carregam o mesmo documento.
         const semente = indice * PASSO_DO_INDICE_DE_RESPONSAVEL + r;
         const email = emailDe(nome, semente);
         const cpf = gerarCpf(semente);
         const bloco = (): number => entre(TELEFONE.primeiroDoBloco, TELEFONE.ultimoDoBloco);
         const telefone = `${TELEFONE.prefixo}${bloco()}${TELEFONE.separador}${bloco()}`;
         responsaveis.push({ id: respId, rede_id: e.redeId, nome, email, telefone, cpf });
-        // Exatamente um responsável por aluno responde pelo financeiro: é quem receberá a
-        // cobrança quando o Estágio 02 existir.
         vinculos.push({
           rede_id: e.redeId, aluno_id: alunoId, responsavel_id: respId,
           parentesco: umDe(PARENTESCOS), financeiro: r === 0,
@@ -401,7 +341,6 @@ async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<P
   return { matriculas, responsaveisPorUnidade, contas };
 }
 
-/** As 36 alocações: seis disciplinas em cada uma das seis turmas. */
 async function alocar(sql: Conexao, e: Estrutura, professores: string[]): Promise<string[][]> {
   const linhas: Linha[] = [];
   const porTurma: string[][] = e.turmas.map(() => []);
@@ -423,22 +362,11 @@ async function alocar(sql: Conexao, e: Estrutura, professores: string[]): Promis
   return porTurma;
 }
 
-/**
- * O índice da primeira disciplina que não fecha o bimestre 3, e a chance de essa disciplina
- * escapar da pendência. As anteriores lançam os três bimestres; as seguintes, só os dois
- * primeiros.
- */
 const PRIMEIRA_DISCIPLINA_INCOMPLETA = 3;
 const TAXA_DE_BIMESTRE_COMPLETO = 0.75;
 
-/** A nota vem em meios pontos: `entre(8, 20) / 2` cobre de 4,0 a 10,0. */
 const NOTA = { minimoDobrado: 8, maximoDobrado: 20, divisor: 2 } as const;
 
-/**
- * Bimestres 1 e 2 completos; o 3 sai faltando de propósito — duas disciplinas sem lançamento
- * nenhum e uma com um quarto dos alunos em branco. Fechar o bimestre 3 recusa e lista as
- * pendências: é a demonstração da regra, e não um dado esquecido.
- */
 async function lancarNotas(
   sql: Conexao, e: Estrutura, povoado: Povoamento, alocacoes: string[][], professores: string[],
 ): Promise<void> {
@@ -467,7 +395,6 @@ async function lancarNotas(
   await inserir(sql, TABELA.nota, linhas);
 }
 
-/** Os dias letivos para trás a partir de hoje, pulando fim de semana. */
 function diasLetivos(quantidade: number): string[] {
   const dias: string[] = [];
   const cursor = new Date();
@@ -504,14 +431,9 @@ const COMUNICADOS = [
   { titulo: 'Alteração no horário de entrada às sextas-feiras', dias: 4 },
 ];
 
-/** O corpo é derivado do título: a demonstração não precisa de quatro textos escritos à mão. */
 const CORPO_DO_COMUNICADO = (titulo: string, unidade: string): string =>
   `${titulo}. A equipe da ${unidade} pede a leitura atenta e a confirmação no portal.`;
 
-/*
- * Só 12 % dos destinatários abrem o mural. O número é a instrumentação da dor do Estágio 04:
- * enquanto ele não existe, "ninguém lê o mural" é opinião de corredor.
- */
 async function publicarComunicados(
   sql: Conexao, e: Estrutura, povoado: Povoamento, equipe: Equipe,
 ): Promise<void> {
@@ -531,8 +453,6 @@ async function publicarComunicados(
       autor_usuario_id: autor,
       publicado_em: new Date(Date.now() - comunicado.dias * TEMPO.msPorDia).toISOString(),
     });
-    // Contadas, não sorteadas: a taxa é o número da Seção 5 do documento e não pode variar de
-    // execução para execução por azar de moeda. O corte espalha as leituras pela lista inteira.
     const daUnidade = povoado.responsaveisPorUnidade[unidadeIndice] ?? [];
     const quantosLeram = Math.round(daUnidade.length * TAXA_DE_LEITURA);
     const acumulado = (ate: number): number => Math.floor((ate * quantosLeram) / daUnidade.length);
@@ -549,8 +469,6 @@ async function publicarComunicados(
   await inserir(sql, TABELA.comunicadoDestinatario, destinatarios);
 }
 
-// `fechamento_bimestre` aparece zerado de propósito: nenhum bimestre chega fechado, e é o
-// professor quem fecha o 1 na tela para ver a operação passar antes de o 3 recusar.
 const TABELAS_DO_RESUMO = [
   TABELA.unidade, TABELA.usuario, TABELA.papelUsuario, TABELA.anoLetivo, TABELA.disciplina,
   TABELA.turma, TABELA.turmaDisciplina, TABELA.aluno, TABELA.responsavel,
@@ -558,12 +476,10 @@ const TABELAS_DO_RESUMO = [
   TABELA.fechamentoBimestre, TABELA.comunicado, TABELA.comunicadoDestinatario,
 ];
 
-/** As larguras das colunas impressas no terminal. Alinhamento, não regra: só o olho depende delas. */
 const COLUNAS = { email: 38, cpf: 14, papel: 12, tabela: 24, total: 7 } as const;
 
 const AMOSTRA_DE_RESPONSAVEIS = 3;
 
-/** Os títulos e as frases que este script escreve no terminal. */
 const SAIDA = {
   resumoPorTabela: '\nResumo por tabela',
   cabecalho: { email: 'E-MAIL', cpf: 'CPF', papel: 'PAPEL', unidade: 'UNIDADE' },
@@ -591,8 +507,6 @@ async function imprimirResumo(sql: Conexao, redeId: string): Promise<void> {
   }
 }
 
-// CPF impresso formatado, e não cru: a base é de aula e já publica a senha em texto puro, então
-// não há segredo a proteger aqui — só a legibilidade de quem lê o terminal.
 function imprimirCredenciais(equipe: Equipe, responsaveis: { email: string; cpf: string }[]): void {
   console.log(SAIDA.acesso(SLUG, SENHA));
   console.log(

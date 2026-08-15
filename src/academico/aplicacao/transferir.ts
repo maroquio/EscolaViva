@@ -22,10 +22,6 @@ const entrada = z.object({
   data: z.string().date(MENSAGENS.transferencia.dataFormato),
 });
 
-/**
- * As duas escritas moram na mesma transação e nesta ordem: enquanto a matrícula de origem
- * estiver 'ativa', o índice único parcial impede a criação da matrícula de destino.
- */
 async function trocarDeTurma(
   sql: Conexao,
   origem: Matricula,
@@ -55,8 +51,6 @@ async function trocarDeTurma(
     situacao: MATRICULA_ATIVA,
   };
   const criada = await matriculas.inserir(sql, nova);
-  // A vaga no índice único parcial foi liberada pelo UPDATE acima, nesta mesma transação: um
-  // conflito aqui só viria de escrita concorrente, e então a transferência inteira volta atrás.
   if (!criada) throw new Error(ERROS_INTERNOS.conflitoDeMatriculaNaTransferencia);
   return sucesso(nova);
 }

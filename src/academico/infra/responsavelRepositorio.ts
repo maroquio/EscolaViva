@@ -59,7 +59,6 @@ export async function porId(
   return linha === undefined ? null : paraResponsavel(linha);
 }
 
-/** Sem faixa devolve a rede inteira — o vínculo na ficha do aluno escolhe de uma lista completa. */
 export async function listar(
   sql: Conexao,
   redeId: string,
@@ -129,12 +128,6 @@ export async function contarDoAluno(
   return linhas[0]?.total ?? 0;
 }
 
-/**
- * Responsáveis distintos alcançados por um conjunto de unidades.
- *
- * Não é a soma das contagens por unidade: quem tem filhos em duas escolas da rede é uma pessoa só,
- * e somar as colunas contaria essa pessoa duas vezes no total da tela.
- */
 export async function contarNasUnidades(
   sql: Conexao,
   redeId: string,
@@ -153,7 +146,6 @@ export async function contarNasUnidades(
   return linhas[0]?.total ?? 0;
 }
 
-/** Quantos responsáveis cada unidade alcança, em uma consulta só, para o painel da secretaria. */
 export async function contarPorUnidade(
   sql: Conexao,
   redeId: string,
@@ -173,10 +165,6 @@ export async function contarPorUnidade(
   return new Map(linhas.map((linha): [string, number] => [linha.unidade_id, linha.total]));
 }
 
-/**
- * Quem recebe comunicado de uma unidade: o responsável por aluno com matrícula ativa em turma
- * dela. O vínculo é com o aluno, não com a unidade — por isso o caminho passa pela matrícula.
- */
 export async function daUnidade(
   sql: Conexao,
   redeId: string,

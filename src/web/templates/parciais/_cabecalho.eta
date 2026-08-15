@@ -1,26 +1,4 @@
 <%
-/*
-  Cabeçalho da aplicação: rede, unidade e usuário — as três respostas para "onde eu estou e como
-  quem". Um mesmo e-mail pode ser secretária em uma unidade e responsável em outra, então a lista
-  de unidades vem dos papéis, sem inventar uma "unidade atual" que o sistema não guarda.
-
-  É filho direto da grade `.aplicacao` (área `cabecalho`), por isso a tag fica aqui e não no layout.
-
-  Os dois endereços da barra — a marca, que leva ao painel, e o formulário de sair — vêm de
-  `it.rotas`, o mesmo mapa que o router registra. Endereço escrito à mão aqui não quebra
-  compilação: quebra a tela de quem clica.
-
-  O DESENHO da marca vem de `it.apresentacao.marca`, e é o mesmo que `_layout_publico` imprime na
-  folha do login: um só lugar decide onde a ênfase cai. Sai CRUA porque o valor é marcação — a
-  ênfase na segunda metade da palavra é a logotipia, não decoração desta barra — e a saída crua é
-  segura porque é um literal de `constantes.ts`, nunca um dado que chegou do usuário.
-
-  A LINHA EM BRANCO logo antes do `<% } %>` que fecha a contagem de unidades é de propósito, e não
-  sobra de edição: o Eta está configurado com `autoTrim: [false, 'nl']`, que come a quebra de linha
-  imediatamente após um `%>`. Enquanto a linha terminava no texto ` unidades`, a quebra sobrevivia;
-  terminando em `<%= it.contagem.unidade.plural %>`, ela seria engolida e o HTML sairia um byte
-  diferente do de antes. A linha em branco repõe exatamente essa quebra. Apagá-la muda a saída.
-*/
 const usuario = it.usuario;
 const unidades = usuario === null ? [] : [...new Set(usuario.papeis.map((p) => p.unidadeNome))];
 %>

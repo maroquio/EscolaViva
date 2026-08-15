@@ -17,7 +17,6 @@ type LinhaDeMatricula = {
   situacao: string;
 };
 
-/** O CHECK `situacao_valida` garante o conjunto no banco; aqui ele volta a ser tipo. */
 function paraSituacao(valor: string): SituacaoMatricula {
   if (!situacaoValida(valor)) throw new Error(ERROS_INTERNOS.situacaoDesconhecida(valor));
   return valor;
@@ -37,12 +36,6 @@ const paraMatricula = (linha: LinhaDeMatricula): Matricula => ({
   situacao: paraSituacao(linha.situacao),
 });
 
-/**
- * `ON CONFLICT ... DO NOTHING` devolve zero linhas no lugar de estourar a violação do índice
- * único parcial `matricula_ativa_unica_por_ano` (SQLSTATE 23505). É o que permite recusar a
- * matrícula com uma mensagem de campo: o erro cru abortaria a transação inteira e chegaria à
- * tela como falha do sistema, quando é apenas um aluno que já está matriculado neste ano.
- */
 export async function inserir(sql: Conexao, matricula: Matricula): Promise<boolean> {
   const criadas: { id: string }[] = await sql`
     INSERT INTO matricula (id, rede_id, aluno_id, turma_id, ano_letivo_id, data_matricula, situacao)
@@ -53,11 +46,6 @@ export async function inserir(sql: Conexao, matricula: Matricula): Promise<boole
   return criadas.length === 1;
 }
 
-/**
- * A condição `situacao = 'ativa'` na cláusula WHERE é a trava da transferência: se outra
- * requisição encerrou a mesma matrícula primeiro, nenhuma linha é atualizada e o caso de uso
- * recusa em vez de abrir uma segunda matrícula ativa para o mesmo aluno no ano.
- */
 export async function marcarComoTransferida(
   sql: Conexao,
   redeId: string,
@@ -85,10 +73,6 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<M
   return linha === undefined ? null : paraMatricula(linha);
 }
 
-/**
- * Sem faixa devolve a turma inteira: o diário de classe lança nota e chamada da turma toda em uma
- * submissão, e uma lista recortada ali gravaria ausência para quem não coube na página.
- */
 export async function ativasDaTurma(
   sql: Conexao,
   redeId: string,
@@ -122,14 +106,6 @@ export async function contarAtivasDaTurma(
   return linhas[0]?.total ?? 0;
 }
 
-/**
- * O histórico do aluno recortado pelas unidades que quem consulta alcança.
- *
- * Antes esta lista era derivada em memória: as matrículas de cada responsável do aluno, ou as
- * ativas de cada turma da secretaria, unidas e filtradas depois. O caminho pelo vínculo mostrava
- * todas as situações, e o caminho sem vínculo só as ativas — duas respostas para a mesma pergunta.
- * Uma consulta só resolve as duas coisas: o alcance vira condição, e o recorte passa a caber.
- */
 export async function doAlunoNasUnidades(
   sql: Conexao,
   redeId: string,
@@ -172,10 +148,6 @@ export async function contarDoAlunoNasUnidades(
   return linhas[0]?.total ?? 0;
 }
 
-/**
- * Se o aluno tem matrícula em algum lugar da rede. É o que separa "aluno recém-cadastrado, ainda
- * de todas as secretarias" de "aluno de outra unidade", que para esta secretaria não existe.
- */
 export async function temAlgumaMatricula(
   sql: Conexao,
   redeId: string,
@@ -189,7 +161,6 @@ export async function temAlgumaMatricula(
   return linhas.length > 0;
 }
 
-/** Matriculados ativos por unidade, em uma consulta só — a mesma razão de `contarPorUnidade`. */
 export async function contarAtivasPorUnidade(
   sql: Conexao,
   redeId: string,
@@ -207,12 +178,6 @@ export async function contarAtivasPorUnidade(
   return new Map(linhas.map((linha): [string, number] => [linha.unidade_id, linha.total]));
 }
 
-/**
- * A matrícula ativa de cada aluno de uma lista, dentro das unidades alcançadas.
- *
- * A busca da secretaria mostra a turma ao lado do nome. Descobrir isso percorrendo as matrículas
- * de todas as turmas do alcance era uma leitura da rede inteira para enfeitar vinte linhas.
- */
 export async function ativasDosAlunos(
   sql: Conexao,
   redeId: string,
@@ -236,7 +201,6 @@ export async function ativasDosAlunos(
   return linhas.map(paraMatricula);
 }
 
-/** O portal do responsável mostra o histórico dos filhos, não só o ano corrente. */
 export async function doResponsavel(
   sql: Conexao,
   redeId: string,

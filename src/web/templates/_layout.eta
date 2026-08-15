@@ -1,29 +1,4 @@
 <%
-/*
-  Layout da aplicação: quem tem sessão vê esta moldura em toda tela.
-
-  `renderizar` monta o documento automaticamente quando a página não declara layout, e escolhe
-  este quando há usuário na sessão. Uma página pode declarar explicitamente chamando
-  `layout("/_layout")` na primeira linha — o resultado é o mesmo.
-
-  Nenhuma imagem, nenhuma fonte externa, nenhum script vindo de fora: a página não faz uma única
-  requisição de rede além do próprio HTML e do CSS versionado. O único script do layout é o botão
-  de fechar dos avisos, embutido no fim do documento; uma página pode embutir o seu, desde que a
-  tela continue inteira sem ele.
-
-  O endereço da folha não é escrito à mão. `it.rotas.publicas.publico` é a MESMA rota curinga que
-  serve os arquivos publicados (I10), e o nome versionado que `it.asset` resolve entra no lugar do
-  curinga: mudar o prefixo publicado passa a ser uma edição só, em `ROTAS`, em vez de um `href`
-  aqui que ninguém lembra de acompanhar — e `href` errado em `.eta` não quebra compilação, quebra
-  a tela de quem está usando o sistema.
-
-  Pelo mesmo motivo nada mais aqui é digitado: `it.documento` traz as declarações do `<head>` e o id
-  do `<main>`, `it.apresentacao` traz o sufixo de marca do `<title>`, e `it.parciais` traz o caminho
-  de cada parcial. Os três objetos chegam de `render.ts` — nunca do handler —, porque quem escolhe
-  ESTE layout é `render.ts`, olhando a sessão: a rota não sabe que ele existe e não teria como se
-  lembrar de alimentá-lo. `_layout_publico` lê exatamente os mesmos valores, e é essa a razão de
-  eles terem dono: as duas molduras são o mesmo documento, e divergir em silêncio era o risco.
-*/
 const folhaDeEstilo = it.rotas.publicas
   .publico()
   .replace(it.curingaDeAsset, it.asset(it.nomeLogicoDaFolha));

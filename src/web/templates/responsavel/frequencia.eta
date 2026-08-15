@@ -1,58 +1,18 @@
 <%
-/*
-  Frequência dia a dia.
-
-  A chamada do EscolaViva é por DIA, não por aula: cada linha desta tabela é uma data em que a
-  turma teve chamada registrada, e a justificativa é o texto que a secretaria recebeu.
-
-  A etiqueta carrega a cor, o texto carrega o significado — "Falta justificada" continua se lendo
-  em preto e branco, e a diferença entre falta com e sem justificativa não depende de enxergar
-  âmbar ou vermelho.
-
-  Os dois endereços da tela — o boletim da mesma matrícula e a volta para a lista de alunos — saem
-  de `it.rotas`, o mesmo mapa que o router registra, e o `:id` é preenchido por quem sabe escapá-lo.
-  URL literal em `.eta` não quebra compilação: quebra a tela de quem clica.
-
-  Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
-  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
-
-  A linha de resumo do cabeçalho emenda dois atributos da matrícula — a turma e o ano letivo — e a
-  marca que os separa é `it.apresentacao.separador`, `APRESENTACAO.separador`
-  (`src/web/constantes.ts`). É exatamente o trabalho para o qual ele existe, e é o mesmo que
-  `secretaria/turma.eta` já lhe dá na linha que junta série, turno, unidade e ano letivo. Os espaços
-  em volta do "·" são metade do valor: quem apertar ou afrouxar o espaçamento do sistema mexe num
-  lugar só. Por isso a palavra seguinte encosta na tag, sem espaço entre as duas — o espaço que falta
-  no texto é o que a constante devolve, e o HTML servido sai igual ao de antes.
-*/
 const boletim = it.boletim;
 const dias = it.dias;
 const faltas = boletim.totalDias - boletim.presencas;
 
-/*
-  `VOCABULARIO.presenca` (`src/avaliacao/constantes.ts`) entregue pela rota em `it.rotuloDaPresenca`.
-  O Eta não importa TypeScript, então quem lê `constantes.ts` é o handler — e as três palavras
-  existem uma vez só, no módulo que decide o que conta como falta justificada.
-*/
 const ROTULO_DA_PRESENCA = it.rotuloDaPresenca;
 
-/*
-  A cor da etiqueta acompanha o rótulo, e não o substitui. Classe de CSS é vocabulário da folha de
-  estilo, e por isso mora aqui e não em `constantes.ts`.
-*/
 const CLASSE_DA_PRESENCA = {
   presente: 'etiqueta--ativa',
   faltaJustificada: 'etiqueta--transferida',
   falta: 'etiqueta--reprovado',
 };
 
-/** `AUSENTE` (`src/shared/constantes.ts`), pela rota: célula sem valor mostra um travessão. */
 const SEM_VALOR = it.semValor;
 
-/*
-  O piso de frequência escrito na tela chega pronto em `it.criterio`, o MESMO objeto que o boletim
-  recebe, derivado de `APROVACAO.frequenciaMinimaEmCentesimos`. Escrever "75 %" à mão aqui era a
-  terceira cópia do piso — e a única que ninguém acompanharia no dia em que ele mudasse.
-*/
 const CRITERIO = it.criterio;
 
 const situacaoDoDia = (dia) => {
@@ -70,15 +30,9 @@ const situacaoDoDia = (dia) => {
 %>
 <header class="pagina__cabecalho">
   <div>
-<%
-// O sobretítulo nomeia o DOCUMENTO aberto — "Boletim", "Comunicado", "Frequência" —, e não a área
-// do menu: quem imprime `it.areas.acompanhamento` são as telas de fora, o painel e o mural. %>
     <p class="sobretitulo">Frequência</p>
     <h1 class="pagina__titulo"><%= it.matricula.alunoNome %></h1>
     <p class="pagina__resumo">
-<%
-// A linha se lê corrida — "Turma 5º A · ano letivo 2026" —, e a marca do meio vem de
-// `it.apresentacao.separador`. "ano letivo" é prosa: o 2026 é o NOME do ano, não uma contagem. %>
       Turma <%= it.matricula.turmaNome %><%= it.apresentacao.separador %>ano letivo
       <span class="numero"><%= it.matricula.ano %></span>
     </p>
@@ -138,9 +92,6 @@ const situacaoDoDia = (dia) => {
         <tr>
           <th scope="col" class="celula-centro">Data</th>
 <%
-// "Situação" encabeça cinco colunas do sistema, cada uma com um vocabulário fechado diferente, de
-// quatro módulos; um dono único prometeria que as cinco mudam juntas. Ver `ROTULOS`, em
-// `web/constantes.ts`.
 // magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; por isso não é membro de `it.rotulos`. %>
           <th scope="col" class="celula-centro">Situação</th>
           <th scope="col" class="celula-texto celula-elastica">Justificativa</th>

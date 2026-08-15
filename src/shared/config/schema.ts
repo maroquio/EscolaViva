@@ -11,11 +11,6 @@ import {
   VERDADEIRO_DE_AMBIENTE,
 } from '../constantes';
 
-/**
- * Os dois campos de conjunto fechado nascem das MESMAS listas que o schema valida: repetir a união
- * aqui criaria um segundo lugar para acrescentar um ambiente, e o tipo continuaria compilando
- * enquanto o schema recusasse o valor em tempo de execução.
- */
 export type Config = {
   ambiente: (typeof AMBIENTES)[number];
   porta: number;
@@ -28,10 +23,8 @@ export type Config = {
   cookieSeguro: boolean;
 };
 
-/** O `path` do zod vem segmentado; o relatório o mostra como um caminho só. */
 const SEPARADOR_DE_CAMINHO = '.';
 
-/** O relatório é lido no terminal: um problema por linha. */
 const QUEBRA_DE_LINHA = '\n';
 
 const booleano = z.enum(BOOLEANOS_DE_AMBIENTE, {
@@ -70,11 +63,6 @@ export const schemaDeAmbiente = z.object({
   COOKIE_SEGURO: booleano.optional(),
 });
 
-/**
- * `VARIAVEL=` no .env chega como string vazia, não como ausência. Tratar as duas do mesmo
- * jeito faz o default valer e produz a mensagem certa ("obrigatória") em vez de
- * "precisa de no mínimo 32 caracteres" para quem simplesmente não preencheu.
- */
 const semValoresVazios = (
   env: Record<string, string | undefined>,
 ): Record<string, string | undefined> =>
@@ -105,12 +93,6 @@ const mensagemDeConfigInvalida = (
   ].join(QUEBRA_DE_LINHA);
 };
 
-/**
- * Pura por decisão: recebe o mapa de variáveis em vez de ler o ambiente sozinha, o que
- * permite testar cada combinação sem mexer no processo. Lança listando TODAS as variáveis
- * com problema de uma vez — descobrir uma por vez, reiniciando o processo, é o oposto de
- * falhar rápido.
- */
 export function carregarConfig(env: Record<string, string | undefined>): Config {
   const analise = schemaDeAmbiente.safeParse(semValoresVazios(env));
   if (!analise.success) {

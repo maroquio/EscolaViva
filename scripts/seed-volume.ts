@@ -1,18 +1,3 @@
-/*
- * Gera o volume de referência do Estágio 01: 40 redes contratantes valem ≈ 55 unidades e 18 mil
- * alunos, e 18 mil matrículas × ~200 dias letivos chegam aos 3,6 milhões de linhas em
- * `frequencia` — a maior tabela do sistema e o número que o documento manda anotar.
- *
- * Não é o seed da aula: aqui os nomes são sintéticos e a rede é a de slug `volume`, separada da
- * `demo` para que uma não estrague a outra. Serve para responder três perguntas com medição em
- * vez de opinião: o índice `frequencia (rede_id, matricula_id, data)` aguenta o boletim? O p95 do
- * lançamento de notas continua abaixo de 300 ms? O banco passa de 20 % de CPU?
- *
- * A carga sai por `INSERT ... SELECT`: o id vem de `gen_random_uuid()` no servidor porque
- * trafegar 3,6 milhões de uuid pela conexão custaria minutos sem mudar nada do que se mede.
- * A aplicação continua gerando id na aplicação — isto aqui é gerador de carga, não caso de uso.
- */
-
 import { MATRICULA_ATIVA, TURNOS } from '../src/academico';
 import { REDE_ATIVA } from '../src/identidade';
 import { config } from '../src/shared/config';
@@ -26,29 +11,16 @@ const UNIDADES = 55;
 const ALUNOS_POR_TURMA = 30;
 const DIAS_LETIVOS = 200;
 const TAXA_DE_FALTA = 0.06;
-/** Matrículas por comando de carga: cada uma vira ~200 linhas, então o lote real é 200 mil. */
 const MATRICULAS_POR_LOTE = 1_000;
 
-/**
- * O turno de cada turma sai do vocabulário do acadêmico, e não de uma quinta cópia dos quatro
- * valores escrita dentro do SQL — a `CHECK (turno IN (...))` da migração já é a segunda. Viaja
- * como literal de array do PostgreSQL (`{a,b,c}`) porque o Bun serializa um array de JavaScript
- * juntando com vírgula, e é o `::text[]` do outro lado que o devolve à forma de arranjo.
- */
 const ARRANJO_DE_TURNOS = `{${TURNOS.join(',')}}`;
 
-/**
- * A janela do ano letivo sintético. As mesmas duas datas abrem o `ano_letivo` e recortam os dias
- * de `frequencia`: se divergirem, a carga grava presença fora do ano que ela própria criou — e o
- * defeito aparece como um boletim que não fecha, longe da linha que o causou.
- */
 const CALENDARIO = {
   inicio: (ano: number): string => `${ano}-02-01`,
   fim: (ano: number): string => `${ano}-12-15`,
   matricula: (ano: number): string => `${ano}-02-05`,
 } as const;
 
-/** As quatro opções da linha de comando. Esta ordem é a que a mensagem de erro enumera. */
 const OPCOES = {
   ano: '--ano',
   alunos: '--alunos',
@@ -56,13 +28,8 @@ const OPCOES = {
   apagar: '--apagar',
 } as const;
 
-/** `Bun.argv` abre com o executável e o caminho do script; o usuário escreve a partir daí. */
 const INICIO_DOS_ARGUMENTOS = 2;
 
-/**
- * Larguras do relatório de terminal. Os dois `12` são colunas diferentes — o nome da tabela e a
- * contagem de linhas — e alargar uma não tem por que alargar a outra.
- */
 const COLUNAS = { progresso: 7, tabela: 12, contagem: 12 } as const;
 
 type Argumentos = { ano: number; alunos: number; confirmado: boolean; apagar: boolean };
@@ -71,7 +38,6 @@ const agora = (): number => Date.now();
 const emSegundos = (desde: number): string => ((agora() - desde) / TEMPO.msPorSegundo).toFixed(1);
 const comSeparador = (valor: number): string => valor.toLocaleString(LOCALE);
 
-/** Tudo o que este script escreve no terminal, em um lugar só. */
 const MENSAGENS = {
   inteiroPositivo: (rotulo: string): string =>
     `${rotulo} exige um inteiro positivo logo em seguida.`,
@@ -142,7 +108,6 @@ function lerArgumentos(argv: readonly string[]): Argumentos {
   return { ano, alunos, confirmado, apagar };
 }
 
-/** A rede de carga nasce uma vez; rodar de novo para outro ano reaproveita unidades e alunos. */
 async function garantirRede(sql: Conexao): Promise<string> {
   const existente: { id: string }[] = await sql`SELECT id FROM rede WHERE slug = ${SLUG}`;
   const encontrada = existente[0];
@@ -171,7 +136,6 @@ async function garantirAlunos(sql: Conexao, redeId: string, alunos: number): Pro
     await sql`SELECT count(*)::int AS total FROM aluno WHERE rede_id = ${redeId}`;
   const existentes = contagem[0]?.total ?? 0;
   if (existentes >= alunos) return;
-  // Nascimento espalhado entre 10 e 17 anos: a data existe para o boletim ter o que mostrar.
   await sql`
     INSERT INTO aluno (id, rede_id, nome, data_nascimento)
     SELECT gen_random_uuid(), ${redeId}, 'Aluno de carga ' || lpad(i::text, 6, '0'),
@@ -181,7 +145,6 @@ async function garantirAlunos(sql: Conexao, redeId: string, alunos: number): Pro
 
 type Cenario = { anoLetivoId: string; turmas: number; matriculas: number };
 
-/** Ano letivo, disciplinas, turmas e a alocação de um professor por disciplina de cada turma. */
 async function montarAnoLetivo(
   sql: Conexao, redeId: string, ano: number, alunos: number,
 ): Promise<Cenario> {
@@ -201,8 +164,6 @@ async function montarAnoLetivo(
         SELECT id FROM unidade WHERE rede_id = ${redeId} ORDER BY nome
          OFFSET (i - 1) % ${UNIDADES} LIMIT 1
       ) AS u ON true`;
-  // `row_number` numera antes do corte; o filtro por posição é o que garante exatamente
-  // `alunos` matrículas, mesmo quando a rede já tem aluno de um ano letivo anterior.
   await sql`
     INSERT INTO matricula (id, rede_id, aluno_id, turma_id, ano_letivo_id, data_matricula, situacao)
     SELECT gen_random_uuid(), ${redeId}, a.aluno_id, t.id, ${anoLetivoId},
@@ -220,10 +181,6 @@ async function montarAnoLetivo(
   return { anoLetivoId, turmas, matriculas: total[0]?.total ?? 0 };
 }
 
-/**
- * A carga de verdade. Um comando por lote de matrículas, produto cartesiano com os dias letivos
- * dentro do banco: nada de 3,6 milhões de linhas atravessando a conexão em multi-VALUES.
- */
 async function preencherFrequencia(
   sql: Conexao, redeId: string, cenario: Cenario, ano: number,
 ): Promise<number> {
@@ -287,8 +244,6 @@ function instruirMedicao(): void {
   console.log(MEDICAO);
 }
 
-// Ordem de remoção: filha antes de mãe. A rede de carga sai inteira — é sintética, e refazê-la
-// é o único jeito honesto de recomeçar uma medição do zero.
 const APAGAR_EM_ORDEM = ['frequencia', 'nota', 'matricula', 'turma', 'ano_letivo', 'aluno', 'unidade'];
 
 async function apagarRedeDeCarga(sql: Conexao): Promise<void> {

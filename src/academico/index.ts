@@ -49,10 +49,6 @@ export type { Responsavel, VinculoResponsavel } from './dominio/responsavel';
 export type { Turma, TurmaDisciplina } from './dominio/turma';
 export type { ContagemDaUnidade, FiltroDeTurma } from './aplicacao/consultas';
 
-/**
- * A única porta de entrada do módulo: quem estuda, onde e com quem. Casos de uso devolvem
- * `Resultado`; consultas devolvem o valor direto. Nada aqui expõe linha de banco.
- */
 export const academico = {
   definirAnoLetivo,
   listarAnosLetivos,
@@ -96,24 +92,11 @@ export const academico = {
   responsaveisDaUnidade,
 };
 
-/**
- * As constantes do módulo que alguém de fora precisa ler. Os nomes ganham o sufixo do dono na
- * travessia: dentro de `academico/` os arquivos importam `LIMITES` de `./constantes`, mas em
- * `web/rotas/secretaria.ts` conviverão limites de três módulos, e `LIMITES.aluno.nome` sozinho não
- * diria de quem é a política. `VOCABULARIO_DO_ACADEMICO.turno` diz.
- *
- * A lista é curta de propósito. `CODIGOS`, `MENSAGENS` e `ERROS_INTERNOS` NÃO saem daqui: eles
- * viajam dentro do `Resultado` que os casos de uso devolvem, e ninguém de fora os alcança pelo
- * nome. Exportá-los "por completude" criava três nomes públicos sem um único importador — e um
- * nome público sem importador mente sobre onde a verdade mora, porque sugere que existe alguém
- * do outro lado que precisa combinar com ele.
- */
 export {
   CAMPOS as CAMPOS_DO_ACADEMICO,
   LIMITES as LIMITES_DO_ACADEMICO,
   VOCABULARIO as VOCABULARIO_DO_ACADEMICO,
 } from './constantes';
 
-/** Vocabulário fechado do domínio: fonte de tipo, e por isso reexportado direto de `dominio/`. */
 export { MATRICULA_ATIVA, SITUACOES_DE_MATRICULA } from './dominio/matricula';
 export { TURNOS } from './dominio/turma';

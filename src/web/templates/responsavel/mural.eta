@@ -1,41 +1,4 @@
 <%
-/*
-  Mural de comunicados do responsável.
-
-  Duas listas, e a diferença entre elas é a hierarquia da página: o que está por ler ganha cartão,
-  título grande e etiqueta; o que já foi lido vira uma linha discreta com a data da leitura. É a
-  mesma informação em dois pesos — e o peso é o que diz onde olhar primeiro.
-
-  Nada nesta tela marca leitura. Abrir o comunicado é navegação; marcar como lido é uma escrita
-  que o responsável faz por escolha, com um botão, na página do próprio comunicado.
-
-  As duas listas levam ao mesmo endereço de comunicado, e ele sai de `it.rotas` — o mesmo mapa que
-  o router registra —, com o `:comunicadoId` preenchido por quem sabe escapá-lo. Escrito à mão,
-  seriam duas cópias do caminho que podem divergir de um lado só, e a metade lida do mural
-  continuaria apontando para o lugar certo enquanto a não lida apontaria para o vazio. URL literal
-  em `.eta` não quebra compilação: quebra a tela de quem clica.
-
-  Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
-  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
-
-  As duas notas de contagem dizem "comunicado"/"comunicados" com `it.pluralizar` sobre
-  `it.contagem.comunicado`: singular e plural são uma decisão só, e as duas seções contam a MESMA
-  coisa em pesos diferentes — escrever o ternário duas vezes deixaria a metade lida do mural livre
-  para divergir da não lida na palavra que ambas contam.
-*/
-
-/*
-  Na linha de cada comunicado já lido, o "·" que separa a data de publicação da data de leitura é
-  `it.apresentacao.separador` — `APRESENTACAO` (`src/web/constantes.ts`), a mesma marca com que os
-  sobretítulos de nove telas juntam a área do menu e o nome da tela. O trabalho é o mesmo: emendar
-  dois fatos numa linha só. Escrito à mão, esta seria a décima ocorrência da marca tipográfica, e
-  trocá-la em `APRESENTACAO` deixaria o mural pontuando de um jeito que nenhuma outra tela usa.
-
-  O valor da constante é ` · `, com um espaço de cada lado: os espaços são metade da decisão, e não
-  indentação do template. Por isso a linha que a imprime começa UM espaço à esquerda das vizinhas —
-  o espaço que falta no recuo é o que a constante devolve, e o HTML servido sai com os mesmos oito
-  espaços de antes. Alinhá-la com as irmãs acrescentaria um nono espaço ao texto renderizado.
-*/
 const naoLidos = it.naoLidos;
 const lidos = it.lidos;
 %>

@@ -21,10 +21,6 @@ import * as fechamentoRepositorio from '../infra/fechamentoRepositorio';
 import * as frequenciaRepositorio from '../infra/frequenciaRepositorio';
 import * as notaRepositorio from '../infra/notaRepositorio';
 
-// I15: toda consulta daqui declara que é leitura. Hoje `leitura()` devolve o primário, e é essa
-// declaração explícita que faz da réplica uma mudança de uma linha em `shared/db`, e não uma
-// revisão de cada consulta do sistema.
-
 export async function notasDaTurmaDisciplina(
   redeId: string,
   turmaDisciplinaId: string,
@@ -67,10 +63,6 @@ export async function frequenciaDaMatricula(
   return await frequenciaRepositorio.porMatricula(leitura(), redeId, matriculaId);
 }
 
-/**
- * O dia a dia da matrícula em páginas. O percentual do topo da tela não sai daqui: ele continua
- * vindo do boletim, que apura o ano inteiro no banco — a página muda o que se lê, não o que vale.
- */
 export async function paginaDeFrequencia(
   redeId: string,
   matriculaId: string,
@@ -86,11 +78,6 @@ export async function paginaDeFrequencia(
   );
 }
 
-/**
- * I5: média, percentual de frequência e situação são calculados aqui, a cada leitura, a partir das
- * notas e da chamada. Nenhum deles tem coluna própria — coluna calculada é a cópia que diverge da
- * fonte e ninguém percebe.
- */
 export async function boletim(redeId: string, matriculaId: string): Promise<Boletim | null> {
   const matricula = await academico.matriculaPorId(redeId, matriculaId);
   if (matricula === null) return null;
@@ -134,8 +121,6 @@ function montarLinha(
   notas: readonly notaRepositorio.NotaDaMatricula[],
 ): LinhaDeBoletim {
   const daDisciplina = notas.filter((nota) => nota.turmaDisciplinaId === turmaDisciplinaId);
-  // Bimestre sem lançamento vira `null` em vez de sumir da linha: a lacuna é o que o responsável
-  // precisa enxergar, e é o que impede a média de sair de três bimestres.
   const porBimestre = BIMESTRES.map(
     (bimestre) => daDisciplina.find((nota) => nota.bimestre === bimestre)?.valor ?? null,
   );

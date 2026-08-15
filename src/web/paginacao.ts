@@ -1,31 +1,11 @@
-/**
- * A paginação como a camada web a enxerga: um número que vem da URL e uma barra de navegação que
- * volta pronta para o template.
- *
- * O estado da página mora na query, e não em sessão nem em cookie. É o que faz a terceira página
- * da lista de responsáveis ser um endereço — copiável, marcável, e igual para quem abrir depois.
- * O botão "voltar" do navegador funciona sem que ninguém precise programá-lo.
- *
- * Cada tabela tem seu próprio parâmetro. A ficha do aluno mostra responsáveis e matrículas lado a
- * lado, e um `?p=2` só saberia dizer qual das duas avançou.
- */
-
 import type { Context } from 'hono';
 import { paginaPedida, type Pagina } from '../shared/paginacao';
 import { PAGINACAO, PARAMETROS } from './constantes';
 
-/**
- * Quantos números ficam de cada lado do atual. É aritmética da centralização, derivada da janela:
- * mudar `PAGINACAO.janela` reacomoda a barra sozinho.
- */
 const METADE_DA_JANELA = Math.floor(PAGINACAO.janela / 2);
 
 export type LinkDePagina = { numero: number; href: string; atual: boolean };
 
-/**
- * Tudo o que a barra precisa, já resolvido. O template não calcula intervalo, não monta URL e não
- * decide o que desabilitar — a tela desenha o que recebe.
- */
 export type Navegacao = {
   readonly parametro: string;
   readonly pagina: number;
@@ -43,10 +23,6 @@ export function paginaDaQuery(c: Context, parametro: string = PARAMETROS.paginaP
   return paginaPedida(c.req.query(parametro));
 }
 
-/**
- * O endereço da página `numero` preservando o resto da query — filtro de unidade, ano letivo,
- * termo de busca e a página das outras tabelas da mesma tela continuam onde estavam.
- */
 const enderecoDaPagina = (c: Context, parametro: string, numero: number): string => {
   const parametros = new URLSearchParams(c.req.query());
   if (numero <= 1) parametros.delete(parametro);
@@ -55,7 +31,6 @@ const enderecoDaPagina = (c: Context, parametro: string, numero: number): string
   return consulta === '' ? c.req.path : `${c.req.path}?${consulta}`;
 };
 
-/** A janela desliza para manter a página atual no meio, sem passar das pontas. */
 const janelaDe = (atual: number, paginas: number): number[] => {
   if (paginas <= PAGINACAO.janela) return Array.from({ length: paginas }, (_, i) => i + 1);
   const inicio = Math.min(Math.max(1, atual - METADE_DA_JANELA), paginas - PAGINACAO.janela + 1);

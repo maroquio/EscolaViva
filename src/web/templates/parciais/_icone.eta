@@ -1,25 +1,8 @@
 <%
-/*
-  Ícone da aba, embutido como data: URI. Nenhuma requisição de rede sai desta página — nem para
-  fonte, nem para imagem, nem para script — e sem esta declaração o navegador pede /favicon.ico
-  em toda visita e recebe 404. É a mesma marca tipográfica do cabeçalho: serifa clara sobre o
-  índigo institucional.
-
-  O desenho é escrito UMA vez. As duas declarações são a mesma marca e mudam juntas por definição;
-  o que as separa é só o canto — o ícone da aba arredonda o dele, e o da tela de início do iOS
-  entra quadrado porque o sistema aplica a própria máscara por cima. Escritas duas vezes, a
-  próxima troca de cor acerta uma e esquece a outra, e ninguém percebe até olhar a aba.
-
-  Esta parcial não recebe dados: os dois layouts a incluem sem passar `it`, e não haveria o que
-  passar — o endereço daqui não é rota, é a própria imagem. Por isso nada de `it.rotas`, e por
-  isso a saída é crua: com o escape automático as aspas simples do SVG virariam `&#39;` dentro
-  do href.
-*/
 const INDIGO_INSTITUCIONAL = '%23264a91';
 const PAPEL = '%23faf8f3';
 const INICIAL_DA_MARCA = 'E';
 
-/* O canto arredondado é do ícone da aba; a tela de início do iOS recebe o quadrado. */
 const CANTO_ARREDONDADO = " rx='6'";
 const SEM_CANTO = '';
 

@@ -23,7 +23,6 @@ const entrada = z.object({
   dataNascimento: z.string().date(MENSAGENS.aluno.dataNascimentoFormato),
 });
 
-/** A data de hoje em 'AAAA-MM-DD'; o dia de diferença por fuso não muda uma checagem de futuro. */
 const hoje = (): string => clockDoSistema.agora().toISOString().slice(0, TAMANHO_DA_DATA_ISO);
 
 export async function cadastrarAluno(e: {

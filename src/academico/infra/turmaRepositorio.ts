@@ -35,7 +35,6 @@ type LinhaDeTurmaDisciplinaDoProfessor = LinhaDeTurmaDisciplina & {
   unidade_id: string;
 };
 
-/** O CHECK `turno_valido` garante o conjunto no banco; aqui ele volta a ser tipo. */
 function paraTurno(valor: string): Turno {
   if (!turnoValido(valor)) throw new Error(ERROS_INTERNOS.turnoDesconhecido(valor));
   return valor;
@@ -89,25 +88,12 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<T
   return linha === undefined ? null : paraTurma(linha);
 }
 
-/**
- * O filtro por várias unidades é o alcance da secretaria escrito como parâmetro. Antes ele era uma
- * consulta por unidade concatenada em memória, e uma lista assim não tem onde pendurar um LIMIT:
- * o recorte só existe de verdade quando a condição inteira cabe em uma consulta.
- *
- * Lista vazia de unidades não é o mesmo que filtro ausente. `= ANY('{}')` não casa com nada — e é
- * exatamente isso que a secretaria sem unidade atribuída deve enxergar.
- */
 export type FiltroDeTurma = {
   unidadeId?: string;
   unidadeIds?: readonly string[];
   anoLetivoId?: string;
 };
 
-/**
- * O `'TEXT'` abaixo é o tipo do array do lado do Postgres, e não uma decisão do produto: é o mesmo
- * argumento que `contarPorUnidade` passa dentro do `` sql`…` ``, onde a regra 6 já o deixa de fora.
- * Aqui ele só está fora do template porque a condição é montada antes da consulta.
- */
 const condicoesDoFiltro = (sql: Conexao, filtro?: FiltroDeTurma) => ({
   unidadeId: filtro?.unidadeId ?? null,
   unidadeIds:
@@ -115,10 +101,6 @@ const condicoesDoFiltro = (sql: Conexao, filtro?: FiltroDeTurma) => ({
   anoLetivoId: filtro?.anoLetivoId ?? null,
 });
 
-/**
- * O filtro ausente vira NULL e a condição se anula sozinha — a consulta continua sendo um
- * template com parâmetros, sem trecho de SQL montado por concatenação.
- */
 export async function listar(
   sql: Conexao,
   redeId: string,
@@ -155,11 +137,6 @@ export async function contar(
   return linhas[0]?.total ?? 0;
 }
 
-/**
- * Quantas turmas cada unidade tem, em uma consulta só. O painel da secretaria contava percorrendo
- * a lista de turmas do alcance inteiro — o número de idas ao banco crescia com a rede, para
- * mostrar uma coluna.
- */
 export async function contarPorUnidade(
   sql: Conexao,
   redeId: string,
@@ -203,7 +180,6 @@ export async function disciplinaPorId(
   return linha === undefined ? null : paraTurmaDisciplina(linha);
 }
 
-/** Sem faixa devolve a turma inteira — é assim que o boletim monta uma linha por disciplina. */
 export async function listarDisciplinas(
   sql: Conexao,
   redeId: string,

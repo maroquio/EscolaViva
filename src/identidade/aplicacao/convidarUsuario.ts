@@ -32,8 +32,6 @@ const schema = z.object({
     .trim()
     .transform(normalizarCpf)
     .refine(cpfValido, MENSAGENS.usuario.cpfInvalido),
-  // O cadastro do responsável vive em `academico`, e `identidade` não pode alcançá-lo: quem o
-  // busca é a camada web, que já orquestra os dois módulos. Aqui chega só o que a regra compara.
   cpfDoCadastro: z.string().nullable().optional(),
   nomeDoCadastro: z.string().optional(),
   atribuicoes: z
@@ -51,7 +49,6 @@ const schema = z.object({
 
 function senhaProvisoria(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(SEGURANCA.tamanhoDaSenhaProvisoria));
-  // O alfabeto tem 32 símbolos e 256 é múltiplo de 32: o resto não distorce o sorteio.
   return Array.from(bytes, (byte) =>
     SEGURANCA.alfabetoSemAmbiguidade.charAt(byte % SEGURANCA.alfabetoSemAmbiguidade.length),
   ).join('');
@@ -59,7 +56,6 @@ function senhaProvisoria(): string {
 
 type Atribuicao = { unidadeId: string; papel: Papel };
 
-/** O formulário pode repetir o par unidade+papel; a chave primária de `papel_usuario` não pode. */
 function atribuicoesDistintas(atribuicoes: Atribuicao[]): Atribuicao[] {
   const porChave = new Map<string, Atribuicao>();
   for (const atribuicao of atribuicoes) {
@@ -80,10 +76,6 @@ type Convite = {
   atribuicoes: Atribuicao[];
 };
 
-/**
- * Usuário e papéis nascem na MESMA unidade de trabalho: um convite que criasse a pessoa e
- * falhasse ao dar o papel deixaria alguém logando sem enxergar tela nenhuma.
- */
 async function gravar(convite: Convite): Promise<Resultado<ConviteAceito>> {
   const { usuario, atribuicoes } = convite;
   return await unidadeDeTrabalho(async ({ sql }) => {
@@ -105,8 +97,6 @@ async function gravar(convite: Convite): Promise<Resultado<ConviteAceito>> {
 
     await usuarioRepositorio.inserir(sql, usuario, convite.senhaHash);
     await usuarioRepositorio.inserirPapeis(sql, usuario.redeId, usuario.id, atribuicoes);
-    // A senha provisória volta para ser mostrada uma vez a quem convidou: não há envio de
-    // e-mail no Estágio 01 e ela nunca aparece em log.
     return sucesso({ usuarioId: usuario.id, senhaProvisoria: convite.senhaProvisoria });
   });
 }
@@ -136,8 +126,6 @@ export async function convidarUsuario(entrada: {
     );
   }
 
-  // Só confere quando o cadastro já tem CPF. Sem CPF não há divergência a impedir — é o que
-  // mantém o convite funcionando para os responsáveis cadastrados antes da migração 0007.
   const cpfDoCadastro = dados.cpfDoCadastro ?? null;
   if (cpfDoCadastro !== null && cpfDoCadastro !== dados.cpf) {
     return falhaDeCampo(

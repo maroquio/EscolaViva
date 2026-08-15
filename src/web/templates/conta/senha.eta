@@ -1,26 +1,4 @@
 <%
-/*
-  Trocar a própria senha.
-
-  Nenhum dos três campos volta preenchido depois de um erro: senha digitada não é valor a
-  preservar. O que volta é a mensagem, ligada ao campo por `aria-describedby`.
-
-  O rótulo do botão que envia é o título DESTA tela, e por isso lê `it.titulos.trocarSenha` — a
-  mesma chave que a rota passa como `it.titulo` no `<h1>` acima e que o menu já usa para nomear o
-  link do grupo "Conta". São a mesma decisão dita uma vez: renomear a tela renomeia junto o botão
-  que a cumpre e o caminho do menu que traz até aqui, em vez de exigir uma varredura pelos `.eta`.
-
-  `campos` é o apelido de `CAMPOS.senha` do módulo de identidade, o dono dos três nomes. Ele cobre
-  tudo que ATRAVESSA este arquivo: o `name=` que a rota lê do corpo, o `campo` que `falhaDeCampo()`
-  carrega até `erroDe()`/`descricao()`, e o `id` do parágrafo que o `aria-describedby` promete —
-  este último pelos auxiliares `it.idDoErro`/`it.idDaAjuda`, que são o outro lado de `descricao()`.
-  Divergindo qualquer um deles, nada quebra à vista: o campo chega vazio ao servidor, ou o leitor
-  de tela aponta para um id inexistente e não lê nem o erro nem a ajuda.
-*/
-// O `id` do <input> e o `for=` do <label> ficam literais de propósito.
-// Não são cópia de CAMPOS.senha: o valor coincide, mas o contrato é outro. Eles casam um com o
-// outro dentro destas seis linhas e ninguém fora do arquivo os lê; o nome que atravessa é o
-// `name=`. `for="senhaAtual"` ao lado de `id="senhaAtual"` é o HTML que um aluno lê de uma vez.
 const { erroDe, descricao } = it;
 const campos = it.campos.senha;
 %>

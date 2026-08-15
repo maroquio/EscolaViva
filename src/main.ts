@@ -1,15 +1,3 @@
-/**
- * Boot do processo.
- *
- * A primeira linha executada é o import de `config`: ele valida o ambiente e lança se faltar
- * variável (I18). Um processo que sobe sem `DATABASE_URL` e descobre isso no meio de uma matrícula
- * é pior do que um processo que não sobe.
- *
- * Depois: servidor HTTP com prazo de ociosidade menor que o de quem estiver na frente (I14),
- * agendador com o único job do estágio, e um desligamento que drena as requisições em curso antes
- * de fechar o pool (I13).
- */
-
 import { EVENTOS_DE_LOG_DE_IDENTIDADE, EXPURGO_DE_SESSOES, identidade } from './identidade';
 import { config } from './shared/config';
 import {
@@ -24,17 +12,8 @@ import { iniciarAgendador, type Job } from './shared/jobs';
 import { logger } from './shared/log';
 import { app } from './web/app';
 
-/**
- * Os dois desfechos possíveis da corrida da drenagem. Ficam locais de propósito: não são vocabulário
- * do produto nem de infraestrutura compartilhada — nascem e morrem dentro de `aguardarDrenagem`, e
- * só existem nomeados para que o `Promise.race` seja lido por palavra em vez de por posição.
- */
 const DESFECHO_DA_DRENAGEM = { drenou: 'drenou', expirou: 'expirou' } as const;
 
-/**
- * O único job do Estágio 01. Com uma instância o lock é redundante; com seis (E08) é o que evita
- * seis expurgos simultâneos varrendo a mesma tabela.
- */
 const expurgoDeSessoes: Job = {
   nome: EXPURGO_DE_SESSOES.nome,
   chaveDeLock: CHAVES_DE_LOCK.expurgoDeSessoes,
@@ -48,7 +27,6 @@ const expurgoDeSessoes: Job = {
   },
 };
 
-/** I14: o prazo do Bun é em segundos e tem teto; o da aplicação vem em milissegundos do ambiente. */
 const ociosidadeEmSegundos = (timeoutMs: number): number =>
   Math.min(
     Math.max(1, Math.ceil(timeoutMs / TEMPO.msPorSegundo)),
@@ -73,10 +51,6 @@ logger.info(
   MENSAGENS_DE_PROCESSO.noAr,
 );
 
-/**
- * Espera as requisições em curso terminarem. Quem passar do prazo da aplicação mais a margem já
- * teria estourado o timeout do cliente de qualquer forma: aí a conexão é cortada, com registro.
- */
 async function aguardarDrenagem(drenagem: Promise<void>): Promise<void> {
   const prazo = config.httpTimeoutMs + SERVIDOR.margemDeDrenagemMs;
   let temporizador: ReturnType<typeof setTimeout> | undefined;
@@ -111,7 +85,6 @@ async function desligar(sinal: string): Promise<void> {
     MENSAGENS_DE_PROCESSO.desligamentoIniciado,
   );
 
-  // A ordem importa: parar de aceitar vem antes de tudo, para que a fila não cresça enquanto drena.
   const drenagem = servidor.stop(false);
   agendador.parar();
   await aguardarDrenagem(drenagem);

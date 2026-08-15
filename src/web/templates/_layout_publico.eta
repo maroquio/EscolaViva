@@ -1,29 +1,4 @@
 <%
-/*
-  Layout das telas sem sessão: entrar no sistema e página de erro. Uma folha centrada sobre a
-  pauta do fundo — a mesma marca tipográfica da aplicação, sem barra lateral e sem contexto de
-  rede, porque nada disso é conhecido antes do login.
-
-  O título da página vem do <h1> do próprio conteúdo; aqui só a marca e o rodapé.
-
-  O endereço da folha não é escrito à mão, pela mesma razão do `_layout`: `it.rotas.publicas.publico`
-  é a MESMA rota curinga que serve os arquivos publicados (I10), e o nome versionado que `it.asset`
-  resolve entra no lugar do curinga. Com o `/publico/` digitado aqui, mudar o prefixo publicado em
-  `ROTAS` fazia a aplicação seguir e esta tela — mais TODA página de erro, que também usa este
-  layout — perder o CSS em silêncio.
-
-  O `<head>` (`it.documento`), a marca, o subtítulo e o rodapé (`it.apresentacao`) e o caminho dos
-  parciais (`it.parciais`) vêm pelo mesmo caminho, de `render.ts`. Aqui a razão é ainda mais forte
-  que no `_layout`: esta moldura também é montada pelo renderizador de erro registrado no fim de
-  `render.ts`, que responde a falha levantada DENTRO de um middleware — não há handler, não há rota,
-  e o que este arquivo precisar tem de estar no contexto que o próprio renderizador monta.
-
-  A linha em branco DENTRO do parágrafo do rodapé não é descuido de formatação. O Eta roda com
-  `autoTrim` no padrão, que come uma quebra de linha logo depois de cada tag: ali a interpolação é a
-  última coisa da linha, e sem a linha extra a marca de fechamento subiria para o fim do parágrafo —
-  um byte a menos no HTML de toda tela sem sessão. Nos outros pontos a interpolação tem texto à
-  direita, e a quebra comida é a que o próprio código já não imprimia.
-*/
 const folhaDeEstilo = it.rotas.publicas
   .publico()
   .replace(it.curingaDeAsset, it.asset(it.nomeLogicoDaFolha));

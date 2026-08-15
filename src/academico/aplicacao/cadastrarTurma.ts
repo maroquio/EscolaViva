@@ -28,7 +28,6 @@ const entrada = z.object({
     .trim()
     .min(1, MENSAGENS.turma.serieObrigatoria)
     .max(LIMITES.turma.serie, MENSAGENS.turma.serieLonga),
-  // A regra do turno mora no domínio; o schema apenas a consulta.
   turno: z.string().trim().refine(turnoValido, MENSAGENS.turma.turnoInvalido),
 });
 

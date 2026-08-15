@@ -35,7 +35,6 @@ export async function vincularResponsavel(e: {
 
   const { redeId, alunoId, responsavelId } = validada.data;
   return unidadeDeTrabalho(async ({ sql }): Promise<Resultado<void>> => {
-    // As chaves estrangeiras garantem que aluno e responsável existem, não que sejam desta rede.
     const aluno = await alunos.porId(sql, redeId, alunoId);
     if (aluno === null) {
       return falhaDeCampo(

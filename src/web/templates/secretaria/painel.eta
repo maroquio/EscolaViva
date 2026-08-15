@@ -1,64 +1,4 @@
 <%
-/*
-  Painel da secretaria: os números das unidades em que ela atua e os caminhos que a manhã pede.
-
-  A contagem vem sempre do banco, nunca de coluna mantida à mão (I5). Números ficam em fonte
-  monoespaçada com dígitos de mesma largura porque servem para comparar de relance, não para ler.
-
-  Os seis endereços da tela saem de `it.rotas`, o mesmo mapa que o router registra: dois deles — o
-  cadastro de aluno e a busca — aparecem duas vezes cada um, no botão do cabeçalho e de novo no
-  atalho do dia. Escritos à mão, seriam seis cópias que podem divergir de um lado só, e URL literal
-  em `.eta` não quebra compilação: quebra a tela de quem clica.
-*/
-
-/*
-  O caminho de cada parcial incluído vem de `it.parciais` — `TEMPLATES.parciais`
-  (`src/web/constantes.ts`), o mesmo mapa que nomeia esta página. Escrito à mão, `"/parciais/_vazio"`
-  seria uma cópia do caminho de arquivo que nenhum compilador confere: renomear o parcial derruba a
-  tela em tempo de execução, e não na compilação.
-*/
-
-/*
-  O rótulo do botão que leva a uma tela é o título dela: `it.titulos` — `TITULOS`
-  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` desta página e de onde o
-  menu tira o nome de cada link. Escrito à mão, renomear a tela de destino deixaria o caminho até
-  ela chamando-a pelo nome antigo, e nada acusa: o botão continua levando ao lugar certo com a
-  legenda errada.
-
-  Vale para o cadastro de aluno, que é o primeiro atalho e também o botão do cabeçalho. Não vale
-  para os outros três atalhos: "Buscar e matricular", "Turmas e professores" e "Cadastrar
-  responsável" são manchetes de cartão, e não o nome da tela para onde levam — as duas primeiras
-  nem se parecem com o título do destino, e a terceira não é `TITULOS.secretaria.responsaveis`,
-  título da tela que ela de fato abre, nem `TITULOS.secretaria.responsavelNovo`, título de uma tela
-  que ela NÃO abre: a manchete diz o que a pessoa vai fazer depois de chegar na lista, e o cadastro
-  ainda é um clique adiante. Quem carrega o nome daquela tela é o BOTÃO que leva até ela, na lista
-  de responsáveis e na ficha do aluno, e lá o nome vem do mapa. Renomeá-la reescreve os dois botões,
-  e não pode reescrever esta manchete.
-*/
-
-/*
-  O sobretítulo é `it.areas` — `AREAS` (`src/web/constantes.ts`), a mesma palavra que rotula o grupo
-  no menu. O sobretítulo existe justamente para dizer em que parte do menu a pessoa está: escrito à
-  mão, renomear o grupo deixaria o menu e o cabeçalho chamando o mesmo lugar por dois nomes.
-
-  O nome de cada dado é `it.rotulos` — `ROTULOS`: "Aluno", "Matrícula", "Turma" e "Responsável"
-  rotulam os cartões de atalho, e "Unidade" e "Matrículas ativas" nomeiam a coluna e o cartão de
-  número aqui e nas outras telas em que o mesmo dado aparece. O substantivo que vem DEPOIS de um
-  número é outra coisa, e sai de `it.contagem` — `CONTAGEM`: "unidades", na frase da seção e no
-  rótulo da barra de paginação. "Unidade" nomeia a coluna; "unidades" é lido em voz corrida no meio
-  de uma frase contada, e encurtar o cabeçalho um dia não encurta a frase.
-
-  "Turmas", "Responsáveis" e "Disciplinas" continuam escritos aqui. Coincidem com o título das telas
-  de mesmo nome, e a coincidência é de redação: nesta tela eles nomeiam a CONTAGEM do cartão e da
-  coluna, e não a tela que o menu abre — renomear a lista de responsáveis não pode renomear este
-  número. O lugar deles, no dia em que outra tela precisar dos mesmos nomes, é um membro próprio em
-  `ROTULOS`, ao lado de `matriculasAtivas`; `TITULOS` não é, em nenhum dia.
-
-  A linha vazia solta abaixo do "unidades", na nota da seção, existe por causa do autoTrim do Eta,
-  que apaga a primeira quebra vinda depois de um fechamento de tag. Sem uma segunda quebra ali, o
-  fim do parágrafo grudaria no substantivo dentro do HTML entregue ao navegador. Os rótulos de botão
-  de `secretaria/aluno.eta` levam o mesmo ajuste, e o comentário de lá detalha a configuração.
-*/
 const unidades = it.unidades ?? [];
 const totais = it.totais;
 const anoCorrente = it.anoCorrente ?? null;
@@ -74,9 +14,6 @@ const atalhos = [
     titulo: 'Turmas e professores',
     detalhe: 'Abra a turma para alocar disciplina e professor da unidade.' },
   { href: it.rotas.secretaria.responsaveis(), rotulo: it.rotulos.responsavel,
-    // Manchete deste cartão, que abre a LISTA de responsáveis: o cadastro ainda é um clique
-    // adiante, e quem carrega o nome daquela tela é o botão que leva até ela — ver o topo. Não é
-    // o título da tela de cadastro, que este cartão NÃO abre, nem o título da tela que ele abre.
     // magic-values: permitido — não é `TITULOS.secretaria.responsavelNovo` nem `TITULOS.secretaria.responsaveis`
     titulo: 'Cadastrar responsável',
     detalhe: 'Quem recebe comunicado e responde pelo aluno.' },
@@ -142,8 +79,6 @@ const atalhos = [
 </section>
 
 <%
-/* A condição é sobre o total de unidades, e não sobre as que couberam na página: com 21 unidades,
-   a segunda página traz uma linha só, e a tabela não pode desaparecer por causa disso. */
 const totalDeUnidades = it.navegacao === undefined ? unidades.length : it.navegacao.total;
 %>
 <% if (totalDeUnidades > 1) { %>

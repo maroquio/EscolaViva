@@ -1,36 +1,4 @@
 <%
-/*
-  Barra de navegação entre páginas de uma tabela.
-
-  Recebe seu próprio objeto, e não o `it` da página — a mesma tela pode ter duas tabelas, cada uma
-  com sua barra. A chamada tem a forma
-
-    include("/parciais/_paginacao", { navegacao, rotulo })
-
-  onde `navegacao` vem de `navegacao(c, pagina, parametro)` na camada web e `rotulo` nomeia o que
-  está sendo contado ("responsáveis", "turmas"), para que quem usa leitor de tela ouça de qual das
-  tabelas da página esta barra fala.
-
-  Nenhum endereço é decidido aqui. `anterior`, `proxima` e `links[].href` chegam prontos de
-  `navegacao()` (`src/web/paginacao.ts`), que monta cada um sobre o caminho atual preservando o
-  resto da query — filtro de unidade, ano letivo, termo de busca e a página das outras tabelas da
-  mesma tela. Por receber o próprio objeto, esta parcial também não enxerga `it.rotas`: o mapa de
-  rotas está no `it` de quem inclui, e esta barra pagina o endereço em que já se está, e não uma
-  rota nomeada. É por isso que o arquivo não tem nem um `href` escrito à mão.
-
-  Página única não desenha botão, mas continua dizendo quantos itens existem: some o controle,
-  não a informação.
-*/
-
-/*
-  O texto de socorro para a inclusão que esquecer o `rotulo`. Todas as de hoje informam o seu — sem
-  este, a barra anunciaria "de 12 undefined" para quem usa leitor de tela.
-
-  Ele é decidido aqui porque aqui é o único lado que enxerga o que a barra imprime: o Eta não
-  importa TypeScript, e `include` NÃO herda o `it` de quem inclui — a parcial recebe exatamente o
-  objeto do ponto de chamada, `{ navegacao, rotulo }`, e nada do contexto onde `render.ts` injeta
-  as constantes da camada web. Nenhuma das inclusões manda constante alguma para cá.
-*/
 const ROTULO_PADRAO = 'itens';
 
 const nav = it.navegacao ?? null;

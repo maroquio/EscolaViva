@@ -4,13 +4,6 @@ import { config } from '../src/shared/config/index';
 import { CHAVES_DE_LOCK, MIGRACOES } from '../src/shared/constantes';
 import { ARGUMENTOS, MENSAGENS_DA_MIGRACAO as MENSAGENS } from './constantes';
 
-/**
- * O diretório e o glob vêm de `shared/constantes` porque a migração não é a única coisa que
- * precisa saber onde os `.sql` moram. As bandeiras e o texto de console têm um consumidor só —
- * este script —, e mesmo assim moram em `scripts/constantes.ts`: um consumidor único é motivo para
- * não exportar dali para fora, não para redigir uma tabela de constantes dentro de um arquivo de
- * lógica. O que sobra aqui é o que este arquivo de fato faz: ler argumentos, tomar o lock, aplicar.
- */
 const DIRETORIO_DE_MIGRACOES = resolve(import.meta.dir, '..', MIGRACOES.diretorio);
 
 type Argumentos = { readonly somenteStatus: boolean; readonly url: string };
@@ -40,7 +33,6 @@ function lerArgumentos(argv: readonly string[]): Argumentos {
   return { somenteStatus, url };
 }
 
-/** O console mostra para onde a migração vai, nunca usuário e senha. */
 function destinoLegivel(url: string): string {
   const endereco = new URL(url);
   return `${endereco.host}${endereco.pathname}`;
@@ -64,7 +56,6 @@ async function garantirTabelaDeControle(sql: SQL): Promise<void> {
 }
 
 async function versoesAplicadas(sql: SQL): Promise<Map<string, Date>> {
-  // Banco recém-criado ainda não tem a tabela de controle, e `--status` não escreve nada.
   const controle: { presente: boolean }[] =
     await sql`SELECT to_regclass('schema_migrations') IS NOT NULL AS presente`;
   if (controle[0]?.presente !== true) {
@@ -75,7 +66,6 @@ async function versoesAplicadas(sql: SQL): Promise<Map<string, Date>> {
   return new Map(linhas.map((linha) => [linha.versao, linha.aplicada_em]));
 }
 
-/** Uma transação por arquivo: o DDL e o registro da versão sobem juntos ou não sobem. */
 async function aplicar(sql: SQL, versao: string): Promise<void> {
   const conteudo = await Bun.file(join(DIRETORIO_DE_MIGRACOES, versao)).text();
   await sql.begin(async (tx) => {
@@ -104,7 +94,6 @@ function imprimirStatus(arquivos: readonly string[], aplicadas: ReadonlyMap<stri
 }
 
 async function aplicarPendentes(sql: SQL, arquivos: readonly string[]): Promise<void> {
-  // Lido depois do lock: outro processo pode ter migrado enquanto este esperava.
   const aplicadas = await versoesAplicadas(sql);
   const pendentes = arquivos.filter((versao) => !aplicadas.has(versao));
 
@@ -125,7 +114,6 @@ async function aplicarPendentes(sql: SQL, arquivos: readonly string[]): Promise<
 
 async function executar(): Promise<void> {
   const argumentos = lerArgumentos(Bun.argv.slice(ARGUMENTOS.primeiroDoUsuario));
-  // Uma conexão só no pool: o advisory lock pertence à sessão, e a sessão é a conexão.
   const sql = new SQL({ url: argumentos.url, max: 1 });
 
   try {
@@ -137,8 +125,6 @@ async function executar(): Promise<void> {
       return;
     }
 
-    // O lock vem antes de qualquer DDL: `CREATE TABLE IF NOT EXISTS` não é seguro contra
-    // corrida, e dois processos subindo ao mesmo tempo derrubariam um ao outro.
     await sql`SELECT pg_advisory_lock(${CHAVES_DE_LOCK.migracao})`;
     try {
       await garantirTabelaDeControle(sql);

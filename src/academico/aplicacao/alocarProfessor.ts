@@ -48,8 +48,6 @@ export async function alocarProfessor(e: {
         MENSAGENS.disciplinaNaoEncontrada,
       );
     }
-    // Quem leciona precisa ter o papel na unidade da turma: é `identidade` quem responde isso,
-    // e é por isso que a fronteira entre os dois módulos é uma pergunta, não uma consulta.
     const ehProfessor = await identidade.ehProfessorNaUnidade(
       redeId,
       professorUsuarioId,

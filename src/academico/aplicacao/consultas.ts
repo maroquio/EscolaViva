@@ -16,20 +16,11 @@ import * as turmas from '../infra/turmaRepositorio';
 
 export type { FiltroDeTurma } from '../infra/turmaRepositorio';
 
-/** O que o painel mostra de cada unidade. Nasce de três agregações, não de uma varredura. */
 export type ContagemDaUnidade = {
   readonly turmas: number;
   readonly matriculas: number;
   readonly responsaveis: number;
 };
-
-// I15: cada consulta declara a intenção escolhendo a conexão de leitura. Hoje as duas apontam
-// para o primário, e é dentro de `leitura()` que a réplica entrará — não aqui.
-//
-// As consultas vêm em dois feitios, e a diferença é intencional. `listar*` devolve a lista inteira
-// e existe para os campos de seleção do formulário, onde faltar uma opção é um erro. `paginaDe*`
-// devolve um recorte com o total junto, e é o que alimenta tabela — nenhuma tela do sistema
-// percorre uma lista que cresce com a rede.
 
 export function listarAnosLetivos(redeId: string): Promise<AnoLetivo[]> {
   return anosLetivos.listar(leitura(), redeId);
@@ -71,10 +62,6 @@ export function listarTurmas(redeId: string, filtro?: FiltroDeTurma): Promise<Tu
   return turmas.listar(leitura(), redeId, filtro);
 }
 
-/**
- * `unidadeIds` é o alcance de quem consulta: a secretaria vê as unidades onde tem o papel, e uma
- * lista vazia significa nenhuma turma — nunca "todas".
- */
 export function paginaDeTurmas(
   redeId: string,
   filtro: FiltroDeTurma,
@@ -90,11 +77,6 @@ export function paginaDeTurmas(
   );
 }
 
-/**
- * Os totais do alcance inteiro, para o resumo que fica acima da tabela paginada. Responsáveis são
- * contados como pessoas distintas: somar as colunas por unidade contaria duas vezes quem tem
- * filhos em duas escolas.
- */
 export async function totaisDoAlcance(
   redeId: string,
   unidadeIds: readonly string[],
@@ -116,7 +98,6 @@ export async function totaisDoAlcance(
   };
 }
 
-/** Turmas, matriculados ativos e responsáveis alcançados por unidade — três consultas ao todo. */
 export async function contagensPorUnidade(
   redeId: string,
   unidadeIds: readonly string[],
@@ -205,7 +186,6 @@ export function paginaDeAlunos(
   );
 }
 
-/** A matrícula ativa de cada aluno da página, dentro do alcance — uma consulta para a lista toda. */
 export function matriculasAtivasDosAlunos(
   redeId: string,
   alunoIds: readonly string[],
@@ -236,7 +216,6 @@ export function paginaDeResponsaveis(
   );
 }
 
-/** A camada web usa no convite, para comparar o CPF digitado com o do cadastro apontado. */
 export function responsavelPorId(
   redeId: string,
   responsavelId: string,
@@ -318,11 +297,6 @@ export function paginaDeMatriculasDoResponsavel(
   );
 }
 
-/**
- * O histórico do aluno visto por quem alcança apenas algumas unidades. Antes esta lista era
- * derivada de duas outras consultas na camada web, e a derivação respondia coisas diferentes
- * conforme o aluno tivesse ou não responsável vinculado.
- */
 export function paginaDeMatriculasDoAluno(
   redeId: string,
   alunoId: string,
@@ -339,7 +313,6 @@ export function paginaDeMatriculasDoAluno(
   );
 }
 
-/** Se o aluno está matriculado em algum lugar da rede — a pergunta que separa 404 de tela vazia. */
 export function alunoTemMatricula(redeId: string, alunoId: string): Promise<boolean> {
   return matriculas.temAlgumaMatricula(leitura(), redeId, alunoId);
 }

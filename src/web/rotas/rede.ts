@@ -1,18 +1,3 @@
-/**
- * Administração da rede: unidades, usuários e anos letivos.
- *
- * É o papel que abre a rede para todos os outros — sem unidade não há turma, sem usuário não há
- * secretaria nem professor, sem ano letivo não há matrícula. Cada um dos três assuntos tem duas
- * telas: a lista, que só lê, e o formulário de criação, numa página própria. A separação mantém a
- * lista fora do caminho do erro de validação — recusar um formulário não recarrega mais a consulta
- * paginada que ninguém pediu.
- *
- * Os números do painel são montados a partir das portas públicas de `identidade` e `academico`
- * (I1): a camada web não conhece tabela nem consulta. Contar matriculados percorre as turmas do
- * ano em vigor, uma leitura por turma — o custo é visível de propósito, e é o mesmo custo que a
- * secretaria paga ao abrir a lista.
- */
-
 import { Hono, type Context } from 'hono';
 import { deleteCookie, getSignedCookie, setSignedCookie } from 'hono/cookie';
 import { LIMITES_DO_ACADEMICO, academico, type Turma } from '../../academico';
@@ -54,34 +39,17 @@ import {
 import { navegacao, paginaDaQuery } from '../paginacao';
 import { renderizar, type DadosDeTemplate } from '../render';
 
-/** O código volta na URL depois do POST-Redirect-GET; a frase que a pessoa lê nasce aqui. */
 const MENSAGENS: Record<string, string> = {
   [CODIGOS_DE_AVISO.unidadeCriada]: AVISOS.unidadeCriada,
   [CODIGOS_DE_AVISO.usuarioConvidado]: AVISOS.usuarioConvidado,
   [CODIGOS_DE_AVISO.anoDefinido]: AVISOS.anoDefinido,
 };
 
-/**
- * A lista é fechada e igual à do domínio; aqui ela só ganha o nome que aparece na tela.
- *
- * Derivada de `PAPEIS`, e não redigitada: a ordem das opções do formulário passa a ser a ordem do
- * domínio, e um papel novo aparece nas duas listas de seleção sem que ninguém precise lembrar.
- */
 const PAPEIS_DA_TELA: readonly { valor: Papel; rotulo: string }[] = PAPEIS.map((valor) => ({
   valor,
   rotulo: VOCABULARIO_DE_IDENTIDADE.papel[valor],
 }));
 
-/**
- * O que o `.eta` não tem como importar chega por `it`, e é este o único caminho: o Eta não lê
- * TypeScript, então redigitar `/parciais/_vazio`, `-erro` ou `120` dentro do template abriria a
- * segunda fonte de verdade que a constante existe para fechar. Quem sabe ler `constantes.ts` é o
- * handler, e é ele que carrega o valor até a tela.
- *
- * `PARCIAIS` vai para as três listas e para o painel, que incluem `_vazio` e `_paginacao`;
- * `SUFIXOS` vai para os três formulários, cujos `id=` precisam casar, byte a byte, com o que
- * `descricao()` monta em `render.ts`.
- */
 const PARCIAIS = { parciais: TEMPLATES.parciais };
 const SUFIXOS = { sufixos: SUFIXOS_DE_ID };
 
@@ -89,14 +57,11 @@ export const rotasRede = new Hono<{ Variables: Variaveis }>();
 
 rotasRede.use(exigirPapel(PAPEL.adminRede));
 
-/* --- Leitura do formulário -------------------------------------------------- */
-
 const texto = (corpo: CorpoDeFormulario, campo: string): string => {
   const valor = corpo[campo];
   return typeof valor === 'string' ? valor.trim() : '';
 };
 
-/** Campo repetido chega como lista porque o nome termina em `[]`; um só valor chega sozinho. */
 const lista = (corpo: CorpoDeFormulario, campo: string): string[] => {
   const valor = corpo[campo];
   if (Array.isArray(valor)) return valor.map((item) => (typeof item === 'string' ? item.trim() : ''));
@@ -106,13 +71,9 @@ const lista = (corpo: CorpoDeFormulario, campo: string): string[] => {
 const mensagemDaQuery = (c: Context): string | undefined =>
   MENSAGENS[c.req.query(PARAMETROS.ok) ?? ''];
 
-/* --- Painel da rede --------------------------------------------------------- */
-
 type ContagensDaRede = { unidades: number; usuarios: number; turmas: number; matriculados: number };
 
 const contarRede = async (redeId: string, anoLetivoId: string | null): Promise<ContagensDaRede> => {
-  // Contar não é listar: unidades e usuários saem de duas agregações, e não de duas listas
-  // inteiras trazidas até aqui para terem o `length` lido.
   const [{ unidades, usuarios }, turmas] = await Promise.all([
     identidade.contarUnidadesEUsuarios(redeId),
     anoLetivoId === null
@@ -132,7 +93,6 @@ const contarRede = async (redeId: string, anoLetivoId: string | null): Promise<C
 
 rotasRede.get(ROTAS.rede.painel.padrao, async (c) => {
   const redeId = redeAtual(c);
-  // `listarAnosLetivos` devolve do mais recente para o mais antigo: o primeiro é o ano em vigor.
   const anos = await academico.listarAnosLetivos(redeId);
   const anoLetivo = anos[0] ?? null;
   const contagens = await contarRede(redeId, anoLetivo === null ? null : anoLetivo.id);
@@ -145,15 +105,11 @@ rotasRede.get(ROTAS.rede.painel.padrao, async (c) => {
   });
 });
 
-/* --- Unidades --------------------------------------------------------------- */
-
 const telaDeUnidades = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
   const pagina = await identidade.paginaDeUnidades(redeAtual(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATES.rede.unidades, {
     ...PARCIAIS,
     titulo: TITULOS.rede.unidades,
-    // A etiqueta e o travessão da célula vazia são vocabulário de quem os decide: a situação da
-    // unidade é da identidade, o travessão é de `shared`. O `.eta` só os recebe.
     rotuloDaSituacao: VOCABULARIO_DE_IDENTIDADE.unidadeAtiva,
     ausente: AUSENTE,
     unidades: pagina.itens,
@@ -162,7 +118,6 @@ const telaDeUnidades = async (c: Context, dados: DadosDeTemplate = {}): Promise<
   });
 };
 
-/** O formulário não lê a lista: recusar um nome repetido não custa a consulta paginada. */
 const formDeUnidade = (c: Context, dados: DadosDeTemplate = {}): Response =>
   renderizar(c, TEMPLATES.rede.unidadeNova, {
     ...SUFIXOS,
@@ -202,14 +157,6 @@ rotasRede.post(ROTAS.rede.unidades.padrao, async (c) => {
   );
 });
 
-/* --- Usuários --------------------------------------------------------------- */
-
-/**
- * A senha provisória precisa atravessar o redirecionamento do POST-Redirect-GET e aparecer uma
- * única vez. Na URL ela ficaria no histórico do navegador e na coluna `resposta_local` da tabela
- * de idempotência (I4); por isso viaja em cookie assinado, de vida curta e caminho restrito, que
- * a própria tela de destino apaga ao ler.
- */
 const guardarConvite = (c: Context, usuarioId: string, senha: string): Promise<void> =>
   setSignedCookie(
     c,
@@ -244,7 +191,6 @@ type LinhaDeAtribuicao = { unidadeId: string; papel: string };
 const ehPapel = (valor: string): valor is Papel =>
   PAPEIS_DA_TELA.some((opcao) => opcao.valor === valor);
 
-/** As linhas voltam inteiras para a tela quando o convite é recusado, inclusive as vazias. */
 const linhasDoFormulario = (corpo: CorpoDeFormulario): LinhaDeAtribuicao[] => {
   const unidades = lista(corpo, CAMPOS.usuario.unidades);
   const papeis = lista(corpo, CAMPOS.usuario.papeis);
@@ -258,17 +204,11 @@ const linhasDoFormulario = (corpo: CorpoDeFormulario): LinhaDeAtribuicao[] => {
 const linhasVazias = (): LinhaDeAtribuicao[] =>
   Array.from({ length: LINHAS_DE_ATRIBUICAO }, () => ({ unidadeId: '', papel: '' }));
 
-/**
- * A lista traz `papeis` só para traduzir a sigla da atribuição em nome de tela; as duas listas de
- * seleção do convite não são problema seu, e é por isso que abrir `/rede/usuarios` deixou de
- * carregar todas as unidades e todos os responsáveis da rede.
- */
 const telaDeUsuarios = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
   const pagina = await identidade.paginaDeUsuarios(redeAtual(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATES.rede.usuarios, {
     ...PARCIAIS,
     titulo: TITULOS.rede.usuarios,
-    // Mesma regra da lista de unidades: a palavra que a etiqueta mostra é da identidade.
     rotuloDaSituacao: VOCABULARIO_DE_IDENTIDADE.ativo,
     semPapel: VOCABULARIO_DE_IDENTIDADE.semPapel,
     usuarios: pagina.itens,
@@ -279,12 +219,6 @@ const telaDeUsuarios = async (c: Context, dados: DadosDeTemplate = {}): Promise<
   });
 };
 
-/**
- * A tabela da lista é paginada, os dois campos de seleção daqui não: unidade e responsável
- * precisam da lista inteira para que o convite possa apontar para qualquer uma delas. Recortar o
- * que a pessoa lê é cuidado com o banco; recortar o que ela pode escolher seria esconder opção sem
- * avisar.
- */
 const formDeUsuario = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
   const redeId = redeAtual(c);
   const [unidades, responsaveis] = await Promise.all([
@@ -299,8 +233,6 @@ const formDeUsuario = async (c: Context, dados: DadosDeTemplate = {}): Promise<R
     papeis: PAPEIS_DA_TELA,
     valores: VALORES_INICIAIS.usuario,
     limiteDoNome: LIMITES_DE_IDENTIDADE.usuario.nome,
-    // Limita o que cabe na caixa; quem decide se o CPF vale é `shared/documento`, que aceita com
-    // ou sem pontuação.
     tamanhoDoCpf: TAMANHO_DO_CPF_COM_MASCARA,
     linhas: linhasVazias(),
     erros: [],
@@ -340,8 +272,6 @@ rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
     });
   }
 
-  // Só a camada web enxerga identidade e academico ao mesmo tempo (I1): é aqui, e só aqui, que o
-  // CPF digitado pode ser comparado com o do cadastro que o convite alega representar.
   const cadastro =
     valores.responsavelId === '' || !ehIdentificador(valores.responsavelId)
       ? null
@@ -359,7 +289,6 @@ rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
   });
   if (!resultado.ok) return await formDeUsuario(c, { valores, linhas, erros: resultado.erros });
 
-  // A senha provisória não entra no log — nem aqui, nem em lugar nenhum.
   logger.info(
     { rede_id: redeId, usuario_id: resultado.valor.usuarioId, atribuicoes: atribuicoes.length },
     EVENTOS_DE_LOG.usuarioConvidado,
@@ -370,8 +299,6 @@ rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
     303,
   );
 });
-
-/* --- Anos letivos ----------------------------------------------------------- */
 
 const telaDeAnos = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
   const pagina = await academico.paginaDeAnosLetivos(redeAtual(c), paginaDaQuery(c));
@@ -389,8 +316,6 @@ const formDeAno = (c: Context, dados: DadosDeTemplate = {}): Response =>
     ...SUFIXOS,
     titulo: TITULOS.rede.anoNovo,
     valores: VALORES_INICIAIS.anoLetivo,
-    // A faixa é do caso de uso, que recusa o mesmo intervalo com `MENSAGENS.anoLetivo.*`; no
-    // formulário ela só adianta a recusa no navegador.
     anoMinimo: LIMITES_DO_ACADEMICO.anoLetivo.anoMinimo,
     anoMaximo: LIMITES_DO_ACADEMICO.anoLetivo.anoMaximo,
     erros: [],
@@ -412,7 +337,6 @@ rotasRede.post(ROTAS.rede.anosLetivos.padrao, async (c) => {
     dataFim: texto(corpo, CAMPOS.anoLetivo.dataFim),
   };
 
-  // O caso de uso recebe número; converter texto vazio em 0 devolveria a mensagem errada.
   if (!ANO_EM_QUATRO_DIGITOS.test(valores.ano)) {
     return formDeAno(c, { valores, erros: [ERROS_DE_FORMULARIO.anoInvalido] });
   }

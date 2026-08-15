@@ -1,19 +1,6 @@
 import type { PapelEmUnidade } from './papel';
 import type { Rede } from './rede';
 
-/**
- * Comprimento mínimo de senha. Mora no domínio porque é regra do produto; a camada de aplicação
- * apenas a aplica na validação de entrada.
- *
- * O valor fica AQUI, e não em `constantes.ts`, porque já é a fonte única do produto e regra de
- * domínio é o que `dominio/` guarda — quem está fora do módulo o encontra reexportado pelo
- * `index.ts`. A mensagem que o cita é derivada dele (`MENSAGENS.senha.novaCurta(minimo)`), de modo
- * que o número continua escrito uma vez só.
- *
- * Não confundir com `SEGURANCA.tamanhoDaSenhaProvisoria`, que vale 12: este é o mínimo que a
- * pessoa pode ESCOLHER, aquele é quantos símbolos o sistema SORTEIA. Igualá-los por coincidência
- * de valor faria uma senha gerada nascer no limite da outra regra.
- */
 export const TAMANHO_MINIMO_DE_SENHA = 10;
 
 export type Usuario = {
@@ -21,14 +8,11 @@ export type Usuario = {
   redeId: string;
   nome: string;
   email: string;
-  /** Migração 0008 (ADR 0004) fechou a janela de 0007: toda linha de `usuario` tem CPF. */
   cpf: string;
   ativo: boolean;
-  /** Quem entra como responsável aponta para o cadastro de responsável do módulo acadêmico. */
   responsavelId: string | null;
 };
 
-/** O que a sessão carrega: identidade, rede e todos os papéis, resolvidos de uma vez. */
 export type UsuarioAutenticado = {
   id: string;
   redeId: string;
@@ -49,10 +33,6 @@ export type UsuarioResumo = {
   papeis: PapelEmUnidade[];
 };
 
-/**
- * O índice único é `(rede_id, email)` sobre o texto cru. Normalizar na escrita e na leitura é o
- * que impede "Ana@escola.br" e "ana@escola.br" de virarem dois usuários da mesma pessoa.
- */
 export function emailNormalizado(email: string): string {
   return email.trim().toLowerCase();
 }

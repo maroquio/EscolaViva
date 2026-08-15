@@ -18,11 +18,6 @@ const paraAnoLetivo = (linha: LinhaDeAnoLetivo): AnoLetivo => ({
   dataFim: linha.data_fim,
 });
 
-/**
- * `ON CONFLICT ... DO NOTHING` devolve zero linhas no lugar de estourar a violação de unicidade
- * (SQLSTATE 23505). O caso de uso lê o booleano e responde com erro de campo; o erro cru
- * abortaria a transação inteira e chegaria à tela como falha do sistema.
- */
 export async function inserir(sql: Conexao, anoLetivo: AnoLetivo): Promise<boolean> {
   const criados: { id: string }[] = await sql`
     INSERT INTO ano_letivo (id, rede_id, ano, data_inicio, data_fim)
@@ -34,8 +29,6 @@ export async function inserir(sql: Conexao, anoLetivo: AnoLetivo): Promise<boole
 }
 
 export async function porId(sql: Conexao, redeId: string, id: string): Promise<AnoLetivo | null> {
-  // `to_char` fixa o formato das colunas `date` em 'AAAA-MM-DD' na consulta, em vez de deixar
-  // a conversão para o driver: o texto que a aplicação recebe é o mesmo que ela envia de volta.
   const linhas: LinhaDeAnoLetivo[] = await sql`
     SELECT id, rede_id, ano,
            to_char(data_inicio, 'YYYY-MM-DD') AS data_inicio,
@@ -46,7 +39,6 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<A
   return linha === undefined ? null : paraAnoLetivo(linha);
 }
 
-/** Sem faixa devolve todos os anos — a matrícula e o filtro de turmas precisam da lista inteira. */
 export async function listar(
   sql: Conexao,
   redeId: string,

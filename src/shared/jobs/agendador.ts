@@ -14,7 +14,6 @@ export function iniciarAgendador(jobs: Job[]): { parar(): void } {
     const temporizador = setInterval(() => {
       void executarJob(job);
     }, job.intervaloMs);
-    // Um job pendente não pode segurar o processo no desligamento.
     temporizador.unref();
     return temporizador;
   });
@@ -33,7 +32,6 @@ async function executarJob(job: Job): Promise<void> {
       logger.debug({ job: job.nome }, MENSAGENS_DE_PROCESSO.jobIgnorado);
     }
   } catch (erro) {
-    // Job que quebra vira linha de log: derrubar o processo tiraria o site do ar por um expurgo.
     logger.error({ job: job.nome, erro: descrever(erro) }, MENSAGENS_DE_PROCESSO.jobFalhou);
   }
 }

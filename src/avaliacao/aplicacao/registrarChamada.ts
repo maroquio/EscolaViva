@@ -38,10 +38,6 @@ const esquema = z.object({
     .min(1, MENSAGENS.chamada.loteVazio),
 });
 
-/**
- * Chamada de um dia inteiro para uma turma. A frequência é por dia: uma linha por aluno por data,
- * nunca por aula. Reenviar a mesma data corrige o registro em vez de duplicá-lo.
- */
 export async function registrarChamada(entrada: RegistroDeChamada): Promise<Resultado<number>> {
   const validada = esquema.safeParse(entrada);
   if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
@@ -87,7 +83,6 @@ export async function registrarChamada(entrada: RegistroDeChamada): Promise<Resu
   });
 }
 
-/** O lote inteiro vale ou nada vale: a tela mostra a turma completa, não uma seleção de alunos. */
 async function conferirMatriculas(
   redeId: string,
   turmaId: string,

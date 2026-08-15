@@ -28,10 +28,6 @@ const entrada = z.object({
 type Alvo = { redeId: string; alunoId: string; turmaId: string; anoLetivoId: string };
 type ContextoDaMatricula = { alunoNome: string; turma: Turma; ano: number };
 
-/**
- * As chaves estrangeiras garantem que aluno, turma e ano letivo existem; que os três sejam desta
- * rede é responsabilidade daqui — é o que impede matricular um aluno em turma de outra rede.
- */
 async function contexto(sql: Conexao, alvo: Alvo): Promise<Resultado<ContextoDaMatricula>> {
   const aluno = await alunos.porId(sql, alvo.redeId, alvo.alunoId);
   if (aluno === null) {

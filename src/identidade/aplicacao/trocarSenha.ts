@@ -8,8 +8,6 @@ import * as usuarioRepositorio from '../infra/usuarioRepositorio';
 const schema = z.object({
   usuarioId: z.string().uuid(MENSAGENS.senha.usuarioInvalido),
   senhaAtual: z.string().min(1, MENSAGENS.senha.atualObrigatoria),
-  // O mínimo é do domínio e a frase é do módulo: a mensagem recebe o próprio limite para que os
-  // dois nunca divirjam — mudar o número em um lugar já corrige o texto da tela.
   senhaNova: z
     .string()
     .min(TAMANHO_MINIMO_DE_SENHA, MENSAGENS.senha.novaCurta(TAMANHO_MINIMO_DE_SENHA)),
@@ -37,8 +35,6 @@ export async function trocarSenha(entrada: {
     return falhaDeCampo(CAMPOS.senha.atual, CODIGOS.senhaIncorreta, MENSAGENS.senha.atualNaoConfere);
   }
 
-  // Gerar o hash custa cerca de cem milissegundos: fica fora da transação para não segurar
-  // conexão do pool durante um cálculo que não depende do banco.
   const senhaHash = await Bun.password.hash(dados.senhaNova);
   await unidadeDeTrabalho(async ({ sql }) => {
     await usuarioRepositorio.atualizarSenha(

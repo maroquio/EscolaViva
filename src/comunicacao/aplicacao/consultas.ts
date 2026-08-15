@@ -17,7 +17,6 @@ import {
   somarLeituras,
 } from '../infra/comunicadoRepositorio';
 
-/** I15: a consulta escolhe a conexão de leitura de forma explícita. */
 export async function muralDoResponsavel(
   redeId: string,
   responsavelId: string,
@@ -25,10 +24,6 @@ export async function muralDoResponsavel(
   return await listarDoResponsavel(leitura(), redeId, responsavelId);
 }
 
-/**
- * O mural em páginas, separado pelo que já foi lido. A separação acontece no banco: o portal de
- * quem acumulou quatro anos de comunicados não pode carregar tudo para exibir vinte linhas.
- */
 export async function paginaDoMural(
   redeId: string,
   responsavelId: string,
@@ -46,10 +41,6 @@ export async function paginaDoMural(
   );
 }
 
-/**
- * Os dois números do painel do responsável: quantos esperam leitura e quantos existem ao todo.
- * São os cartões do topo, e nenhum deles precisa da lista para existir.
- */
 export async function contagemDoMural(
   redeId: string,
   responsavelId: string,
@@ -72,15 +63,10 @@ export async function comunicadoParaResponsavel(
 
   const nomes = await identidade.nomesDeUsuarios(redeId, [armazenado.autorUsuarioId]);
   const autorNome = nomes.get(armazenado.autorUsuarioId);
-  // A FK garante o usuário; nome ausente significa autor em outra rede — dado inconsistente.
   if (autorNome === undefined) throw new Error(ERROS_INTERNOS.autorForaDaRede);
   return comAutor(armazenado, autorNome);
 }
 
-/**
- * A taxa de leitura por comunicado sai de uma agregação só — a lista da secretaria não pode
- * disparar uma consulta de leituras por linha.
- */
 export async function listarComunicados(
   redeId: string,
   unidadeId?: string,
@@ -115,13 +101,6 @@ export async function paginaDeComunicados(
   };
 }
 
-/**
- * A taxa do recorte inteiro, e não a das linhas da página.
- *
- * O número do topo mede o alcance da comunicação da unidade. Se ele se recalculasse a cada clique
- * em "próxima", deixaria de medir o alcance e passaria a medir a página — que é a única coisa ali
- * que não interessa a ninguém.
- */
 export async function resumoDeComunicados(
   redeId: string,
   unidadeId?: string,

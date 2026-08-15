@@ -18,7 +18,6 @@ const paraUnidade = (linha: LinhaDeUnidade): Unidade => ({
   ativa: linha.ativa,
 });
 
-/** Sem faixa devolve a rede inteira — é o que os campos de seleção do formulário precisam. */
 export async function listarPorRede(
   sql: Conexao,
   redeId: string,
@@ -58,10 +57,6 @@ export async function porId(
   return linha === undefined ? null : paraUnidade(linha);
 }
 
-/**
- * Comparação exata de propósito: a constraint `unidade_nome_unico_na_rede` também é exata, e uma
- * checagem mais larga aqui recusaria nome que o banco aceitaria.
- */
 export async function existeNome(sql: Conexao, redeId: string, nome: string): Promise<boolean> {
   const linhas = await sql<{ existe: number }[]>`
     SELECT 1 AS existe
@@ -72,10 +67,6 @@ export async function existeNome(sql: Conexao, redeId: string, nome: string): Pr
   return linhas.length > 0;
 }
 
-/**
- * Quais dos ids informados são realmente unidades desta rede. A FK de `papel_usuario` garante que
- * a unidade existe, não que ela pertence à rede de quem convida — esse isolamento é conferido aqui.
- */
 export async function idsNaRede(
   sql: Conexao,
   redeId: string,

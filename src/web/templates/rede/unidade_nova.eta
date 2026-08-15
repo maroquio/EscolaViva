@@ -1,46 +1,4 @@
 <%
-/*
-  Criação de unidade.
-
-  Página só de formulário: a lista fica em `it.rotas.rede.unidades()`. `required` e `maxlength`
-  servem para o retorno rápido no navegador — a validação que decide é a do servidor (I22), e é dela
-  que vêm as mensagens abaixo dos campos.
-
-  Os dois endereços da tela — o destino do formulário e o "Cancelar" — vêm de `it.rotas`, o mesmo
-  mapa que o router registra. São o mesmo endereço escrito duas vezes, e escrevê-lo à mão aqui não
-  quebraria compilação: quebraria a tela de quem clica, porque `.eta` não passa pelo compilador.
-
-  O rótulo do botão que envia é o título DESTA tela, e por isso lê `it.titulos.rede.unidadeNova` —
-  a mesma chave que a rota passa como `it.titulo` no `<h1>` acima. São a mesma decisão dita uma
-  vez: renomear a tela renomeia junto o botão que a cumpre, e a lista que traz até aqui.
-*/
-
-/*
-  Os dois tamanhos chegam prontos da rota: o Eta não importa TypeScript, então `LIMITES.unidade`
-  (`src/identidade/constantes.ts`) atravessa por `it`. Quem recusa de verdade é `criarUnidade`, com
-  `MENSAGENS.unidade.nomeLongo` e `.inepLongo`; o `maxlength` só adianta a recusa no navegador, e
-  redigitá-lo aqui faria a caixa aceitar o que o caso de uso devolve como erro.
-*/
-
-/*
-  `campos` é `CAMPOS.unidade` (`src/identidade/constantes.ts`, exposto por `it.campos`): os dois
-  nomes que ATRAVESSAM este arquivo. `name=` é por onde a rota lê o corpo, e `erroDe`/`descricao`
-  leem a mesma palavra na falha que `criarUnidade` devolve. Divergindo, o campo chega vazio ao
-  servidor, que recusa por obrigatório o que a pessoa acabou de preencher — e nada disso quebraria
-  compilação, porque `.eta` não passa pelo compilador.
-
-  São `CAMPOS.unidade` e não `CAMPOS.aluno`, apesar de os dois escreverem `'nome'`: o que casa com
-  este formulário é o nome que `criarUnidade` cita, e renomear o campo do aluno não pode mexer aqui.
-
-  `it.idDaAjuda(...)` e `it.idDoErro(...)` são o outro lado de `descricao()`: ela monta o
-  `aria-describedby` e eles montam o `id` para onde ele aponta. Escrever o id à mão aqui deixaria o
-  `aria-describedby` apontando para um id inexistente — a tela ficaria igual para quem enxerga e o
-  leitor de tela não leria nem a ajuda nem o erro.
-
-  Já o `id=` do `<input>` e o `for=` do `<label>` continuam escritos à mão de propósito: casam
-  dentro desta mesma caixa e não atravessam arquivo algum; o nome que atravessa é o `name=`, e
-  `for="nome"` ao lado de `id="nome"` é o HTML mais legível que se pode ler aqui.
-*/
 const valores = it.valores ?? { nome: '', codigoInep: '' };
 const { erroDe, descricao } = it;
 const campos = it.campos.unidade;

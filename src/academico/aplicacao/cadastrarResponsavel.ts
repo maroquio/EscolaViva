@@ -26,15 +26,12 @@ const entrada = z.object({
     .toLowerCase()
     .email(MENSAGENS.responsavel.emailInvalido)
     .max(LIMITES.responsavel.email, MENSAGENS.responsavel.emailLongo),
-  // Campo em branco no formulário é ausência de telefone, não um telefone vazio.
   telefone: z
     .string()
     .trim()
     .max(LIMITES.responsavel.telefone, MENSAGENS.responsavel.telefoneLongo)
     .nullish()
     .transform((valor) => (valor === undefined || valor === '' ? null : valor)),
-  // Campo em branco é ausência de CPF, não CPF vazio: o responsável estrangeiro existe como
-  // contato e simplesmente não pode receber acesso ao portal enquanto não informar o documento.
   cpf: z
     .string()
     .trim()

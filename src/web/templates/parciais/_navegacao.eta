@@ -1,42 +1,7 @@
 <%
-/*
-  Navegação por papel: cada grupo só aparece para quem tem o papel que o abre. Não existe item
-  desabilitado nem tela que responde 403 depois do clique — o menu é a lista do que a pessoa
-  realmente pode fazer.
-
-  Os catorze endereços vêm de `it.rotas`, o mesmo mapa que o router registra. Escritos à mão, eles
-  eram a maior concentração de URL literal do sistema: renomear `/rede/anos-letivos` quebrava este
-  menu em silêncio, porque `.eta` não passa pelo compilador e link quebrado só aparece no clique.
-
-  Os RÓTULOS e os PAPÉIS chegam pelo mesmo caminho, e pelo mesmo motivo. Treze dos catorze links
-  levam a uma tela que já tem título em `TITULOS`, e o rótulo do link é esse título: escrevê-lo de
-  novo aqui deixava o sistema livre para chamar a mesma tela de "Anos letivos" no menu e de outra
-  coisa no `<h1>` que o menu abre. Os quatro papéis que abrem cada grupo são de `PAPEL`
-  (`identidade`), o mesmo vocabulário que a sessão carrega em `usuario.papeis` — um `'secretria'`
-  digitado aqui não falha em lugar nenhum: o grupo apenas some do menu de quem tem o papel.
-
-  O NOME DE CADA GRUPO vem de `it.areas` pelo mesmo motivo, e é o mesmo texto que as telas daquele
-  grupo imprimem no sobretítulo: o sobretítulo existe justamente para dizer em que parte deste menu
-  a pessoa está, então "Rede" aqui e "Rede" lá em cima da tela de unidades são a mesma decisão. Se
-  fossem dois literais, renomear o grupo para "Rede de ensino" deixaria o menu dizendo uma coisa e a
-  tela que ele abre dizendo outra, sem nada quebrar.
-
-  As três coisas chegam como `it.titulos`, `it.papel` e `it.areas`, injetadas por `render.ts`. Não podiam vir do
-  handler: este parcial é incluído pelo `_layout`, que é escolhido pelo próprio `render.ts` a partir
-  da sessão, e nenhuma rota sabe que ele existe para se lembrar de alimentá-lo. `it.titulo`, no
-  singular, continua sendo outra coisa — o título DESTA página, que a rota passa.
-
-  "Mural" é o único rótulo que fica escrito: `TITULOS.responsavel.mural` é "Mural de comunicados",
-  e a barra lateral é estreita demais para ele. São dois textos diferentes, e não uma cópia.
-
-  `aria-current="page"` marca UM item: o de caminho mais longo que casa com a URL atual, para que
-  `/secretaria/alunos` não acenda também `/secretaria`. A comparação é feita sobre o mesmo `href`
-  que sai do mapa, então o destaque acompanha qualquer renomeação de rota sem retoque aqui.
-*/
 const usuario = it.usuario;
 const papeis = new Set(usuario === null ? [] : usuario.papeis.map((p) => p.papel));
 
-/* Trocar a própria senha não é privilégio de papel nenhum: o grupo "Conta" vale para os quatro. */
 const QUALQUER_PAPEL = Object.values(it.papel);
 
 const grupos = [
@@ -71,8 +36,6 @@ const grupos = [
 const caminho = it.caminhoAtual ?? '';
 const candidatos = grupos
   .flatMap((grupo) => grupo.itens.map((item) => item.href))
-  // O `/` abaixo delimita o segmento: é ele que faz `/secretaria` casar com `/secretaria/alunos` e
-  // não com `/secretariaX`. Os dois lados da comparação já saem de `ROTAS`; o que sobra é a barra.
   .filter((href) => caminho === href || caminho.startsWith(href + '/'));
 const atual = candidatos.sort((a, b) => b.length - a.length)[0] ?? '';
 %>

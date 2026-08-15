@@ -1,47 +1,7 @@
 <%
-/*
-  Entrar no sistema.
-
-  A folha centrada do `_layout_publico` é escolhida por `renderizar`, que olha a sessão: nesta
-  tela nunca há usuário, então nunca há barra lateral nem contexto de rede.
-
-  A mensagem de recusa vem inteira de `identidade.autenticar` e é deliberadamente vaga — a tela
-  não diz se o CPF existe. Ela aparece uma vez, no aviso do topo montado por
-  `_mensagens`; quando o erro tem campo, o mesmo texto marca o campo. A senha nunca volta
-  preenchida.
-
-  O rótulo do botão que envia é o título DESTA tela, e por isso lê `it.titulos.login` — a mesma
-  chave que `rotas/login.ts` passa como `it.titulo` no `<h1>` acima. São a mesma decisão dita uma
-  vez, e não duas palavras que por acaso se escrevem igual: o "Entrar novamente" da página de erro
-  é outro texto e continua sendo outro.
-*/
-/*
-  `campos` é o apelido curto do mapa de nomes deste formulário — `CAMPOS.login`, de
-  `src/identidade/constantes.ts`, que chega por `render.ts` porque o Eta não importa TypeScript. O
-  que ele guarda é o nome que ATRAVESSA o arquivo: `rotas/login.ts` lê o corpo do POST por
-  `CAMPOS.login.cpf` e `falhaDeCampo` devolve o mesmo nome na recusa, que é o que `erroDe()` e
-  `descricao()` procuram. Divergindo, o campo chega vazio ao servidor, que recusa por obrigatório o
-  que a pessoa acabou de digitar.
-
-  O `cpf` daqui é o do LOGIN, e não o `CAMPOS.responsavel.cpf` do acadêmico: os dois se escrevem
-  igual e respondem a decisões diferentes — um é o identificador com que se entra, o outro é um dado
-  da ficha do responsável. Renomear o campo do cadastro não pode mexer no formulário de entrada.
-
-  `it.idDoErro` e `it.idDaAjuda` são o outro lado de `descricao()`: ela monta o `aria-describedby`, e
-  eles montam o `id` para onde essa lista aponta. Escrever "-erro" à mão aqui faria o
-  `aria-describedby` apontar para um id inexistente — nada falha, ninguém que enxerga percebe, e o
-  leitor de tela não lê nem a ajuda nem o erro.
-
-  O `id` do `<input>` e o `for` do `<label>`, esses continuam escritos à mão de propósito: casam um
-  com o outro dentro das mesmas seis linhas, nada fora deste arquivo os lê, e `for="senha"` ao lado
-  de `id="senha"` é o HTML mais legível que se pode deixar para quem está aprendendo. O nome que
-  atravessa o arquivo é o do `name=`, não o do `id`/`for`.
-*/
 const valores = it.valores ?? { redeSlug: '', cpf: '' };
 const campos = it.campos.login;
 
-/* `erroDe` e `descricao` chegam prontos de `render.ts`, já fechados sobre os erros deste render.
-   `descricao` só referencia id de elemento que existe: ajuda quando pedida, erro quando há. */
 const { erroDe, descricao } = it;
 %>
 <h1><%= it.titulo %></h1>

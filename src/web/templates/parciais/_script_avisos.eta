@@ -1,39 +1,3 @@
-<%
-/*
-  O botão de fechar dos avisos, para todo aviso de toda tela.
-
-  Ele nasce daqui e não do HTML de cada aviso por dois motivos. O primeiro é alcance: um aviso
-  aparece no retorno de toda escrita (`_mensagens`) e também no meio de telas que avisam sobre o
-  próprio estado — notas em aberto, senha provisória recém-criada —, e o botão precisa valer para
-  todos sem repetir marcação em cada um. O segundo é honestidade: fechar é conforto, não função.
-  Sem script nenhum aviso ganha botão, e nenhuma tela perde nada — o aviso continua legível e
-  some sozinho na próxima navegação, porque nasce da query string do redirecionamento ou do
-  estado consultado, nunca de algo guardado no navegador.
-
-  Fechar remove o aviso do documento em vez de escondê-lo: leitor de tela não deve tropeçar num
-  texto que a tela já não mostra. Como o botão desaparece com ele, o foco do teclado ficaria no
-  vazio, então volta para o conteúdo da página — sem rolagem, para não jogar a tela para o topo.
-
-  ESTE COMENTÁRIO SOME NA RENDERIZAÇÃO; O CORPO DO `<script>` ABAIXO, NÃO. Tudo o que está entre
-  `<script>` e `</script>` é copiado byte a byte para dentro de cada página que o layout monta —
-  não é código do servidor, é conteúdo do documento. Extrair os literais dali para constantes
-  nomeadas parece o mesmo refactor que se faz em `.ts`, mas não é: acrescenta linhas ao HTML de
-  toda tela do sistema, e o golden (`testes/web/golden/`) acusa as 63 telas de uma vez.
-
-  Por isso os literais do corpo ficam onde estão. `.aviso` e `aviso__fechar` são contrato com
-  `app.css`, e `conteudo` é o id que os dois layouts dão ao `<main>` — mas o lugar de nomear
-  qualquer um deles seria o servidor, interpolando o valor para dentro do script, e não uma
-  declaração que viaja até o navegador. Enquanto o parcial for incluído sem dados — os dois
-  layouts escrevem `include(it.parciais.scriptAvisos)` com UM argumento só, e Eta compila com
-  `useWith: false`, então `it` chega indefinido aqui dentro e qualquer `it.algo` derrubaria a
-  página inteira em vez de só perder o botão —, não há de onde interpolar, e o literal é a forma
-  correta. O caminho do parcial, esse sim, saiu do layout: é `TEMPLATES.parciais.scriptAvisos`.
-  O `conteudo` abaixo é a mesma decisão de `DOCUMENTO.idDoConteudo`, que os layouts já leem de lá.
-
-  O resto é vocabulário do DOM, não do produto: `'button'`, `'aria-label'` e `'click'` se leem
-  melhor como estão, pela mesma razão que 303 se lê melhor que um nome.
-*/
-%>
 <script>
   (() => {
     const avisos = document.querySelectorAll('.aviso');

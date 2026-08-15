@@ -16,10 +16,6 @@ const esquema = z.object({
   responsavelId: z.string().uuid(),
 });
 
-/**
- * Idempotente por natureza: o UPDATE só alcança a linha ainda não lida, então abrir o mesmo
- * comunicado dez vezes não desloca a data da primeira leitura, que é o que a taxa de leitura mede.
- */
 export async function marcarComoLido(entrada: EntradaDeLeitura): Promise<Resultado<void>> {
   const validado = esquema.safeParse(entrada);
   if (!validado.success) return falha(...errosDeSchema(validado.error.issues));

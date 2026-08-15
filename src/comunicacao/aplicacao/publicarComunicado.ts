@@ -61,7 +61,6 @@ function conferirTexto(dados: DadosValidados): Resultado<void> {
   return sucesso<void>(undefined);
 }
 
-/** Lista vazia significa "a unidade inteira": todo responsável com aluno matriculado ativo lá. */
 async function responsaveisAlvo(dados: DadosValidados): Promise<string[]> {
   if (dados.destinatarios.length > 0) {
     return [...new Set(dados.destinatarios.map((destinatario) => destinatario.responsavelId))];
@@ -70,7 +69,6 @@ async function responsaveisAlvo(dados: DadosValidados): Promise<string[]> {
   return daUnidade.map((responsavel) => responsavel.id);
 }
 
-/** Comunicado e destinatários na MESMA unidade de trabalho: ou o mural inteiro existe, ou nada. */
 async function gravar(
   dados: DadosValidados,
   responsaveisIds: readonly string[],
@@ -93,7 +91,6 @@ async function gravar(
   });
 }
 
-// O comunicado fica no mural do portal, sem e-mail: `lido_em` é a instrumentação que prova essa dor.
 export async function publicarComunicado(
   entrada: EntradaDeComunicado,
 ): Promise<Resultado<Comunicado>> {
@@ -104,7 +101,6 @@ export async function publicarComunicado(
   const texto = conferirTexto(dados);
   if (!texto.ok) return falha(...texto.erros);
 
-  // A FK garante que a unidade existe, não que ela é desta rede — quem confere isso é o caso de uso.
   const [unidade, nomes] = await Promise.all([
     identidade.unidadePorId(dados.redeId, dados.unidadeId),
     identidade.nomesDeUsuarios(dados.redeId, [dados.autorUsuarioId]),

@@ -10,10 +10,6 @@ const paraRede = (linha: LinhaDeRede): Rede => ({
   status: paraStatusDeRede(linha.status),
 });
 
-/**
- * Única consulta do módulo que não filtra por `rede_id`: é ela quem descobre a rede a partir do
- * slug digitado na tela de login. Daí em diante todo filtro parte do id encontrado aqui.
- */
 export async function porSlug(sql: Conexao, slug: string): Promise<Rede | null> {
   const linhas = await sql<LinhaDeRede[]>`
     SELECT id, nome, slug, status

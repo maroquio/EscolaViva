@@ -1,15 +1,4 @@
 <%
-/*
-  Um comunicado, por inteiro.
-
-  Abrir esta página não marca leitura: quem marca é o formulário abaixo, com POST. Ler é uma
-  escrita, e escrita não pode acontecer porque alguém navegou — um "voltar" do navegador ou um
-  pré-carregamento inventariam leituras que ninguém fez, e a data de leitura deixaria de medir o
-  que existe para medir.
-
-  O corpo vem escapado pelo template e é exibido com quebras preservadas: o que a escola digitou
-  é texto, nunca marcação.
-*/
 const comunicado = it.comunicado;
 const lidoEm = it.lidoEm;
 %>

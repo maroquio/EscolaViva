@@ -13,10 +13,6 @@ export function unidadesDoPapel(u: UsuarioDaSessao, papel: PapelDaSessao): strin
   return u.papeis.filter((atribuicao) => atribuicao.papel === papel).map((atribuicao) => atribuicao.unidadeId);
 }
 
-/**
- * Quem chega anônimo em uma tela é levado ao login; quem chega anônimo em uma escrita recebe 401.
- * Redirecionar um POST perderia o formulário sem dizer por quê.
- */
 const recusarAnonimo = (c: Context): Response => {
   if (c.req.method === METODOS.get) return c.redirect(CAMINHOS_DE_ENTRADA.login, 303);
   throw new NaoAutorizado(MOTIVOS_INTERNOS.requisicaoSemSessao);
@@ -35,7 +31,6 @@ export function exigirPapel(...papeis: PapelDaSessao[]): MiddlewareHandler {
     if (usuario === null) return recusarAnonimo(c);
 
     if (!papeis.some((papel) => temPapel(usuario, papel))) {
-      // Acesso negado que não aparece em lugar nenhum vira chamado de suporte sem resposta.
       const campos = { rota: c.req.path, usuario_id: usuario.id, papeis_exigidos: papeis };
       logger.warn(redigir(campos), MOTIVOS_INTERNOS.acessoNegadoPorPapel);
       return c.html(paginaDeErro(403), 403);

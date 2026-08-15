@@ -1,65 +1,4 @@
 <%
-/*
-  Alocação de disciplina e professor numa turma.
-
-  A lista de professores vem da unidade desta turma — quem não tem o papel ali não aparece, e o
-  servidor recusa se a lista for burlada. Faltando disciplina ou professor, a página diz o que
-  falta em vez de oferecer um seletor vazio.
-
-  Os cinco endereços da tela — o destino do formulário, o atalho para cadastrar disciplina e os três
-  caminhos de volta à turma — vêm de `it.rotas`, o mesmo mapa que o router registra. A página da
-  turma aparece três vezes (cabeçalho, estado vazio e "Cancelar"): escritas à mão seriam três cópias
-  do mesmo endereço, que podem divergir de uma só, e URL literal em `.eta` não quebra compilação —
-  quebra a tela de quem clica.
-*/
-
-/*
-  O travessão da célula sem valor e o rótulo da opção em branco chegam prontos pelo `it`: são de
-  `AUSENTE` (`src/shared/constantes.ts`) e de `APRESENTACAO.opcaoVazia` (`src/web/constantes.ts`).
-  O Eta não importa TypeScript, e reescrevê-los aqui criaria uma segunda decisão ao lado da do dono.
-
-  Os dois nomes de campo — `disciplinaId` e `professorUsuarioId` — vêm de `it.campos.alocacao`,
-  apelidado abaixo de `campos`: é `CAMPOS.alocacao` (`src/academico/constantes.ts`), o mesmo mapa
-  pelo qual a rota lê o corpo do POST e pelo qual o caso de uso devolve a falha de campo. Escritos à
-  mão, um `name` divergente faria o servidor recusar por obrigatório o que a pessoa acabou de
-  escolher, e um `erroDe('...')` divergente esconderia a mensagem que o caso de uso mandou.
-  O `id` do `<select>` e o `for` do `<label>` continuam literais de propósito: casam um com o outro
-  dentro das mesmas seis linhas, ninguém fora deste arquivo os lê, e `for="disciplinaId"` ao lado de
-  `id="disciplinaId"` é o HTML mais legível que se pode escrever.
-
-  Já os ids do erro e da ajuda ATRAVESSAM o arquivo, e por isso vêm de `it.idDoErro` e
-  `it.idDaAjuda` (`src/web/render.ts`): são exatamente os ids que `descricao()` promete no
-  `aria-describedby`. Divergindo, a lista aponta para um id inexistente — o texto aparece na tela e
-  o leitor de tela não lê nenhum dos dois, sem que nada falhe.
-
-  O atalho do estado vazio se rotula com o título da tela para onde leva: `it.titulos` — `TITULOS`
-  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` da tela de cadastro de
-  disciplina. Escrito à mão, renomear aquela tela deixaria este botão chamando-a pelo nome antigo, e
-  nada acusa: ele continua levando ao lugar certo com a legenda errada.
-
-  O sobretítulo é COMPOSTO, e não escrito: `it.areas` — `AREAS.secretaria` (`src/web/constantes.ts`),
-  o mesmo nome que o menu imprime —, mais `it.apresentacao.separador` e o título da tela de onde se
-  chega até aqui, `it.titulos.secretaria.turma(turma.nome)`. Esse título é uma função porque a turma
-  se anuncia pelo nome dela, e é exatamente o valor que `rotas/secretaria.ts` passa no `<h1>` da
-  página da turma: escrito à mão, "Secretaria · Turma" seria uma terceira cópia da área e do jeito de
-  nomear a turma, e renomear a área no menu deixaria esta tela anunciando o nome antigo sem que nada
-  acuse. Aqui a função SERVE — ao contrário de `secretaria/turma.eta`, que compõe com `ROTULOS.turma`
-  porque o nome da turma já está no `<h1>` logo abaixo; neste cabeçalho o `<h1>` é "Alocar disciplina
-  e professor", e é o sobretítulo que diz em qual turma se está alocando.
-
-  Os espaços em volta do "·" são metade do valor de `APRESENTACAO.separador`, e é por isso que ele
-  também separa os quatro atributos da linha de resumo, em vez de aparecer escrito lá: quem apertar
-  ou afrouxar o espaçamento do sistema mexe num lugar só, e não em quatro pontos desta página.
-
-  O rótulo do dado ("Disciplina"), os dois caminhos de volta à turma e o "Cancelar" do pé do
-  formulário também têm dono: `it.rotulos`, `it.acoes.voltarPara` e `it.acoes.cancelar`. "Voltar à
-  turma" nomeia o destino; "Cancelar" nomeia o que se abandona, e é a mesma palavra nos doze
-  formulários do sistema — por isso são duas chaves da mesma família, e não uma.
-
-  O botão que envia fica de fora: "Alocar" é curto porque o cabeçalho da página já disse o resto, e
-  não é o título "Alocar disciplina e professor". São duas frases, e não a mesma dita duas vezes.
-  "Professor" também fica: o menu chama esse grupo de "Ensino", e `ROTULOS` não nomeia o papel.
-*/
 const turma = it.turma;
 const disciplinas = it.disciplinas ?? [];
 const professores = it.professores ?? [];
@@ -74,17 +13,6 @@ const paginaDaTurma = it.rotas.secretaria.turma({ id: turma.id });
     <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= it.titulos.secretaria.turma(turma.nome) %></p>
     <h1 class="pagina__titulo"><%= it.titulo %></h1>
     <p class="pagina__resumo">
-<%
-  // "ano letivo", logo abaixo, NÃO é ROTULOS.anoLetivo. Aquele rótulo nomeia a ENTIDADE que um
-  // filtro ou um <select> escolhe; aqui o substantivo é prosa, apresentando o número no meio de uma
-  // frase que identifica a turma — e o número sai dentro de um <span class="numero">. Trocar a
-  // frase por constantes coladas a deixaria ilegível sem fechar contrato nenhum.
-  //
-  // Também NÃO é CONTAGEM.anoLetivo, que é o substantivo minúsculo de uma frase corrida — este
-  // aqui também é. A diferença está no número ao lado: o par singular/plural da CONTAGEM existe
-  // para o número que CONTA ("de 2 anos letivos", na paginação de rede/anos.eta), e o número
-  // desta frase é o NOME do ano, que nunca faz a palavra virar plural. Argumento inteiro, com as
-  // sete telas que escrevem esta prosa, no cabeçalho de rede/painel.eta. %>
       <%= turma.serie %><%= it.apresentacao.separador %><%= turma.turno %><%= it.apresentacao.separador %><%= turma.unidadeNome %><%= it.apresentacao.separador %>ano letivo
       <span class="numero"><%= turma.ano === null ? it.semValor : turma.ano %></span>
     </p>

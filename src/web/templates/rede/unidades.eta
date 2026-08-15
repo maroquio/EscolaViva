@@ -1,48 +1,9 @@
 <%
-/*
-  Unidades da rede: a lista, e só.
-
-  O cadastro mora em `it.rotas.rede.unidadeNova()`. Separar as duas coisas dá um assunto a cada
-  página e faz o erro de validação voltar para o formulário sem arrastar junto a consulta paginada
-  da lista.
-
-  O nome é único dentro da rede, e é a constraint do banco que garante isso (I8); a mensagem que
-  aparece no formulário só traduz a recusa para o campo certo.
-
-  Os dois caminhos para o formulário — o botão do cabeçalho e a ação do estado vazio — levam ao
-  mesmo lugar e saem de `it.rotas`, o mesmo mapa que o router registra. Escritos à mão, seriam duas
-  cópias do endereço que podem divergir de um lado só, e URL literal em `.eta` não quebra
-  compilação: quebra a tela de quem clica.
-
-  O RÓTULO dos dois vem pelo mesmo caminho, e pelo mesmo motivo: `it.titulos.rede.unidadeNova` é o
-  título da tela para onde eles levam — o mesmo que a rota passa como `it.titulo` lá — e chega aqui
-  em `it.titulos`, injetado por `render.ts`. Escrito à mão, renomear a tela de cadastro deixava
-  dois botões prometendo "Criar unidade" para uma página que passou a se chamar outra coisa.
-
-  Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
-  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
-
-  O sobretítulo é `it.areas.rede` (`AREAS`, em `web/constantes.ts`): a mesma palavra rotula o grupo
-  no menu, e ela está aqui só para dizer em que parte dele a pessoa está. O cabeçalho da primeira
-  coluna é `it.rotulos.unidade`, o nome que este dado tem em toda tela — no filtro da lista de
-  turmas, no `<label>` do convite, aqui. E o rótulo da paginação é `it.contagem.unidade.plural`, o
-  substantivo que vem depois de um número: é outra decisão que o título "Unidades" da tela, ainda
-  que hoje as duas palavras se pareçam — encurtar o cabeçalho não encurta a frase contada.
-*/
 const unidades = it.unidades ?? [];
 
-/*
-  O rótulo da situação é `VOCABULARIO.unidadeAtiva` (`src/identidade/constantes.ts`) e o travessão
-  da célula vazia é `AUSENTE` (`src/shared/constantes.ts`), ambos entregues pela rota. O Eta não
-  importa TypeScript: escrever "Inativa" aqui faria a tela e o módulo dono divergirem em silêncio.
-*/
 const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
 const SEM_VALOR = it.ausente;
 
-/*
-  A cor da etiqueta acompanha o rótulo, e não o substitui: quem lê em preto e branco lê "Inativa".
-  Classe de CSS é vocabulário da folha de estilo, e por isso mora aqui e não em `constantes.ts`.
-*/
 const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
 %>
 <div class="pagina__cabecalho">
@@ -79,11 +40,6 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
         <tr>
           <th scope="col"><%= it.rotulos.unidade %></th>
           <th scope="col">Código INEP</th>
-<% // Esta cabeça é genérica: a mesma palavra encabeça CINCO colunas com cinco vocabulários de %>
-<% // estado diferentes — aqui a unidade, e nas outras telas o usuário, a matrícula, a presença e a %>
-<% // situação final. Um dono único prometeria que as cinco se renomeiam juntas, e decidir que a %>
-<% // tabela de frequência passa a dizer "Presença" não pode renomear esta. O argumento inteiro %>
-<% // está no bloco abaixo de ROTULOS, em `web/constantes.ts`. %>
 <% // magic-values: permitido — não é um `ROTULOS.situacao`, nem o `VOCABULARIO_DE_IDENTIDADE.unidadeAtiva` da célula abaixo %>
           <th scope="col">Situação</th>
         </tr>

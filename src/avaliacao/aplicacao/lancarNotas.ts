@@ -44,13 +44,6 @@ const esquema = z.object({
     .min(1, MENSAGENS.loteDeNotasVazio),
 });
 
-/**
- * Lançamento de notas de uma disciplina da turma em um bimestre. Devolve quantas notas foram
- * gravadas.
- *
- * `valor: null` apaga a nota daquele aluno — o campo em branco é uma decisão do professor, e não
- * ausência de informação.
- */
 export async function lancarNotas(entrada: LancamentoDeNotas): Promise<Resultado<number>> {
   const validada = esquema.safeParse(entrada);
   if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
@@ -69,8 +62,6 @@ export async function lancarNotas(entrada: LancamentoDeNotas): Promise<Resultado
   if (recusa !== null) return recusa;
 
   return await unidadeDeTrabalho<Resultado<number>>(async (uow) => {
-    // Dentro da transação porque é aqui que a verificação vale: o fechamento pode ter acontecido
-    // entre a abertura da tela e o envio do formulário.
     const fechado = await fechamentoRepositorio.estaFechado(
       uow.sql,
       redeId,
@@ -90,11 +81,6 @@ export async function lancarNotas(entrada: LancamentoDeNotas): Promise<Resultado
   });
 }
 
-/**
- * O lote inteiro vale ou nada vale: a tela do professor mostra a turma completa, então matrícula
- * fora da turma ou repetida é sinal de tela desencontrada, e gravar metade deixaria o diário em
- * um estado que ninguém pediu.
- */
 async function conferirMatriculas(
   redeId: string,
   turmaId: string,
@@ -120,7 +106,6 @@ async function conferirMatriculas(
   return null;
 }
 
-/** Apagar e gravar acontecem na mesma unidade de trabalho: a tela é enviada uma vez, comita uma. */
 async function gravarLote(
   { sql }: UnidadeDeTrabalho,
   lancamento: {

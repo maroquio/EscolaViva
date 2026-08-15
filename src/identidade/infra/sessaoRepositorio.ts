@@ -3,7 +3,6 @@ import { paraStatusDeRede, type Rede } from '../dominio/rede';
 import type { Sessao } from '../dominio/sessao';
 import type { Usuario } from '../dominio/usuario';
 
-/** Uma sessão só é útil com o dono e a rede junto — é o que a borda HTTP precisa por requisição. */
 export type SessaoComDono = { sessao: Sessao; rede: Rede; usuario: Usuario };
 
 type LinhaDeSessao = {
@@ -49,11 +48,6 @@ const paraSessaoComDono = (linha: LinhaDeSessao): SessaoComDono => ({
   },
 });
 
-/**
- * A outra consulta sem filtro de rede: o cookie assinado traz só o id da sessão, e é esta linha
- * que revela a qual rede a requisição pertence. A expiração é decidida pelo domínio, não aqui —
- * a linha vencida continua no banco até o expurgo periódico passar (I20).
- */
 export async function porId(sql: Conexao, sessaoId: string): Promise<SessaoComDono | null> {
   const linhas = await sql<LinhaDeSessao[]>`
     SELECT s.id, s.rede_id, s.usuario_id, s.criado_em, s.expira_em, s.ip,
@@ -83,10 +77,6 @@ export async function remover(sql: Conexao, sessaoId: string): Promise<void> {
   await sql`DELETE FROM sessao WHERE id = ${sessaoId}`;
 }
 
-/**
- * Conta pelo próprio comando: a CTE devolve uma linha por sessão apagada e o `count` resume,
- * sem depender de propriedade específica do driver para saber quantas saíram.
- */
 export async function expurgarExpiradas(sql: Conexao): Promise<number> {
   const linhas = await sql<{ total: number }[]>`
     WITH expiradas AS (

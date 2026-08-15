@@ -1,78 +1,4 @@
 <%
-/*
-  Detalhe da turma, só de leitura: as disciplinas alocadas com seus professores e quem está
-  matriculado nela. A alocação se faz em `it.rotas.secretaria.turmaDisciplinaNova()`.
-
-  A alocação é o que dá acesso ao professor: sem uma linha aqui, ele não vê a turma para lançar
-  nota nem para registrar chamada.
-
-  Todo endereço desta tela sai de `it.rotas`, o mesmo mapa que o router registra. São quatro
-  destinos: a volta à lista, o formulário de alocação — escrito duas vezes, no estado vazio e no
-  botão abaixo da tabela —, a busca de alunos e a ficha de cada aluno matriculado. Dois deles
-  carregam um `:id` na URL — o da turma e o de cada aluno da tabela —, que à mão seria concatenado
-  por conta própria; e URL literal em `.eta` não quebra compilação: quebra a tela de quem clica.
-*/
-
-/*
-  O caminho de cada parcial incluído vem de `it.parciais` — `TEMPLATES.parciais`
-  (`src/web/constantes.ts`), o mesmo mapa que nomeia esta página. Escrito à mão, `"/parciais/_vazio"`
-  seria uma cópia do caminho de arquivo que nenhum compilador confere: renomear o parcial derruba a
-  tela em tempo de execução, e não na compilação.
-*/
-/*
-  O travessão do valor que não se resolveu é `it.semValor` — `AUSENTE` (`src/shared/constantes.ts`),
-  o mesmo símbolo que as tabelas de todas as telas usam para célula vazia.
-
-  O rótulo do botão que leva ao formulário de alocação é o título dele: `it.titulos` — `TITULOS`
-  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` da página que o botão
-  abre. Escrito à mão, renomear aquela tela deixaria este botão chamando-a pelo nome antigo, e nada
-  acusa: ele continua levando ao lugar certo com a legenda errada.
-
-  A linha em branco depois desse rótulo não é descuido: o Eta come a quebra de linha que vem logo
-  após `%>` (`autoTrim: [false, 'nl']`), e sem a segunda quebra o `</a>` subiria para a mesma linha
-  do texto no HTML servido. É a mesma compensação que `_layout_publico.eta` faz no rodapé.
-
-  As duas ações dos estados vazios saem de lugares diferentes, e a diferença é qual delas tem dono.
-  "Alocar disciplina" continua escrita aqui: é curta de propósito, dentro de um cartão que já explica
-  o resto, não é o título "Alocar disciplina e professor" e existe uma vez só no sistema. Já "Buscar
-  aluno" é a MESMA chamada que o painel da secretaria e a lista de responsáveis fazem para a busca de
-  alunos, e por isso vem de `it.acoes` — `ACOES.buscarAluno` (`src/web/constantes.ts`). Ela não é o
-  nome da tela de destino, que em `TITULOS` se chama "Alunos": é o que se vai fazer nela.
-
-  O título do estado vazio dos matriculados é `it.semAlunoMatriculado` — `SEM_ALUNO_MATRICULADO`
-  (`src/web/constantes.ts`), o mesmo fato que a chamada e o lançamento de notas constatam. Só o
-  TÍTULO é compartilhado: o parágrafo abaixo dele é próprio desta tela, porque quem chega aqui
-  matricula pela ficha do aluno, e quem chega pela chamada não tem o que fazer a não ser esperar.
-
-  O link do alto é a terceira forma: "Voltar às turmas" nomeia o DESTINO, e sai de
-  `it.acoes.voltarPara` — `ACOES.voltarPara.turmas` (`src/web/constantes.ts`), o mesmo rótulo que as
-  outras telas de turma imprimem para o mesmo caminho de volta.
-
-  O sobretítulo diz em que parte do menu a pessoa está, e é COMPOSTO, e não escrito: `it.areas` —
-  `AREAS.secretaria` (`src/web/constantes.ts`), o mesmo nome que o menu imprime —, mais
-  `it.apresentacao.separador` e o rótulo da entidade, `it.rotulos.turma`. À mão, "Secretaria · Turma"
-  seria uma terceira cópia da área e do rótulo: renomear a área no menu deixaria esta tela anunciando
-  o nome antigo, e nada acusa. O título DESTA página não serve aqui — `TITULOS.secretaria.turma` é
-  uma função que monta "Turma 3º A" com o nome dentro, e o nome já está no `<h1>` logo abaixo.
-
-  O mesmo `it.apresentacao.separador` — `APRESENTACAO.separador` (`src/web/constantes.ts`) — separa
-  os quatro atributos da linha de resumo: série, turno, unidade e ano letivo. É exatamente para isso
-  que ele existe, e os espaços em volta do "·" são metade do valor: quem apertar ou afrouxar o
-  espaçamento do sistema mexe num lugar só, e não em quatro pontos desta linha.
-
-  Os nomes de dado vêm de `it.rotulos` — `ROTULOS` (`src/web/constantes.ts`). "Aluno" encabeça a
-  mesma coluna em seis telas, "Ações" é a coluna dos botões de linha em toda tabela do sistema e
-  "Matrículas ativas" é a mesma contagem que o cartão do painel e a coluna da lista de turmas
-  mostram: renomear qualquer um deles aqui e esquecer os outros deixaria o sistema chamando o mesmo
-  dado por dois nomes. "Professor", "Matriculado em" e "Disciplinas alocadas" ficam escritos aqui —
-  cada um existe uma vez no sistema e é decisão desta tela.
-
-  O substantivo contado sai de `it.contagem` pela mão de `it.pluralizar`: "1 disciplina" e "3
-  disciplinas" são as duas metades de `CONTAGEM.disciplina`, e quem trocar uma troca a outra no mesmo
-  movimento. O rótulo da barra de paginação, logo abaixo da tabela, continua literal de propósito:
-  "disciplinas alocadas" e "matrículas ativas" descrevem o RECORTE daquela tabela, e não o
-  substantivo — existem uma vez cada e são decisão desta tela.
-*/
 const turma = it.turma;
 const alocacoes = it.alocacoes ?? [];
 const matriculas = it.matriculas ?? [];
@@ -82,17 +8,6 @@ const matriculas = it.matriculas ?? [];
     <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= it.rotulos.turma %></p>
     <h1 class="pagina__titulo"><%= turma.nome %></h1>
     <p class="pagina__resumo">
-<% // O bloco encosta na margem porque o Eta guarda como texto tudo o que vier antes da abertura
-   // dele: indentado, empurraria a linha de baixo no HTML servido e o golden acusaria a tela.
-   //
-   // "Prosa em frase corrida" não basta para descartar `CONTAGEM.anoLetivo`, que também é o
-   // substantivo minúsculo de uma frase corrida. O que descarta é o número ao lado: o par
-   // singular/plural da CONTAGEM existe para o número que CONTA ("de 2 anos letivos", na
-   // paginação de `rede/anos.eta`), e o número desta linha é o NOME do ano — nenhum valor dele faz
-   // a palavra virar plural. O argumento inteiro está no cabeçalho de `rede/painel.eta`.
-   //
-   // Nem é o rótulo `ROTULOS.anoLetivo`, que nomeia o filtro e a coluna da lista de turmas: aqui o
-   // substantivo é prosa no meio de uma frase corrida. %>
       <%= turma.serie %><%= it.apresentacao.separador %><%= turma.turno %><%= it.apresentacao.separador %><%= turma.unidadeNome %><%= it.apresentacao.separador %>ano letivo
       <span class="numero"><%= turma.ano === null ? it.semValor : turma.ano %></span>
     </p>
@@ -182,18 +97,7 @@ const matriculas = it.matriculas ?? [];
         <tr>
           <th scope="col" class="celula-elastica"><%= it.rotulos.aluno %></th>
           <th scope="col" class="celula-centro">Matriculado em</th>
-<% // "Situação" ficou de fora de `ROTULOS` de propósito, e a razão está escrita em bloco logo abaixo
-   // dele, em `src/web/constantes.ts`: a mesma palavra encabeça cinco colunas, e cada uma mostra um
-   // vocabulário fechado diferente — a da unidade (Ativa/Inativa), a do usuário (Ativo/Inativo), a
-   // do dia de aula (Presente/Falta) e a do boletim (Aprovado/Reprovado/Em curso) são as outras
-   // quatro. Um dono único prometeria que os cinco mudam juntos, e eles não mudam: decidir que a
-   // tabela de frequência passa a dizer "Presença" não pode renomear a coluna desta tabela aqui.
-   // O bloco encosta na margem porque o Eta guarda como texto tudo o que vier antes da abertura
-   // dele: indentado, empurraria a linha de baixo no HTML servido.
-   //
-   // O que esta coluna mostra é a situação da MATRÍCULA, e o par dela é o
-   // `VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula` que preenche a célula.
-   // magic-values: permitido — a cabeça da coluna não é um rótulo de `ROTULOS` %>
+<% // magic-values: permitido — a cabeça da coluna não é um rótulo de `ROTULOS` %>
           <th scope="col" class="celula-centro">Situação</th>
           <th scope="col" class="celula-centro"><%= it.rotulos.acoes %></th>
         </tr>

@@ -7,7 +7,6 @@ export type Responsavel = {
   telefone: string | null;
 };
 
-/** O responsável visto a partir do aluno: quem é, como falar com ele e o que ele responde. */
 export type VinculoResponsavel = {
   responsavelId: string;
   nome: string;

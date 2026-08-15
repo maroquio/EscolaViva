@@ -1,52 +1,11 @@
 <%
-/*
-  Convite de usuário.
-
-  Um mesmo e-mail pode ser secretária em uma unidade e responsável em outra, então o convite aceita
-  várias linhas de unidade + papel. Sem JavaScript no cliente, as linhas são fixas: as que ficarem
-  vazias são simplesmente ignoradas, e as preenchidas pela metade voltam com erro.
-
-  As duas listas de seleção não são paginadas, ao contrário da tabela em `it.rotas.rede.usuarios()`:
-  recortar o que a pessoa lê é cuidado com o banco, recortar o que ela pode escolher seria esconder
-  opção sem avisar.
-
-  Os dois endereços da tela — o destino do formulário e o "Cancelar" — vêm de `it.rotas`, o mesmo
-  mapa que o router registra. São o mesmo endereço escrito duas vezes, e escrevê-lo à mão aqui não
-  quebraria compilação: quebraria a tela de quem clica, porque `.eta` não passa pelo compilador.
-*/
-
-/*
-  Os dois tamanhos chegam prontos da rota: o Eta não importa TypeScript, então
-  `LIMITES.usuario.nome` (`src/identidade/constantes.ts`) e `TAMANHO_DO_CPF_COM_MASCARA`
-  (`src/shared/constantes.ts`) atravessam por `it`. Quem recusa o nome longo é `convidarUsuario`,
-  com `MENSAGENS.usuario.nomeLongo`, e quem decide se o CPF vale é `shared/documento`, que aceita
-  com ou sem pontuação — o `maxlength` só limita o que cabe na caixa.
-*/
-
-/*
-  `campos` é o `CAMPOS.usuario` de `src/identidade/constantes.ts`, que chega pelo `it.campos` da
-  camada web. É o nome que ATRAVESSA este arquivo: a rota lê o corpo do POST por ele e o
-  `falhaDeCampo` do caso de uso o devolve para `erroDe`. Divergindo, o campo chega vazio e o
-  servidor recusa por obrigatório justamente o que a pessoa acabou de preencher — sem erro em lugar
-  nenhum. `unidades` e `papeis` são as duas listas paralelas das atribuições, que a rota junta no
-  campo `atribuicoes`.
-
-  `it.idDoErro` e `it.idDaAjuda` são a outra ponta de `descricao()`: ela monta o `aria-describedby`
-  do `<input>`, elas montam o `id` do parágrafo para onde ele aponta. Escrever esse id à mão aqui
-  apontaria o leitor de tela para um elemento inexistente, e nada falharia — a caixa recusa o id, o
-  texto do erro continua aparecendo e ninguém que enxerga percebe.
-*/
 const unidades = it.unidades ?? [];
 const responsaveis = it.responsaveis ?? [];
 const papeis = it.papeis ?? [];
 const linhas = it.linhas ?? [];
 const valores = it.valores ?? { nome: '', email: '', cpf: '', responsavelId: '' };
 const campos = it.campos.usuario;
-// O `id` do <input> e o `for` do <label> logo abaixo casam um com o outro
-// dentro das mesmas seis linhas e não atravessam este arquivo; `for="nome"` ao lado de `id="nome"`
-// é o HTML mais legível que existe, e o nome que atravessa é o do `name=`, que vem de `campos`.
 const { erroDe, descricao } = it;
-/* "Rede · Usuários" é a área do menu mais a lista onde esta tela vive: os dois pedaços já têm dono. */
 const sobretitulo = `${it.areas.rede}${it.apresentacao.separador}${it.titulos.rede.usuarios}`;
 %>
 <div class="pagina__cabecalho">

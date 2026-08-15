@@ -5,9 +5,6 @@ import { COOKIE, MOTIVOS_INTERNOS, TEMPO, VARIAVEIS_DE_CONTEXTO } from '../const
 import { comContexto, contextoAtual } from './correlacao';
 import { NaoAutorizado } from './erros';
 
-// `shared/` não conhece módulo de domínio: a forma do usuário autenticado é declarada aqui, e o
-// papel é união literal. `identidade.UsuarioAutenticado` é estruturalmente idêntico, então a
-// atribuição funciona nos dois sentidos sem que uma camada precise importar a outra.
 export type PapelDaSessao = 'admin_rede' | 'secretaria' | 'professor' | 'responsavel';
 
 export type UsuarioDaSessao = {
@@ -21,13 +18,8 @@ export type UsuarioDaSessao = {
   responsavelId: string | null;
 };
 
-/**
- * O nome do cookie continua exportado daqui porque `shared/http/index.ts` o reexporta, mas o valor
- * mora em `COOKIE`, ao lado do caminho e do `sameSite` que precisam mudar junto com ele.
- */
 export const COOKIE_SESSAO = COOKIE.sessao;
 
-/** Quem sabe resolver um id de sessão em usuário é injetado pela camada web. */
 export type CarregadorDeUsuario = (sessaoId: string) => Promise<UsuarioDaSessao | null>;
 
 const opcoesDoCookie = () => ({
@@ -44,16 +36,10 @@ const guardar = (c: Context, sessaoId: string | null, usuario: UsuarioDaSessao |
 };
 
 const sessaoIdDoCookie = async (c: Context): Promise<string | null> => {
-  // `false` é assinatura inválida — cookie forjado ou segredo trocado. Vale o mesmo que ausente.
   const valor = await getSignedCookie(c, config.sessionSecret, COOKIE_SESSAO);
   return typeof valor === 'string' && valor.length > 0 ? valor : null;
 };
 
-/**
- * I2: o processo não guarda sessão em memória. O cookie assinado carrega apenas o id; quem
- * responde quem é o usuário é o banco, a cada requisição. Derrubar um container e subir outro
- * não perde nada além do que já estava em voo.
- */
 export function criarMiddlewareSessao(carregar: CarregadorDeUsuario): MiddlewareHandler {
   return async (c, next) => {
     const sessaoId = await sessaoIdDoCookie(c);

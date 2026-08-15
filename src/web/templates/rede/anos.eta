@@ -1,38 +1,4 @@
 <%
-/*
-  Anos letivos da rede: a lista, e só. O formulário mora em `it.rotas.rede.anoLetivoNovo()`.
-
-  É o calendário que sustenta turma e matrícula: sem ano definido, a secretaria não tem onde
-  matricular ninguém.
-
-  Datas aparecem em fonte monoespaçada, como todo número desta interface, para que a coluna possa
-  ser comparada de relance.
-
-  Os dois caminhos para o formulário — o botão do cabeçalho e a ação do estado vazio — levam ao
-  mesmo lugar e saem de `it.rotas`, o mesmo mapa que o router registra. Escritos à mão, seriam duas
-  cópias do endereço que podem divergir de um lado só, e URL literal em `.eta` não quebra
-  compilação: quebra a tela de quem clica.
-
-  O RÓTULO dos dois vem pelo mesmo caminho, e pelo mesmo motivo: `it.titulos.rede.anoNovo` é o
-  título da tela para onde eles levam — o mesmo que a rota passa como `it.titulo` lá — e chega aqui
-  em `it.titulos`, injetado por `render.ts`. Escrito à mão, renomear a tela de definição deixava
-  dois botões prometendo "Definir ano letivo" para uma página que passou a se chamar outra coisa.
-
-  Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
-  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
-
-  O sobretítulo diz em que parte do MENU a pessoa está, e por isso vem de `it.areas.rede` — o mesmo
-  valor que `parciais/_navegacao.eta` imprime como rótulo do grupo. Escrito à mão, renomear o grupo
-  no menu deixaria as telas da rede se apresentando com o nome antigo.
-
-  Os cabeçalhos da tabela vêm de `it.rotulos`, o nome que cada dado tem em toda a interface: "Ano" é
-  o NÚMERO do ano (distinto de `it.rotulos.anoLetivo`, a entidade que os filtros escolhem), e
-  "Início"/"Término" encabeçam as mesmas duas datas que o formulário de definição rotula.
-
-  O rótulo da paginação sai de `it.contagem.anoLetivo.plural`: é o substantivo contável, minúsculo,
-  o mesmo que se lê no meio de uma frase contada. Singular e plural moram juntos lá porque ninguém
-  troca um sem trocar o outro.
-*/
 const anos = it.anos ?? [];
 %>
 <div class="pagina__cabecalho">

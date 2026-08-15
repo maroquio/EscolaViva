@@ -1,49 +1,4 @@
 <%
-/*
-  Cadastro de disciplina.
-
-  Um campo, e nenhum a mais: quem leciona a disciplina em cada turma se decide na tela da turma,
-  depois que a disciplina existe. O nome é único na rede, e é a constraint do banco que garante
-  isso — a mensagem aqui só traduz a recusa para o campo certo.
-
-  Os dois endereços da tela — o destino do formulário e o "Cancelar" — vêm de `it.rotas`, o mesmo
-  mapa que o router registra. São o mesmo endereço escrito duas vezes, e escrevê-lo à mão aqui não
-  quebraria compilação: quebraria a tela de quem clica, porque `.eta` não passa pelo compilador.
-*/
-
-/*
-  O limite do campo e o nome do campo chegam prontos pelo `it`. O dono do tamanho é
-  `LIMITES.disciplina.nome` (`src/academico/constantes.ts`), que `cadastrarDisciplina` faz valer com
-  `MENSAGENS.disciplina.nomeLongo` — que ele coincida com o do aluno é coincidência, são duas
-  políticas independentes.
-
-  `campos` é `CAMPOS.disciplina` (`src/web/constantes.ts`, que aponta para o `CAMPOS` do acadêmico).
-  O apelido curto vale a pena porque o mesmo nome é lido em quatro lugares desta tela e em um quinto
-  fora dela: o `name=` que o navegador envia, o `erroDe()` que acha a recusa, o `descricao()` que
-  monta o `aria-describedby` e os dois ids que ele promete — e, do outro lado do arquivo, a rota que
-  lê o corpo. `CAMPOS.disciplina.nome` vale `'nome'` igual a `CAMPOS.aluno.nome` e a
-  `CAMPOS.turma.nome`, e os três continuam separados de propósito: são três formulários que só por
-  acaso batizam o campo do mesmo jeito. Aqui é o da disciplina.
-
-  Os ids do parágrafo de ajuda e do de erro saem de `it.idDaAjuda` e `it.idDoErro`, que são o OUTRO
-  lado do `descricao()`: ele monta o `aria-describedby` com a mesma regra, e escrever a regra à mão
-  aqui faria o atributo apontar para um id que não existe — sem que nada falhe e sem que ninguém que
-  enxerga perceba.
-
-  O sobretítulo compõe `it.areas.secretaria` — a mesma palavra que rotula o grupo no menu, e é para
-  dizer em que parte do menu a pessoa está que ele existe — com `it.titulos.secretaria.disciplinas`,
-  o nome da lista de onde se chega aqui, unidos pelo `it.apresentacao.separador`. Escrito à mão,
-  renomear a lista deixaria o caminho impresso no alto desta tela apontando para uma tela que já
-  mudou de nome.
-
-  O rótulo do botão que envia é o título desta tela: `it.titulos` — `TITULOS`
-  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` do `<h1>` logo acima e de
-  onde saem os rótulos dos botões que trazem alguém até aqui — a lista de disciplinas e a alocação
-  feita na tela da turma. "Cadastrar disciplina" é uma decisão só, escrita em quatro lugares;
-  renomeá-la em um e esquecer os outros deixa a tela se chamando de dois jeitos, e nada acusa. O
-  botão ao lado dele diz `it.acoes.cancelar` — a mesma palavra dos doze formulários do sistema, que
-  não nomeia o destino e sim o que se está abandonando.
-*/
 const valores = it.valores ?? {};
 const campos = it.campos.disciplina;
 const { erroDe, descricao } = it;
@@ -63,9 +18,6 @@ const { erroDe, descricao } = it;
   <form class="formulario" method="post" action="<%= it.rotas.secretaria.disciplinas() %>">
     <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
 
-<% // O `for=` do rótulo e o `id=` da caixa casam um com o outro dentro destas seis linhas e nada %>
-<% // fora do arquivo os lê; não são o `name=`, que atravessa até a rota. %>
-<% // `for="nome"` ao lado de `id="nome"` é o HTML mais legível que um aluno pode encontrar. %>
     <div class="campo">
       <label class="campo__rotulo" for="nome">
         Nome da disciplina <span class="campo__obrigatorio" aria-hidden="true">*</span>

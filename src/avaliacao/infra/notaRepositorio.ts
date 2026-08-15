@@ -1,12 +1,3 @@
-/*
- * Toda consulta daqui filtra por `rede_id` primeiro, na mesma ordem do índice
- * `nota (rede_id, turma_disciplina_id, bimestre)`: é o isolamento de tenant e o plano de acesso na
- * mesma cláusula.
- *
- * `numeric` chega do driver como texto para não perder precisão; o `::float8` fixa o tipo em
- * número já na fronteira do banco, e duas casas até 10 cabem exatas em um double.
- */
-
 import type { Conexao } from '../../shared/db';
 import { idGeneratorUuid } from '../../shared/ports';
 
@@ -46,10 +37,6 @@ export async function porMatricula(
   }));
 }
 
-/**
- * Quantas notas já existem em cada disciplina da turma no bimestre, contadas só entre as
- * matrículas informadas — nota de aluno transferido não conta como lançamento feito.
- */
 export async function contagemPorDisciplina(
   sql: Conexao,
   redeId: string,
@@ -70,10 +57,6 @@ export async function contagemPorDisciplina(
   );
 }
 
-/**
- * O lançamento inteiro vai num `INSERT` só. `ON CONFLICT` faz da tela uma operação repetível: o
- * professor que corrige um valor e reenvia substitui a nota, não cria uma segunda.
- */
 export async function gravarEmLote(
   sql: Conexao,
   lancamento: {
@@ -103,7 +86,6 @@ export async function gravarEmLote(
   return gravadas.length;
 }
 
-/** Campo em branco na tela é uma decisão do professor: a nota daquele aluno deixa de existir. */
 export async function apagarEmLote(
   sql: Conexao,
   redeId: string,

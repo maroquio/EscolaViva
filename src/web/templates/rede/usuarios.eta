@@ -1,40 +1,4 @@
 <%
-/*
-  Usuários da rede: quem tem acesso, com qual papel e em qual unidade. O convite mora em
-  `it.rotas.rede.usuarioNovo()`; esta página é a lista e o recado que volta dela.
-
-  A senha provisória é o que merece atenção aqui. Ela é gerada no convite, não é guardada em lugar
-  nenhum em texto claro e aparece uma única vez, logo depois do redirecionamento — por isso o bloco
-  é o primeiro elemento da página e fala em voz alta (`role="status"`). Quem fechar a página sem
-  anotar precisa convidar de novo.
-
-  Os dois caminhos para o convite — o botão do cabeçalho e a ação do estado vazio — levam ao mesmo
-  lugar e saem de `it.rotas`, o mesmo mapa que o router registra. Escritos à mão, seriam duas cópias
-  do endereço que podem divergir de um lado só, e URL literal em `.eta` não quebra compilação:
-  quebra a tela de quem clica — justamente a tela por onde todo acesso à rede começa.
-
-  O RÓTULO dos dois vem pelo mesmo caminho, e pelo mesmo motivo: `it.titulos.rede.usuarioNovo` é o
-  título da tela para onde eles levam — o mesmo que a rota passa como `it.titulo` lá — e chega aqui
-  em `it.titulos`, injetado por `render.ts`. Escrito à mão, renomear a tela do convite deixava dois
-  botões prometendo "Convidar usuário" para uma página que passou a se chamar outra coisa.
-
-  Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
-  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
-
-  O sobretítulo é `it.areas.rede` (`AREAS`, em `web/constantes.ts`): a mesma palavra rotula o grupo
-  no menu, e ela está aqui para dizer em que parte dele a pessoa está. Os cabeçalhos das três
-  primeiras colunas são `it.rotulos`, o nome que Nome, CPF e E-mail têm em toda tela — inclusive no
-  `<label>` do convite, que edita estes mesmos dados. E o rótulo da paginação é
-  `it.contagem.usuario.plural`, o substantivo que vem depois de um número; ele é outra decisão que
-  o título "Usuários" da tela, ainda que hoje as duas palavras se pareçam.
-
-  Cada linha da coluna de papéis é COMPOSTA, e não escrita: papel e unidade são dois atributos de
-  uma mesma atribuição, unidos por `it.apresentacao.separador` — `APRESENTACAO.separador`
-  (`src/web/constantes.ts`), o mesmo "·" que separa série, turno e unidade no resumo da turma. É
-  exatamente para isso que ele existe, e os espaços em volta do sinal são metade do valor: quem
-  apertar ou afrouxar o espaçamento do sistema mexe num lugar só, e não em cada tela que enfileira
-  atributos numa linha.
-*/
 const usuarios = it.usuarios ?? [];
 const papeis = it.papeis ?? [];
 const convite = it.convite ?? null;
@@ -45,17 +9,8 @@ const rotuloDoPapel = (valor) => {
   return achado === undefined ? valor : achado.rotulo;
 };
 
-/*
-  As palavras da última coluna e a do usuário sem atribuição são `VOCABULARIO.ativo` e
-  `VOCABULARIO.semPapel` (`src/identidade/constantes.ts`), entregues pela rota: o Eta não importa
-  TypeScript, e "Inativo" escrito aqui divergiria do módulo dono sem quebrar nada.
-*/
 const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
 
-/*
-  A cor da etiqueta acompanha o rótulo e não o substitui — quem lê em preto e branco lê "Inativo".
-  Classe de CSS é vocabulário da folha de estilo, e por isso mora aqui e não em `constantes.ts`.
-*/
 const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
 %>
 <div class="pagina__cabecalho">
@@ -107,11 +62,6 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
           <th scope="col"><%= it.rotulos.cpf %></th>
           <th scope="col"><%= it.rotulos.email %></th>
           <th scope="col">Papéis</th>
-<% // Esta cabeça é genérica: a mesma palavra encabeça CINCO colunas com cinco vocabulários de %>
-<% // estado diferentes — aqui o usuário, e nas outras telas a unidade, a matrícula, a presença e a %>
-<% // situação final. Um dono único prometeria que as cinco se renomeiam juntas, e renomear a de %>
-<% // frequência para "Presença" não pode mexer nesta. O argumento inteiro está no bloco abaixo de %>
-<% // ROTULOS, em `web/constantes.ts`. %>
 <% // magic-values: permitido — não é um `ROTULOS.situacao`, nem o `VOCABULARIO_DE_IDENTIDADE.ativo` da célula abaixo %>
           <th scope="col">Situação</th>
         </tr>

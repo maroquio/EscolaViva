@@ -32,7 +32,6 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<D
   return linha === undefined ? null : paraDisciplina(linha);
 }
 
-/** Sem faixa devolve a rede inteira — a alocação de professor escolhe de uma lista completa. */
 export async function listar(
   sql: Conexao,
   redeId: string,

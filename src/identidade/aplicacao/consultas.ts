@@ -18,17 +18,8 @@ import * as usuarioRepositorio from '../infra/usuarioRepositorio';
 
 const identificador = z.string().uuid();
 
-/**
- * I22 vale também na leitura: id fora do formato vira lista vazia ou nulo aqui, e não um erro
- * de conversão do PostgreSQL virando 500 por causa de um parâmetro de rota digitado à mão.
- */
 const ehIdentificador = (valor: string): boolean => identificador.safeParse(valor).success;
 
-/**
- * Chamada a cada requisição autenticada. A validade é decidida pelo domínio a partir do que o
- * banco devolveu — a linha vencida continua lá até o expurgo passar, e uma rede suspensa derruba
- * na hora as sessões que já estavam abertas.
- */
 export async function sessaoValida(sessaoId: string): Promise<UsuarioAutenticado | null> {
   if (!ehIdentificador(sessaoId)) return null;
   const sql = leitura();
@@ -88,7 +79,6 @@ export async function paginaDeUsuarios(
   );
 }
 
-/** O painel da rede mostra dois números; contá-los no banco evita trazer as listas para medi-las. */
 export async function contarUnidadesEUsuarios(
   redeId: string,
 ): Promise<{ unidades: number; usuarios: number }> {
@@ -101,14 +91,12 @@ export async function contarUnidadesEUsuarios(
   return { unidades, usuarios };
 }
 
-/** A tela de login precisa do nome da rede antes de existir sessão — por isso é pública. */
 export async function redePorSlug(
   slug: string,
 ): Promise<{ id: string; nome: string; slug: string; status: string } | null> {
   return await redeRepositorio.porSlug(leitura(), slug);
 }
 
-/** O acadêmico usa isto para recusar alocar como professor quem não é professor na unidade. */
 export async function ehProfessorNaUnidade(
   redeId: string,
   usuarioId: string,
@@ -128,7 +116,6 @@ export async function professoresDaUnidade(
   return await usuarioRepositorio.professoresDaUnidade(leitura(), redeId, unidadeId);
 }
 
-/** Resolve nome de autor e de professor em lote: uma consulta por tela, não uma por linha. */
 export async function nomesDeUsuarios(
   redeId: string,
   ids: string[],

@@ -1,48 +1,4 @@
 <%
-/*
-  Painel do responsável: quem ele acompanha, e o que a escola disse que ele ainda não leu.
-
-  A ordem da página é a ordem da pergunta que traz o responsável até aqui — "como está meu filho?"
-  primeiro, "o que a escola falou?" logo em seguida. Por isso os alunos vêm antes do mural, e o
-  mural aparece aqui só com o que está por ler: o que já foi lido mora na própria tela do mural.
-
-  É a tela com mais saídas do responsável, e nenhuma delas é escrita à mão. Só o mural aparece
-  quatro vezes — no botão do cabeçalho, no cartão de não lidos, na chamada da seção e na ação do
-  estado vazio —, e ainda saem daqui o boletim e a frequência de cada linha da tabela e o
-  comunicado de cada item por ler. Todas vêm de `it.rotas`, o mesmo mapa que o router registra,
-  com o `:id` preenchido por quem sabe escapá-lo. Escrito à mão, o caminho do mural seriam quatro
-  cópias que podem divergir de uma ponta só, e o botão do cabeçalho continuaria levando ao lugar
-  certo enquanto o cartão logo abaixo apontaria para o vazio. URL literal em `.eta` não quebra
-  compilação: quebra a tela de quem clica.
-
-  Os caminhos das parciais incluídas seguem a mesma regra: chegam em `it.parciais`, o mesmo
-  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
-
-  O `rotulo` que vai para a barra de paginação também não se escreve aqui. É o substantivo contável
-  pelado — sem recorte, sem adjetivo —, e substantivo contável tem dono: `CONTAGEM.matricula`, que
-  chega em `it.contagem`, o mesmo par singular/plural que o cartão dos comunicados lê algumas linhas
-  acima e que `secretaria/aluno.eta` passa a ESTE mesmo include, no MESMO parâmetro, para ESTA mesma
-  palavra. Fossem duas cópias, renomear o substantivo numa tela deixaria a outra contando a palavra
-  antiga. O que fica escrito na tela são os rótulos QUALIFICADOS, do tipo dos que a lista de alunos e
-  a tela de frequência usam: aqueles descrevem o recorte daquela tabela, existem uma vez só e são
-  decisão de quem desenhou a tela — não do substantivo.
-
-  O "Alunos" do `<h2>` mais abaixo NÃO vem de `it.titulos`, e não é esquecimento. Ele nomeia uma
-  SEÇÃO desta página — a tabela de quem está sob a responsabilidade de quem abriu — e se escreve
-  igual a `TITULOS.secretaria.alunos` por serem a mesma palavra do domínio, não a mesma decisão: o
-  responsável nem enxerga a tela da secretaria, e renomeá-la não pode renomear esta seção. A
-  justificativa que `scripts/magic-values.ts` exige fica na linha acima do literal, e encostada na
-  margem de propósito: o Eta guarda o que vier ANTES de um `<%` como texto do documento, então
-  indentar o comentário empurraria a linha seguinte dois espaços para a direita no HTML servido.
-
-  Os dois mapas de situação logo abaixo parecem irmãos e não são. O RÓTULO — "Ativa",
-  "Transferida" — é vocabulário do domínio, e quem acrescenta uma situação de matrícula é
-  `academico`: por isso ele chega pronto em `it.rotuloDaSituacao`, passado pelo handler, e não
-  redigitado aqui. Enquanto as quatro palavras moravam neste arquivo, uma situação nova nascia
-  aparecendo como código cru na tabela, e nada acusava. A CLASSE fica: `etiqueta--ativa` é
-  vocabulário da folha de estilo, não tem dono em `constantes.ts` nenhum, e é esta tela que decide
-  como pinta o que mostra.
-*/
 const matriculas = it.matriculas;
 const naoLidos = it.naoLidos;
 
@@ -90,7 +46,6 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
 
 <section class="secao" aria-labelledby="titulo-alunos">
   <div class="secao__cabecalho">
-<% // "Alunos" nomeia esta seção do painel, e não a tela `TITULOS.secretaria.alunos` da secretaria. %>
     <h2 id="titulo-alunos">Alunos</h2>
     <p class="secao__nota">Uma matrícula por ano letivo</p>
   </div>
@@ -126,12 +81,7 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
           </td>
           <td class="celula-centro">
             <span class="tabela__acoes">
-              <%
-                /* O fecho da âncora vem colado ao rótulo oculto de propósito: uma quebra de
-                   linha ali vira um item vazio no flex do botão, e o `gap` tira o texto
-                   visível do centro. */
-              %>
-              <a class="botao botao--secundario botao--miudo"
+                            <a class="botao botao--secundario botao--miudo"
                  href="<%= it.rotas.responsavel.boletim({ id: matricula.id }) %>">
                 Boletim<span class="visualmente-oculto"> de <%= matricula.alunoNome %></span></a>
               <a class="botao botao--secundario botao--miudo"

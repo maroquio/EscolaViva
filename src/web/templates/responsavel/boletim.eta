@@ -1,51 +1,8 @@
 <%
-/*
-  Boletim em tela — não há PDF neste sistema, e esta página é o documento.
-
-  A ordem responde à pergunta de quem abre: primeiro a situação e os dois números que a decidem,
-  depois a tabela que mostra de onde eles vieram. E a regra fica escrita na própria tela: quem lê
-  um "reprovado" tem direito de ver, ali mesmo, qual é o critério — sem procurar em regulamento.
-
-  Nada aqui é calculado no template. Média, percentual e situação vêm prontos de `avaliacao`; o
-  template só escolhe a etiqueta e o formato. A cor da etiqueta acompanha o texto, nunca o
-  substitui: "Aprovado" e "Reprovado" continuam legíveis em preto e branco.
-
-  Os dois endereços da tela — a frequência da mesma matrícula e a volta para a lista de alunos —
-  saem de `it.rotas`, o mesmo mapa que o router registra, e o `:id` é preenchido por quem sabe
-  escapá-lo. URL literal em `.eta` não quebra compilação: quebra a tela de quem clica.
-
-  O caminho da parcial incluída segue a mesma regra: chega em `it.parciais`, o mesmo
-  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo.
-
-  O "·" que emenda o nome da turma ao ano letivo, no resumo do cabeçalho, é
-  `it.apresentacao.separador` — `APRESENTACAO` (`src/web/constantes.ts`), a mesma marca com que a
-  ficha da turma junta série, turno e unidade, e com que o mural emenda a data de publicação à data
-  de leitura. A FRASE é desta tela; a marca que costura os dois fatos é de todas, e escrevê-la à mão
-  aqui deixaria o boletim pontuando de um jeito próprio no dia em que ela mudasse.
-
-  O valor da constante é ` · `, com um espaço de cada lado: os espaços são metade da decisão, e não
-  indentação do template. Por isso a expressão que a imprime encosta no nome da turma de um lado e na
-  palavra "ano" do outro — um espaço escrito em volta seria um segundo espaço no HTML servido.
-*/
 const boletim = it.boletim;
 
-/*
-  O critério de aprovação escrito na tela chega pronto em `it.criterio`, derivado de `APROVACAO` —
-  os dois pisos que `avaliacao` compara para decidir a situação. A tela promete mostrar a regra que
-  produziu o resultado; escrever "6,0" e "75 %" à mão aqui é o que faz essa promessa envelhecer
-  sozinha no dia em que o piso mudar, sem nada acusar.
-*/
 const criterio = it.criterio;
 
-/*
-  Etiqueta e rótulo da situação final.
-
-  O RÓTULO chega em `it.rotuloDaSituacao`: é o `VOCABULARIO.situacaoFinal` de `avaliacao`, o módulo
-  que decide quais situações existem. O `.eta` não importa TypeScript, então quem lê `constantes.ts`
-  é o handler — e assim acrescentar uma situação no domínio não deixa esta tela mostrando o código
-  cru. As CLASSES, por sua vez, são desta camada e de mais nenhuma: quem renomear uma faixa em
-  `app.css` renomeia aqui, não no domínio.
-*/
 const CLASSE_DA_SITUACAO = {
   aprovado: 'etiqueta--aprovado',
   reprovado: 'etiqueta--reprovado',
@@ -59,8 +16,6 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
     <p class="sobretitulo">Boletim</p>
     <h1 class="pagina__titulo"><%= boletim.alunoNome %></h1>
     <p class="pagina__resumo">
-<% // "ano letivo" aqui é prosa em frase corrida: o número do span é o NOME do ano, não uma %>
-<% // quantidade dele, e por isso a palavra ao lado nunca vira "anos letivos". %>
       <%= it.rotulos.turma %> <%= boletim.turmaNome %><%= it.apresentacao.separador %>ano letivo <span class="numero"><%= boletim.ano %></span>
     </p>
   </div>
@@ -95,8 +50,6 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
       </div>
 
       <div class="cartao">
-<% // A mesma palavra encabeça cinco lugares com cinco vocabulários FECHADOS diferentes, de quatro %>
-<% // módulos: unidade, usuário, matrícula, dia de aula e, aqui, o do boletim. Ver web/constantes.ts. %>
 <% // magic-values: permitido — substantivo genérico que encabeça cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em ROTULOS %>
         <p class="cartao__rotulo">Situação</p>
         <p>

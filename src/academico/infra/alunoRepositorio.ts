@@ -17,7 +17,6 @@ const paraAluno = (linha: LinhaDeAluno): Aluno => ({
   dataNascimento: linha.data_nascimento,
 });
 
-/** Os curingas do LIKE viram texto comum: quem digita "100%" procura por "100%". */
 const escaparCuringas = (termo: string): string =>
   termo.replace(/[\\%_]/g, (caractere) => `\\${caractere}`);
 
@@ -36,15 +35,6 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<A
   return linha === undefined ? null : paraAluno(linha);
 }
 
-/**
- * A secretaria procura o aluno pelo nome antes de matricular. Busca dedicada é assunto de outro
- * estágio: com dezoito mil alunos, o índice (rede_id, nome) prende a varredura à rede e o ILIKE
- * resolve o trecho em milissegundos.
- *
- * Sem faixa, o teto de `LIMITES.aluno.busca` continua valendo: quem chama sem pedir página está
- * pedindo uma amostra, e uma consulta de busca nunca deve poder devolver a rede inteira por
- * omissão.
- */
 export async function buscar(
   sql: Conexao,
   redeId: string,

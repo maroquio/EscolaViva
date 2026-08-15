@@ -1,76 +1,7 @@
 <%
-/*
-  Painel da rede.
-
-  Quatro números e o ano em vigor. Não há gráfico, não há período comparativo e não há métrica
-  que ninguém use: cada cartão responde uma pergunta que o administrador faz de verdade — quantas
-  escolas, quantas pessoas com acesso, quantas turmas abertas e quantos alunos matriculados.
-
-  Turmas e matriculados são do ano letivo em vigor; unidades e usuários são da rede inteira. O
-  rótulo de cada cartão diz qual é qual, porque somar anos diferentes daria um número sem uso.
-
-  O caminho da parcial incluída também não é escrito à mão: ele chega em `it.parciais`, o mesmo
-  `TEMPLATES.parciais` que `render.ts` usa para achar o arquivo. Renomear a parcial passa a ser uma
-  edição só, e não uma caçada por aspas espalhadas pelos `.eta`.
-
-  Os DOIS cartões que são link levam a uma tela que já tem título em `TITULOS`, e o rótulo do
-  cartão é esse título: ele chega em `it.titulos`, injetado por `render.ts` do mesmo jeito que
-  `it.rotas`. Escrito à mão, o painel ficava livre para chamar a tela de "Unidades" aqui e de outra
-  coisa no `<h1>` que o clique abre — a mesma divergência silenciosa que o menu já não tem.
-
-  O sobretítulo também não é escrito: "Rede" é o nome da ÁREA, o mesmo rótulo que
-  `parciais/_navegacao.eta` põe no grupo do menu, e chega aqui em `it.areas`. O sobretítulo existe
-  justamente para dizer em que parte do menu a pessoa está — escrito à mão, renomear o grupo no menu
-  deixaria o cabeçalho chamando o mesmo lugar por outro nome.
-
-  Os três `<dt>` do ano em vigor saem de `it.rotulos`, que é o nome que um DADO tem na tela, seja no
-  `<th>` de uma coluna, no `<dt>` de uma ficha ou no `<label>` da caixa que edita esse mesmo dado.
-  `rotulos.ano` é o NÚMERO do ano — que é o que o `<dd class="numero">` ao lado mostra —, e não a
-  entidade ano letivo, que é `rotulos.anoLetivo` e é o que os filtros da secretaria escolhem.
-
-  QUANDO "ano letivo" É `CONTAGEM.anoLetivo` E QUANDO É PROSA — a regra vale para as sete telas que
-  escrevem esse substantivo minúsculo, e está escrita aqui porque foi aqui que ela se perdeu: por uma
-  passada, o detalhe destes cartões leu `it.contagem.anoLetivo.singular`, e as outras seis telas
-  suprimiam o mesmo caso dizendo que ele não tinha dono.
-
-  O teste é o NÚMERO ao lado, e não a maiúscula nem o tom da frase. `CONTAGEM` é o substantivo que um
-  número CONTA, e por isso cada entrada dela é um PAR: é o número que escolhe entre "1 turma" e "3
-  turmas", pela mão de `it.pluralizar`. Em "ano letivo 2025" o número não conta anos letivos — ele é o
-  NOME de um, e a palavra ao lado dele nunca vira plural, por mais alto que o ano suba. São duas
-  gramáticas diferentes com a mesma palavra no meio. A barra de paginação de `rede/anos.eta` diz "de 2
-  anos letivos", e essa sim é `CONTAGEM.anoLetivo`: o par inteiro trabalha ali, e só ali.
-
-  "Mas é a mesma palavra, e quem a trocar tem de trocá-la nos dois lugares" — não, e a prova está
-  neste mesmo arquivo, umas linhas abaixo: o estado vazio escreve "Nenhum ano letivo definido" e "Sem
-  ano letivo não existe turma nem matrícula" à mão, como prosa, e ninguém propõe passá-las por
-  `CONTAGEM`. Ler a constante numa frase corrida e escrever a palavra nas duas seguintes é a
-  contradição, não a consistência: `CONTAGEM` prometeria que renomear o rótulo da paginação renomeia
-  a prosa de sete telas, e renomear a prosa é decisão de quem escreve cada frase.
-
-  Por isso as três frases deste painel — "no ano letivo 2025", "sem ano letivo" e o estado vazio —
-  ficam literais juntas, com a supressão que `scripts/magic-values.ts` exige na linha acima.
-
-  Os outros dois cartões NÃO são link, e por isso continuam com o rótulo escrito. "Turmas" e
-  "Matriculados" nomeiam uma CONTAGEM desta rede, não uma tela: coincidem com
-  `TITULOS.secretaria.turmas` por serem a mesma palavra do domínio, e não a mesma decisão —
-  renomear a tela da secretaria não deve renomear um número do painel da rede. O comentário que
-  registra isso fica na linha acima do literal, e encostado na margem de propósito: o Eta guarda o
-  que vier ANTES de um `<%` como texto do documento, então indentar o comentário empurraria a linha
-  seguinte dois espaços para a direita no HTML servido.
-
-  Uma armadilha vizinha, para quem for escrever a próxima justificativa aqui dentro: o Eta acha o
-  `%>` que fecha a tag com um leitor que entende ASPAS e comentário de bloco, mas NÃO entende
-  comentário de linha. Numa linha iniciada por barra-barra, toda aspa aberta tem de fechar na
-  mesma linha — cortar uma frase entre aspas no fim da linha deixa o leitor dentro de uma string,
-  ele engole o `%>` e a tela morre com "Bad template syntax". Este comentário de bloco não corre o
-  risco: bloco o Eta pula inteiro.
-*/
 const contagens = it.contagens ?? { unidades: 0, usuarios: 0, turmas: 0, matriculados: 0 };
 const anoLetivo = it.anoLetivo ?? null;
 const rede = it.usuario === null ? '' : it.usuario.redeNome;
-// O par singular/plural de `CONTAGEM.anoLetivo` existe para o número que CONTA anos letivos, e o
-// único lugar onde ele conta é a barra de paginação de `rede/anos.eta`. Aqui o número é o NOME do
-// ano, e nunca faz a palavra virar plural — ver o cabeçalho deste arquivo.
 // magic-values: permitido — prosa das duas frases dos cartões, e não o substantivo contado `CONTAGEM.anoLetivo`
 const anoLetivoEmPalavras = 'ano letivo';
 const anoNoRotulo =
@@ -107,7 +38,6 @@ const anoNoRotulo =
     </a>
 
     <div class="cartao">
-<% // Nomeia a contagem desta rede, não a tela `TITULOS.secretaria.turmas` %>
       <span class="cartao__rotulo">Turmas</span>
       <span class="cartao__numero"><%= contagens.turmas %></span>
       <span class="cartao__detalhe">Abertas no <%= anoNoRotulo %></span>
@@ -133,8 +63,6 @@ const anoNoRotulo =
     <%~ include(it.parciais.vazio, {
       titulo: 'Nenhum ano letivo definido',
       texto: 'Sem ano letivo não existe turma nem matrícula. É o primeiro passo depois de criar as unidades.',
-      /* O rótulo nomeia a AÇÃO da tela `ano_novo` e por isso lê o título dela; o `href` passa
-         pela lista de propósito, para o administrador ver o calendário antes de definir. */
       acao: { href: it.rotas.rede.anosLetivos(), texto: it.titulos.rede.anoNovo }
     }) %>
   <% } else { %>

@@ -1,66 +1,4 @@
 <%
-/*
-  Turmas das unidades em que a pessoa é secretaria: a lista e o filtro dela. O cadastro mora em
-  `it.rotas.secretaria.turmaNova()`.
-
-  O filtro vive na URL, não em estado do servidor: a tela filtrada é um endereço que se guarda e se
-  envia a outra pessoa. Só aparecem no seletor as unidades da própria secretaria — filtrar por uma
-  unidade de fora não é uma opção que a tela ofereça.
-
-  Todo endereço desta tela sai de `it.rotas`, o mesmo mapa que o router registra. A própria lista
-  aparece três vezes — como ação do formulário de filtro, como "limpar filtro" e como saída do
-  estado vazio filtrado —, o cadastro aparece duas, e ainda há a tela de cada turma, que carrega o
-  `:id`. À mão seriam seis cópias que podem divergir de um lado só, uma delas com o id concatenado
-  por conta própria, e URL literal em `.eta` não quebra compilação: quebra a tela de quem clica.
-*/
-
-/*
-  O `name` de cada seletor do filtro é `it.campoDaUnidade` e `it.campoDoAno` — `PARAMETROS.unidade` e
-  `PARAMETROS.ano` (`src/web/constantes.ts`). O formulário é um GET: o nome que sai daqui é o
-  parâmetro que a rota lê de volta, e se divergirem o filtro escolhido não chega ao servidor, sem
-  erro nenhum na tela — a lista volta como se ninguém tivesse filtrado. Os `id` logo abaixo se
-  escrevem igual por coincidência e são outra decisão: pertencem ao documento, junto do `for` do
-  rótulo. O travessão da célula sem valor é `AUSENTE` (`src/shared/constantes.ts`).
-*/
-
-/*
-  O caminho de cada parcial incluído vem de `it.parciais` — `TEMPLATES.parciais`
-  (`src/web/constantes.ts`), o mesmo mapa que nomeia esta página. Escrito à mão, `"/parciais/_vazio"`
-  seria uma cópia do caminho de arquivo que nenhum compilador confere: renomear o parcial derruba a
-  tela em tempo de execução, e não na compilação.
-
-  E o rótulo dos botões que levam a outra tela é o título dela: `it.titulos` — `TITULOS`
-  (`src/web/constantes.ts`), o mesmo mapa de onde a rota tira o `it.titulo` desta página e de onde o
-  menu tira o nome de cada link. Escrito à mão, renomear a tela de destino deixaria o caminho até ela
-  chamando-a pelo nome antigo, e nada acusa: o botão continua levando ao lugar certo com a legenda
-  errada. O "Limpar filtro" do estado vazio fica de fora — ele não abre outra tela, recarrega esta
-  sem o filtro.
-
-  O `<h2>` da lista se escreve como o título da página por coincidência: ele nomeia a seção abaixo do
-  filtro, e continuaria "Turmas" mesmo que a tela passasse a se chamar de outro jeito. São duas
-  decisões, e ligá-las faria uma mudar por causa da outra.
-*/
-
-/*
-  O sobretítulo sai de `it.areas` — `AREAS` (`src/web/constantes.ts`) —, o mesmo mapa de onde o menu
-  tira o nome do grupo em que esta tela mora: o sobretítulo existe justamente para dizer em que parte
-  do menu a pessoa está, e escrito à mão renomear o grupo deixaria a tela apontando para um lugar que
-  não se chama mais assim.
-
-  O nome de cada dado — o `<label>` do filtro e o `<th>` da coluna — sai de `it.rotulos` (`ROTULOS`,
-  mesmo arquivo). É UM mapa para as duas posições porque o que distingue as chaves é o significado, e
-  não onde a palavra aparece: esta tela é o exemplo citado no próprio `ROTULOS`. O filtro diz
-  "Ano letivo" (`rotulos.anoLetivo`) porque escolhe a ENTIDADE, e a coluna diz "Ano"
-  (`rotulos.ano`) porque mostra o NÚMERO — são dois rótulos de propósito. Já "Unidade" é o mesmo
-  rótulo no filtro e na coluna por decisão, e não por acaso: é o mesmo dado nas duas pontas.
-
-  "Série" e "Turno" continuam escritos aqui: aparecem uma vez cada e nenhuma outra tela os nomeia,
-  então não há duas pontas para manter juntas.
-
-  O substantivo contado — "1 turma" / "3 turmas", e o rótulo da paginação — sai de `it.contagem`
-  (`CONTAGEM`), pelo auxiliar `it.pluralizar`, que escolhe entre as duas metades do par. É outra
-  decisão que `rotulos.turma`: aquele nomeia a coluna, este é lido em voz corrida dentro da frase.
-*/
 const turmas = it.turmas ?? [];
 const unidades = it.unidades ?? [];
 const anosLetivos = it.anosLetivos ?? [];
@@ -168,9 +106,6 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
           <td class="celula-centro">
             <div class="tabela__acoes">
               <a class="botao botao--secundario botao--miudo" href="<%= it.rotas.secretaria.turma({ id: turma.id }) %>">
-<% // O nome acessível deste botão ("Abrir turma 3ºA") é irmão do "Abrir ficha de <nome>" das outras %>
-<% // listas: prosa de quem redige o botão. Consumir a contagem prometeria que encurtar a frase %>
-<% // contada renomeia o botão também, e são duas decisões. %>
 <% // magic-values: permitido — não é CONTAGEM.turma.singular, o substantivo que vem DEPOIS DE UM NÚMERO %>
                 Abrir<span class="visualmente-oculto"> turma <%= turma.nome %></span>
               </a>

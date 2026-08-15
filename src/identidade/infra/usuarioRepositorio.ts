@@ -4,7 +4,6 @@ import { PAPEL } from '../constantes';
 import { paraPapel, type Papel, type PapelEmUnidade } from '../dominio/papel';
 import type { Usuario, UsuarioResumo } from '../dominio/usuario';
 
-/** A senha nunca sai junto do usuário para a aplicação sem que o nome diga o que está saindo. */
 export type Credenciais = { usuario: Usuario; senhaHash: string };
 
 type LinhaDeUsuario = {
@@ -37,11 +36,6 @@ const paraPapelEmUnidade = (linha: LinhaDePapel): PapelEmUnidade => ({
   papel: paraPapel(linha.papel),
 });
 
-/**
- * A única busca de credenciais por login (ADR 0004): o CPF é o identificador de acesso, o e-mail
- * é só contato. `credenciaisPorEmail` existiu enquanto a janela de 0007 aceitava os dois e foi
- * removida junto com o ramo de e-mail em `autenticar`.
- */
 export async function credenciaisPorCpf(
   sql: Conexao,
   redeId: string,
@@ -56,11 +50,6 @@ export async function credenciaisPorCpf(
   return linha === undefined ? null : { usuario: paraUsuario(linha), senhaHash: linha.senha_hash };
 }
 
-/**
- * Troca de senha chega apenas com o id do usuário logado — não há rede na assinatura pública.
- * Por isso esta é a única leitura de usuário que parte da chave primária; ela devolve a rede
- * encontrada para que a escrita seguinte volte a filtrar por `rede_id`.
- */
 export async function credenciaisPorId(
   sql: Conexao,
   usuarioId: string,
@@ -89,14 +78,6 @@ export async function papeisDoUsuario(
   return linhas.map(paraPapelEmUnidade);
 }
 
-/**
- * Duas consultas e um agrupamento em memória em vez de uma junção que multiplica o usuário por
- * papel: a tela de administração da rede lista dezenas de linhas, não milhares.
- *
- * A segunda consulta parte dos ids que a primeira devolveu, e não da rede inteira. É o que faz o
- * recorte valer para as duas: paginar só a lista de usuários e continuar carregando os papéis de
- * todo mundo deixaria metade do custo da tela onde ele estava.
- */
 export async function listarResumos(
   sql: Conexao,
   redeId: string,
@@ -156,10 +137,6 @@ export async function existeEmail(sql: Conexao, redeId: string, email: string): 
   return linhas.length > 0;
 }
 
-/**
- * Gêmea de `existeEmail`. A constraint única de 0008 recusaria de qualquer forma; esta consulta
- * existe para que a recusa chegue à tela como erro de campo, e não como falha de constraint.
- */
 export async function existeCpf(sql: Conexao, redeId: string, cpf: string): Promise<boolean> {
   const linhas = await sql<{ existe: number }[]>`
     SELECT 1 AS existe

@@ -1,31 +1,4 @@
 <%
-/*
-  Comunicados publicados e o número que esta tela existe para mostrar: a taxa de leitura.
-
-  Publicar não é ser lido. Enquanto o mural do portal for o único canal, a diferença entre os dois
-  é invisível a menos que alguém a meça — e é por isso que a lista mostra destinatários, leituras e
-  a razão entre eles, em vez de apenas dizer "publicado".
-
-  A taxa chega de `comunicacao` como fração de 0 a 1, e é `it.formatarTaxa` quem a leva para a
-  escala de 0 a 100 — nenhuma conta aqui, para que resumo e linhas não possam divergir.
-
-  O rótulo do botão do cabeçalho é o título da tela para onde ele leva, e por isso lê
-  `it.titulos.comunicados.novo` — a mesma chave que `rotas/comunicados.ts` passa como `it.titulo`
-  lá. Renomear a tela de publicação renomeia junto o caminho até ela.
-
-  A ação do estado vazio, mais abaixo, NÃO é o mesmo texto e por isso continua escrita: "Publicar o
-  primeiro comunicado" é o convite de uma lista que nunca teve linha, e não o nome da tela.
-
-  O `name` do seletor do filtro chega em `it.campoDaUnidade`: aquele formulário é um GET, e o que o
-  `name` monta é o parâmetro de QUERY que a rota lê de volta em `PARAMETROS.unidadeId`. A rota passa
-  o nome pelo `it` — do mesmo jeito, e pelo mesmo motivo, que `rotas/secretaria.ts` o passa para a
-  lista de turmas. As duas pontas do contrato leem a mesma constante.
-
-  O que ele NÃO é: `CAMPOS.comunicado.unidadeId`. Aquele é o campo do CORPO do POST da tela de
-  envio, o dono dele é o módulo `comunicacao`, e ele se escreve igual à chave da query por nomear o
-  mesmo dado — não por ser o mesmo contrato. Fundidos, renomear o campo do formulário mudaria em
-  silêncio a URL que este filtro produz, sem que compilador ou teste dissessem uma palavra.
-*/
 const comunicados = it.comunicados;
 const resumo = it.resumo;
 %>

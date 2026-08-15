@@ -28,17 +28,6 @@ const esquema = z.object({
   fechadoPor: z.string().uuid(),
 });
 
-/**
- * Fecha o bimestre de uma turma. Só fecha quando TODA matrícula ativa tem nota em TODA disciplina
- * alocada — depois disso, `lancarNotas` recusa qualquer alteração naquele bimestre.
- *
- * O fechamento é síncrono, e é síncrono de propósito. Conferir todas as matrículas contra todas as
- * disciplinas e gravar o resultado dentro de uma única transação enquanto o navegador espera é o
- * que torna o custo visível: uma turma de 35 alunos leva segundos, e a secretaria que fecha as 40
- * turmas da rede numa tarde vê o navegador desistir antes do fim. Esse número é a medição que
- * justifica a mudança quando ela for feita — por isso não há fila, worker nem execução em segundo
- * plano aqui, e não deve haver.
- */
 export async function fecharBimestre(entrada: FechamentoDeBimestre): Promise<Resultado<void>> {
   const validada = esquema.safeParse(entrada);
   if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
