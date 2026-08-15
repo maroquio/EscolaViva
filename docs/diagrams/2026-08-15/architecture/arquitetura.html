@@ -17,8 +17,14 @@
     button:hover,button:focus-visible,select:focus-visible { border-color:var(--accent); outline:2px solid color-mix(in srgb,var(--accent) 35%,transparent); outline-offset:1px; }
     #stage { position:relative; overflow:hidden; touch-action:none; cursor:grab; }
     #stage.dragging { cursor:grabbing; }
-    #canvas { width:100%; height:100%; display:grid; place-items:center; transform-origin:0 0; will-change:transform; }
-    #canvas svg { max-width:calc(100vw - 40px); max-height:calc(100vh - 92px); width:auto; height:auto; filter:drop-shadow(0 22px 60px rgba(0,0,0,.28)); user-select:none; }
+    /* Sem `will-change:transform` e sem `filter:` — as duas rasterizam o SVG antes do zoom.
+       `will-change` promove #canvas a camada de composicao propria: o Chrome rasteriza a camada
+       uma vez, no tamanho em que ela estava, e a GPU passa a escalar o bitmap em vez de reler o
+       vetor. `filter:drop-shadow()` obriga o elemento a virar bitmap antes de o filtro rodar, e
+       sozinha ja bastaria para pixelar. A sombra volta como `box-shadow`, que se aplica a CAIXA
+       do elemento em vez do conteudo pintado e por isso nao força rasterizacao. */
+    #canvas { width:100%; height:100%; display:grid; place-items:center; transform-origin:0 0; }
+    #canvas svg { max-width:calc(100vw - 40px); max-height:calc(100vh - 92px); width:auto; height:auto; box-shadow:0 22px 60px rgba(0,0,0,.28); user-select:none; }
     #status { min-width:76px; color:var(--muted); font-size:12px; text-align:center; }
     .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
     @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
