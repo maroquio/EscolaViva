@@ -8,8 +8,6 @@
 
 **Tech Stack:** Bun · TypeScript · Hono · PostgreSQL 16 via `Bun.sql` · Zod 4 · `bun:test` · React 19 · Vite 7 · React Router 7 · Mantine 8 · TanStack Query 5 · React Hook Form 7 · Zustand 5 · Axios 1 · Vitest · Playwright
 
-**Spec:** `docs/superpowers/specs/2026-08-14-frontend-react-design.md` — read it before starting; this plan argues from it.
-
 ## Global Constraints
 
 They apply to **every** task. Not repeated in the individual tasks.
@@ -107,8 +105,6 @@ Paste this into the briefing of every parallel-phase task:
 | `apps/web/src/app/guards.tsx` | `RequireLogin`, `RequireRole`, `initialDashboard` |
 | `apps/web/src/features/**` | one folder per subject, self-contained |
 | `e2e/*.spec.ts` | the four journeys |
-| `docs/ADR/0007-spa-and-versioned-api.md` | why the SPA came in and what it charges |
-| `docs/ADR/0008-front-origin-as-configuration.md` | I23 and the three variables |
 
 ### Moved
 
@@ -3493,9 +3489,9 @@ git commit -m "feat(web): announcements and the read rate"
 **Interfaces:**
 - Produces: `signInAs(page, credentials)` — the support helper Tasks 30 and 31 consume.
 
-**Context:** the journeys are the ones in `docs/archify/06-network-admin-journey` and
-`07-registrar-journey`. They run against the real server, with the database seeded by `bun run seed` —
-no MSW here.
+**Context:** the two journeys are the network admin's — create a school, invite a user — and the
+registrar's — register a student, register a guardian, link the two, enrol. They run against the real
+server, with the database seeded by `bun run seed` — no MSW here.
 
 - [ ] **Step 1: Install and configure**
 
@@ -3786,37 +3782,42 @@ git commit -m "docs: commands, a two-stage image and the publication variables"
 
 ---
 
-### Task 35: ADRs and teaching material
+### Task 35: Teaching material
 
 **Files:**
-- Create: `docs/ADR/0007-spa-and-versioned-api.md`, `docs/ADR/0008-front-origin-as-configuration.md`
 - Modify: `docs/ESCOLAVIVA_STAGE_01.md`, `docs/SAAS_EVOLUTION.md`
 
 **Context:** this is the task the user explicitly approved when they chose "total replacement + updated
 docs". Without it the repository contradicts its own material.
 
-- [ ] **Step 1: Write ADR 0007**
+The repository holds no separate decision record: documents of that kind wait until the Stage 01 MVP
+is complete, and what format they take is a decision of that moment, not of this plan. So the two
+decisions below are recorded **inside the material itself**, where the rest of the reasoning already
+lives.
 
-In the format of the existing ADRs. Context: the request for an SPA. Decision: total replacement.
+- [ ] **Step 1: Record the SPA decision in `docs/ESCOLAVIVA_STAGE_01.md`**
+
+The sentence in Section 3 ("Server-rendered HTML, no SPA and no public API to version") becomes the
+decision with its cost stated. Context: the request for an SPA. Decision: total replacement.
 **Consequences, unvarnished** — two build artefacts, an API to version, validation in two layers, CSRF
 the form did not require, and the guardian portal starting to download JavaScript before the report
 card. What was rejected alongside and why: React SSR (rent without pain), a token on the client (would
 break I2), a response envelope (`Result<T>` already solves it).
 
-- [ ] **Step 2: Write ADR 0008**
+- [ ] **Step 2: Record I23 alongside it**
 
 I23, the three variables, and the explicit premise: the front and the API on **subdomains of the same
 registrable domain**. Leaving that premise is a new decision, not a variable tweak — with a different
 domain, `SameSite=Lax` stops serving and the design changes.
 
-- [ ] **Step 3: Fix `docs/ESCOLAVIVA_STAGE_01.md`**
+- [ ] **Step 3: Finish `docs/ESCOLAVIVA_STAGE_01.md`**
 
-- the sentence in Section 3 ("Server-rendered HTML, no SPA and no public API to version") becomes the
-  decision with its cost stated, pointing at ADR 0007;
 - the invariants table gains the **I23** row;
 - the **I2, I4, I10, I11 and I22** rows gain a note on how the mechanism changed;
 - the opening numbers (55 schools, 18 thousand students, two people, one server) **do not change**: the
-  scale is the same, and it is what holds up the rest of the argument.
+  scale is the same, and it is what holds up the rest of the argument;
+- `tests/shared/stage_document.test.ts` compares the document's `CREATE TABLE` blocks against the
+  migration — no schema changes in this stage, so it has to stay green untouched.
 
 - [ ] **Step 4: Fix `docs/SAAS_EVOLUTION.md`**
 
@@ -3829,9 +3830,7 @@ public API" stays as it is: it was right, and this stage paid exactly that price
 
 ```bash
 git status --short
-git add docs/ADR/0007-spa-and-versioned-api.md \
-        docs/ADR/0008-front-origin-as-configuration.md \
-        docs/ESCOLAVIVA_STAGE_01.md docs/SAAS_EVOLUTION.md
+git add docs/ESCOLAVIVA_STAGE_01.md docs/SAAS_EVOLUTION.md
 git commit -m "docs: record the SPA decision and invariant I23"
 ```
 
@@ -3840,42 +3839,33 @@ git commit -m "docs: record the SPA decision and invariant I23"
 ### Task 36: Diagrams
 
 **Files:**
-- Modify: `docs/archify/01-architecture.*`, `03-write-request.*`, `06..09-*-journey.*`
+- Create: `docs/diagrams/<date>/architecture/architecture.{html,svg,png}`
 
-Six of the ten diagrams describe the SSR architecture and have become wrong.
+The surviving diagrams live under `docs/diagrams/<date>/<type>/`, one folder per generation date.
+Only one of them describes the delivery mechanism, and only that one becomes wrong.
 
 | Diagram | What changes |
 |---|---|
-| `01-architecture` | two artefacts: `apps/web` static and `apps/api`; the `/api/v1` boundary |
-| `03-write-request` | POST-Redirect-GET becomes a JSON request with `Idempotency-Key`, and the response becomes a `201` with `Location` |
-| `06-network-admin-journey` | React screens; the temporary password in the `201` body, without the invite cookie |
-| `07-registrar-journey` | React screens; forms on their own page still |
-| `08-teacher-journey` | the grid as a `PUT`; the closing wait stays explicit |
-| `09-guardian-journey` | the board, with the mark-as-read button separate from opening |
+| `architecture/architecture` | two artefacts: `apps/web` static and `apps/api`; the `/api/v1` boundary |
 
-The remaining four (`02-module-boundary`, `04-enrollment-lifecycle`, `05-term-closing`,
-`10-data-flow`) describe the domain and **do not change** — which is the visual proof that the
-migration did not touch a business rule.
+The others (`er/data-model`, `domain/domain-blocks`, `domain/where-the-invariant-lives`,
+`state/*-lifecycle`, `usecases/use-cases`) describe the domain and **do not change** — which is the
+visual proof that the migration did not touch a business rule.
 
-- [ ] **Step 1: Regenerate the six `.json` and `.html` files**
-- [ ] **Step 2: Confirm the four domain ones stay identical**
+- [ ] **Step 1: Regenerate the architecture diagram into a new dated folder**
+- [ ] **Step 2: Confirm the domain ones stay identical**
 
 ```bash
-git status --short docs/archify
+git status --short docs/diagrams
 ```
-Expected: only the six expected files show up as modified.
+Expected: only the new dated folder shows up, and nothing under the previous one is modified.
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git status --short
-git add docs/archify/01-architecture.architecture.json docs/archify/01-architecture.html \
-        docs/archify/03-write-request.sequence.json docs/archify/03-write-request.html \
-        docs/archify/06-network-admin-journey.workflow.json docs/archify/06-network-admin-journey.html \
-        docs/archify/07-registrar-journey.workflow.json docs/archify/07-registrar-journey.html \
-        docs/archify/08-teacher-journey.workflow.json docs/archify/08-teacher-journey.html \
-        docs/archify/09-guardian-journey.workflow.json docs/archify/09-guardian-journey.html
-git commit -m "docs: diagrams with the two-artefact architecture"
+git add docs/diagrams
+git commit -m "docs: architecture diagram with the two artefacts"
 ```
 
 ---
