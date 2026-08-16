@@ -16,8 +16,8 @@ const summary = it.summary;
 </header>
 
 <form class="filtro" method="get" action="<%= it.routes.announcements.list() %>">
-  <label class="campo__rotulo" for="filtro-unidade"><%= it.labels.school %></label>
-  <select id="filtro-unidade" name="<%= it.schoolField %>">
+  <label class="campo__rotulo" for="school-filter"><%= it.labels.school %></label>
+  <select id="school-filter" name="<%= it.schoolField %>">
     <% if (it.seesWholeNetwork) { %>
     <option value=""<% if (it.currentSchool === '') { %> selected<% } %>>Toda a rede</option>
     <% } %>
@@ -30,9 +30,9 @@ const summary = it.summary;
   <button class="botao botao--secundario" type="submit">Filtrar</button>
 </form>
 
-<section class="secao" aria-labelledby="titulo-alcance">
+<section class="secao" aria-labelledby="audience-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-alcance">Alcance da comunicação</h2>
+    <h2 id="audience-title">Alcance da comunicação</h2>
     <p class="secao__nota">Soma dos comunicados listados abaixo</p>
   </div>
 
@@ -65,9 +65,9 @@ const summary = it.summary;
   </div>
 </section>
 
-<section class="secao" aria-labelledby="titulo-publicados">
+<section class="secao" aria-labelledby="published-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-publicados">Publicados</h2>
+    <h2 id="published-title">Publicados</h2>
     <p class="secao__nota">Do mais recente para o mais antigo</p>
   </div>
 

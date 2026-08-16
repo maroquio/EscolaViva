@@ -22,9 +22,9 @@ const { errorFor, describedBy, errorId, helpId } = it;
 </header>
 
 <% if (it.school === null) { %>
-<section class="secao" aria-labelledby="titulo-unidade">
+<section class="secao" aria-labelledby="school-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-unidade">Passo 1<%= it.presentation.separator %>Unidade</h2>
+    <h2 id="school-title">Passo 1<%= it.presentation.separator %>Unidade</h2>
     <p class="secao__nota">A lista de destinatários é a dos responsáveis desta unidade</p>
   </div>
 
@@ -36,10 +36,10 @@ const { errorFor, describedBy, errorId, helpId } = it;
   <% } else { %>
   <form class="formulario" method="get" action="<%= it.routes.announcements.new() %>">
     <div class="campo">
-      <label class="campo__rotulo" for="unidadeId">
+      <label class="campo__rotulo" for="schoolId">
         <%= it.labels.school %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
-      <select id="unidadeId" name="<%= it.schoolField %>" required
+      <select id="schoolId" name="<%= it.schoolField %>" required
               aria-describedby="<%= describedBy(fields.schoolId, true) %>"
               <% if (errorFor(fields.schoolId) !== '') { %>aria-invalid="true"<% } %>>
         <option value="">Escolha a unidade</option>
@@ -62,9 +62,9 @@ const { errorFor, describedBy, errorId, helpId } = it;
   <% } %>
 </section>
 <% } else { %>
-<section class="secao" aria-labelledby="titulo-mensagem">
+<section class="secao" aria-labelledby="message-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-mensagem">Passo 2<%= it.presentation.separator %>Mensagem</h2>
+    <h2 id="message-title">Passo 2<%= it.presentation.separator %>Mensagem</h2>
     <p class="secao__nota">
       <%= it.labels.school %> <strong><%= it.school.name %></strong><%= separatorBeforeBreak %>
 
@@ -77,10 +77,10 @@ const { errorFor, describedBy, errorId, helpId } = it;
     <input type="hidden" name="<%= fields.schoolId %>" value="<%= it.school.id %>">
 
     <div class="campo leitura">
-      <label class="campo__rotulo" for="titulo">
+      <label class="campo__rotulo" for="title">
         Título <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
-      <input type="text" id="titulo" name="<%= fields.title %>" required
+      <input type="text" id="title" name="<%= fields.title %>" required
              value="<%= values.title %>"
              aria-describedby="<%= describedBy(fields.title, true) %>"
              <% if (errorFor(fields.title) !== '') { %>aria-invalid="true"<% } %>>
@@ -93,10 +93,10 @@ const { errorFor, describedBy, errorId, helpId } = it;
     </div>
 
     <div class="campo leitura">
-      <label class="campo__rotulo" for="corpo">
+      <label class="campo__rotulo" for="body">
         Mensagem <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
-      <textarea id="corpo" name="<%= fields.body %>" required rows="<%= it.messageRows %>"
+      <textarea id="body" name="<%= fields.body %>" required rows="<%= it.messageRows %>"
                 <% if (errorFor(fields.body) !== '') { %>aria-invalid="true"<% } %>
                 aria-describedby="<%= describedBy(fields.body, true) %>"><%= values.body %></textarea>
       <p class="campo__ajuda" id="<%= helpId(fields.body) %>">
@@ -112,18 +112,18 @@ const { errorFor, describedBy, errorId, helpId } = it;
 
       <div class="pilha">
         <div class="campo campo--opcao">
-          <input type="radio" id="alcance-unidade" name="<%= fields.audience %>" value="<%= audiences.school %>"
+          <input type="radio" id="audience-school" name="<%= fields.audience %>" value="<%= audiences.school %>"
                  <% if (values.audience === audiences.school) { %>checked<% } %>>
-          <label class="campo__rotulo" for="alcance-unidade">
+          <label class="campo__rotulo" for="audience-school">
             Todos os responsáveis da unidade
             (<span class="numero"><%= guardians.length %></span>)
           </label>
         </div>
 
         <div class="campo campo--opcao">
-          <input type="radio" id="alcance-selecionados" name="<%= fields.audience %>" value="<%= audiences.selected %>"
+          <input type="radio" id="audience-selected" name="<%= fields.audience %>" value="<%= audiences.selected %>"
                  <% if (values.audience === audiences.selected) { %>checked<% } %>>
-          <label class="campo__rotulo" for="alcance-selecionados">
+          <label class="campo__rotulo" for="audience-selected">
             Apenas os responsáveis marcados abaixo
           </label>
         </div>
@@ -144,16 +144,16 @@ const { errorFor, describedBy, errorId, helpId } = it;
         <% } else { %>
                 <p class="linha">
           <button class="botao botao--secundario botao--miudo" type="button"
-                  id="marcar-todos" hidden>Selecionar todos</button>
+                  id="select-all" hidden>Selecionar todos</button>
         </p>
 
         <ul class="grade-opcoes">
           <% guardians.forEach((guardian) => { %>
           <li class="campo campo--opcao">
-            <input type="checkbox" id="responsavel-<%= guardian.id %>"
+            <input type="checkbox" id="guardian-<%= guardian.id %>"
                    name="<%= fields.guardians %>" value="<%= guardian.id %>"
                    <% if (selected.has(guardian.id)) { %>checked<% } %>>
-            <label class="campo__rotulo" for="responsavel-<%= guardian.id %>">
+            <label class="campo__rotulo" for="guardian-<%= guardian.id %>">
               <%= guardian.name %>
             </label>
           </li>
@@ -172,9 +172,9 @@ const { errorFor, describedBy, errorId, helpId } = it;
 
 <script>
   (() => {
-    const botao = document.getElementById('marcar-todos');
+    const botao = document.getElementById('select-all');
     const caixas = Array.from(document.querySelectorAll('input[name="<%= fields.guardians %>"]'));
-    const alcanceSelecionados = document.getElementById('alcance-selecionados');
+    const alcanceSelecionados = document.getElementById('audience-selected');
     if (botao === null || caixas.length === 0) return;
 
     const todasMarcadas = () => caixas.every((caixa) => caixa.checked);

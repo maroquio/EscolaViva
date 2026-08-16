@@ -40,9 +40,9 @@ const dayStatus = (day) => {
   </p>
 </header>
 
-<section class="secao" aria-labelledby="titulo-apuracao">
+<section class="secao" aria-labelledby="tally-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-apuracao">Apuração do ano</h2>
+    <h2 id="tally-title">Apuração do ano</h2>
     <p class="secao__nota">São necessários <%= CRITERIA.attendance %> de presença para aprovação</p>
   </div>
 
@@ -69,9 +69,9 @@ const dayStatus = (day) => {
   </div>
 </section>
 
-<section class="secao" aria-labelledby="titulo-dias">
+<section class="secao" aria-labelledby="days-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-dias">Dia a dia</h2>
+    <h2 id="days-title">Dia a dia</h2>
     <p class="secao__nota">Do dia mais recente para o mais antigo</p>
   </div>
 

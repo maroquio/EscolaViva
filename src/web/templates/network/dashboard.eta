@@ -18,9 +18,9 @@ const yearInLabel =
   </div>
 </div>
 
-<section class="secao" aria-labelledby="numeros-titulo">
+<section class="secao" aria-labelledby="numbers-title">
   <div class="secao__cabecalho">
-    <h2 id="numeros-titulo">Onde a rede está hoje</h2>
+    <h2 id="numbers-title">Onde a rede está hoje</h2>
     <p class="secao__nota">Contagem no momento em que esta página foi aberta.</p>
   </div>
 
@@ -51,9 +51,9 @@ const yearInLabel =
   </div>
 </section>
 
-<section class="secao" aria-labelledby="ano-titulo">
+<section class="secao" aria-labelledby="year-title">
   <div class="secao__cabecalho">
-    <h2 id="ano-titulo">Ano letivo em vigor</h2>
+    <h2 id="year-title">Ano letivo em vigor</h2>
     <p class="secao__nota">
       <%= it.definedYears %> ano(s) definido(s) nesta rede.
     </p>

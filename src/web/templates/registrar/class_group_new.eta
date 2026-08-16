@@ -38,11 +38,11 @@ const classGroupList = it.routes.registrar.classGroups();
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="nome">
+        <label class="campo__rotulo" for="name">
           Nome da turma <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="nome"
+          id="name"
           name="<%= fields.name %>"
           type="text"
           required
@@ -58,11 +58,11 @@ const classGroupList = it.routes.registrar.classGroups();
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="serie">
+        <label class="campo__rotulo" for="gradeLevel">
           Série <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="serie"
+          id="gradeLevel"
           name="<%= fields.gradeLevel %>"
           type="text"
           required
@@ -78,11 +78,11 @@ const classGroupList = it.routes.registrar.classGroups();
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="turno">
+        <label class="campo__rotulo" for="shift">
           Turno <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
-          id="turno"
+          id="shift"
           name="<%= fields.shift %>"
           required
           <% if (errorFor(fields.shift) !== '') { %>aria-invalid="true"<% } %>
@@ -102,11 +102,11 @@ const classGroupList = it.routes.registrar.classGroups();
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="unidadeId">
+        <label class="campo__rotulo" for="schoolId">
           <%= it.labels.school %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
-          id="unidadeId"
+          id="schoolId"
           name="<%= fields.schoolId %>"
           required
           <% if (errorFor(fields.schoolId) !== '') { %>aria-invalid="true"<% } %>
@@ -124,11 +124,11 @@ const classGroupList = it.routes.registrar.classGroups();
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="anoLetivoId">
+        <label class="campo__rotulo" for="academicYearId">
           <%= it.labels.academicYear %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
-          id="anoLetivoId"
+          id="academicYearId"
           name="<%= fields.academicYearId %>"
           required
           <% if (errorFor(fields.academicYearId) !== '') { %>aria-invalid="true"<% } %>

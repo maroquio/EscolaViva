@@ -10,11 +10,11 @@ const { errorFor, describedBy } = it;
   <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
   <div class="campo">
-    <label class="campo__rotulo" for="redeSlug">
+    <label class="campo__rotulo" for="networkSlug">
       Identificador da rede <span class="campo__obrigatorio" aria-hidden="true">*</span>
     </label>
     <input
-      id="redeSlug"
+      id="networkSlug"
       name="<%= fields.networkSlug %>"
       type="text"
       required
@@ -57,11 +57,11 @@ const { errorFor, describedBy } = it;
   </div>
 
   <div class="campo">
-    <label class="campo__rotulo" for="senha">
+    <label class="campo__rotulo" for="password">
       Senha <span class="campo__obrigatorio" aria-hidden="true">*</span>
     </label>
     <input
-      id="senha"
+      id="password"
       name="<%= fields.password %>"
       type="password"
       required

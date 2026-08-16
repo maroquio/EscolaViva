@@ -15,9 +15,9 @@ const read = it.read;
   </p>
 </header>
 
-<section class="secao" aria-labelledby="titulo-por-ler">
+<section class="secao" aria-labelledby="unread-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-por-ler">Não lidos</h2>
+    <h2 id="unread-title">Não lidos</h2>
     <p class="secao__nota">
       <span class="numero"><%= it.unreadTotal %></span>
       <%= it.pluralize(it.unreadTotal, it.nouns.announcement) %>
@@ -53,9 +53,9 @@ const read = it.read;
   <% } %>
 </section>
 
-<section class="secao" aria-labelledby="titulo-lidos">
+<section class="secao" aria-labelledby="read-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-lidos">Já lidos</h2>
+    <h2 id="read-title">Já lidos</h2>
     <p class="secao__nota">
       <span class="numero"><%= it.readTotal %></span>
       <%= it.pluralize(it.readTotal, it.nouns.announcement) %>

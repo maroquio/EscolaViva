@@ -41,9 +41,9 @@ const shortcuts = [
 }) %>
 <% } else { %>
 
-<section class="secao" aria-labelledby="numeros">
+<section class="secao" aria-labelledby="numbers">
   <div class="secao__cabecalho">
-    <h2 id="numeros">Hoje</h2>
+    <h2 id="numbers">Hoje</h2>
     <p class="secao__nota">
       <% if (currentYear === null) { %>
         Nenhum ano letivo definido nesta rede
@@ -82,9 +82,9 @@ const shortcuts = [
 const schoolCount = it.pagination === undefined ? schools.length : it.pagination.total;
 %>
 <% if (schoolCount > 1) { %>
-<section class="secao" aria-labelledby="por-unidade">
+<section class="secao" aria-labelledby="by-school">
   <div class="secao__cabecalho">
-    <h2 id="por-unidade">Por unidade</h2>
+    <h2 id="by-school">Por unidade</h2>
     <p class="secao__nota">
       Você responde por
       <span class="numero"><%= schoolCount %></span>
@@ -120,9 +120,9 @@ const schoolCount = it.pagination === undefined ? schools.length : it.pagination
 </section>
 <% } %>
 
-<section class="secao" aria-labelledby="atalhos">
+<section class="secao" aria-labelledby="shortcuts">
   <div class="secao__cabecalho">
-    <h2 id="atalhos">Atalhos do dia</h2>
+    <h2 id="shortcuts">Atalhos do dia</h2>
   </div>
 
   <div class="painel">

@@ -19,11 +19,11 @@ const fields = it.fields.guardian;
     <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
     <div class="campo">
-      <label class="campo__rotulo" for="nome">
+      <label class="campo__rotulo" for="name">
         Nome completo <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
       <input
-        id="nome"
+        id="name"
         name="<%= fields.name %>"
         type="text"
         required
@@ -80,9 +80,9 @@ const fields = it.fields.guardian;
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="telefone">Telefone</label>
+        <label class="campo__rotulo" for="phone">Telefone</label>
         <input
-          id="telefone"
+          id="phone"
           name="<%= fields.phone %>"
           type="tel"
           maxlength="<%= it.phoneLimit %>"

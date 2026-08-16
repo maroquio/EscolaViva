@@ -60,11 +60,11 @@ const studentRecord = it.routes.registrar.student({ id: student.id });
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="turmaDestinoId">
+        <label class="campo__rotulo" for="targetClassGroupId">
           Turma de destino <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
-          id="turmaDestinoId"
+          id="targetClassGroupId"
           name="<%= fields.targetClassGroupId %>"
           required
           <% if (errorFor(fields.targetClassGroupId) !== '') { %>aria-invalid="true"<% } %>
@@ -89,11 +89,11 @@ const studentRecord = it.routes.registrar.student({ id: student.id });
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="data">
+        <label class="campo__rotulo" for="date">
           Data da transferência <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="data"
+          id="date"
           name="<%= fields.date %>"
           type="date"
           required

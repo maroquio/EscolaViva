@@ -25,9 +25,9 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
   </div>
 </div>
 
-<section class="secao" aria-labelledby="dados">
+<section class="secao" aria-labelledby="data">
   <div class="secao__cabecalho">
-    <h2 id="dados">Dados do aluno</h2>
+    <h2 id="data">Dados do aluno</h2>
   </div>
 
   <div class="quadro">
@@ -51,9 +51,9 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
   </div>
 </section>
 
-<section class="secao" aria-labelledby="responsaveis">
+<section class="secao" aria-labelledby="guardians">
   <div class="secao__cabecalho">
-    <h2 id="responsaveis">Responsáveis vinculados</h2>
+    <h2 id="guardians">Responsáveis vinculados</h2>
     <% const linkCount =
          it.guardianLinksPagination === undefined ? guardianLinks.length : it.guardianLinksPagination.total; %>
     <p class="secao__nota">
@@ -110,9 +110,9 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
   </div>
 </section>
 
-<section class="secao" aria-labelledby="matriculas">
+<section class="secao" aria-labelledby="enrollments">
   <div class="secao__cabecalho">
-    <h2 id="matriculas">Matrículas</h2>
+    <h2 id="enrollments">Matrículas</h2>
     <% const recordCount =
          it.enrollmentsPagination === undefined ? enrollments.length : it.enrollmentsPagination.total; %>
     <p class="secao__nota">

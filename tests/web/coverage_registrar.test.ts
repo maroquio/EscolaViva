@@ -165,8 +165,8 @@ describe('a página de cadastrar aluno', () => {
     const page = await html('/registrar/students/new', cookie);
 
     expect(page).toContain('id="name"');
-    expect(page).not.toContain('id="name-erro"');
-    expect(page).not.toContain('id="birthDate-erro"');
+    expect(page).not.toContain('id="name-error"');
+    expect(page).not.toContain('id="birthDate-error"');
   });
 });
 

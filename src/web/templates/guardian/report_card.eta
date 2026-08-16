@@ -22,9 +22,9 @@ const STATUS_LABEL = it.statusLabel;
   </p>
 </header>
 
-<section class="secao" aria-labelledby="titulo-resultado">
+<section class="secao" aria-labelledby="result-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-resultado">Resultado do ano</h2>
+    <h2 id="result-title">Resultado do ano</h2>
     <p class="secao__nota">Apurado a cada leitura, a partir das notas e da chamada</p>
   </div>
 
@@ -67,9 +67,9 @@ const STATUS_LABEL = it.statusLabel;
   </div>
 </section>
 
-<section class="secao" aria-labelledby="titulo-notas">
+<section class="secao" aria-labelledby="grades-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-notas">Notas por disciplina</h2>
+    <h2 id="grades-title">Notas por disciplina</h2>
     <p class="secao__nota">O travessão marca bimestre sem nota lançada</p>
   </div>
 

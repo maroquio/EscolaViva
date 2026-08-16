@@ -1,7 +1,7 @@
 <%
 const classGroups = it.classGroups ?? [];
 
-const classGroupDomId = (classGroupId) => `turma-${classGroupId}`;
+const classGroupDomId = (classGroupId) => `class-group-${classGroupId}`;
 %>
 <div class="pagina__cabecalho">
   <div>

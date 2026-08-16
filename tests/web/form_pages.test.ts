@@ -225,7 +225,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
 
     expect(response.status).toBe(200);
     expect(hasFormFor(html, '/registrar/subjects')).toBe(true);
-    expect(html).toContain('id="name-erro"');
+    expect(html).toContain('id="name-error"');
     expect(html).not.toContain('Disciplinas disponíveis para alocar nas turmas');
   });
 
@@ -271,7 +271,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(html).toContain('id="cpf-erro"');
+    expect(html).toContain('id="cpf-error"');
     expect(html).toContain(guardian.name);
     expect(html).not.toContain(guardian.cpf);
   });
@@ -286,7 +286,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(html).toContain('id="cpf-erro"');
+    expect(html).toContain('id="cpf-error"');
     expect(html).toContain('value="52998224724"');
   });
 
@@ -301,7 +301,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(html).toContain('id="guardianId-erro"');
+    expect(html).toContain('id="guardianId-error"');
   });
 
   test('vínculo recusado volta para a página do vínculo, sem a ficha inteira', async () => {

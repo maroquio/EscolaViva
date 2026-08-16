@@ -20,9 +20,9 @@ const STATUS_CLASS = { yes: 'etiqueta etiqueta--ativa', no: 'etiqueta' };
   </div>
 </div>
 
-<section class="secao" aria-labelledby="lista-unidades-titulo">
+<section class="secao" aria-labelledby="schools-list-title">
   <div class="secao__cabecalho">
-    <h2 id="lista-unidades-titulo">Unidades da rede</h2>
+    <h2 id="schools-list-title">Unidades da rede</h2>
     <p class="secao__nota"><%= it.pagination === undefined ? schools.length : it.pagination.total %> no total</p>
   </div>
 

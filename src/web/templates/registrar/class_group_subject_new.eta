@@ -44,11 +44,11 @@ const classGroupPage = it.routes.registrar.classGroup({ id: classGroup.id });
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="disciplinaId">
+        <label class="campo__rotulo" for="subjectId">
           <%= it.labels.subject %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
-          id="disciplinaId"
+          id="subjectId"
           name="<%= fields.subjectId %>"
           required
           <% if (errorFor(fields.subjectId) !== '') { %>aria-invalid="true"<% } %>
@@ -69,11 +69,11 @@ const classGroupPage = it.routes.registrar.classGroup({ id: classGroup.id });
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="professorUsuarioId">
+        <label class="campo__rotulo" for="teacherUserId">
           Professor <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
-          id="professorUsuarioId"
+          id="teacherUserId"
           name="<%= fields.teacherUserId %>"
           required
           <% if (errorFor(fields.teacherUserId) !== '') { %>aria-invalid="true"<% } %>

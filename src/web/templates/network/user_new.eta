@@ -25,11 +25,11 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="nome">
+        <label class="campo__rotulo" for="name">
           <%= it.labels.name %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="nome"
+          id="name"
           name="<%= fields.name %>"
           type="text"
           required
@@ -95,8 +95,8 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
         <% rows.forEach((row, index) => { %>
         <div class="formulario__linha">
           <div class="campo">
-            <label class="campo__rotulo" for="unidade-<%= index %>"><%= it.labels.school %> <%= index + 1 %></label>
-            <select id="unidade-<%= index %>" name="<%= fields.schools %>">
+            <label class="campo__rotulo" for="school-<%= index %>"><%= it.labels.school %> <%= index + 1 %></label>
+            <select id="school-<%= index %>" name="<%= fields.schools %>">
               <option value="">Sem atribuição</option>
               <% schools.forEach((school) => { %>
               <option value="<%= school.id %>" <% if (school.id === row.schoolId) { %>selected<% } %>><%= school.name %></option>
@@ -105,8 +105,8 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
           </div>
 
           <div class="campo">
-            <label class="campo__rotulo" for="papel-<%= index %>">Papel <%= index + 1 %></label>
-            <select id="papel-<%= index %>" name="<%= fields.roles %>">
+            <label class="campo__rotulo" for="role-<%= index %>">Papel <%= index + 1 %></label>
+            <select id="role-<%= index %>" name="<%= fields.roles %>">
               <option value="">Sem atribuição</option>
               <% roles.forEach((option) => { %>
               <option value="<%= option.value %>" <% if (option.value === row.role) { %>selected<% } %>><%= option.label %></option>
@@ -119,9 +119,9 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
     </fieldset>
 
     <div class="campo">
-      <label class="campo__rotulo" for="responsavelId">Cadastro de responsável</label>
+      <label class="campo__rotulo" for="guardianId">Cadastro de responsável</label>
       <select
-        id="responsavelId"
+        id="guardianId"
         name="<%= fields.guardianId %>"
         <% if (errorFor(fields.guardianId) !== '') { %>aria-invalid="true"<% } %>
         aria-describedby="<%= describedBy(fields.guardianId, true) %>">

@@ -569,9 +569,9 @@ export const TAG_CLASS = {
   closing: { closed: TAG.passed, open: TAG.inProgress },
 } as const;
 
-export const ID_SUFFIXES = { help: '-ajuda', error: '-erro' } as const;
+export const ID_SUFFIXES = { help: '-help', error: '-error' } as const;
 
-export const ID_PREFIXES = { cellError: 'erro-', pending: 'pendencia-' } as const;
+export const ID_PREFIXES = { cellError: 'error-', pending: 'pending-' } as const;
 
 export const PAGINATION = {
   window: 7,
@@ -610,5 +610,5 @@ export const DOCUMENT = {
   language: 'pt-BR',
   colorScheme: 'light',
   robots: 'noindex, nofollow',
-  contentId: 'conteudo',
+  contentId: 'content',
 } as const;

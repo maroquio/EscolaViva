@@ -38,9 +38,9 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
   </form>
 </div>
 
-<section class="secao" aria-labelledby="resultado">
+<section class="secao" aria-labelledby="result">
   <div class="secao__cabecalho">
-    <h2 id="resultado">Resultado</h2>
+    <h2 id="result">Resultado</h2>
     <% if (searched) { %>
     <% const found = it.pagination === undefined ? students.length : it.pagination.total; %>
     <p class="secao__nota">

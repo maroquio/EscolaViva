@@ -32,9 +32,9 @@ const caption = `Chamada de ${it.formatDate(date)}${it.separator}${classGroup.cl
   </nav>
 
   <form class="linha" method="get" action="<%= it.formAction %>">
-    <label class="campo__rotulo" for="ir-para-o-dia">Ir para o dia</label>
+    <label class="campo__rotulo" for="go-to-day">Ir para o dia</label>
     <span class="campo">
-      <input type="date" id="ir-para-o-dia" name="<%= it.dateParam %>" value="<%= date %>">
+      <input type="date" id="go-to-day" name="<%= it.dateParam %>" value="<%= date %>">
     </span>
     <button class="botao botao--secundario" type="submit">Abrir</button>
   </form>

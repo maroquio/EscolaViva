@@ -213,8 +213,8 @@ describe('os usuários da rede', () => {
     expect(page).toContain('name="roles[]"');
     expect(page).toContain('name="guardianId"');
     // Sem JavaScript no cliente, as linhas são fixas: três, nem mais nem menos.
-    expect(page).toContain('id="unidade-2"');
-    expect(page).not.toContain('id="unidade-3"');
+    expect(page).toContain('id="school-2"');
+    expect(page).not.toContain('id="school-3"');
     // Nem a lista de unidades nem a de responsáveis é recortada: escolher exige ver tudo.
     expect(page).toContain(`>${scenario.schools[1].name}</option>`);
     expect(page).toContain(scenario.guardians[4].name);

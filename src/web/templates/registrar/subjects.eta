@@ -16,9 +16,9 @@ const subjects = it.subjects ?? [];
   </div>
 </div>
 
-<section class="secao" aria-labelledby="cadastradas">
+<section class="secao" aria-labelledby="registered">
   <div class="secao__cabecalho">
-    <h2 id="cadastradas">Cadastradas na rede</h2>
+    <h2 id="registered">Cadastradas na rede</h2>
     <p class="secao__nota">
       <% const count = it.pagination === undefined ? subjects.length : it.pagination.total; %>
       <span class="numero"><%= count %></span>

@@ -19,9 +19,9 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
   </div>
 </div>
 
-<section class="secao" aria-labelledby="alocacoes">
+<section class="secao" aria-labelledby="assignments">
   <div class="secao__cabecalho">
-    <h2 id="alocacoes">Disciplinas alocadas</h2>
+    <h2 id="assignments">Disciplinas alocadas</h2>
     <% const assignmentCount =
          it.assignmentsPagination === undefined ? assignments.length : it.assignmentsPagination.total; %>
     <p class="secao__nota">
@@ -74,9 +74,9 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
   </div>
 </section>
 
-<section class="secao" aria-labelledby="matriculados">
+<section class="secao" aria-labelledby="enrolled">
   <div class="secao__cabecalho">
-    <h2 id="matriculados"><%= it.labels.activeEnrollments %></h2>
+    <h2 id="enrolled"><%= it.labels.activeEnrollments %></h2>
     <% const studentCount =
          it.enrollmentsPagination === undefined ? enrollments.length : it.enrollmentsPagination.total; %>
     <p class="secao__nota">

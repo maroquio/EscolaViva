@@ -19,8 +19,8 @@ const STATUS_LABEL = it.statusLabel;
   </p>
 </header>
 
-<section class="secao" aria-labelledby="titulo-resumo">
-  <h2 class="visualmente-oculto" id="titulo-resumo">Resumo</h2>
+<section class="secao" aria-labelledby="summary-title">
+  <h2 class="visualmente-oculto" id="summary-title">Resumo</h2>
 
   <div class="painel">
     <div class="cartao">
@@ -39,9 +39,9 @@ const STATUS_LABEL = it.statusLabel;
   </div>
 </section>
 
-<section class="secao" aria-labelledby="titulo-alunos">
+<section class="secao" aria-labelledby="students-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-alunos">Alunos</h2>
+    <h2 id="students-title">Alunos</h2>
     <p class="secao__nota">Uma matrícula por ano letivo</p>
   </div>
 
@@ -94,9 +94,9 @@ const STATUS_LABEL = it.statusLabel;
   <% } %>
 </section>
 
-<section class="secao" aria-labelledby="titulo-nao-lidos">
+<section class="secao" aria-labelledby="unread-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-nao-lidos">Comunicados não lidos</h2>
+    <h2 id="unread-title">Comunicados não lidos</h2>
     <p class="secao__nota"><a href="<%= it.routes.guardian.board() %>">Ver o mural completo</a></p>
   </div>
 

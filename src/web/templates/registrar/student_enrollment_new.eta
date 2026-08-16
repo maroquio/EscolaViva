@@ -56,11 +56,11 @@ const classGroupLabel = (classGroup) =>
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="turmaId">
+        <label class="campo__rotulo" for="classGroupId">
           <%= it.labels.classGroup %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
-          id="turmaId"
+          id="classGroupId"
           name="<%= fields.classGroupId %>"
           required
           <% if (errorFor(fields.classGroupId) !== '') { %>aria-invalid="true"<% } %>
@@ -82,11 +82,11 @@ const classGroupLabel = (classGroup) =>
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="anoLetivoId">
+        <label class="campo__rotulo" for="academicYearId">
           <%= it.labels.academicYear %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
-          id="anoLetivoId"
+          id="academicYearId"
           name="<%= fields.academicYearId %>"
           required
           <% if (errorFor(fields.academicYearId) !== '') { %>aria-invalid="true"<% } %>
@@ -107,11 +107,11 @@ const classGroupLabel = (classGroup) =>
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="dataMatricula">
+        <label class="campo__rotulo" for="enrollmentDate">
           Data da matrícula <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="dataMatricula"
+          id="enrollmentDate"
           name="<%= fields.enrollmentDate %>"
           type="date"
           required

@@ -3,7 +3,7 @@
  *
  * Num formulário o nome do campo aparece quatro vezes na mesma linha de código: no `name`, que é o
  * que o navegador manda de volta; no `id`, que é a âncora do controle; no `for` do rótulo, que
- * casa com esse `id`; e dentro dos ids derivados (`nome-ajuda`, `nome-erro`), que o
+ * casa com esse `id`; e dentro dos ids derivados (`name-help`, `name-error`), que o
  * `aria-describedby` cita. Três dessas quatro já vinham da constante — `name="<%= fields.name %>"`,
  * `it.helpId(fields.name)`, `describedBy(fields.name, true)`. A quarta, o `id` base, estava
  * reescrita à mão.

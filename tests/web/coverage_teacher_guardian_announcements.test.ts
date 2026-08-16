@@ -306,8 +306,8 @@ describe('as telas do portal do responsável', () => {
 
     expect(status).toBe(200);
     expect(html).toContain(pageTitle('Mural de comunicados'));
-    expect(html).toContain('<h2 id="titulo-por-ler">Não lidos</h2>');
-    expect(html).toContain('<h2 id="titulo-lidos">Já lidos</h2>');
+    expect(html).toContain('<h2 id="unread-title">Não lidos</h2>');
+    expect(html).toContain('<h2 id="read-title">Já lidos</h2>');
     expect(html).toContain(`href="/guardian/board/${unread.id}"`);
     expect(html).toContain(`href="/guardian/board/${alreadyRead.id}"`);
     expect(html).toContain(unread.title);

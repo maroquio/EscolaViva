@@ -26,8 +26,8 @@ const classGroupForm = it.routes.registrar.classGroupNew();
   <form class="formulario" method="get" action="<%= classGroupList %>">
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="unidade"><%= it.labels.school %></label>
-        <select id="unidade" name="<%= it.schoolField %>">
+        <label class="campo__rotulo" for="school"><%= it.labels.school %></label>
+        <select id="school" name="<%= it.schoolField %>">
           <option value="">Todas as suas unidades</option>
           <% schools.forEach((school) => { %>
           <option value="<%= school.id %>" <%= filter.schoolId === school.id ? 'selected' : '' %>>
@@ -38,8 +38,8 @@ const classGroupForm = it.routes.registrar.classGroupNew();
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="ano"><%= it.labels.academicYear %></label>
-        <select id="ano" name="<%= it.yearField %>">
+        <label class="campo__rotulo" for="year"><%= it.labels.academicYear %></label>
+        <select id="year" name="<%= it.yearField %>">
           <option value="">Todos os anos</option>
           <% academicYears.forEach((academicYear) => { %>
           <option value="<%= academicYear.id %>" <%= filter.academicYearId === academicYear.id ? 'selected' : '' %>>
@@ -59,9 +59,9 @@ const classGroupForm = it.routes.registrar.classGroupNew();
   </form>
 </div>
 
-<section class="secao" aria-labelledby="lista">
+<section class="secao" aria-labelledby="list">
   <div class="secao__cabecalho">
-    <h2 id="lista">Turmas</h2>
+    <h2 id="list">Turmas</h2>
     <% const count = it.pagination === undefined ? classGroups.length : it.pagination.total; %>
     <p class="secao__nota">
       <span class="numero"><%= count %></span>

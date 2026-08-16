@@ -42,11 +42,11 @@ const financiallyResponsible = values.financiallyResponsible === true;
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="responsavelId">
+        <label class="campo__rotulo" for="guardianId">
           Responsável <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
-          id="responsavelId"
+          id="guardianId"
           name="<%= fields.guardianId %>"
           required
           <% if (errorFor(fields.guardianId) !== '') { %>aria-invalid="true"<% } %>
@@ -64,11 +64,11 @@ const financiallyResponsible = values.financiallyResponsible === true;
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="parentesco">
+        <label class="campo__rotulo" for="relationship">
           Parentesco <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="parentesco"
+          id="relationship"
           name="<%= fields.relationship %>"
           type="text"
           required
@@ -86,13 +86,13 @@ const financiallyResponsible = values.financiallyResponsible === true;
     <div class="campo">
       <div class="campo campo--opcao">
         <input
-          id="financeiro"
+          id="financiallyResponsible"
           name="<%= fields.financiallyResponsible %>"
           type="checkbox"
           value="<%= it.checkedValue %>"
           <%= financiallyResponsible ? 'checked' : '' %>
           aria-describedby="<%= it.helpId(fields.financiallyResponsible) %>">
-        <label class="campo__rotulo" for="financeiro">Responsável financeiro</label>
+        <label class="campo__rotulo" for="financiallyResponsible">Responsável financeiro</label>
       </div>
       <p class="campo__ajuda" id="<%= it.helpId(fields.financiallyResponsible) %>">
         Marque quem responde pela cobrança. O aluno pode ter mais de um responsável, e apenas um

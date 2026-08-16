@@ -20,11 +20,11 @@ const fields = it.fields.school;
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="nome">
+        <label class="campo__rotulo" for="name">
           <%= it.labels.name %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="nome"
+          id="name"
           name="<%= fields.name %>"
           type="text"
           required
@@ -40,9 +40,9 @@ const fields = it.fields.school;
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="codigoInep">Código INEP</label>
+        <label class="campo__rotulo" for="inepCode">Código INEP</label>
         <input
-          id="codigoInep"
+          id="inepCode"
           name="<%= fields.inepCode %>"
           type="text"
           maxlength="<%= it.inepCodeLimit %>"

@@ -15,9 +15,9 @@ const years = it.years ?? [];
   </div>
 </div>
 
-<section class="secao" aria-labelledby="lista-anos-titulo">
+<section class="secao" aria-labelledby="years-list-title">
   <div class="secao__cabecalho">
-    <h2 id="lista-anos-titulo">Anos definidos</h2>
+    <h2 id="years-list-title">Anos definidos</h2>
     <p class="secao__nota">Do mais recente para o mais antigo</p>
   </div>
 

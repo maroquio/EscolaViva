@@ -20,11 +20,11 @@ const { errorFor, describedBy } = it;
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="ano">
+        <label class="campo__rotulo" for="year">
           <%= it.labels.year %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="ano"
+          id="year"
           name="<%= fields.year %>"
           type="number"
           required
@@ -41,11 +41,11 @@ const { errorFor, describedBy } = it;
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="dataInicio">
+        <label class="campo__rotulo" for="startDate">
           <%= it.labels.start %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="dataInicio"
+          id="startDate"
           name="<%= fields.startDate %>"
           type="date"
           required
@@ -58,11 +58,11 @@ const { errorFor, describedBy } = it;
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="dataFim">
+        <label class="campo__rotulo" for="endDate">
           <%= it.labels.end %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="dataFim"
+          id="endDate"
           name="<%= fields.endDate %>"
           type="date"
           required
