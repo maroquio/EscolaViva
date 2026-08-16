@@ -117,21 +117,21 @@ test('the capture is deterministic: the same screen, twice, gives the same text'
  */
 describe('normalization does not erase what the golden exists to catch', () => {
   test('an href swapped for another path changes the normalized text', async () => {
-    const original = await capture(screenNamed('secretaria-alunos-busca'), scenario);
+    const original = await capture(screenNamed('registrar-students-search'), scenario);
 
     expect(original).toContain('href="/registrar/students/{{aluno01}}"');
     expect(original.replaceAll('/registrar/students/', '/registrar/class-groups/')).not.toBe(original);
   });
 
   test('a lost label changes the normalized text', async () => {
-    const original = await capture(screenNamed('admin-rede-painel'), scenario);
+    const original = await capture(screenNamed('admin-network-dashboard'), scenario);
 
     expect(original).toContain('Painel da rede');
     expect(original.replaceAll('Painel da rede', '')).not.toBe(original);
   });
 
   test('one student\'s identifier does not become another\'s', async () => {
-    const text = await capture(screenNamed('secretaria-alunos-busca'), scenario);
+    const text = await capture(screenNamed('registrar-students-search'), scenario);
 
     // Every record in the scenario has a marker of its own: swapping two `href` around changes the file.
     expect(text).toContain('{{aluno01}}');
@@ -139,7 +139,7 @@ describe('normalization does not erase what the golden exists to catch', () => {
   });
 
   test('the destination of a redirect goes into the frozen file', async () => {
-    const text = await capture(screenNamed('professor-painel-redirecionado'), scenario);
+    const text = await capture(screenNamed('teacher-dashboard-redirected'), scenario);
 
     expect(text).toContain('status: 303');
     expect(text).toContain('Location: /teacher');

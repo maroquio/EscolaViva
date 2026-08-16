@@ -1,0 +1,205 @@
+GET /teacher/subjects/{{alocacao1}}/grades
+role: teacher
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Língua Portuguesa · 6A · EscolaViva</title>
+  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
+
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
+
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
+              Escola Central          </span>
+  </div>
+
+  <div class="header__user">
+    <span class="header__name" title="carla@golden.test">Carla Professora</span>
+    <form class="header__signout" method="post" action="/logout">
+      <input type="hidden" name="_key" value="{{chave}}">
+      <button class="button button--quiet button--small" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Ensino</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/teacher" aria-current="page">Minhas turmas</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="content" id="content" tabindex="-1">
+      
+
+      <div class="page__header">
+  <div>
+    <p class="overline">6A · 6º ano · turno matutino</p>
+    <h1 class="page__title">Língua Portuguesa</h1>
+    <p class="page__summary">
+      Lançamento de notas de 0 a 10, com uma casa decimal. O que estiver em branco no envio deixa de
+      existir como nota do aluno neste bimestre.
+    </p>
+  </div>
+  <p class="page__actions">
+    <a class="button button--quiet" href="/teacher/class-groups/{{turma1}}/roll-call">Chamada</a>
+    <a class="button button--quiet" href="/teacher/class-groups/{{turma1}}/closing">Fechamento</a>
+    <a class="button button--quiet" href="/teacher">Minhas turmas</a>
+  </p>
+</div>
+
+<nav class="actions" aria-label="Bimestre">
+  <span class="overline">Bimestre</span>
+    <a class="button button--secondary"
+     href="/teacher/subjects/{{alocacao1}}/grades?term=1"
+     aria-current="page">1º</a>
+    <a class="button button--quiet"
+     href="/teacher/subjects/{{alocacao1}}/grades?term=2"
+     >2º</a>
+    <a class="button button--quiet"
+     href="/teacher/subjects/{{alocacao1}}/grades?term=3"
+     >3º</a>
+    <a class="button button--quiet"
+     href="/teacher/subjects/{{alocacao1}}/grades?term=4"
+     >4º</a>
+  </nav>
+
+<p class="notice notice--warning" role="status">
+  O 1º bimestre desta turma está fechado. As notas continuam visíveis, mas não podem
+  mais ser alteradas — nem por aqui, nem por nenhum outro caminho do sistema.
+</p>
+
+
+
+  <div class="table-scroll">
+    <table class="table">
+      <caption>Notas do 1º bimestre · Língua Portuguesa · 6A</caption>
+      <thead>
+        <tr>
+          <th scope="col">Aluno</th>
+          <th scope="col">Nota (0 a 10)</th>
+        </tr>
+      </thead>
+      <tbody>
+                <tr>
+          <th scope="row">Aluno 01 da Silva</th>
+          <td class="number">
+                        8,5                      </td>
+        </tr>
+                <tr>
+          <th scope="row">Aluno 02 da Silva</th>
+          <td class="number">
+                        7,0                      </td>
+        </tr>
+                <tr>
+          <th scope="row">Aluno 03 da Silva</th>
+          <td class="number">
+                        8,0                      </td>
+        </tr>
+                <tr>
+          <th scope="row">Aluno 04 da Silva</th>
+          <td class="number">
+                        9,0                      </td>
+        </tr>
+                <tr>
+          <th scope="row">Aluno 05 da Silva</th>
+          <td class="number">
+                        —                      </td>
+        </tr>
+                <tr>
+          <th scope="row">Aluno 06 da Silva</th>
+          <td class="number">
+                        —                      </td>
+        </tr>
+                <tr>
+          <th scope="row">Aluno 07 da Silva</th>
+          <td class="number">
+                        —                      </td>
+        </tr>
+                <tr>
+          <th scope="row">Aluno 08 da Silva</th>
+          <td class="number">
+                        —                      </td>
+        </tr>
+                <tr>
+          <th scope="row">Aluno 09 da Silva</th>
+          <td class="number">
+                        —                      </td>
+        </tr>
+                <tr>
+          <th scope="row">Aluno 10 da Silva</th>
+          <td class="number">
+                        —                      </td>
+        </tr>
+                <tr>
+          <th scope="row">Aluno 11 da Silva</th>
+          <td class="number">
+                        —                      </td>
+        </tr>
+                <tr>
+          <th scope="row">Aluno 12 da Silva</th>
+          <td class="number">
+                        —                      </td>
+        </tr>
+              </tbody>
+    </table>
+  </div>
+
+
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const notices = document.querySelectorAll('.notice');
+    if (notices.length === 0) return;
+
+    const content = document.getElementById('content');
+
+    notices.forEach((notice) => {
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'notice__close';
+      closeButton.setAttribute('aria-label', 'Fechar aviso');
+      closeButton.textContent = '×';
+
+      closeButton.addEventListener('click', () => {
+        const hadFocus = document.activeElement === closeButton;
+        notice.remove();
+        if (hadFocus && content !== null) content.focus({ preventScroll: true });
+      });
+
+      notice.append(closeButton);
+    });
+  })();
+</script>
+</body>
+</html>

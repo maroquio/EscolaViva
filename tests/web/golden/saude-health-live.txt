@@ -1,7 +1,0 @@
-GET /health/live
-papel: anonimo
-status: 200
-Content-Type: application/json
-Cache-Control: no-store
-------------------------------------------------------------------------------
-{"status":"ok"}

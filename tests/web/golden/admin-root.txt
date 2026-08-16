@@ -1,0 +1,7 @@
+GET /
+role: admin
+status: 303
+Location: /dashboard
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------

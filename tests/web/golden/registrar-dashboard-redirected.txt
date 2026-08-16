@@ -1,0 +1,7 @@
+GET /dashboard
+role: registrar
+status: 303
+Location: /registrar
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------

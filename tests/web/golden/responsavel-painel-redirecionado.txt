@@ -1,7 +1,0 @@
-GET /dashboard
-papel: responsavel
-status: 303
-Location: /guardian
-Cache-Control: private, no-store
-Vary: Cookie
-------------------------------------------------------------------------------

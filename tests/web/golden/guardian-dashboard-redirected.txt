@@ -1,0 +1,7 @@
+GET /dashboard
+role: guardian
+status: 303
+Location: /guardian
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------

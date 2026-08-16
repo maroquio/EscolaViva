@@ -1,7 +1,0 @@
-GET /dashboard
-papel: professor
-status: 303
-Location: /teacher
-Cache-Control: private, no-store
-Vary: Cookie
-------------------------------------------------------------------------------

@@ -1,0 +1,160 @@
+GET /network/academic-years
+role: admin
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Anos letivos · EscolaViva</title>
+  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
+
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
+
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
+              2 unidades
+          </span>
+  </div>
+
+  <div class="header__user">
+    <span class="header__name" title="alice@golden.test">Alice Diretora</span>
+    <form class="header__signout" method="post" action="/logout">
+      <input type="hidden" name="_key" value="{{chave}}">
+      <button class="button button--quiet button--small" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Rede</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/network">Painel da rede</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/network/schools">Unidades</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/network/users">Usuários</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/network/academic-years" aria-current="page">Anos letivos</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Comunicação</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/announcements">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="content" id="content" tabindex="-1">
+      
+
+      <div class="page__header">
+  <div>
+    <p class="overline">Rede</p>
+    <h1 class="page__title">Anos letivos</h1>
+    <p class="page__summary">
+      O ano letivo delimita as matrículas: um aluno tem uma matrícula ativa por ano, e é esse
+      recorte que o boletim e a frequência usam.
+    </p>
+  </div>
+  <div class="page__actions">
+    <a class="button button--primary" href="/network/academic-years/new">Definir ano letivo</a>
+  </div>
+</div>
+
+<section class="section" aria-labelledby="years-list-title">
+  <div class="section__header">
+    <h2 id="years-list-title">Anos definidos</h2>
+    <p class="section__note">Do mais recente para o mais antigo</p>
+  </div>
+
+    <div class="table-scroll">
+    <table class="table">
+      <caption>Calendário letivo da rede</caption>
+      <thead>
+        <tr>
+          <th scope="col">Ano</th>
+          <th scope="col">Início</th>
+          <th scope="col">Término</th>
+        </tr>
+      </thead>
+      <tbody>
+                <tr>
+          <th scope="row" class="number">2026</th>
+          <td class="number">01/02/2026</td>
+          <td class="number">15/12/2026</td>
+        </tr>
+                <tr>
+          <th scope="row" class="number">2025</th>
+          <td class="number">01/02/2025</td>
+          <td class="number">15/12/2025</td>
+        </tr>
+              </tbody>
+    </table>
+  </div>
+  <nav class="pagination" aria-label="Paginação de anos letivos">
+  <p class="pagination__count">
+    <span class="number">1–2</span>
+    de <span class="number">2</span> anos letivos  </p>
+
+  </nav>
+  </section>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const notices = document.querySelectorAll('.notice');
+    if (notices.length === 0) return;
+
+    const content = document.getElementById('content');
+
+    notices.forEach((notice) => {
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'notice__close';
+      closeButton.setAttribute('aria-label', 'Fechar aviso');
+      closeButton.textContent = '×';
+
+      closeButton.addEventListener('click', () => {
+        const hadFocus = document.activeElement === closeButton;
+        notice.remove();
+        if (hadFocus && content !== null) content.focus({ preventScroll: true });
+      });
+
+      notice.append(closeButton);
+    });
+  })();
+</script>
+</body>
+</html>

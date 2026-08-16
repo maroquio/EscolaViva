@@ -1,0 +1,123 @@
+GET /guardian/board/{{comunicado1}}
+role: guardian
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Reunião de pais e mestres · EscolaViva</title>
+  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
+
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
+
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
+              Escola Central          </span>
+  </div>
+
+  <div class="header__user">
+    <span class="header__name" title="portal01@golden.test">Responsável 01 da Silva</span>
+    <form class="header__signout" method="post" action="/logout">
+      <input type="hidden" name="_key" value="{{chave}}">
+      <button class="button button--quiet button--small" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Acompanhamento</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/guardian">Meus alunos</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/guardian/board" aria-current="page">Mural</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="content" id="content" tabindex="-1">
+      
+
+      <header class="page__header">
+  <div>
+    <p class="overline">Comunicado</p>
+    <h1 class="page__title">Reunião de pais e mestres</h1>
+    <p class="page__summary">
+      Publicado por Alice Diretora em
+      <time datetime="{{carimboDeTempo}}">
+        10/03/2026 {{hora}}      </time>
+    </p>
+  </div>
+  <p class="page__actions">
+    <a class="button button--quiet" href="/guardian/board">Voltar ao mural</a>
+  </p>
+</header>
+
+<article class="stack">
+  <div class="panel reading">
+    <p class="running-text">A reunião do primeiro bimestre acontece no dia 20, às 19h, no auditório da unidade.</p>
+  </div>
+
+  <footer class="actions">
+        <p class="row">
+      <span class="tag tag--passed">Lido</span>
+      <span class="muted">
+        em <time datetime="{{carimboDeTempo}}">11/03/2026 {{hora}}</time>
+      </span>
+    </p>
+      </footer>
+</article>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const notices = document.querySelectorAll('.notice');
+    if (notices.length === 0) return;
+
+    const content = document.getElementById('content');
+
+    notices.forEach((notice) => {
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'notice__close';
+      closeButton.setAttribute('aria-label', 'Fechar aviso');
+      closeButton.textContent = '×';
+
+      closeButton.addEventListener('click', () => {
+        const hadFocus = document.activeElement === closeButton;
+        notice.remove();
+        if (hadFocus && content !== null) content.focus({ preventScroll: true });
+      });
+
+      notice.append(closeButton);
+    });
+  })();
+</script>
+</body>
+</html>

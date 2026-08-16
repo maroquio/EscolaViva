@@ -1,0 +1,6 @@
+GET /dashboard
+role: anonymous
+status: 303
+Location: /login
+Cache-Control: no-store
+------------------------------------------------------------------------------

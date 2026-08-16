@@ -1,7 +1,0 @@
-GET /dashboard
-papel: admin
-status: 303
-Location: /network
-Cache-Control: private, no-store
-Vary: Cookie
-------------------------------------------------------------------------------

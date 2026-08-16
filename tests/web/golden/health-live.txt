@@ -1,0 +1,7 @@
+GET /health/live
+role: anonymous
+status: 200
+Content-Type: application/json
+Cache-Control: no-store
+------------------------------------------------------------------------------
+{"status":"ok"}

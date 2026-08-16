@@ -1,0 +1,209 @@
+GET /network/users
+role: admin
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Usuários · EscolaViva</title>
+  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
+
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
+
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
+              2 unidades
+          </span>
+  </div>
+
+  <div class="header__user">
+    <span class="header__name" title="alice@golden.test">Alice Diretora</span>
+    <form class="header__signout" method="post" action="/logout">
+      <input type="hidden" name="_key" value="{{chave}}">
+      <button class="button button--quiet button--small" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Rede</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/network">Painel da rede</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/network/schools">Unidades</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/network/users" aria-current="page">Usuários</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/network/academic-years">Anos letivos</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Comunicação</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/announcements">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="content" id="content" tabindex="-1">
+      
+
+      <div class="page__header">
+  <div>
+    <p class="overline">Rede</p>
+    <h1 class="page__title">Usuários</h1>
+    <p class="page__summary">
+      Todo acesso nasce aqui. O papel decide o que a pessoa vê, e ele existe sempre dentro de uma
+      unidade: a mesma pessoa pode ser secretária em uma escola e responsável em outra.
+    </p>
+  </div>
+  <div class="page__actions">
+    <a class="button button--primary" href="/network/users/new">Convidar usuário</a>
+  </div>
+</div>
+
+
+<section class="section" aria-labelledby="users-list-title">
+  <div class="section__header">
+    <h2 id="users-list-title">Quem tem acesso</h2>
+    <p class="section__note">5 no total</p>
+  </div>
+
+    <div class="table-scroll">
+    <table class="table">
+      <caption>Usuários da rede</caption>
+      <thead>
+        <tr>
+          <th scope="col">Nome</th>
+          <th scope="col">CPF</th>
+          <th scope="col">E-mail</th>
+          <th scope="col">Papéis</th>
+          <th scope="col">Situação</th>
+        </tr>
+      </thead>
+      <tbody>
+                <tr>
+          <th scope="row">Alice Diretora</th>
+          <td class="cell-text">109.100.001-82</td>
+          <td class="cell-text">alice@golden.test</td>
+          <td class="cell-text">
+                                    <div>Administração da rede · Escola Central</div>
+                        <div>Administração da rede · Escola do Bairro</div>
+                                  </td>
+          <td>
+            <span class="tag tag--active">Ativo</span>
+          </td>
+        </tr>
+                <tr>
+          <th scope="row">Bruno Secretário</th>
+          <td class="cell-text">109.100.002-63</td>
+          <td class="cell-text">bruno@golden.test</td>
+          <td class="cell-text">
+                                    <div>Secretaria · Escola Central</div>
+                                  </td>
+          <td>
+            <span class="tag tag--active">Ativo</span>
+          </td>
+        </tr>
+                <tr>
+          <th scope="row">Carla Professora</th>
+          <td class="cell-text">109.100.003-44</td>
+          <td class="cell-text">carla@golden.test</td>
+          <td class="cell-text">
+                                    <div>Professor · Escola Central</div>
+                                  </td>
+          <td>
+            <span class="tag tag--active">Ativo</span>
+          </td>
+        </tr>
+                <tr>
+          <th scope="row">Eva Recém-Convidada</th>
+          <td class="cell-text">109.100.005-06</td>
+          <td class="cell-text">eva@golden.test</td>
+          <td class="cell-text">
+                        <span class="muted">sem papel atribuído</span>
+                      </td>
+          <td>
+            <span class="tag tag--active">Ativo</span>
+          </td>
+        </tr>
+                <tr>
+          <th scope="row">Responsável 01 da Silva</th>
+          <td class="cell-text">109.100.004-25</td>
+          <td class="cell-text">portal01@golden.test</td>
+          <td class="cell-text">
+                                    <div>Responsável · Escola Central</div>
+                                  </td>
+          <td>
+            <span class="tag tag--active">Ativo</span>
+          </td>
+        </tr>
+              </tbody>
+    </table>
+  </div>
+  <nav class="pagination" aria-label="Paginação de usuários">
+  <p class="pagination__count">
+    <span class="number">1–5</span>
+    de <span class="number">5</span> usuários  </p>
+
+  </nav>
+  </section>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const notices = document.querySelectorAll('.notice');
+    if (notices.length === 0) return;
+
+    const content = document.getElementById('content');
+
+    notices.forEach((notice) => {
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'notice__close';
+      closeButton.setAttribute('aria-label', 'Fechar aviso');
+      closeButton.textContent = '×';
+
+      closeButton.addEventListener('click', () => {
+        const hadFocus = document.activeElement === closeButton;
+        notice.remove();
+        if (hadFocus && content !== null) content.focus({ preventScroll: true });
+      });
+
+      notice.append(closeButton);
+    });
+  })();
+</script>
+</body>
+</html>

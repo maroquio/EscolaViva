@@ -53,17 +53,17 @@ import { signIn } from './support';
 export const GOLDEN_DIR = join(import.meta.dir, 'golden');
 
 /**
- * The roles that open the screens. `anonimo` is the absence of a session, and it is a screen too;
- * `semPapel` is the account that exists and has not been tied to any school yet, which is the only
+ * The roles that open the screens. `anonymous` is the absence of a session, and it is a screen too;
+ * `noRole` is the account that exists and has not been tied to any school yet, which is the only
  * door to the "Conta sem papel atribuído" screen of `/dashboard`.
  */
 export type GoldenRole =
-  | 'anonimo'
-  | 'semPapel'
+  | 'anonymous'
+  | 'noRole'
   | 'admin'
-  | 'secretaria'
-  | 'professor'
-  | 'responsavel';
+  | 'registrar'
+  | 'teacher'
+  | 'guardian';
 
 export type GoldenScreen = {
   /** The file name under `tests/web/golden/`, without extension. */
@@ -77,7 +77,7 @@ export type GoldenScreen = {
  * deterministic without normalization having to erase the occurrence code — if that code
  * disappears from the screen, the golden says so.
  */
-const CORRELATION = 'golden-correlacao-fixa';
+const CORRELATION = 'golden-fixed-correlation';
 
 /** An identifier that honours the format and exists in no table: the door to the 404. */
 const NONEXISTENT_ID = '00000000-0000-4000-8000-000000000000';
@@ -310,12 +310,12 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     signIn({ networkSlug: network.slug, cpf, password: DEFAULT_PASSWORD });
 
   const cookies: Record<GoldenRole, string> = {
-    anonimo: '',
-    semPapel: await signInWithCpf(roleless.cpf),
+    anonymous: '',
+    noRole: await signInWithCpf(roleless.cpf),
     admin: await signInWithCpf(admin.cpf),
-    secretaria: await signInWithCpf(registrar.cpf),
-    professor: await signInWithCpf(teacher.cpf),
-    responsavel: await signInWithCpf(guardian.cpf),
+    registrar: await signInWithCpf(registrar.cpf),
+    teacher: await signInWithCpf(teacher.cpf),
+    guardian: await signInWithCpf(guardian.cpf),
   };
 
   const markers = new Map<string, string>([
@@ -381,93 +381,93 @@ export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen
 
   return [
     /* No session ----------------------------------------------------------- */
-    { name: 'anonimo-raiz', role: 'anonimo', path: '/' },
-    { name: 'anonimo-login', role: 'anonimo', path: '/login' },
-    { name: 'anonimo-login-apos-sair', role: 'anonimo', path: `/login?ok=${signOutMessage}` },
-    { name: 'anonimo-painel', role: 'anonimo', path: '/dashboard' },
-    { name: 'anonimo-secretaria', role: 'anonimo', path: '/registrar' },
-    { name: 'anonimo-rota-inexistente', role: 'anonimo', path: '/nao-existe' },
-    { name: 'anonimo-publico-inexistente', role: 'anonimo', path: '/public/nao-existe.css' },
-    { name: 'anonimo-publico-nome-recusado', role: 'anonimo', path: '/public/..%2Fsegredo' },
+    { name: 'anonymous-root', role: 'anonymous', path: '/' },
+    { name: 'anonymous-login', role: 'anonymous', path: '/login' },
+    { name: 'anonymous-login-after-sign-out', role: 'anonymous', path: `/login?ok=${signOutMessage}` },
+    { name: 'anonymous-dashboard', role: 'anonymous', path: '/dashboard' },
+    { name: 'anonymous-registrar', role: 'anonymous', path: '/registrar' },
+    { name: 'anonymous-route-not-found', role: 'anonymous', path: '/nao-existe' },
+    { name: 'anonymous-public-file-not-found', role: 'anonymous', path: '/public/nao-existe.css' },
+    { name: 'anonymous-public-name-refused', role: 'anonymous', path: '/public/..%2Fsegredo' },
 
     /* Account with no role assigned ---------------------------------------- */
-    { name: 'sem-papel-painel', role: 'semPapel', path: '/dashboard' },
-    { name: 'sem-papel-raiz', role: 'semPapel', path: '/' },
+    { name: 'no-role-dashboard', role: 'noRole', path: '/dashboard' },
+    { name: 'no-role-root', role: 'noRole', path: '/' },
 
     /* Health --------------------------------------------------------------- */
-    { name: 'saude-health', role: 'anonimo', path: '/health' },
-    { name: 'saude-health-live', role: 'anonimo', path: '/health/live' },
+    { name: 'health-check', role: 'anonymous', path: '/health' },
+    { name: 'health-live', role: 'anonymous', path: '/health/live' },
 
     /* Network administration ----------------------------------------------- */
-    { name: 'admin-raiz', role: 'admin', path: '/' },
-    { name: 'admin-painel', role: 'admin', path: '/dashboard' },
-    { name: 'admin-login-com-sessao', role: 'admin', path: '/login' },
-    { name: 'admin-rede-painel', role: 'admin', path: '/network' },
-    { name: 'admin-rede-unidades', role: 'admin', path: '/network/schools' },
-    { name: 'admin-rede-unidades-criada', role: 'admin', path: '/network/schools?ok=school-created' },
-    { name: 'admin-rede-unidade-nova', role: 'admin', path: '/network/schools/new' },
-    { name: 'admin-rede-usuarios', role: 'admin', path: '/network/users' },
-    { name: 'admin-rede-usuarios-convidado', role: 'admin', path: '/network/users?ok=user-invited' },
-    { name: 'admin-rede-usuario-novo', role: 'admin', path: '/network/users/new' },
-    { name: 'admin-rede-anos-letivos', role: 'admin', path: '/network/academic-years' },
-    { name: 'admin-rede-anos-letivos-definido', role: 'admin', path: '/network/academic-years?ok=year-defined' },
-    { name: 'admin-rede-ano-novo', role: 'admin', path: '/network/academic-years/new' },
-    { name: 'admin-comunicados', role: 'admin', path: '/announcements' },
-    { name: 'admin-comunicados-unidade', role: 'admin', path: `/announcements?schoolId=${ids.schoolA}` },
-    { name: 'admin-comunicado-novo', role: 'admin', path: '/announcements/new' },
-    { name: 'admin-comunicado-novo-unidade', role: 'admin', path: `/announcements/new?schoolId=${ids.schoolA}` },
-    { name: 'admin-conta-senha', role: 'admin', path: '/account/password' },
-    { name: 'admin-conta-senha-alterada', role: 'admin', path: '/account/password?ok=password-changed' },
-    { name: 'admin-professor-proibido', role: 'admin', path: '/teacher' },
+    { name: 'admin-root', role: 'admin', path: '/' },
+    { name: 'admin-dashboard', role: 'admin', path: '/dashboard' },
+    { name: 'admin-login-with-session', role: 'admin', path: '/login' },
+    { name: 'admin-network-dashboard', role: 'admin', path: '/network' },
+    { name: 'admin-network-schools', role: 'admin', path: '/network/schools' },
+    { name: 'admin-network-schools-created', role: 'admin', path: '/network/schools?ok=school-created' },
+    { name: 'admin-network-school-new', role: 'admin', path: '/network/schools/new' },
+    { name: 'admin-network-users', role: 'admin', path: '/network/users' },
+    { name: 'admin-network-users-invited', role: 'admin', path: '/network/users?ok=user-invited' },
+    { name: 'admin-network-user-new', role: 'admin', path: '/network/users/new' },
+    { name: 'admin-network-academic-years', role: 'admin', path: '/network/academic-years' },
+    { name: 'admin-network-academic-years-defined', role: 'admin', path: '/network/academic-years?ok=year-defined' },
+    { name: 'admin-network-year-new', role: 'admin', path: '/network/academic-years/new' },
+    { name: 'admin-announcements', role: 'admin', path: '/announcements' },
+    { name: 'admin-announcements-school', role: 'admin', path: `/announcements?schoolId=${ids.schoolA}` },
+    { name: 'admin-announcement-new', role: 'admin', path: '/announcements/new' },
+    { name: 'admin-announcement-new-school', role: 'admin', path: `/announcements/new?schoolId=${ids.schoolA}` },
+    { name: 'admin-account-password', role: 'admin', path: '/account/password' },
+    { name: 'admin-account-password-changed', role: 'admin', path: '/account/password?ok=password-changed' },
+    { name: 'admin-teacher-forbidden', role: 'admin', path: '/teacher' },
 
     /* Registrar ------------------------------------------------------------- */
-    { name: 'secretaria-painel-redirecionado', role: 'secretaria', path: '/dashboard' },
-    { name: 'secretaria-painel', role: 'secretaria', path: '/registrar' },
-    { name: 'secretaria-alunos-sem-busca', role: 'secretaria', path: '/registrar/students' },
-    { name: 'secretaria-alunos-busca', role: 'secretaria', path: '/registrar/students?q=Silva' },
-    { name: 'secretaria-alunos-busca-pagina-2', role: 'secretaria', path: '/registrar/students?q=Silva&p=2' },
-    { name: 'secretaria-aluno-novo', role: 'secretaria', path: '/registrar/students/new' },
-    { name: 'secretaria-aluno-ficha', role: 'secretaria', path: `/registrar/students/${ids.student1}` },
-    { name: 'secretaria-aluno-inexistente', role: 'secretaria', path: `/registrar/students/${ids.nonexistent}` },
-    { name: 'secretaria-aluno-responsavel-novo', role: 'secretaria', path: `/registrar/students/${ids.student1}/guardians/new` },
-    { name: 'secretaria-aluno-matricular', role: 'secretaria', path: `/registrar/students/${ids.student1}/enroll` },
-    { name: 'secretaria-matricula-transferir', role: 'secretaria', path: `/registrar/enrollments/${ids.enrollment1}/transfer` },
-    { name: 'secretaria-responsaveis', role: 'secretaria', path: '/registrar/guardians' },
-    { name: 'secretaria-responsaveis-pagina-2', role: 'secretaria', path: '/registrar/guardians?p=2' },
-    { name: 'secretaria-responsavel-novo', role: 'secretaria', path: '/registrar/guardians/new' },
-    { name: 'secretaria-turmas', role: 'secretaria', path: '/registrar/class-groups' },
-    { name: 'secretaria-turmas-filtradas', role: 'secretaria', path: `/registrar/class-groups?school=${ids.schoolA}&year=${ids.currentYear}` },
-    { name: 'secretaria-turma-nova', role: 'secretaria', path: '/registrar/class-groups/new' },
-    { name: 'secretaria-turma-ficha', role: 'secretaria', path: `/registrar/class-groups/${ids.classGroup1}` },
-    { name: 'secretaria-turma-ficha-pagina-2', role: 'secretaria', path: `/registrar/class-groups/${ids.classGroup1}?pEnrollments=2` },
-    { name: 'secretaria-turma-disciplina-nova', role: 'secretaria', path: `/registrar/class-groups/${ids.classGroup1}/subjects/new` },
-    { name: 'secretaria-disciplinas', role: 'secretaria', path: '/registrar/subjects' },
-    { name: 'secretaria-disciplina-nova', role: 'secretaria', path: '/registrar/subjects/new' },
-    { name: 'secretaria-comunicados', role: 'secretaria', path: '/announcements' },
-    { name: 'secretaria-comunicado-novo', role: 'secretaria', path: '/announcements/new' },
-    { name: 'secretaria-rota-inexistente', role: 'secretaria', path: '/nao-existe' },
+    { name: 'registrar-dashboard-redirected', role: 'registrar', path: '/dashboard' },
+    { name: 'registrar-dashboard', role: 'registrar', path: '/registrar' },
+    { name: 'registrar-students-no-search', role: 'registrar', path: '/registrar/students' },
+    { name: 'registrar-students-search', role: 'registrar', path: '/registrar/students?q=Silva' },
+    { name: 'registrar-students-search-page-2', role: 'registrar', path: '/registrar/students?q=Silva&p=2' },
+    { name: 'registrar-student-new', role: 'registrar', path: '/registrar/students/new' },
+    { name: 'registrar-student-record', role: 'registrar', path: `/registrar/students/${ids.student1}` },
+    { name: 'registrar-student-not-found', role: 'registrar', path: `/registrar/students/${ids.nonexistent}` },
+    { name: 'registrar-student-guardian-new', role: 'registrar', path: `/registrar/students/${ids.student1}/guardians/new` },
+    { name: 'registrar-student-enroll', role: 'registrar', path: `/registrar/students/${ids.student1}/enroll` },
+    { name: 'registrar-enrollment-transfer', role: 'registrar', path: `/registrar/enrollments/${ids.enrollment1}/transfer` },
+    { name: 'registrar-guardians', role: 'registrar', path: '/registrar/guardians' },
+    { name: 'registrar-guardians-page-2', role: 'registrar', path: '/registrar/guardians?p=2' },
+    { name: 'registrar-guardian-new', role: 'registrar', path: '/registrar/guardians/new' },
+    { name: 'registrar-class-groups', role: 'registrar', path: '/registrar/class-groups' },
+    { name: 'registrar-class-groups-filtered', role: 'registrar', path: `/registrar/class-groups?school=${ids.schoolA}&year=${ids.currentYear}` },
+    { name: 'registrar-class-group-new', role: 'registrar', path: '/registrar/class-groups/new' },
+    { name: 'registrar-class-group-record', role: 'registrar', path: `/registrar/class-groups/${ids.classGroup1}` },
+    { name: 'registrar-class-group-record-page-2', role: 'registrar', path: `/registrar/class-groups/${ids.classGroup1}?pEnrollments=2` },
+    { name: 'registrar-class-group-subject-new', role: 'registrar', path: `/registrar/class-groups/${ids.classGroup1}/subjects/new` },
+    { name: 'registrar-subjects', role: 'registrar', path: '/registrar/subjects' },
+    { name: 'registrar-subject-new', role: 'registrar', path: '/registrar/subjects/new' },
+    { name: 'registrar-announcements', role: 'registrar', path: '/announcements' },
+    { name: 'registrar-announcement-new', role: 'registrar', path: '/announcements/new' },
+    { name: 'registrar-route-not-found', role: 'registrar', path: '/nao-existe' },
 
     /* Teacher --------------------------------------------------------------- */
-    { name: 'professor-painel-redirecionado', role: 'professor', path: '/dashboard' },
-    { name: 'professor-painel', role: 'professor', path: '/teacher' },
-    { name: 'professor-notas', role: 'professor', path: `/teacher/subjects/${ids.assignment1}/grades` },
-    { name: 'professor-notas-bimestre-2', role: 'professor', path: `/teacher/subjects/${ids.assignment1}/grades?term=2` },
-    { name: 'professor-chamada-data-fixa', role: 'professor', path: `/teacher/class-groups/${ids.classGroup1}/roll-call?date=${CURRENT_YEAR}-03-05` },
-    { name: 'professor-chamada-hoje', role: 'professor', path: `/teacher/class-groups/${ids.classGroup1}/roll-call` },
-    { name: 'professor-fechamento', role: 'professor', path: `/teacher/class-groups/${ids.classGroup1}/closing` },
-    { name: 'professor-turma-alheia', role: 'professor', path: `/teacher/class-groups/${ids.classGroup2}/closing` },
-    { name: 'professor-conta-senha', role: 'professor', path: '/account/password' },
+    { name: 'teacher-dashboard-redirected', role: 'teacher', path: '/dashboard' },
+    { name: 'teacher-dashboard', role: 'teacher', path: '/teacher' },
+    { name: 'teacher-grades', role: 'teacher', path: `/teacher/subjects/${ids.assignment1}/grades` },
+    { name: 'teacher-grades-term-2', role: 'teacher', path: `/teacher/subjects/${ids.assignment1}/grades?term=2` },
+    { name: 'teacher-roll-call-fixed-date', role: 'teacher', path: `/teacher/class-groups/${ids.classGroup1}/roll-call?date=${CURRENT_YEAR}-03-05` },
+    { name: 'teacher-roll-call-today', role: 'teacher', path: `/teacher/class-groups/${ids.classGroup1}/roll-call` },
+    { name: 'teacher-closing', role: 'teacher', path: `/teacher/class-groups/${ids.classGroup1}/closing` },
+    { name: 'teacher-foreign-class-group', role: 'teacher', path: `/teacher/class-groups/${ids.classGroup2}/closing` },
+    { name: 'teacher-account-password', role: 'teacher', path: '/account/password' },
 
     /* Guardian -------------------------------------------------------------- */
-    { name: 'responsavel-painel-redirecionado', role: 'responsavel', path: '/dashboard' },
-    { name: 'responsavel-painel', role: 'responsavel', path: '/guardian' },
-    { name: 'responsavel-boletim', role: 'responsavel', path: `/guardian/enrollments/${ids.enrollment1}/report-card` },
-    { name: 'responsavel-frequencia', role: 'responsavel', path: `/guardian/enrollments/${ids.enrollment1}/attendance` },
-    { name: 'responsavel-frequencia-pagina-2', role: 'responsavel', path: `/guardian/enrollments/${ids.enrollment1}/attendance?p=2` },
-    { name: 'responsavel-mural', role: 'responsavel', path: '/guardian/board' },
-    { name: 'responsavel-comunicado', role: 'responsavel', path: `/guardian/board/${ids.announcement1}` },
-    { name: 'responsavel-comunicado-alheio', role: 'responsavel', path: `/guardian/board/${ids.nonexistent}` },
-    { name: 'responsavel-conta-senha', role: 'responsavel', path: '/account/password' },
+    { name: 'guardian-dashboard-redirected', role: 'guardian', path: '/dashboard' },
+    { name: 'guardian-dashboard', role: 'guardian', path: '/guardian' },
+    { name: 'guardian-report-card', role: 'guardian', path: `/guardian/enrollments/${ids.enrollment1}/report-card` },
+    { name: 'guardian-attendance', role: 'guardian', path: `/guardian/enrollments/${ids.enrollment1}/attendance` },
+    { name: 'guardian-attendance-page-2', role: 'guardian', path: `/guardian/enrollments/${ids.enrollment1}/attendance?p=2` },
+    { name: 'guardian-board', role: 'guardian', path: '/guardian/board' },
+    { name: 'guardian-announcement', role: 'guardian', path: `/guardian/board/${ids.announcement1}` },
+    { name: 'guardian-foreign-announcement', role: 'guardian', path: `/guardian/board/${ids.nonexistent}` },
+    { name: 'guardian-account-password', role: 'guardian', path: '/account/password' },
   ];
 }
 
@@ -566,7 +566,7 @@ export async function capture(screen: GoldenScreen, scenario: GoldenScenario): P
   const response = await app.request(screen.path, { headers });
   const body = await response.text();
 
-  const rows = [`GET ${screen.path}`, `papel: ${screen.role}`, `status: ${response.status}`];
+  const rows = [`GET ${screen.path}`, `role: ${screen.role}`, `status: ${response.status}`];
   for (const name of FROZEN_HEADERS) {
     const value = response.headers.get(name);
     if (value !== null) rows.push(`${name}: ${value}`);

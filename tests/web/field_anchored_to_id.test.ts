@@ -30,7 +30,7 @@ const PROJECT_ROOT = join(import.meta.dir, '..', '..');
 
 const TEMPLATE = () => existingPath('src/web/templates/registrar/student_new.eta');
 
-const FROZEN_SCREEN = join(import.meta.dir, 'golden', 'secretaria-aluno-novo.txt');
+const FROZEN_SCREEN = join(import.meta.dir, 'golden', 'registrar-student-new.txt');
 
 const FIELD_NAMES = Object.values(FIELDS.student);
 

@@ -1,0 +1,175 @@
+GET /registrar/enrollments/{{matricula01}}/transfer
+role: registrar
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Transferir de turma · EscolaViva</title>
+  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
+
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
+
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
+              Escola Central          </span>
+  </div>
+
+  <div class="header__user">
+    <span class="header__name" title="bruno@golden.test">Bruno Secretário</span>
+    <form class="header__signout" method="post" action="/logout">
+      <input type="hidden" name="_key" value="{{chave}}">
+      <button class="button button--quiet button--small" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Secretaria</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/registrar" aria-current="page">Painel da secretaria</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/registrar/students">Alunos</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/registrar/guardians">Responsáveis</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/registrar/class-groups">Turmas</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/registrar/subjects">Disciplinas</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Comunicação</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/announcements">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="content" id="content" tabindex="-1">
+      
+
+      <div class="page__header">
+  <div>
+    <p class="overline">Secretaria · Aluno 01 da Silva</p>
+    <h1 class="page__title">Transferir de turma</h1>
+    <p class="page__summary">
+      Matrícula ativa em <strong>6A</strong>, ano letivo
+      <span class="number">2026</span>.
+    </p>
+  </div>
+  <div class="page__actions">
+    <a class="button button--secondary" href="/registrar/students/{{aluno01}}">Voltar à ficha</a>
+  </div>
+</div>
+
+<div class="panel">
+    <p class="muted reading">
+    A matrícula em <strong>6A</strong> passa a <em>transferida</em> e uma nova
+    matrícula ativa é aberta na turma de destino — as duas escritas na mesma transação.
+  </p>
+
+  <form class="form" method="post" action="/registrar/enrollments/{{matricula01}}/transfer">
+    <input type="hidden" name="_key" value="{{chave}}">
+
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="targetClassGroupId">
+          Turma de destino <span class="field__required" aria-hidden="true">*</span>
+        </label>
+        <select
+          id="targetClassGroupId"
+          name="targetClassGroupId"
+          required
+                    aria-describedby="targetClassGroupId-help">
+          <option value="">Selecione…</option>
+                    <optgroup label="Ano letivo 2026">
+                        <option value="{{turma2}}" >
+              7B · 7º ano · Vespertino · Escola Central            </option>
+                      </optgroup>
+                  </select>
+        <p class="field__help" id="targetClassGroupId-help">
+          Precisa pertencer ao mesmo ano letivo da matrícula atual.
+        </p>
+              </div>
+
+      <div class="field">
+        <label class="field__label" for="date">
+          Data da transferência <span class="field__required" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="date"
+          name="date"
+          type="date"
+          required
+          value="{{diaCorrente}}"
+                    >
+              </div>
+    </div>
+
+    <div class="actions">
+      <button class="button button--primary" type="submit">Transferir matrícula</button>
+      <a class="button button--quiet" href="/registrar/students/{{aluno01}}">Cancelar</a>
+    </div>
+  </form>
+  </div>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const notices = document.querySelectorAll('.notice');
+    if (notices.length === 0) return;
+
+    const content = document.getElementById('content');
+
+    notices.forEach((notice) => {
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'notice__close';
+      closeButton.setAttribute('aria-label', 'Fechar aviso');
+      closeButton.textContent = '×';
+
+      closeButton.addEventListener('click', () => {
+        const hadFocus = document.activeElement === closeButton;
+        notice.remove();
+        if (hadFocus && content !== null) content.focus({ preventScroll: true });
+      });
+
+      notice.append(closeButton);
+    });
+  })();
+</script>
+</body>
+</html>
