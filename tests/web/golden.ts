@@ -62,6 +62,9 @@ export type GoldenRole =
   | 'noRole'
   | 'admin'
   | 'registrar'
+  /* A registrar of two schools. ADR 0006 made the guardian form ask which school the person
+     enters the portal through, and the field only renders for whoever has more than one. */
+  | 'registrarOfTwo'
   | 'teacher'
   | 'guardian';
 
@@ -147,6 +150,17 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     cpf: generateCpf(9_100_002),
     password: DEFAULT_PASSWORD,
     roles: [{ schoolId: schoolA.id, role: 'registrar' }],
+  });
+  const registrarOfTwo = await createUser({
+    networkId,
+    name: 'Dora Secretária das Duas',
+    email: 'dora@golden.test',
+    cpf: generateCpf(9_100_006),
+    password: DEFAULT_PASSWORD,
+    roles: [
+      { schoolId: schoolA.id, role: 'registrar' },
+      { schoolId: schoolB.id, role: 'registrar' },
+    ],
   });
   const teacher = await createUser({
     networkId,
@@ -310,6 +324,7 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     noRole: await signInWithCpf(roleless.cpf),
     admin: await signInWithCpf(admin.cpf),
     registrar: await signInWithCpf(registrar.cpf),
+    registrarOfTwo: await signInWithCpf(registrarOfTwo.cpf),
     teacher: await signInWithCpf(teacher.cpf),
     guardian: await signInWithCpf(guardian.cpf),
   };
@@ -322,6 +337,7 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     [previousYear.id, '{{previousYear}}'],
     [admin.id, '{{adminUser}}'],
     [registrar.id, '{{registrarUser}}'],
+    [registrarOfTwo.id, '{{registrarOfTwoUser}}'],
     [teacher.id, '{{teacherUser}}'],
     [roleless.id, '{{rolelessUser}}'],
     [classGroup1.id, '{{classGroup1}}'],
@@ -430,6 +446,7 @@ export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen
     { name: 'registrar-guardians', role: 'registrar', path: '/registrar/guardians' },
     { name: 'registrar-guardians-page-2', role: 'registrar', path: '/registrar/guardians?p=2' },
     { name: 'registrar-guardian-new', role: 'registrar', path: '/registrar/guardians/new' },
+    { name: 'registrar-guardian-new-two-schools', role: 'registrarOfTwo', path: '/registrar/guardians/new' },
     { name: 'registrar-class-groups', role: 'registrar', path: '/registrar/class-groups' },
     { name: 'registrar-class-groups-filtered', role: 'registrar', path: `/registrar/class-groups?school=${ids.schoolA}&year=${ids.currentYear}` },
     { name: 'registrar-class-group-new', role: 'registrar', path: '/registrar/class-groups/new' },

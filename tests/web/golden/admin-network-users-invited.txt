@@ -97,7 +97,7 @@ Vary: Cookie
 <section class="section" aria-labelledby="users-list-title">
   <div class="section__header">
     <h2 id="users-list-title">Quem tem acesso</h2>
-    <p class="section__note">16 no total</p>
+    <p class="section__note">17 no total</p>
   </div>
 
     <div class="table-scroll">
@@ -142,6 +142,18 @@ Vary: Cookie
           <td class="cell-text">carla@golden.test</td>
           <td class="cell-text">
                                     <div>Professor · Escola Central</div>
+                                  </td>
+          <td>
+            <span class="tag tag--active">Ativo</span>
+          </td>
+        </tr>
+                <tr>
+          <th scope="row">Dora Secretária das Duas</th>
+          <td class="cell-text">109.100.006-97</td>
+          <td class="cell-text">dora@golden.test</td>
+          <td class="cell-text">
+                                    <div>Secretaria · Escola Central</div>
+                        <div>Secretaria · Escola do Bairro</div>
                                   </td>
           <td>
             <span class="tag tag--active">Ativo</span>
@@ -213,24 +225,13 @@ Vary: Cookie
             <span class="tag tag--active">Ativo</span>
           </td>
         </tr>
-                <tr>
-          <th scope="row">Responsável 06 da Silva</th>
-          <td class="cell-text">109.200.006-22</td>
-          <td class="cell-text">responsavel06@golden.test</td>
-          <td class="cell-text">
-                                    <div>Responsável · Escola Central</div>
-                                  </td>
-          <td>
-            <span class="tag tag--active">Ativo</span>
-          </td>
-        </tr>
               </tbody>
     </table>
   </div>
   <nav class="pagination" aria-label="Paginação de usuários">
   <p class="pagination__count">
     <span class="number">1–10</span>
-    de <span class="number">16</span> usuários  </p>
+    de <span class="number">17</span> usuários  </p>
 
     <ul class="pagination__list">
     <li>

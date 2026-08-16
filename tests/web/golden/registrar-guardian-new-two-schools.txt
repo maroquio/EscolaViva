@@ -1,0 +1,219 @@
+GET /registrar/guardians/new
+role: registrarOfTwo
+status: 200
+Content-Type: text/html; charset=UTF-8
+Cache-Control: private, no-store
+Vary: Cookie
+------------------------------------------------------------------------------
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Cadastrar responsável · EscolaViva</title>
+  <link rel="stylesheet" href="/public/app.{{cssHash}}.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
+
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
+
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
+              2 unidades
+          </span>
+  </div>
+
+  <div class="header__user">
+    <span class="header__name" title="dora@golden.test">Dora Secretária das Duas</span>
+    <form class="header__signout" method="post" action="/logout">
+      <input type="hidden" name="_key" value="{{key}}">
+      <button class="button button--quiet button--small" type="submit">Sair</button>
+    </form>
+  </div>
+  </header>
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Secretaria</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/registrar">Painel da secretaria</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/registrar/students">Alunos</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/registrar/guardians" aria-current="page">Responsáveis</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/registrar/class-groups">Turmas</a>
+      </li>
+            <li>
+        <a class="navigation__link" href="/registrar/subjects">Disciplinas</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Comunicação</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/announcements">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
+      </li>
+          </ul>
+  </div>
+  </nav>
+
+    <main class="content" id="content" tabindex="-1">
+      
+
+      <div class="page__header">
+  <div>
+    <p class="overline">Secretaria · Responsáveis</p>
+    <h1 class="page__title">Cadastrar responsável</h1>
+    <p class="page__summary">
+      Quem recebe comunicado e acompanha boletim e frequência. Cadastrar cria o acesso ao portal:
+      a senha provisória é gerada agora e aparece uma única vez na lista. Depois, vincule o
+      responsável ao aluno pela ficha dele.
+    </p>
+  </div>
+</div>
+
+<div class="panel">
+  <form class="form" method="post" action="/registrar/guardians">
+    <input type="hidden" name="_key" value="{{key}}">
+
+    <div class="field">
+      <label class="field__label" for="name">
+        Nome completo <span class="field__required" aria-hidden="true">*</span>
+      </label>
+      <input
+        id="name"
+        name="name"
+        type="text"
+        required
+        maxlength="120"
+        autocomplete="off"
+        value=""
+                >
+          </div>
+
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="email">
+          E-mail <span class="field__required" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          maxlength="254"
+          autocomplete="off"
+          value=""
+                    aria-describedby="email-help">
+        <p class="field__help" id="email-help">
+          Contato: é por ele que o responsável recebe comunicado. Não é usado para entrar, e uma
+          mesma família pode repetir o endereço.
+        </p>
+              </div>
+
+      <div class="field">
+        <label class="field__label" for="cpf">
+          CPF <span class="field__required" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="cpf"
+          name="cpf"
+          type="text"
+          required
+          maxlength="14"
+          autocomplete="off"
+          value=""
+                    aria-describedby="cpf-help">
+        <p class="field__help" id="cpf-help">
+          É por ele que o responsável entra. Com ou sem pontos.
+        </p>
+              </div>
+
+      <div class="field">
+        <label class="field__label" for="phone">Telefone</label>
+        <input
+          id="phone"
+          name="phone"
+          type="tel"
+          maxlength="30"
+          autocomplete="off"
+          value=""
+                    aria-describedby="phone-help">
+        <p class="field__help" id="phone-help">Opcional. Em branco significa sem telefone.</p>
+              </div>
+    </div>
+
+        <div class="field">
+      <label class="field__label" for="schoolId">
+        Unidade <span class="field__required" aria-hidden="true">*</span>
+      </label>
+      <select
+        id="schoolId"
+        name="schoolId"
+        required
+                aria-describedby="schoolId-help">
+        <option value="">Selecione…</option>
+                <option value="{{schoolA}}" >Escola Central</option>
+                <option value="{{schoolB}}" >Escola do Bairro</option>
+              </select>
+      <p class="field__help" id="schoolId-help">
+        Onde o responsável entra no portal. O vínculo com cada aluno vem depois, pela ficha dele.
+      </p>
+          </div>
+    
+    <div class="actions">
+      <button class="button button--primary" type="submit">Cadastrar responsável</button>
+      <a class="button button--quiet" href="/registrar/guardians">Cancelar</a>
+    </div>
+  </form>
+</div>
+    </main>
+  </div>
+
+  <script>
+  (() => {
+    const notices = document.querySelectorAll('.notice');
+    if (notices.length === 0) return;
+
+    const content = document.getElementById('content');
+
+    notices.forEach((notice) => {
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'notice__close';
+      closeButton.setAttribute('aria-label', 'Fechar aviso');
+      closeButton.textContent = '×';
+
+      closeButton.addEventListener('click', () => {
+        const hadFocus = document.activeElement === closeButton;
+        notice.remove();
+        if (hadFocus && content !== null) content.focus({ preventScroll: true });
+      });
+
+      notice.append(closeButton);
+    });
+  })();
+</script>
+</body>
+</html>

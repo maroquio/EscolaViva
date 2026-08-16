@@ -104,7 +104,7 @@ Vary: Cookie
 
     <a class="card" href="/network/users">
       <span class="card__label">Usuários</span>
-      <span class="card__number">16</span>
+      <span class="card__number">17</span>
       <span class="card__detail">Pessoas com acesso, somando todos os papéis</span>
     </a>
 
