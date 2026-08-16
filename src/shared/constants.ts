@@ -50,24 +50,24 @@ export const RENAMED_ENVIRONMENT_VARIABLES = {
 } as const;
 
 export const CONFIG_MESSAGES = {
-  invalidBoolean: 'use true ou false',
-  invalidEnvironment: `use ${ENVIRONMENTS.join(', ').replace(/, ([^,]*)$/, ' ou $1')}`,
-  invalidPort: 'precisa ser um número inteiro de porta',
-  missingDatabaseUrl: 'obrigatória — conexão do PostgreSQL primário',
-  missingSessionSecret: 'obrigatória — segredo que assina o cookie de sessão',
-  shortSessionSecret: `precisa de no mínimo ${MINIMUM_SECRET_LENGTH} caracteres`,
-  invalidDuration: 'precisa ser um número de horas',
-  invalidTimeout: 'precisa ser um número de milissegundos',
-  invalidLogLevel: `use ${LOG_LEVELS.join(', ').replace(/, ([^,]*)$/, ' ou $1')}`,
-  rootLabel: 'ambiente',
-  reportHeader: 'Configuração de ambiente inválida — o processo não sobe (I18).',
-  reportFooter: 'Consulte .env.example.',
-  renamedTo: 'foi renomeada para',
+  invalidBoolean: 'use true or false',
+  invalidEnvironment: `use ${ENVIRONMENTS.join(', ').replace(/, ([^,]*)$/, ' or $1')}`,
+  invalidPort: 'must be a whole port number',
+  missingDatabaseUrl: 'required — the primary PostgreSQL connection',
+  missingSessionSecret: 'required — the secret that signs the session cookie',
+  shortSessionSecret: `needs at least ${MINIMUM_SECRET_LENGTH} characters`,
+  invalidDuration: 'must be a number of hours',
+  invalidTimeout: 'must be a number of milliseconds',
+  invalidLogLevel: `use ${LOG_LEVELS.join(', ').replace(/, ([^,]*)$/, ' or $1')}`,
+  rootLabel: 'environment',
+  reportHeader: 'Invalid environment configuration — the process does not start (I18).',
+  reportFooter: 'See .env.example.',
+  renamedTo: 'was renamed to',
   renamedHeader:
-    'Variável de ambiente com nome antigo — o processo não sobe (I18).\n' +
-    'Com o nome antigo o valor seria ignorado e o default entraria em silêncio.',
+    'Environment variable under an old name — the process does not start (I18).\n' +
+    'Under the old name the value would be ignored and the default would slip in unnoticed.',
   renamedFooter:
-    'Renomeie no .env (e no ambiente do processo) antes de subir. Consulte .env.example.',
+    'Rename it in .env (and in the process environment) before starting. See .env.example.',
 } as const;
 
 export const DATABASE = {
@@ -136,10 +136,10 @@ export const COOKIE = {
 export const RESPONSE_HASH = { algorithm: 'sha256', encoding: 'hex' } as const;
 
 export const INTERNAL_REASONS = {
-  requestWithoutSession: 'requisição sem sessão',
-  networkUnavailableWithoutSession: 'rede indisponível sem sessão',
-  accessDeniedByRole: 'acesso negado por papel',
-  writeWithoutKey: 'escrita sem chave de idempotência',
+  requestWithoutSession: 'request without a session',
+  networkUnavailableWithoutSession: 'network unavailable without a session',
+  accessDeniedByRole: 'access denied by role',
+  writeWithoutKey: 'write without an idempotency key',
 } as const;
 
 export const ASSETS = {
@@ -199,17 +199,17 @@ export const FORBIDDEN_LOG_KEYS: readonly string[] = [
 ];
 
 export const HTTP_LOG_EVENTS = {
-  requestFailed: 'falha ao atender requisição',
-  requestRejected: 'requisição recusada',
+  requestFailed: 'failed to serve request',
+  requestRejected: 'request rejected',
 } as const;
 
 export const PROCESS_MESSAGES = {
-  up: 'escolaviva no ar',
-  shutdownStarted: 'desligamento iniciado',
-  shutdownCompleted: 'desligamento concluído',
-  drainTimedOut: 'prazo de drenagem esgotado: encerrando conexões em curso',
-  jobSkipped: 'job ignorado: lock em outra instancia',
-  jobFailed: 'job falhou',
+  up: 'escolaviva is up',
+  shutdownStarted: 'shutdown started',
+  shutdownCompleted: 'shutdown completed',
+  drainTimedOut: 'drain deadline reached: closing in-flight connections',
+  jobSkipped: 'job skipped: lock held by another instance',
+  jobFailed: 'job failed',
 } as const;
 
 export const MISSING_VALUE = '—';

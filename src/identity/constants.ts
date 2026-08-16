@@ -104,14 +104,14 @@ export const MESSAGES = {
 } as const;
 
 export const INTERNAL_ERRORS = {
-  roleOutOfDomain: (value: string): string => `papel fora do domínio: ${value}`,
-  networkStatusOutOfDomain: (value: string): string => `status de rede fora do domínio: ${value}`,
+  roleOutOfDomain: (value: string): string => `role outside the domain: ${value}`,
+  networkStatusOutOfDomain: (value: string): string => `network status outside the domain: ${value}`,
 } as const;
 
 export const LOG_EVENTS = {
-  authenticationRejected: 'tentativa de autenticação recusada',
-  sessionOpened: 'sessão aberta',
-  expiredSessionsRemoved: 'sessões expiradas removidas',
+  authenticationRejected: 'authentication attempt rejected',
+  sessionOpened: 'session opened',
+  expiredSessionsRemoved: 'expired sessions removed',
 } as const;
 
 export const SESSION_PURGE = { name: 'expurgo-de-sessoes', intervalInMinutes: 15 } as const;

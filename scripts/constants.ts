@@ -6,23 +6,23 @@ export const ARGUMENTS = {
 } as const;
 
 export const MIGRATION_MESSAGES = {
-  urlWithoutValue: `${ARGUMENTS.url} exige a URL de conexão logo em seguida.`,
+  urlWithoutValue: `${ARGUMENTS.url} takes the connection URL right after it.`,
   unknownArgument: (argument: string): string =>
-    `Argumento desconhecido: ${argument}. Use ${ARGUMENTS.status} e ${ARGUMENTS.url} <postgres://...>.`,
-  target: (database: string): string => `Banco: ${database}`,
-  failure: (reason: string): string => `Falha ao migrar: ${reason}`,
+    `Unknown argument: ${argument}. Use ${ARGUMENTS.status} and ${ARGUMENTS.url} <postgres://...>.`,
+  target: (database: string): string => `Database: ${database}`,
+  failure: (reason: string): string => `Migration failed: ${reason}`,
   status: {
-    pending: (version: string): string => `  pendente  ${version}`,
-    applied: (version: string, instant: string): string => `  aplicada  ${version}  (${instant})`,
-    withoutFile: (version: string): string => `  registrada sem arquivo  ${version}`,
+    pending: (version: string): string => `  pending  ${version}`,
+    applied: (version: string, instant: string): string => `  applied  ${version}  (${instant})`,
+    withoutFile: (version: string): string => `  recorded with no file  ${version}`,
     summary: (applied: number, pending: number): string =>
-      `${applied} aplicada(s), ${pending} pendente(s).`,
+      `${applied} applied, ${pending} pending.`,
   },
   application: {
-    nothingToApply: 'Nada a aplicar: o banco já está na última migração.',
+    nothingToApply: 'Nothing to apply: the database is already on the last migration.',
     applied: (version: string, durationMs: number): string =>
-      `  aplicada  ${version}  (${durationMs} ms)`,
-    one: '1 migração aplicada.',
-    many: (total: number): string => `${total} migrações aplicadas.`,
+      `  applied  ${version}  (${durationMs} ms)`,
+    one: '1 migration applied.',
+    many: (total: number): string => `${total} migrations applied.`,
   },
 } as const;

@@ -12,7 +12,7 @@ if [[ -z "${DATABASE_URL:-}" && -f "$ROOT/.env" ]]; then
 fi
 
 if [[ -z "${DATABASE_URL:-}" ]]; then
-  echo "ERRO: DATABASE_URL não definida. Exporte a variável ou preencha o .env." >&2
+  echo "ERROR: DATABASE_URL is not set. Export the variable or fill in the .env." >&2
   exit 1
 fi
 
@@ -44,11 +44,11 @@ fi
 
 if [[ "$NEEDS_CONTAINER" -eq 1 ]]; then
   if ! "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx "$DB_SERVICE"; then
-    echo "ERRO: o pg_restore disponível é mais antigo que o servidor (ou não existe)." >&2
-    echo "      Saída A: suba o banco com 'docker compose up -d $DB_SERVICE' — este script" >&2
-    echo "               usa o cliente de dentro do container." >&2
-    echo "      Saída B: instale o cliente da mesma versão do servidor e ponha-o no PATH" >&2
-    echo "               (postgresql-client-16 / brew install postgresql@16)." >&2
+    echo "ERROR: the pg_restore on hand is older than the server (or is not there at all)." >&2
+    echo "       Way out A: bring the database up with 'docker compose up -d $DB_SERVICE' —" >&2
+    echo "                  this script then uses the client from inside the container." >&2
+    echo "       Way out B: install the client of the same version as the server and put it" >&2
+    echo "                  on the PATH (postgresql-client-16 / brew install postgresql@16)." >&2
     exit 1
   fi
   PREFIX=("${COMPOSE[@]}" exec -T "$DB_SERVICE")
@@ -60,7 +60,7 @@ if [[ -z "$DUMP" ]]; then
   DUMP="$(ls -1t "$DEST"/escolaviva-*.dump 2>/dev/null | head -n 1 || true)"
 fi
 if [[ -z "$DUMP" || ! -f "$DUMP" ]]; then
-  echo "ERRO: nenhum dump encontrado. Rode 'bash scripts/backup.sh' primeiro." >&2
+  echo "ERROR: no dump found. Run 'bash scripts/backup.sh' first." >&2
   exit 1
 fi
 
@@ -83,20 +83,20 @@ teardown() {
   if [[ "$DB_CREATED" -eq 1 ]]; then
     "${PREFIX[@]}" psql --no-psqlrc --quiet --dbname="$ADMIN_URL" \
          --command="DROP DATABASE IF EXISTS $TEMP_DB WITH (FORCE)" >/dev/null
-    echo "Banco descartável $TEMP_DB removido."
+    echo "Throwaway database $TEMP_DB removed."
   fi
 }
 trap teardown EXIT
 
-echo "Arquivo: ${DUMP#"$ROOT"/}  ($(du -h "$DUMP" | cut -f 1))"
-echo "Alvo:    $TEMP_DB (descartável)"
+echo "File:   ${DUMP#"$ROOT"/}  ($(du -h "$DUMP" | cut -f 1))"
+echo "Target: $TEMP_DB (throwaway)"
 if [[ ${#PREFIX[@]} -gt 0 ]]; then
-  echo "Cliente: de dentro do container '$DB_SERVICE' (o do PATH é mais antigo)"
+  echo "Client: from inside the '$DB_SERVICE' container (the one on PATH is older)"
 fi
 echo
 
 SOURCE="$(count_active "$CLIENT_URL")"
-echo "Matrículas ativas na origem: $SOURCE"
+echo "Active enrollments at the source: $SOURCE"
 
 "${PREFIX[@]}" psql --no-psqlrc --quiet --dbname="$ADMIN_URL" \
      --command="CREATE DATABASE $TEMP_DB" >/dev/null
@@ -106,20 +106,20 @@ START=$(date +%s)
 if ! "${PREFIX[@]}" pg_restore --dbname="$TEMP_URL" --no-owner --no-privileges \
                                --exit-on-error < "$DUMP"; then
   echo
-  echo "FALHOU: pg_restore não conseguiu restaurar o arquivo." >&2
+  echo "FAILED: pg_restore could not restore the file." >&2
   exit 2
 fi
-echo "Restaurado em $(( $(date +%s) - START ))s."
+echo "Restored in $(( $(date +%s) - START ))s."
 
 RESTORED="$(count_active "$TEMP_URL")"
-echo "Matrículas ativas no restaurado: $RESTORED"
+echo "Active enrollments in the restore: $RESTORED"
 echo
 
 if [[ "$SOURCE" != "$RESTORED" ]]; then
-  echo "FALHOU: origem $SOURCE, restaurado $RESTORED (diferença de $((SOURCE - RESTORED)))." >&2
-  echo "        Ou o dump está velho, ou saiu incompleto. Investigue ANTES de precisar dele." >&2
+  echo "FAILED: source $SOURCE, restore $RESTORED (a gap of $((SOURCE - RESTORED)))." >&2
+  echo "        Either the dump is stale, or it came out incomplete. Look into it BEFORE you need it." >&2
   exit 3
 fi
 
-echo "PASSOU: $RESTORED matrículas ativas dos dois lados."
-echo "Anote na tabela de medição semanal do README: data, arquivo e resultado."
+echo "PASSED: $RESTORED active enrollments on both sides."
+echo "Note it in the weekly measurement table of the README: date, file and result."

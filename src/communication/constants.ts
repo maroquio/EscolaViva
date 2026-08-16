@@ -31,6 +31,6 @@ export const MESSAGES = {
 } as const;
 
 export const INTERNAL_ERRORS = {
-  authorOutsideNetwork: 'Comunicado com autor fora da rede',
-  insertWithoutPublishedAt: 'INSERT em announcement não devolveu published_at',
+  authorOutsideNetwork: 'announcement whose author is outside the network',
+  insertWithoutPublishedAt: 'INSERT into announcement did not give back published_at',
 } as const;

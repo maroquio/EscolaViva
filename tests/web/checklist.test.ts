@@ -482,7 +482,7 @@ describe('one environment variable is missing and the process does not start', (
 
     expect(exitCode).not.toBe(0);
     expect(stderr).toContain('DATABASE_URL');
-    expect(stderr).toContain('o processo não sobe');
+    expect(stderr).toContain('the process does not start');
   }, PROCESS_DEADLINE_MS);
 
   test('without SESSION_SECRET the boot dies naming the variable', async () => {
@@ -616,7 +616,7 @@ describe('no log holds a name, an e-mail, a CPF or a grade', () => {
 
     expect(fields.has('correlation_id')).toBe(true);
     expect(captured.raw).toContain(SLUG);
-    expect(captured.raw).toContain('recusado');
+    expect(captured.raw).toContain('rejected');
   }, PROCESS_DEADLINE_MS);
 
   test('no forbidden key escapes carrying a value, and no CPF appears', async () => {

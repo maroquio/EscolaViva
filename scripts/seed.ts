@@ -49,12 +49,12 @@ const random = seededRandom(RANDOM_SEED);
 const between = (min: number, max: number): number => min + Math.floor(random() * (max - min + 1));
 
 const ERRORS = {
-  randomFromEmptyList: 'sorteio sobre lista vazia',
-  teacherSchool: 'unidade do professor não encontrada',
-  classGroupSchool: 'unidade da turma não encontrada',
-  subjectTeacher: 'professor da disciplina não encontrado',
-  announcementWithoutSchoolOrAuthor: 'unidade ou autor do comunicado não encontrado',
-  productionEnvironment: 'APP_ENV=production: este script apaga e recria a rede de demonstração.',
+  randomFromEmptyList: 'draw over an empty list',
+  teacherSchool: 'school of the teacher not found',
+  classGroupSchool: 'school of the class group not found',
+  subjectTeacher: 'teacher of the subject not found',
+  announcementWithoutSchoolOrAuthor: 'school or author of the announcement not found',
+  productionEnvironment: 'APP_ENV=production: this script erases and recreates the demo network.',
 } as const;
 
 function oneOf<T>(items: readonly T[]): T {
@@ -484,18 +484,18 @@ const COLUMNS = { email: 38, cpf: 14, role: 12, table: 24, total: 7 } as const;
 const GUARDIAN_SAMPLE = 3;
 
 const OUTPUT = {
-  summaryByTable: '\nResumo por tabela',
-  header: { email: 'E-MAIL', cpf: 'CPF', role: 'PAPEL', school: 'UNIDADE' },
+  summaryByTable: '\nSummary by table',
+  header: { email: 'E-MAIL', cpf: 'CPF', role: 'ROLE', school: 'SCHOOL' },
   access: (slug: string, password: string): string =>
-    `\nAcesso — rede "${slug}", senha "${password}" para todos\n`,
-  guardianPortal: 'portal do responsável',
+    `\nAccess — network "${slug}", password "${password}" for everyone\n`,
+  guardianPortal: 'guardian portal',
   moreGuardians: (count: number): string =>
-    `  … e mais ${count} responsáveis, mesma senha.`,
+    `  … and ${count} more guardians, same password.`,
   networkRecreated: (slug: string, seconds: string): string =>
-    `\nRede "${slug}" recriada em ${seconds} s.`,
+    `\nNetwork "${slug}" recreated in ${seconds} s.`,
   incompleteTerm:
-    'O bimestre 3 está incompleto de propósito: fechá-lo recusa e lista as pendências.',
-  seedFailure: (detail: string): string => `Falha no seed: ${detail}`,
+    'Term 3 is incomplete on purpose: closing it refuses and lists what is missing.',
+  seedFailure: (detail: string): string => `Seed failed: ${detail}`,
 } as const;
 
 async function printSummary(sql: Connection, networkId: string): Promise<void> {

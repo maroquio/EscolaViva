@@ -492,27 +492,27 @@ export const ERROR_PAGES = {
 export const UNEXPECTED_ERROR_TEXT = 'Erro inesperado';
 
 export const DIAGNOSTICS = {
-  termOnPosting: 'bimestre fora do conjunto no lançamento',
-  termOnClosing: 'bimestre fora do conjunto no fechamento',
-  malformedRollCallDate: 'data de chamada malformada',
-  subjectOutsideSchedule: 'disciplina fora do quadro do professor',
-  classGroupOutsideSchedule: 'turma fora do quadro do professor',
-  accountWithoutGuardian: 'conta sem responsável vinculado',
-  enrollmentOutsideResponsibility: 'matrícula fora da responsabilidade',
-  enrollmentWithoutReportCard: 'matrícula sem boletim',
-  enrollmentWithoutAttendance: 'matrícula sem apuração de frequência',
-  announcementOutsideBoard: 'comunicado fora do mural do responsável',
-  schoolOutOfScope: 'unidade fora do alcance do usuário',
+  termOnPosting: 'term outside the set on posting',
+  termOnClosing: 'term outside the set on closing',
+  malformedRollCallDate: 'malformed roll call date',
+  subjectOutsideSchedule: 'subject outside the teacher schedule',
+  classGroupOutsideSchedule: 'class group outside the teacher schedule',
+  accountWithoutGuardian: 'account with no guardian linked',
+  enrollmentOutsideResponsibility: 'enrollment outside the responsibility',
+  enrollmentWithoutReportCard: 'enrollment with no report card',
+  enrollmentWithoutAttendance: 'enrollment with no attendance tally',
+  announcementOutsideBoard: 'announcement outside the guardian board',
+  schoolOutOfScope: 'school outside the user scope',
 } as const;
 
 export const LOG_EVENTS = {
-  signInAttempt: 'tentativa de entrada',
-  rejected: 'recusado',
-  success: 'sucesso',
-  passwordChanged: 'senha alterada pelo próprio usuário',
-  schoolCreated: 'unidade criada',
-  userInvited: 'usuário convidado',
-  academicYearDefined: 'ano letivo definido',
+  signInAttempt: 'sign-in attempt',
+  rejected: 'rejected',
+  success: 'success',
+  passwordChanged: 'password changed by the user',
+  schoolCreated: 'school created',
+  userInvited: 'user invited',
+  academicYearDefined: 'academic year defined',
 } as const;
 
 export const PRESENTATION = {

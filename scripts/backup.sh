@@ -13,7 +13,7 @@ if [[ -z "${DATABASE_URL:-}" && -f "$ROOT/.env" ]]; then
 fi
 
 if [[ -z "${DATABASE_URL:-}" ]]; then
-  echo "ERRO: DATABASE_URL não definida. Exporte a variável ou preencha o .env." >&2
+  echo "ERROR: DATABASE_URL is not set. Export the variable or fill in the .env." >&2
   exit 1
 fi
 
@@ -45,11 +45,11 @@ fi
 
 if [[ "$NEEDS_CONTAINER" -eq 1 ]]; then
   if ! "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx "$DB_SERVICE"; then
-    echo "ERRO: o pg_dump disponível é mais antigo que o servidor (ou não existe)." >&2
-    echo "      Saída A: suba o banco com 'docker compose up -d $DB_SERVICE' — este script" >&2
-    echo "               usa o cliente de dentro do container." >&2
-    echo "      Saída B: instale o cliente da mesma versão do servidor e ponha-o no PATH" >&2
-    echo "               (postgresql-client-16 / brew install postgresql@16)." >&2
+    echo "ERROR: the pg_dump on hand is older than the server (or is not there at all)." >&2
+    echo "       Way out A: bring the database up with 'docker compose up -d $DB_SERVICE' —" >&2
+    echo "                  this script then uses the client from inside the container." >&2
+    echo "       Way out B: install the client of the same version as the server and put it" >&2
+    echo "                  on the PATH (postgresql-client-16 / brew install postgresql@16)." >&2
     exit 1
   fi
   PREFIX=("${COMPOSE[@]}" exec -T "$DB_SERVICE")
@@ -62,12 +62,12 @@ mkdir -p "$DEST"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 FILE="$DEST/escolaviva-$TIMESTAMP.dump"
 
-echo "Banco:   $(without_credentials "$DATABASE_URL")"
-echo "Destino: ${FILE#"$ROOT"/}"
+echo "Database: $(without_credentials "$DATABASE_URL")"
+echo "Target:   ${FILE#"$ROOT"/}"
 if [[ ${#PREFIX[@]} -gt 0 ]]; then
-  echo "Cliente: pg_dump de dentro do container '$DB_SERVICE' (o do PATH é mais antigo)"
+  echo "Client:   pg_dump from inside the '$DB_SERVICE' container (the one on PATH is older)"
 else
-  echo "Cliente: $(pg_dump --version)"
+  echo "Client:   $(pg_dump --version)"
 fi
 
 PARTIAL="$FILE.parcial"
@@ -79,16 +79,16 @@ START=$(date +%s)
 mv "$PARTIAL" "$FILE"
 
 SIZE="$(du -h "$FILE" | cut -f 1)"
-echo "Pronto em $(( $(date +%s) - START ))s · $SIZE"
+echo "Done in $(( $(date +%s) - START ))s · $SIZE"
 
 ls -1t "$DEST"/escolaviva-*.dump 2>/dev/null \
   | tail -n "+$((RETENTION + 1))" \
   | while read -r old; do
   rm -f "$old"
-  echo "Removido por retenção: $(basename "$old")"
+  echo "Removed by retention: $(basename "$old")"
 done
 
 TOTAL="$(ls -1 "$DEST"/escolaviva-*.dump 2>/dev/null | wc -l | tr -d ' ')"
-echo "$TOTAL backup(s) em ${DEST#"$ROOT"/}/ (retenção: $RETENTION)."
+echo "$TOTAL backup(s) in ${DEST#"$ROOT"/}/ (retention: $RETENTION)."
 echo
-echo "Falta a metade que conta: bash scripts/restore-test.sh"
+echo "The half that counts is still missing: bash scripts/restore-test.sh"

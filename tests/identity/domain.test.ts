@@ -58,7 +58,7 @@ describe('the network status', () => {
 
     const convert = (): string => toNetworkStatus(outsider);
 
-    expect(convert).toThrow('status de rede fora do domínio: inadimplente');
+    expect(convert).toThrow('network status outside the domain: inadimplente');
   });
 
   test('only an active network operates; suspended and cancelled do not', () => {
@@ -92,7 +92,7 @@ describe('the user role', () => {
 
     const convert = (): string => toRole(unknown);
 
-    expect(convert).toThrow('papel fora do domínio: coordenador');
+    expect(convert).toThrow('role outside the domain: coordenador');
   });
 });
 

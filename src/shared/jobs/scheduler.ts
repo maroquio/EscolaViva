@@ -32,7 +32,7 @@ async function runJob(job: Job): Promise<void> {
       logger.debug({ job: job.name }, PROCESS_MESSAGES.jobSkipped);
     }
   } catch (error) {
-    logger.error({ job: job.name, erro: describe(error) }, PROCESS_MESSAGES.jobFailed);
+    logger.error({ job: job.name, error: describe(error) }, PROCESS_MESSAGES.jobFailed);
   }
 }
 

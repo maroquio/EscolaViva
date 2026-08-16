@@ -40,44 +40,44 @@ const withSeparator = (value: number): string => value.toLocaleString(LOCALE);
 
 const MESSAGES = {
   positiveInteger: (label: string): string =>
-    `${label} exige um inteiro positivo logo em seguida.`,
+    `${label} takes a positive integer right after it.`,
   unknownArgument: (argument: string): string =>
-    `Argumento desconhecido: ${argument}. Use ${Object.values(OPTIONS).join(', ')}.`,
-  productionRefused: 'APP_ENV=production: carga sintética não entra em banco de produção.',
-  noLoadNetwork: `Não existe rede '${SLUG}'. Nada a apagar.`,
+    `Unknown argument: ${argument}. Use ${Object.values(OPTIONS).join(', ')}.`,
+  productionRefused: 'APP_ENV=production: synthetic load does not go into a production database.',
+  noLoadNetwork: `There is no '${SLUG}' network. Nothing to erase.`,
   tableCleared: (table: string, rows: number): string => {
     const count = withSeparator(rows).padStart(COLUMNS.count);
-    return `  ${table.padEnd(COLUMNS.table)} ${count} linhas`;
+    return `  ${table.padEnd(COLUMNS.table)} ${count} rows`;
   },
-  networkRemoved: `Rede '${SLUG}' removida.`,
+  networkRemoved: `Network '${SLUG}' removed.`,
   confirmPurge:
-    `${OPTIONS.purge} remove a rede '${SLUG}' inteira. Confirme com ${OPTIONS.yes}. ` +
-    'Nada foi apagado.',
+    `${OPTIONS.purge} removes the whole '${SLUG}' network. Confirm with ${OPTIONS.yes}. ` +
+    'Nothing was erased.',
   forecast: (rows: number, year: number): string =>
-    `Vai gravar ~${withSeparator(rows)} linhas em 'attendance', ano ${year}:`,
+    `About to write ~${withSeparator(rows)} rows into 'attendance', year ${year}:`,
   dimensions: (students: number): string =>
-    `${withSeparator(students)} alunos, ${SCHOOL_COUNT} unidades, ${SCHOOL_DAYS} dias.`,
-  confirmWrite: `Confirme com ${OPTIONS.yes}. Nada foi gravado.`,
+    `${withSeparator(students)} students, ${SCHOOL_COUNT} schools, ${SCHOOL_DAYS} days.`,
+  confirmWrite: `Confirm with ${OPTIONS.yes}. Nothing was written.`,
   yearAlreadyLoaded: (year: number): string =>
-    `O ano ${year} já foi carregado. Use outro ${OPTIONS.year}, ou recomece com ` +
+    `Year ${year} has already been loaded. Use another ${OPTIONS.year}, or start over with ` +
     `${OPTIONS.purge} ${OPTIONS.yes}.`,
   header: (year: number, students: number): string =>
-    `Rede '${SLUG}' · ano ${year} · ${withSeparator(students)} alunos`,
+    `Network '${SLUG}' · year ${year} · ${withSeparator(students)} students`,
   structureReady: (schools: number, students: number, seconds: string): string =>
-    `  ${schools} unidades e ${withSeparator(students)} alunos (${seconds} s)`,
+    `  ${schools} schools and ${withSeparator(students)} students (${seconds} s)`,
   scenarioReady: (classGroups: number, enrollments: number): string =>
-    `  ${classGroups} turmas e ${withSeparator(enrollments)} matrículas ativas`,
+    `  ${classGroups} class groups and ${withSeparator(enrollments)} active enrollments`,
   progress: (done: number, total: number, rows: number, seconds: string): string =>
-    `  ${String(done).padStart(COLUMNS.progress)}/${total} matrículas` +
-    ` · ${withSeparator(rows)} linhas · ${seconds} s`,
+    `  ${String(done).padStart(COLUMNS.progress)}/${total} enrollments` +
+    ` · ${withSeparator(rows)} rows · ${seconds} s`,
   loadFinished: (rows: number, seconds: string): string =>
-    `\n${withSeparator(rows)} linhas gravadas em ${seconds} s.`,
+    `\n${withSeparator(rows)} rows written in ${seconds} s.`,
   tableTotal: (rows: number): string =>
-    `'attendance' tem agora ${withSeparator(rows)} linhas no total.`,
-  analyze: 'Rode ANALYZE attendance; antes de medir — o planejador precisa da estatística nova.',
+    `'attendance' now holds ${withSeparator(rows)} rows in total.`,
+  analyze: 'Run ANALYZE attendance; before measuring — the planner needs the fresh statistics.',
   measurementSignal:
-    '\nSinal de medição — as três consultas para anotar à mão uma vez por semana:',
-  failure: (detail: string): string => `Falha na carga: ${detail}`,
+    '\nMeasurement signal — the three queries to note down by hand once a week:',
+  failure: (detail: string): string => `Load failed: ${detail}`,
 } as const;
 
 function readArgs(argv: readonly string[]): Args {
@@ -219,13 +219,13 @@ async function fillAttendance(
 }
 
 const MEASUREMENT_SQL = `
--- 1. Maior tabela: a contagem que o documento manda anotar (~3,6 milhões por ano letivo).
+-- 1. Biggest table: the count the document says to note down (~3.6 million per academic year).
 SELECT count(*) AS attendance_rows FROM attendance;
 
--- 2. p95 aproximado por consulta. pg_stat_statements NÃO guarda percentil: 'media + 2 desvios'
---    é a aproximação usada, e 'max' é o teto real observado. Rode uma vez, na primeira semana:
+-- 2. Approximate p95 per query. pg_stat_statements does NOT keep a percentile: 'mean + 2 stddev'
+--    is the approximation used, and 'max' is the real ceiling observed. Run once, in week one:
 --      CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
---    e zere a janela com SELECT pg_stat_statements_reset(); antes de cada medição semanal.
+--    and clear the window with SELECT pg_stat_statements_reset(); before each weekly measurement.
 SELECT substring(query, 1, 70)                              AS statement,
        calls,
        round(mean_exec_time::numeric, 1)                    AS mean_ms,
@@ -236,8 +236,8 @@ SELECT substring(query, 1, 70)                              AS statement,
  ORDER BY mean_exec_time DESC
  LIMIT 10;
 
--- 3. O que o banco está fazendo agora: conexões por estado e a consulta mais antiga em curso.
---    CPU do container: docker stats --no-stream $(docker compose ps -q database)
+-- 3. What the database is doing right now: connections by state and the oldest query in flight.
+--    Container CPU: docker stats --no-stream $(docker compose ps -q database)
 SELECT state,
        count(*)                             AS connections,
        max(now() - query_start)             AS oldest

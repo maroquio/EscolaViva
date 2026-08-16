@@ -157,10 +157,9 @@ export const MESSAGES = {
 } as const;
 
 export const INTERNAL_ERRORS = {
-  unknownEnrollmentStatus: (value: string): string =>
-    `situação de matrícula desconhecida: ${value}`,
-  unknownShift: (value: string): string => `turno fora do conjunto conhecido: ${value}`,
-  enrollmentConflictOnTransfer: 'conflito de matrícula ativa durante a transferência',
+  unknownEnrollmentStatus: (value: string): string => `unknown enrollment status: ${value}`,
+  unknownShift: (value: string): string => `shift outside the known set: ${value}`,
+  enrollmentConflictOnTransfer: 'active enrollment conflict during the transfer',
 } as const;
 
 export const VOCABULARY = {
