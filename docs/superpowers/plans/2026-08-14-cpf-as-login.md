@@ -1,5 +1,11 @@
 # CPF as the access identifier — implementation plan
 
+> **Executed and closed.** This plan is kept as a record of how the change was made, so its
+> steps still name `migrations/0007_cpf.sql` and `0008_cpf_obrigatorio.sql`. Those files no
+> longer exist: once both sides of the compatibility window were shut, the eight migrations
+> were folded into a single `migrations/0001_initial_schema.sql`. Read the file paths below as
+> history, not as the current layout.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** change EscolaViva's access identifier from e-mail to CPF, in two phases that open and close a migration compatibility window.

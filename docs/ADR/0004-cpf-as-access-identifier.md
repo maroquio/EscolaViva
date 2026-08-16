@@ -18,9 +18,14 @@ rede. É por ele que o responsável entra quando o administrador criar o acesso"
 guaranteed that — `inviteUser` accepted any e-mail typed in, and the divergence could be born on the
 very first invitation, with no editing involved.
 
-The schema change follows the compatibility window of ADR 0003 (I6): `0007_cpf.sql` opened the window
-— a nullable `cpf` column on `app_user` and `guardian`, login accepting CPF or e-mail — and
-`0008_cpf_obrigatorio.sql` closes it, once the seed proved every `app_user` row already has a CPF.
+The schema change followed the compatibility window of ADR 0003 (I6): one migration opened the
+window — a nullable `cpf` column on `app_user` and `guardian`, login accepting CPF or e-mail — and a
+second one closed it, once the seed proved every `app_user` row already had a CPF.
+
+Both windows are shut, and the eight migrations that told this story were later folded into a single
+`migrations/0001_initial_schema.sql`. What survives in the schema is the closed state: `app_user.cpf`
+is NOT NULL and unique within the network, and e-mail is no longer unique. The steps that got there
+live in the git history, not in the migrations directory.
 
 ## Decision
 

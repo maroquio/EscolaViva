@@ -16,7 +16,7 @@ ADR 0004 already dealt with half of this. It took the identifying role away from
 it back to contact, and the CPF, being immutable, became the stable bridge between record and
 credential. In practice that bridge is a **guard**, not a key: `inviteUser` refuses the invitation
 when `registeredCpf` diverges from the CPF supplied. The structural link is still the
-`app_user.guardian_id` column, created in `0006_usuario_responsavel.sql`. `name` and `email` remain
+`app_user.guardian_id` column, declared in `migrations/0001_initial_schema.sql`. `name` and `email` remain
 free to diverge from the first invitation onward — which is what 0004 accepted when it dropped
 e-mail uniqueness so that a mother and a father can share one family e-mail.
 

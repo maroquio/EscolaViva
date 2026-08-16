@@ -192,9 +192,15 @@ idea" and the extraction turns into a rewrite.
 ## The migration compatibility window (I6)
 
 Migrations are numbered `.sql` files under `migrations/`, applied by `bun run migrate` in one
-transaction per file, recorded in `schema_migrations`. There is always an interval — between applying
-the migration and the new process being up, or between the new one starting and the old one finishing
-what was in flight — in which **two versions of the code talk to the same database**.
+transaction per file, recorded in `schema_migrations`. Today there is exactly one: Stage 01 built the
+schema across eight migrations, and once every compatibility window they opened had been closed, they
+were folded into `0001_initial_schema.sql`. A migration directory records what still has to happen to
+a database, not how the schema came to be — that is what the git history and the ADRs are for.
+
+The rule below governs every migration from the second one onward. There is always an interval —
+between applying the migration and the new process being up, or between the new one starting and the
+old one finishing what was in flight — in which **two versions of the code talk to the same
+database**.
 
 **The rule: never drop or rename a column the previous version still reads.** Every schema change
 respects this order, in separate migrations and separate deploys:

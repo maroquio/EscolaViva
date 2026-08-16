@@ -2,7 +2,11 @@
 
 **Date:** 2026-08-14
 **Stage:** 01 (a change to what is already implemented; it anticipates nothing from Stage 02+)
-**Status:** approved, awaiting an implementation plan
+**Status:** implemented and closed
+
+> The two migrations named below opened and closed a compatibility window. Both are shut, and the
+> eight migrations of the project were later folded into a single `migrations/0001_initial_schema.sql`.
+> The file names here describe the steps taken at the time.
 
 ## Problem
 
