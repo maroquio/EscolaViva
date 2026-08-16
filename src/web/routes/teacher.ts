@@ -62,8 +62,8 @@ type RejectedRollCall = {
 };
 
 const ROUTE_PARAMS = {
-  turmaDisciplinaId: 'turmaDisciplinaId',
-  turmaId: 'turmaId',
+  classGroupSubjectId: 'classGroupSubjectId',
+  classGroupId: 'classGroupId',
 } as const satisfies Params<
   typeof ROUTES.teacher.grades.pattern | typeof ROUTES.teacher.rollCall.pattern
 >;
@@ -156,11 +156,11 @@ function groupByClassGroup(assignments: readonly Assignment[]): TeacherClassGrou
 
 const withLinks = (classGroup: TeacherClassGroup) => ({
   ...classGroup,
-  rollCallHref: ROUTES.teacher.rollCall({ turmaId: classGroup.classGroupId }),
-  closingHref: ROUTES.teacher.closing({ turmaId: classGroup.classGroupId }),
+  rollCallHref: ROUTES.teacher.rollCall({ classGroupId: classGroup.classGroupId }),
+  closingHref: ROUTES.teacher.closing({ classGroupId: classGroup.classGroupId }),
   subjects: classGroup.subjects.map((subject) => ({
     ...subject,
-    gradesHref: ROUTES.teacher.grades({ turmaDisciplinaId: subject.id }),
+    gradesHref: ROUTES.teacher.grades({ classGroupSubjectId: subject.id }),
   })),
 });
 
@@ -237,10 +237,11 @@ async function gradesScreen(
     term,
     terms: TERMS,
     closed: states.some((state) => state.term === term && state.closed),
-    formAction: ROUTES.teacher.grades({ turmaDisciplinaId: assignment.id }),
-    rollCallHref: ROUTES.teacher.rollCall({ turmaId: assignment.classGroupId }),
-    closingHref: ROUTES.teacher.closing({ turmaId: assignment.classGroupId }),
+    formAction: ROUTES.teacher.grades({ classGroupSubjectId: assignment.id }),
+    rollCallHref: ROUTES.teacher.rollCall({ classGroupId: assignment.classGroupId }),
+    closingHref: ROUTES.teacher.closing({ classGroupId: assignment.classGroupId }),
     termField: FIELDS.term,
+    termParam: PARAMS.term,
     gradePrefix: FIELDS.journal.grade,
     minGrade: ASSESSMENT_LIMITS.grade.minimum,
     maxGrade: ASSESSMENT_LIMITS.grade.maximum,
@@ -279,8 +280,9 @@ async function rollCallScreen(
     date,
     previousDay: shiftDay(date, -1),
     nextDay: shiftDay(date, 1),
-    formAction: ROUTES.teacher.rollCall({ turmaId: classGroup.classGroupId }),
+    formAction: ROUTES.teacher.rollCall({ classGroupId: classGroup.classGroupId }),
     dateField: FIELDS.date,
+    dateParam: PARAMS.date,
     presentPrefix: FIELDS.journal.present,
     excusePrefix: FIELDS.journal.excuse,
     excuseLimit: ASSESSMENT_LIMITS.excuseCharacters,
@@ -314,8 +316,9 @@ const closingScreen = (
   title: TITLES.teacher.closing(classGroup.classGroupName),
   classGroup: withLinks(classGroup),
   states,
-  formAction: ROUTES.teacher.closing({ turmaId: classGroup.classGroupId }),
+  formAction: ROUTES.teacher.closing({ classGroupId: classGroup.classGroupId }),
   termField: FIELDS.term,
+  termParam: PARAMS.term,
   closingLabel: CLOSING_LABEL,
   rejectedTerm,
   errors: problems,
@@ -338,7 +341,7 @@ teacherRoutes.get(ROUTES.teacher.dashboard.pattern, async (c) => {
 teacherRoutes.get(ROUTES.teacher.grades.pattern, async (c) => {
   const assignment = assignmentOr404(
     await teacherAssignments(c),
-    c.req.param(ROUTE_PARAMS.turmaDisciplinaId),
+    c.req.param(ROUTE_PARAMS.classGroupSubjectId),
   );
   const term = termOrNull(c.req.query(PARAMS.term)) ?? DEFAULT_TERM;
   return render(c, TEMPLATES.teacher.grades, await gradesScreen(c, assignment, term, null));
@@ -347,7 +350,7 @@ teacherRoutes.get(ROUTES.teacher.grades.pattern, async (c) => {
 teacherRoutes.post(ROUTES.teacher.grades.pattern, async (c) => {
   const assignment = assignmentOr404(
     await teacherAssignments(c),
-    c.req.param(ROUTE_PARAMS.turmaDisciplinaId),
+    c.req.param(ROUTE_PARAMS.classGroupSubjectId),
   );
   const body = c.get(CONTEXT_VARIABLES.body);
   const term = termOrNull(field(body, FIELDS.term));
@@ -382,7 +385,7 @@ teacherRoutes.post(ROUTES.teacher.grades.pattern, async (c) => {
     [PARAMS.ok]: gradesMessage(result.valor),
   };
   return c.redirect(
-    withParams(ROUTES.teacher.grades({ turmaDisciplinaId: assignment.id }), params),
+    withParams(ROUTES.teacher.grades({ classGroupSubjectId: assignment.id }), params),
     303,
   );
 });
@@ -390,7 +393,7 @@ teacherRoutes.post(ROUTES.teacher.grades.pattern, async (c) => {
 teacherRoutes.get(ROUTES.teacher.rollCall.pattern, async (c) => {
   const classGroup = classGroupOr404(
     await teacherAssignments(c),
-    c.req.param(ROUTE_PARAMS.turmaId),
+    c.req.param(ROUTE_PARAMS.classGroupId),
   );
   const date = dateOrNull(c.req.query(PARAMS.date)) ?? today();
   return render(c, TEMPLATES.teacher.rollCall, await rollCallScreen(c, classGroup, date, null));
@@ -399,7 +402,7 @@ teacherRoutes.get(ROUTES.teacher.rollCall.pattern, async (c) => {
 teacherRoutes.post(ROUTES.teacher.rollCall.pattern, async (c) => {
   const classGroup = classGroupOr404(
     await teacherAssignments(c),
-    c.req.param(ROUTE_PARAMS.turmaId),
+    c.req.param(ROUTE_PARAMS.classGroupId),
   );
   const body = c.get(CONTEXT_VARIABLES.body);
   const date = dateOrNull(field(body, FIELDS.date));
@@ -437,7 +440,7 @@ teacherRoutes.post(ROUTES.teacher.rollCall.pattern, async (c) => {
     [PARAMS.ok]: NOTICES.rollCallRecorded(formatDate(date)),
   };
   return c.redirect(
-    withParams(ROUTES.teacher.rollCall({ turmaId: classGroup.classGroupId }), params),
+    withParams(ROUTES.teacher.rollCall({ classGroupId: classGroup.classGroupId }), params),
     303,
   );
 });
@@ -445,7 +448,7 @@ teacherRoutes.post(ROUTES.teacher.rollCall.pattern, async (c) => {
 teacherRoutes.get(ROUTES.teacher.closing.pattern, async (c) => {
   const classGroup = classGroupOr404(
     await teacherAssignments(c),
-    c.req.param(ROUTE_PARAMS.turmaId),
+    c.req.param(ROUTE_PARAMS.classGroupId),
   );
   const states = await assessment.closingState(currentNetwork(c), classGroup.classGroupId);
   return render(
@@ -458,7 +461,7 @@ teacherRoutes.get(ROUTES.teacher.closing.pattern, async (c) => {
 teacherRoutes.post(ROUTES.teacher.closing.pattern, async (c) => {
   const classGroup = classGroupOr404(
     await teacherAssignments(c),
-    c.req.param(ROUTE_PARAMS.turmaId),
+    c.req.param(ROUTE_PARAMS.classGroupId),
   );
   const term = termOrNull(field(c.get(CONTEXT_VARIABLES.body), FIELDS.term));
   if (term === null) throw new BusinessRuleViolation(DIAGNOSTICS.termOnClosing);
@@ -481,7 +484,7 @@ teacherRoutes.post(ROUTES.teacher.closing.pattern, async (c) => {
 
   const params = { [PARAMS.ok]: NOTICES.termClosed(term, classGroup.classGroupName) };
   return c.redirect(
-    withParams(ROUTES.teacher.closing({ turmaId: classGroup.classGroupId }), params),
+    withParams(ROUTES.teacher.closing({ classGroupId: classGroup.classGroupId }), params),
     303,
   );
 });

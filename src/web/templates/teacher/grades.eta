@@ -25,7 +25,7 @@ const caption = `Notas do ${it.termLabel(term)}${it.separator}${assignment.subje
   <span class="sobretitulo">Bimestre</span>
   <% it.terms.forEach((number) => { %>
   <a class="botao <%= number === term ? 'botao--secundario' : 'botao--discreto' %>"
-     href="<%= it.formAction %>?<%= it.termField %>=<%= number %>"
+     href="<%= it.formAction %>?<%= it.termParam %>=<%= number %>"
      <% if (number === term) { %>aria-current="page"<% } %>><%= number %>º</a>
   <% }) %>
 </nav>

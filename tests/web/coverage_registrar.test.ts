@@ -1,7 +1,7 @@
 /*
  * Toda tela de leitura da secretaria, pelo endereço que o navegador digita.
  *
- * O que este arquivo fecha é uma pergunta só: cada GET de `/secretaria` responde 200 e devolve a
+ * O que este arquivo fecha é uma pergunta só: cada GET de `/registrar` responde 200 e devolve a
  * SUA tela? Status não basta — uma rota que renderizasse o painel no lugar da lista de disciplinas
  * passaria em qualquer verificação de código. Por isso cada caso afirma também algo que só aquela
  * tela tem: o título da página, a legenda da tabela, o campo do formulário.
@@ -61,67 +61,67 @@ describe('cada endereço de leitura abre a sua própria tela', () => {
   };
 
   const SCREENS: readonly GoldenScreen[] = [
-    { name: '/secretaria', path: () => '/secretaria', title: () => 'Painel da secretaria' },
-    { name: '/secretaria/alunos', path: () => '/secretaria/alunos', title: () => 'Alunos' },
+    { name: '/registrar', path: () => '/registrar', title: () => 'Painel da secretaria' },
+    { name: '/registrar/students', path: () => '/registrar/students', title: () => 'Alunos' },
     {
-      name: '/secretaria/alunos/novo',
-      path: () => '/secretaria/alunos/novo',
+      name: '/registrar/students/new',
+      path: () => '/registrar/students/new',
       title: () => 'Cadastrar aluno',
     },
     {
-      name: '/secretaria/alunos/:id',
-      path: (scenario) => `/secretaria/alunos/${scenario.students[0].id}`,
+      name: '/registrar/students/:id',
+      path: (scenario) => `/registrar/students/${scenario.students[0].id}`,
       title: (scenario) => scenario.students[0].name,
     },
     {
-      name: '/secretaria/alunos/:id/responsaveis/novo',
-      path: (scenario) => `/secretaria/alunos/${scenario.students[0].id}/responsaveis/novo`,
+      name: '/registrar/students/:id/guardians/new',
+      path: (scenario) => `/registrar/students/${scenario.students[0].id}/guardians/new`,
       title: () => 'Vincular responsável',
     },
     {
-      name: '/secretaria/alunos/:id/matricular',
-      path: (scenario) => `/secretaria/alunos/${scenario.students[0].id}/matricular`,
+      name: '/registrar/students/:id/enroll',
+      path: (scenario) => `/registrar/students/${scenario.students[0].id}/enroll`,
       title: () => 'Matricular em uma turma',
     },
     {
-      name: '/secretaria/matriculas/:id/transferir',
-      path: (scenario) => `/secretaria/matriculas/${scenario.enrollments[0].id}/transferir`,
+      name: '/registrar/enrollments/:id/transfer',
+      path: (scenario) => `/registrar/enrollments/${scenario.enrollments[0].id}/transfer`,
       title: () => 'Transferir de turma',
     },
     {
-      name: '/secretaria/responsaveis',
-      path: () => '/secretaria/responsaveis',
+      name: '/registrar/guardians',
+      path: () => '/registrar/guardians',
       title: () => 'Responsáveis',
     },
     {
-      name: '/secretaria/responsaveis/novo',
-      path: () => '/secretaria/responsaveis/novo',
+      name: '/registrar/guardians/new',
+      path: () => '/registrar/guardians/new',
       title: () => 'Cadastrar responsável',
     },
-    { name: '/secretaria/turmas', path: () => '/secretaria/turmas', title: () => 'Turmas' },
+    { name: '/registrar/class-groups', path: () => '/registrar/class-groups', title: () => 'Turmas' },
     {
-      name: '/secretaria/turmas/nova',
-      path: () => '/secretaria/turmas/nova',
+      name: '/registrar/class-groups/new',
+      path: () => '/registrar/class-groups/new',
       title: () => 'Cadastrar turma',
     },
     {
-      name: '/secretaria/turmas/:id',
-      path: (scenario) => `/secretaria/turmas/${scenario.classGroups[0].id}`,
+      name: '/registrar/class-groups/:id',
+      path: (scenario) => `/registrar/class-groups/${scenario.classGroups[0].id}`,
       title: (scenario) => scenario.classGroups[0].name,
     },
     {
-      name: '/secretaria/turmas/:id/disciplinas/nova',
-      path: (scenario) => `/secretaria/turmas/${scenario.classGroups[0].id}/disciplinas/nova`,
+      name: '/registrar/class-groups/:id/subjects/new',
+      path: (scenario) => `/registrar/class-groups/${scenario.classGroups[0].id}/subjects/new`,
       title: () => 'Alocar disciplina e professor',
     },
     {
-      name: '/secretaria/disciplinas',
-      path: () => '/secretaria/disciplinas',
+      name: '/registrar/subjects',
+      path: () => '/registrar/subjects',
       title: () => 'Disciplinas',
     },
     {
-      name: '/secretaria/disciplinas/nova',
-      path: () => '/secretaria/disciplinas/nova',
+      name: '/registrar/subjects/new',
+      path: () => '/registrar/subjects/new',
       title: () => 'Cadastrar disciplina',
     },
   ];
@@ -146,11 +146,11 @@ describe('a página de cadastrar aluno', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open('/secretaria/alunos/novo', cookie);
+    const response = await open('/registrar/students/new', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
-    expect(page).toContain('method="post" action="/secretaria/alunos"');
+    expect(page).toContain('method="post" action="/registrar/students"');
     expect(page).toContain('name="nome"');
     expect(page).toContain('name="dataNascimento"');
     // Matrícula e responsável são vínculos que se fazem depois, da ficha: não cabem no cadastro.
@@ -162,7 +162,7 @@ describe('a página de cadastrar aluno', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const page = await html('/secretaria/alunos/novo', cookie);
+    const page = await html('/registrar/students/new', cookie);
 
     expect(page).toContain('id="nome"');
     expect(page).not.toContain('id="nome-erro"');
@@ -177,7 +177,7 @@ describe('a busca de alunos tem três estados, e todos são GET', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open('/secretaria/alunos', cookie);
+    const response = await open('/registrar/students', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -191,7 +191,7 @@ describe('a busca de alunos tem três estados, e todos são GET', () => {
     await createStudent({ networkId: scenario.network.id, name: 'Zulmira Peixoto de Andrade' });
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open('/secretaria/alunos?q=Zulmira', cookie);
+    const response = await open('/registrar/students?q=Zulmira', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -206,12 +206,12 @@ describe('a busca de alunos tem três estados, e todos são GET', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open('/secretaria/alunos?q=Zulmira', cookie);
+    const response = await open('/registrar/students?q=Zulmira', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
     expect(page).toContain('Nenhum aluno com esse nome');
-    expect(page).toContain('href="/secretaria/alunos/novo"');
+    expect(page).toContain('href="/registrar/students/new"');
   });
 });
 
@@ -226,7 +226,7 @@ describe('o painel conta o que está ao alcance de quem abriu', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const page = await html('/secretaria', cookie);
+    const page = await html('/registrar', cookie);
 
     // Matrículas ativas, turmas, responsáveis e disciplinas: o cenário completo em uma unidade.
     expect(cardNumbers(page)).toEqual([5, 2, 5, 3]);
@@ -236,7 +236,7 @@ describe('o painel conta o que está ao alcance de quem abriu', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const page = await html('/secretaria', cookie);
+    const page = await html('/registrar', cookie);
 
     expect(page).not.toContain('Números de cada unidade sob sua secretaria');
     expect(page).not.toContain(scenario.schools[1].name);
@@ -246,7 +246,7 @@ describe('o painel conta o que está ao alcance de quem abriu', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrarOfBothSchools(scenario);
 
-    const response = await open('/secretaria', cookie);
+    const response = await open('/registrar', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -266,7 +266,7 @@ describe('o filtro de turmas vive na URL', () => {
     await createClassGroup({ ...base, schoolId: scenario.schools[1].id, name: 'Turma Beta do Bairro' });
     const cookie = await signInAsRegistrarOfBothSchools(scenario);
 
-    const response = await open(`/secretaria/turmas?unidade=${scenario.schools[1].id}`, cookie);
+    const response = await open(`/registrar/class-groups?school=${scenario.schools[1].id}`, cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -282,7 +282,7 @@ describe('o filtro de turmas vive na URL', () => {
     await createClassGroup({ ...base, academicYearId: otherYear.id, name: 'Turma Delta do Ano Novo' });
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open(`/secretaria/turmas?ano=${otherYear.id}`, cookie);
+    const response = await open(`/registrar/class-groups?year=${otherYear.id}`, cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -298,7 +298,7 @@ describe('o filtro de turmas vive na URL', () => {
     // Esta secretaria só tem papel na primeira unidade: a segunda não é filtro que ela possa pedir.
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open(`/secretaria/turmas?unidade=${scenario.schools[1].id}`, cookie);
+    const response = await open(`/registrar/class-groups?school=${scenario.schools[1].id}`, cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -310,7 +310,7 @@ describe('o filtro de turmas vive na URL', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open('/secretaria/turmas?p=999', cookie);
+    const response = await open('/registrar/class-groups?p=999', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -325,20 +325,20 @@ describe('as listagens mostram o que prometem no cabeçalho', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open('/secretaria/disciplinas', cookie);
+    const response = await open('/registrar/subjects', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
     expect(page).toContain('Disciplinas disponíveis para alocar nas turmas');
     expect(page).toContain(scenario.subjects[0].name);
-    expect(page).toContain('href="/secretaria/disciplinas/nova"');
+    expect(page).toContain('href="/registrar/subjects/new"');
   });
 
   test('a lista de responsáveis traz nome, CPF e e-mail de quem responde pelos alunos', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open('/secretaria/responsaveis', cookie);
+    const response = await open('/registrar/guardians', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -351,7 +351,7 @@ describe('as listagens mostram o que prometem no cabeçalho', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open(`/secretaria/turmas/${scenario.classGroups[0].id}`, cookie);
+    const response = await open(`/registrar/class-groups/${scenario.classGroups[0].id}`, cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -366,7 +366,7 @@ describe('as listagens mostram o que prometem no cabeçalho', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open(`/secretaria/alunos/${scenario.students[0].id}`, cookie);
+    const response = await open(`/registrar/students/${scenario.students[0].id}`, cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);

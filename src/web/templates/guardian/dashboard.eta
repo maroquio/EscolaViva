@@ -112,7 +112,7 @@ const STATUS_LABEL = it.statusLabel;
     <li class="quadro">
       <div class="linha linha--entre">
         <h3>
-          <a href="<%= it.routes.guardian.announcement({ comunicadoId: item.announcementId }) %>"><%= item.title %></a>
+          <a href="<%= it.routes.guardian.announcement({ announcementId: item.announcementId }) %>"><%= item.title %></a>
         </h3>
         <span class="linha">
           <time class="suave" datetime="<%= item.publishedAt %>">

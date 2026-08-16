@@ -225,7 +225,7 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
       password: scenario.password,
     });
 
-    await send('/secretaria/disciplinas', { nome: 'Sociologia' }, cookie);
+    await send('/registrar/subjects', { nome: 'Sociologia' }, cookie);
     const saved = await anotherConnection((sql) =>
       sql<{ name: string }[]>`
         SELECT name FROM subject WHERE network_id = ${scenario.network.id} AND name = 'Sociologia'`,
@@ -242,9 +242,9 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
       password: scenario.password,
     });
 
-    const before = await open('/secretaria', cookie);
+    const before = await open('/registrar', cookie);
     await anotherConnection((sql) => sql`DELETE FROM session WHERE user_id = ${scenario.registrar.id}`);
-    const after = await open('/secretaria', cookie);
+    const after = await open('/registrar', cookie);
 
     expect(before.status).toBe(200);
     expect(after.status).toBe(303);
@@ -346,8 +346,8 @@ describe('enviar o mesmo formulário duas vezes cria um registro', () => {
     });
     const fields = { _chave: crypto.randomUUID(), nome: 'Educação Física' };
 
-    await post('/secretaria/disciplinas', fields, cookie);
-    await post('/secretaria/disciplinas', fields, cookie);
+    await post('/registrar/subjects', fields, cookie);
+    await post('/registrar/subjects', fields, cookie);
     const rows = await testSql()<{ total: string }[]>`
       SELECT count(*)::text AS total
         FROM subject
@@ -364,8 +364,8 @@ describe('enviar o mesmo formulário duas vezes cria um registro', () => {
       password: scenario.password,
     });
 
-    await send('/secretaria/disciplinas', { nome: 'Educação Física' }, cookie);
-    await send('/secretaria/disciplinas', { nome: 'Educação Artística' }, cookie);
+    await send('/registrar/subjects', { nome: 'Educação Física' }, cookie);
+    await send('/registrar/subjects', { nome: 'Educação Artística' }, cookie);
     const rows = await testSql()<{ total: string }[]>`
       SELECT count(*)::text AS total
         FROM subject
@@ -391,7 +391,7 @@ describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
     });
 
     const screens = await Promise.all(
-      ['/secretaria', '/secretaria/turmas', '/secretaria/disciplinas', '/conta/senha'].map(
+      ['/registrar', '/registrar/class-groups', '/registrar/subjects', '/account/password'].map(
         (path) => open(path, cookie),
       ),
     );
@@ -419,7 +419,7 @@ describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
     });
 
     const reportCard = await open(
-      `/responsavel/matriculas/${scenario.enrollments[0].id}/boletim`,
+      `/guardian/enrollments/${scenario.enrollments[0].id}/report-card`,
       cookie,
     );
 
@@ -428,7 +428,7 @@ describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
   });
 
   test('o arquivo publicado, cujo nome carrega o hash, pode ser guardado para sempre', async () => {
-    const response = await open('/publico/app.2a17037a.css');
+    const response = await open('/public/app.2a17037a.css');
 
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
   });
@@ -642,7 +642,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
       password: scenario.password,
     });
 
-    const rejected = await post('/secretaria/disciplinas', { nome: 'Xadrez' }, cookie);
+    const rejected = await post('/registrar/subjects', { nome: 'Xadrez' }, cookie);
     const page = await rejected.text();
 
     expect(rejected.status).toBe(400);

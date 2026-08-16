@@ -26,7 +26,7 @@ const DOCUMENT_END = '</html>';
 const GOLDEN_PATTERN = '*.txt';
 
 const HANDWRITTEN_URL_THE_CHECKER_FLAGS =
-  '    fechar.dataset.destino = \'<a href="/painel"></a>\';\n';
+  '    fechar.dataset.destino = \'<a href="/dashboard"></a>\';\n';
 
 const EXEMPTION_STANDS = 'o corpo do <script> fica fora do alcance do verificador';
 

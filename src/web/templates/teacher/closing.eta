@@ -51,7 +51,7 @@ const CLOSING_CLASS = it.tagClass.closing;
     <ul class="linha">
       <% subjects.forEach((subject) => { %>
       <li>
-        <a href="<%= subject.gradesHref %>?<%= it.termField %>=<%= state.term %>"><%= subject.subjectName %></a>
+        <a href="<%= subject.gradesHref %>?<%= it.termParam %>=<%= state.term %>"><%= subject.subjectName %></a>
       </li>
       <% }) %>
     </ul>

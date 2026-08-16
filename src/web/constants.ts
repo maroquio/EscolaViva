@@ -22,60 +22,60 @@ export const ROUTES = {
     assets: `${PUBLIC_PREFIX}${ASSET_WILDCARD}`,
   }),
 
-  account: group('/conta', {
-    password: '/senha',
+  account: group('/account', {
+    password: '/password',
   }),
 
-  network: group('/rede', {
+  network: group('/network', {
     dashboard: '/',
-    schools: '/unidades',
-    schoolNew: '/unidades/nova',
-    users: '/usuarios',
-    userNew: '/usuarios/novo',
-    academicYears: '/anos-letivos',
-    academicYearNew: '/anos-letivos/novo',
+    schools: '/schools',
+    schoolNew: '/schools/new',
+    users: '/users',
+    userNew: '/users/new',
+    academicYears: '/academic-years',
+    academicYearNew: '/academic-years/new',
   }),
 
-  registrar: group('/secretaria', {
+  registrar: group('/registrar', {
     dashboard: '/',
-    students: '/alunos',
-    studentNew: '/alunos/novo',
-    student: '/alunos/:id',
-    studentGuardianNew: '/alunos/:id/responsaveis/novo',
-    studentGuardians: '/alunos/:id/responsaveis',
-    studentEnroll: '/alunos/:id/matricular',
-    enrollments: '/matriculas',
-    enrollmentTransfer: '/matriculas/:id/transferir',
-    guardians: '/responsaveis',
-    guardianNew: '/responsaveis/novo',
-    classGroups: '/turmas',
-    classGroupNew: '/turmas/nova',
-    classGroup: '/turmas/:id',
-    classGroupSubjectNew: '/turmas/:id/disciplinas/nova',
-    classGroupSubjects: '/turmas/:id/disciplinas',
-    subjects: '/disciplinas',
-    subjectNew: '/disciplinas/nova',
+    students: '/students',
+    studentNew: '/students/new',
+    student: '/students/:id',
+    studentGuardianNew: '/students/:id/guardians/new',
+    studentGuardians: '/students/:id/guardians',
+    studentEnroll: '/students/:id/enroll',
+    enrollments: '/enrollments',
+    enrollmentTransfer: '/enrollments/:id/transfer',
+    guardians: '/guardians',
+    guardianNew: '/guardians/new',
+    classGroups: '/class-groups',
+    classGroupNew: '/class-groups/new',
+    classGroup: '/class-groups/:id',
+    classGroupSubjectNew: '/class-groups/:id/subjects/new',
+    classGroupSubjects: '/class-groups/:id/subjects',
+    subjects: '/subjects',
+    subjectNew: '/subjects/new',
   }),
 
-  teacher: group('/professor', {
+  teacher: group('/teacher', {
     dashboard: '/',
-    grades: '/disciplinas/:turmaDisciplinaId/notas',
-    rollCall: '/turmas/:turmaId/chamada',
-    closing: '/turmas/:turmaId/fechamento',
+    grades: '/subjects/:classGroupSubjectId/grades',
+    rollCall: '/class-groups/:classGroupId/roll-call',
+    closing: '/class-groups/:classGroupId/closing',
   }),
 
-  guardian: group('/responsavel', {
+  guardian: group('/guardian', {
     dashboard: '/',
-    reportCard: '/matriculas/:id/boletim',
-    attendance: '/matriculas/:id/frequencia',
-    board: '/mural',
-    announcement: '/mural/:comunicadoId',
-    announcementRead: '/mural/:comunicadoId/lido',
+    reportCard: '/enrollments/:id/report-card',
+    attendance: '/enrollments/:id/attendance',
+    board: '/board',
+    announcement: '/board/:announcementId',
+    announcementRead: '/board/:announcementId/read',
   }),
 
-  announcements: group('/comunicados', {
+  announcements: group('/announcements', {
     list: '/',
-    new: '/novo',
+    new: '/new',
   }),
 } as const;
 
@@ -165,19 +165,19 @@ export const TEMPLATES = {
 
 export const PARAMS = {
   defaultPage: 'p',
-  guardiansPage: 'pResponsaveis',
-  enrollmentsPage: 'pMatriculas',
-  subjectsPage: 'pDisciplinas',
-  unreadPage: 'pNaoLidos',
-  readPage: 'pLidos',
+  guardiansPage: 'pGuardians',
+  enrollmentsPage: 'pEnrollments',
+  subjectsPage: 'pSubjects',
+  unreadPage: 'pUnread',
+  readPage: 'pRead',
   search: 'q',
-  school: 'unidade',
-  year: 'ano',
-  schoolId: 'unidadeId',
-  term: 'bimestre',
-  date: 'data',
+  school: 'school',
+  year: 'year',
+  schoolId: 'schoolId',
+  term: 'term',
+  date: 'date',
   ok: 'ok',
-  error: 'erro',
+  error: 'error',
 } as const;
 
 export const FIELDS = {
@@ -406,10 +406,10 @@ export const NOTICES = {
 } as const;
 
 export const NOTICE_CODES = {
-  passwordChanged: 'senha-alterada',
-  schoolCreated: 'unidade-criada',
-  userInvited: 'usuario-convidado',
-  yearDefined: 'ano-definido',
+  passwordChanged: 'password-changed',
+  schoolCreated: 'school-created',
+  userInvited: 'user-invited',
+  yearDefined: 'year-defined',
 } as const;
 
 export const FOUR_DIGIT_YEAR = /^\d{4}$/;

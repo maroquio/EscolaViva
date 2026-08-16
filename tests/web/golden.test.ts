@@ -118,8 +118,8 @@ describe('a normalização não apaga o que o golden existe para detectar', () =
   test('um href trocado por outro caminho muda o texto normalizado', async () => {
     const original = await capture(screenNamed('secretaria-alunos-busca'), scenario);
 
-    expect(original).toContain('href="/secretaria/alunos/{{aluno01}}"');
-    expect(original.replaceAll('/secretaria/alunos/', '/secretaria/turmas/')).not.toBe(original);
+    expect(original).toContain('href="/registrar/students/{{aluno01}}"');
+    expect(original.replaceAll('/registrar/students/', '/registrar/class-groups/')).not.toBe(original);
   });
 
   test('um rótulo perdido muda o texto normalizado', async () => {
@@ -141,7 +141,7 @@ describe('a normalização não apaga o que o golden existe para detectar', () =
     const text = await capture(screenNamed('professor-painel-redirecionado'), scenario);
 
     expect(text).toContain('status: 303');
-    expect(text).toContain('Location: /professor');
+    expect(text).toContain('Location: /teacher');
   });
 });
 

@@ -48,15 +48,15 @@ describe('cada cadastro tem a sua página, e ela traz o formulário', () => {
   type Page = { path: string; target: string };
 
   const NETWORK_PAGES: readonly Page[] = [
-    { path: '/rede/unidades/nova', target: '/rede/unidades' },
-    { path: '/rede/anos-letivos/novo', target: '/rede/anos-letivos' },
-    { path: '/rede/usuarios/novo', target: '/rede/usuarios' },
+    { path: '/network/schools/new', target: '/network/schools' },
+    { path: '/network/academic-years/new', target: '/network/academic-years' },
+    { path: '/network/users/new', target: '/network/users' },
   ];
 
   const REGISTRAR_PAGES: readonly Page[] = [
-    { path: '/secretaria/disciplinas/nova', target: '/secretaria/disciplinas' },
-    { path: '/secretaria/responsaveis/novo', target: '/secretaria/responsaveis' },
-    { path: '/secretaria/turmas/nova', target: '/secretaria/turmas' },
+    { path: '/registrar/subjects/new', target: '/registrar/subjects' },
+    { path: '/registrar/guardians/new', target: '/registrar/guardians' },
+    { path: '/registrar/class-groups/new', target: '/registrar/class-groups' },
   ];
 
   for (const page of NETWORK_PAGES) {
@@ -89,7 +89,7 @@ describe('cada cadastro tem a sua página, e ela traz o formulário', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 
-    const html = await (await open('/secretaria/responsaveis/novo', cookie)).text();
+    const html = await (await open('/registrar/guardians/new', cookie)).text();
 
     expect(html).toContain('name="cpf"');
   });
@@ -99,22 +99,22 @@ describe('cada cadastro tem a sua página, e ela traz o formulário', () => {
     const cookie = await signInAs(scenario, 'registrar');
     const studentId = scenario.students[0].id;
 
-    const response = await open(`/secretaria/alunos/${studentId}/responsaveis/novo`, cookie);
+    const response = await open(`/registrar/students/${studentId}/guardians/new`, cookie);
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(hasFormFor(html, `/secretaria/alunos/${studentId}/responsaveis`)).toBe(true);
+    expect(hasFormFor(html, `/registrar/students/${studentId}/guardians`)).toBe(true);
   });
 
   test('matricular tem página própria, fora da ficha', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 
-    const response = await open(`/secretaria/alunos/${scenario.students[0].id}/matricular`, cookie);
+    const response = await open(`/registrar/students/${scenario.students[0].id}/enroll`, cookie);
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(hasFormFor(html, '/secretaria/matriculas')).toBe(true);
+    expect(hasFormFor(html, '/registrar/enrollments')).toBe(true);
   });
 
   test('transferir tem página própria, e ela conhece a matrícula ativa', async () => {
@@ -122,11 +122,11 @@ describe('cada cadastro tem a sua página, e ela traz o formulário', () => {
     const cookie = await signInAs(scenario, 'registrar');
     const enrollmentId = scenario.enrollments[0].id;
 
-    const response = await open(`/secretaria/matriculas/${enrollmentId}/transferir`, cookie);
+    const response = await open(`/registrar/enrollments/${enrollmentId}/transfer`, cookie);
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(hasFormFor(html, `/secretaria/matriculas/${enrollmentId}/transferir`)).toBe(true);
+    expect(hasFormFor(html, `/registrar/enrollments/${enrollmentId}/transfer`)).toBe(true);
   });
 
   test('alocar disciplina tem página própria, fora da tela da turma', async () => {
@@ -134,22 +134,22 @@ describe('cada cadastro tem a sua página, e ela traz o formulário', () => {
     const cookie = await signInAs(scenario, 'registrar');
     const classGroupId = scenario.classGroups[0].id;
 
-    const response = await open(`/secretaria/turmas/${classGroupId}/disciplinas/nova`, cookie);
+    const response = await open(`/registrar/class-groups/${classGroupId}/subjects/new`, cookie);
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(hasFormFor(html, `/secretaria/turmas/${classGroupId}/disciplinas`)).toBe(true);
+    expect(hasFormFor(html, `/registrar/class-groups/${classGroupId}/subjects`)).toBe(true);
   });
 });
 
 /* ------------------------------------------------------------------------- */
 
 describe('a listagem virou só a tabela', () => {
-  const NETWORK_PAGES = ['/rede/unidades', '/rede/anos-letivos', '/rede/usuarios'] as const;
+  const NETWORK_PAGES = ['/network/schools', '/network/academic-years', '/network/users'] as const;
   const REGISTRAR_PAGES = [
-    '/secretaria/disciplinas',
-    '/secretaria/responsaveis',
-    '/secretaria/turmas',
+    '/registrar/subjects',
+    '/registrar/guardians',
+    '/registrar/class-groups',
   ] as const;
 
   for (const path of NETWORK_PAGES) {
@@ -182,9 +182,9 @@ describe('a listagem virou só a tabela', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 
-    const html = await (await open('/secretaria/turmas', cookie)).text();
+    const html = await (await open('/registrar/class-groups', cookie)).text();
 
-    expect(html).toContain('method="get" action="/secretaria/turmas"');
+    expect(html).toContain('method="get" action="/registrar/class-groups"');
   });
 
   test('a ficha do aluno perdeu os três formulários e ganhou os três caminhos', async () => {
@@ -192,13 +192,13 @@ describe('a listagem virou só a tabela', () => {
     const cookie = await signInAs(scenario, 'registrar');
     const studentId = scenario.students[0].id;
 
-    const html = await (await open(`/secretaria/alunos/${studentId}`, cookie)).text();
+    const html = await (await open(`/registrar/students/${studentId}`, cookie)).text();
 
-    expect(hasFormFor(html, `/secretaria/alunos/${studentId}/responsaveis`)).toBe(false);
-    expect(hasFormFor(html, '/secretaria/matriculas')).toBe(false);
-    expect(html).toContain(`href="/secretaria/alunos/${studentId}/responsaveis/novo"`);
-    expect(html).toContain(`href="/secretaria/alunos/${studentId}/matricular"`);
-    expect(html).toContain(`href="/secretaria/matriculas/${scenario.enrollments[0].id}/transferir"`);
+    expect(hasFormFor(html, `/registrar/students/${studentId}/guardians`)).toBe(false);
+    expect(hasFormFor(html, '/registrar/enrollments')).toBe(false);
+    expect(html).toContain(`href="/registrar/students/${studentId}/guardians/new"`);
+    expect(html).toContain(`href="/registrar/students/${studentId}/enroll"`);
+    expect(html).toContain(`href="/registrar/enrollments/${scenario.enrollments[0].id}/transfer"`);
   });
 
   test('a tela da turma perdeu o formulário de alocação e ganhou o caminho', async () => {
@@ -206,10 +206,10 @@ describe('a listagem virou só a tabela', () => {
     const cookie = await signInAs(scenario, 'registrar');
     const classGroupId = scenario.classGroups[0].id;
 
-    const html = await (await open(`/secretaria/turmas/${classGroupId}`, cookie)).text();
+    const html = await (await open(`/registrar/class-groups/${classGroupId}`, cookie)).text();
 
-    expect(hasFormFor(html, `/secretaria/turmas/${classGroupId}/disciplinas`)).toBe(false);
-    expect(html).toContain(`href="/secretaria/turmas/${classGroupId}/disciplinas/nova"`);
+    expect(hasFormFor(html, `/registrar/class-groups/${classGroupId}/subjects`)).toBe(false);
+    expect(html).toContain(`href="/registrar/class-groups/${classGroupId}/subjects/new"`);
   });
 });
 
@@ -220,11 +220,11 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 
-    const response = await send('/secretaria/disciplinas', { nome: '' }, cookie);
+    const response = await send('/registrar/subjects', { nome: '' }, cookie);
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(hasFormFor(html, '/secretaria/disciplinas')).toBe(true);
+    expect(hasFormFor(html, '/registrar/subjects')).toBe(true);
     expect(html).toContain('id="nome-erro"');
     expect(html).not.toContain('Disciplinas disponíveis para alocar nas turmas');
   });
@@ -234,14 +234,14 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const cookie = await signInAs(scenario, 'registrar');
 
     const response = await send(
-      '/secretaria/turmas',
+      '/registrar/class-groups',
       { nome: 'Turma Rejeitada', serie: '', turno: '', unidadeId: '', anoLetivoId: '' },
       cookie,
     );
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(hasFormFor(html, '/secretaria/turmas')).toBe(true);
+    expect(hasFormFor(html, '/registrar/class-groups')).toBe(true);
     expect(html).toContain('value="Turma Rejeitada"');
     expect(html).not.toContain('Turmas das unidades sob sua secretaria');
   });
@@ -250,11 +250,11 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const response = await send('/rede/unidades', { nome: '', codigoInep: '123' }, cookie);
+    const response = await send('/network/schools', { nome: '', codigoInep: '123' }, cookie);
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(hasFormFor(html, '/rede/unidades')).toBe(true);
+    expect(hasFormFor(html, '/network/schools')).toBe(true);
     expect(html).toContain('value="123"');
     expect(html).not.toContain('Unidades cadastradas');
   });
@@ -264,7 +264,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const cookie = await signInAs(scenario, 'admin');
     const guardian = scenario.guardians[0];
 
-    const response = await send('/rede/usuarios', {
+    const response = await send('/network/users', {
       nome: 'Mãe do Aluno', email: 'mae@escolaviva.test', cpf: generateCpf(987_654),
       responsavelId: guardian.id, 'unidade[]': scenario.schools[0].id, 'papel[]': 'guardian',
     }, cookie);
@@ -280,7 +280,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 
-    const response = await send('/secretaria/responsaveis', {
+    const response = await send('/registrar/guardians', {
       nome: 'Responsável Sem Acesso', email: 'sem.acesso@escolaviva.test', cpf: '52998224724',
     }, cookie);
     const html = await response.text();
@@ -294,7 +294,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const response = await send('/rede/usuarios', {
+    const response = await send('/network/users', {
       nome: 'Sem Cadastro', email: 'sem.cadastro@escolaviva.test', cpf: generateCpf(987_655),
       responsavelId: 'nao-e-uuid', 'unidade[]': scenario.schools[0].id, 'papel[]': 'registrar',
     }, cookie);
@@ -310,14 +310,14 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const studentId = scenario.students[0].id;
 
     const response = await send(
-      `/secretaria/alunos/${studentId}/responsaveis`,
+      `/registrar/students/${studentId}/guardians`,
       { responsavelId: '', parentesco: '' },
       cookie,
     );
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(hasFormFor(html, `/secretaria/alunos/${studentId}/responsaveis`)).toBe(true);
+    expect(hasFormFor(html, `/registrar/students/${studentId}/guardians`)).toBe(true);
     expect(html).not.toContain('Histórico de matrículas deste aluno');
   });
 });
@@ -329,7 +329,7 @@ describe('as páginas novas respeitam o alcance da secretaria', () => {
     const { a, b } = await twoNetworks();
     const cookie = await signInAs(a, 'registrar');
 
-    const response = await open(`/secretaria/alunos/${b.students[0].id}/responsaveis/novo`, cookie);
+    const response = await open(`/registrar/students/${b.students[0].id}/guardians/new`, cookie);
 
     expect(response.status).toBe(404);
   });
@@ -338,7 +338,7 @@ describe('as páginas novas respeitam o alcance da secretaria', () => {
     const { a, b } = await twoNetworks();
     const cookie = await signInAs(a, 'registrar');
 
-    const response = await open(`/secretaria/alunos/${b.students[0].id}/matricular`, cookie);
+    const response = await open(`/registrar/students/${b.students[0].id}/enroll`, cookie);
 
     expect(response.status).toBe(404);
   });
@@ -347,7 +347,7 @@ describe('as páginas novas respeitam o alcance da secretaria', () => {
     const { a, b } = await twoNetworks();
     const cookie = await signInAs(a, 'registrar');
 
-    const response = await open(`/secretaria/matriculas/${b.enrollments[0].id}/transferir`, cookie);
+    const response = await open(`/registrar/enrollments/${b.enrollments[0].id}/transfer`, cookie);
 
     expect(response.status).toBe(404);
   });
@@ -356,7 +356,7 @@ describe('as páginas novas respeitam o alcance da secretaria', () => {
     const { a, b } = await twoNetworks();
     const cookie = await signInAs(a, 'registrar');
 
-    const response = await open(`/secretaria/turmas/${b.classGroups[0].id}/disciplinas/nova`, cookie);
+    const response = await open(`/registrar/class-groups/${b.classGroups[0].id}/subjects/new`, cookie);
 
     expect(response.status).toBe(404);
   });
@@ -365,7 +365,7 @@ describe('as páginas novas respeitam o alcance da secretaria', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 
-    const response = await open('/secretaria/alunos/nao-e-uuid/matricular', cookie);
+    const response = await open('/registrar/students/nao-e-uuid/enroll', cookie);
 
     expect(response.status).toBe(404);
   });

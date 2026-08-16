@@ -59,17 +59,17 @@ describe('recorte na tela de responsáveis', () => {
   test('a primeira página traz o tamanho de página, e não a lista inteira', async () => {
     const scenario = await onePageAndARemainder();
 
-    const page = await html('/secretaria/responsaveis', await signInAsRegistrar(scenario));
+    const page = await html('/registrar/guardians', await signInAsRegistrar(scenario));
 
     expect(tableRows(page)).toBe(PAGE_SIZE);
     expect(page).toContain('class="paginacao"');
-    expect(page).toContain('href="/secretaria/responsaveis?p=2"');
+    expect(page).toContain('href="/registrar/guardians?p=2"');
   });
 
   test('a contagem da seção mostra o total, e não o tamanho da página', async () => {
     const scenario = await onePageAndARemainder();
 
-    const page = await html('/secretaria/responsaveis', await signInAsRegistrar(scenario));
+    const page = await html('/registrar/guardians', await signInAsRegistrar(scenario));
 
     expect(page).toContain(`>${PAGE_SIZE + REMAINDER}</span>`);
   });
@@ -77,7 +77,7 @@ describe('recorte na tela de responsáveis', () => {
   test('a segunda página traz a sobra e oferece a volta', async () => {
     const scenario = await onePageAndARemainder();
 
-    const page = await html('/secretaria/responsaveis?p=2', await signInAsRegistrar(scenario));
+    const page = await html('/registrar/guardians?p=2', await signInAsRegistrar(scenario));
 
     expect(tableRows(page)).toBe(REMAINDER);
     expect(page).toContain('rel="prev"');
@@ -87,7 +87,7 @@ describe('recorte na tela de responsáveis', () => {
   test('página além do fim serve a última, em vez de uma tela vazia', async () => {
     const scenario = await onePageAndARemainder();
 
-    const page = await html('/secretaria/responsaveis?p=999', await signInAsRegistrar(scenario));
+    const page = await html('/registrar/guardians?p=999', await signInAsRegistrar(scenario));
 
     expect(tableRows(page)).toBe(REMAINDER);
   });
@@ -96,7 +96,7 @@ describe('recorte na tela de responsáveis', () => {
     const scenario = await onePageAndARemainder();
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await open('/secretaria/responsaveis?p=abc', cookie);
+    const response = await open('/registrar/guardians?p=abc', cookie);
 
     expect(response.status).toBe(200);
     expect(tableRows(await response.text())).toBe(PAGE_SIZE);
@@ -105,7 +105,7 @@ describe('recorte na tela de responsáveis', () => {
   test('lista de uma página só não desenha os controles, mas continua contando', async () => {
     const scenario = await fullScenario();
 
-    const page = await html('/secretaria/responsaveis', await signInAsRegistrar(scenario));
+    const page = await html('/registrar/guardians', await signInAsRegistrar(scenario));
 
     expect(page).toContain('class="paginacao"');
     expect(page).not.toContain('paginacao__lista');
@@ -119,7 +119,7 @@ describe('o resto da query sobrevive à navegação', () => {
       await createStudent({ networkId: scenario.network.id, name: `Silva ${String(i).padStart(3, '0')}` });
     }
 
-    const page = await html('/secretaria/alunos?q=Silva', await signInAsRegistrar(scenario));
+    const page = await html('/registrar/students?q=Silva', await signInAsRegistrar(scenario));
 
     expect(tableRows(page)).toBe(PAGE_SIZE);
     expect(page).toContain('q=Silva&amp;p=2');
@@ -131,9 +131,9 @@ describe('o resto da query sobrevive à navegação', () => {
       await createGuardian({ networkId: scenario.network.id, name: numberedName(i) });
     }
 
-    const page = await html('/secretaria/responsaveis?p=2', await signInAsRegistrar(scenario));
+    const page = await html('/registrar/guardians?p=2', await signInAsRegistrar(scenario));
 
-    expect(page).toContain('href="/secretaria/responsaveis"');
+    expect(page).toContain('href="/registrar/guardians"');
     expect(page).not.toContain('p=1"');
   });
 });
@@ -152,12 +152,12 @@ describe('duas tabelas na mesma tela', () => {
     }
 
     const page = await html(
-      `/secretaria/turmas/${classGroup.id}?pDisciplinas=1`,
+      `/registrar/class-groups/${classGroup.id}?pSubjects=1`,
       await signInAsRegistrar(scenario),
     );
 
     // O link que avança os alunos carrega junto a página em que as disciplinas estão.
-    expect(page).toContain('pDisciplinas=1&amp;pMatriculas=2');
+    expect(page).toContain('pSubjects=1&amp;pEnrollments=2');
   });
 });
 
@@ -177,7 +177,7 @@ describe('portal do responsável', () => {
       recipients: [{ guardianId: guardian.id, readAt: new Date() }],
     });
 
-    const page = await html('/responsavel/mural', await signInAsGuardian(scenario));
+    const page = await html('/guardian/board', await signInAsGuardian(scenario));
 
     expect(page).toContain('Paginação de comunicados não lidos');
     expect(page).toContain('Paginação de comunicados lidos');
@@ -188,7 +188,7 @@ describe('portal do responsável', () => {
     const [enrollment] = scenario.enrollments;
 
     const response = await open(
-      `/responsavel/matriculas/${enrollment.id}/frequencia`,
+      `/guardian/enrollments/${enrollment.id}/attendance`,
       await signInAsGuardian(scenario),
     );
 
@@ -208,7 +208,7 @@ describe('a ajuda da busca de alunos promete o recorte que a tela entrega', () =
       await createStudent({ networkId: scenario.network.id, name: `Silva ${String(i).padStart(3, '0')}` });
     }
 
-    const page = await html('/secretaria/alunos?q=Silva', await signInAsRegistrar(scenario));
+    const page = await html('/registrar/students?q=Silva', await signInAsRegistrar(scenario));
 
     expect(numbersInHelpText(page)).toEqual([tableRows(page)]);
     expect(numbersInHelpText(page)).toEqual([PAGE_SIZE]);
@@ -221,8 +221,8 @@ describe('a ajuda da busca de alunos promete o recorte que a tela entrega', () =
     }
     const cookie = await signInAsRegistrar(scenario);
 
-    const first = await html('/secretaria/alunos?q=Silva', cookie);
-    const last = await html('/secretaria/alunos?q=Silva&p=2', cookie);
+    const first = await html('/registrar/students?q=Silva', cookie);
+    const last = await html('/registrar/students?q=Silva&p=2', cookie);
 
     const found = tableRows(first) + tableRows(last);
     expect(numbersInHelpText(first)).toEqual(numbersInHelpText(last));
@@ -233,8 +233,8 @@ describe('a ajuda da busca de alunos promete o recorte que a tela entrega', () =
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const withoutSearch = await html('/secretaria/alunos', cookie);
-    const withSearch = await html('/secretaria/alunos?q=Silva', cookie);
+    const withoutSearch = await html('/registrar/students', cookie);
+    const withSearch = await html('/registrar/students?q=Silva', cookie);
 
     expect(numbersInHelpText(withoutSearch)).toEqual(numbersInHelpText(withSearch));
     expect(numbersInHelpText(withoutSearch)).toEqual([PAGE_SIZE]);

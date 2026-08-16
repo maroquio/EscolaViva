@@ -209,13 +209,13 @@ export async function captureLogOfAFlow(scenario: FlowScenario): Promise<Capture
       ...init, headers: { ...(init.headers ?? {}), Cookie: cookie },
     });
 
-    await app.request('/painel', withSession());
+    await app.request('/dashboard', withSession());
 
-    const path = '/professor/disciplinas/' + data.classGroupSubjectId + '/notas';
+    const path = '/teacher/subjects/' + data.classGroupSubjectId + '/grades';
     const grades = { _chave: key(), bimestre: String(data.term) };
     for (const id of data.enrollmentIds) grades['nota_' + id] = String(data.grade);
     await app.request(path, withSession(form(grades)));
-    await app.request(path + '?bimestre=' + data.term, withSession());
+    await app.request(path + '?term=' + data.term, withSession());
 
     process.exit(0);
   `;

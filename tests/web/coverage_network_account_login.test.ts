@@ -55,7 +55,7 @@ describe('o painel da rede', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const response = await open('/rede', cookie);
+    const response = await open('/network', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -81,7 +81,7 @@ describe('o painel da rede', () => {
     });
     const cookie = await signIn({ networkSlug: network.slug, cpf: admin.cpf, password: DEFAULT_PASSWORD });
 
-    const response = await open('/rede', cookie);
+    const response = await open('/network', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -99,7 +99,7 @@ describe('as unidades da rede', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const response = await open('/rede/unidades', cookie);
+    const response = await open('/network/schools', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -115,7 +115,7 @@ describe('as unidades da rede', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const page = await html('/rede/unidades?ok=unidade-criada', cookie);
+    const page = await html('/network/schools?ok=school-created', cookie);
 
     expect(page).toContain('class="aviso aviso--sucesso"');
     expect(page).toContain('Unidade criada.');
@@ -125,7 +125,7 @@ describe('as unidades da rede', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const response = await open('/rede/unidades/nova', cookie);
+    const response = await open('/network/schools/new', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -143,7 +143,7 @@ describe('os usuários da rede', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const response = await open('/rede/usuarios', cookie);
+    const response = await open('/network/users', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -166,7 +166,7 @@ describe('os usuários da rede', () => {
     const session = await signInAs(scenario, 'admin');
 
     const creation = await send(
-      '/rede/usuarios',
+      '/network/users',
       {
         nome: 'Nova Secretária',
         email: 'nova.secretaria@escolaviva.test',
@@ -178,7 +178,7 @@ describe('os usuários da rede', () => {
     );
     const invitation = cookieFromResponse(creation);
 
-    const response = await open('/rede/usuarios?ok=usuario-convidado', `${session}; ${invitation}`);
+    const response = await open('/network/users?ok=user-invited', `${session}; ${invitation}`);
     const page = await response.text();
 
     expect(creation.status).toBe(303);
@@ -194,7 +194,7 @@ describe('os usuários da rede', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const page = await html('/rede/usuarios', cookie);
+    const page = await html('/network/users', cookie);
 
     expect(page).not.toContain('Senha provisória de');
     expect(page).not.toContain('<code class="codigo">');
@@ -204,7 +204,7 @@ describe('os usuários da rede', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const response = await open('/rede/usuarios/novo', cookie);
+    const response = await open('/network/users/new', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -228,7 +228,7 @@ describe('os anos letivos da rede', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const response = await open('/rede/anos-letivos', cookie);
+    const response = await open('/network/academic-years', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -242,7 +242,7 @@ describe('os anos letivos da rede', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const page = await html('/rede/anos-letivos?ok=ano-definido', cookie);
+    const page = await html('/network/academic-years?ok=year-defined', cookie);
 
     expect(page).toContain('class="aviso aviso--sucesso"');
     expect(page).toContain('Ano letivo definido.');
@@ -252,7 +252,7 @@ describe('os anos letivos da rede', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const response = await open('/rede/anos-letivos/novo', cookie);
+    const response = await open('/network/academic-years/new', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -271,7 +271,7 @@ describe('a troca da própria senha', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 
-    const response = await open('/conta/senha', cookie);
+    const response = await open('/account/password', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
@@ -285,13 +285,13 @@ describe('a troca da própria senha', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'teacher');
 
-    const response = await open('/conta/senha?ok=senha-alterada', cookie);
+    const response = await open('/account/password?ok=password-changed', cookie);
     const page = await response.text();
 
     expect(response.status).toBe(200);
     expect(page).toContain('class="aviso aviso--sucesso"');
     expect(page).toContain('Senha alterada. Use a senha nova no próximo acesso.');
-    expect(page).not.toContain('>senha-alterada<');
+    expect(page).not.toContain('>password-changed<');
   });
 });
 

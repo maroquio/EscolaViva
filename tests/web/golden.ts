@@ -20,7 +20,7 @@
  *    idempotência, o hash do CSS, o carimbo de tempo do banco) vira marcador anônimo.
  *
  * 3. O documento congelado inclui status e cabeçalhos de resposta. Metade das rotas de entrada não
- *    tem corpo: `/` e `/painel` são redirecionamentos, e o destino deles é exatamente o que um
+ *    tem corpo: `/` e `/dashboard` são redirecionamentos, e o destino deles é exatamente o que um
  *    refactor de rotas pode trocar sem que nenhum HTML mude.
  */
 
@@ -55,7 +55,7 @@ export const GOLDEN_DIR = join(import.meta.dir, 'golden');
 /**
  * Papéis que abrem as telas. `anonimo` é a ausência de sessão, e também é uma tela; `semPapel` é a
  * conta que existe e ainda não foi ligada a unidade nenhuma, que é a única porta para a tela
- * "Conta sem papel atribuído" de `/painel`.
+ * "Conta sem papel atribuído" de `/dashboard`.
  */
 export type GoldenRole =
   | 'anonimo'
@@ -205,7 +205,7 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     enrollments.push(enrollment);
   }
 
-  // Conta criada e ainda não atribuída: `/painel` não tem para onde mandá-la, e diz isso na tela.
+  // Conta criada e ainda não atribuída: `/dashboard` não tem para onde mandá-la, e diz isso na tela.
   const roleless = await createUser({
     networkId,
     name: 'Eva Recém-Convidada',
@@ -381,14 +381,14 @@ export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen
     { name: 'anonimo-raiz', role: 'anonimo', path: '/' },
     { name: 'anonimo-login', role: 'anonimo', path: '/login' },
     { name: 'anonimo-login-apos-sair', role: 'anonimo', path: `/login?ok=${signOutMessage}` },
-    { name: 'anonimo-painel', role: 'anonimo', path: '/painel' },
-    { name: 'anonimo-secretaria', role: 'anonimo', path: '/secretaria' },
+    { name: 'anonimo-painel', role: 'anonimo', path: '/dashboard' },
+    { name: 'anonimo-secretaria', role: 'anonimo', path: '/registrar' },
     { name: 'anonimo-rota-inexistente', role: 'anonimo', path: '/nao-existe' },
-    { name: 'anonimo-publico-inexistente', role: 'anonimo', path: '/publico/nao-existe.css' },
-    { name: 'anonimo-publico-nome-recusado', role: 'anonimo', path: '/publico/..%2Fsegredo' },
+    { name: 'anonimo-publico-inexistente', role: 'anonimo', path: '/public/nao-existe.css' },
+    { name: 'anonimo-publico-nome-recusado', role: 'anonimo', path: '/public/..%2Fsegredo' },
 
     /* Conta sem papel atribuído -------------------------------------------- */
-    { name: 'sem-papel-painel', role: 'semPapel', path: '/painel' },
+    { name: 'sem-papel-painel', role: 'semPapel', path: '/dashboard' },
     { name: 'sem-papel-raiz', role: 'semPapel', path: '/' },
 
     /* Saúde ---------------------------------------------------------------- */
@@ -397,74 +397,74 @@ export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen
 
     /* Administração da rede ------------------------------------------------ */
     { name: 'admin-raiz', role: 'admin', path: '/' },
-    { name: 'admin-painel', role: 'admin', path: '/painel' },
+    { name: 'admin-painel', role: 'admin', path: '/dashboard' },
     { name: 'admin-login-com-sessao', role: 'admin', path: '/login' },
-    { name: 'admin-rede-painel', role: 'admin', path: '/rede' },
-    { name: 'admin-rede-unidades', role: 'admin', path: '/rede/unidades' },
-    { name: 'admin-rede-unidades-criada', role: 'admin', path: '/rede/unidades?ok=unidade-criada' },
-    { name: 'admin-rede-unidade-nova', role: 'admin', path: '/rede/unidades/nova' },
-    { name: 'admin-rede-usuarios', role: 'admin', path: '/rede/usuarios' },
-    { name: 'admin-rede-usuarios-convidado', role: 'admin', path: '/rede/usuarios?ok=usuario-convidado' },
-    { name: 'admin-rede-usuario-novo', role: 'admin', path: '/rede/usuarios/novo' },
-    { name: 'admin-rede-anos-letivos', role: 'admin', path: '/rede/anos-letivos' },
-    { name: 'admin-rede-anos-letivos-definido', role: 'admin', path: '/rede/anos-letivos?ok=ano-definido' },
-    { name: 'admin-rede-ano-novo', role: 'admin', path: '/rede/anos-letivos/novo' },
-    { name: 'admin-comunicados', role: 'admin', path: '/comunicados' },
-    { name: 'admin-comunicados-unidade', role: 'admin', path: `/comunicados?unidadeId=${ids.schoolA}` },
-    { name: 'admin-comunicado-novo', role: 'admin', path: '/comunicados/novo' },
-    { name: 'admin-comunicado-novo-unidade', role: 'admin', path: `/comunicados/novo?unidadeId=${ids.schoolA}` },
-    { name: 'admin-conta-senha', role: 'admin', path: '/conta/senha' },
-    { name: 'admin-conta-senha-alterada', role: 'admin', path: '/conta/senha?ok=senha-alterada' },
-    { name: 'admin-professor-proibido', role: 'admin', path: '/professor' },
+    { name: 'admin-rede-painel', role: 'admin', path: '/network' },
+    { name: 'admin-rede-unidades', role: 'admin', path: '/network/schools' },
+    { name: 'admin-rede-unidades-criada', role: 'admin', path: '/network/schools?ok=school-created' },
+    { name: 'admin-rede-unidade-nova', role: 'admin', path: '/network/schools/new' },
+    { name: 'admin-rede-usuarios', role: 'admin', path: '/network/users' },
+    { name: 'admin-rede-usuarios-convidado', role: 'admin', path: '/network/users?ok=user-invited' },
+    { name: 'admin-rede-usuario-novo', role: 'admin', path: '/network/users/new' },
+    { name: 'admin-rede-anos-letivos', role: 'admin', path: '/network/academic-years' },
+    { name: 'admin-rede-anos-letivos-definido', role: 'admin', path: '/network/academic-years?ok=year-defined' },
+    { name: 'admin-rede-ano-novo', role: 'admin', path: '/network/academic-years/new' },
+    { name: 'admin-comunicados', role: 'admin', path: '/announcements' },
+    { name: 'admin-comunicados-unidade', role: 'admin', path: `/announcements?schoolId=${ids.schoolA}` },
+    { name: 'admin-comunicado-novo', role: 'admin', path: '/announcements/new' },
+    { name: 'admin-comunicado-novo-unidade', role: 'admin', path: `/announcements/new?schoolId=${ids.schoolA}` },
+    { name: 'admin-conta-senha', role: 'admin', path: '/account/password' },
+    { name: 'admin-conta-senha-alterada', role: 'admin', path: '/account/password?ok=password-changed' },
+    { name: 'admin-professor-proibido', role: 'admin', path: '/teacher' },
 
     /* Secretaria ------------------------------------------------------------ */
-    { name: 'secretaria-painel-redirecionado', role: 'secretaria', path: '/painel' },
-    { name: 'secretaria-painel', role: 'secretaria', path: '/secretaria' },
-    { name: 'secretaria-alunos-sem-busca', role: 'secretaria', path: '/secretaria/alunos' },
-    { name: 'secretaria-alunos-busca', role: 'secretaria', path: '/secretaria/alunos?q=Silva' },
-    { name: 'secretaria-alunos-busca-pagina-2', role: 'secretaria', path: '/secretaria/alunos?q=Silva&p=2' },
-    { name: 'secretaria-aluno-novo', role: 'secretaria', path: '/secretaria/alunos/novo' },
-    { name: 'secretaria-aluno-ficha', role: 'secretaria', path: `/secretaria/alunos/${ids.student1}` },
-    { name: 'secretaria-aluno-inexistente', role: 'secretaria', path: `/secretaria/alunos/${ids.nonexistent}` },
-    { name: 'secretaria-aluno-responsavel-novo', role: 'secretaria', path: `/secretaria/alunos/${ids.student1}/responsaveis/novo` },
-    { name: 'secretaria-aluno-matricular', role: 'secretaria', path: `/secretaria/alunos/${ids.student1}/matricular` },
-    { name: 'secretaria-matricula-transferir', role: 'secretaria', path: `/secretaria/matriculas/${ids.enrollment1}/transferir` },
-    { name: 'secretaria-responsaveis', role: 'secretaria', path: '/secretaria/responsaveis' },
-    { name: 'secretaria-responsaveis-pagina-2', role: 'secretaria', path: '/secretaria/responsaveis?p=2' },
-    { name: 'secretaria-responsavel-novo', role: 'secretaria', path: '/secretaria/responsaveis/novo' },
-    { name: 'secretaria-turmas', role: 'secretaria', path: '/secretaria/turmas' },
-    { name: 'secretaria-turmas-filtradas', role: 'secretaria', path: `/secretaria/turmas?unidade=${ids.schoolA}&ano=${ids.currentYear}` },
-    { name: 'secretaria-turma-nova', role: 'secretaria', path: '/secretaria/turmas/nova' },
-    { name: 'secretaria-turma-ficha', role: 'secretaria', path: `/secretaria/turmas/${ids.classGroup1}` },
-    { name: 'secretaria-turma-ficha-pagina-2', role: 'secretaria', path: `/secretaria/turmas/${ids.classGroup1}?pMatriculas=2` },
-    { name: 'secretaria-turma-disciplina-nova', role: 'secretaria', path: `/secretaria/turmas/${ids.classGroup1}/disciplinas/nova` },
-    { name: 'secretaria-disciplinas', role: 'secretaria', path: '/secretaria/disciplinas' },
-    { name: 'secretaria-disciplina-nova', role: 'secretaria', path: '/secretaria/disciplinas/nova' },
-    { name: 'secretaria-comunicados', role: 'secretaria', path: '/comunicados' },
-    { name: 'secretaria-comunicado-novo', role: 'secretaria', path: '/comunicados/novo' },
+    { name: 'secretaria-painel-redirecionado', role: 'secretaria', path: '/dashboard' },
+    { name: 'secretaria-painel', role: 'secretaria', path: '/registrar' },
+    { name: 'secretaria-alunos-sem-busca', role: 'secretaria', path: '/registrar/students' },
+    { name: 'secretaria-alunos-busca', role: 'secretaria', path: '/registrar/students?q=Silva' },
+    { name: 'secretaria-alunos-busca-pagina-2', role: 'secretaria', path: '/registrar/students?q=Silva&p=2' },
+    { name: 'secretaria-aluno-novo', role: 'secretaria', path: '/registrar/students/new' },
+    { name: 'secretaria-aluno-ficha', role: 'secretaria', path: `/registrar/students/${ids.student1}` },
+    { name: 'secretaria-aluno-inexistente', role: 'secretaria', path: `/registrar/students/${ids.nonexistent}` },
+    { name: 'secretaria-aluno-responsavel-novo', role: 'secretaria', path: `/registrar/students/${ids.student1}/guardians/new` },
+    { name: 'secretaria-aluno-matricular', role: 'secretaria', path: `/registrar/students/${ids.student1}/enroll` },
+    { name: 'secretaria-matricula-transferir', role: 'secretaria', path: `/registrar/enrollments/${ids.enrollment1}/transfer` },
+    { name: 'secretaria-responsaveis', role: 'secretaria', path: '/registrar/guardians' },
+    { name: 'secretaria-responsaveis-pagina-2', role: 'secretaria', path: '/registrar/guardians?p=2' },
+    { name: 'secretaria-responsavel-novo', role: 'secretaria', path: '/registrar/guardians/new' },
+    { name: 'secretaria-turmas', role: 'secretaria', path: '/registrar/class-groups' },
+    { name: 'secretaria-turmas-filtradas', role: 'secretaria', path: `/registrar/class-groups?school=${ids.schoolA}&year=${ids.currentYear}` },
+    { name: 'secretaria-turma-nova', role: 'secretaria', path: '/registrar/class-groups/new' },
+    { name: 'secretaria-turma-ficha', role: 'secretaria', path: `/registrar/class-groups/${ids.classGroup1}` },
+    { name: 'secretaria-turma-ficha-pagina-2', role: 'secretaria', path: `/registrar/class-groups/${ids.classGroup1}?pEnrollments=2` },
+    { name: 'secretaria-turma-disciplina-nova', role: 'secretaria', path: `/registrar/class-groups/${ids.classGroup1}/subjects/new` },
+    { name: 'secretaria-disciplinas', role: 'secretaria', path: '/registrar/subjects' },
+    { name: 'secretaria-disciplina-nova', role: 'secretaria', path: '/registrar/subjects/new' },
+    { name: 'secretaria-comunicados', role: 'secretaria', path: '/announcements' },
+    { name: 'secretaria-comunicado-novo', role: 'secretaria', path: '/announcements/new' },
     { name: 'secretaria-rota-inexistente', role: 'secretaria', path: '/nao-existe' },
 
     /* Professor ------------------------------------------------------------- */
-    { name: 'professor-painel-redirecionado', role: 'professor', path: '/painel' },
-    { name: 'professor-painel', role: 'professor', path: '/professor' },
-    { name: 'professor-notas', role: 'professor', path: `/professor/disciplinas/${ids.assignment1}/notas` },
-    { name: 'professor-notas-bimestre-2', role: 'professor', path: `/professor/disciplinas/${ids.assignment1}/notas?bimestre=2` },
-    { name: 'professor-chamada-data-fixa', role: 'professor', path: `/professor/turmas/${ids.classGroup1}/chamada?data=${CURRENT_YEAR}-03-05` },
-    { name: 'professor-chamada-hoje', role: 'professor', path: `/professor/turmas/${ids.classGroup1}/chamada` },
-    { name: 'professor-fechamento', role: 'professor', path: `/professor/turmas/${ids.classGroup1}/fechamento` },
-    { name: 'professor-turma-alheia', role: 'professor', path: `/professor/turmas/${ids.classGroup2}/fechamento` },
-    { name: 'professor-conta-senha', role: 'professor', path: '/conta/senha' },
+    { name: 'professor-painel-redirecionado', role: 'professor', path: '/dashboard' },
+    { name: 'professor-painel', role: 'professor', path: '/teacher' },
+    { name: 'professor-notas', role: 'professor', path: `/teacher/subjects/${ids.assignment1}/grades` },
+    { name: 'professor-notas-bimestre-2', role: 'professor', path: `/teacher/subjects/${ids.assignment1}/grades?term=2` },
+    { name: 'professor-chamada-data-fixa', role: 'professor', path: `/teacher/class-groups/${ids.classGroup1}/roll-call?date=${CURRENT_YEAR}-03-05` },
+    { name: 'professor-chamada-hoje', role: 'professor', path: `/teacher/class-groups/${ids.classGroup1}/roll-call` },
+    { name: 'professor-fechamento', role: 'professor', path: `/teacher/class-groups/${ids.classGroup1}/closing` },
+    { name: 'professor-turma-alheia', role: 'professor', path: `/teacher/class-groups/${ids.classGroup2}/closing` },
+    { name: 'professor-conta-senha', role: 'professor', path: '/account/password' },
 
     /* Responsável ----------------------------------------------------------- */
-    { name: 'responsavel-painel-redirecionado', role: 'responsavel', path: '/painel' },
-    { name: 'responsavel-painel', role: 'responsavel', path: '/responsavel' },
-    { name: 'responsavel-boletim', role: 'responsavel', path: `/responsavel/matriculas/${ids.enrollment1}/boletim` },
-    { name: 'responsavel-frequencia', role: 'responsavel', path: `/responsavel/matriculas/${ids.enrollment1}/frequencia` },
-    { name: 'responsavel-frequencia-pagina-2', role: 'responsavel', path: `/responsavel/matriculas/${ids.enrollment1}/frequencia?p=2` },
-    { name: 'responsavel-mural', role: 'responsavel', path: '/responsavel/mural' },
-    { name: 'responsavel-comunicado', role: 'responsavel', path: `/responsavel/mural/${ids.announcement1}` },
-    { name: 'responsavel-comunicado-alheio', role: 'responsavel', path: `/responsavel/mural/${ids.nonexistent}` },
-    { name: 'responsavel-conta-senha', role: 'responsavel', path: '/conta/senha' },
+    { name: 'responsavel-painel-redirecionado', role: 'responsavel', path: '/dashboard' },
+    { name: 'responsavel-painel', role: 'responsavel', path: '/guardian' },
+    { name: 'responsavel-boletim', role: 'responsavel', path: `/guardian/enrollments/${ids.enrollment1}/report-card` },
+    { name: 'responsavel-frequencia', role: 'responsavel', path: `/guardian/enrollments/${ids.enrollment1}/attendance` },
+    { name: 'responsavel-frequencia-pagina-2', role: 'responsavel', path: `/guardian/enrollments/${ids.enrollment1}/attendance?p=2` },
+    { name: 'responsavel-mural', role: 'responsavel', path: '/guardian/board' },
+    { name: 'responsavel-comunicado', role: 'responsavel', path: `/guardian/board/${ids.announcement1}` },
+    { name: 'responsavel-comunicado-alheio', role: 'responsavel', path: `/guardian/board/${ids.nonexistent}` },
+    { name: 'responsavel-conta-senha', role: 'responsavel', path: '/account/password' },
   ];
 }
 
@@ -528,7 +528,7 @@ export function normalize(text: string, markers: ReadonlyMap<string, string>): s
   let output = text;
 
   output = output.replace(IDEMPOTENCY_KEY_ATTR, '$1{{chave}}$2');
-  output = output.replace(VERSIONED_ASSET, '/publico/app.{{hashDoCss}}.css');
+  output = output.replace(VERSIONED_ASSET, '/public/app.{{hashDoCss}}.css');
   output = output.replaceAll(CORRELATION, '{{correlacao}}');
 
   for (const [raw, marker] of markers) {

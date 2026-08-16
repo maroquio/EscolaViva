@@ -58,27 +58,27 @@ describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
     const guardianEmail = 'cleuza.do.vale@escolaviva.test';
 
     const registration = await send(
-      '/secretaria/alunos',
+      '/registrar/students',
       { nome: studentName, dataNascimento: '2014-07-21' },
       cookie,
     );
     const studentId = targetIdentifier(registration);
 
     const guardian = await send(
-      '/secretaria/responsaveis',
+      '/registrar/guardians',
       { nome: guardianName, email: guardianEmail, telefone: '(27) 99999-0000' },
       cookie,
     );
     const guardianId = await guardianByEmail(scenario.network.id, guardianEmail);
 
     const guardianLink = await send(
-      `/secretaria/alunos/${studentId}/responsaveis`,
+      `/registrar/students/${studentId}/guardians`,
       { responsavelId: guardianId, parentesco: 'mãe', financeiro: 'on' },
       cookie,
     );
 
     const enrollment = await send(
-      '/secretaria/matriculas',
+      '/registrar/enrollments',
       {
         alunoId: studentId,
         turmaId: targetClassGroup.id,
@@ -88,13 +88,13 @@ describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
       cookie,
     );
 
-    const classGroup = await open(`/secretaria/turmas/${targetClassGroup.id}`, cookie);
+    const classGroup = await open(`/registrar/class-groups/${targetClassGroup.id}`, cookie);
     const classGroupPage = await classGroup.text();
 
     expect([registration.status, guardian.status, guardianLink.status, enrollment.status]).toEqual([
       303, 303, 303, 303,
     ]);
-    expect(enrollment.headers.get('Location')).toContain(`/secretaria/alunos/${studentId}`);
+    expect(enrollment.headers.get('Location')).toContain(`/registrar/students/${studentId}`);
     expect(classGroup.status).toBe(200);
     expect(classGroupPage).toContain(studentName);
   }, FLOW_DEADLINE_MS);
@@ -106,24 +106,24 @@ describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
     const guardianEmail = 'tia.de.ivo@escolaviva.test';
 
     const registration = await send(
-      '/secretaria/alunos',
+      '/registrar/students',
       { nome: studentName, dataNascimento: '2013-01-30' },
       cookie,
     );
     const studentId = targetIdentifier(registration);
     await send(
-      '/secretaria/responsaveis',
+      '/registrar/guardians',
       { nome: 'Regina Sampaio', email: guardianEmail, telefone: '' },
       cookie,
     );
     const guardianId = await guardianByEmail(scenario.network.id, guardianEmail);
     await send(
-      `/secretaria/alunos/${studentId}/responsaveis`,
+      `/registrar/students/${studentId}/guardians`,
       { responsavelId: guardianId, parentesco: 'tia', financeiro: 'on' },
       cookie,
     );
     await send(
-      '/secretaria/matriculas',
+      '/registrar/enrollments',
       {
         alunoId: studentId,
         turmaId: scenario.classGroups[1].id,
@@ -133,7 +133,7 @@ describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
       cookie,
     );
 
-    const record = await (await open(`/secretaria/alunos/${studentId}`, cookie)).text();
+    const record = await (await open(`/registrar/students/${studentId}`, cookie)).text();
 
     expect(record).toContain('Regina Sampaio');
     expect(record).toContain('tia');
@@ -155,7 +155,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
         for (const enrollment of scenario.enrollments) {
           fields[`nota_${enrollment.id}`] = NOTA_DE_APROVACAO;
         }
-        submissions.push(await send(`/professor/disciplinas/${assignment.id}/notas`, fields, cookie));
+        submissions.push(await send(`/teacher/subjects/${assignment.id}/grades`, fields, cookie));
       }
     }
     return submissions;
@@ -170,7 +170,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
       const fields: Record<string, string> = { data: date };
       for (const enrollment of scenario.enrollments) fields[`presenca_${enrollment.id}`] = 'on';
       submissions.push(
-        await send(`/professor/turmas/${scenario.classGroups[0].id}/chamada`, fields, cookie),
+        await send(`/teacher/class-groups/${scenario.classGroups[0].id}/roll-call`, fields, cookie),
       );
     }
     return submissions;
@@ -178,7 +178,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
 
   const closeTerm = (scenario: Scenario, cookie: string, term: number): Promise<Response> =>
     send(
-      `/professor/turmas/${scenario.classGroups[0].id}/fechamento`,
+      `/teacher/class-groups/${scenario.classGroups[0].id}/closing`,
       { bimestre: String(term) },
       cookie,
     );
@@ -188,7 +188,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
     const teacherCookie = await signInAs(scenario, 'teacher');
     const guardianCookie = await signInAs(scenario, 'guardian');
     const reportCardOf = (): Promise<Response> =>
-      open(`/responsavel/matriculas/${scenario.enrollments[0].id}/boletim`, guardianCookie);
+      open(`/guardian/enrollments/${scenario.enrollments[0].id}/report-card`, guardianCookie);
 
     const grades = await postAllGrades(scenario, teacherCookie);
     const rollCalls = await recordFullRollCall(scenario, teacherCookie);
@@ -219,7 +219,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
     await recordFullRollCall(scenario, teacherCookie);
     for (const term of TERMS) await closeTerm(scenario, teacherCookie, term);
     const reportCard = await (
-      await open(`/responsavel/matriculas/${scenario.enrollments[0].id}/boletim`, guardianCookie)
+      await open(`/guardian/enrollments/${scenario.enrollments[0].id}/report-card`, guardianCookie)
     ).text();
 
     expect(reportCard).toContain('8,0');
@@ -235,7 +235,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
 
     await recordFullRollCall(scenario, teacherCookie);
     const page = await open(
-      `/responsavel/matriculas/${scenario.enrollments[0].id}/frequencia`,
+      `/guardian/enrollments/${scenario.enrollments[0].id}/attendance`,
       guardianCookie,
     );
     const attendance = await page.text();
@@ -253,7 +253,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
     const rejection = await closeTerm(scenario, teacherCookie, 1);
     const rejectionBody = await rejection.text();
     const reportCard = await (
-      await open(`/responsavel/matriculas/${scenario.enrollments[0].id}/boletim`, guardianCookie)
+      await open(`/guardian/enrollments/${scenario.enrollments[0].id}/report-card`, guardianCookie)
     ).text();
 
     // Cinco matrículas ativas em três disciplinas alocadas, nenhuma nota lançada: faltam quinze.

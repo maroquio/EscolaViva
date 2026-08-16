@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
-# I10 — o CSS sai daqui com o hash no nome. `publico/` não vem do contexto de build
+# I10 — o CSS sai daqui com o hash no nome. `public/` não vem do contexto de build
 # (está no .dockerignore); é gerado dentro da imagem, a partir da fonte versionada.
 FROM dependencias AS ativos
 COPY src ./src
@@ -21,7 +21,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=dependencias /app/node_modules ./node_modules
-COPY --from=ativos /app/publico ./publico
+COPY --from=ativos /app/public ./public
 COPY package.json ./
 COPY src ./src
 COPY migrations ./migrations

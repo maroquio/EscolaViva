@@ -190,7 +190,7 @@ guardianRoutes.get(ROUTES.guardian.board.pattern, async (c) => {
 });
 
 guardianRoutes.get(ROUTES.guardian.announcement.pattern, async (c) => {
-  const { comunicadoId: announcementId } = c.req.param();
+  const { announcementId } = c.req.param();
   const networkId = currentNetwork(c);
   const guardianId = sessionGuardian(c);
   if (guardianId === null) throw new NotFound(DIAGNOSTICS.accountWithoutGuardian);
@@ -209,7 +209,7 @@ guardianRoutes.get(ROUTES.guardian.announcement.pattern, async (c) => {
 });
 
 guardianRoutes.post(ROUTES.guardian.announcementRead.pattern, async (c) => {
-  const { comunicadoId: announcementId } = c.req.param();
+  const { announcementId } = c.req.param();
   const networkId = currentNetwork(c);
   const guardianId = sessionGuardian(c);
   if (guardianId === null) throw new NotFound(DIAGNOSTICS.accountWithoutGuardian);
@@ -229,7 +229,7 @@ guardianRoutes.post(ROUTES.guardian.announcementRead.pattern, async (c) => {
   if (!result.ok) {
     const message = result.erros[0]?.mensagem ?? NOTICES.readNotRecorded;
     return c.redirect(
-      withNotice(ROUTES.guardian.announcement({ comunicadoId: announcementId }), {
+      withNotice(ROUTES.guardian.announcement({ announcementId }), {
         [PARAMS.error]: message,
       }),
       303,

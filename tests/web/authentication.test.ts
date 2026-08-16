@@ -51,7 +51,7 @@ describe('autenticação', () => {
     });
 
     expect(response.status).toBe(303);
-    expect(response.headers.get('Location')).toBe('/painel');
+    expect(response.headers.get('Location')).toBe('/dashboard');
   });
 
   test('o cookie de sessão é HttpOnly, SameSite=Lax e vale para todo o site', async () => {
@@ -139,14 +139,14 @@ describe('autenticação', () => {
   });
 
   test('rota autenticada sem cookie redireciona para o login', async () => {
-    const response = await open('/secretaria');
+    const response = await open('/registrar');
 
     expect(response.status).toBe(303);
     expect(response.headers.get('Location')).toBe('/login');
   });
 
   test('escrita sem cookie é recusada em vez de redirecionada', async () => {
-    const response = await send('/secretaria/disciplinas', { nome: 'Filosofia' });
+    const response = await send('/registrar/subjects', { nome: 'Filosofia' });
 
     expect(response.status).toBe(401);
   });
@@ -159,8 +159,8 @@ describe('autenticação', () => {
       password: scenario.password,
     });
 
-    const withGoodCookie = await open('/secretaria', cookie);
-    const withTamperedCookie = await open('/secretaria', tamper(cookie));
+    const withGoodCookie = await open('/registrar', cookie);
+    const withTamperedCookie = await open('/registrar', tamper(cookie));
 
     expect(withGoodCookie.status).toBe(200);
     expect(withTamperedCookie.status).toBe(303);
@@ -168,7 +168,7 @@ describe('autenticação', () => {
   });
 
   test('cookie inventado, sem assinatura nenhuma, não abre rota autenticada', async () => {
-    const response = await open('/secretaria', `ev_sessao=${crypto.randomUUID()}`);
+    const response = await open('/registrar', `ev_sessao=${crypto.randomUUID()}`);
 
     expect(response.status).toBe(303);
     expect(response.headers.get('Location')).toBe('/login');
@@ -183,7 +183,7 @@ describe('autenticação', () => {
     });
 
     const signedOut = await post('/logout', {}, cookie);
-    const after = await open('/secretaria', cookie);
+    const after = await open('/registrar', cookie);
 
     expect(signedOut.status).toBe(303);
     expect(await storedSessions(scenario.registrar.id)).toBe(0);
@@ -216,7 +216,7 @@ describe('autenticação', () => {
     const response = await open('/login', cookie);
 
     expect(response.status).toBe(303);
-    expect(response.headers.get('Location')).toBe('/painel');
+    expect(response.headers.get('Location')).toBe('/dashboard');
   });
 
   test('a raiz leva ao login sem sessão e ao painel com sessão', async () => {
@@ -231,6 +231,6 @@ describe('autenticação', () => {
     const autenticada = await open('/', cookie);
 
     expect(anonymousResponse.headers.get('Location')).toBe('/login');
-    expect(autenticada.headers.get('Location')).toBe('/painel');
+    expect(autenticada.headers.get('Location')).toBe('/dashboard');
   });
 });

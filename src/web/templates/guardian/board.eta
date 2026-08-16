@@ -35,7 +35,7 @@ const read = it.read;
     <li class="quadro">
       <div class="linha linha--entre">
         <h3>
-          <a href="<%= it.routes.guardian.announcement({ comunicadoId: item.announcementId }) %>"><%= item.title %></a>
+          <a href="<%= it.routes.guardian.announcement({ announcementId: item.announcementId }) %>"><%= item.title %></a>
         </h3>
         <span class="linha">
           <time class="suave" datetime="<%= item.publishedAt %>">
@@ -71,7 +71,7 @@ const read = it.read;
   <ul class="pilha">
     <% read.forEach((item) => { %>
     <li class="linha">
-      <a href="<%= it.routes.guardian.announcement({ comunicadoId: item.announcementId }) %>"><%= item.title %></a>
+      <a href="<%= it.routes.guardian.announcement({ announcementId: item.announcementId }) %>"><%= item.title %></a>
       <span class="suave">
         publicado em
         <time datetime="<%= item.publishedAt %>"><%= it.formatDate(item.publishedAt) %></time>

@@ -38,22 +38,22 @@ describe('autorização por papel', () => {
 
     const targets = await Promise.all(
       (['admin', 'registrar', 'teacher', 'guardian'] as const).map(async (who) => {
-        const response = await open('/painel', await signInAs(scenario, who));
+        const response = await open('/dashboard', await signInAs(scenario, who));
         return response.headers.get('Location');
       }),
     );
 
-    expect(targets).toEqual(['/rede', '/secretaria', '/professor', '/responsavel']);
+    expect(targets).toEqual(['/network', '/registrar', '/teacher', '/guardian']);
   });
 
   test('cada papel abre a sua própria área', async () => {
     const scenario = await fullScenario();
 
     const status = await Promise.all([
-      statusOf('/rede', await signInAs(scenario, 'admin')),
-      statusOf('/secretaria', await signInAs(scenario, 'registrar')),
-      statusOf('/professor', await signInAs(scenario, 'teacher')),
-      statusOf('/responsavel', await signInAs(scenario, 'guardian')),
+      statusOf('/network', await signInAs(scenario, 'admin')),
+      statusOf('/registrar', await signInAs(scenario, 'registrar')),
+      statusOf('/teacher', await signInAs(scenario, 'teacher')),
+      statusOf('/guardian', await signInAs(scenario, 'guardian')),
     ]);
 
     expect(status).toEqual([200, 200, 200, 200]);
@@ -64,9 +64,9 @@ describe('autorização por papel', () => {
     const cookie = await signInAs(scenario, 'teacher');
 
     const status = await Promise.all([
-      statusOf('/secretaria', cookie),
-      statusOf('/secretaria/turmas', cookie),
-      statusOf('/rede/usuarios', cookie),
+      statusOf('/registrar', cookie),
+      statusOf('/registrar/class-groups', cookie),
+      statusOf('/network/users', cookie),
     ]);
 
     expect(status).toEqual([403, 403, 403]);
@@ -77,9 +77,9 @@ describe('autorização por papel', () => {
     const cookie = await signInAs(scenario, 'guardian');
 
     const status = await Promise.all([
-      statusOf('/professor', cookie),
-      statusOf('/secretaria/alunos', cookie),
-      statusOf('/comunicados', cookie),
+      statusOf('/teacher', cookie),
+      statusOf('/registrar/students', cookie),
+      statusOf('/announcements', cookie),
     ]);
 
     expect(status).toEqual([403, 403, 403]);
@@ -88,8 +88,8 @@ describe('autorização por papel', () => {
   test('secretaria não administra a rede, e administração da rede não dá aula', async () => {
     const scenario = await fullScenario();
 
-    const registrarInNetwork = await statusOf('/rede/unidades', await signInAs(scenario, 'registrar'));
-    const adminOnTeacherArea = await statusOf('/professor', await signInAs(scenario, 'admin'));
+    const registrarInNetwork = await statusOf('/network/schools', await signInAs(scenario, 'registrar'));
+    const adminOnTeacherArea = await statusOf('/teacher', await signInAs(scenario, 'admin'));
 
     expect([registrarInNetwork, adminOnTeacherArea]).toEqual([403, 403]);
   });
@@ -98,9 +98,9 @@ describe('autorização por papel', () => {
     const scenario = await fullScenario();
 
     const status = await Promise.all([
-      statusOf('/comunicados', await signInAs(scenario, 'registrar')),
-      statusOf('/comunicados', await signInAs(scenario, 'admin')),
-      statusOf('/comunicados', await signInAs(scenario, 'teacher')),
+      statusOf('/announcements', await signInAs(scenario, 'registrar')),
+      statusOf('/announcements', await signInAs(scenario, 'admin')),
+      statusOf('/announcements', await signInAs(scenario, 'teacher')),
     ]);
 
     expect(status).toEqual([200, 200, 403]);
@@ -110,8 +110,8 @@ describe('autorização por papel', () => {
     const scenario = await fullScenario();
 
     const status = await Promise.all([
-      statusOf('/conta/senha', await signInAs(scenario, 'teacher')),
-      statusOf('/conta/senha', await signInAs(scenario, 'guardian')),
+      statusOf('/account/password', await signInAs(scenario, 'teacher')),
+      statusOf('/account/password', await signInAs(scenario, 'guardian')),
     ]);
 
     expect(status).toEqual([200, 200]);
@@ -140,10 +140,10 @@ describe('alcance dentro do papel', () => {
     const cookie = await signInAs(scenario, 'teacher');
 
     const own = await statusOf(
-      `/professor/disciplinas/${scenario.classGroupSubjects[0].id}/notas`,
+      `/teacher/subjects/${scenario.classGroupSubjects[0].id}/grades`,
       cookie,
     );
-    const fromAnother = await statusOf(`/professor/disciplinas/${foreign.id}/notas`, cookie);
+    const fromAnother = await statusOf(`/teacher/subjects/${foreign.id}/grades`, cookie);
 
     expect(own).toBe(200);
     expect(fromAnother).toBe(404);
@@ -155,8 +155,8 @@ describe('alcance dentro do papel', () => {
     const withoutAssignment = scenario.classGroups[1].id;
 
     const status = await Promise.all([
-      statusOf(`/professor/turmas/${withoutAssignment}/chamada`, cookie),
-      statusOf(`/professor/turmas/${withoutAssignment}/fechamento`, cookie),
+      statusOf(`/teacher/class-groups/${withoutAssignment}/roll-call`, cookie),
+      statusOf(`/teacher/class-groups/${withoutAssignment}/closing`, cookie),
     ]);
 
     expect(status).toEqual([404, 404]);
@@ -167,11 +167,11 @@ describe('alcance dentro do papel', () => {
     const cookie = await signInAs(scenario, 'guardian');
 
     const ofTheirStudent = await statusOf(
-      `/responsavel/matriculas/${scenario.enrollments[0].id}/boletim`,
+      `/guardian/enrollments/${scenario.enrollments[0].id}/report-card`,
       cookie,
     );
     const fromAnotherFamily = await statusOf(
-      `/responsavel/matriculas/${scenario.enrollments[1].id}/boletim`,
+      `/guardian/enrollments/${scenario.enrollments[1].id}/report-card`,
       cookie,
     );
 
@@ -184,7 +184,7 @@ describe('alcance dentro do papel', () => {
     const cookie = await signInAs(scenario, 'guardian');
 
     const status = await statusOf(
-      `/responsavel/matriculas/${scenario.enrollments[2].id}/frequencia`,
+      `/guardian/enrollments/${scenario.enrollments[2].id}/attendance`,
       cookie,
     );
 
@@ -195,8 +195,8 @@ describe('alcance dentro do papel', () => {
     const [networkA, networkB] = await Promise.all([fullScenario(), fullScenario()]);
     const cookie = await signInAs(networkA, 'registrar');
 
-    const ofTheOwnNetwork = await statusOf(`/secretaria/turmas/${networkA.classGroups[0].id}`, cookie);
-    const ofTheOtherNetwork = await statusOf(`/secretaria/turmas/${networkB.classGroups[0].id}`, cookie);
+    const ofTheOwnNetwork = await statusOf(`/registrar/class-groups/${networkA.classGroups[0].id}`, cookie);
+    const ofTheOtherNetwork = await statusOf(`/registrar/class-groups/${networkB.classGroups[0].id}`, cookie);
 
     expect(ofTheOwnNetwork).toBe(200);
     expect(ofTheOtherNetwork).toBe(404);
@@ -207,7 +207,7 @@ describe('alcance dentro do papel', () => {
     const cookie = await signInAs(networkA, 'teacher');
 
     const status = await statusOf(
-      `/professor/disciplinas/${networkB.classGroupSubjects[0].id}/notas`,
+      `/teacher/subjects/${networkB.classGroupSubjects[0].id}/grades`,
       cookie,
     );
 
@@ -219,8 +219,8 @@ describe('alcance dentro do papel', () => {
     const cookie = await signInAs(scenario, 'registrar');
 
     const status = await Promise.all([
-      statusOf('/secretaria/turmas/nao-e-um-uuid', cookie),
-      statusOf('/secretaria/alunos/nao-e-um-uuid', cookie),
+      statusOf('/registrar/class-groups/nao-e-um-uuid', cookie),
+      statusOf('/registrar/students/nao-e-um-uuid', cookie),
     ]);
 
     expect(status).toEqual([404, 404]);

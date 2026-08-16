@@ -64,19 +64,19 @@ describe('as quatro telas do diário de classe', () => {
     const cookie = await signInAs(scenario, 'teacher');
     const [classGroup, withoutAssignment] = scenario.classGroups;
 
-    const { status, html } = await screen('/professor', cookie);
+    const { status, html } = await screen('/teacher', cookie);
 
     expect(status).toBe(200);
     expect(html).toContain(pageTitle('Minhas turmas'));
     expect(html).toContain(classGroup.name);
     // As três disciplinas alocadas abrem o diário; a chamada e o fechamento são da turma.
     for (const subject of scenario.classGroupSubjects) {
-      expect(html).toContain(`href="/professor/disciplinas/${subject.id}/notas"`);
+      expect(html).toContain(`href="/teacher/subjects/${subject.id}/grades"`);
     }
-    expect(html).toContain(`href="/professor/turmas/${classGroup.id}/chamada"`);
-    expect(html).toContain(`href="/professor/turmas/${classGroup.id}/fechamento"`);
+    expect(html).toContain(`href="/teacher/class-groups/${classGroup.id}/roll-call"`);
+    expect(html).toContain(`href="/teacher/class-groups/${classGroup.id}/closing"`);
     // A turma sem alocação deste professor não aparece no painel dele.
-    expect(html).not.toContain(`href="/professor/turmas/${withoutAssignment.id}/chamada"`);
+    expect(html).not.toContain(`href="/teacher/class-groups/${withoutAssignment.id}/roll-call"`);
   });
 
   test('professor sem alocação vê o que falta, e não uma lista vazia', async () => {
@@ -92,7 +92,7 @@ describe('as quatro telas do diário de classe', () => {
       password: scenario.password,
     });
 
-    const { status, html } = await screen('/professor', cookie);
+    const { status, html } = await screen('/teacher', cookie);
 
     expect(status).toBe(200);
     expect(html).toContain('Nenhuma turma alocada');
@@ -105,7 +105,7 @@ describe('as quatro telas do diário de classe', () => {
     const [subject] = scenario.subjects;
 
     const { status, html } = await screen(
-      `/professor/disciplinas/${assignment.id}/notas?bimestre=3`,
+      `/teacher/subjects/${assignment.id}/grades?term=3`,
       cookie,
     );
 
@@ -113,7 +113,7 @@ describe('as quatro telas do diário de classe', () => {
     expect(html).toContain(pageTitle(subject.name));
     expect(html).toContain(`Notas do 3º bimestre · ${subject.name} · ${scenario.classGroups[0].name}`);
     expect(html).toContain('<th scope="col">Nota (0 a 10)</th>');
-    expect(html).toContain(formFor(`/professor/disciplinas/${assignment.id}/notas`));
+    expect(html).toContain(formFor(`/teacher/subjects/${assignment.id}/grades`));
     // O campo é nomeado pela matrícula, e o aluno da linha aparece pelo nome.
     for (const enrollment of scenario.enrollments) {
       expect(html).toContain(`name="nota_${enrollment.id}"`);
@@ -129,7 +129,7 @@ describe('as quatro telas do diário de classe', () => {
     const [assignment] = scenario.classGroupSubjects;
 
     const { status, html } = await screen(
-      `/professor/disciplinas/${assignment.id}/notas?bimestre=9`,
+      `/teacher/subjects/${assignment.id}/grades?term=9`,
       cookie,
     );
 
@@ -143,7 +143,7 @@ describe('as quatro telas do diário de classe', () => {
     const [classGroup] = scenario.classGroups;
 
     const { status, html } = await screen(
-      `/professor/turmas/${classGroup.id}/chamada?data=2026-03-02`,
+      `/teacher/class-groups/${classGroup.id}/roll-call?date=2026-03-02`,
       cookie,
     );
 
@@ -151,7 +151,7 @@ describe('as quatro telas do diário de classe', () => {
     expect(html).toContain(pageTitle(`Chamada · ${classGroup.name}`));
     expect(html).toContain(`Chamada de 02/03/2026 · ${classGroup.name}`);
     expect(html).toContain('<th scope="col">Justificativa da falta</th>');
-    expect(html).toContain(formFor(`/professor/turmas/${classGroup.id}/chamada`));
+    expect(html).toContain(formFor(`/teacher/class-groups/${classGroup.id}/roll-call`));
     expect(html).toContain('name="data" value="2026-03-02"');
     // Sem registro no dia, a caixa de cada aluno já vem marcada.
     for (const enrollment of scenario.enrollments) {
@@ -159,8 +159,8 @@ describe('as quatro telas do diário de classe', () => {
       expect(html).toContain(`name="justificativa_${enrollment.id}"`);
     }
     // O eixo da tela é o calendário: um dia para trás e um para a frente.
-    expect(html).toContain(`/professor/turmas/${classGroup.id}/chamada?data=2026-03-01`);
-    expect(html).toContain(`/professor/turmas/${classGroup.id}/chamada?data=2026-03-03`);
+    expect(html).toContain(`/teacher/class-groups/${classGroup.id}/roll-call?date=2026-03-01`);
+    expect(html).toContain(`/teacher/class-groups/${classGroup.id}/roll-call?date=2026-03-03`);
   });
 
   test('a chamada sem data na URL abre em um dia, e não em uma tela sem data', async () => {
@@ -168,7 +168,7 @@ describe('as quatro telas do diário de classe', () => {
     const cookie = await signInAs(scenario, 'teacher');
     const [classGroup] = scenario.classGroups;
 
-    const { status, html } = await screen(`/professor/turmas/${classGroup.id}/chamada`, cookie);
+    const { status, html } = await screen(`/teacher/class-groups/${classGroup.id}/roll-call`, cookie);
 
     expect(status).toBe(200);
     expect(html).toMatch(/name="data" value="\d{4}-\d{2}-\d{2}"/);
@@ -187,7 +187,7 @@ describe('as quatro telas do diário de classe', () => {
     const cookie = await signInAs(scenario, 'teacher');
 
     const { status, html } = await screen(
-      `/professor/turmas/${scenario.classGroups[1].id}/chamada`,
+      `/teacher/class-groups/${scenario.classGroups[1].id}/roll-call`,
       cookie,
     );
 
@@ -200,18 +200,18 @@ describe('as quatro telas do diário de classe', () => {
     const cookie = await signInAs(scenario, 'teacher');
     const [classGroup] = scenario.classGroups;
 
-    const { status, html } = await screen(`/professor/turmas/${classGroup.id}/fechamento`, cookie);
+    const { status, html } = await screen(`/teacher/class-groups/${classGroup.id}/closing`, cookie);
 
     expect(status).toBe(200);
     expect(html).toContain(pageTitle(`Fechamento · ${classGroup.name}`));
-    expect(html).toContain(formFor(`/professor/turmas/${classGroup.id}/fechamento`));
+    expect(html).toContain(formFor(`/teacher/class-groups/${classGroup.id}/closing`));
     for (const term of [1, 2, 3, 4]) {
       expect(html).toContain(`<h2>${term}º bimestre</h2>`);
       expect(html).toContain(`Fechar ${term}º bimestre`);
       expect(html).toContain(`name="bimestre" value="${term}"`);
     }
     // Cada bimestre aberto oferece o atalho para o diário das disciplinas deste professor.
-    expect(html).toContain(`/professor/disciplinas/${scenario.classGroupSubjects[0].id}/notas?bimestre=1`);
+    expect(html).toContain(`/teacher/subjects/${scenario.classGroupSubjects[0].id}/grades?term=1`);
   });
 });
 
@@ -223,16 +223,16 @@ describe('as telas do portal do responsável', () => {
     const cookie = await signInAs(scenario, 'guardian');
     const [mine, fromAnotherFamily] = scenario.enrollments;
 
-    const { status, html } = await screen('/responsavel', cookie);
+    const { status, html } = await screen('/guardian', cookie);
 
     expect(status).toBe(200);
     expect(html).toContain(pageTitle('Meus alunos'));
     expect(html).toContain('Matrículas sob sua responsabilidade');
     expect(html).toContain(scenario.students[0].name);
-    expect(html).toContain(`href="/responsavel/matriculas/${mine.id}/boletim"`);
-    expect(html).toContain(`href="/responsavel/matriculas/${mine.id}/frequencia"`);
+    expect(html).toContain(`href="/guardian/enrollments/${mine.id}/report-card"`);
+    expect(html).toContain(`href="/guardian/enrollments/${mine.id}/attendance"`);
     // O aluno de outra família não aparece nem como link.
-    expect(html).not.toContain(`href="/responsavel/matriculas/${fromAnotherFamily.id}/boletim"`);
+    expect(html).not.toContain(`href="/guardian/enrollments/${fromAnotherFamily.id}/report-card"`);
   });
 
   test('o painel traz o que a escola disse e ainda não foi lido', async () => {
@@ -254,14 +254,14 @@ describe('as telas do portal do responsável', () => {
     });
     const cookie = await signInAs(scenario, 'guardian');
 
-    const { status, html } = await screen('/responsavel', cookie);
+    const { status, html } = await screen('/guardian', cookie);
 
     expect(status).toBe(200);
-    expect(html).toContain(`href="/responsavel/mural/${unread.id}"`);
+    expect(html).toContain(`href="/guardian/board/${unread.id}"`);
     expect(html).toContain(unread.title);
     expect(html).toContain('Não lido');
     // O painel mostra só o que está por ler; o que já foi lido mora no mural.
-    expect(html).not.toContain(`href="/responsavel/mural/${alreadyRead.id}"`);
+    expect(html).not.toContain(`href="/guardian/board/${alreadyRead.id}"`);
   });
 
   test('conta com o papel mas sem vínculo manda procurar a secretaria', async () => {
@@ -277,7 +277,7 @@ describe('as telas do portal do responsável', () => {
       password: scenario.password,
     });
 
-    const { status, html } = await screen('/responsavel', cookie);
+    const { status, html } = await screen('/guardian', cookie);
 
     expect(status).toBe(200);
     expect(html).toContain('Nenhum aluno vinculado à sua conta');
@@ -302,14 +302,14 @@ describe('as telas do portal do responsável', () => {
     });
     const cookie = await signInAs(scenario, 'guardian');
 
-    const { status, html } = await screen('/responsavel/mural', cookie);
+    const { status, html } = await screen('/guardian/board', cookie);
 
     expect(status).toBe(200);
     expect(html).toContain(pageTitle('Mural de comunicados'));
     expect(html).toContain('<h2 id="titulo-por-ler">Não lidos</h2>');
     expect(html).toContain('<h2 id="titulo-lidos">Já lidos</h2>');
-    expect(html).toContain(`href="/responsavel/mural/${unread.id}"`);
-    expect(html).toContain(`href="/responsavel/mural/${alreadyRead.id}"`);
+    expect(html).toContain(`href="/guardian/board/${unread.id}"`);
+    expect(html).toContain(`href="/guardian/board/${alreadyRead.id}"`);
     expect(html).toContain(unread.title);
     expect(html).toContain(alreadyRead.title);
   });
@@ -326,14 +326,14 @@ describe('as telas do portal do responsável', () => {
     });
     const cookie = await signInAs(scenario, 'guardian');
 
-    const { status, html } = await screen(`/responsavel/mural/${announcement.id}`, cookie);
+    const { status, html } = await screen(`/guardian/board/${announcement.id}`, cookie);
 
     expect(status).toBe(200);
     expect(html).toContain(pageTitle(announcement.title));
     expect(html).toContain(announcement.body);
     expect(html).toContain(scenario.registrar.name);
     // Abrir a página não marca leitura: quem marca é este formulário, com POST.
-    expect(html).toContain(formFor(`/responsavel/mural/${announcement.id}/lido`));
+    expect(html).toContain(formFor(`/guardian/board/${announcement.id}/read`));
     expect(html).toContain('Marcar como lido');
   });
 
@@ -348,13 +348,13 @@ describe('as telas do portal do responsável', () => {
     });
     const cookie = await signInAs(scenario, 'guardian');
 
-    const { status, html } = await screen(`/responsavel/mural/${announcement.id}`, cookie);
+    const { status, html } = await screen(`/guardian/board/${announcement.id}`, cookie);
 
     expect(status).toBe(200);
     expect(html).toContain(pageTitle(announcement.title));
     expect(html).toContain('etiqueta--aprovado');
     expect(html).not.toContain('Marcar como lido');
-    expect(html).not.toContain(formFor(`/responsavel/mural/${announcement.id}/lido`));
+    expect(html).not.toContain(formFor(`/guardian/board/${announcement.id}/read`));
   });
 
   test('comunicado de outra família não existe para quem pergunta', async () => {
@@ -367,7 +367,7 @@ describe('as telas do portal do responsável', () => {
     });
     const cookie = await signInAs(scenario, 'guardian');
 
-    const { status } = await screen(`/responsavel/mural/${fromAnotherFamily.id}`, cookie);
+    const { status } = await screen(`/guardian/board/${fromAnotherFamily.id}`, cookie);
 
     expect(status).toBe(404);
   });
@@ -383,7 +383,7 @@ describe('as telas do portal do responsável', () => {
     });
     const cookie = await signInAs(scenario, 'guardian');
 
-    const { status } = await screen(`/responsavel/mural/${draft.id}`, cookie);
+    const { status } = await screen(`/guardian/board/${draft.id}`, cookie);
 
     expect(status).toBe(404);
   });
@@ -414,7 +414,7 @@ describe('as telas de quem publica no mural', () => {
     );
     const cookie = await signInAs(scenario, 'registrar');
 
-    const { status, html } = await screen('/comunicados', cookie);
+    const { status, html } = await screen('/announcements', cookie);
 
     expect(status).toBe(200);
     expect(html).toContain(pageTitle('Comunicados'));
@@ -423,7 +423,7 @@ describe('as telas de quem publica no mural', () => {
     expect(html).toContain('<th scope="col">Taxa de leitura</th>');
     expect(html).toContain(announcement.title);
     expect(html).toContain('50,0 %');
-    expect(html).toContain('href="/comunicados/novo"');
+    expect(html).toContain('href="/announcements/new"');
   });
 
   test('a secretaria vê a unidade onde tem papel, e o administrador vê a rede', async () => {
@@ -439,8 +439,8 @@ describe('as telas de quem publica no mural', () => {
       'Aviso da Escola Bairro',
     );
 
-    const registrarList = await screen('/comunicados', await signInAs(scenario, 'registrar'));
-    const adminList = await screen('/comunicados', await signInAs(scenario, 'admin'));
+    const registrarList = await screen('/announcements', await signInAs(scenario, 'registrar'));
+    const adminList = await screen('/announcements', await signInAs(scenario, 'admin'));
 
     expect(registrarList.status).toBe(200);
     expect(registrarList.html).toContain(atRegistrarSchool.title);
@@ -466,7 +466,7 @@ describe('as telas de quem publica no mural', () => {
     const cookie = await signInAs(scenario, 'admin');
 
     const { status, html } = await screen(
-      `/comunicados?unidadeId=${scenario.schools[1].id}`,
+      `/announcements?schoolId=${scenario.schools[1].id}`,
       cookie,
     );
 
@@ -481,7 +481,7 @@ describe('as telas de quem publica no mural', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 
-    const { status } = await screen(`/comunicados?unidadeId=${scenario.schools[1].id}`, cookie);
+    const { status } = await screen(`/announcements?schoolId=${scenario.schools[1].id}`, cookie);
 
     expect(status).toBe(404);
   });
@@ -490,12 +490,12 @@ describe('as telas de quem publica no mural', () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 
-    const { status, html } = await screen('/comunicados/novo', cookie);
+    const { status, html } = await screen('/announcements/new', cookie);
 
     expect(status).toBe(200);
     expect(html).toContain(pageTitle('Novo comunicado'));
     expect(html).toContain('Passo 1 · Unidade');
-    expect(html).toContain('method="get" action="/comunicados/novo"');
+    expect(html).toContain('method="get" action="/announcements/new"');
     expect(html).toContain(`<option value="${scenario.schools[0].id}">`);
     // A unidade em que esta secretaria não tem papel não entra na escolha.
     expect(html).not.toContain(`<option value="${scenario.schools[1].id}">`);
@@ -506,12 +506,12 @@ describe('as telas de quem publica no mural', () => {
     const cookie = await signInAs(scenario, 'registrar');
     const [school] = scenario.schools;
 
-    const { status, html } = await screen(`/comunicados/novo?unidadeId=${school.id}`, cookie);
+    const { status, html } = await screen(`/announcements/new?schoolId=${school.id}`, cookie);
 
     expect(status).toBe(200);
     expect(html).toContain('Passo 2 · Mensagem');
     expect(html).toContain(school.name);
-    expect(html).toContain(formFor('/comunicados/novo'));
+    expect(html).toContain(formFor('/announcements/new'));
     expect(html).toContain(`name="unidadeId" value="${school.id}"`);
     expect(html).toContain('name="titulo"');
     expect(html).toContain('name="corpo"');
@@ -528,7 +528,7 @@ describe('as telas de quem publica no mural', () => {
     const cookie = await signInAs(scenario, 'registrar');
 
     const { status } = await screen(
-      `/comunicados/novo?unidadeId=${scenario.schools[1].id}`,
+      `/announcements/new?schoolId=${scenario.schools[1].id}`,
       cookie,
     );
 
@@ -544,8 +544,8 @@ describe('as telas de quem publica no mural', () => {
     });
     const cookie = await signInAs(scenario, 'admin');
 
-    const choice = await screen('/comunicados/novo', cookie);
-    const direct = await screen(`/comunicados/novo?unidadeId=${closed.id}`, cookie);
+    const choice = await screen('/announcements/new', cookie);
+    const direct = await screen(`/announcements/new?schoolId=${closed.id}`, cookie);
 
     expect(choice.status).toBe(200);
     expect(choice.html).toContain(`<option value="${scenario.schools[0].id}">`);

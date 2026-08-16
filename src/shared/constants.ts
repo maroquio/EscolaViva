@@ -128,8 +128,8 @@ export const INTERNAL_REASONS = {
 } as const;
 
 export const ASSETS = {
-  directory: 'publico',
-  urlPrefix: '/publico/',
+  directory: 'public',
+  urlPrefix: '/public/',
   stylesheetLogicalName: 'app.css',
   manifest: 'manifest.json',
   hashCharacters: 8,
@@ -201,7 +201,7 @@ export const MISSING_VALUE = '—';
 
 export const MASKED_CPF_LENGTH = 14;
 
-export const ENTRY_PATHS = { login: '/login', dashboard: '/painel' } as const;
+export const ENTRY_PATHS = { login: '/login', dashboard: '/dashboard' } as const;
 
 export const ERROR_TITLES = {
   400: 'Requisição inválida',

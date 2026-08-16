@@ -16,7 +16,7 @@ import { clearDatabase, testSql } from '../support/database';
 import { fullScenario, type Scenario } from '../support/factories';
 import { open, signIn, send, post } from './support';
 
-const ROUTE = '/secretaria/disciplinas';
+const ROUTE = '/registrar/subjects';
 const UUID_KEY = /name="_chave" value="([0-9a-f-]{36})"/g;
 
 const pageKeys = (html: string): string[] =>

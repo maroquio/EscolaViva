@@ -40,7 +40,7 @@ cp .env.example .env             # ajuste PORTA_BANCO se a 5432 já estiver ocup
 docker compose up -d banco       # PostgreSQL 16 com pg_stat_statements ligado
 bun install
 bun run migrate                  # aplica migrations/*.sql em ordem, uma transação por arquivo
-bun run build:assets             # gera publico/app.<hash>.css e o manifest (I10)
+bun run build:assets             # gera public/app.<hash>.css e o manifest (I10)
 bun run seed                     # rede de demonstração: 2 unidades, 6 turmas, 120 alunos
 bun run dev                      # http://localhost:3000
 ```
@@ -123,7 +123,7 @@ Dois detalhes plantados de propósito na base de demonstração:
 | `bun run start` | Sobe o servidor sem recarga — é o comando que o `infra/Dockerfile` executa. |
 | `bun run migrate` | Aplica as migrações pendentes, uma transação por arquivo, com advisory lock. |
 | `bun run migrate:status` | Lista o que já foi aplicado e o que está pendente, sem escrever nada. |
-| `bun run build:assets` | Gera `publico/app.<hash>.css` e o `manifest.json` que o helper `asset()` lê. |
+| `bun run build:assets` | Gera `public/app.<hash>.css` e o `manifest.json` que o helper `asset()` lê. |
 | `bun run seed` | Apaga e recria a rede `demo`. Idempotente e bloqueado se `APP_ENV=production`. |
 | `bun run seed:volume` | Carga sintética até 3,6 milhões de linhas em `frequencia`. Exige `--sim`. |
 | `bun run check` | dependency-cruiser: as três regras de fronteira entre módulos (I1). |
@@ -216,7 +216,7 @@ Onze itens da Seção 8 do documento. Nenhum deles adiciona componente.
 | 3 | Derrubar o container e subir outro não perde nada | `docker compose restart app` e recarregue a página: o login continua, porque a sessão vive na tabela `sessao` |
 | 4 | Toda tabela de negócio tem `rede_id` e FK declarada | a consulta abaixo, que precisa devolver **zero linhas** |
 | 5 | Enviar o mesmo formulário duas vezes cria **um** registro | `bun run test` (caso de idempotência) ou reenvie o formulário no navegador com F5 |
-| 6 | Rota autenticada responde `Cache-Control: private, no-store` | `bun run test`, ou abra `/painel` logado e veja o cabeçalho na aba Rede do navegador |
+| 6 | Rota autenticada responde `Cache-Control: private, no-store` | `bun run test`, ou abra `/dashboard` logado e veja o cabeçalho na aba Rede do navegador |
 | 7 | `/health` responde 503 com o banco parado | `docker compose stop banco && curl -si localhost:3000/health && docker compose start banco` |
 | 8 | Falta variável de ambiente → o processo **não sobe** | `SESSION_SECRET=curto bun run start` (morre no boot, com a lista do que está errado) |
 | 9 | O dump foi restaurado em outro banco e a contagem bateu | `bash scripts/backup.sh && bash scripts/restore-test.sh` |

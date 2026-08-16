@@ -25,7 +25,7 @@ const readAt = it.readAt;
 
   <footer class="acoes">
     <% if (readAt === null) { %>
-    <form method="post" action="<%= it.routes.guardian.announcementRead({ comunicadoId: announcement.id }) %>">
+    <form method="post" action="<%= it.routes.guardian.announcementRead({ announcementId: announcement.id }) %>">
       <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
       <button class="botao botao--primario" type="submit">Marcar como lido</button>
     </form>

@@ -22,11 +22,11 @@ const caption = `Chamada de ${it.formatDate(date)}${it.separator}${classGroup.cl
 <div class="acoes">
   <nav class="linha" aria-label="Dia da chamada">
     <a class="botao botao--secundario" rel="prev"
-       href="<%= it.formAction %>?<%= it.dateField %>=<%= it.previousDay %>">
+       href="<%= it.formAction %>?<%= it.dateParam %>=<%= it.previousDay %>">
       Dia anterior<%= it.separator %><time class="numero" datetime="<%= it.previousDay %>"><%= it.formatDate(it.previousDay) %></time>
     </a>
     <a class="botao botao--secundario" rel="next"
-       href="<%= it.formAction %>?<%= it.dateField %>=<%= it.nextDay %>">
+       href="<%= it.formAction %>?<%= it.dateParam %>=<%= it.nextDay %>">
       Dia seguinte<%= it.separator %><time class="numero" datetime="<%= it.nextDay %>"><%= it.formatDate(it.nextDay) %></time>
     </a>
   </nav>
@@ -34,7 +34,7 @@ const caption = `Chamada de ${it.formatDate(date)}${it.separator}${classGroup.cl
   <form class="linha" method="get" action="<%= it.formAction %>">
     <label class="campo__rotulo" for="ir-para-o-dia">Ir para o dia</label>
     <span class="campo">
-      <input type="date" id="ir-para-o-dia" name="<%= it.dateField %>" value="<%= date %>">
+      <input type="date" id="ir-para-o-dia" name="<%= it.dateParam %>" value="<%= date %>">
     </span>
     <button class="botao botao--secundario" type="submit">Abrir</button>
   </form>
