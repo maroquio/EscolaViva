@@ -1,15 +1,15 @@
 /*
- * I20: o job roda em uma instância por vez. O lock é o advisory lock do PostgreSQL de verdade —
- * com mock ele não provaria nada, porque a garantia é de sessão do banco, não de processo.
- * O agendador, por sua vez, existe para que um expurgo que quebra vire linha de log em vez de
- * derrubar o site.
+ * I20: the job runs on one instance at a time. The lock is PostgreSQL's real advisory lock — with
+ * a mock it would prove nothing, because the guarantee belongs to the database session, not to the
+ * process. The scheduler, in turn, exists so that a purge that breaks becomes a log line instead
+ * of taking the site down.
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test';
 import { startScheduler, withExclusiveLock, type Job } from '../../src/shared/jobs';
 import { prepareDatabase } from '../support/database';
 
-/** Faixa de chaves só desta suíte: uma por caso, para um teste não disputar o lock do outro. */
+/** A key range for this suite alone: one per case, so no test fights another for the lock. */
 const VALUE_KEY = 970_101;
 const CONCURRENT_KEY = 970_102;
 const OTHER_KEY = 970_103;
@@ -27,7 +27,7 @@ const SLACK_MS = 200;
 
 type Latch = { wait: Promise<void>; release: () => void };
 
-/** Deixa o teste segurar o lock aberto enquanto a segunda chamada tenta entrar. */
+/** Lets the test hold the lock open while the second call tries to get in. */
 function latch(): Latch {
   let release: () => void = () => undefined;
   const wait = new Promise<void>((resolve) => {
@@ -46,7 +46,7 @@ async function until(condition: () => boolean, deadlineMs: number): Promise<void
 beforeAll(prepareDatabase);
 
 describe('withExclusiveLock', () => {
-  test('executa a função e devolve o valor dela', async () => {
+  test('runs the function and gives back its value', async () => {
     const key = VALUE_KEY;
 
     const returned = await withExclusiveLock(key, async () => 'expurgou 7 sessões');
@@ -54,7 +54,7 @@ describe('withExclusiveLock', () => {
     expect(returned).toBe('expurgou 7 sessões');
   });
 
-  test('a segunda chamada simultânea com a mesma chave devolve null e não executa a função', async () => {
+  test('a second simultaneous call with the same key gives back null and never runs the function', async () => {
     const inside = latch();
     const release = latch();
     let ranSecondTime = false;
@@ -76,7 +76,7 @@ describe('withExclusiveLock', () => {
     expect(await first).toBe('primeira');
   });
 
-  test('chaves diferentes não disputam o mesmo lock', async () => {
+  test('different keys do not fight over the same lock', async () => {
     const inside = latch();
     const release = latch();
     const first = withExclusiveLock(CONCURRENT_KEY, async () => {
@@ -93,7 +93,7 @@ describe('withExclusiveLock', () => {
     expect(await first).toBe('primeira');
   });
 
-  test('libera o lock ao terminar: a chamada seguinte com a mesma chave entra', async () => {
+  test('releases the lock on the way out: the next call with the same key gets in', async () => {
     const key = SEQUENCE_KEY;
 
     const first = await withExclusiveLock(key, async () => 'primeira');
@@ -103,7 +103,7 @@ describe('withExclusiveLock', () => {
     expect(second).toBe('segunda');
   });
 
-  test('libera o lock mesmo quando a função lança', async () => {
+  test('releases the lock even when the function throws', async () => {
     const key = EXCEPTION_KEY;
     const breakIt = withExclusiveLock(key, async () => {
       throw new Error('expurgo falhou');
@@ -115,7 +115,7 @@ describe('withExclusiveLock', () => {
     expect(after).toBe('entrou depois da falha');
   });
 
-  test('propaga a exceção da função para quem chamou', async () => {
+  test('propagates the function\'s exception up to the caller', async () => {
     const original = new Error('expurgo falhou no meio');
 
     const breakIt = withExclusiveLock(PROPAGATION_KEY, async () => {
@@ -127,7 +127,7 @@ describe('withExclusiveLock', () => {
 });
 
 describe('startScheduler', () => {
-  test('executa o job no intervalo configurado', async () => {
+  test('runs the job on the configured interval', async () => {
     let runs = 0;
     const job: Job = {
       name: 'job-de-teste',
@@ -145,7 +145,7 @@ describe('startScheduler', () => {
     expect(runs).toBeGreaterThanOrEqual(2);
   });
 
-  test('stop() interrompe as execuções seguintes', async () => {
+  test('stop() halts the runs that would come next', async () => {
     let runs = 0;
     const job: Job = {
       name: 'job-que-para',
@@ -167,7 +167,7 @@ describe('startScheduler', () => {
     expect(runs).toBe(onStop);
   });
 
-  test('job que lança não derruba o agendador nem impede os outros jobs', async () => {
+  test('a job that throws neither takes the scheduler down nor holds back the other jobs', async () => {
     let attemptsOfTheBrokenJob = 0;
     let runsOfTheHealthyJob = 0;
     const broken: Job = {
@@ -196,7 +196,7 @@ describe('startScheduler', () => {
     expect(runsOfTheHealthyJob).toBeGreaterThanOrEqual(2);
   });
 
-  test('sem job nenhum o agendador sobe e para sem quebrar', () => {
+  test('with no job at all the scheduler starts and stops without breaking', () => {
     const withoutJobs: Job[] = [];
 
     const startAndStop = (): void => startScheduler(withoutJobs).stop();

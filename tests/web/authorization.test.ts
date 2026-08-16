@@ -1,11 +1,11 @@
 /*
- * Quem pode o quê, e por que a resposta muda de código.
+ * Who may do what, and why the answer changes status code.
  *
- * A regra tem duas metades. A primeira é o papel: uma conta sem o papel da área recebe 403, e o
- * acesso negado fica registrado. A segunda é o alcance dentro do papel — a turma que não é do
- * professor, o boletim que não é do responsável, a rede que não é a da sessão — e essa metade
- * responde 404, nunca 403: dizer "existe, mas não é seu" já é contar que o registro existe, e a
- * existência de um aluno é informação.
+ * The rule has two halves. The first is the role: an account without the role of that area gets a
+ * 403, and the denied access is logged. The second is reach within the role — the class group that
+ * is not the teacher's, the report card that is not the guardian's, the network that is not the
+ * session's — and that half answers 404, never 403: saying "it exists, but it is not yours" already
+ * tells that the record exists, and the existence of a student is information.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -28,12 +28,12 @@ const signInAs = (
 const statusOf = async (path: string, cookie: string): Promise<number> =>
   (await open(path, cookie)).status;
 
-describe('autorização por papel', () => {
+describe('authorization by role', () => {
   beforeEach(async () => {
     await clearDatabase();
   });
 
-  test('cada papel chega ao painel do seu próprio papel', async () => {
+  test('each role lands on the dashboard of its own role', async () => {
     const scenario = await fullScenario();
 
     const targets = await Promise.all(
@@ -46,7 +46,7 @@ describe('autorização por papel', () => {
     expect(targets).toEqual(['/network', '/registrar', '/teacher', '/guardian']);
   });
 
-  test('cada papel abre a sua própria área', async () => {
+  test('each role opens its own area', async () => {
     const scenario = await fullScenario();
 
     const status = await Promise.all([
@@ -59,7 +59,7 @@ describe('autorização por papel', () => {
     expect(status).toEqual([200, 200, 200, 200]);
   });
 
-  test('professor não entra na secretaria nem na administração da rede', async () => {
+  test('a teacher gets into neither the registrar area nor the network administration', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'teacher');
 
@@ -72,7 +72,7 @@ describe('autorização por papel', () => {
     expect(status).toEqual([403, 403, 403]);
   });
 
-  test('responsável não entra na área do professor nem na da secretaria', async () => {
+  test('a guardian gets into neither the teacher area nor the registrar area', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'guardian');
 
@@ -85,7 +85,7 @@ describe('autorização por papel', () => {
     expect(status).toEqual([403, 403, 403]);
   });
 
-  test('secretaria não administra a rede, e administração da rede não dá aula', async () => {
+  test('the registrar does not administer the network, and network administration does not teach', async () => {
     const scenario = await fullScenario();
 
     const registrarInNetwork = await statusOf('/network/schools', await signInAs(scenario, 'registrar'));
@@ -94,7 +94,7 @@ describe('autorização por papel', () => {
     expect([registrarInNetwork, adminOnTeacherArea]).toEqual([403, 403]);
   });
 
-  test('secretaria e administração da rede publicam comunicados; o professor não', async () => {
+  test('the registrar and network administration publish announcements; the teacher does not', async () => {
     const scenario = await fullScenario();
 
     const status = await Promise.all([
@@ -106,7 +106,7 @@ describe('autorização por papel', () => {
     expect(status).toEqual([200, 200, 403]);
   });
 
-  test('trocar a própria senha é de qualquer autenticado', async () => {
+  test('changing one\'s own password belongs to anyone signed in', async () => {
     const scenario = await fullScenario();
 
     const status = await Promise.all([
@@ -118,12 +118,12 @@ describe('autorização por papel', () => {
   });
 });
 
-describe('alcance dentro do papel', () => {
+describe('reach within the role', () => {
   beforeEach(async () => {
     await clearDatabase();
   });
 
-  test('professor não abre as notas de turma-disciplina de outro professor', async () => {
+  test('a teacher does not open the grades of another teacher\'s class-group subject', async () => {
     const scenario = await fullScenario();
     const anotherTeacher = await createUser({
       networkId: scenario.network.id,
@@ -149,7 +149,7 @@ describe('alcance dentro do papel', () => {
     expect(fromAnother).toBe(404);
   });
 
-  test('professor não abre chamada nem fechamento de turma que não leciona', async () => {
+  test('a teacher opens neither roll call nor closing for a class group they do not teach', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'teacher');
     const withoutAssignment = scenario.classGroups[1].id;
@@ -162,7 +162,7 @@ describe('alcance dentro do papel', () => {
     expect(status).toEqual([404, 404]);
   });
 
-  test('responsável não abre boletim de aluno que não é dele', async () => {
+  test('a guardian does not open the report card of a student who is not theirs', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'guardian');
 
@@ -179,7 +179,7 @@ describe('alcance dentro do papel', () => {
     expect(fromAnotherFamily).toBe(404);
   });
 
-  test('responsável não abre frequência de aluno que não é dele', async () => {
+  test('a guardian does not open the attendance of a student who is not theirs', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'guardian');
 
@@ -191,7 +191,7 @@ describe('alcance dentro do papel', () => {
     expect(status).toBe(404);
   });
 
-  test('registro de outra rede não existe para quem pergunta', async () => {
+  test('a record from another network does not exist for whoever asks', async () => {
     const [networkA, networkB] = await Promise.all([fullScenario(), fullScenario()]);
     const cookie = await signInAs(networkA, 'registrar');
 
@@ -202,7 +202,7 @@ describe('alcance dentro do papel', () => {
     expect(ofTheOtherNetwork).toBe(404);
   });
 
-  test('professor de uma rede não alcança a turma-disciplina de outra rede', async () => {
+  test('a teacher in one network does not reach the class-group subject of another network', async () => {
     const [networkA, networkB] = await Promise.all([fullScenario(), fullScenario()]);
     const cookie = await signInAs(networkA, 'teacher');
 
@@ -214,7 +214,7 @@ describe('alcance dentro do papel', () => {
     expect(status).toBe(404);
   });
 
-  test('identificador que não é uuid responde 404 em vez de estourar', async () => {
+  test('an identifier that is not a uuid answers 404 instead of blowing up', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 

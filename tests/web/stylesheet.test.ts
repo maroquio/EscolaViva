@@ -34,20 +34,20 @@ function propertyValue(selector: string, property: string): string | undefined {
   return found.at(-1)?.[1]?.trim();
 }
 
-describe('folha de estilo', () => {
+describe('the stylesheet', () => {
   beforeAll(async () => {
     stylesheet = await Bun.file(STYLESHEET_PATH).text();
     rules = rulesOf(stylesheet);
   });
 
-  test('o seletor de uma regra conhecida é lido como o arquivo o escreve', () => {
+  test('the selector of a known rule is read exactly as the file writes it', () => {
     const ofTheStylesheet = rules.filter((rule) => rule.selectors.includes('.button'));
 
     expect(ofTheStylesheet).toHaveLength(1);
     expect(propertyValue('.button', 'cursor')).toBe('pointer');
   });
 
-  test('campo e botão dividem a mesma altura de controle', () => {
+  test('field and button share the same control height', () => {
     const fieldHeight = propertyValue('input', 'min-block-size');
 
     const buttonHeight = propertyValue('.button', 'min-block-size');
@@ -56,13 +56,13 @@ describe('folha de estilo', () => {
     expect(buttonHeight).toBe('var(--control-height)');
   });
 
-  test('a caixa de marcar não herda a altura de controle dos demais campos', () => {
+  test('the checkbox does not inherit the control height of the other fields', () => {
     const height = propertyValue("input[type='checkbox']", 'min-block-size');
 
     expect(height).toBe('0');
   });
 
-  test('nenhum controle usa o atalho background, que apagaria a seta do select', () => {
+  test('no control uses the background shorthand, which would wipe out the select arrow', () => {
     const ofTheControl = /(?:^|[\s,>+~])(?:input|select|textarea)(?:[[:.\s]|$)/;
 
     const withShortcut = rules
@@ -74,14 +74,14 @@ describe('folha de estilo', () => {
     expect(propertyValue('select', 'background-image')).toContain('data:image/svg+xml');
   });
 
-  test('o foco visível nunca é removido', () => {
+  test('the visible focus ring is never removed', () => {
     const outline = propertyValue(':focus-visible', 'outline');
 
     expect(outline).toContain('var(--brand)');
     expect(stylesheet).not.toMatch(/outline\s*:\s*(?:none|0)\s*[;}]/);
   });
 
-  test('a rolagem lateral da tabela declara os dois eixos', () => {
+  test('the table\'s sideways scrolling declares both axes', () => {
     const horizontal = propertyValue('.table-scroll', 'overflow-x');
 
     const vertical = propertyValue('.table-scroll', 'overflow-y');
@@ -90,7 +90,7 @@ describe('folha de estilo', () => {
     expect(vertical).toBe('hidden');
   });
 
-  test('a coluna-âncora grudada tem fundo próprio em toda linha que a contém', () => {
+  test('the sticky anchor column has a background of its own on every row that holds it', () => {
     const anchor = propertyValue(".table th[scope='row']", 'position');
 
     expect(anchor).toBe('sticky');
@@ -99,14 +99,14 @@ describe('folha de estilo', () => {
     expect(propertyValue('.table tfoot tr', 'background')).toBeDefined();
   });
 
-  test('o ícone do botão respira por margem, e não por gap', () => {
+  test('the button icon breathes through a margin, not through a gap', () => {
     const breathingRoom = propertyValue('.button > svg', 'margin-inline-end');
 
     expect(breathingRoom).toBe('var(--s2)');
     expect(propertyValue('.button', 'gap')).toBeUndefined();
   });
 
-  test('a página não rola de lado: o eixo horizontal pertence ao contêiner da tabela', () => {
+  test('the page does not scroll sideways: the horizontal axis belongs to the table container', () => {
     const ofTheBody = propertyValue('body', 'overflow-x');
 
     expect(ofTheBody).toBe('clip');

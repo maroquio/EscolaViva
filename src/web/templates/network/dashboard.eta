@@ -2,7 +2,7 @@
 const counts = it.counts ?? { schools: 0, users: 0, classGroups: 0, enrolled: 0 };
 const academicYear = it.academicYear ?? null;
 const network = it.user === null ? '' : it.user.networkName;
-// magic-values: permitido — prosa das duas frases dos cartões, e não o substantivo contado `NOUNS.academicYear`
+// magic-values: permitido — prose for the two card sentences, and not the counted noun `NOUNS.academicYear`
 const academicYearInWords = 'ano letivo';
 const yearInLabel =
   academicYear === null ? 'sem ' + academicYearInWords : academicYearInWords + ' ' + academicYear.year;

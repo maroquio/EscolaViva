@@ -1,22 +1,22 @@
 /**
- * I1 — a fronteira entre os módulos verificada por ferramenta, não por combinado verbal.
- * Roda em `bun run check`.
+ * I1 — the boundary between modules checked by a tool, not by a verbal agreement.
+ * Runs under `bun run check`.
  *
- * Grafo permitido no Estágio 01:
+ * The graph allowed at Stage 01:
  *
- *   comunicacao ──┐
- *   avaliacao ────┼──▶ academico ──▶ identidade
- *                 └──▶ identidade
+ *   communication ──┐
+ *   assessment ─────┼──▶ academics ──▶ identity
+ *                   └──▶ identity
  *
  * @type {import('dependency-cruiser').IConfiguration}
  */
 /*
- * Durante a conversão do repositório para inglês, cada pasta de módulo existe sob dois nomes
- * em momentos diferentes. As regras casam caminho por regex: se a alternância só conhecesse
- * um dos nomes, renomear a pasta desligaria a regra em silêncio — o depcruise continuaria
- * imprimindo "no dependency violations found" por não enxergar mais nada. Por isso as duas
- * grafias convivem aqui até a fase de contração, e o checklist planta violação nos quatro
- * módulos para provar que cada alternativa ainda tem dente.
+ * While the repository is converted to English, each module folder exists under two names at
+ * different moments. The rules match paths by regex: if the alternation knew only one of the
+ * names, renaming the folder would switch the rule off in silence — depcruise would go on printing
+ * "no dependency violations found" simply because it no longer saw anything. That is why both
+ * spellings live side by side here until the contraction phase, and the checklist plants a
+ * violation in all four modules to prove each alternative still has teeth.
  */
 const MODULOS = '(?:identidade|identity|academico|academics|avaliacao|assessment|comunicacao|communication)';
 
@@ -27,16 +27,17 @@ const configuracao = {
     {
       name: 'no-cross-module-shortcut',
       comment:
-        'Um módulo só enxerga outro pelo seu `index.ts`. Caminho interno (dominio/, aplicacao/, ' +
-        'infra/) é privado. Protege a resposta para "o que mais mexe nisso?": quando `cobranca/` ' +
-        'for extraído no Estágio 14, a lista de dependentes é exatamente quem importa o index — ' +
-        'sem essa regra a extração vira reescrita. `from.pathNot` tira `src/shared/` do alcance ' +
-        'desta regra porque `shared-knows-no-domain` já proíbe qualquer seta saindo dali, e ' +
-        'relatar a mesma violação duas vezes só confunde quem vai corrigir.',
+        'A module sees another one only through its `index.ts`. An internal path (domain/, ' +
+        'application/, infra/) is private. This protects the answer to "what else touches this?": ' +
+        'when `billing/` is extracted at Stage 14, the list of dependents is exactly whoever ' +
+        'imports the index — without this rule the extraction turns into a rewrite. `from.pathNot` ' +
+        'takes `src/shared/` out of this rule\'s reach because `shared-knows-no-domain` already ' +
+        'forbids any arrow leaving there, and reporting the same violation twice only confuses ' +
+        'whoever has to fix it.',
       severity: 'error',
       from: {
-        // O grupo captura o módulo de origem e reaparece como `$1` no `to.pathNot`:
-        // é assim que um módulo continua livre para importar os próprios arquivos internos.
+        // The group captures the module of origin and reappears as `$1` in `to.pathNot`:
+        // that is how a module stays free to import its own internal files.
         path: '^src/([^/]+)/',
         pathNot: '^src/shared/',
       },
@@ -48,12 +49,13 @@ const configuracao = {
     {
       name: 'pure-domain',
       comment:
-        'O domínio não sabe que existe banco, HTTP, log, agendador ou biblioteca de terceiro. ' +
-        'Só pode alcançar `src/shared/ports/`, `src/shared/result.ts` e `src/shared/document/` — ' +
-        'este último por ser valor puro, sem I/O e sem regra de negócio de nenhum módulo: a ' +
-        'aritmética do CPF é a mesma para identidade e para academico, e duplicá-la seria pior que ' +
-        'compartilhá-la. É o que torna o teste de regra pedagógica um teste puro, e o que destrava ' +
-        'I3: quando o `Mailer` entrar no Estágio 04, `ports/` será o único lugar onde ele cabe.',
+        'The domain does not know that a database, HTTP, a log, a scheduler or a third-party ' +
+        'library exists. It may reach only `src/shared/ports/`, `src/shared/result.ts` and ' +
+        '`src/shared/document/` — the last one because it is a pure value, with no I/O and no ' +
+        'business rule of any module: the CPF arithmetic is the same for identity and for ' +
+        'academics, and duplicating it would be worse than sharing it. That is what makes the ' +
+        'pedagogical-rule test a pure test, and what unlocks I3: when the `Mailer` arrives at ' +
+        'Stage 04, `ports/` will be the only place it fits.',
       severity: 'error',
       from: { path: `^src/[^/]+/${DOMINIO}/` },
       to: { path: ['^src/shared/(?:db|http|log|jobs)/', 'node_modules'] },
@@ -61,10 +63,11 @@ const configuracao = {
     {
       name: 'shared-knows-no-domain',
       comment:
-        'A dependência é sempre de fora para dentro: `src/shared/` é infraestrutura sem regra de ' +
-        'negócio e não pode importar identidade, academico, avaliacao nem comunicacao. Por isso ' +
-        '`shared/http/sessao.ts` declara a forma estrutural do usuário em vez de importá-la. ' +
-        'Sem essa regra, extrair um módulo no Estágio 14 arrastaria o `shared/` inteiro junto.',
+        'The dependency always runs from the outside in: `src/shared/` is infrastructure with no ' +
+        'business rule and may import neither identity, nor academics, nor assessment, nor ' +
+        'communication. That is why `shared/http/session.ts` declares the structural shape of the ' +
+        'user instead of importing it. Without this rule, extracting a module at Stage 14 would ' +
+        'drag the whole of `shared/` along with it.',
       severity: 'error',
       from: { path: '^src/shared/' },
       to: { path: `^src/${MODULOS}/` },
@@ -73,7 +76,7 @@ const configuracao = {
   options: {
     doNotFollow: { path: 'node_modules' },
     tsConfig: { fileName: 'tsconfig.json' },
-    // Sem isto, um `import type` some do grafo e as três regras ficam sem dente.
+    // Without this, an `import type` vanishes from the graph and the three rules lose their teeth.
     tsPreCompilationDeps: true,
     enhancedResolveOptions: {
       extensions: ['.ts', '.js', '.mjs', '.json'],

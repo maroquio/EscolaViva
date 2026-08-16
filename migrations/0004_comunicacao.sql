@@ -1,7 +1,7 @@
--- Comunicação: o que a escola diz ao responsável.
--- Um comunicado pertence a uma unidade e tem uma lista explícita de responsáveis destinatários.
--- `read_at` é a instrumentação da taxa de leitura do mural: sem ela, "ninguém lê o mural"
--- é opinião; com ela, é medição.
+-- Communication: what the school says to the guardian.
+-- An announcement belongs to a school and carries an explicit list of guardian recipients.
+-- `read_at` is the instrumentation behind the board's read rate: without it, "nobody reads the
+-- board" is an opinion; with it, it is a measurement.
 
 CREATE TABLE announcement (
   id              uuid PRIMARY KEY,
@@ -18,7 +18,7 @@ CREATE TABLE announcement (
 CREATE TRIGGER announcement_updated_at BEFORE UPDATE ON announcement
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- A lista da secretaria mostra os comunicados da unidade, do mais recente para o mais antigo.
+-- The registrar's list shows the school's announcements, from the most recent to the oldest.
 CREATE INDEX announcement_by_school ON announcement (network_id, school_id, published_at DESC);
 
 CREATE TABLE announcement_recipient (
@@ -34,6 +34,6 @@ CREATE TABLE announcement_recipient (
 CREATE TRIGGER announcement_recipient_updated_at BEFORE UPDATE ON announcement_recipient
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- O mural é sempre montado do lado do responsável.
+-- The board is always built from the guardian's side.
 CREATE INDEX announcement_recipient_by_guardian
   ON announcement_recipient (network_id, guardian_id);

@@ -162,8 +162,8 @@ async function codeComments(): Promise<Comment[]> {
 const onOneLine = (comment: Comment): string =>
   `${comment.file}:${comment.row}: ${comment.text.split('\n')[0]}`;
 
-describe('o código não carrega comentário', () => {
-  test('nenhum comentário sobra em src/ e scripts/ além das diretivas de ferramenta', async () => {
+describe('the code carries no comment', () => {
+  test('no comment is left in src/ or scripts/ beyond the tool directives', async () => {
     const comments = await codeComments();
 
     const remainders = comments.filter(({ text }) => !MAGIC_VALUES_DIRECTIVE.test(text));
@@ -171,7 +171,7 @@ describe('o código não carrega comentário', () => {
     expect(remainders.map(onOneLine)).toEqual([]);
   });
 
-  test('a norma vale para a folha de estilo e para os scripts de shell', async () => {
+  test('the rule holds for the stylesheet and for the shell scripts too', async () => {
     const comments = await codeComments();
 
     const byExtension = new Set(comments.map(({ file }) => extensionOf(file)));
@@ -180,7 +180,7 @@ describe('o código não carrega comentário', () => {
     expect(byExtension.has('sh')).toBe(false);
   });
 
-  test('o interpretador dos scripts de shell continua na primeira linha', async () => {
+  test('the shebang of the shell scripts is still on the first line', async () => {
     const scripts = ['scripts/backup.sh', 'scripts/restore-test.sh'];
 
     const firstOnes = await Promise.all(
@@ -190,7 +190,7 @@ describe('o código não carrega comentário', () => {
     expect(firstOnes).toEqual(['#!/usr/bin/env bash', '#!/usr/bin/env bash']);
   });
 
-  test('o leitor enxerga o comentário que a norma proíbe, em cada linguagem', () => {
+  test('the reader does see the comment the rule forbids, in each language', () => {
     const findings = [
       jsComments('const a = 1; // sobrou'),
       cssComments('.a { color: red; } /* sobrou */'),
@@ -201,7 +201,7 @@ describe('o código não carrega comentário', () => {
     expect(findings.map((finding) => finding.length)).toEqual([1, 1, 1, 1]);
   });
 
-  test('o leitor não confunde texto entre aspas com comentário', () => {
+  test('the reader does not mistake quoted text for a comment', () => {
     const urlInJs = jsComments("const url = 'https://exemplo.test/a';");
     const urlInCss = cssComments(".a { background-image: url('/*nao*/.svg'); }");
     const regularExpression = jsComments('const r = /^\\s*\\/\\//;');

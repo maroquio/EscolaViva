@@ -62,7 +62,7 @@ const STATUS_CLASS = { yes: 'tag tag--active', no: 'tag' };
           <th scope="col"><%= it.labels.cpf %></th>
           <th scope="col"><%= it.labels.email %></th>
           <th scope="col">Papéis</th>
-<% // magic-values: permitido — não é um `LABELS.status`, nem o `IDENTITY_VOCABULARY.active` da célula abaixo %>
+<% // magic-values: permitido — this is not a `LABELS.status`, nor the `IDENTITY_VOCABULARY.active` of the cell below %>
           <th scope="col">Situação</th>
         </tr>
       </thead>

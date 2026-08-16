@@ -1,8 +1,8 @@
 /*
- * Banco de verdade para a suíte: as migrações sobem uma vez por processo e as tabelas são
- * truncadas entre os casos. Não existe mock de banco em lugar nenhum destes testes — a maior
- * parte das regras do EscolaViva mora em constraint, índice único e transação, e mock nenhum
- * as exerce.
+ * A real database for the suite: the migrations run once per process and the tables are
+ * truncated between cases. There is no database mock anywhere in these tests — most of the
+ * EscolaViva rules live in constraints, unique indexes and transactions, and no mock
+ * exercises those.
  */
 
 import { SQL } from 'bun';
@@ -10,7 +10,7 @@ import { join, resolve } from 'node:path';
 import { config } from '../../src/shared/config';
 import type { Connection } from '../../src/shared/db';
 
-/** A mesma chave de `scripts/migrate.ts`: dois processos de teste não migram ao mesmo tempo. */
+/** The same key as `scripts/migrate.ts`: two test processes never migrate at the same time. */
 const LOCK_KEY = 4242;
 const MIGRATIONS_DIR = resolve(import.meta.dir, '..', '..', 'migrations');
 const CONTROL_TABLE = 'schema_migrations';
@@ -20,7 +20,7 @@ let pool: SQL | undefined;
 let migrations: Promise<void> | undefined;
 let truncateCommand: Promise<string> | undefined;
 
-/** A conexão crua da suíte, para asserção direta no banco e para as fábricas escreverem. */
+/** The suite's raw connection, for asserting straight against the database and for the factories to write through. */
 export function testSql(): Connection {
   pool ??= new SQL({ url: config.databaseUrl, max: MAX_CONNECTIONS });
   return pool;
@@ -39,7 +39,7 @@ async function appliedVersions(sql: Connection): Promise<Set<string>> {
   return new Set(rows.map((row) => row.versao));
 }
 
-/** Uma transação por arquivo: o DDL e o registro da versão sobem juntos ou não sobem. */
+/** One transaction per file: the DDL and the version record land together or not at all. */
 async function apply(sql: Connection, versao: string): Promise<void> {
   const content = await Bun.file(join(MIGRATIONS_DIR, versao)).text();
   await sql.begin(async (tx) => {
@@ -49,8 +49,8 @@ async function apply(sql: Connection, versao: string): Promise<void> {
 }
 
 /**
- * Conexão própria com uma única sessão: o advisory lock pertence à sessão, e um pool poderia
- * pegar o lock em uma conexão e soltá-lo em outra.
+ * A connection of its own with a single session: the advisory lock belongs to the session, and
+ * a pool could take the lock on one connection and release it on another.
  */
 async function applyMigrations(): Promise<void> {
   const sql = new SQL({ url: config.databaseUrl, max: 1 });
@@ -77,8 +77,8 @@ async function applyMigrations(): Promise<void> {
 }
 
 /**
- * Aplica todas as migrações no banco de teste. A promessa é memoizada no módulo: chamar em
- * `beforeAll` de cada arquivo custa nada a partir da segunda vez.
+ * Applies every migration to the test database. The promise is memoized in the module: calling
+ * it from each file's `beforeAll` costs nothing from the second time on.
  */
 export async function prepareDatabase(): Promise<void> {
   migrations ??= applyMigrations();
@@ -86,9 +86,9 @@ export async function prepareDatabase(): Promise<void> {
 }
 
 /**
- * A lista sai do catálogo em vez de ficar escrita à mão: migração nova não pode deixar tabela
- * suja para trás sem que ninguém perceba. `schema_migrations` fica de fora — truncá-la faria a
- * suíte reaplicar o DDL a cada caso.
+ * The list comes from the catalog instead of being written by hand: a new migration must not
+ * leave a dirty table behind without anyone noticing. `schema_migrations` stays out — truncating
+ * it would make the suite reapply the DDL for every case.
  */
 async function buildTruncateCommand(): Promise<string> {
   const sql = testSql();
@@ -105,8 +105,8 @@ async function buildTruncateCommand(): Promise<string> {
 }
 
 /**
- * Uma instrução só, com CASCADE, para caber em `beforeEach` sem pesar: cada caso começa do
- * zero e nenhum depende da ordem em que a suíte rodou.
+ * A single statement, with CASCADE, so it fits into `beforeEach` without weighing on it: every
+ * case starts from zero and none depends on the order the suite ran in.
  */
 export async function clearDatabase(): Promise<void> {
   await prepareDatabase();
@@ -115,9 +115,9 @@ export async function clearDatabase(): Promise<void> {
 }
 
 /**
- * Encerra o pool da suíte. O pool volta a nascer na próxima chamada de `sqlDeTeste()` porque
- * `bun test` roda todos os arquivos no mesmo processo: um `afterAll` que fecha aqui não pode
- * derrubar o arquivo seguinte.
+ * Shuts down the suite's pool. The pool is born again on the next call to `testSql()` because
+ * `bun test` runs every file in the same process: an `afterAll` that closes here must not take
+ * the next file down with it.
  */
 export async function closeTestDatabase(): Promise<void> {
   const openPool = pool;

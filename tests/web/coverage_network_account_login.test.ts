@@ -1,19 +1,19 @@
 /*
- * As telas de leitura da rede, da conta e da entrada — uma a uma.
+ * The reading screens of the network, the account and the sign-in — one by one.
  *
- * As suítes vizinhas alcançam estes endereços de lado: a autorização mede o status, a paginação
- * mede o recorte, as páginas de formulário medem o `action`. Nenhuma delas pergunta se a tela que
- * chegou é a tela certa. É o que se faz aqui: cada GET registrado em `rotas/rede.ts`,
- * `rotas/conta.ts` e `rotas/login.ts` é aberto com o papel que lhe cabe, e a resposta precisa
- * trazer o que só aquela tela traz — o cartão do painel, o `caption` da tabela, o campo do
- * formulário.
+ * The neighbouring suites reach these addresses sideways: authorization measures the status,
+ * pagination measures the slice, the form-page suite measures the `action`. None of them asks
+ * whether the screen that arrived is the right screen. That is what happens here: every GET
+ * registered in `routes/network.ts`, `routes/account.ts` and `routes/login.ts` is opened under the
+ * role it belongs to, and the response has to carry what only that screen carries — the dashboard
+ * card, the table `caption`, the form field.
  *
- * Os endereços aparecem escritos por extenso, e não importados de uma constante do código de
- * produção: renomear uma rota tem de quebrar o teste, e não acompanhá-lo em silêncio.
+ * The addresses appear written out in full, rather than imported from a production constant:
+ * renaming a route has to break the test, not follow it along in silence.
  *
- * O que a mensagem de retorno do POST-Redirect-GET diz também é tela: `?ok=` é um código curto na
- * URL, e a frase que a pessoa lê nasce no lado do servidor. Abrir a lista com o código e não achar
- * a frase é a lista muda depois de uma gravação bem-sucedida.
+ * What the POST-Redirect-GET return message says is screen too: `?ok=` is a short code in the URL,
+ * and the sentence the person reads is born on the server side. Opening the list with the code and
+ * not finding the sentence means the list went mute after a successful write.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -40,7 +40,7 @@ const signInAs = (
 const html = async (path: string, cookie = ''): Promise<string> =>
   await (await open(path, cookie)).text();
 
-/** O número que está no cartão daquele rótulo — e não um número qualquer da página. */
+/** The number sitting on the card with that label — and not just any number on the page. */
 const cardNumber = (page: string, label: string): string => {
   const pattern = new RegExp(
     `<span class="card__label">${label}</span>\\s*<span class="card__number">(\\d+)</span>`,
@@ -48,10 +48,10 @@ const cardNumber = (page: string, label: string): string => {
   return pattern.exec(page)?.[1] ?? 'cartão ausente';
 };
 
-/* --- GET /rede -------------------------------------------------------------- */
+/* --- GET /network ----------------------------------------------------------- */
 
-describe('o painel da rede', () => {
-  test('abre com os quatro números da rede e o ano em vigor', async () => {
+describe('the network dashboard', () => {
+  test('opens with the four numbers of the network and the year in force', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
@@ -61,7 +61,7 @@ describe('o painel da rede', () => {
     expect(response.status).toBe(200);
     expect(page).toContain(`<h1 class="page__title">${scenario.network.name}</h1>`);
     expect(cardNumber(page, 'Unidades')).toBe(String(scenario.schools.length));
-    // As quatro contas do cenário: administração, secretaria, professor e responsável.
+    // The scenario's four accounts: network administration, registrar, teacher and guardian.
     expect(cardNumber(page, 'Usuários')).toBe('4');
     expect(cardNumber(page, 'Turmas')).toBe(String(scenario.classGroups.length));
     expect(cardNumber(page, 'Matriculados')).toBe(String(scenario.enrollments.length));
@@ -69,10 +69,11 @@ describe('o painel da rede', () => {
   });
 
   /**
-   * Rede recém-criada é o caminho em que `contarRede` não tem ano letivo para consultar: turmas e
-   * matriculados não são "ainda não calculados", são zero, e a tela precisa dizer o que falta.
+   * A freshly created network is the path where `countNetwork` has no academic year to query: class
+   * groups and enrolled students are not "not computed yet", they are zero, and the screen has to
+   * say what is missing.
    */
-  test('sem ano letivo definido, conta zero turmas e aponta o próximo passo', async () => {
+  test('with no academic year defined, it counts zero class groups and points at the next step', async () => {
     const network = await createNetwork();
     const school = await createSchool({ networkId: network.id });
     const admin = await createUser({
@@ -92,10 +93,10 @@ describe('o painel da rede', () => {
   });
 });
 
-/* --- GET /rede/unidades e /rede/unidades/nova ------------------------------- */
+/* --- GET /network/schools and /network/schools/new -------------------------- */
 
-describe('as unidades da rede', () => {
-  test('a lista traz a tabela de unidades, com nome, INEP e situação', async () => {
+describe('the schools of the network', () => {
+  test('the list carries the school table, with name, INEP code and status', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
@@ -111,7 +112,7 @@ describe('as unidades da rede', () => {
     expect(page).toContain(`>${scenario.schools.length} no total<`);
   });
 
-  test('a lista lê o código do redirecionamento e mostra a frase da criação', async () => {
+  test('the list reads the code out of the redirect and shows the sentence about the creation', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
@@ -121,7 +122,7 @@ describe('as unidades da rede', () => {
     expect(page).toContain('Unidade criada.');
   });
 
-  test('a página de criação traz o formulário de unidade, e não a tabela', async () => {
+  test('the creation page carries the school form, not the table', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
@@ -136,10 +137,10 @@ describe('as unidades da rede', () => {
   });
 });
 
-/* --- GET /rede/usuarios e /rede/usuarios/novo ------------------------------- */
+/* --- GET /network/users and /network/users/new ------------------------------ */
 
-describe('os usuários da rede', () => {
-  test('a lista mostra quem tem acesso, com CPF, e-mail e papel na unidade', async () => {
+describe('the users of the network', () => {
+  test('the list shows who has access, with CPF, e-mail and role at the school', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
@@ -152,16 +153,17 @@ describe('os usuários da rede', () => {
     expect(page).toContain('<th scope="col">Papéis</th>');
     expect(page).toContain(`<th scope="row">${scenario.admin.name}</th>`);
     expect(page).toContain(scenario.registrar.email);
-    // O papel aparece traduzido para o nome de tela, e sempre colado à unidade em que vale.
+    // The role shows up under its screen name, and always glued to the school it holds at.
     expect(page).toContain(`Administração da rede · ${scenario.schools[0].name}`);
   });
 
   /**
-   * A senha provisória não viaja na URL: ela atravessa o redirecionamento em cookie assinado, e a
-   * lista é quem a lê e a apaga. Sem sessão *e* cookie do convite juntos, o bloco não existe — e é
-   * por isso que este é o único teste do arquivo que precisa fazer uma escrita antes de ler.
+   * The provisional password does not travel in the URL: it crosses the redirect in a signed cookie,
+   * and the list is what reads it and wipes it. Without session *and* invitation cookie together the
+   * block does not exist — which is why this is the only test in the file that has to write before
+   * it reads.
    */
-  test('logo depois do convite, a lista publica a senha provisória e descarta o cookie', async () => {
+  test('right after the invitation, the list publishes the provisional password and throws the cookie away', async () => {
     const scenario = await fullScenario();
     const session = await signInAs(scenario, 'admin');
 
@@ -186,11 +188,11 @@ describe('os usuários da rede', () => {
     expect(page).toContain('Usuário criado. A senha provisória está logo abaixo.');
     expect(page).toContain('Senha provisória de Nova Secretária');
     expect(page).toContain('<code class="code">');
-    // Lida uma vez, a senha não pode continuar guardada no navegador para a próxima visita.
-    expect(response.headers.get('Set-Cookie') ?? '').toContain('ev_convite=;');
+    // Once read, the password must not stay tucked away in the browser for the next visit.
+    expect(response.headers.get('Set-Cookie') ?? '').toContain('ev_invite=;');
   });
 
-  test('sem o cookie do convite, a mesma lista não publica senha nenhuma', async () => {
+  test('without the invitation cookie, the very same list publishes no password at all', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
@@ -200,7 +202,7 @@ describe('os usuários da rede', () => {
     expect(page).not.toContain('<code class="code">');
   });
 
-  test('a página do convite traz as três linhas de atribuição e as duas listas inteiras', async () => {
+  test('the invitation page carries the three assignment rows and both lists in full', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
@@ -212,19 +214,19 @@ describe('os usuários da rede', () => {
     expect(page).toContain('name="schools[]"');
     expect(page).toContain('name="roles[]"');
     expect(page).toContain('name="guardianId"');
-    // Sem JavaScript no cliente, as linhas são fixas: três, nem mais nem menos.
+    // With no JavaScript on the client, the rows are fixed: three, no more and no less.
     expect(page).toContain('id="school-2"');
     expect(page).not.toContain('id="school-3"');
-    // Nem a lista de unidades nem a de responsáveis é recortada: escolher exige ver tudo.
+    // Neither the school list nor the guardian list is sliced: choosing requires seeing everything.
     expect(page).toContain(`>${scenario.schools[1].name}</option>`);
     expect(page).toContain(scenario.guardians[4].name);
   });
 });
 
-/* --- GET /rede/anos-letivos e /rede/anos-letivos/novo ----------------------- */
+/* --- GET /network/academic-years and /network/academic-years/new ------------ */
 
-describe('os anos letivos da rede', () => {
-  test('a lista traz o calendário com ano, início e término', async () => {
+describe('the academic years of the network', () => {
+  test('the list carries the calendar with year, start and end', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
@@ -238,7 +240,7 @@ describe('os anos letivos da rede', () => {
     expect(page).toContain(`<th scope="row" class="number">${scenario.academicYear.year}</th>`);
   });
 
-  test('a lista lê o código do redirecionamento e mostra a frase da definição', async () => {
+  test('the list reads the code out of the redirect and shows the sentence about the definition', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
@@ -248,7 +250,7 @@ describe('os anos letivos da rede', () => {
     expect(page).toContain('Ano letivo definido.');
   });
 
-  test('a página de definição traz os três campos do período', async () => {
+  test('the definition page carries the three fields of the span', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
@@ -264,10 +266,10 @@ describe('os anos letivos da rede', () => {
   });
 });
 
-/* --- GET /conta/senha ------------------------------------------------------- */
+/* --- GET /account/password -------------------------------------------------- */
 
-describe('a troca da própria senha', () => {
-  test('a tela pede a senha atual, a nova e a confirmação', async () => {
+describe('changing one\'s own password', () => {
+  test('the screen asks for the current password, the new one and the confirmation', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 
@@ -281,7 +283,7 @@ describe('a troca da própria senha', () => {
     expect(page).toContain('name="passwordConfirmation"');
   });
 
-  test('o retorno da troca vira frase, e não o código que veio na URL', async () => {
+  test('the return from the change becomes a sentence, not the code that came in the URL', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'teacher');
 
@@ -297,8 +299,8 @@ describe('a troca da própria senha', () => {
 
 /* --- GET /login ------------------------------------------------------------- */
 
-describe('a tela de entrada', () => {
-  test('abre sem sessão com os três campos do formulário', async () => {
+describe('the sign-in screen', () => {
+  test('opens with no session, carrying the three fields of the form', async () => {
     const response = await open('/login');
     const page = await response.text();
 
@@ -309,7 +311,7 @@ describe('a tela de entrada', () => {
     expect(page).toContain('name="password"');
   });
 
-  test('a mensagem que volta do logout aparece no aviso do topo', async () => {
+  test('the message coming back from the logout shows up in the notice at the top', async () => {
     const response = await open(`/login?ok=${encodeURIComponent('Sessão encerrada.')}`);
     const page = await response.text();
 

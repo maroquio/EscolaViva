@@ -1,9 +1,10 @@
 /*
- * A paginação como o navegador a vê.
+ * Pagination as the browser sees it.
  *
- * O estado da página mora na URL, e é isso que se prova aqui: a segunda página é um endereço, o
- * filtro sobrevive à navegação, e duas tabelas na mesma tela andam sem arrastar uma à outra. Um
- * número inventado na query não vira erro nem tela vazia — vira a página mais próxima que existe.
+ * The page state lives in the URL, and that is what gets proven here: the second page is an
+ * address, the filter survives the navigation, and two tables on the same screen move without
+ * dragging one another along. A made-up number in the query becomes neither an error nor an empty
+ * screen — it becomes the nearest page that exists.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -24,12 +25,12 @@ import { open, signIn } from './support';
 beforeEach(clearDatabase);
 
 /**
- * O tamanho de página do sistema, lido de onde ele é decidido. Os cenários abaixo são montados em
- * torno dele: mudar a régua muda os números esperados sem reescrever teste nenhum.
+ * The system's page size, read from where it is decided. The scenarios below are built around it:
+ * moving the ruler moves the expected numbers without rewriting a single test.
  */
 const PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
-/** Os cinco registros que o cenário completo já traz: a sobra que cai na última página. */
+/** The five records the full scenario already brings: the remainder that lands on the last page. */
 const REMAINDER = 5;
 
 const signInAsRegistrar = (scenario: Scenario): Promise<string> =>
@@ -41,13 +42,13 @@ const signInAsGuardian = (scenario: Scenario): Promise<string> =>
 const html = async (path: string, cookie: string): Promise<string> =>
   await (await open(path, cookie)).text();
 
-/** Cada linha de dado tem uma célula-âncora `scope="row"`; o cabeçalho não tem. */
+/** Every data row has an anchor cell with `scope="row"`; the header does not. */
 const tableRows = (page: string): number => (page.match(/scope="row"/g) ?? []).length;
 
 const numberedName = (position: number): string => `Pessoa ${String(position).padStart(3, '0')}`;
 
-describe('recorte na tela de responsáveis', () => {
-  /** Uma página cheia e uma sobra de cinco: os cinco do cenário mais uma página inteira. */
+describe('slicing on the guardians screen', () => {
+  /** One full page and a remainder of five: the scenario's five plus a whole page. */
   const onePageAndARemainder = async (): Promise<Scenario> => {
     const scenario = await fullScenario();
     for (let i = 1; i <= PAGE_SIZE; i += 1) {
@@ -56,7 +57,7 @@ describe('recorte na tela de responsáveis', () => {
     return scenario;
   };
 
-  test('a primeira página traz o tamanho de página, e não a lista inteira', async () => {
+  test('the first page brings the page size, not the whole list', async () => {
     const scenario = await onePageAndARemainder();
 
     const page = await html('/registrar/guardians', await signInAsRegistrar(scenario));
@@ -66,7 +67,7 @@ describe('recorte na tela de responsáveis', () => {
     expect(page).toContain('href="/registrar/guardians?p=2"');
   });
 
-  test('a contagem da seção mostra o total, e não o tamanho da página', async () => {
+  test('the section count shows the total, not the size of the page', async () => {
     const scenario = await onePageAndARemainder();
 
     const page = await html('/registrar/guardians', await signInAsRegistrar(scenario));
@@ -74,7 +75,7 @@ describe('recorte na tela de responsáveis', () => {
     expect(page).toContain(`>${PAGE_SIZE + REMAINDER}</span>`);
   });
 
-  test('a segunda página traz a sobra e oferece a volta', async () => {
+  test('the second page brings the remainder and offers the way back', async () => {
     const scenario = await onePageAndARemainder();
 
     const page = await html('/registrar/guardians?p=2', await signInAsRegistrar(scenario));
@@ -84,7 +85,7 @@ describe('recorte na tela de responsáveis', () => {
     expect(page).not.toContain('rel="next"');
   });
 
-  test('página além do fim serve a última, em vez de uma tela vazia', async () => {
+  test('a page past the end serves the last one, instead of an empty screen', async () => {
     const scenario = await onePageAndARemainder();
 
     const page = await html('/registrar/guardians?p=999', await signInAsRegistrar(scenario));
@@ -92,7 +93,7 @@ describe('recorte na tela de responsáveis', () => {
     expect(tableRows(page)).toBe(REMAINDER);
   });
 
-  test('página que não é número cai na primeira, sem erro', async () => {
+  test('a page that is not a number falls to the first one, with no error', async () => {
     const scenario = await onePageAndARemainder();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -102,7 +103,7 @@ describe('recorte na tela de responsáveis', () => {
     expect(tableRows(await response.text())).toBe(PAGE_SIZE);
   });
 
-  test('lista de uma página só não desenha os controles, mas continua contando', async () => {
+  test('a single-page list draws no controls, but keeps on counting', async () => {
     const scenario = await fullScenario();
 
     const page = await html('/registrar/guardians', await signInAsRegistrar(scenario));
@@ -112,8 +113,8 @@ describe('recorte na tela de responsáveis', () => {
   });
 });
 
-describe('o resto da query sobrevive à navegação', () => {
-  test('o termo da busca continua nos links de página', async () => {
+describe('the rest of the query survives the navigation', () => {
+  test('the search term stays in the page links', async () => {
     const scenario = await fullScenario();
     for (let i = 1; i <= PAGE_SIZE + REMAINDER; i += 1) {
       await createStudent({ networkId: scenario.network.id, name: `Silva ${String(i).padStart(3, '0')}` });
@@ -125,7 +126,7 @@ describe('o resto da query sobrevive à navegação', () => {
     expect(page).toContain('q=Silva&amp;p=2');
   });
 
-  test('voltar à primeira página tira o parâmetro da URL em vez de escrever p=1', async () => {
+  test('going back to the first page drops the parameter from the URL instead of writing p=1', async () => {
     const scenario = await fullScenario();
     for (let i = 1; i <= PAGE_SIZE + REMAINDER; i += 1) {
       await createGuardian({ networkId: scenario.network.id, name: numberedName(i) });
@@ -138,11 +139,11 @@ describe('o resto da query sobrevive à navegação', () => {
   });
 });
 
-describe('duas tabelas na mesma tela', () => {
-  test('avançar as matrículas não mexe na página das disciplinas', async () => {
+describe('two tables on the same screen', () => {
+  test('advancing the enrollments does not move the subjects page', async () => {
     const scenario = await fullScenario();
     const [classGroup] = scenario.classGroups;
-    // As matrículas do cenário mais uma página inteira: a turma passa a ter duas páginas de alunos.
+    // The scenario's enrollments plus a whole page: the class group now has two pages of students.
     for (let i = 1; i <= PAGE_SIZE; i += 1) {
       const student = await createStudent({ networkId: scenario.network.id, name: numberedName(i) });
       await createEnrollment({
@@ -156,16 +157,16 @@ describe('duas tabelas na mesma tela', () => {
       await signInAsRegistrar(scenario),
     );
 
-    // O link que avança os alunos carrega junto a página em que as disciplinas estão.
+    // The link that advances the students carries along the page the subjects are on.
     expect(page).toContain('pSubjects=1&amp;pEnrollments=2');
   });
 });
 
-describe('portal do responsável', () => {
-  test('o mural pagina as duas metades com parâmetros próprios', async () => {
+describe('the guardian portal', () => {
+  test('the board paginates both halves under parameters of their own', async () => {
     const scenario = await fullScenario();
     const [guardian] = scenario.guardians;
-    // Um por ler e um já lido: cada metade do mural precisa ter o que contar.
+    // One unread and one already read: each half of the board needs something to count.
     await createAnnouncement({
       networkId: scenario.network.id, schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
@@ -183,7 +184,7 @@ describe('portal do responsável', () => {
     expect(page).toContain('Paginação de comunicados lidos');
   });
 
-  test('a frequência do aluno abre paginada', async () => {
+  test('the student attendance opens paginated', async () => {
     const scenario = await fullScenario();
     const [enrollment] = scenario.enrollments;
 
@@ -196,13 +197,13 @@ describe('portal do responsável', () => {
   });
 });
 
-describe('a ajuda da busca de alunos promete o recorte que a tela entrega', () => {
+describe('the student search help promises the slice the screen delivers', () => {
   const HELP_TEXT = new RegExp(`id="${helpId(PARAMS.search)}"[^>]*>([\\s\\S]*?)</p>`);
 
   const numbersInHelpText = (page: string): number[] =>
     ((HELP_TEXT.exec(page)?.[1] ?? '').match(/\d+/g) ?? []).map(Number);
 
-  test('o único número da ajuda é o número de linhas que a página traz', async () => {
+  test('the only number in the help text is the number of rows the page brings', async () => {
     const scenario = await fullScenario();
     for (let i = 1; i <= PAGE_SIZE + REMAINDER; i += 1) {
       await createStudent({ networkId: scenario.network.id, name: `Silva ${String(i).padStart(3, '0')}` });
@@ -214,7 +215,7 @@ describe('a ajuda da busca de alunos promete o recorte que a tela entrega', () =
     expect(numbersInHelpText(page)).toEqual([PAGE_SIZE]);
   });
 
-  test('a ajuda não promete um teto: a paginação alcança todos os encontrados', async () => {
+  test('the help text promises no ceiling: pagination reaches everyone found', async () => {
     const scenario = await fullScenario();
     for (let i = 1; i <= PAGE_SIZE + REMAINDER; i += 1) {
       await createStudent({ networkId: scenario.network.id, name: `Silva ${String(i).padStart(3, '0')}` });
@@ -229,7 +230,7 @@ describe('a ajuda da busca de alunos promete o recorte que a tela entrega', () =
     expect(found).toBeGreaterThan(numbersInHelpText(first)[0] ?? 0);
   });
 
-  test('a tela sem busca declara o mesmo recorte da tela com resultado', async () => {
+  test('the screen with no search declares the same slice as the screen with results', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 

@@ -137,7 +137,7 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
             <th scope="col"><%= it.labels.classGroup %></th>
             <th scope="col"><%= it.labels.year %></th>
             <th scope="col">Data</th>
-<% // magic-values: permitido — não é rótulo de LABELS, nem o ACADEMIC_VOCABULARY.enrollmentStatus da célula abaixo %>
+<% // magic-values: permitido — this is not a label out of LABELS, nor the ACADEMIC_VOCABULARY.enrollmentStatus of the cell below %>
             <th scope="col">Situação</th>
           </tr>
         </thead>

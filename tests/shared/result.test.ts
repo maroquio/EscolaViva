@@ -1,7 +1,7 @@
 /*
- * `Result` é o que todo caso de uso devolve. O discriminante `ok` é o que a camada web usa
- * para decidir entre redirecionar e re-renderizar o formulário com as mensagens, então o formato
- * é contrato, não detalhe.
+ * `Result` is what every use case gives back. The `ok` discriminant is what the web layer reads to
+ * decide between redirecting and re-rendering the form with its messages, so the shape is a
+ * contract, not a detail.
  */
 
 import { describe, expect, test } from 'bun:test';
@@ -14,14 +14,14 @@ import {
   type ApplicationError,
 } from '../../src/shared/result';
 
-/** Issues de zod de verdade: é delas que `schemaErrors` vive em todos os casos de uso. */
+/** Real zod issues: they are what `schemaErrors` lives off in every use case. */
 function issuesOf(schema: z.ZodTypeAny, input: unknown): z.ZodIssue[] {
   const parsed = schema.safeParse(input);
   return parsed.success ? [] : parsed.error.issues;
 }
 
 describe('success', () => {
-  test('marca ok como verdadeiro e carrega o valor', () => {
+  test('marks ok as true and carries the value', () => {
     const value = { id: 'm1', status: 'active' };
 
     const result = success(value);
@@ -29,7 +29,7 @@ describe('success', () => {
     expect(result).toEqual({ ok: true, valor: value });
   });
 
-  test('aceita void como valor, para caso de uso que não devolve nada', () => {
+  test('takes void as the value, for the use case that gives nothing back', () => {
     const nothing = undefined;
 
     const result = success(nothing);
@@ -39,7 +39,7 @@ describe('success', () => {
 });
 
 describe('failure', () => {
-  test('marca ok como falso e carrega os erros na ordem recebida', () => {
+  test('marks ok as false and carries the errors in the order received', () => {
     const first: ApplicationError = { codigo: 'nota_invalida', mensagem: 'nota fora de 0 a 10' };
     const second: ApplicationError = { codigo: 'bimestre_fechado', mensagem: 'bimestre fechado' };
 
@@ -48,7 +48,7 @@ describe('failure', () => {
     expect(result).toEqual({ ok: false, erros: [first, second] });
   });
 
-  test('sem argumento nenhum devolve lista de erros vazia', () => {
+  test('with no argument at all it gives back an empty list of errors', () => {
     const withoutErrors: ApplicationError[] = [];
 
     const result = failure(...withoutErrors);
@@ -58,7 +58,7 @@ describe('failure', () => {
 });
 
 describe('fieldFailure', () => {
-  test('produz um único erro amarrado ao campo do formulário', () => {
+  test('produces a single error tied to the form field', () => {
     const field = 'email';
 
     const result = fieldFailure(field, 'email_em_uso', 'já existe usuário com este e-mail');
@@ -71,7 +71,7 @@ describe('fieldFailure', () => {
 });
 
 describe('schemaErrors', () => {
-  test('converte cada issue de zod preservando o nome do campo', () => {
+  test('converts each zod issue while preserving the field name', () => {
     const schema = z.object({ nome: z.string().min(3, 'nome curto demais') });
 
     const errors = schemaErrors(issuesOf(schema, { nome: 'Jo' }));
@@ -79,7 +79,7 @@ describe('schemaErrors', () => {
     expect(errors).toEqual([{ codigo: 'too_small', mensagem: 'nome curto demais', campo: 'nome' }]);
   });
 
-  test('preserva o caminho completo de campo aninhado, com o índice do array', () => {
+  test('preserves the full path of a nested field, array index included', () => {
     const schema = z.object({
       notas: z.array(z.object({ valor: z.number().max(10, 'nota acima de dez') })),
     });
@@ -89,7 +89,7 @@ describe('schemaErrors', () => {
     expect(errors).toEqual([{ codigo: 'too_big', mensagem: 'nota acima de dez', campo: 'notas.1.valor' }]);
   });
 
-  test('converte todas as issues de uma vez, e não só a primeira', () => {
+  test('converts every issue at once, not just the first', () => {
     const schema = z.object({
       nome: z.string().min(3, 'nome curto demais'),
       ano: z.number().int('ano precisa ser inteiro'),
@@ -100,7 +100,7 @@ describe('schemaErrors', () => {
     expect(errors.map((error) => error.campo)).toEqual(['nome', 'ano']);
   });
 
-  test('omite a chave campo quando o erro é da raiz do schema', () => {
+  test('omits the `campo` key when the error belongs to the schema root', () => {
     const schema = z
       .object({ dataInicio: z.string(), dataFim: z.string() })
       .refine((value) => value.dataFim > value.dataInicio, 'fim antes do início');
@@ -111,7 +111,7 @@ describe('schemaErrors', () => {
     expect(Object.hasOwn(errors[0] ?? {}, 'campo')).toBe(false);
   });
 
-  test('lista vazia de issues vira lista vazia de erros', () => {
+  test('an empty list of issues becomes an empty list of errors', () => {
     const schema = z.object({ nome: z.string() });
 
     const errors = schemaErrors(issuesOf(schema, { nome: 'Ana' }));

@@ -1,10 +1,11 @@
 /*
- * A regra pedagógica do EscolaViva, exercida onde ela mora: quatro funções puras, sem banco e sem
- * cenário. Média aritmética simples dos quatro bimestres, aprovação com média ≥ 6,0 E frequência
- * ≥ 75 %, tudo truncado na segunda casa.
+ * The EscolaViva pedagogical rule, exercised where it lives: four pure functions, with no database
+ * and no scenario. A simple arithmetic mean of the four terms, a pass at an average ≥ 6.0 AND
+ * attendance ≥ 75 %, everything truncated at the second decimal.
  *
- * Este arquivo é o que impede a regra de virar configuração por acidente: se um dia alguém trocar
- * o truncamento por arredondamento, ou introduzir peso por avaliação, é aqui que a suíte grita.
+ * This file is what keeps the rule from turning into configuration by accident: the day someone
+ * swaps truncation for rounding, or brings in per-assessment weights, this is where the suite
+ * shouts.
  */
 
 import { describe, expect, test } from 'bun:test';
@@ -17,7 +18,7 @@ import {
 } from '../../src/assessment/domain/reportCard';
 
 describe('subjectAverage', () => {
-  test('calcula a média aritmética simples dos quatro bimestres', () => {
+  test('computes the simple arithmetic mean of the four terms', () => {
     const grades = [10, 0, 10, 0];
 
     const average = subjectAverage(grades);
@@ -25,7 +26,7 @@ describe('subjectAverage', () => {
     expect(average).toBe(5);
   });
 
-  test('não pondera bimestre nenhum: a ordem das notas não muda a média', () => {
+  test('weights no term at all: the order of the grades does not move the average', () => {
     const ascending = [0, 0, 10, 10];
     const descending = [10, 10, 0, 0];
 
@@ -36,7 +37,7 @@ describe('subjectAverage', () => {
     expect(descendingAverage).toBe(5);
   });
 
-  test('trunca na segunda casa: a média que dá 5,995 vale 5,99 e não 6,00', () => {
+  test('truncates at the second decimal: an average of 5.995 is worth 5.99, not 6.00', () => {
     const grades = [5.99, 6, 5.99, 6];
 
     const average = subjectAverage(grades);
@@ -44,7 +45,7 @@ describe('subjectAverage', () => {
     expect(average).toBe(5.99);
   });
 
-  test('preserva a nota exata quando os quatro bimestres são iguais', () => {
+  test('preserves the exact grade when all four terms are equal', () => {
     const grades = [7.45, 7.45, 7.45, 7.45];
 
     const average = subjectAverage(grades);
@@ -52,7 +53,7 @@ describe('subjectAverage', () => {
     expect(average).toBe(7.45);
   });
 
-  test('devolve null quando algum bimestre está sem nota', () => {
+  test('gives back null when some term has no grade', () => {
     const grades = [8, null, 7, 9];
 
     const average = subjectAverage(grades);
@@ -60,7 +61,7 @@ describe('subjectAverage', () => {
     expect(average).toBeNull();
   });
 
-  test('devolve null quando não recebe os quatro bimestres', () => {
+  test('gives back null when it does not get all four terms', () => {
     const incomplete = [8, 8, 8];
 
     const average = subjectAverage(incomplete);
@@ -68,7 +69,7 @@ describe('subjectAverage', () => {
     expect(average).toBeNull();
   });
 
-  test('devolve null para uma lista de notas vazia', () => {
+  test('gives back null for an empty list of grades', () => {
     const none: (number | null)[] = [];
 
     const average = subjectAverage(none);
@@ -78,7 +79,7 @@ describe('subjectAverage', () => {
 });
 
 describe('overallAverage', () => {
-  test('é a média simples das médias das disciplinas', () => {
+  test('is the simple mean of the subject averages', () => {
     const averages = [10, 5, 0];
 
     const overall = overallAverage(averages);
@@ -86,7 +87,7 @@ describe('overallAverage', () => {
     expect(overall).toBe(5);
   });
 
-  test('trunca na segunda casa em vez de arredondar para cima', () => {
+  test('truncates at the second decimal instead of rounding up', () => {
     const averages = [5.99, 6];
 
     const overall = overallAverage(averages);
@@ -94,7 +95,7 @@ describe('overallAverage', () => {
     expect(overall).toBe(5.99);
   });
 
-  test('devolve null quando alguma disciplina ainda não tem média', () => {
+  test('gives back null while some subject still has no average', () => {
     const averages = [8, null, 9];
 
     const overall = overallAverage(averages);
@@ -102,7 +103,7 @@ describe('overallAverage', () => {
     expect(overall).toBeNull();
   });
 
-  test('devolve null quando o aluno não cursa disciplina nenhuma', () => {
+  test('gives back null when the student takes no subject at all', () => {
     const none: (number | null)[] = [];
 
     const overall = overallAverage(none);
@@ -118,7 +119,7 @@ describe('termAverages', () => {
     average: subjectAverage(grades),
   });
 
-  test('é a média simples das notas de todas as disciplinas em cada bimestre', () => {
+  test('is the simple mean of the grades of every subject in each term', () => {
     const rows = [row('Arte', [10, 8, 6, 4]), row('Ciências', [0, 2, 4, 6])];
 
     const averages = termAverages(rows);
@@ -126,7 +127,7 @@ describe('termAverages', () => {
     expect(averages).toEqual([5, 5, 5, 5]);
   });
 
-  test('trunca na segunda casa, como o resto da regra', () => {
+  test('truncates at the second decimal, like the rest of the rule', () => {
     const rows = [row('Arte', [5.99, 10, 10, 10]), row('Ciências', [6, 10, 10, 10])];
 
     const averages = termAverages(rows);
@@ -134,7 +135,7 @@ describe('termAverages', () => {
     expect(averages[0]).toBe(5.99);
   });
 
-  test('devolve null no bimestre em que falta nota de alguma disciplina', () => {
+  test('gives back null for the term where some subject is missing a grade', () => {
     const rows = [row('Arte', [7, null, 8, 9]), row('Ciências', [9, 9, 8, 7])];
 
     const averages = termAverages(rows);
@@ -142,7 +143,7 @@ describe('termAverages', () => {
     expect(averages).toEqual([8, null, 8, 8]);
   });
 
-  test('devolve os quatro bimestres nulos quando o aluno não cursa disciplina nenhuma', () => {
+  test('gives back four null terms when the student takes no subject at all', () => {
     const none: ReturnType<typeof row>[] = [];
 
     const averages = termAverages(none);
@@ -152,32 +153,32 @@ describe('termAverages', () => {
 });
 
 describe('attendanceRate', () => {
-  test('devolve 0 sem dia registrado, em vez de dividir por zero', () => {
+  test('gives back 0 with no day on record, instead of dividing by zero', () => {
     const withoutDay = attendanceRate(0, 0);
 
     expect(withoutDay).toBe(0);
     expect(Number.isNaN(withoutDay)).toBe(false);
   });
 
-  test('converte presenças em percentual', () => {
+  test('turns days present into a percentage', () => {
     const percentage = attendanceRate(3, 4);
 
     expect(percentage).toBe(75);
   });
 
-  test('trunca da terceira casa em diante', () => {
+  test('truncates from the third decimal onwards', () => {
     const percentage = attendanceRate(2, 3);
 
     expect(percentage).toBe(66.66);
   });
 
-  test('devolve 100 quando o aluno esteve presente em todos os dias', () => {
+  test('gives back 100 when the student was present on every day', () => {
     const percentage = attendanceRate(180, 180);
 
     expect(percentage).toBe(100);
   });
 
-  test('devolve 0 quando o aluno faltou a todos os dias registrados', () => {
+  test('gives back 0 when the student missed every day on record', () => {
     const percentage = attendanceRate(0, 200);
 
     expect(percentage).toBe(0);
@@ -185,57 +186,57 @@ describe('attendanceRate', () => {
 });
 
 describe('finalStatus', () => {
-  test('reprova a média 5,9 mesmo com frequência integral', () => {
+  test('fails an average of 5.9 even on perfect attendance', () => {
     const status = finalStatus(5.9, 100, true);
 
     expect(status).toBe('failed');
   });
 
-  test('aprova a média 6,0 exata', () => {
+  test('passes an average of exactly 6.0', () => {
     const status = finalStatus(6, 100, true);
 
     expect(status).toBe('passed');
   });
 
-  test('reprova a frequência de 74,9 % mesmo com média 8,0', () => {
+  test('fails attendance of 74.9 % even on an average of 8.0', () => {
     const status = finalStatus(8, 74.9, true);
 
     expect(status).toBe('failed');
   });
 
-  test('aprova na fronteira inclusiva: média 6,0 e frequência 75,0 %', () => {
+  test('passes on the inclusive boundary: average 6.0 and attendance 75.0 %', () => {
     const status = finalStatus(6, 75, true);
 
     expect(status).toBe('passed');
   });
 
-  test('reprova a média 5,995 porque ela vale 5,99 e não 6,00', () => {
+  test('fails an average of 5.995 because it is worth 5.99, not 6.00', () => {
     const status = finalStatus(5.995, 100, true);
 
     expect(status).toBe('failed');
   });
 
-  test('deixa em curso enquanto algum bimestre está aberto, mesmo com média alta', () => {
+  test('leaves the student in progress while some term is open, however high the average', () => {
     const status = finalStatus(9.5, 100, false);
 
     expect(status).toBe('in_progress');
   });
 
-  test('deixa em curso quando falta nota, nunca reprovado', () => {
+  test('leaves the student in progress when a grade is missing, never failed', () => {
     const status = finalStatus(null, 100, true);
 
     expect(status).toBe('in_progress');
   });
 
-  test('deixa em curso quando falta nota, mesmo com frequência abaixo do mínimo', () => {
+  test('leaves the student in progress when a grade is missing, even with attendance below the minimum', () => {
     const status = finalStatus(null, 40, true);
 
     expect(status).toBe('in_progress');
   });
 });
 
-describe('regra pedagógica de ponta a ponta', () => {
-  test('bimestre sem nota deixa a disciplina sem média e o aluno em curso', () => {
+describe('the pedagogical rule, end to end', () => {
+  test('a term with no grade leaves the subject without an average and the student in progress', () => {
     const subjectGrades = [8, null, 9, 10];
 
     const average = subjectAverage(subjectGrades);
@@ -247,7 +248,7 @@ describe('regra pedagógica de ponta a ponta', () => {
     expect(status).toBe('in_progress');
   });
 
-  test('aprova o aluno que fecha o ano em 6,0 com 75 % de presença', () => {
+  test('passes the student who ends the year at 6.0 with 75 % attendance', () => {
     const subjectGrades = [6, 6, 6, 6];
 
     const overall = overallAverage([subjectAverage(subjectGrades)]);
@@ -259,7 +260,7 @@ describe('regra pedagógica de ponta a ponta', () => {
     expect(status).toBe('passed');
   });
 
-  test('reprova por frequência o aluno de média 8,0 que faltou demais', () => {
+  test('fails on attendance the student who averaged 8.0 but missed too much', () => {
     const subjectGrades = [8, 8, 8, 8];
 
     const overall = overallAverage([subjectAverage(subjectGrades)]);

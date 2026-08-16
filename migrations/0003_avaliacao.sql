@@ -1,8 +1,8 @@
--- Avaliação: nota, frequência e fechamento de bimestre.
--- A nota pertence à matrícula dentro de uma disciplina da turma; a frequência é por dia,
--- nunca por aula; o fechamento registra que o bimestre da turma foi encerrado.
--- Média, percentual de frequência e situação são sempre calculados na consulta,
--- nunca guardados em coluna (I5).
+-- Assessment: grade, attendance and the closing of a term.
+-- A grade belongs to an enrollment within a subject of a class group; attendance is per day, never
+-- per class period; the closing records that the class group's term has been shut.
+-- Average, attendance percentage and status are always computed at query time, never stored in a
+-- column (I5).
 
 CREATE TABLE grade (
   id                      uuid PRIMARY KEY,
@@ -23,7 +23,7 @@ CREATE TABLE grade (
 CREATE TRIGGER grade_updated_at BEFORE UPDATE ON grade
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- A tela de lançamento carrega as notas de uma disciplina em um bimestre.
+-- The posting screen loads the grades of one subject within one term.
 CREATE INDEX grade_by_class_group_subject ON grade (network_id, class_group_subject_id, term);
 
 CREATE TABLE attendance (
@@ -41,7 +41,7 @@ CREATE TABLE attendance (
 CREATE TRIGGER attendance_updated_at BEFORE UPDATE ON attendance
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- Maior tabela do sistema: chamada do dia e percentual do boletim passam por aqui.
+-- The largest table in the system: the day's roll call and the report card percentage both come through here.
 CREATE INDEX attendance_by_enrollment ON attendance (network_id, enrollment_id, attendance_date);
 
 CREATE TABLE term_closing (

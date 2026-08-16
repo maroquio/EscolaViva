@@ -1,14 +1,14 @@
 /*
- * A Seção 8 do documento do Estágio 01, item a item, executável.
+ * Section 8 of the Stage 01 document, item by item, made executable.
  *
- * A lista original é de caixas de marcar, e caixa de marcar é promessa. Aqui cada item é uma
- * verificação que roda: a regra de dependência quebra mesmo quando alguém a viola, o processo
- * morre mesmo quando falta variável, a saúde responde 503 mesmo com o banco fora do ar. É este
- * arquivo, e não a leitura do documento, que autoriza dizer que o estágio está pronto.
+ * The original list is made of check boxes, and a check box is a promise. Here every item is a
+ * check that runs: the dependency rule really does break when someone violates it, the process
+ * really does die when a variable is missing, health really does answer 503 with the database down.
+ * It is this file, and not a reading of the document, that authorizes saying the stage is done.
  *
- * Três itens do documento não cabem em teste automatizado e ficam de fora de propósito: a
- * restauração do dump em outro banco (`scripts/restore-test.sh`), e os quatro números de medição
- * da Seção 5, que são observações anotadas por quem executa, não asserções.
+ * Three items of the document do not fit into an automated test and are left out on purpose: the
+ * restore of the dump into another database (`scripts/restore-test.sh`), and the four measurement
+ * numbers of Section 5, which are observations noted down by whoever runs them, not assertions.
  */
 
 import { SQL } from 'bun';
@@ -49,21 +49,20 @@ const PROCESS_DEADLINE_MS = 60_000;
 
 /* ------------------------------------------------------------------------- */
 
-describe('`bun run check` falha se um módulo importar arquivo interno de outro', () => {
+describe('`bun run check` fails if one module imports another module\'s internal file', () => {
   type Violation = { rule: string; path: string; content: string };
 
   /*
-   * As três regras nomeiam os quatro módulos numa alternância de regex. Plantar a violação
-   * em um módulo só provava que a alternância casa aquele nome — um erro de digitação em
-   * qualquer um dos outros três ('assesment', 'comunication') deixaria aquele módulo sem
-   * regra nenhuma e a saída continuaria verde. Por isso cada regra é plantada nos quatro.
+   * The three rules name the four modules inside a regex alternation. Planting the violation in one
+   * module alone would only prove that the alternation matches that one name — a typo in any of the
+   * other three ('assesment', 'comunication') would leave that module with no rule at all and the
+   * output would stay green. That is why each rule is planted in all four.
    *
-   * A lista sai do disco, e não de literais: durante a conversão do repositório para inglês
-   * cada módulo troca de nome numa fase diferente, e uma lista escrita à mão passaria a
-   * plantar violação em pasta inexistente — o depcruise reprovaria por outro motivo e o teste
-   * continuaria "vermelho certo pelo motivo errado", ou pior, verde por não achar nada.
-   * O mesmo vale para a pasta de domínio, que é `dominio` antes da fase do módulo e `domain`
-   * depois dela.
+   * The list comes off disk rather than from literals: while the repository is converted to English
+   * each module changes name in a different phase, and a hand-written list would start planting
+   * violations in folders that do not exist — depcruise would fail for another reason and the test
+   * would stay "red for the wrong reason", or worse, green for having found nothing. The same holds
+   * for the domain folder, which is `dominio` before that module's phase and `domain` after it.
    */
   const domainModules = (): readonly string[] =>
     readdirSync(join(PROJECT_ROOT, 'src'), { withFileTypes: true })
@@ -76,7 +75,7 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
   const domainFolder = (module: string): string =>
     existsSync(join(PROJECT_ROOT, 'src', module, 'domain')) ? 'domain' : 'dominio';
 
-  /** Um arquivo interno de OUTRO módulo: é o atalho que a regra proíbe. */
+  /** An internal file of ANOTHER module: the shortcut the rule forbids. */
   const internalTarget = (module: string, modules: readonly string[]): string => {
     const other = modules.find((candidate) => candidate !== module) ?? module;
     const folder = domainFolder(other);
@@ -112,14 +111,14 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
     },
   ]);
 
-  test('a lista de módulos veio do disco e não está vazia', () => {
+  test('the module list came off disk and is not empty', () => {
     expect(MODULES.length).toBeGreaterThanOrEqual(4);
   });
 
   const runCheck = (): Promise<{ exitCode: number; stdout: string; stderr: string }> =>
     runProcess(['x', 'depcruise', 'src', '--config', 'config/.dependency-cruiser.js'], {});
 
-  /** O arquivo em falta some no `finally`: uma suíte que deixa lixo em `src/` quebra a seguinte. */
+  /** The offending file disappears in the `finally`: a suite that leaves rubbish in `src/` breaks the next one. */
   const checkWith = async (violation: Violation): Promise<{ exitCode: number; stdout: string }> => {
     const path = join(PROJECT_ROOT, violation.path);
     await Bun.write(path, violation.content);
@@ -131,14 +130,14 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
     }
   };
 
-  test('o grafo limpo passa, e é esse o ponto de partida', async () => {
+  test('the clean graph passes, and that is the starting point', async () => {
     const { exitCode } = await runCheck();
 
     expect(exitCode).toBe(0);
   }, PROCESS_DEADLINE_MS);
 
   for (const violation of VIOLATIONS) {
-    test(`a regra ${violation.rule} derruba a verificação em ${violation.path}`, async () => {
+    test(`the ${violation.rule} rule brings the check down at ${violation.path}`, async () => {
       const { exitCode, stdout } = await checkWith(violation);
 
       expect(exitCode).not.toBe(0);
@@ -147,7 +146,7 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
     }, PROCESS_DEADLINE_MS);
   }
 
-  test('o arquivo em falta não sobra depois do teste', async () => {
+  test('the offending file is not left behind after the test', async () => {
     const leftovers = await Promise.all(
       VIOLATIONS.map((violation) => Bun.file(join(PROJECT_ROOT, violation.path)).exists()),
     );
@@ -158,7 +157,7 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
 
 /* ------------------------------------------------------------------------- */
 
-describe('nenhum arquivo é escrito em disco pela aplicação', () => {
+describe('the application writes no file to disk', () => {
   const PATTERNS: readonly { name: string; expression: RegExp }[] = [
     { name: 'writeFile', expression: /\bwriteFile(?:Sync)?\s*\(/ },
     { name: 'appendFile', expression: /\bappendFile(?:Sync)?\s*\(/ },
@@ -183,13 +182,13 @@ describe('nenhum arquivo é escrito em disco pela aplicação', () => {
     return found;
   };
 
-  test('nenhum módulo de `src/` grava arquivo', async () => {
+  test('no module under `src/` writes a file', async () => {
     const found = await diskWrites();
 
     expect(found).toEqual([]);
   });
 
-  test('a varredura de fato leu o código, e não uma pasta vazia', async () => {
+  test('the sweep really did read the code, and not an empty folder', async () => {
     const files: string[] = [];
     for await (const relative of new Bun.Glob('**/*.ts').scan({ cwd: join(PROJECT_ROOT, 'src') })) {
       files.push(relative);
@@ -202,12 +201,12 @@ describe('nenhum arquivo é escrito em disco pela aplicação', () => {
 
 /* ------------------------------------------------------------------------- */
 
-describe('derrubar o container e subir outro não perde nada além de sessões', () => {
+describe('tearing the container down and bringing another up loses nothing but sessions', () => {
   beforeEach(async () => {
     await clearDatabase();
   });
 
-  /** Uma conexão nova, fora do pool da aplicação: é o que um segundo contêiner teria. */
+  /** A fresh connection, outside the application pool: what a second container would have. */
   const anotherConnection = async <T>(use: (sql: SQL) => Promise<T>): Promise<T> => {
     const sql = new SQL({ url: config.databaseUrl, max: 1 });
     try {
@@ -217,7 +216,7 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
     }
   };
 
-  test('o que uma requisição grava, outra conexão lê', async () => {
+  test('what one request writes, another connection reads', async () => {
     const scenario = await fullScenario();
     const cookie = await signIn({
       networkSlug: scenario.network.slug,
@@ -234,7 +233,7 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
     expect(saved.map((row) => row.name)).toEqual(['Sociologia']);
   });
 
-  test('o processo não guarda sessão em memória: apagar a linha derruba o acesso', async () => {
+  test('the process keeps no session in memory: erasing the row drops the access', async () => {
     const scenario = await fullScenario();
     const cookie = await signIn({
       networkSlug: scenario.network.slug,
@@ -251,7 +250,7 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
     expect(after.headers.get('Location')).toBe('/login');
   });
 
-  test('nenhuma tabela além de `sessao` guarda estado de usuário conectado', async () => {
+  test('no table other than `session` holds the state of a signed-in user', async () => {
     const withValidity = await testSql()<{ tableName: string }[]>`
       SELECT table_name AS "tableName"
       FROM information_schema.columns
@@ -264,8 +263,8 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
 
 /* ------------------------------------------------------------------------- */
 
-describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
-  /** `network` é a própria dona; as outras duas são plataforma, e não pertencem a rede nenhuma. */
+describe('every business table has a `network_id` and a declared FK', () => {
+  /** `network` is the owner itself; the other two are platform, and belong to no network at all. */
   const OUTSIDE_THE_RULE = ['network', 'idempotent_request', 'schema_migrations'];
 
   type CatalogRow = { tableName: string; hasColumn: boolean; hasForeignKey: boolean };
@@ -298,11 +297,11 @@ describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
       AND t.table_type = 'BASE TABLE'
     ORDER BY t.table_name`;
 
-  /** A exceção fica fora da consulta, escrita à mão e visível: é a lista que precisa ser lida. */
+  /** The exception stays outside the query, hand-written and visible: it is the list that has to be read. */
   const catalog = async (): Promise<CatalogRow[]> =>
     (await allTables()).filter((row) => !OUTSIDE_THE_RULE.includes(row.tableName));
 
-  test('nenhuma tabela de negócio fica sem a coluna `rede_id`', async () => {
+  test('no business table is left without the `network_id` column', async () => {
     const rows = await catalog();
 
     const withoutColumn = rows.filter((row) => !row.hasColumn).map((row) => row.tableName);
@@ -311,7 +310,7 @@ describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
     expect(withoutColumn).toEqual([]);
   });
 
-  test('nenhuma tabela de negócio fica sem a chave estrangeira para `rede`', async () => {
+  test('no business table is left without the foreign key to `network`', async () => {
     const rows = await catalog();
 
     const withoutKey = rows.filter((row) => !row.hasForeignKey).map((row) => row.tableName);
@@ -319,7 +318,7 @@ describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
     expect(withoutKey).toEqual([]);
   });
 
-  test('as tabelas de junção também carregam a rede, e não só as principais', async () => {
+  test('the join tables carry the network too, not only the main ones', async () => {
     const rows = await catalog();
 
     const names = rows.map((row) => row.tableName);
@@ -332,12 +331,12 @@ describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
 
 /* ------------------------------------------------------------------------- */
 
-describe('enviar o mesmo formulário duas vezes cria um registro', () => {
+describe('sending the same form twice creates one record', () => {
   beforeEach(async () => {
     await clearDatabase();
   });
 
-  test('dois envios com a mesma chave produzem uma linha só', async () => {
+  test('two submissions under the same key produce a single row', async () => {
     const scenario = await fullScenario();
     const cookie = await signIn({
       networkSlug: scenario.network.slug,
@@ -356,7 +355,7 @@ describe('enviar o mesmo formulário duas vezes cria um registro', () => {
     expect(Number(rows[0]?.total ?? '0')).toBe(1);
   });
 
-  test('dois envios com chaves distintas produzem duas linhas', async () => {
+  test('two submissions under distinct keys produce two rows', async () => {
     const scenario = await fullScenario();
     const cookie = await signIn({
       networkSlug: scenario.network.slug,
@@ -377,12 +376,12 @@ describe('enviar o mesmo formulário duas vezes cria um registro', () => {
 
 /* ------------------------------------------------------------------------- */
 
-describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
+describe('an authenticated route answers `Cache-Control: private, no-store`', () => {
   beforeEach(async () => {
     await clearDatabase();
   });
 
-  test('toda tela com sessão recusa cache compartilhado', async () => {
+  test('every screen behind a session refuses shared caching', async () => {
     const scenario = await fullScenario();
     const cookie = await signIn({
       networkSlug: scenario.network.slug,
@@ -410,7 +409,7 @@ describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
     ]);
   });
 
-  test('o boletim do responsável, que é o pior caso, também recusa cache', async () => {
+  test('the guardian report card, which is the worst case, refuses caching too', async () => {
     const scenario = await fullScenario();
     const cookie = await signIn({
       networkSlug: scenario.network.slug,
@@ -427,13 +426,13 @@ describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
     expect(reportCard.headers.get('Cache-Control')).toBe('private, no-store');
   });
 
-  test('o arquivo publicado, cujo nome carrega o hash, pode ser guardado para sempre', async () => {
+  test('the published asset, whose name carries the hash, may be kept forever', async () => {
     const response = await open('/public/app.0b878f01.css');
 
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
   });
 
-  test('a tela de entrada, sem sessão, também não vai para cache nenhum', async () => {
+  test('the sign-in screen, with no session, goes into no cache either', async () => {
     const response = await open('/login');
 
     expect(response.headers.get('Cache-Control')).toBe('no-store');
@@ -442,22 +441,22 @@ describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
 
 /* ------------------------------------------------------------------------- */
 
-describe('`/health` responde 503 com o banco parado', () => {
-  test('com o banco de pé, a saúde é 200 e a vida é 200', async () => {
+describe('`/health` answers 503 with the database stopped', () => {
+  test('with the database up, health is 200 and liveness is 200', async () => {
     const health = await open('/health');
     const liveness = await open('/health/live');
 
     expect([health.status, liveness.status]).toEqual([200, 200]);
   });
 
-  test('com o banco fora do ar, a saúde cai para 503 e a vida continua 200', async () => {
+  test('with the database down, health falls to 503 and liveness stays 200', async () => {
     const withoutDatabase = await healthWithDatabaseDown();
 
     expect(withoutDatabase.health).toBe(503);
     expect(withoutDatabase.live).toBe(200);
   }, PROCESS_DEADLINE_MS);
 
-  test('nos dois casos as respostas de saúde recusam cache', async () => {
+  test('in both cases the health responses refuse caching', async () => {
     const withDatabase = await open('/health');
     const withoutDatabase = await healthWithDatabaseDown();
 
@@ -469,16 +468,16 @@ describe('`/health` responde 503 com o banco parado', () => {
 
 /* ------------------------------------------------------------------------- */
 
-describe('falta uma variável de ambiente e o processo não sobe', () => {
+describe('one environment variable is missing and the process does not start', () => {
   const SECRET = 'segredo-de-teste-com-mais-de-32-caracteres';
 
-  /** Variável declarada vazia vence o `.env` do projeto: é assim que a falta é simulada. */
+  /** A variable declared empty beats the project `.env`: that is how the absence is staged. */
   const runMain = (
     environment: Record<string, string>,
   ): Promise<{ exitCode: number; stdout: string; stderr: string }> =>
     runProcess(['src/main.ts'], { APP_ENV: 'test', PORT: '45671', ...environment });
 
-  test('sem DATABASE_URL o boot morre citando a variável', async () => {
+  test('without DATABASE_URL the boot dies naming the variable', async () => {
     const { exitCode, stderr } = await runMain({ DATABASE_URL: '', SESSION_SECRET: SECRET });
 
     expect(exitCode).not.toBe(0);
@@ -486,7 +485,7 @@ describe('falta uma variável de ambiente e o processo não sobe', () => {
     expect(stderr).toContain('o processo não sobe');
   }, PROCESS_DEADLINE_MS);
 
-  test('sem SESSION_SECRET o boot morre citando a variável', async () => {
+  test('without SESSION_SECRET the boot dies naming the variable', async () => {
     const { exitCode, stderr } = await runMain({
       DATABASE_URL: Bun.env.DATABASE_URL ?? '',
       SESSION_SECRET: '',
@@ -496,14 +495,14 @@ describe('falta uma variável de ambiente e o processo não sobe', () => {
     expect(stderr).toContain('SESSION_SECRET');
   }, PROCESS_DEADLINE_MS);
 
-  test('a falta é apontada de uma vez, e não uma variável por reinício', async () => {
+  test('the absences are pointed out all at once, not one variable per restart', async () => {
     const { stderr } = await runMain({ DATABASE_URL: '', SESSION_SECRET: '' });
 
     expect(stderr).toContain('DATABASE_URL');
     expect(stderr).toContain('SESSION_SECRET');
   }, PROCESS_DEADLINE_MS);
 
-  test('segredo curto demais também impede o boot', async () => {
+  test('a secret that is too short blocks the boot as well', async () => {
     const { exitCode, stderr } = await runMain({
       DATABASE_URL: Bun.env.DATABASE_URL ?? '',
       SESSION_SECRET: 'curto-demais',
@@ -516,12 +515,12 @@ describe('falta uma variável de ambiente e o processo não sobe', () => {
 
 /* ------------------------------------------------------------------------- */
 
-describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
+describe('no log holds a name, an e-mail, a CPF or a grade', () => {
   const CPF = /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/;
 
   const TEACHER_NAME = 'Ludmila Vasconcelos Trindade';
   const TEACHER_EMAIL = 'ludmila.trindade@escolaviva.test';
-  /** Semente própria, e não o contador global das fábricas: aqui o valor precisa ser previsível. */
+  /** A seed of its own, not the factories' global counter: here the value has to be predictable. */
   const TEACHER_CPF = generateCpf(910_827);
   const STUDENT_NAME = 'Anastácio Quintiliano Bragança';
   const SLUG = 'rede-do-teste-de-log';
@@ -532,7 +531,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
     await clearDatabase();
   });
 
-  /** Um cenário com nomes próprios inconfundíveis: qualquer vazamento aparece por igualdade. */
+  /** A scenario with unmistakable proper names: any leak shows up by plain equality. */
   const scenarioWithProperNames = async (): Promise<{
     networkSlug: string;
     email: string;
@@ -586,14 +585,14 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
     };
   };
 
-  test('o fluxo de fato produziu log — o teste não passa por silêncio', async () => {
+  test('the flow really did produce a log — the test does not pass on silence', async () => {
     const captured = await captureLogOfAFlow(await scenarioWithProperNames());
 
     expect(captured.rows.length).toBeGreaterThanOrEqual(3);
     expect(captured.rows.every((row) => typeof row['msg'] === 'string')).toBe(true);
   }, PROCESS_DEADLINE_MS);
 
-  test('nenhum valor pessoal do cenário aparece em linha de log', async () => {
+  test('no personal value from the scenario shows up in a log line', async () => {
     const scenario = await scenarioWithProperNames();
 
     const captured = await captureLogOfAFlow(scenario);
@@ -605,11 +604,11 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
     expect(values.filter((value) => forbidden.includes(value))).toEqual([]);
     expect(captured.raw).not.toContain(TEACHER_EMAIL);
     expect(captured.raw).not.toContain(STUDENT_NAME);
-    // Cru, não formatado: é a forma que a coluna grava, e é essa forma que vazaria de verdade.
+    // Raw, not formatted: it is the shape the column stores, and that shape is the one that would really leak.
     expect(captured.raw).not.toContain(TEACHER_CPF);
   }, PROCESS_DEADLINE_MS);
 
-  test('o log guarda identificadores e o desfecho, que é do que a operação precisa', async () => {
+  test('the log keeps identifiers and the outcome, which is what operations needs', async () => {
     const scenario = await scenarioWithProperNames();
 
     const captured = await captureLogOfAFlow(scenario);
@@ -620,7 +619,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
     expect(captured.raw).toContain('recusado');
   }, PROCESS_DEADLINE_MS);
 
-  test('nenhuma chave proibida escapa com valor, e nenhum CPF aparece', async () => {
+  test('no forbidden key escapes carrying a value, and no CPF appears', async () => {
     const scenario = await scenarioWithProperNames();
 
     const captured = await captureLogOfAFlow(scenario);
@@ -634,7 +633,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
     expect(CPF.test(captured.raw)).toBe(false);
   }, PROCESS_DEADLINE_MS);
 
-  test('a página de erro entrega o código de correlação, e não o detalhe da falha', async () => {
+  test('the error page hands over the correlation code, not the detail of the failure', async () => {
     const scenario = await fullScenario();
     const cookie = await signIn({
       networkSlug: scenario.network.slug,

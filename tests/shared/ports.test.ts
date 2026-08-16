@@ -1,7 +1,7 @@
 /*
- * As portas são o único ponto do sistema que fala com o relógio real e com o gerador de
- * identificador. O que se garante aqui é o contrato que os casos de uso assumem: `now()`
- * devolve um Date que anda com o tempo e `next()` devolve um uuid que nunca repete.
+ * The ports are the only place in the system that talks to the real clock and to the identifier
+ * generator. What is pinned down here is the contract the use cases assume: `now()` gives back a
+ * Date that moves with time, and `next()` gives back a uuid that never repeats.
  */
 
 import { describe, expect, test } from 'bun:test';
@@ -11,7 +11,7 @@ const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f
 const ROLL_CALLS = 1000;
 
 describe('systemClock', () => {
-  test('now() devolve um Date', () => {
+  test('now() gives back a Date', () => {
     const clock = systemClock;
 
     const instant = clock.now();
@@ -19,7 +19,7 @@ describe('systemClock', () => {
     expect(instant).toBeInstanceOf(Date);
   });
 
-  test('now() devolve o instante presente, entre o antes e o depois da chamada', () => {
+  test('now() gives back the present instant, between before and after the call', () => {
     const before = Date.now();
 
     const instant = systemClock.now();
@@ -28,7 +28,7 @@ describe('systemClock', () => {
     expect(instant.getTime()).toBeLessThanOrEqual(Date.now());
   });
 
-  test('now() nunca retrocede entre duas leituras seguidas', () => {
+  test('now() never goes backwards between two readings in a row', () => {
     const first = systemClock.now();
 
     const second = systemClock.now();
@@ -36,7 +36,7 @@ describe('systemClock', () => {
     expect(second.getTime()).toBeGreaterThanOrEqual(first.getTime());
   });
 
-  test('now() devolve um Date novo a cada chamada, e não uma instância compartilhada', () => {
+  test('now() gives back a fresh Date on every call, not a shared instance', () => {
     const first = systemClock.now();
 
     const second = systemClock.now();
@@ -46,7 +46,7 @@ describe('systemClock', () => {
 });
 
 describe('uuidIdGenerator', () => {
-  test('next() devolve um uuid válido', () => {
+  test('next() gives back a valid uuid', () => {
     const generator = uuidIdGenerator;
 
     const id = generator.next();
@@ -54,7 +54,7 @@ describe('uuidIdGenerator', () => {
     expect(id).toMatch(UUID_V4);
   });
 
-  test(`next() não repete em ${ROLL_CALLS} chamadas`, () => {
+  test(`next() does not repeat across ${ROLL_CALLS} calls`, () => {
     const generator = uuidIdGenerator;
 
     const generated = new Set(Array.from({ length: ROLL_CALLS }, () => generator.next()));
@@ -62,7 +62,7 @@ describe('uuidIdGenerator', () => {
     expect(generated.size).toBe(ROLL_CALLS);
   });
 
-  test(`os ${ROLL_CALLS} identificadores gerados são todos uuid válidos`, () => {
+  test(`all ${ROLL_CALLS} generated identifiers are valid uuids`, () => {
     const generator = uuidIdGenerator;
 
     const invalid = Array.from({ length: ROLL_CALLS }, () => generator.next()).filter(

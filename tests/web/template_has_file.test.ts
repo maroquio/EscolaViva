@@ -1,11 +1,11 @@
 /*
- * `TEMPLATES` guarda 49 caminhos que o Eta resolve em tempo de execução: um valor errado só
- * aparece quando alguém abre aquela tela. Nem o compilador nem o depcruiser ligam o valor ao
- * arquivo — e a migração para inglês renomeia os dois lados, em arquivos diferentes.
+ * `TEMPLATES` holds 49 paths that Eta resolves at run time: a wrong value only surfaces when
+ * someone opens that screen. Neither the compiler nor depcruise ties the value to the file — and
+ * the migration to English renames both sides, in different files.
  *
- * Este par de casos é a amarra que faltava: todo caminho declarado tem arquivo, e todo
- * arquivo tem quem o declare. O segundo é o que pega o renome pela metade, em que o `.eta`
- * mudou de nome e a constante ficou apontando para o nome antigo — ou o contrário.
+ * This pair of cases is the tie that was missing: every declared path has a file, and every file
+ * has someone declaring it. The second one catches the half-finished rename, where the `.eta`
+ * changed name and the constant kept pointing at the old one — or the other way around.
  */
 
 import { describe, expect, test } from 'bun:test';
@@ -34,15 +34,15 @@ const filesOnDisk = async (): Promise<readonly string[]> => {
   return found.sort();
 };
 
-describe('TEMPLATES aponta para arquivos que existem', () => {
-  test('a varredura enxerga a pasta — cobertura vazia é falha, não sucesso', async () => {
+describe('TEMPLATES points at files that exist', () => {
+  test('the sweep does see the folder — an empty sweep is a failure, not a success', async () => {
     const onDisk = await filesOnDisk();
 
     expect(DECLARED.length).toBeGreaterThan(0);
     expect(onDisk.length).toBeGreaterThan(0);
   });
 
-  test('todo caminho declarado tem o arquivo correspondente', async () => {
+  test('every declared path has the file that goes with it', async () => {
     const withoutFile: string[] = [];
     for (const path of DECLARED) {
       const file = join(TEMPLATES_DIR, `${path}${EXTENSION}`);
@@ -52,7 +52,7 @@ describe('TEMPLATES aponta para arquivos que existem', () => {
     expect(withoutFile).toEqual([]);
   });
 
-  test('todo arquivo tem quem o declare', async () => {
+  test('every file has someone declaring it', async () => {
     const onDisk = await filesOnDisk();
     const declared = new Set(DECLARED);
 

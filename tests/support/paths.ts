@@ -1,12 +1,12 @@
 /*
- * Enquanto o repositório é convertido para inglês, cada caminho existe sob dois nomes em
- * momentos diferentes. Um teste que fixa o nome antigo quebra no commit do renome; um que
- * fixa o novo quebra antes dele. Os dois casos obrigam a mudar pasta e teste no mesmo
- * instante, que é justamente o que o plano proíbe.
+ * While the repository is converted to English, every path exists under two names at
+ * different moments. A test that pins the old name breaks at the rename commit; one that
+ * pins the new name breaks before it. Either case forces folder and test to move in the same
+ * instant, which is precisely what the plan forbids.
  *
- * `firstExistingPath` resolve entre as grafias e falha alto quando nenhuma existe — o que
- * um `Bun.file(...).text()` de caminho errado não faz: ele devolve string vazia, e a
- * asserção seguinte passa sem ter lido nada.
+ * `firstExistingPath` resolves between the spellings and fails loudly when none of them
+ * exists — which a `Bun.file(...).text()` on a wrong path does not do: it hands back an empty
+ * string, and the assertion that follows passes without having read anything.
  */
 
 import { join } from 'node:path';

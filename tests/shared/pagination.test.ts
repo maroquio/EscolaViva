@@ -1,10 +1,10 @@
 /*
- * A régua do recorte, sem banco no meio.
+ * The ruler that cuts the slice, with no database in the middle.
  *
- * Duas coisas se provam aqui. A primeira é que número de página que vem de fora nunca produz uma
- * consulta estranha: texto, zero, negativo e fração viram a primeira página, e não um OFFSET
- * negativo. A segunda é a ordem das consultas — contagem e recorte partem juntos, e a segunda
- * busca só acontece quando a página pedida passou do fim.
+ * Two things are proven here. The first: a page number arriving from outside never produces a
+ * strange query — text, zero, a negative and a fraction all become the first page, not a negative
+ * OFFSET. The second: the order of the queries — count and slice leave together, and the second
+ * search happens only when the requested page ran past the end.
  */
 
 import { describe, expect, test } from 'bun:test';
@@ -20,60 +20,60 @@ import {
 } from '../../src/shared/pagination';
 
 describe('requestedPage', () => {
-  test('ausência vira a primeira página', () => {
+  test('absence becomes the first page', () => {
     expect(requestedPage(undefined)).toBe(1);
     expect(requestedPage(null)).toBe(1);
   });
 
-  test('texto que não é número vira a primeira página', () => {
+  test('text that is not a number becomes the first page', () => {
     expect(requestedPage('duas')).toBe(1);
     expect(requestedPage('3; DROP TABLE aluno')).toBe(1);
   });
 
-  test('zero e negativo viram a primeira página', () => {
+  test('zero and a negative become the first page', () => {
     expect(requestedPage('0')).toBe(1);
     expect(requestedPage('-7')).toBe(1);
   });
 
-  test('fração é truncada', () => {
+  test('a fraction is truncated', () => {
     expect(requestedPage('2.9')).toBe(2);
   });
 
-  test('número válido passa como está', () => {
+  test('a valid number passes through untouched', () => {
     expect(requestedPage('42')).toBe(42);
   });
 });
 
 describe('rangeFor', () => {
-  test('a primeira página não desloca nada', () => {
+  test('the first page offsets nothing', () => {
     expect(rangeFor(1, 20)).toEqual({ limit: 20, offset: 0 });
   });
 
-  test('o deslocamento é o tamanho vezes as páginas anteriores', () => {
+  test('the offset is the page size times the pages before it', () => {
     expect(rangeFor(4, 25)).toEqual({ limit: 25, offset: 75 });
   });
 
-  test('página abaixo de um nunca produz deslocamento negativo', () => {
+  test('a page below one never produces a negative offset', () => {
     expect(rangeFor(-3, 20).offset).toBe(0);
   });
 });
 
 describe('rangeParams', () => {
-  test('faixa ausente vira NULL nos dois campos — o SQL entende como cláusula ausente', () => {
+  test('an absent range becomes NULL in both fields — SQL reads that as an absent clause', () => {
     expect(rangeParams(undefined)).toEqual({ limit: null, offset: null });
   });
 
-  test('faixa presente passa os números adiante', () => {
+  test('a range that is there passes the numbers along', () => {
     expect(rangeParams({ limit: 20, offset: 40 })).toEqual({ limit: 20, offset: 40 });
   });
 });
 
 describe('pageCount', () => {
-  test('lista vazia continua tendo uma página', () => {
+  test('an empty list still has one page', () => {
     expect(pageCount(0, 20)).toBe(1);
   });
 
-  test('a sobra ocupa uma página inteira', () => {
+  test('the remainder takes up a whole page', () => {
     expect(pageCount(21, 20)).toBe(2);
     expect(pageCount(40, 20)).toBe(2);
     expect(pageCount(41, 20)).toBe(3);
@@ -81,7 +81,7 @@ describe('pageCount', () => {
 });
 
 describe('emptyPage', () => {
-  test('descreve uma lista sem nada, e não uma lista sem forma', () => {
+  test('describes a list with nothing in it, not a list with no shape', () => {
     expect(emptyPage<string>(20)).toEqual({
       items: [], total: 0, page: 1, size: 20, pages: 1,
     });
@@ -91,29 +91,29 @@ describe('emptyPage', () => {
 describe('sliceItems', () => {
   const ten = Array.from({ length: 10 }, (_, i) => i + 1);
 
-  test('devolve o pedaço da página pedida', () => {
+  test('gives back the slice of the requested page', () => {
     expect(sliceItems(ten, 2, 4).items).toEqual([5, 6, 7, 8]);
   });
 
-  test('a última página traz o que sobrou', () => {
+  test('the last page brings whatever was left over', () => {
     const last = sliceItems(ten, 3, 4);
     expect(last.items).toEqual([9, 10]);
     expect(last.pages).toBe(3);
   });
 
-  test('página além do fim é presa na última, em vez de devolver lista vazia', () => {
+  test('a page past the end is clamped to the last one, instead of giving back an empty list', () => {
     const beyond = sliceItems(ten, 99, 4);
     expect(beyond.page).toBe(3);
     expect(beyond.items).toEqual([9, 10]);
   });
 
-  test('o total é o da lista inteira, não o da página', () => {
+  test('the total belongs to the whole list, not to the page', () => {
     expect(sliceItems(ten, 1, 4).total).toBe(10);
   });
 });
 
 describe('queryPage', () => {
-  /** Registra as faixas pedidas: é assim que se prova quantas buscas aconteceram, e com quê. */
+  /** Records the ranges asked for: that is how many searches happened, and with what, gets proven. */
   const spy = (items: readonly number[]) => {
     const requested: Range[] = [];
     const search = async (range: Range): Promise<number[]> => {
@@ -125,7 +125,7 @@ describe('queryPage', () => {
 
   const hundred = Array.from({ length: 100 }, (_, i) => i + 1);
 
-  test('devolve o recorte com o total da lista inteira', async () => {
+  test('gives back the slice carrying the total of the whole list', async () => {
     const { search } = spy(hundred);
 
     const page = await queryPage(2, 20, async () => 100, search);
@@ -134,7 +134,7 @@ describe('queryPage', () => {
     expect(page).toMatchObject({ total: 100, page: 2, size: 20, pages: 5 });
   });
 
-  test('a página existente é servida com uma busca só', async () => {
+  test('a page that exists is served with a single search', async () => {
     const { requested, search } = spy(hundred);
 
     await queryPage(3, 20, async () => 100, search);
@@ -142,18 +142,18 @@ describe('queryPage', () => {
     expect(requested).toEqual([{ limit: 20, offset: 40 }]);
   });
 
-  test('página além do fim serve a última, em vez de uma tela vazia', async () => {
+  test('a page past the end serves the last one, instead of an empty screen', async () => {
     const { requested, search } = spy(hundred);
 
     const page = await queryPage(99, 20, async () => 100, search);
 
     expect(page.page).toBe(5);
     expect(page.items).toEqual(hundred.slice(80, 100));
-    // A segunda busca é o preço de uma URL digitada à mão, e só acontece nesse caso.
+    // The second search is the price of a hand-typed URL, and it happens only in that case.
     expect(requested).toHaveLength(2);
   });
 
-  test('lista vazia devolve a primeira página, sem itens', async () => {
+  test('an empty list gives back the first page, with no items', async () => {
     const { search } = spy([]);
 
     const page = await queryPage(1, 20, async () => 0, search);

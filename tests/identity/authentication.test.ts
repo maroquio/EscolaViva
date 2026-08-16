@@ -1,6 +1,7 @@
 /*
- * Entrar, continuar dentro e sair. Tudo contra PostgreSQL de verdade: a sessão do EscolaViva
- * mora em tabela (I2), e é a linha — com a rede e o usuário ao lado — que decide se ela vale.
+ * Signing in, staying in and signing out. All against a real PostgreSQL: the EscolaViva session
+ * lives in a table (I2), and it is the row — with the network and the user beside it — that decides
+ * whether the session holds.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -40,8 +41,8 @@ async function countSessions(userId: string): Promise<number> {
 
 beforeEach(clearDatabase);
 
-describe('autenticar', () => {
-  test('com credenciais corretas abre a sessão e devolve o usuário com a rede e os papéis', async () => {
+describe('authenticate', () => {
+  test('with the right credentials it opens the session and gives back the user with network and roles', async () => {
     const network = await createNetwork({ name: 'Rede Municipal Serra', slug: 'serra' });
     const center = await createSchool({ networkId: network.id, name: 'Escola Centro' });
     const beach = await createSchool({ networkId: network.id, name: 'Escola Praia' });
@@ -84,7 +85,7 @@ describe('autenticar', () => {
     expect(rows[0]?.expires_at.getTime()).toBeGreaterThan(Date.now());
   });
 
-  test('sem IP a sessão nasce sem endereço em vez de com texto vazio', async () => {
+  test('with no IP the session is born without an address rather than with empty text', async () => {
     const network = await createNetwork({ slug: 'sem-ip' });
     const user = await createUser({ networkId: network.id, email: 'carlos@escola.br' });
 
@@ -101,7 +102,7 @@ describe('autenticar', () => {
     expect(rows[0]?.ip).toBeNull();
   });
 
-  test('senha errada, CPF inexistente e usuário inativo devolvem a mesma recusa, sem apontar campo', async () => {
+  test('a wrong password, a CPF that does not exist and an inactive user all give the same refusal, pointing at no field', async () => {
     const network = await createNetwork({ slug: 'generica' });
     const active = await createUser({ networkId: network.id, email: 'ativo@escola.br' });
     const inactive = await createUser({ networkId: network.id, email: 'inativo@escola.br', active: false });
@@ -122,14 +123,14 @@ describe('autenticar', () => {
     expect(errorsOf(wrongPassword)).toEqual(genericRejection);
     expect(errorsOf(nonexistentCpf)).toEqual(genericRejection);
     expect(errorsOf(inactiveUser)).toEqual(genericRejection);
-    // Sem `campo`, a tela não consegue destacar o input do identificador e revelar qual dos três é.
+    // With no `campo`, the screen cannot highlight the identifier input and give away which of the three it is.
     const pointAtField = [wrongPassword, nonexistentCpf, inactiveUser]
       .flatMap(errorsOf)
       .some((error) => Object.hasOwn(error, 'campo'));
     expect(pointAtField).toBe(false);
   });
 
-  test('nenhuma das três recusas abre sessão', async () => {
+  test('none of the three refusals opens a session', async () => {
     const network = await createNetwork({ slug: 'sem-sessao' });
     const user = await createUser({ networkId: network.id, email: 'ativo@escola.br' });
     const inactive = await createUser({ networkId: network.id, email: 'inativo@escola.br', active: false });
@@ -147,7 +148,7 @@ describe('autenticar', () => {
     expect(await countSessions(inactive.id)).toBe(0);
   });
 
-  test('rede suspensa e rede inexistente recusam pela rede, não pelas credenciais', async () => {
+  test('a suspended network and a network that does not exist refuse over the network, not over the credentials', async () => {
     const suspended = await createNetwork({ slug: 'suspensa', status: 'suspended' });
     const user = await createUser({ networkId: suspended.id, email: 'ana@escola.br' });
 
@@ -160,8 +161,9 @@ describe('autenticar', () => {
       }),
     ]);
 
-    // A rede é dita pelo próprio usuário na tela e não é segredo: as duas recusas são iguais
-    // entre si e distintas da recusa de credenciais, para não virar chamado de "senha parou".
+    // The network is typed by the user on the screen and is no secret: the two refusals match each
+    // other and differ from the credential refusal, so they do not turn into a "my password stopped
+    // working" support ticket.
     const networkRejection = [
       {
         campo: 'networkSlug',
@@ -173,7 +175,7 @@ describe('autenticar', () => {
     expect(errorsOf(nonexistentNetwork)).toEqual(networkRejection);
   });
 
-  test('rede cancelada também não abre sessão', async () => {
+  test('a cancelled network opens no session either', async () => {
     const cancelled = await createNetwork({ slug: 'cancelada', status: 'cancelled' });
     const user = await createUser({ networkId: cancelled.id, email: 'ana@escola.br' });
 
@@ -185,7 +187,7 @@ describe('autenticar', () => {
     expect(await countSessions(user.id)).toBe(0);
   });
 
-  test('formulário em branco volta com erro em cada campo obrigatório', async () => {
+  test('a blank form comes back with an error on every required field', async () => {
     const network = await createNetwork({ slug: 'em-branco' });
     await createUser({ networkId: network.id, email: 'ana@escola.br' });
 
@@ -197,7 +199,7 @@ describe('autenticar', () => {
     expect(fields).toEqual(['networkSlug', 'cpf', 'password']);
   });
 
-  test('o mesmo CPF em redes diferentes autentica cada um na sua rede', async () => {
+  test('the same CPF across different networks authenticates each one in its own network', async () => {
     const first = await createNetwork({ slug: 'primeira' });
     const second = await createNetwork({ slug: 'segunda' });
     const sharedCpf = generateCpf(700_001);
@@ -217,7 +219,7 @@ describe('autenticar', () => {
     expect(valueOfResult(inTheSecond).user.id).toBe(ofTheSecond.id);
   });
 
-  test('entra com CPF cru', async () => {
+  test('signs in with a bare CPF', async () => {
     const scenario = await fullScenario();
 
     const authenticated = await identity.authenticate({
@@ -230,7 +232,7 @@ describe('autenticar', () => {
     expect(authenticated.ok).toBe(true);
   });
 
-  test('entra com CPF pontuado', async () => {
+  test('signs in with a punctuated CPF', async () => {
     const scenario = await fullScenario();
     const cpf = scenario.registrar.cpf;
     const punctuated = `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9)}`;
@@ -242,7 +244,7 @@ describe('autenticar', () => {
     expect(authenticated.ok).toBe(true);
   });
 
-  test('e-mail não entra mais — o identificador é o CPF', async () => {
+  test('an e-mail no longer gets in — the identifier is the CPF', async () => {
     const scenario = await fullScenario();
 
     const authenticated = await identity.authenticate({
@@ -253,7 +255,7 @@ describe('autenticar', () => {
     expect(authenticated.ok).toBe(false);
   });
 
-  test('CPF inexistente e senha errada dão a mesma recusa', async () => {
+  test('a CPF that does not exist and a wrong password give the same refusal', async () => {
     const scenario = await fullScenario();
 
     const [nonexistent, wrongPassword] = await Promise.all([
@@ -273,8 +275,8 @@ describe('autenticar', () => {
   });
 });
 
-describe('sessaoValida', () => {
-  test('devolve o usuário da sessão dentro do prazo', async () => {
+describe('validSession', () => {
+  test('gives back the user of a session still within its window', async () => {
     const network = await createNetwork({ name: 'Rede Norte', slug: 'norte' });
     const school = await createSchool({ networkId: network.id, name: 'Escola Norte' });
     const user = await createUser({
@@ -297,7 +299,7 @@ describe('sessaoValida', () => {
     });
   });
 
-  test('sessão expirada não vale, mesmo com a linha ainda no banco', async () => {
+  test('an expired session does not hold, even with the row still in the database', async () => {
     const network = await createNetwork();
     const user = await createUser({ networkId: network.id });
     const expiredSession = await createSession({
@@ -310,7 +312,7 @@ describe('sessaoValida', () => {
     expect(await countSessions(user.id)).toBe(1);
   });
 
-  test('id de sessão inexistente devolve nulo', async () => {
+  test('a session id that does not exist gives back null', async () => {
     const network = await createNetwork();
     await createUser({ networkId: network.id });
 
@@ -319,7 +321,7 @@ describe('sessaoValida', () => {
     expect(found).toBeNull();
   });
 
-  test('id fora do formato devolve nulo em vez de estourar erro de conversão', async () => {
+  test('an id outside the format gives back null instead of blowing up on a cast error', async () => {
     const network = await createNetwork();
     await createUser({ networkId: network.id });
 
@@ -328,7 +330,7 @@ describe('sessaoValida', () => {
     expect(found).toBeNull();
   });
 
-  test('suspender a rede derruba na hora as sessões já abertas', async () => {
+  test('suspending the network drops the sessions already open, on the spot', async () => {
     const network = await createNetwork({ slug: 'derrubada' });
     const user = await createUser({ networkId: network.id });
     const session = await createSession({ networkId: network.id, userId: user.id });
@@ -338,7 +340,7 @@ describe('sessaoValida', () => {
     expect(await identity.validSession(session.id)).toBeNull();
   });
 
-  test('desativar o usuário derruba a sessão dele', async () => {
+  test('deactivating the user drops that user\'s session', async () => {
     const network = await createNetwork();
     const user = await createUser({ networkId: network.id });
     const session = await createSession({ networkId: network.id, userId: user.id });
@@ -349,8 +351,8 @@ describe('sessaoValida', () => {
   });
 });
 
-describe('encerrarSessao', () => {
-  test('apaga a sessão e ela deixa de valer', async () => {
+describe('endSession', () => {
+  test('erases the session and it stops holding', async () => {
     const network = await createNetwork();
     const user = await createUser({ networkId: network.id });
     const session = await createSession({ networkId: network.id, userId: user.id });
@@ -361,7 +363,7 @@ describe('encerrarSessao', () => {
     expect(await countSessions(user.id)).toBe(0);
   });
 
-  test('encerra apenas a sessão pedida e deixa as outras do mesmo usuário de pé', async () => {
+  test('ends only the session asked for and leaves the user\'s others standing', async () => {
     const network = await createNetwork();
     const user = await createUser({ networkId: network.id });
     const ofTheLaptop = await createSession({ networkId: network.id, userId: user.id });
@@ -373,7 +375,7 @@ describe('encerrarSessao', () => {
     expect(await countSessions(user.id)).toBe(1);
   });
 
-  test('id forjado não apaga nada nem estoura', async () => {
+  test('a forged id erases nothing and blows up on nothing', async () => {
     const network = await createNetwork();
     const user = await createUser({ networkId: network.id });
     await createSession({ networkId: network.id, userId: user.id });
@@ -384,8 +386,8 @@ describe('encerrarSessao', () => {
   });
 });
 
-describe('expurgarSessoesExpiradas', () => {
-  test('remove só as vencidas e devolve quantas saíram', async () => {
+describe('purgeExpiredSessions', () => {
+  test('removes only the expired ones and reports how many went out', async () => {
     const network = await createNetwork();
     const user = await createUser({ networkId: network.id });
     await createSession({
@@ -403,7 +405,7 @@ describe('expurgarSessoesExpiradas', () => {
     expect(await identity.validSession(alive.id)).not.toBeNull();
   });
 
-  test('sem sessão vencida não remove nada e devolve zero', async () => {
+  test('with no expired session it removes nothing and reports zero', async () => {
     const network = await createNetwork();
     const user = await createUser({ networkId: network.id });
     await createSession({ networkId: network.id, userId: user.id });
@@ -415,8 +417,8 @@ describe('expurgarSessoesExpiradas', () => {
   });
 });
 
-describe('trocarSenha', () => {
-  test('exige a senha atual', async () => {
+describe('changePassword', () => {
+  test('demands the current password', async () => {
     const network = await createNetwork();
     const user = await createUser({ networkId: network.id });
 
@@ -429,7 +431,7 @@ describe('trocarSenha', () => {
     ]);
   });
 
-  test('recusa senha nova curta demais', async () => {
+  test('refuses a new password that is too short', async () => {
     const network = await createNetwork();
     const user = await createUser({ networkId: network.id });
 
@@ -440,7 +442,7 @@ describe('trocarSenha', () => {
     expect(errorsOf(result)[0]?.campo).toBe('newPassword');
   });
 
-  test('a senha nova passa a autenticar e a antiga deixa de funcionar', async () => {
+  test('the new password starts authenticating and the old one stops working', async () => {
     const network = await createNetwork({ slug: 'troca' });
     const user = await createUser({ networkId: network.id, email: 'ana@troca.br' });
 
@@ -459,7 +461,7 @@ describe('trocarSenha', () => {
     expect(errorsOf(withTheOldOne)[0]?.codigo).toBe('credenciais_invalidas');
   });
 
-  test('trocar a senha de um usuário não mexe na senha de outro da mesma rede', async () => {
+  test('changing one user\'s password does not touch another user\'s in the same network', async () => {
     const network = await createNetwork({ slug: 'vizinhos' });
     const ana = await createUser({ networkId: network.id, email: 'ana@vizinhos.br' });
     const bia = await createUser({ networkId: network.id, email: 'bia@vizinhos.br' });
@@ -474,7 +476,7 @@ describe('trocarSenha', () => {
     expect(result.ok).toBe(true);
   });
 
-  test('usuário inexistente é recusado sem apontar campo', async () => {
+  test('a user who does not exist is refused without pointing at any field', async () => {
     const network = await createNetwork();
     await createUser({ networkId: network.id });
 
@@ -487,7 +489,7 @@ describe('trocarSenha', () => {
     ]);
   });
 
-  test('id de usuário fora do formato é recusado pela validação de entrada', async () => {
+  test('a user id outside the format is refused by the input validation', async () => {
     const network = await createNetwork();
     await createUser({ networkId: network.id });
 

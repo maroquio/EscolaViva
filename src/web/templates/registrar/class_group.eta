@@ -99,7 +99,7 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
         <tr>
           <th scope="col" class="cell-elastic"><%= it.labels.student %></th>
           <th scope="col" class="cell-center">Matriculado em</th>
-<% // magic-values: permitido — a cabeça da coluna não é um rótulo de `LABELS` %>
+<% // magic-values: permitido — the column head is not a label out of `LABELS` %>
           <th scope="col" class="cell-center">Situação</th>
           <th scope="col" class="cell-center"><%= it.labels.actions %></th>
         </tr>

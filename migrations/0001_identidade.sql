@@ -1,11 +1,11 @@
--- Identidade: o tenant e quem entra nele.
--- Cria a função de gatilho que mantém `updated_at` em todas as tabelas, a rede (conta
--- contratante), suas unidades, os usuários e o papel que cada um exerce em cada unidade.
--- A sessão vive em tabela para que o processo continue sem estado próprio (I2).
+-- Identity: the tenant and whoever signs into it.
+-- Creates the trigger function that keeps `updated_at` on every table, the network (the paying
+-- account), its schools, the users, and the role each of them holds at each school.
+-- The session lives in a table so the process stays free of state of its own (I2).
 --
--- A tabela de usuário se chama `app_user`, e não `user`: `user` é palavra reservada no
--- PostgreSQL, `CREATE TABLE user` é erro de sintaxe, e `SELECT * FROM user` não falha —
--- devolve o role corrente, que é a forma mais silenciosa de errar.
+-- The user table is called `app_user`, not `user`: `user` is a reserved word in PostgreSQL,
+-- `CREATE TABLE user` is a syntax error, and `SELECT * FROM user` does not fail — it gives back
+-- the current role, which is the quietest way there is to be wrong.
 
 CREATE FUNCTION set_updated_at() RETURNS trigger
 LANGUAGE plpgsql AS $$
@@ -72,7 +72,7 @@ CREATE TABLE user_role (
 CREATE TRIGGER user_role_updated_at BEFORE UPDATE ON user_role
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- Montar o menu e o painel exige todos os papéis do usuário logado a cada requisição.
+-- Building the menu and the dashboard needs every role of the signed-in user, on every request.
 CREATE INDEX user_role_by_user ON user_role (network_id, user_id);
 
 CREATE TABLE session (
@@ -84,5 +84,5 @@ CREATE TABLE session (
   ip          text
 );
 
--- O expurgo periódico varre por expiração (I20).
+-- The periodic purge sweeps by expiry (I20).
 CREATE INDEX session_by_expiration ON session (expires_at);

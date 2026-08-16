@@ -40,7 +40,7 @@ const STATUS_CLASS = { yes: 'tag tag--active', no: 'tag' };
         <tr>
           <th scope="col"><%= it.labels.school %></th>
           <th scope="col">Código INEP</th>
-<% // magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em LABELS; nem é o `IDENTITY_VOCABULARY.schoolActive` da célula abaixo %>
+<% // magic-values: permitido — a generic head over five distinct state vocabularies; it is not the label of a single datum, and for that reason it does not belong in LABELS; nor is it the `IDENTITY_VOCABULARY.schoolActive` of the cell below %>
           <th scope="col">Situação</th>
         </tr>
       </thead>

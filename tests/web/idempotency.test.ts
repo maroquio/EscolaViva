@@ -1,14 +1,15 @@
 /*
- * I4 — o navegador é entrada externa.
+ * I4 — the browser is external input.
  *
- * Um responsável em 4G ruim toca duas vezes em "enviar" e o sistema recebe duas requisições
- * idênticas. A chave nasce no render do formulário, viaja em campo oculto e é gravada antes do
- * processamento: quem chega depois com a mesma chave encontra o conflito e é levado ao resultado
- * da primeira sem reprocessar nada. Dois cliques no mesmo botão são um registro; dois
- * carregamentos da tela são duas chaves e, portanto, dois registros — que é o que a pessoa pediu.
+ * A guardian on bad 4G taps "send" twice and the system receives two identical requests. The key is
+ * born when the form is rendered, travels in a hidden field and is written down before any
+ * processing: whoever arrives afterwards with the same key meets the conflict and is taken to the
+ * result of the first one, with nothing reprocessed. Two clicks on the same button are one record;
+ * two loads of the screen are two keys and therefore two records — which is what the person asked
+ * for.
  *
- * A outra metade da regra é a devolução: quando o formulário volta com erro de validação, a chave
- * é liberada. Sem isso, corrigir um campo exigiria recarregar a página.
+ * The other half of the rule is the giving back: when the form returns with a validation error, the
+ * key is released. Without that, fixing one field would mean reloading the page.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -43,12 +44,12 @@ const storedKeys = async (): Promise<number> => {
   return Number(rows[0]?.total ?? '0');
 };
 
-describe('idempotência de formulário', () => {
+describe('form idempotency', () => {
   beforeEach(async () => {
     await clearDatabase();
   });
 
-  test('escrita sem chave de idempotência é recusada com 400', async () => {
+  test('a write with no idempotency key is refused with a 400', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -58,7 +59,7 @@ describe('idempotência de formulário', () => {
     expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(0);
   });
 
-  test('chave fora do formato de uuid é recusada com 400', async () => {
+  test('a key outside the uuid format is refused with a 400', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -68,7 +69,7 @@ describe('idempotência de formulário', () => {
     expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(0);
   });
 
-  test('o mesmo formulário enviado duas vezes cria um único registro', async () => {
+  test('the same form sent twice creates a single record', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
     const fields = { _key: crypto.randomUUID(), name: 'Geografia' };
@@ -81,7 +82,7 @@ describe('idempotência de formulário', () => {
     expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(1);
   });
 
-  test('o reenvio leva ao mesmo destino da primeira submissão', async () => {
+  test('the resend leads to the same destination as the first submission', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
     const fields = { _key: crypto.randomUUID(), name: 'Geografia' };
@@ -92,7 +93,7 @@ describe('idempotência de formulário', () => {
     expect(second.headers.get('Location')).toBe(first.headers.get('Location'));
   });
 
-  test('chaves diferentes criam dois registros', async () => {
+  test('different keys create two records', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -103,7 +104,7 @@ describe('idempotência de formulário', () => {
     expect(await subjectsNamed(scenario.network.id, 'Artes')).toBe(1);
   });
 
-  test('a chave é registrada com o destino gravado, e não com a resposta inteira', async () => {
+  test('the key is stored with the destination recorded, not with the whole response', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
     const key = crypto.randomUUID();
@@ -117,7 +118,7 @@ describe('idempotência de formulário', () => {
     expect(rows[0]?.response_location).toBe(response.headers.get('Location') ?? '');
   });
 
-  test('formulário recusado na validação devolve a chave para a correção', async () => {
+  test('a form refused at validation gives the key back for the correction', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
     const key = crypto.randomUUID();
@@ -132,7 +133,7 @@ describe('idempotência de formulário', () => {
     expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(1);
   });
 
-  test('cada carregamento do formulário traz uma chave nova', async () => {
+  test('every load of the form brings a fresh key', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -144,7 +145,7 @@ describe('idempotência de formulário', () => {
     expect(first.some((key) => second.includes(key))).toBe(false);
   });
 
-  test('a chave de uma pessoa não bloqueia o formulário de outra', async () => {
+  test('one person\'s key does not block another person\'s form', async () => {
     const scenario = await fullScenario();
     const otherNetwork = await fullScenario();
     const key = crypto.randomUUID();

@@ -1,21 +1,22 @@
 /*
- * O golden: toda tela do sistema comparada com o HTML que ela produzia antes do refactor.
+ * The golden: every screen of the system compared against the HTML it produced before the refactor.
  *
- * Este arquivo não afirma nada sobre o produto. Ele afirma uma coisa só, e é exatamente a coisa que
- * um refactor puro promete: **o que sai pela porta HTTP hoje é byte a byte o que saía ontem**. Por
- * isso não há `expect(html).toContain('Alunos')` em lugar nenhum — uma asserção assim aprova uma
- * tela que perdeu metade dos links e manteve o título. O que se compara é o documento inteiro.
+ * This file claims nothing about the product. It claims one thing only, and it is exactly what a
+ * pure refactor promises: **what goes out the HTTP door today is byte for byte what went out
+ * yesterday**. That is why there is no `expect(html).toContain('Alunos')` anywhere — an assertion
+ * like that passes a screen that lost half its links and kept its title. What gets compared is the
+ * whole document.
  *
- * Quando a mudança é intencional, os arquivos são regravados de propósito:
+ * When the change is intentional, the files are rewritten on purpose:
  *
  *     bun run golden --regravar
  *
- * e o diff do `git` passa a ser a revisão do refactor: cada linha alterada em `tests/web/golden/`
- * é uma mudança de comportamento que alguém precisa olhar e aceitar. Regravar sem ler o diff é o
- * único jeito de tornar este arquivo inútil.
+ * and the `git` diff becomes the review of the refactor: every changed line under
+ * `tests/web/golden/` is a change in behaviour someone has to look at and accept. Rewriting without
+ * reading the diff is the one way to make this file useless.
  *
- * O cenário sobe UMA vez, em `beforeAll`, e nenhuma tela escreve — então nenhum caso precisa
- * isolar-se do vizinho, e a suíte não paga a rede inteira setenta vezes.
+ * The scenario is built ONCE, in `beforeAll`, and no screen writes — so no case has to isolate
+ * itself from its neighbour, and the suite does not pay for the whole network seventy times over.
  */
 
 import { mkdir } from 'node:fs/promises';
@@ -31,13 +32,13 @@ import {
   type GoldenScreen,
 } from './golden';
 
-/** Ligada por `scripts/golden.ts --regravar`: em vez de comparar, cada arquivo é reescrito. */
+/** Switched on by `scripts/golden.ts --regravar`: instead of comparing, every file is rewritten. */
 const REWRITING = Bun.env['GOLDEN_REGRAVAR'] === '1';
 
 const NO_FILE =
   '(nenhum arquivo golden gravado — rode `bun run golden --regravar` para criar a linha de base)';
 
-/** Quantas divergências são impressas por inteiro antes de a mensagem virar uma lista de nomes. */
+/** How many divergences are printed in full before the message turns into a list of names. */
 const DETAILS_IN_REPORT = 3;
 
 let scenario: GoldenScenario;
@@ -58,7 +59,7 @@ const screenNamed = (name: string): GoldenScreen => {
 
 /* ------------------------------------------------------------------------- */
 
-test('nenhuma tela do sistema mudou de HTML', async () => {
+test('no screen of the system changed its HTML', async () => {
   const divergent: { screen: GoldenScreen; expected: string; actual: string }[] = [];
   let rewritten = 0;
 
@@ -89,13 +90,13 @@ test('nenhuma tela do sistema mudou de HTML', async () => {
 /* ------------------------------------------------------------------------- */
 
 /**
- * Duas capturas seguidas da mesma tela precisam dar o mesmo texto. É o caso que sustenta todos os
- * outros: um golden que oscila vira ruído, e ruído acaba desligado.
+ * Two captures of the same screen in a row have to give the same text. It is the case that holds
+ * all the others up: a golden that wobbles turns into noise, and noise ends up switched off.
  *
- * A chave de idempotência muda a cada render por decisão de projeto (I4) e o identificador de todo
- * registro é UUID — então este caso é também a prova de que a normalização alcança os dois.
+ * The idempotency key changes on every render by design (I4) and the identifier of every record is
+ * a UUID — so this case is also the proof that normalization reaches both.
  */
-test('a captura é determinística: a mesma tela, duas vezes, dá o mesmo texto', async () => {
+test('the capture is deterministic: the same screen, twice, gives the same text', async () => {
   const unstable: string[] = [];
 
   for (const screen of screens) {
@@ -110,34 +111,34 @@ test('a captura é determinística: a mesma tela, duas vezes, dá o mesmo texto'
 /* ------------------------------------------------------------------------- */
 
 /**
- * A normalização precisa ser cega para o que varia e enxergar tudo o que não varia. Estes casos
- * cobram o segundo lado — sem eles, uma normalização que apagasse o documento inteiro passaria em
- * todos os outros casos deste arquivo.
+ * Normalization has to be blind to what varies and see everything that does not. These cases hold
+ * the second half to account — without them, a normalization that erased the whole document would
+ * pass every other case in this file.
  */
-describe('a normalização não apaga o que o golden existe para detectar', () => {
-  test('um href trocado por outro caminho muda o texto normalizado', async () => {
+describe('normalization does not erase what the golden exists to catch', () => {
+  test('an href swapped for another path changes the normalized text', async () => {
     const original = await capture(screenNamed('secretaria-alunos-busca'), scenario);
 
     expect(original).toContain('href="/registrar/students/{{aluno01}}"');
     expect(original.replaceAll('/registrar/students/', '/registrar/class-groups/')).not.toBe(original);
   });
 
-  test('um rótulo perdido muda o texto normalizado', async () => {
+  test('a lost label changes the normalized text', async () => {
     const original = await capture(screenNamed('admin-rede-painel'), scenario);
 
     expect(original).toContain('Painel da rede');
     expect(original.replaceAll('Painel da rede', '')).not.toBe(original);
   });
 
-  test('o identificador de um aluno não vira o de outro', async () => {
+  test('one student\'s identifier does not become another\'s', async () => {
     const text = await capture(screenNamed('secretaria-alunos-busca'), scenario);
 
-    // Cada registro do cenário tem marcador próprio: trocar dois `href` de lugar muda o arquivo.
+    // Every record in the scenario has a marker of its own: swapping two `href` around changes the file.
     expect(text).toContain('{{aluno01}}');
     expect(text).toContain('{{aluno02}}');
   });
 
-  test('o destino de um redirecionamento entra no arquivo congelado', async () => {
+  test('the destination of a redirect goes into the frozen file', async () => {
     const text = await capture(screenNamed('professor-painel-redirecionado'), scenario);
 
     expect(text).toContain('status: 303');
@@ -149,7 +150,7 @@ describe('a normalização não apaga o que o golden existe para detectar', () =
 
 type Divergence = { screen: GoldenScreen; expected: string; actual: string };
 
-/** As primeiras linhas que deixaram de bater, com o número da linha e os dois lados. */
+/** The first lines that stopped matching, with the line number and both sides. */
 function difference(expected: string, actual: string): string {
   const before = expected.split('\n');
   const after = actual.split('\n');

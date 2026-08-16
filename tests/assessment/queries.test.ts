@@ -1,7 +1,7 @@
 /*
- * As consultas de `assessment` contra o banco real, com o boletim no centro: média, percentual de
- * frequência e situação são calculados a cada leitura (I5) e precisam bater, ponta a ponta, com o
- * que as funções puras de `domain/reportCard.ts` decidem.
+ * The `assessment` reads against the real database, with the report card at the centre: average,
+ * attendance percentage and status are computed on every read (I5) and have to agree, end to end,
+ * with what the pure functions in `domain/reportCard.ts` decide.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -36,7 +36,7 @@ type MinimalScenario = {
 
 beforeEach(clearDatabase);
 
-/** Uma turma com um aluno e uma disciplina: o menor cenário em que um boletim inteiro cabe. */
+/** A class group with one student and one subject: the smallest scenario a whole report card fits in. */
 async function minimalScenario(): Promise<MinimalScenario> {
   const network = await createNetwork({});
   const school = await createSchool({ networkId: network.id });
@@ -76,7 +76,7 @@ async function minimalScenario(): Promise<MinimalScenario> {
   };
 }
 
-/** Lança a mesma nota nos bimestres indicados e fecha cada um deles. */
+/** Posts the same grade across the given terms and closes each one of them. */
 async function attendTerms(
   minimal: MinimalScenario,
   value: number,
@@ -99,7 +99,7 @@ async function attendTerms(
   }
 }
 
-/** Registra `presencas` dias de presença seguidos de `faltas` dias de falta, em março. */
+/** Records `presentDays` days of attendance followed by `absences` days of absence, all in March. */
 async function recordDays(
   minimal: MinimalScenario,
   presentDays: number,
@@ -117,7 +117,7 @@ async function recordDays(
 }
 
 describe('classGroupSubjectGrades', () => {
-  test('devolve as notas do bimestre indexadas por matrícula', async () => {
+  test('gives back the term\'s grades indexed by enrollment', async () => {
     const scenario = await fullScenario();
     await assessment.postGrades({
       networkId: scenario.network.id,
@@ -141,7 +141,7 @@ describe('classGroupSubjectGrades', () => {
     expect(grades.get(scenario.enrollments[1].id)).toBe(9);
   });
 
-  test('não mistura a nota de outro bimestre', async () => {
+  test('does not mix in a grade from another term', async () => {
     const scenario = await fullScenario();
     await assessment.postGrades({
       networkId: scenario.network.id,
@@ -160,7 +160,7 @@ describe('classGroupSubjectGrades', () => {
     expect(second.size).toBe(0);
   });
 
-  test('não devolve nota de outra rede', async () => {
+  test('does not give back a grade from another network', async () => {
     const scenario = await fullScenario();
     const other = await fullScenario();
     await assessment.postGrades({
@@ -182,7 +182,7 @@ describe('classGroupSubjectGrades', () => {
 });
 
 describe('rollCallForDate', () => {
-  test('devolve o que já foi registrado naquele dia', async () => {
+  test('gives back what has already been recorded for that day', async () => {
     const minimal = await minimalScenario();
     await assessment.recordRollCall({
       networkId: minimal.networkId,
@@ -205,7 +205,7 @@ describe('rollCallForDate', () => {
     });
   });
 
-  test('não mistura o registro de outro dia', async () => {
+  test('does not mix in the record from another day', async () => {
     const minimal = await minimalScenario();
     await assessment.recordRollCall({
       networkId: minimal.networkId,
@@ -223,7 +223,7 @@ describe('rollCallForDate', () => {
     expect(anotherDay.size).toBe(0);
   });
 
-  test('devolve mapa vazio para turma sem matrícula ativa', async () => {
+  test('gives back an empty map for a class group with no active enrollment', async () => {
     const scenario = await fullScenario();
 
     const rollCall = await assessment.rollCallForDate(
@@ -237,7 +237,7 @@ describe('rollCallForDate', () => {
 });
 
 describe('closingState', () => {
-  test('devolve os quatro bimestres abertos para turma que ainda não fechou nada', async () => {
+  test('gives back four open terms for a class group that has closed nothing yet', async () => {
     const minimal = await minimalScenario();
 
     const states = await assessment.closingState(minimal.networkId, minimal.classGroupId);
@@ -250,7 +250,7 @@ describe('closingState', () => {
     ]);
   });
 
-  test('não enxerga o fechamento de uma turma de outra rede', async () => {
+  test('does not see the closing of a class group in another network', async () => {
     const minimal = await minimalScenario();
     await attendTerms(minimal, 7, [1]);
 
@@ -264,7 +264,7 @@ describe('closingState', () => {
 });
 
 describe('enrollmentAttendance', () => {
-  test('devolve o histórico do dia mais recente para o mais antigo', async () => {
+  test('gives back the history from the most recent day to the oldest', async () => {
     const minimal = await minimalScenario();
     await assessment.recordRollCall({
       networkId: minimal.networkId,
@@ -287,7 +287,7 @@ describe('enrollmentAttendance', () => {
     ]);
   });
 
-  test('devolve lista vazia para matrícula de outra rede', async () => {
+  test('gives back an empty list for an enrollment in another network', async () => {
     const minimal = await minimalScenario();
     await recordDays(minimal, 2, 0);
 
@@ -301,7 +301,7 @@ describe('enrollmentAttendance', () => {
 });
 
 describe('reportCard', () => {
-  test('monta uma linha por disciplina da turma, ordenada por nome', async () => {
+  test('builds one row per subject of the class group, ordered by name', async () => {
     const scenario = await fullScenario();
     for (const classGroupSubject of scenario.classGroupSubjects) {
       await assessment.postGrades({
@@ -326,7 +326,7 @@ describe('reportCard', () => {
     });
   });
 
-  test('deixa o aluno em curso enquanto falta nota, nunca reprovado', async () => {
+  test('leaves the student in progress while a grade is missing, never failed', async () => {
     const scenario = await fullScenario();
 
     const reportCard = await assessment.reportCard(scenario.network.id, scenario.enrollments[0].id);
@@ -336,7 +336,7 @@ describe('reportCard', () => {
     expect(reportCard?.rows.every((row) => row.average === null)).toBe(true);
   });
 
-  test('aprova o aluno de média 6,0 com 75 % de presença quando o ano fecha', async () => {
+  test('passes the student averaging 6.0 with 75 % attendance once the year closes', async () => {
     const minimal = await minimalScenario();
     await attendTerms(minimal, 6);
 
@@ -358,7 +358,7 @@ describe('reportCard', () => {
     });
   });
 
-  test('reprova por frequência o aluno de média 8,0 que faltou demais', async () => {
+  test('fails on attendance the student averaging 8.0 who missed too much', async () => {
     const minimal = await minimalScenario();
     await attendTerms(minimal, 8);
 
@@ -370,7 +370,7 @@ describe('reportCard', () => {
     expect(reportCard?.status).toBe('failed');
   });
 
-  test('reprova por nota o aluno de média 5,9 com presença integral', async () => {
+  test('fails on grades the student averaging 5.9 with perfect attendance', async () => {
     const minimal = await minimalScenario();
     await attendTerms(minimal, 5.9);
 
@@ -382,7 +382,7 @@ describe('reportCard', () => {
     expect(reportCard?.status).toBe('failed');
   });
 
-  test('mantém em curso enquanto o quarto bimestre não é fechado, mesmo com média alta', async () => {
+  test('keeps the student in progress while the fourth term is unclosed, however high the average', async () => {
     const minimal = await minimalScenario();
     await attendTerms(minimal, 9, [1, 2, 3]);
     await assessment.postGrades({
@@ -399,7 +399,7 @@ describe('reportCard', () => {
     expect(reportCard?.status).toBe('in_progress');
   });
 
-  test('devolve frequência zero, sem dia nenhum, para turma que ainda não teve chamada', async () => {
+  test('gives back zero attendance, with no days at all, for a class group that has had no roll call yet', async () => {
     const minimal = await minimalScenario();
 
     const reportCard = await assessment.reportCard(minimal.networkId, minimal.enrollmentId);
@@ -409,7 +409,7 @@ describe('reportCard', () => {
     expect(reportCard?.attendanceRate).toBe(0);
   });
 
-  test('devolve null para matrícula de outra rede', async () => {
+  test('gives back null for an enrollment in another network', async () => {
     const minimal = await minimalScenario();
     const other = await minimalScenario();
 
@@ -418,7 +418,7 @@ describe('reportCard', () => {
     expect(reportCard).toBeNull();
   });
 
-  test('devolve null para matrícula que não existe', async () => {
+  test('gives back null for an enrollment that does not exist', async () => {
     const minimal = await minimalScenario();
 
     const reportCard = await assessment.reportCard(minimal.networkId, crypto.randomUUID());

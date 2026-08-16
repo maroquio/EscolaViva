@@ -1,8 +1,9 @@
--- Acadêmico: quem estuda, onde e com quem.
--- Ano letivo, turma, disciplina e a alocação do professor na disciplina da turma; aluno,
--- responsável e o vínculo entre eles; e a matrícula, que amarra aluno a turma no ano.
--- O índice único parcial garante no banco que ninguém tenha duas matrículas ativas no
--- mesmo ano letivo — a regra não depende de a aplicação lembrar dela (I8).
+-- Academics: who studies, where and with whom.
+-- Academic year, class group, subject and the teacher's allocation to a subject of a class group;
+-- student, guardian and the link between them; and the enrollment, which ties a student to a class
+-- group within the year.
+-- The partial unique index guarantees inside the database that nobody holds two active enrollments
+-- in the same academic year — the rule does not depend on the application remembering it (I8).
 
 CREATE TABLE academic_year (
   id          uuid PRIMARY KEY,
@@ -36,7 +37,7 @@ CREATE TABLE class_group (
 CREATE TRIGGER class_group_updated_at BEFORE UPDATE ON class_group
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- A secretaria lista as turmas filtrando por unidade e ano letivo.
+-- The registrar lists the class groups filtering by school and academic year.
 CREATE INDEX class_group_by_school_and_year ON class_group (network_id, school_id, academic_year_id);
 
 CREATE TABLE subject (
@@ -65,7 +66,7 @@ CREATE TABLE class_group_subject (
 CREATE TRIGGER class_group_subject_updated_at BEFORE UPDATE ON class_group_subject
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- O painel do professor abre pelas disciplinas dele; a tela da turma, pelas disciplinas dela.
+-- The teacher dashboard opens from their subjects; the class group screen, from its own.
 CREATE INDEX class_group_subject_by_teacher ON class_group_subject (network_id, teacher_user_id);
 CREATE INDEX class_group_subject_by_class_group ON class_group_subject (network_id, class_group_id);
 
@@ -81,7 +82,7 @@ CREATE TABLE student (
 CREATE TRIGGER student_updated_at BEFORE UPDATE ON student
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- A secretaria procura aluno pelo nome antes de matricular.
+-- The registrar looks a student up by name before enrolling them.
 CREATE INDEX student_by_name ON student (network_id, name);
 
 CREATE TABLE guardian (
@@ -112,7 +113,7 @@ CREATE TABLE student_guardian (
 CREATE TRIGGER student_guardian_updated_at BEFORE UPDATE ON student_guardian
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- O portal do responsável parte do responsável para chegar aos filhos.
+-- The guardian portal starts from the guardian to reach the children.
 CREATE INDEX student_guardian_by_guardian ON student_guardian (network_id, guardian_id);
 
 CREATE TABLE enrollment (
@@ -131,12 +132,12 @@ CREATE TABLE enrollment (
 CREATE TRIGGER enrollment_updated_at BEFORE UPDATE ON enrollment
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- Um aluno não pode ter duas matrículas ATIVAS no mesmo ano letivo.
+-- A student may not hold two ACTIVE enrollments in the same academic year.
 CREATE UNIQUE INDEX active_enrollment_unique_per_year
   ON enrollment (student_id, academic_year_id)
   WHERE status = 'active';
 
--- Chamada, boletim e fechamento sempre partem da lista de ativos da turma.
+-- Roll call, report card and closing always start from the class group's list of active students.
 CREATE INDEX active_enrollment_by_class_group
   ON enrollment (network_id, class_group_id)
   WHERE status = 'active';

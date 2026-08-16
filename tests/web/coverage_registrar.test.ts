@@ -1,18 +1,18 @@
 /*
- * Toda tela de leitura da secretaria, pelo endereço que o navegador digita.
+ * Every reading screen of the registrar area, through the address the browser types.
  *
- * O que este arquivo fecha é uma pergunta só: cada GET de `/registrar` responde 200 e devolve a
- * SUA tela? Status não basta — uma rota que renderizasse o painel no lugar da lista de disciplinas
- * passaria em qualquer verificação de código. Por isso cada caso afirma também algo que só aquela
- * tela tem: o título da página, a legenda da tabela, o campo do formulário.
+ * What this file settles is a single question: does each GET under `/registrar` answer 200 and give
+ * back ITS OWN screen? Status is not enough — a route that rendered the dashboard in place of the
+ * subject list would pass any code-level check. That is why each case also asserts something only
+ * that screen has: the page title, the table caption, the form field.
  *
- * Os endereços aparecem escritos por extenso, e não importados de uma constante de rota. Um teste
- * que lê o caminho do próprio código que ele verifica deixa de notar quando o caminho muda — e
- * mudar o endereço de uma tela é exatamente o tipo de coisa que quebra o link que alguém guardou.
+ * The addresses appear written out in full, rather than imported from a route constant. A test that
+ * reads the path from the very code it checks stops noticing when the path changes — and changing
+ * the address of a screen is exactly the sort of thing that breaks the link somebody bookmarked.
  *
- * Além das telas em si, ficam aqui os estados que só o GET produz: a busca de alunos antes da
- * primeira busca, o filtro de turmas que vive na URL, e o painel de quem responde por mais de uma
- * unidade — caminhos que nenhuma escrita alcança.
+ * Beyond the screens themselves, this file holds the states only a GET produces: the student search
+ * before the first search, the class group filter that lives in the URL, and the dashboard of
+ * someone who answers for more than one school — paths no write ever reaches.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -32,7 +32,7 @@ beforeEach(clearDatabase);
 const signInAsRegistrar = (scenario: Scenario): Promise<string> =>
   signIn({ networkSlug: scenario.network.slug, cpf: scenario.registrar.cpf, password: scenario.password });
 
-/** A secretaria do cenário responde por uma unidade só; esta responde pelas duas. */
+/** The scenario's registrar answers for one school only; this one answers for both. */
 const signInAsRegistrarOfBothSchools = async (scenario: Scenario): Promise<string> => {
   const user = await createUser({
     networkId: scenario.network.id,
@@ -48,12 +48,12 @@ const signInAsRegistrarOfBothSchools = async (scenario: Scenario): Promise<strin
 const html = async (path: string, cookie: string): Promise<string> =>
   await (await open(path, cookie)).text();
 
-/** O `h1` da tela — o que distingue uma página da outra dentro do mesmo layout. */
+/** The screen's `h1` — what tells one page from another inside the same layout. */
 const screenTitle = (title: string): string => `<h1 class="page__title">${title}</h1>`;
 
 /* ------------------------------------------------------------------------- */
 
-describe('cada endereço de leitura abre a sua própria tela', () => {
+describe('each reading address opens its own screen', () => {
   type GoldenScreen = {
     readonly name: string;
     readonly path: (scenario: Scenario) => string;
@@ -127,7 +127,7 @@ describe('cada endereço de leitura abre a sua própria tela', () => {
   ];
 
   for (const screen of SCREENS) {
-    test(`${screen.name} responde 200 com o título da tela`, async () => {
+    test(`${screen.name} answers 200 carrying the screen title`, async () => {
       const scenario = await fullScenario();
       const cookie = await signInAsRegistrar(scenario);
 
@@ -141,8 +141,8 @@ describe('cada endereço de leitura abre a sua própria tela', () => {
 
 /* ------------------------------------------------------------------------- */
 
-describe('a página de cadastrar aluno', () => {
-  test('abre com os dois campos que o cadastro pede, e nenhum vínculo', async () => {
+describe('the page for recording a student', () => {
+  test('opens with the two fields the record asks for, and no link at all', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -153,12 +153,12 @@ describe('a página de cadastrar aluno', () => {
     expect(page).toContain('method="post" action="/registrar/students"');
     expect(page).toContain('name="name"');
     expect(page).toContain('name="birthDate"');
-    // Matrícula e responsável são vínculos que se fazem depois, da ficha: não cabem no cadastro.
+    // Enrollment and guardian are links made later, from the student record: they do not belong here.
     expect(page).not.toContain('name="classGroupId"');
     expect(page).not.toContain('name="guardianId"');
   });
 
-  test('nasce vazia — o formulário em branco não traz valor digitado', async () => {
+  test('is born empty — the blank form carries no typed value', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -172,8 +172,8 @@ describe('a página de cadastrar aluno', () => {
 
 /* ------------------------------------------------------------------------- */
 
-describe('a busca de alunos tem três estados, e todos são GET', () => {
-  test('sem termo, a tela pede a busca em vez de despejar a rede inteira', async () => {
+describe('the student search has three states, and all of them are GET', () => {
+  test('with no term, the screen asks for a search instead of dumping the whole network', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -186,7 +186,7 @@ describe('a busca de alunos tem três estados, e todos são GET', () => {
     expect(page).not.toContain(scenario.students[0].name);
   });
 
-  test('com termo que acha, a tabela traz o aluno e a situação da matrícula', async () => {
+  test('with a term that finds someone, the table carries the student and the enrollment status', async () => {
     const scenario = await fullScenario();
     await createStudent({ networkId: scenario.network.id, name: 'Zulmira Peixoto de Andrade' });
     const cookie = await signInAsRegistrar(scenario);
@@ -198,11 +198,11 @@ describe('a busca de alunos tem três estados, e todos são GET', () => {
     expect(page).toContain('Alunos encontrados para');
     expect(page).toContain('Zulmira Peixoto de Andrade');
     expect(page).toContain('aluno encontrado');
-    // Ninguém a matriculou ainda, e a coluna afirma só o que se sabe.
+    // Nobody has enrolled her yet, and the column states only what is known.
     expect(page).toContain('Sem matrícula');
   });
 
-  test('com termo que não acha, a tela oferece o cadastro em vez de uma tabela vazia', async () => {
+  test('with a term that finds nobody, the screen offers the record form instead of an empty table', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -217,22 +217,22 @@ describe('a busca de alunos tem três estados, e todos são GET', () => {
 
 /* ------------------------------------------------------------------------- */
 
-describe('o painel conta o que está ao alcance de quem abriu', () => {
-  /** Os quatro cartões, na ordem em que a tela os desenha. */
+describe('the dashboard counts what lies within the reach of whoever opened it', () => {
+  /** The four cards, in the order the screen draws them. */
   const cardNumbers = (page: string): number[] =>
     [...page.matchAll(/card__number">(\d+)</g)].map(([, number]) => Number(number));
 
-  test('os cartões trazem os números da unidade em que a pessoa é secretaria', async () => {
+  test('the cards carry the numbers of the school where the person is registrar', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
     const page = await html('/registrar', cookie);
 
-    // Matrículas ativas, turmas, responsáveis e disciplinas: o cenário completo em uma unidade.
+    // Active enrollments, class groups, guardians and subjects: the full scenario in one school.
     expect(cardNumbers(page)).toEqual([5, 2, 5, 3]);
   });
 
-  test('com uma unidade só, a tabela por unidade não aparece — não há o que comparar', async () => {
+  test('with only one school, the per-school table does not appear — there is nothing to compare', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -242,7 +242,7 @@ describe('o painel conta o que está ao alcance de quem abriu', () => {
     expect(page).not.toContain(scenario.schools[1].name);
   });
 
-  test('com duas unidades, a tabela aparece e nomeia as duas', async () => {
+  test('with two schools, the table appears and names them both', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrarOfBothSchools(scenario);
 
@@ -258,8 +258,8 @@ describe('o painel conta o que está ao alcance de quem abriu', () => {
 
 /* ------------------------------------------------------------------------- */
 
-describe('o filtro de turmas vive na URL', () => {
-  test('filtrar por unidade recorta a lista às turmas daquela unidade', async () => {
+describe('the class group filter lives in the URL', () => {
+  test('filtering by school cuts the list down to that school\'s class groups', async () => {
     const scenario = await fullScenario();
     const base = { networkId: scenario.network.id, academicYearId: scenario.academicYear.id };
     await createClassGroup({ ...base, schoolId: scenario.schools[0].id, name: 'Turma Alfa da Central' });
@@ -274,7 +274,7 @@ describe('o filtro de turmas vive na URL', () => {
     expect(page).not.toContain('Turma Alfa da Central');
   });
 
-  test('filtrar por ano letivo recorta a lista àquele ano', async () => {
+  test('filtering by academic year cuts the list down to that year', async () => {
     const scenario = await fullScenario();
     const otherYear = await createAcademicYear({ networkId: scenario.network.id, year: scenario.academicYear.year + 1 });
     const base = { networkId: scenario.network.id, schoolId: scenario.schools[0].id };
@@ -290,12 +290,12 @@ describe('o filtro de turmas vive na URL', () => {
     expect(page).not.toContain('Turma Gama do Ano Velho');
   });
 
-  test('unidade fora do alcance vale como “todas as suas”, e não abre a de fora', async () => {
+  test('a school outside the reach counts as "all of yours", and does not open the outside one', async () => {
     const scenario = await fullScenario();
     const base = { networkId: scenario.network.id, academicYearId: scenario.academicYear.id };
     await createClassGroup({ ...base, schoolId: scenario.schools[0].id, name: 'Turma Epsilon da Minha' });
     await createClassGroup({ ...base, schoolId: scenario.schools[1].id, name: 'Turma Zeta da Outra' });
-    // Esta secretaria só tem papel na primeira unidade: a segunda não é filtro que ela possa pedir.
+    // This registrar holds a role at the first school only: the second is no filter she may ask for.
     const cookie = await signInAsRegistrar(scenario);
 
     const response = await open(`/registrar/class-groups?school=${scenario.schools[1].id}`, cookie);
@@ -306,7 +306,7 @@ describe('o filtro de turmas vive na URL', () => {
     expect(page).not.toContain('Turma Zeta da Outra');
   });
 
-  test('número de página que não existe não vira erro nem tela quebrada', async () => {
+  test('a page number that does not exist becomes neither an error nor a broken screen', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -320,8 +320,8 @@ describe('o filtro de turmas vive na URL', () => {
 
 /* ------------------------------------------------------------------------- */
 
-describe('as listagens mostram o que prometem no cabeçalho', () => {
-  test('a lista de disciplinas traz a tabela da rede', async () => {
+describe('the listings show what their headers promise', () => {
+  test('the subject list carries the network table', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -334,7 +334,7 @@ describe('as listagens mostram o que prometem no cabeçalho', () => {
     expect(page).toContain('href="/registrar/subjects/new"');
   });
 
-  test('a lista de responsáveis traz nome, CPF e e-mail de quem responde pelos alunos', async () => {
+  test('the guardian list carries the name, CPF and e-mail of whoever answers for the students', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -347,7 +347,7 @@ describe('as listagens mostram o que prometem no cabeçalho', () => {
     expect(page).toContain(scenario.guardians[0].email);
   });
 
-  test('a tela da turma lista as disciplinas alocadas e os alunos com matrícula ativa', async () => {
+  test('the class group screen lists the allocated subjects and the students with an active enrollment', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
@@ -362,7 +362,7 @@ describe('as listagens mostram o que prometem no cabeçalho', () => {
     expect(page).toContain(scenario.students[0].name);
   });
 
-  test('a ficha do aluno traz os responsáveis vinculados e o histórico de matrículas', async () => {
+  test('the student record carries the linked guardians and the enrollment history', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 

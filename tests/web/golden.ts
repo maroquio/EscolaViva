@@ -1,27 +1,27 @@
 /*
- * A rede de proteção do refactor: o HTML de toda tela renderizada hoje, congelado em arquivo.
+ * The refactor's safety net: the HTML of every screen the system renders today, frozen to file.
  *
- * Um refactor puro promete que nada muda para quem usa o sistema. Teste de unidade não cobra essa
- * promessa — ele olha um pedaço de cada vez, e o que quebra em uma reorganização de rotas é
- * justamente a costura: um `href` que passou a apontar para outro lugar, um rótulo que sumiu do
- * layout, um `redirect` que trocou de destino. O golden compara o documento inteiro, byte a byte,
- * contra o que o sistema respondia antes.
+ * A pure refactor promises that nothing changes for whoever uses the system. Unit tests do not
+ * hold that promise to account — they look at one piece at a time, and what breaks in a route
+ * reorganization is precisely the seam: an `href` that now points somewhere else, a label that
+ * fell out of the layout, a `redirect` that changed destination. The golden compares the whole
+ * document, byte for byte, against what the system used to answer.
  *
- * Três decisões governam o arquivo:
+ * Three decisions govern this file:
  *
- * 1. UM cenário, montado à mão e nomeado. As fábricas numeram nomes com um contador de processo
- *    (`Aluno de Teste 47`), e esse número depende de quantos testes rodaram antes — o que faria o
- *    golden passar sozinho e falhar na suíte inteira. Aqui todo nome, e-mail, CPF e data é
- *    escrito, e o cenário é o mesmo em qualquer ordem de execução.
+ * 1. ONE scenario, built by hand and named. The factories number their names with a per-process
+ *    counter (`Aluno de Teste 47`), and that number depends on how many tests ran before — which
+ *    would make the golden pass on its own and fail inside the full suite. Here every name,
+ *    e-mail, CPF and date is written out, and the scenario is the same under any execution order.
  *
- * 2. Normalização por dicionário, e não por vassoura. Os identificadores do cenário viram
- *    marcadores COM NOME — `{{aluno01}}`, `{{turma1}}` —, então trocar o `href` de um aluno pelo de
- *    outro continua sendo uma diferença visível. Só o que não tem como ser previsto (a chave de
- *    idempotência, o hash do CSS, o carimbo de tempo do banco) vira marcador anônimo.
+ * 2. Normalization by dictionary, not by broom. The scenario's identifiers become NAMED markers —
+ *    `{{aluno01}}`, `{{turma1}}` — so swapping one student's `href` for another's is still a
+ *    visible difference. Only what cannot be predicted (the idempotency key, the CSS hash, the
+ *    database timestamp) becomes an anonymous marker.
  *
- * 3. O documento congelado inclui status e cabeçalhos de resposta. Metade das rotas de entrada não
- *    tem corpo: `/` e `/dashboard` são redirecionamentos, e o destino deles é exatamente o que um
- *    refactor de rotas pode trocar sem que nenhum HTML mude.
+ * 3. The frozen document includes response status and headers. Half of the entry routes have no
+ *    body: `/` and `/dashboard` are redirects, and their destination is exactly what a route
+ *    refactor can change without any HTML moving.
  */
 
 import { join } from 'node:path';
@@ -53,9 +53,9 @@ import { signIn } from './support';
 export const GOLDEN_DIR = join(import.meta.dir, 'golden');
 
 /**
- * Papéis que abrem as telas. `anonimo` é a ausência de sessão, e também é uma tela; `semPapel` é a
- * conta que existe e ainda não foi ligada a unidade nenhuma, que é a única porta para a tela
- * "Conta sem papel atribuído" de `/dashboard`.
+ * The roles that open the screens. `anonimo` is the absence of a session, and it is a screen too;
+ * `semPapel` is the account that exists and has not been tied to any school yet, which is the only
+ * door to the "Conta sem papel atribuído" screen of `/dashboard`.
  */
 export type GoldenRole =
   | 'anonimo'
@@ -66,20 +66,20 @@ export type GoldenRole =
   | 'responsavel';
 
 export type GoldenScreen = {
-  /** Nome do arquivo em `tests/web/golden/`, sem extensão. */
+  /** The file name under `tests/web/golden/`, without extension. */
   readonly name: string;
   readonly role: GoldenRole;
   readonly path: string;
 };
 
 /*
- * Cabeçalho aceito pelo middleware de correlação (I16): fixá-lo aqui torna a página de erro
- * determinística sem que a normalização precise apagar o código de ocorrência — se ele sumir da
- * tela, o golden acusa.
+ * A header the correlation middleware accepts (I16): pinning it here makes the error page
+ * deterministic without normalization having to erase the occurrence code — if that code
+ * disappears from the screen, the golden says so.
  */
 const CORRELATION = 'golden-correlacao-fixa';
 
-/** Um identificador que respeita o formato e não existe no banco: a porta do 404. */
+/** An identifier that honours the format and exists in no table: the door to the 404. */
 const NONEXISTENT_ID = '00000000-0000-4000-8000-000000000000';
 
 const CURRENT_YEAR = 2026;
@@ -90,7 +90,7 @@ const CLOSED_TERM = 1;
 
 const twoDigits = (value: number): string => String(value).padStart(2, '0');
 
-/* --- Cenário ---------------------------------------------------------------- */
+/* --- Scenario --------------------------------------------------------------- */
 
 export type GoldenScenario = {
   readonly cookies: Readonly<Record<GoldenRole, string>>;
@@ -110,13 +110,14 @@ export type GoldenScenario = {
 };
 
 /**
- * Monta a rede inteira do golden. Tudo é escrito à mão de propósito: dez linhas por tabela custam
- * menos do que descobrir, seis meses depois, que o golden só passa quando roda sozinho.
+ * Builds the golden's entire network. Everything is written by hand on purpose: ten lines per
+ * table cost less than finding out, six months later, that the golden only passes when it runs
+ * alone.
  *
- * O tamanho não é arbitrário — doze alunos, doze responsáveis e doze dias de chamada são dois a
- * mais do que a página (dez), e é isso que faz a barra de paginação aparecer em três telas
- * diferentes. Barra de paginação monta `href` a partir do caminho da requisição, e caminho é
- * exatamente o que o refactor de rotas mexe.
+ * The size is not arbitrary — twelve students, twelve guardians and twelve roll-call days are two
+ * more than a page holds (ten), and that is what makes the pagination bar appear on three
+ * different screens. A pagination bar builds its `href` from the request path, and the path is
+ * exactly what a route refactor moves.
  */
 export async function buildGoldenScenario(): Promise<GoldenScenario> {
   const network = await createNetwork({ name: 'Rede Modelo do Litoral', slug: 'rede-golden' });
@@ -205,7 +206,7 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     enrollments.push(enrollment);
   }
 
-  // Conta criada e ainda não atribuída: `/dashboard` não tem para onde mandá-la, e diz isso na tela.
+  // An account created and not yet assigned: `/dashboard` has nowhere to send it, and says so on screen.
   const roleless = await createUser({
     networkId,
     name: 'Eva Recém-Convidada',
@@ -225,8 +226,8 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     roles: [{ schoolId: schoolA.id, role: 'guardian' }],
   });
 
-  // Notas de dois bimestres para o primeiro aluno (o boletim precisa de linha cheia) e do primeiro
-  // bimestre para os quatro primeiros (a tela de notas precisa de coluna preenchida e vazia).
+  // Grades for two terms for the first student (the report card needs a full row) and for the
+  // first term for the first four (the grades screen needs both a filled and an empty column).
   const assignments = [assignment1, assignment2, assignment3];
   const GRADE_VALUES = [8.5, 7, 9.5];
   for (let index = 0; index < assignments.length; index += 1) {
@@ -264,8 +265,9 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
   }
 
   /*
-   * Meio-dia UTC de propósito: `formatarDataHora` imprime a hora local, e um carimbo à meia-noite
-   * mudaria de dia conforme o fuso de quem roda a suíte. A hora em si é normalizada; o dia, não.
+   * Noon UTC on purpose: `formatDateTime` prints the local time, and a midnight stamp would shift
+   * day depending on the time zone of whoever runs the suite. The time itself is normalized; the
+   * day is not.
    */
   const announcement1 = await createAnnouncement({
     networkId, schoolId: schoolA.id, authorUserId: admin.id,
@@ -296,7 +298,7 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     recipients: [],
   });
 
-  // O primeiro bimestre da turma fechado: é o estado que a tela de fechamento e o boletim mostram.
+  // The class group's first term closed: the state the closing screen and the report card show.
   const sql = testSql();
   await sql`
     INSERT INTO term_closing (id, network_id, class_group_id, term, closed_at, closed_by)
@@ -365,19 +367,20 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
   };
 }
 
-/* --- As telas --------------------------------------------------------------- */
+/* --- The screens ------------------------------------------------------------ */
 
 /**
- * Toda rota GET registrada em `src/web/app.ts`, `src/web/health.ts` e `src/web/routes/*.ts`, mais as
- * variações de estado que são telas diferentes com o mesmo caminho: a lista com e sem busca, o
- * formulário com e sem unidade escolhida, a página com e sem aviso de sucesso, a segunda página de
- * uma tabela paginada e o 404 de quem pede o registro de outra unidade.
+ * Every GET route registered in `src/web/app.ts`, `src/web/health.ts` and `src/web/routes/*.ts`,
+ * plus the state variations that are different screens behind the same path: the list with and
+ * without a search, the form with and without a school chosen, the page with and without a success
+ * notice, the second page of a paginated table, and the 404 for someone asking after another
+ * school's record.
  */
 export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen[] {
   const signOutMessage = encodeURIComponent('Sessão encerrada.');
 
   return [
-    /* Sem sessão ----------------------------------------------------------- */
+    /* No session ----------------------------------------------------------- */
     { name: 'anonimo-raiz', role: 'anonimo', path: '/' },
     { name: 'anonimo-login', role: 'anonimo', path: '/login' },
     { name: 'anonimo-login-apos-sair', role: 'anonimo', path: `/login?ok=${signOutMessage}` },
@@ -387,15 +390,15 @@ export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen
     { name: 'anonimo-publico-inexistente', role: 'anonimo', path: '/public/nao-existe.css' },
     { name: 'anonimo-publico-nome-recusado', role: 'anonimo', path: '/public/..%2Fsegredo' },
 
-    /* Conta sem papel atribuído -------------------------------------------- */
+    /* Account with no role assigned ---------------------------------------- */
     { name: 'sem-papel-painel', role: 'semPapel', path: '/dashboard' },
     { name: 'sem-papel-raiz', role: 'semPapel', path: '/' },
 
-    /* Saúde ---------------------------------------------------------------- */
+    /* Health --------------------------------------------------------------- */
     { name: 'saude-health', role: 'anonimo', path: '/health' },
     { name: 'saude-health-live', role: 'anonimo', path: '/health/live' },
 
-    /* Administração da rede ------------------------------------------------ */
+    /* Network administration ----------------------------------------------- */
     { name: 'admin-raiz', role: 'admin', path: '/' },
     { name: 'admin-painel', role: 'admin', path: '/dashboard' },
     { name: 'admin-login-com-sessao', role: 'admin', path: '/login' },
@@ -417,7 +420,7 @@ export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen
     { name: 'admin-conta-senha-alterada', role: 'admin', path: '/account/password?ok=password-changed' },
     { name: 'admin-professor-proibido', role: 'admin', path: '/teacher' },
 
-    /* Secretaria ------------------------------------------------------------ */
+    /* Registrar ------------------------------------------------------------- */
     { name: 'secretaria-painel-redirecionado', role: 'secretaria', path: '/dashboard' },
     { name: 'secretaria-painel', role: 'secretaria', path: '/registrar' },
     { name: 'secretaria-alunos-sem-busca', role: 'secretaria', path: '/registrar/students' },
@@ -444,7 +447,7 @@ export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen
     { name: 'secretaria-comunicado-novo', role: 'secretaria', path: '/announcements/new' },
     { name: 'secretaria-rota-inexistente', role: 'secretaria', path: '/nao-existe' },
 
-    /* Professor ------------------------------------------------------------- */
+    /* Teacher --------------------------------------------------------------- */
     { name: 'professor-painel-redirecionado', role: 'professor', path: '/dashboard' },
     { name: 'professor-painel', role: 'professor', path: '/teacher' },
     { name: 'professor-notas', role: 'professor', path: `/teacher/subjects/${ids.assignment1}/grades` },
@@ -455,7 +458,7 @@ export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen
     { name: 'professor-turma-alheia', role: 'professor', path: `/teacher/class-groups/${ids.classGroup2}/closing` },
     { name: 'professor-conta-senha', role: 'professor', path: '/account/password' },
 
-    /* Responsável ----------------------------------------------------------- */
+    /* Guardian -------------------------------------------------------------- */
     { name: 'responsavel-painel-redirecionado', role: 'responsavel', path: '/dashboard' },
     { name: 'responsavel-painel', role: 'responsavel', path: '/guardian' },
     { name: 'responsavel-boletim', role: 'responsavel', path: `/guardian/enrollments/${ids.enrollment1}/report-card` },
@@ -468,37 +471,37 @@ export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen
   ];
 }
 
-/* --- Normalização ----------------------------------------------------------- */
+/* --- Normalization ---------------------------------------------------------- */
 
 const UUID = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g;
 /**
- * As duas grafias do campo convivem enquanto o repositório é convertido para inglês. Se a
- * regex ficasse só com a antiga, o campo renomeado deixaria de ser normalizado e os 57
- * fixtures que o carregam passariam a divergir a cada execução, com um UUID novo por vez.
+ * Both spellings of the field live side by side while the repository is converted to English. If
+ * the regex kept only the old one, the renamed field would stop being normalized and the 57
+ * fixtures that carry it would diverge on every run, with a fresh UUID each time.
  */
 const IDEMPOTENCY_KEY_ATTR = /(name="_(?:chave|key)" value=")[^"]*(")/g;
 /**
- * O nome publicado do CSS (I10) e o nome cru que `asset()` devolve quando ainda não houve
- * `bun run build:assets` viram o mesmo marcador. São a mesma linha da tela; congelar o hash faria
- * 71 arquivos mudarem a cada ajuste de folha de estilo, e um clone novo, sem manifesto, reprovaria
- * um refactor que não encostou em CSS nenhum.
+ * The published CSS name (I10) and the raw name `asset()` returns when `bun run build:assets` has
+ * not run yet collapse into the same marker. They are the same line of the screen; freezing the
+ * hash would make 71 files change on every stylesheet tweak, and a fresh clone, with no manifest,
+ * would fail a refactor that never touched any CSS.
  */
 const VERSIONED_ASSET = /\/(?:publico|public)\/app\.(?:[0-9a-f]{6,}\.)?css/g;
-/** `Tue Mar 10 2026 09:00:00 GMT-0300 (Brasilia Standard Time)` — o `toString` de um `Date`. */
+/** `Tue Mar 10 2026 09:00:00 GMT-0300 (Brasilia Standard Time)` — the `toString` of a `Date`. */
 const JAVASCRIPT_DATE =
   /[A-Z][a-z]{2} [A-Z][a-z]{2} \d{2} \d{4} \d{2}:\d{2}:\d{2} GMT[+-]\d{4}(?: \([^)]*\))?/g;
 const ISO_TIMESTAMP = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?/g;
 const TIME_OF_DAY = /\b\d{2}:\d{2}\b/g;
 
-/** Dois dias para cada lado cobrem o fuso local, o dia UTC e a virada da meia-noite no meio da suíte. */
+/** Two days either way cover the local time zone, the UTC day, and midnight turning over mid-suite. */
 const DAY_WINDOW = 2;
 const MS_PER_DAY = 86_400_000;
 
 /**
- * Os dias que dependem de quando a suíte roda: o `hoje()` da secretaria (dia UTC), o `hoje()` do
- * professor (dia local) e o dia anterior e o seguinte da tela de chamada. Todos viram o mesmo
- * marcador — a distinção entre eles fica congelada em `professor-chamada-data-fixa`, que passa a
- * data na query e por isso não depende de relógio nenhum.
+ * The days that depend on when the suite runs: the registrar's `today()` (UTC day), the teacher's
+ * `today()` (local day), and the previous and next day on the roll-call screen. All become the
+ * same marker — the distinction between them stays frozen in `professor-chamada-data-fixa`, which
+ * passes the date in the query and therefore depends on no clock.
  */
 function currentDays(): string[] {
   const now = Date.now();
@@ -517,12 +520,12 @@ const inBrazilianFormat = (iso: string): string => {
 };
 
 /**
- * Troca o que não pode ser previsto por marcadores estáveis, e nada além disso.
+ * Swaps what cannot be predicted for stable markers, and nothing beyond that.
  *
- * A ordem importa: os carimbos de tempo inteiros saem antes das datas soltas, senão `2026-08-14` de
- * dentro de `2026-08-14T12:00:00Z` seria trocado primeiro e o resto do carimbo ficaria órfão. Os
- * identificadores conhecidos saem antes do varredor de UUID, senão todos virariam `{{uuid}}` e o
- * golden deixaria de distinguir o `href` de um aluno do `href` de outro.
+ * Order matters: whole timestamps go before loose dates, otherwise the `2026-08-14` inside
+ * `2026-08-14T12:00:00Z` would be swapped first and the rest of the stamp would be left orphaned.
+ * The known identifiers go before the UUID sweeper, otherwise all of them would turn into
+ * `{{uuid}}` and the golden would stop telling one student's `href` from another's.
  */
 export function normalize(text: string, markers: ReadonlyMap<string, string>): string {
   let output = text;
@@ -549,9 +552,9 @@ export function normalize(text: string, markers: ReadonlyMap<string, string>): s
   return output;
 }
 
-/* --- Captura ---------------------------------------------------------------- */
+/* --- Capture ---------------------------------------------------------------- */
 
-/** O que entra no arquivo golden além do corpo: o que um refactor de rotas pode trocar sozinho. */
+/** What goes into the golden file besides the body: what a route refactor can change on its own. */
 const FROZEN_HEADERS = ['Location', 'Content-Type', 'Cache-Control', 'Vary'] as const;
 
 const SEPARATOR = '-'.repeat(78);

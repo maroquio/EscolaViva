@@ -106,7 +106,7 @@ async function runChecker(root: string, source: string): Promise<string> {
   return `${stdout}${stderr}`;
 }
 
-describe('o <script> de avisos é HTML que viaja para o navegador', () => {
+describe('the notices <script> is HTML that travels to the browser', () => {
   let probeArea = '';
 
   beforeAll(async () => {
@@ -119,7 +119,7 @@ describe('o <script> de avisos é HTML que viaja para o navegador', () => {
     await rm(probeArea, { recursive: true, force: true });
   });
 
-  test('o corpo do script chega verbatim a toda tela congelada que tem documento', async () => {
+  test('the script body arrives verbatim in every frozen screen that carries a document', async () => {
     const body = scriptBody(await partialSource());
     const screens = await frozenScreens();
 
@@ -133,7 +133,7 @@ describe('o <script> de avisos é HTML que viaja para o navegador', () => {
     expect(withoutTheBody).toEqual([]);
   });
 
-  test('o verificador não lê esse corpo, e é a isenção que o segura', async () => {
+  test('the checker does not read that body, and it is the exemption that holds it back', async () => {
     const checker = await checkerSource();
 
     const withTheExemption = await runChecker(probeArea, checker);

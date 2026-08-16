@@ -1,9 +1,9 @@
 /*
- * As consultas paginadas contra o banco de verdade.
+ * The paginated queries against the real database.
  *
- * O que se prova aqui é que o recorte acontece no SQL, e não depois: a página traz apenas o seu
- * pedaço, o total conta a lista inteira e nenhuma das duas coisas atravessa a fronteira da rede.
- * Um recorte que vazasse tenant seria pior que a lista sem recorte — mostraria pouco, e errado.
+ * What gets proven here is that the slicing happens in SQL, not afterwards: a page brings only its
+ * own piece, the total counts the whole list, and neither of the two crosses the network boundary.
+ * A slice that leaked tenant would be worse than an unsliced list — it would show little, and wrong.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -24,11 +24,11 @@ import {
 
 beforeEach(clearDatabase);
 
-/** Nomes numerados com zero à esquerda para que a ordem alfabética seja a ordem de criação. */
+/** Names numbered with a leading zero so that alphabetical order is creation order. */
 const numberedName = (position: number): string => `Pessoa ${String(position).padStart(3, '0')}`;
 
-describe('paginaDeResponsaveis', () => {
-  test('a primeira página traz o tamanho pedido, e o total conta todos', async () => {
+describe('guardiansPage', () => {
+  test('the first page brings the requested size, and the total counts them all', async () => {
     const network = await createNetwork();
     for (let i = 1; i <= 7; i += 1) {
       await createGuardian({ networkId: network.id, name: numberedName(i) });
@@ -42,7 +42,7 @@ describe('paginaDeResponsaveis', () => {
     expect(page).toMatchObject({ total: 7, page: 1, size: 3, pages: 3 });
   });
 
-  test('a página seguinte continua de onde a anterior parou, sem repetir nem pular', async () => {
+  test('the next page picks up where the previous one stopped, repeating nothing and skipping nothing', async () => {
     const network = await createNetwork();
     for (let i = 1; i <= 7; i += 1) {
       await createGuardian({ networkId: network.id, name: numberedName(i) });
@@ -58,7 +58,7 @@ describe('paginaDeResponsaveis', () => {
     expect(traversed).toEqual(Array.from({ length: 7 }, (_, i) => numberedName(i + 1)));
   });
 
-  test('página além do fim devolve a última, e não uma lista vazia', async () => {
+  test('a page past the end gives back the last one, not an empty list', async () => {
     const network = await createNetwork();
     for (let i = 1; i <= 5; i += 1) {
       await createGuardian({ networkId: network.id, name: numberedName(i) });
@@ -70,7 +70,7 @@ describe('paginaDeResponsaveis', () => {
     expect(page.items.map((r) => r.name)).toEqual([numberedName(5)]);
   });
 
-  test('o total nunca conta responsável de outra rede', async () => {
+  test('the total never counts a guardian from another network', async () => {
     const ours = await createNetwork();
     const foreign = await createNetwork();
     await createGuardian({ networkId: ours.id, name: numberedName(1) });
@@ -83,8 +83,8 @@ describe('paginaDeResponsaveis', () => {
   });
 });
 
-describe('paginaDeAlunos', () => {
-  test('recorta os achados da busca e conta todos os que casam com o termo', async () => {
+describe('studentsPage', () => {
+  test('slices the search hits and counts everyone matching the term', async () => {
     const network = await createNetwork();
     for (let i = 1; i <= 6; i += 1) {
       await createStudent({ networkId: network.id, name: `Silva ${String(i).padStart(3, '0')}` });
@@ -98,7 +98,7 @@ describe('paginaDeAlunos', () => {
     expect(page.items.every((student) => student.name.startsWith('Silva'))).toBe(true);
   });
 
-  test('a busca paginada não alcança aluno de outra rede', async () => {
+  test('the paginated search does not reach a student in another network', async () => {
     const ours = await createNetwork();
     const foreign = await createNetwork();
     await createStudent({ networkId: ours.id, name: 'Ana Silva' });
@@ -111,8 +111,8 @@ describe('paginaDeAlunos', () => {
   });
 });
 
-describe('paginaDeTurmas', () => {
-  test('o alcance entra como condição: só as turmas das unidades informadas', async () => {
+describe('classGroupsPage', () => {
+  test('the scope goes in as a condition: only the class groups of the schools given', async () => {
     const network = await createNetwork();
     const [inScope, outside] = await Promise.all([
       createSchool({ networkId: network.id }),
@@ -132,7 +132,7 @@ describe('paginaDeTurmas', () => {
     expect(page.total).toBe(1);
   });
 
-  test('lista de unidades vazia significa nenhuma turma, e nunca todas', async () => {
+  test('an empty list of schools means no class group, and never all of them', async () => {
     const scenario = await fullScenario();
 
     const page = await academics.classGroupsPage(scenario.network.id, { schoolIds: [] }, 1, 20);
@@ -141,7 +141,7 @@ describe('paginaDeTurmas', () => {
     expect(page.total).toBe(0);
   });
 
-  test('o filtro de ano letivo continua valendo junto com o alcance', async () => {
+  test('the academic-year filter still holds alongside the scope', async () => {
     const scenario = await fullScenario();
     const otherYear = await createAcademicYear({ networkId: scenario.network.id, year: DEFAULT_YEAR + 1 });
     await createClassGroup({
@@ -160,8 +160,8 @@ describe('paginaDeTurmas', () => {
   });
 });
 
-describe('paginaDeMatriculasDoAluno', () => {
-  test('traz o histórico do aluno restrito às unidades alcançadas', async () => {
+describe('studentEnrollmentsPage', () => {
+  test('brings the student history restricted to the schools in scope', async () => {
     const scenario = await fullScenario();
     const [student] = scenario.students;
 
@@ -173,7 +173,7 @@ describe('paginaDeMatriculasDoAluno', () => {
     expect(page.items[0]?.studentId).toBe(student.id);
   });
 
-  test('unidade fora do alcance não devolve matrícula nenhuma', async () => {
+  test('a school outside the scope gives back no enrollment at all', async () => {
     const scenario = await fullScenario();
     const [student] = scenario.students;
 
@@ -186,8 +186,8 @@ describe('paginaDeMatriculasDoAluno', () => {
   });
 });
 
-describe('contagens que substituíram as listas', () => {
-  test('alunoTemMatricula separa o aluno novo do aluno de outra unidade', async () => {
+describe('the counts that replaced the lists', () => {
+  test('studentHasEnrollment tells the newly registered student from the one in another school', async () => {
     const scenario = await fullScenario();
     const newlyRegistered = await createStudent({ networkId: scenario.network.id });
 
@@ -195,14 +195,14 @@ describe('contagens que substituíram as listas', () => {
     expect(await academics.studentHasEnrollment(scenario.network.id, newlyRegistered.id)).toBe(false);
   });
 
-  test('contagensPorUnidade devolve turmas, matriculados e responsáveis de cada unidade', async () => {
+  test('countsBySchool gives back class groups, enrolled students and guardians for each school', async () => {
     const scenario = await fullScenario();
 
     const bySchool = await academics.countsBySchool(
       scenario.network.id, scenario.schools.map((school) => school.id),
     );
 
-    // O cenário monta as duas turmas e as cinco matrículas na primeira unidade.
+    // The scenario builds both class groups and all five enrollments in the first school.
     expect(bySchool.get(scenario.schools[0].id)).toEqual({
       classGroups: 2, enrollments: 5, guardians: 5,
     });
@@ -211,7 +211,7 @@ describe('contagens que substituíram as listas', () => {
     });
   });
 
-  test('totaisDoAlcance conta cada responsável uma vez, mesmo com filhos em duas unidades', async () => {
+  test('scopeTotals counts each guardian once, even with children in two schools', async () => {
     const scenario = await fullScenario();
     await createSubject({ networkId: scenario.network.id });
 
@@ -226,8 +226,8 @@ describe('contagens que substituíram as listas', () => {
   });
 });
 
-describe('paginaDeUsuarios', () => {
-  test('os papéis vêm só dos usuários da página, e chegam completos', async () => {
+describe('usersPage', () => {
+  test('the roles come only from the users on the page, and they arrive complete', async () => {
     const scenario = await fullScenario();
 
     const page = await identity.usersPage(scenario.network.id, 1, 2);
@@ -238,7 +238,7 @@ describe('paginaDeUsuarios', () => {
     if (admin !== undefined) expect(admin.roles).toHaveLength(2);
   });
 
-  test('rede com id malformado devolve página vazia em vez de estourar', async () => {
+  test('a network with a malformed id gives back an empty page instead of blowing up', async () => {
     const page = await identity.usersPage('nao-e-uuid', 1, 20);
 
     expect(page).toMatchObject({ items: [], total: 0, page: 1 });

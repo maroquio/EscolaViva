@@ -1,7 +1,8 @@
 /*
- * Cenários mínimos e componíveis. Cada fábrica escreve direto no banco, respeitando as mesmas
- * constraints da aplicação, e devolve o que criou com os ids. Escrever pelo INSERT em vez de pelo
- * caso de uso é deliberado: o teste de `matricular` não pode depender de `matricular`.
+ * Minimal, composable scenarios. Every factory writes straight to the database, under the same
+ * constraints the application obeys, and hands back what it created together with the ids.
+ * Writing through INSERT instead of through the use case is deliberate: the test for `enroll`
+ * must not depend on `enroll`.
  */
 
 import type { EnrollmentStatus } from '../../src/academics';
@@ -13,7 +14,7 @@ export type NetworkStatus = 'active' | 'suspended' | 'cancelled';
 export type Shift = 'morning' | 'afternoon' | 'evening' | 'full_time';
 export type TestRoleInSchool = { schoolId: string; role: Role };
 
-/** A senha de todo usuário de teste. Dez caracteres: é o mínimo que o domínio aceita. */
+/** The password of every test user. Ten characters: the minimum the domain accepts. */
 export const DEFAULT_PASSWORD = 'teste-1234';
 export const DEFAULT_YEAR = 2026;
 const DOMAIN = 'escolaviva.test';
@@ -21,16 +22,16 @@ const SESSION_DURATION_HOURS = 12;
 const HOUR_IN_MS = 3_600_000;
 const newId = (): string => crypto.randomUUID();
 
-/** Nome, e-mail e slug esbarram em índice único real: um contador que nunca reinicia resolve. */
+/** Name, e-mail and slug run into a real unique index: a counter that never restarts settles it. */
 let sequence = 0;
 const nextNumber = (): number => (sequence += 1);
 
 const toSnakeCase = (key: string): string => key.replace(/[A-Z]/g, (l) => `_${l.toLowerCase()}`);
 
 /**
- * Grava o registro e o devolve. As chaves do objeto viram as colunas — `networkId` é
- * `network_id` —, então cada fábrica descreve o que criou uma vez só, e não em camelCase e em
- * snake_case.
+ * Writes the row and hands it back. The object keys become the columns — `networkId` is
+ * `network_id` — so each factory describes what it created only once, instead of once in
+ * camelCase and again in snake_case.
  */
 async function insertRow<T extends object>(table: string, record: T): Promise<T> {
   const row = Object.fromEntries(Object.entries(record).map(([c, v]) => [toSnakeCase(c), v]));
@@ -39,7 +40,7 @@ async function insertRow<T extends object>(table: string, record: T): Promise<T>
   return record;
 }
 
-/** Argon2id custa ~100 ms: sem esta memória um cenário gastaria isso quatro vezes pela mesma senha. */
+/** Argon2id costs ~100 ms: without this memo a scenario would spend that four times over on the same password. */
 const hashByPassword = new Map<string, Promise<string>>();
 
 function hashPassword(password: string): Promise<string> {
@@ -78,9 +79,9 @@ export async function createSchool(options: {
 
 export type TestUser = {
   id: string; networkId: string; name: string; email: string;
-  /** Migração 0008 (ADR 0004): toda linha de `app_user` tem CPF, sempre — nunca `null` aqui. */
+  /** Migration 0008 (ADR 0004): every `app_user` row carries a CPF, always — never `null` here. */
   cpf: string;
-  /** A senha em claro, para o teste conseguir autenticar depois. */
+  /** The plaintext password, so the test can authenticate later on. */
   password: string;
   active: boolean; guardianId: string | null; roles: TestRoleInSchool[];
 };
@@ -100,7 +101,7 @@ export async function createUser(options: {
     active: options.active ?? true, guardianId: options.guardianId ?? null, roles: options.roles ?? [],
   };
 
-  // `senha` e `papeis` não são colunas de `app_user`: a primeira vira hash, os segundos viram linhas.
+  // `password` and `roles` are not columns of `app_user`: the first becomes a hash, the second becomes rows.
   const { password, roles, ...columns } = user;
   await insertRow('app_user', { ...columns, passwordHash: await hashPassword(password) });
   for (const { schoolId, role } of roles) {
@@ -113,7 +114,7 @@ export type TestSession = {
   id: string; networkId: string; userId: string; expiresAt: Date; ip: string | null;
 };
 
-/** Passe `expiresAt` no passado para montar a sessão vencida que o expurgo precisa encontrar. */
+/** Pass an `expiresAt` in the past to build the expired session the purge has to find. */
 export async function createSession(options: {
   networkId: string; userId: string; expiresAt?: Date | undefined; ip?: string | null | undefined;
 }): Promise<TestSession> {
@@ -278,7 +279,7 @@ export type TestAnnouncement = {
 export async function createAnnouncement(options: {
   networkId: string; schoolId: string; authorUserId: string;
   title?: string | undefined; body?: string | undefined;
-  /** `null` monta o comunicado que ainda não foi publicado e não aparece em mural nenhum. */
+  /** `null` builds the announcement that has not been published yet and shows up on no board. */
   publishedAt?: Date | null | undefined;
   recipients?: { guardianId: string; readAt?: Date | null | undefined }[] | undefined;
 }): Promise<TestAnnouncement> {
@@ -302,10 +303,10 @@ export async function createAnnouncement(options: {
 }
 
 /**
- * A rede pronta que a maioria dos testes usa: duas unidades, um ano letivo, duas turmas na
- * primeira unidade, três disciplinas alocadas na primeira turma com o mesmo professor, cinco
- * alunos matriculados com um responsável cada e um usuário de cada papel. A segunda turma nasce
- * vazia de propósito: é o destino da transferência.
+ * The ready-made network most tests use: two schools, one academic year, two class groups in the
+ * first school, three subjects allocated to the first class group under the same teacher, five
+ * students enrolled with one guardian each, and one user per role. The second class group is born
+ * empty on purpose: it is the destination of the transfer.
  */
 export type Scenario = {
   network: TestNetwork;
@@ -318,7 +319,7 @@ export type Scenario = {
   guardians: [TestGuardian, TestGuardian, TestGuardian, TestGuardian, TestGuardian];
   enrollments: [TestEnrollment, TestEnrollment, TestEnrollment, TestEnrollment, TestEnrollment];
   admin: TestUser; registrar: TestUser; teacher: TestUser;
-  /** O usuário do portal, ligado a `responsaveis[0]`. */
+  /** The portal user, tied to `guardians[0]`. */
   guardian: TestUser;
   password: string;
 };
@@ -407,7 +408,7 @@ export async function fullScenario(options: {
   };
 }
 
-/** Duas redes completas e independentes: o cenário do teste de isolamento de tenant. */
+/** Two complete, independent networks: the scenario behind the tenant isolation test. */
 export async function twoNetworks(): Promise<{ a: Scenario; b: Scenario }> {
   const [a, b] = await Promise.all([fullScenario(), fullScenario()]);
   return { a, b };

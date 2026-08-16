@@ -1,6 +1,6 @@
 /*
- * O domínio acadêmico é feito de decisões que não precisam de banco: qual turno existe, qual
- * situação de matrícula existe, se um período faz sentido e quantos anos o aluno tem numa data.
+ * The academics domain is made of decisions that need no database: which shift exists, which
+ * enrollment status exists, whether a period makes sense, and how old a student is on a given date.
  */
 
 import { describe, expect, test } from 'bun:test';
@@ -29,8 +29,8 @@ const enrollmentWith = (status: EnrollmentStatus): Enrollment => ({
   status,
 });
 
-describe('turno da turma', () => {
-  test('reconhece os quatro turnos que o esquema aceita', () => {
+describe('the class group shift', () => {
+  test('recognizes the four shifts the schema accepts', () => {
     const known = [...SHIFTS];
 
     const valid = known.map(isValidShift);
@@ -38,7 +38,7 @@ describe('turno da turma', () => {
     expect(valid).toEqual([true, true, true, true]);
   });
 
-  test('não reconhece turno inventado', () => {
+  test('does not recognize a made-up shift', () => {
     const madeUp = 'madrugada';
 
     const valid = isValidShift(madeUp);
@@ -46,7 +46,7 @@ describe('turno da turma', () => {
     expect(valid).toBe(false);
   });
 
-  test('a comparação é exata: turno com espaço sobrando não passa', () => {
+  test('the comparison is exact: a shift with a stray space does not get through', () => {
     const withSpace = 'morning ';
 
     const valid = isValidShift(withSpace);
@@ -55,8 +55,8 @@ describe('turno da turma', () => {
   });
 });
 
-describe('situação da matrícula', () => {
-  test('reconhece as quatro situações que o esquema aceita', () => {
+describe('the enrollment status', () => {
+  test('recognizes the four statuses the schema accepts', () => {
     const known = [...ENROLLMENT_STATUSES];
 
     const valid = known.map(isValidEnrollmentStatus);
@@ -64,7 +64,7 @@ describe('situação da matrícula', () => {
     expect(valid).toEqual([true, true, true, true]);
   });
 
-  test('não reconhece situação fora do conjunto', () => {
+  test('does not recognize a status outside the set', () => {
     const outsider = 'trancada';
 
     const valid = isValidEnrollmentStatus(outsider);
@@ -72,7 +72,7 @@ describe('situação da matrícula', () => {
     expect(valid).toBe(false);
   });
 
-  test('só a matrícula ativa pode ser transferida', () => {
+  test('only an active enrollment can be transferred', () => {
     const statuses = [...ENROLLMENT_STATUSES].map(enrollmentWith);
 
     const transferable = statuses.map(canTransfer);
@@ -81,8 +81,8 @@ describe('situação da matrícula', () => {
   });
 });
 
-describe('período do ano letivo', () => {
-  test('término depois do início é coerente', () => {
+describe('the span of the academic year', () => {
+  test('an end after the start is coherent', () => {
     const start = '2026-02-01';
     const end = '2026-12-15';
 
@@ -91,7 +91,7 @@ describe('período do ano letivo', () => {
     expect(coherent).toBe(true);
   });
 
-  test('término antes do início não é coerente', () => {
+  test('an end before the start is not coherent', () => {
     const start = '2026-12-15';
     const end = '2026-02-01';
 
@@ -100,7 +100,7 @@ describe('período do ano letivo', () => {
     expect(coherent).toBe(false);
   });
 
-  test('período de um dia só, com início igual ao fim, não é coerente', () => {
+  test('a span of a single day, with start equal to end, is not coherent', () => {
     const sameDay = '2026-02-01';
 
     const coherent = isCoherentPeriod(sameDay, sameDay);
@@ -108,7 +108,7 @@ describe('período do ano letivo', () => {
     expect(coherent).toBe(false);
   });
 
-  test('a comparação atravessa a virada do ano', () => {
+  test('the comparison crosses the turn of the year', () => {
     const start = '2026-08-01';
     const end = '2027-06-30';
 
@@ -118,8 +118,8 @@ describe('período do ano letivo', () => {
   });
 });
 
-describe('idade do aluno numa data', () => {
-  test('conta anos completos quando o aniversário já passou no ano', () => {
+describe('the age of a student on a date', () => {
+  test('counts whole years once the birthday has already passed that year', () => {
     const birth = '2014-05-10';
 
     const age = ageOn(birth, '2026-08-13');
@@ -127,7 +127,7 @@ describe('idade do aluno numa data', () => {
     expect(age).toBe(12);
   });
 
-  test('no dia do aniversário a idade já é a nova', () => {
+  test('on the birthday itself the age is already the new one', () => {
     const birth = '2014-05-10';
 
     const age = ageOn(birth, '2026-05-10');
@@ -135,7 +135,7 @@ describe('idade do aluno numa data', () => {
     expect(age).toBe(12);
   });
 
-  test('na véspera do aniversário a idade ainda é a anterior', () => {
+  test('on the eve of the birthday the age is still the old one', () => {
     const birth = '2014-05-10';
 
     const age = ageOn(birth, '2026-05-09');
@@ -143,7 +143,7 @@ describe('idade do aluno numa data', () => {
     expect(age).toBe(11);
   });
 
-  test('nascido em dezembro ainda não fez aniversário em janeiro', () => {
+  test('born in December, the birthday has not come around by January', () => {
     const birth = '2014-12-31';
 
     const age = ageOn(birth, '2026-01-01');
@@ -151,7 +151,7 @@ describe('idade do aluno numa data', () => {
     expect(age).toBe(11);
   });
 
-  test('nascido em 29 de fevereiro completa idade em 1º de março do ano comum', () => {
+  test('born on 29 February, the age turns over on 1 March in a common year', () => {
     const birth = '2016-02-29';
 
     const age = ageOn(birth, '2026-03-01');
@@ -159,7 +159,7 @@ describe('idade do aluno numa data', () => {
     expect(age).toBe(10);
   });
 
-  test('data de nascimento no futuro devolve idade negativa', () => {
+  test('a date of birth in the future gives back a negative age', () => {
     const birth = '2026-08-20';
 
     const age = ageOn(birth, '2026-08-13');
@@ -167,7 +167,7 @@ describe('idade do aluno numa data', () => {
     expect(age).toBe(-1);
   });
 
-  test('recém-nascido tem zero ano no próprio dia', () => {
+  test('a newborn is zero years old on the very day', () => {
     const birth = '2026-08-13';
 
     const age = ageOn(birth, '2026-08-13');

@@ -1,6 +1,7 @@
 /*
- * O domínio de identidade não fala com banco nenhum: quem decide se a rede opera, se o papel
- * existe e se a sessão ainda vale são funções puras. É assim que elas são exercidas aqui.
+ * The identity domain talks to no database: whether the network operates, whether a role exists
+ * and whether a session still holds are all decided by pure functions. This is how they are
+ * exercised here.
  */
 
 import { describe, expect, test } from 'bun:test';
@@ -43,8 +44,8 @@ const sessionExpiringAt = (expiresAt: Date): Session => ({
   ip: '203.0.113.7',
 });
 
-describe('status da rede', () => {
-  test('converte os três status que o esquema aceita', () => {
+describe('the network status', () => {
+  test('converts the three statuses the schema accepts', () => {
     const fromTheDatabase = [...NETWORK_STATUSES];
 
     const converted = fromTheDatabase.map(toNetworkStatus);
@@ -52,7 +53,7 @@ describe('status da rede', () => {
     expect(converted).toEqual(['active', 'suspended', 'cancelled']);
   });
 
-  test('recusa status fora do domínio em vez de servir a rede com estado desconhecido', () => {
+  test('refuses a status outside the domain instead of serving the network in an unknown state', () => {
     const outsider = 'inadimplente';
 
     const convert = (): string => toNetworkStatus(outsider);
@@ -60,7 +61,7 @@ describe('status da rede', () => {
     expect(convert).toThrow('status de rede fora do domínio: inadimplente');
   });
 
-  test('só a rede ativa opera; suspensa e cancelada não', () => {
+  test('only an active network operates; suspended and cancelled do not', () => {
     const networks = [networkWith('active'), networkWith('suspended'), networkWith('cancelled')];
 
     const operand = networks.map(isNetworkActive);
@@ -69,8 +70,8 @@ describe('status da rede', () => {
   });
 });
 
-describe('papel do usuário', () => {
-  test('reconhece os quatro papéis do produto', () => {
+describe('the user role', () => {
+  test('recognizes the four roles the product has', () => {
     const known = [...ROLES];
 
     const valid = known.map(isValidRole);
@@ -78,7 +79,7 @@ describe('papel do usuário', () => {
     expect(valid).toEqual([true, true, true, true]);
   });
 
-  test('não reconhece cargo que o produto não modela', () => {
+  test('does not recognize a position the product does not model', () => {
     const position = 'diretor';
 
     const valid = isValidRole(position);
@@ -86,7 +87,7 @@ describe('papel do usuário', () => {
     expect(valid).toBe(false);
   });
 
-  test('recusa papel desconhecido em vez de descartá-lo em silêncio', () => {
+  test('refuses an unknown role instead of dropping it in silence', () => {
     const unknown = 'coordenador';
 
     const convert = (): string => toRole(unknown);
@@ -95,8 +96,8 @@ describe('papel do usuário', () => {
   });
 });
 
-describe('validade da sessão', () => {
-  test('a expiração é a duração somada ao instante da criação', () => {
+describe('how long a session holds', () => {
+  test('the expiry is the duration added to the instant of creation', () => {
     const durationHours = 12;
 
     const expiresAt = sessionExpiration(NOW, durationHours);
@@ -104,7 +105,7 @@ describe('validade da sessão', () => {
     expect(expiresAt.getTime()).toBe(NOW.getTime() + durationHours * HOUR_IN_MS);
   });
 
-  test('a sessão dentro do prazo continua valendo', () => {
+  test('a session still within its window keeps holding', () => {
     const session = sessionExpiringAt(new Date(NOW.getTime() + HOUR_IN_MS));
 
     const expired = hasSessionExpired(session, NOW);
@@ -112,7 +113,7 @@ describe('validade da sessão', () => {
     expect(expired).toBe(false);
   });
 
-  test('a sessão vencida não vale mais', () => {
+  test('an expired session holds no more', () => {
     const session = sessionExpiringAt(new Date(NOW.getTime() - 1));
 
     const expired = hasSessionExpired(session, NOW);
@@ -120,7 +121,7 @@ describe('validade da sessão', () => {
     expect(expired).toBe(true);
   });
 
-  test('a sessão que vence exatamente agora já não vale', () => {
+  test('a session expiring exactly now already holds no more', () => {
     const session = sessionExpiringAt(new Date(NOW.getTime()));
 
     const expired = hasSessionExpired(session, NOW);
@@ -129,8 +130,8 @@ describe('validade da sessão', () => {
   });
 });
 
-describe('usuário', () => {
-  test('o e-mail perde espaços das pontas e vai para caixa baixa', () => {
+describe('the user', () => {
+  test('the e-mail loses its surrounding spaces and goes to lower case', () => {
     const typed = '  Ana.Souza@Escola.BR  ';
 
     const normalized = normalizedEmail(typed);
@@ -138,7 +139,7 @@ describe('usuário', () => {
     expect(normalized).toBe('ana.souza@escola.br');
   });
 
-  test('e-mail já normalizado atravessa sem mudança', () => {
+  test('an already normalized e-mail passes through unchanged', () => {
     const typed = 'ana.souza@escola.br';
 
     const normalized = normalizedEmail(typed);
@@ -146,7 +147,7 @@ describe('usuário', () => {
     expect(normalized).toBe(typed);
   });
 
-  test('o usuário autenticado carrega identidade, rede e todos os papéis', () => {
+  test('the authenticated user carries identity, network and every role', () => {
     const user: User = {
       id: 'usuario-1',
       networkId: 'rede-1',
@@ -175,7 +176,7 @@ describe('usuário', () => {
     });
   });
 
-  test('quem entra como responsável leva o cadastro de responsável junto', () => {
+  test('whoever signs in as a guardian brings the guardian record along', () => {
     const user: User = {
       id: 'usuario-2',
       networkId: 'rede-1',
@@ -191,7 +192,7 @@ describe('usuário', () => {
     expect(authenticatedUser.guardianId).toBe('responsavel-9');
   });
 
-  test('montar o usuário autenticado não altera o usuário recebido', () => {
+  test('building the authenticated user does not alter the user it was handed', () => {
     const user: User = {
       id: 'usuario-3',
       networkId: 'rede-1',
@@ -208,7 +209,7 @@ describe('usuário', () => {
     expect(user).toEqual(copy);
   });
 
-  test('o produto exige senha de pelo menos dez caracteres', () => {
+  test('the product demands a password of at least ten characters', () => {
     const shortPassword = 'abc123456';
 
     const fits = shortPassword.length >= MINIMUM_PASSWORD_LENGTH;

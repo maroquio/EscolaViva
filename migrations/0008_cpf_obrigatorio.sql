@@ -1,8 +1,8 @@
--- Fecha a janela aberta por 0007 (ADR 0003, ADR 0004). Só pode rodar depois que todo usuário tem
--- CPF — em base de aula, depois de `bun run seed`.
--- O e-mail continua NOT NULL porque é o contato do Estágio 04; o que ele deixa de ser é único,
--- restrição que só fazia sentido enquanto identificava. Mãe e pai passam a poder compartilhar
--- um e-mail de família.
+-- Closes the window opened by 0007 (ADR 0003, ADR 0004). It may only run once every user has a
+-- CPF — on a classroom database, after `bun run seed`.
+-- The e-mail stays NOT NULL because it is the contact channel of Stage 04; what it stops being is
+-- unique, a constraint that only made sense while it identified anyone. A mother and a father may
+-- now share one family e-mail.
 
 ALTER TABLE app_user ALTER COLUMN cpf SET NOT NULL;
 

@@ -1,11 +1,12 @@
--- Plataforma: o registro de requisições já processadas (I4).
--- O navegador é entrada externa — responsável em 4G ruim envia o mesmo formulário duas vezes.
--- A chave vem do próprio formulário e o INSERT acontece na transação da escrita: se a chave
--- já existe, a segunda submissão não reprocessa nada e volta para `response_location`.
--- É tabela de plataforma, não de negócio: não pertence a uma rede.
+-- Platform: the record of requests already processed (I4).
+-- The browser is external input — a guardian on bad 4G sends the same form twice.
+-- The key comes from the form itself and the INSERT happens inside the write transaction: if the
+-- key already exists, the second submission reprocesses nothing and goes back to
+-- `response_location`.
+-- This is a platform table, not a business one: it belongs to no network.
 
--- A coluna é `idempotency_key`, não `key`: `key` é palavra reservada no PostgreSQL e passaria
--- a exigir aspas duplas em toda query escrita à mão daqui para a frente.
+-- The column is `idempotency_key`, not `key`: `key` is a reserved word in PostgreSQL and would
+-- start demanding double quotes in every hand-written query from here on.
 CREATE TABLE idempotent_request (
   idempotency_key    uuid PRIMARY KEY,
   route              text NOT NULL,

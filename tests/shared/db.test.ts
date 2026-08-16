@@ -1,8 +1,8 @@
 /*
- * I15 e I21 contra o PostgreSQL de verdade. `reader()`/`writer()` existem para que cada
- * consulta declare sua intenção, e `unitOfWork` é o único ponto de commit da aplicação:
- * se ela deixasse escapar uma escrita já comitada quando o caso de uso falha no meio, a
- * transferência criaria a matrícula de destino sem encerrar a de origem.
+ * I15 and I21 against the real PostgreSQL. `reader()`/`writer()` exist so that every query states
+ * its intent, and `unitOfWork` is the application's single commit point: if it let a committed
+ * write slip through when a use case fails halfway, a transfer would create the destination
+ * enrollment without closing the one it came from.
  */
 
 import { beforeAll, beforeEach, describe, expect, test } from 'bun:test';
@@ -13,22 +13,23 @@ import { createNetwork } from '../support/factories';
 
 const ROOT = resolve(import.meta.dir, '..', '..');
 const DB_MODULE = resolve(ROOT, 'src', 'shared', 'db', 'index.ts');
-/** Porta sem nada escutando: a conexão é recusada na hora. */
+/** A port with nothing listening: the connection is refused on the spot. */
 const INVALID_URL = 'postgres://ninguem:nada@127.0.0.1:5599/inexistente';
-/** Endereço que não roteia: a conexão fica pendurada até o prazo vencer. */
+/** An address that does not route: the connection hangs until the deadline runs out. */
 const UNRESPONSIVE_URL = 'postgres://ninguem:nada@10.255.255.1:5432/inexistente';
 const SHORT_DEADLINE_MS = 300;
 const GENEROUS_DEADLINE_MS = 5000;
 
 /**
- * Alguns comportamentos só aparecem com outra configuração de banco ou fechando o pool — as
- * duas coisas contaminariam os arquivos de teste seguintes, que rodam no mesmo processo. Por
- * isso este punhado de casos roda em um processo separado, com o ambiente que o caso precisa.
+ * A few behaviours only show up under a different database configuration or with the pool closed —
+ * either of which would contaminate the test files that come next, since they run in the same
+ * process. That is why this handful of cases runs in a separate process, with the environment the
+ * case needs.
  */
 async function runWithAnotherDatabase(code: string, databaseUrl: string): Promise<string> {
-  // O processo auxiliar termina sozinho: a tentativa de conexão pendurada de um banco que não
-  // responde continua viva depois de `checkDatabase` já ter devolvido — é justamente o que
-  // prova que a verificação não espera pela conexão.
+  // The helper process ends on its own: the hanging connection attempt against a database that
+  // does not answer is still alive after `checkDatabase` has already returned — which is precisely
+  // what proves the check does not wait on the connection.
   const program = [
     `const db = await import(${JSON.stringify(DB_MODULE)});`,
     code,
@@ -65,7 +66,7 @@ async function networkName(id: string): Promise<string | null> {
   return rows[0]?.name ?? null;
 }
 
-/** Devolve o erro que a função lançou; falha o teste se ela tiver funcionado. */
+/** Gives back the error the function threw; fails the test if it worked instead. */
 async function captureError(run: () => Promise<unknown>): Promise<Error> {
   try {
     await run();
@@ -78,8 +79,8 @@ async function captureError(run: () => Promise<unknown>): Promise<Error> {
 beforeAll(prepareDatabase);
 beforeEach(clearDatabase);
 
-describe('reader e writer', () => {
-  test('reader() responde uma consulta', async () => {
+describe('reader and writer', () => {
+  test('reader() answers a query', async () => {
     const connection = reader();
 
     const rows = await connection<{ one: number }[]>`SELECT 1 AS one`;
@@ -87,7 +88,7 @@ describe('reader e writer', () => {
     expect(rows[0]?.one).toBe(1);
   });
 
-  test('writer() responde uma consulta', async () => {
+  test('writer() answers a query', async () => {
     const connection = writer();
 
     const rows = await connection<{ one: number }[]>`SELECT 1 AS one`;
@@ -95,7 +96,7 @@ describe('reader e writer', () => {
     expect(rows[0]?.one).toBe(1);
   });
 
-  test('no estágio 01 as duas apontam para o mesmo primário', () => {
+  test('at stage 01 both point to the same primary', () => {
     const forReading = reader();
 
     const forWriting = writer();
@@ -103,7 +104,7 @@ describe('reader e writer', () => {
     expect(forReading).toBe(forWriting);
   });
 
-  test('writer() enxerga o que a suíte gravou no banco', async () => {
+  test('writer() sees what the suite wrote to the database', async () => {
     const network = await createNetwork({ name: 'Rede da Conexão' });
 
     const rows = await writer()<{ name: string }[]>`SELECT name FROM network WHERE id = ${network.id}`;
@@ -113,7 +114,7 @@ describe('reader e writer', () => {
 });
 
 describe('checkDatabase', () => {
-  test('devolve true com o banco de pé', async () => {
+  test('gives back true while the database is up', async () => {
     const deadline = GENEROUS_DEADLINE_MS;
 
     const responded = await checkDatabase(deadline);
@@ -121,7 +122,7 @@ describe('checkDatabase', () => {
     expect(responded).toBe(true);
   });
 
-  test('devolve false quando a URL do banco é inválida e o prazo é curto', async () => {
+  test('gives back false when the database URL is invalid and the deadline is short', async () => {
     const deadline = SHORT_DEADLINE_MS;
 
     const stdout = await runWithAnotherDatabase(
@@ -132,7 +133,7 @@ describe('checkDatabase', () => {
     expect(stdout).toBe('false');
   });
 
-  test('não pendura a rota quando o banco não responde: vence o prazo', async () => {
+  test('does not hang the route when the database will not answer: the deadline wins', async () => {
     const measure = [
       'const start = Date.now();',
       `const responded = await db.checkDatabase(${SHORT_DEADLINE_MS});`,
@@ -148,7 +149,7 @@ describe('checkDatabase', () => {
 });
 
 describe('closeDatabase', () => {
-  test('fecha o pool sem erro, mesmo chamado duas vezes', async () => {
+  test('closes the pool without error, even when called twice', async () => {
     const endTwice = 'await db.closeDatabase(); await db.closeDatabase(); console.log("encerrado");';
 
     const stdout = await runWithAnotherDatabase(endTwice, INVALID_URL);
@@ -157,8 +158,8 @@ describe('closeDatabase', () => {
   });
 });
 
-describe('unitOfWork — caminho feliz', () => {
-  test('comita o que a função escreveu', async () => {
+describe('unitOfWork — the happy path', () => {
+  test('commits what the function wrote', async () => {
     const networkId = crypto.randomUUID();
 
     await unitOfWork(async ({ sql }) => {
@@ -168,7 +169,7 @@ describe('unitOfWork — caminho feliz', () => {
     expect(await networkExists(networkId)).toBe(true);
   });
 
-  test('devolve o valor produzido pela função', async () => {
+  test('gives back the value the function produced', async () => {
     const expected = { enrollmentId: 'm-1', status: 'active' };
 
     const returned = await unitOfWork(async () => expected);
@@ -176,7 +177,7 @@ describe('unitOfWork — caminho feliz', () => {
     expect(returned).toEqual(expected);
   });
 
-  test('comita escritas em duas tabelas diferentes de uma vez só', async () => {
+  test('commits writes to two different tables in one go', async () => {
     const networkId = crypto.randomUUID();
     const schoolId = crypto.randomUUID();
 
@@ -189,7 +190,7 @@ describe('unitOfWork — caminho feliz', () => {
     expect(await schoolExists(schoolId)).toBe(true);
   });
 
-  test('a escrita só fica visível para outra conexão depois do commit', async () => {
+  test('the write becomes visible to another connection only after the commit', async () => {
     const networkId = crypto.randomUUID();
     let visibleDuringTheTransaction = true;
 
@@ -204,7 +205,7 @@ describe('unitOfWork — caminho feliz', () => {
 });
 
 describe('unitOfWork — rollback', () => {
-  test('desfaz as escritas em DUAS tabelas quando a função lança', async () => {
+  test('undoes the writes to BOTH tables when the function throws', async () => {
     const networkId = crypto.randomUUID();
     const schoolId = crypto.randomUUID();
 
@@ -221,7 +222,7 @@ describe('unitOfWork — rollback', () => {
     expect(await schoolExists(schoolId)).toBe(false);
   });
 
-  test('desfaz também a alteração de linha que já existia antes da transação', async () => {
+  test('also undoes the change to a row that already existed before the transaction', async () => {
     const network = await createNetwork({ name: 'Nome Original' });
     const schoolId = crypto.randomUUID();
 
@@ -237,7 +238,7 @@ describe('unitOfWork — rollback', () => {
     expect(await schoolExists(schoolId)).toBe(false);
   });
 
-  test('propaga a exceção original de quem chamou, sem trocá-la por outra', async () => {
+  test('propagates the caller\'s original exception, without swapping it for another', async () => {
     const original = new Error('matrícula ativa já existe no ano letivo');
 
     const error = await captureError(() =>
@@ -249,7 +250,7 @@ describe('unitOfWork — rollback', () => {
     expect(error).toBe(original);
   });
 
-  test('desfaz tudo quando quem lança é o próprio banco, por violação de constraint', async () => {
+  test('undoes everything when the thrower is the database itself, over a constraint violation', async () => {
     const networkId = crypto.randomUUID();
     const existing = await createNetwork({ slug: 'slug-disputado' });
 
@@ -264,7 +265,7 @@ describe('unitOfWork — rollback', () => {
     expect(await networkExists(networkId)).toBe(false);
   });
 
-  test('uma transação que falha não leva embora o que outra já comitou', async () => {
+  test('a transaction that fails does not carry off what another one already committed', async () => {
     const committed = crypto.randomUUID();
     const rolledBack = crypto.randomUUID();
 

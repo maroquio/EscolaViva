@@ -14,8 +14,8 @@ const numberedName = (position: number): string => `Pessoa ${String(position).pa
 const fieldsWithError = <T>(result: Result<T>): string[] =>
   result.ok ? [] : result.erros.map((error) => error.campo ?? '');
 
-describe('LIMITS.student.searchRows conta LINHAS devolvidas', () => {
-  test('a busca sem faixa devolve no máximo esse tanto de linhas', async () => {
+describe('LIMITS.student.searchRows counts ROWS handed back', () => {
+  test('a search with no range gives back at most that many rows', async () => {
     const network = await createNetwork();
     for (let position = 1; position <= SEARCH_ROWS + 1; position += 1) {
       await createStudent({ networkId: network.id, name: numberedName(position) });
@@ -29,7 +29,7 @@ describe('LIMITS.student.searchRows conta LINHAS devolvidas', () => {
     );
   });
 
-  test('o nome longo não estreita nem alarga o corte da busca', async () => {
+  test('a long name neither narrows nor widens where the search cuts off', async () => {
     const network = await createNetwork();
     for (let position = 1; position <= SEARCH_ROWS + 1; position += 1) {
       await createStudent({ networkId: network.id, name: `${numberedName(position)} ${'x'.repeat(80)}` });
@@ -41,8 +41,8 @@ describe('LIMITS.student.searchRows conta LINHAS devolvidas', () => {
   });
 });
 
-describe('LIMITS.student.name conta CARACTERES do nome', () => {
-  test('aceita o nome com exatamente esse tanto de caracteres', async () => {
+describe('LIMITS.student.name counts CHARACTERS of the name', () => {
+  test('accepts a name of exactly that many characters', async () => {
     const network = await createNetwork();
 
     const result = await academics.registerStudent({
@@ -55,7 +55,7 @@ describe('LIMITS.student.name conta CARACTERES do nome', () => {
     expect(result.ok).toBe(true);
   });
 
-  test('recusa o nome com um caractere a mais', async () => {
+  test('refuses a name one character longer', async () => {
     const network = await createNetwork();
 
     const result = await academics.registerStudent({

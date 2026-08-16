@@ -491,15 +491,8 @@ const namedDeclarations = (path: string): readonly DeclaredValue[] => {
 };
 
 const NEGATIONS: ReadonlySet<string> = new Set([
-  'não',
-  'nao',
-  'nem',
-  'sem',
-  'nenhum',
-  'nenhuma',
-  'jamais',
-  'tampouco',
   'not',
+  'no',
   'never',
   'without',
   'none',

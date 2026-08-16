@@ -88,7 +88,7 @@ const dayStatus = (day) => {
         <tr>
           <th scope="col" class="cell-center">Data</th>
 <%
-// magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; por isso não é membro de `it.labels`. %>
+// magic-values: permitido — a generic head over five distinct state vocabularies; that is why it is not a member of `it.labels`. %>
           <th scope="col" class="cell-center">Situação</th>
           <th scope="col" class="cell-text cell-elastic">Justificativa</th>
         </tr>

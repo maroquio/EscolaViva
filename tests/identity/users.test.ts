@@ -1,10 +1,10 @@
 /*
- * Quem existe na rede e o que cada um pode. O convite, a unidade e as consultas que o restante
- * do produto faz a identidade — inclusive a pergunta "esta pessoa é professora nesta unidade?",
- * que é a fronteira pela qual o acadêmico entra aqui.
+ * Who exists in the network and what each one may do. The invitation, the school, and the queries
+ * the rest of the product puts to identity — including the question "is this person a teacher at
+ * this school?", which is the boundary academics comes in through.
  *
- * A unicidade de e-mail é POR REDE, não global: duas prefeituras podem ter a mesma secretária
- * cadastrada, e é isso que permite vender a mesma pessoa para duas contas.
+ * E-mail uniqueness is PER NETWORK, not global: two city halls can carry the same registrar on
+ * record, and that is what makes it possible to sell the same person to two accounts.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -35,8 +35,8 @@ function errorsOf(result: Result<unknown>): ApplicationError[] {
 
 beforeEach(clearDatabase);
 
-describe('convidarUsuario', () => {
-  test('cria o usuário com os papéis pedidos e devolve a senha provisória', async () => {
+describe('inviteUser', () => {
+  test('creates the user with the roles asked for and hands back the provisional password', async () => {
     const network = await createNetwork({ slug: 'convite' });
     const center = await createTestSchool({ networkId: network.id, name: 'Escola Centro' });
     const beach = await createTestSchool({ networkId: network.id, name: 'Escola Praia' });
@@ -70,7 +70,7 @@ describe('convidarUsuario', () => {
     ]);
   });
 
-  test('a senha provisória devolvida realmente autentica', async () => {
+  test('the provisional password handed back really does authenticate', async () => {
     const network = await createNetwork({ slug: 'provisoria' });
     const school = await createTestSchool({ networkId: network.id });
     const invitation = await identity.inviteUser({
@@ -91,7 +91,7 @@ describe('convidarUsuario', () => {
     expect(valueOfResult(authenticated).user.id).toBe(valueOfResult(invitation).userId);
   });
 
-  test('o e-mail é guardado normalizado e autentica em qualquer caixa', async () => {
+  test('the e-mail is stored normalized and authenticates in any case', async () => {
     const network = await createNetwork({ slug: 'normalizado' });
     const school = await createTestSchool({ networkId: network.id });
 
@@ -114,7 +114,7 @@ describe('convidarUsuario', () => {
     expect(authenticated.ok).toBe(true);
   });
 
-  test('recusa e-mail já usado na mesma rede', async () => {
+  test('refuses an e-mail already in use within the same network', async () => {
     const network = await createNetwork();
     const school = await createTestSchool({ networkId: network.id });
     await createUser({ networkId: network.id, email: 'ocupado@escola.br' });
@@ -137,7 +137,7 @@ describe('convidarUsuario', () => {
     expect(await identity.listUsers(network.id)).toHaveLength(1);
   });
 
-  test('a checagem de e-mail duplicado enxerga a diferença de caixa', async () => {
+  test('the duplicate e-mail check sees through a difference in case', async () => {
     const network = await createNetwork();
     const school = await createTestSchool({ networkId: network.id });
     await createUser({ networkId: network.id, email: 'ocupado@escola.br' });
@@ -153,7 +153,7 @@ describe('convidarUsuario', () => {
     expect(errorsOf(result)[0]?.codigo).toBe('email_em_uso');
   });
 
-  test('aceita o mesmo e-mail em rede diferente: a unicidade é por rede', async () => {
+  test('accepts the same e-mail in a different network: uniqueness is per network', async () => {
     const cityHallNetwork = await createNetwork({ slug: 'prefeitura' });
     const collegeNetwork = await createNetwork({ slug: 'colegio' });
     const cityHallSchool = await createTestSchool({ networkId: cityHallNetwork.id });
@@ -174,7 +174,7 @@ describe('convidarUsuario', () => {
     expect(cityHallSchool.networkId).not.toBe(collegeSchool.networkId);
   });
 
-  test('papel de responsável sem cadastro de responsável é recusado', async () => {
+  test('a guardian role with no guardian record behind it is refused', async () => {
     const network = await createNetwork();
     const school = await createTestSchool({ networkId: network.id });
 
@@ -197,7 +197,7 @@ describe('convidarUsuario', () => {
     expect(await identity.listUsers(network.id)).toHaveLength(0);
   });
 
-  test('papel de responsável com cadastro ligado entra e carrega o vínculo na sessão', async () => {
+  test('a guardian role with the record tied in gets through and carries the link into the session', async () => {
     const network = await createNetwork({ slug: 'portal' });
     const school = await createTestSchool({ networkId: network.id });
     const guardian = await createGuardian({ networkId: network.id });
@@ -220,7 +220,7 @@ describe('convidarUsuario', () => {
     expect(valueOfResult(authenticated).user.guardianId).toBe(guardian.id);
   });
 
-  test('recusa unidade de outra rede sem criar o usuário', async () => {
+  test('refuses a school from another network without creating the user', async () => {
     const ours = await createNetwork();
     const foreign = await createNetwork();
     const otherSchool = await createTestSchool({ networkId: foreign.id });
@@ -243,7 +243,7 @@ describe('convidarUsuario', () => {
     expect(await identity.listUsers(ours.id)).toHaveLength(0);
   });
 
-  test('convite sem nenhuma atribuição é recusado', async () => {
+  test('an invitation with no assignment at all is refused', async () => {
     const network = await createNetwork();
 
     const result = await identity.inviteUser({
@@ -257,7 +257,7 @@ describe('convidarUsuario', () => {
     expect(errorsOf(result)[0]?.campo).toBe('roleAssignments');
   });
 
-  test('e-mail inválido é recusado antes de tocar no banco', async () => {
+  test('an invalid e-mail is refused before the database is touched', async () => {
     const network = await createNetwork();
     const school = await createTestSchool({ networkId: network.id });
 
@@ -273,7 +273,7 @@ describe('convidarUsuario', () => {
     expect(await identity.listUsers(network.id)).toHaveLength(0);
   });
 
-  test('o mesmo par unidade e papel repetido no formulário vira uma única linha', async () => {
+  test('the same school-and-role pair repeated on the form becomes a single row', async () => {
     const network = await createNetwork();
     const school = await createTestSchool({ networkId: network.id, name: 'Escola Única' });
 
@@ -295,7 +295,7 @@ describe('convidarUsuario', () => {
     ]);
   });
 
-  test('recusa convite com CPF inválido', async () => {
+  test('refuses an invitation carrying an invalid CPF', async () => {
     const network = await createNetwork({});
     const school = await createTestSchool({ networkId: network.id });
 
@@ -311,7 +311,7 @@ describe('convidarUsuario', () => {
     if (!invitation.ok) expect(invitation.erros[0]?.campo).toBe('cpf');
   });
 
-  test('recusa CPF já usado por outro usuário da mesma rede', async () => {
+  test('refuses a CPF already used by another user of the same network', async () => {
     const network = await createNetwork({});
     const school = await createTestSchool({ networkId: network.id });
     await createUser({ networkId: network.id, cpf: '52998224725', roles: [] });
@@ -328,7 +328,7 @@ describe('convidarUsuario', () => {
     if (!invitation.ok) expect(invitation.erros[0]?.campo).toBe('cpf');
   });
 
-  test('o mesmo CPF em outra rede é aceito — a unicidade é por tenant', async () => {
+  test('the same CPF in another network is accepted — uniqueness is per tenant', async () => {
     const a = await createNetwork({});
     const b = await createNetwork({});
     const schoolB = await createTestSchool({ networkId: b.id });
@@ -345,7 +345,7 @@ describe('convidarUsuario', () => {
     expect(invitation.ok).toBe(true);
   });
 
-  test('recusa quando o CPF digitado diverge do cadastro do responsável', async () => {
+  test('refuses when the CPF typed in diverges from the guardian record', async () => {
     const network = await createNetwork({});
     const school = await createTestSchool({ networkId: network.id });
     const guardian = await createGuardian({ networkId: network.id, cpf: '52998224725' });
@@ -369,9 +369,9 @@ describe('convidarUsuario', () => {
     }
   });
 
-  /* Durante a janela os cadastros antigos ainda não têm CPF; exigi-lo bloquearia um fluxo que
-     funcionava, que é o oposto do que a compatibilidade promete. */
-  test('aceita quando o cadastro do responsável ainda não tem CPF', async () => {
+  /* During the window the older records still carry no CPF; demanding one would block a flow that
+     used to work, which is the opposite of what compatibility promises. */
+  test('accepts when the guardian record has no CPF yet', async () => {
     const network = await createNetwork({});
     const school = await createTestSchool({ networkId: network.id });
     const guardian = await createGuardian({ networkId: network.id, cpf: null });
@@ -390,7 +390,7 @@ describe('convidarUsuario', () => {
     expect(invitation.ok).toBe(true);
   });
 
-  test('o CPF gravado no convite volta na leitura do usuário', async () => {
+  test('the CPF written down at invitation time comes back when the user is read', async () => {
     const network = await createNetwork({});
     const school = await createTestSchool({ networkId: network.id });
 
@@ -402,9 +402,9 @@ describe('convidarUsuario', () => {
       roleAssignments: [{ schoolId: school.id, role: 'registrar' }],
     });
     if (!invitation.ok) throw new Error('convite recusado no cenário');
-    // `identity` não expõe consulta de usuário por id, e criar uma porta pública só para
-    // satisfazer um teste seria escopo que ninguém pediu. `checklist.test.ts` já afirma "a linha
-    // caiu no banco" exatamente assim.
+    // `identity` exposes no lookup of a user by id, and opening a public door just to satisfy a
+    // test would be scope nobody asked for. `checklist.test.ts` already states "the row landed in
+    // the database" in exactly this way.
     const rows = await testSql()<{ cpf: string }[]>`
       SELECT cpf FROM app_user WHERE id = ${invitation.valor.userId}`;
 
@@ -412,8 +412,8 @@ describe('convidarUsuario', () => {
   });
 });
 
-describe('unidades da rede', () => {
-  test('criarUnidade grava a unidade ativa e ela aparece na listagem', async () => {
+describe('the schools of the network', () => {
+  test('createSchool records the school as active and it shows up in the listing', async () => {
     const network = await createNetwork();
 
     const result = await identity.createSchool({
@@ -433,7 +433,7 @@ describe('unidades da rede', () => {
     expect(await identity.listSchools(network.id)).toEqual([school]);
   });
 
-  test('código INEP em branco vira ausência de código', async () => {
+  test('a blank INEP code becomes the absence of a code', async () => {
     const network = await createNetwork();
 
     const result = await identity.createSchool({
@@ -445,7 +445,7 @@ describe('unidades da rede', () => {
     expect(valueOfResult(result).inepCode).toBeNull();
   });
 
-  test('recusa unidade com nome já usado na rede', async () => {
+  test('refuses a school whose name is already in use within the network', async () => {
     const network = await createNetwork();
     await createTestSchool({ networkId: network.id, name: 'Escola Centro' });
 
@@ -461,7 +461,7 @@ describe('unidades da rede', () => {
     expect(await identity.listSchools(network.id)).toHaveLength(1);
   });
 
-  test('o mesmo nome de unidade é aceito em outra rede', async () => {
+  test('the same school name is accepted in another network', async () => {
     const first = await createNetwork();
     const second = await createNetwork();
     await createTestSchool({ networkId: first.id, name: 'Escola Centro' });
@@ -471,7 +471,7 @@ describe('unidades da rede', () => {
     expect(result.ok).toBe(true);
   });
 
-  test('unidade sem nome é recusada', async () => {
+  test('a school with no name is refused', async () => {
     const network = await createNetwork();
 
     const result = await identity.createSchool({ networkId: network.id, name: '   ' });
@@ -479,7 +479,7 @@ describe('unidades da rede', () => {
     expect(errorsOf(result)[0]?.campo).toBe('name');
   });
 
-  test('unidadePorId devolve a unidade da rede e nulo para id desconhecido', async () => {
+  test('schoolById gives back the network\'s school, and null for an unknown id', async () => {
     const network = await createNetwork();
     const school = await createTestSchool({ networkId: network.id, name: 'Escola Centro' });
 
@@ -489,7 +489,7 @@ describe('unidades da rede', () => {
     expect(await identity.schoolById(network.id, crypto.randomUUID())).toBeNull();
   });
 
-  test('id fora do formato devolve nulo e lista vazia em vez de erro de conversão', async () => {
+  test('an id outside the format gives back null and an empty list instead of a cast error', async () => {
     const network = await createNetwork();
     await createTestSchool({ networkId: network.id });
 
@@ -501,8 +501,8 @@ describe('unidades da rede', () => {
   });
 });
 
-describe('professores da unidade', () => {
-  test('ehProfessorNaUnidade só confirma quem tem o papel naquela unidade', async () => {
+describe('the teachers of a school', () => {
+  test('isTeacherAtSchool confirms only whoever holds the role at that very school', async () => {
     const scenario = await fullScenario();
     const [center, beach] = scenario.schools;
 
@@ -516,7 +516,7 @@ describe('professores da unidade', () => {
     ).toBe(false);
   });
 
-  test('quem tem outro papel na unidade não é professor ali', async () => {
+  test('whoever holds another role at the school is no teacher there', async () => {
     const scenario = await fullScenario();
     const [center] = scenario.schools;
 
@@ -527,7 +527,7 @@ describe('professores da unidade', () => {
     expect(registrarIsAlsoTeacher).toBe(false);
   });
 
-  test('professoresDaUnidade traz só os professores daquela unidade, em ordem de nome', async () => {
+  test('schoolTeachers brings only that school\'s teachers, in name order', async () => {
     const network = await createNetwork();
     const center = await createTestSchool({ networkId: network.id, name: 'Escola Centro' });
     const beach = await createTestSchool({ networkId: network.id, name: 'Escola Praia' });
@@ -552,7 +552,7 @@ describe('professores da unidade', () => {
     ]);
   });
 
-  test('professor desativado sai da lista da unidade', async () => {
+  test('a deactivated teacher drops out of the school list', async () => {
     const network = await createNetwork();
     const center = await createTestSchool({ networkId: network.id });
     await createUser({
@@ -566,8 +566,8 @@ describe('professores da unidade', () => {
   });
 });
 
-describe('consultas de apoio', () => {
-  test('redePorSlug devolve a rede da tela de login e nulo para slug desconhecido', async () => {
+describe('the supporting queries', () => {
+  test('networkBySlug gives back the network behind the login screen, and null for an unknown slug', async () => {
     const network = await createNetwork({ name: 'Rede Serra', slug: 'serra' });
 
     const found = await identity.networkBySlug('serra');
@@ -576,7 +576,7 @@ describe('consultas de apoio', () => {
     expect(await identity.networkBySlug('nao-existe')).toBeNull();
   });
 
-  test('nomesDeUsuarios resolve os nomes pedidos em um mapa', async () => {
+  test('userNames resolves the names asked for into a map', async () => {
     const network = await createNetwork();
     const ana = await createUser({ networkId: network.id, name: 'Ana Souza' });
     const bia = await createUser({ networkId: network.id, name: 'Bia Nunes' });
@@ -586,7 +586,7 @@ describe('consultas de apoio', () => {
     expect(names).toEqual(new Map([[ana.id, 'Ana Souza'], [bia.id, 'Bia Nunes']]));
   });
 
-  test('nomesDeUsuarios ignora id fora do formato e lista vazia', async () => {
+  test('userNames shrugs off an id outside the format and an empty list', async () => {
     const network = await createNetwork();
     const ana = await createUser({ networkId: network.id, name: 'Ana Souza' });
 
@@ -596,7 +596,7 @@ describe('consultas de apoio', () => {
     expect(await identity.userNames(network.id, [])).toEqual(new Map());
   });
 
-  test('listarUsuarios traz também quem está desativado, marcado como tal', async () => {
+  test('listUsers brings the deactivated ones too, marked as such', async () => {
     const network = await createNetwork();
     await createUser({ networkId: network.id, name: 'Ana Souza' });
     await createUser({ networkId: network.id, name: 'Zeca Paz', active: false });
@@ -610,8 +610,8 @@ describe('consultas de apoio', () => {
   });
 });
 
-describe('isolamento de tenant', () => {
-  test('nenhuma consulta de identidade da rede A devolve linha da rede B', async () => {
+describe('tenant isolation', () => {
+  test('no identity query on network A gives back a row from network B', async () => {
     const { a, b } = await twoNetworks();
     const idsOfB = [b.admin.id, b.registrar.id, b.teacher.id];
 
@@ -626,7 +626,7 @@ describe('isolamento de tenant', () => {
     expect(names.size).toBe(0);
   });
 
-  test('unidade e papel de outra rede não são alcançáveis pelo id', async () => {
+  test('a school and a role from another network are not reachable by id', async () => {
     const { a, b } = await twoNetworks();
 
     const otherSchool = await identity.schoolById(a.network.id, b.schools[0].id);
@@ -638,7 +638,7 @@ describe('isolamento de tenant', () => {
     expect(await identity.schoolTeachers(a.network.id, b.schools[0].id)).toEqual([]);
   });
 
-  test('os papéis carregados na sessão são apenas os da rede do usuário', async () => {
+  test('the roles loaded into the session are only those of the user\'s own network', async () => {
     const { a, b } = await twoNetworks();
 
     const authenticated = await identity.authenticate({

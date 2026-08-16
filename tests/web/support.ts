@@ -1,14 +1,15 @@
 /*
- * O que toda suíte da camada web precisa fazer com o HTTP.
+ * Everything every web-layer suite needs to do with HTTP.
  *
- * As requisições entram pelo `app.request` do Hono: é a aplicação inteira — middlewares, rotas,
- * templates —, sem porta aberta e sem cliente HTTP no meio. Sessão se obtém fazendo `POST /login`
- * de verdade e devolvendo o `Set-Cookie` que a aplicação emitiu: nenhum teste daqui sabe como o
- * cookie é assinado, e trocar a assinatura não reescreve teste nenhum.
+ * Requests go in through Hono's `app.request`: that is the whole application — middleware, routes,
+ * templates — with no open port and no HTTP client in between. A session is obtained by doing a
+ * real `POST /login` and keeping the `Set-Cookie` the application emitted: no test here knows how
+ * the cookie is signed, and changing the signature rewrites no test.
  *
- * Três coisas não cabem em `app.request` porque são do processo, e não da requisição: o boot que
- * recusa configuração incompleta (I18), a saúde com o banco fora do ar (I13) e o log de um fluxo
- * inteiro (I17). Essas três rodam em um processo Bun separado, que é onde elas de fato acontecem.
+ * Three things do not fit into `app.request` because they belong to the process, not to the
+ * request: the boot that refuses incomplete configuration (I18), health with the database down
+ * (I13) and the log of a whole flow (I17). Those three run in a separate Bun process, which is
+ * where they actually happen.
  */
 
 import { join } from 'node:path';
@@ -18,12 +19,12 @@ export const PROJECT_ROOT = join(import.meta.dir, '..', '..');
 
 const FORM_CONTENT_TYPE = 'application/x-www-form-urlencoded';
 
-/** Porta 1 sem ninguém escutando: a conexão é recusada de imediato, sem esperar prazo nenhum. */
+/** Port 1 with nobody listening: the connection is refused at once, with no timeout to wait out. */
 const DATABASE_DOWN_URL = 'postgres://escolaviva:escolaviva@127.0.0.1:1/inexistente';
 
 export type FormFields = Record<string, string | readonly string[]>;
 
-/* --- Requisições ------------------------------------------------------------ */
+/* --- Requests --------------------------------------------------------------- */
 
 const headers = (cookie: string, extras: Record<string, string> = {}): Record<string, string> =>
   cookie === '' ? { ...extras } : { ...extras, Cookie: cookie };
@@ -37,12 +38,12 @@ const formBody = (fields: FormFields): string => {
   return params.toString();
 };
 
-/** GET na aplicação, com ou sem sessão. */
+/** A GET against the application, with or without a session. */
 export async function open(path: string, cookie = ''): Promise<Response> {
   return await app.request(path, { headers: headers(cookie) });
 }
 
-/** POST cru: quem chama diz exatamente quais campos vão no corpo, `_key` inclusive. */
+/** A raw POST: the caller states exactly which fields go in the body, `_key` included. */
 export async function post(path: string, fields: FormFields, cookie = ''): Promise<Response> {
   return await app.request(path, {
     method: 'POST',
@@ -52,14 +53,14 @@ export async function post(path: string, fields: FormFields, cookie = ''): Promi
 }
 
 /**
- * O envio que o navegador faz: a chave de idempotência (I4) nasce no render, e um formulário
- * carregado duas vezes carrega duas chaves distintas.
+ * The submission a browser makes: the idempotency key (I4) is born at render time, and a form
+ * loaded twice carries two distinct keys.
  */
 export function send(path: string, fields: FormFields, cookie = ''): Promise<Response> {
   return post(path, { _key: crypto.randomUUID(), ...fields }, cookie);
 }
 
-/** O par `nome=valor` do `Set-Cookie` — exatamente o que o navegador devolve na próxima ida. */
+/** The `name=value` pair out of `Set-Cookie` — exactly what the browser sends back on the next trip. */
 export function cookieFromResponse(response: Response): string {
   const raw = response.headers.get('Set-Cookie') ?? '';
   return raw.split(';')[0] ?? '';
@@ -68,9 +69,9 @@ export function cookieFromResponse(response: Response): string {
 export type Credentials = { networkSlug: string; cpf: string; password: string };
 
 /**
- * Entra de verdade e devolve o cookie assinado que a aplicação emitiu. Desde que a janela de
- * compatibilidade do CPF fechou (ADR 0004), `/login` só aceita o campo `cpf` — não há mais
- * tradução a fazer aqui, só repassar o que o cenário de teste já tem à mão.
+ * Signs in for real and hands back the signed cookie the application emitted. Ever since the CPF
+ * compatibility window closed (ADR 0004), `/login` accepts only the `cpf` field — there is no
+ * translation left to do here, just passing along what the test scenario already has at hand.
  */
 export async function signIn(credentials: Credentials): Promise<string> {
   const response = await send('/login', {
@@ -86,13 +87,14 @@ export async function signIn(credentials: Credentials): Promise<string> {
   return cookie;
 }
 
-/* --- Processos separados ---------------------------------------------------- */
+/* --- Separate processes ----------------------------------------------------- */
 
 export type ProcessOutcome = { exitCode: number; stdout: string; stderr: string };
 
 /**
- * Roda um processo Bun com o ambiente que o teste dita. As variáveis passadas aqui vencem o `.env`
- * do projeto, e é isso que permite provar tanto a falta de uma variável quanto o banco fora do ar.
+ * Runs a Bun process with the environment the test dictates. The variables passed here beat the
+ * project's `.env`, and that is what makes it possible to prove both a missing variable and a
+ * database that is down.
  */
 export async function runProcess(
   args: readonly string[],
@@ -121,7 +123,7 @@ const defaultEnvironment = (extras: Record<string, string>): Record<string, stri
   ...extras,
 });
 
-/** A última linha de stdout que é um objeto JSON — o resultado que o script separado imprimiu. */
+/** The last line of stdout that is a JSON object — the result the separate script printed. */
 function lastJson(stdout: string): Record<string, unknown> {
   const rows = stdout.trim().split('\n').filter((row) => row.startsWith('{'));
   const last = rows.at(-1);
@@ -137,9 +139,9 @@ export type HealthResponse = {
 };
 
 /**
- * I13: sobe a aplicação em um processo cujo `DATABASE_URL` aponta para onde não há banco e
- * pergunta pelas duas rotas de saúde. Nenhum contêiner é derrubado e nenhuma dependência é
- * dublada — o banco está mesmo inalcançável para aquele processo.
+ * I13: boots the application in a process whose `DATABASE_URL` points where no database is, and
+ * asks both health routes. No container is taken down and no dependency is doubled — the database
+ * really is unreachable for that process.
  */
 export async function healthWithDatabaseDown(): Promise<HealthResponse> {
   const script = `
@@ -164,7 +166,7 @@ export async function healthWithDatabaseDown(): Promise<HealthResponse> {
 
 export type FlowScenario = {
   networkSlug: string;
-  /** Só para o cenário verificar que o e-mail não vaza no log — não entra mais no login (ADR 0004). */
+  /** Only so the scenario can check the e-mail does not leak into the log — it no longer takes part in login (ADR 0004). */
   email: string;
   cpf: string;
   password: string;
@@ -177,9 +179,10 @@ export type FlowScenario = {
 export type CapturedLog = { raw: string; rows: Record<string, unknown>[] };
 
 /**
- * I17: percorre login recusado, login aceito e lançamento de notas em um processo separado, com o
- * log no nível mais baixo, e devolve tudo o que saiu no stdout. Capturar aqui, e não dentro do
- * processo de teste, é o que garante que a linha examinada é a linha que o pino de fato escreveu.
+ * I17: walks through a refused login, an accepted login and a grade entry in a separate process,
+ * with the log at its lowest level, and hands back everything that came out on stdout. Capturing
+ * here, rather than inside the test process, is what guarantees the line under examination is the
+ * line pino actually wrote.
  */
 export async function captureLogOfAFlow(scenario: FlowScenario): Promise<CapturedLog> {
   const script = `
@@ -232,7 +235,7 @@ export async function captureLogOfAFlow(scenario: FlowScenario): Promise<Capture
   return { raw: stdout, rows };
 }
 
-/** Todo valor escalar de uma linha de log, em qualquer profundidade. */
+/** Every scalar value in a log line, at any depth. */
 export function logValues(row: unknown): unknown[] {
   if (Array.isArray(row)) return row.flatMap(logValues);
   if (typeof row === 'object' && row !== null) {

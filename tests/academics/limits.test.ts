@@ -108,14 +108,14 @@ export const LIMITS = {
 } as const;
 `;
 
-describe('os quatro limites de nome do acadêmico são quatro políticas, e não uma', () => {
-  test('cada entidade escreve o próprio número, e nenhuma aponta para constante compartilhada', async () => {
+describe('the four name limits in academics are four policies, not one', () => {
+  test('each entity writes its own number, and none points at a shared constant', async () => {
     const merged = entitiesWithoutTheirOwnNumber(await constantsSource());
 
     expect(merged).toEqual([]);
   });
 
-  test('a leitura do arquivo é a mesma coisa que o módulo exporta, e não uma varredura em branco', async () => {
+  test('what is read from the file is what the module exports, not a blank sweep', async () => {
     const source = await constantsSource();
 
     const read = ENTITIES_WITH_NAME_LIMIT.map((entity) =>
@@ -125,7 +125,7 @@ describe('os quatro limites de nome do acadêmico são quatro políticas, e não
     expect(read).toEqual(ENTITIES_WITH_NAME_LIMIT.map((e) => NAME_POLICIES[e].name));
   });
 
-  test('o objeto exportado guarda quatro entradas `nome` próprias, uma por entidade', () => {
+  test('the exported object holds four `name` entries of its own, one per entity', () => {
     const withoutOwnEntry = ENTITIES_WITH_NAME_LIMIT.filter(
       (entity) =>
         typeof Object.getOwnPropertyDescriptor(NAME_POLICIES[entity], 'name')?.value !==
@@ -138,7 +138,7 @@ describe('os quatro limites de nome do acadêmico são quatro políticas, e não
     expect(withoutOwnEntry).toEqual([]);
   });
 
-  test('nenhuma entidade empresta o objeto de outra: quatro donos distintos', () => {
+  test('no entity borrows another one\'s object: four distinct owners', () => {
     const borrowed = ENTITIES_WITH_NAME_LIMIT.flatMap((entity, index) =>
       ENTITIES_WITH_NAME_LIMIT.slice(index + 1)
         .filter((other) => NAME_POLICIES[entity] === NAME_POLICIES[other])
@@ -152,29 +152,29 @@ describe('os quatro limites de nome do acadêmico são quatro políticas, e não
   });
 });
 
-describe('a verificação de fusão reprova de fato o arquivo fundido', () => {
-  test('uma constante única para os quatro é acusada nas quatro entidades', () => {
+describe('the merge check does fail a merged file for real', () => {
+  test('a single constant for all four is reported against all four entities', () => {
     const merged = entitiesWithoutTheirOwnNumber(SOURCE_WITH_THE_FOUR_MERGED);
 
     expect(merged.length).toBe(ENTITIES_WITH_NAME_LIMIT.length);
     expect(merged.join('\n')).toContain('LIMITE_DE_NOME');
   });
 
-  test('arrastar só a turma para o limite do aluno já é acusado', () => {
+  test('dragging only the class group onto the student limit is already reported', () => {
     const merged = entitiesWithoutTheirOwnNumber(SOURCE_WITH_THE_DRAGGED_CLASS_GROUP);
 
     expect(merged.length).toBe(1);
     expect(merged.join('\n')).toContain('LIMITS.classGroup.name');
   });
 
-  test('espalhar um padrão comum apaga as entradas próprias e é acusado nas quatro', () => {
+  test('spreading a shared pattern erases the entries of their own, and is reported against all four', () => {
     const merged = entitiesWithoutTheirOwnNumber(SOURCE_WITH_THE_NAME_SPREAD_FROM_A_PATTERN);
 
     expect(merged.length).toBe(ENTITIES_WITH_NAME_LIMIT.length);
     expect(merged.join('\n')).toContain(MISSING);
   });
 
-  test('a acusação diz por que fundir é o defeito, e não só que algo mudou', () => {
+  test('the report says why merging is the defect, not merely that something changed', () => {
     const merged = entitiesWithoutTheirOwnNumber(SOURCE_WITH_THE_FOUR_MERGED);
 
     expect(merged.every((accusation) => accusation.includes(WHY_MERGING_IS_THE_DEFECT))).toBe(true);

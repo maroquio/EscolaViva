@@ -1,16 +1,17 @@
 /*
- * Os dois caminhos que atravessam o Estágio 01 inteiro pelo HTTP.
+ * The two paths that cross all of Stage 01 over HTTP.
  *
- * Nada aqui chama caso de uso direto: cada passo é uma requisição como o navegador a faria, com
- * formulário urlencoded, chave de idempotência e POST-Redirect-GET. O que se verifica ao final não
- * é o retorno de uma função, é o que a próxima tela mostra — porque é isso que a secretaria e o
- * responsável de fato veem.
+ * Nothing here calls a use case directly: every step is a request the way the browser would make
+ * it, with a urlencoded form, an idempotency key and POST-Redirect-GET. What gets checked at the
+ * end is not the return of a function, it is what the next screen shows — because that is what the
+ * registrar and the guardian actually see.
  *
- * (a) A secretaria cadastra um aluno, cadastra um responsável, liga os dois, matricula, e a
- *     matrícula aparece na turma.
- * (b) O professor lança as notas dos quatro bimestres, registra a chamada, fecha os quatro
- *     bimestres — e só então o boletim do responsável deixa de dizer "em curso" e dá a situação
- *     final. É o caminho que amarra `academics`, `assessment` e a regra pedagógica.
+ * (a) The registrar records a student, records a guardian, ties the two together, enrolls, and the
+ *     enrollment shows up in the class group.
+ * (b) The teacher posts the grades of all four terms, records the roll call, closes the four
+ *     terms — and only then does the guardian's report card stop saying "em curso" and give the
+ *     final status. It is the path that ties `academics`, `assessment` and the pedagogical rule
+ *     together.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -44,12 +45,12 @@ const signInAs = (
 ): Promise<string> =>
   signIn({ networkSlug: scenario.network.slug, cpf: scenario[who].cpf, password: scenario.password });
 
-describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
+describe('the registrar enrolls a new student, from the record to the class group', () => {
   beforeEach(async () => {
     await clearDatabase();
   });
 
-  test('cadastrar, vincular e matricular deixa o aluno na turma escolhida', async () => {
+  test('recording, linking and enrolling leaves the student in the chosen class group', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
     const targetClassGroup = scenario.classGroups[1];
@@ -99,7 +100,7 @@ describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
     expect(classGroupPage).toContain(studentName);
   }, FLOW_DEADLINE_MS);
 
-  test('a ficha do aluno mostra o responsável vinculado e a matrícula ativa', async () => {
+  test('the student record shows the linked guardian and the active enrollment', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
     const studentName = 'Ivo Sampaio Rezende';
@@ -142,7 +143,7 @@ describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
   }, FLOW_DEADLINE_MS);
 });
 
-describe('o professor fecha o ano e o responsável lê o boletim', () => {
+describe('the teacher closes the year and the guardian reads the report card', () => {
   beforeEach(async () => {
     await clearDatabase();
   });
@@ -183,7 +184,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
       cookie,
     );
 
-  test('quatro bimestres lançados, chamada registrada e ano fechado dão a situação final', async () => {
+  test('four terms posted, roll call recorded and the year closed give the final status', async () => {
     const scenario = await fullScenario();
     const teacherCookie = await signInAs(scenario, 'teacher');
     const guardianCookie = await signInAs(scenario, 'guardian');
@@ -210,7 +211,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
     expect(reportCard).not.toContain('Em curso');
   }, FLOW_DEADLINE_MS);
 
-  test('o boletim mostra a média e a frequência que decidiram a situação', async () => {
+  test('the report card shows the average and the attendance that decided the status', async () => {
     const scenario = await fullScenario();
     const teacherCookie = await signInAs(scenario, 'teacher');
     const guardianCookie = await signInAs(scenario, 'guardian');
@@ -228,7 +229,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
     for (const subject of scenario.subjects) expect(reportCard).toContain(subject.name);
   }, FLOW_DEADLINE_MS);
 
-  test('a frequência dia a dia mostra as quatro chamadas registradas', async () => {
+  test('the day-by-day attendance shows all four roll calls recorded', async () => {
     const scenario = await fullScenario();
     const teacherCookie = await signInAs(scenario, 'teacher');
     const guardianCookie = await signInAs(scenario, 'guardian');
@@ -245,7 +246,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
     expect(attendance).toContain('05/03/2026');
   }, FLOW_DEADLINE_MS);
 
-  test('o fechamento é recusado enquanto falta nota, e o boletim segue em curso', async () => {
+  test('the closing is refused while grades are missing, and the report card stays in progress', async () => {
     const scenario = await fullScenario();
     const teacherCookie = await signInAs(scenario, 'teacher');
     const guardianCookie = await signInAs(scenario, 'guardian');
@@ -256,7 +257,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
       await open(`/guardian/enrollments/${scenario.enrollments[0].id}/report-card`, guardianCookie)
     ).text();
 
-    // Cinco matrículas ativas em três disciplinas alocadas, nenhuma nota lançada: faltam quinze.
+    // Five active enrollments across three allocated subjects, no grade posted: fifteen are missing.
     expect(rejection.status).toBe(200);
     expect(rejectionBody).toContain('Faltam 15 notas para fechar o bimestre');
     expect(reportCard).toContain('Em curso');

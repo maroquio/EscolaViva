@@ -1,22 +1,24 @@
 /*
- * O `id` do controle é o nome do campo — e nome de campo tem dono.
+ * A control's `id` is the field name — and a field name has an owner.
  *
- * Num formulário o nome do campo aparece quatro vezes na mesma linha de código: no `name`, que é o
- * que o navegador manda de volta; no `id`, que é a âncora do controle; no `for` do rótulo, que
- * casa com esse `id`; e dentro dos ids derivados (`name-help`, `name-error`), que o
- * `aria-describedby` cita. Três dessas quatro já vinham da constante — `name="<%= fields.name %>"`,
- * `it.helpId(fields.name)`, `describedBy(fields.name, true)`. A quarta, o `id` base, estava
- * reescrita à mão.
+ * In a form the field name shows up four times on the same line of code: in `name`, which is what
+ * the browser sends back; in `id`, which is the control's anchor; in the label's `for`, which has
+ * to match that `id`; and inside the derived ids (`name-help`, `name-error`) that
+ * `aria-describedby` cites. Three of those four already came from the constant —
+ * `name="<%= fields.name %>"`, `it.helpId(fields.name)`, `describedBy(fields.name, true)`. The
+ * fourth, the base `id`, was rewritten by hand.
  *
- * Isso não é cosmética: `id`, `for` e `name` do mesmo controle têm de ser a MESMA palavra, senão o
- * rótulo deixa de clicar no campo e o leitor de tela deixa de anunciá-lo. Enquanto uma das quatro
- * for cópia, renomear o campo na constante quebra a tela em silêncio — o `name` acompanha, o `id`
- * fica para trás, e nenhum teste de rota nota, porque o formulário continua gravando.
+ * This is not cosmetics: the `id`, the `for` and the `name` of the same control have to be the SAME
+ * word, or the label stops clicking through to the field and the screen reader stops announcing it.
+ * As long as one of the four is a copy, renaming the field in the constant breaks the screen in
+ * silence — the `name` follows along, the `id` stays behind, and no route test notices, because the
+ * form keeps on saving.
  *
- * O verificador de magic values não alcança `id` nem `for`: ele varre `name`, `value`, `href`,
- * `action`, `maxlength` e os atributos de texto, e não estes. É este arquivo que segura a regra
- * aqui, e por isso ele vem em três partes: a regra, a sonda que prova que a regra morde, e a tela
- * congelada, onde a âncora que passou a vir da constante continua saindo com o nome do campo.
+ * The magic-values checker reaches neither `id` nor `for`: it sweeps `name`, `value`, `href`,
+ * `action`, `maxlength` and the text attributes, and not these. This file is what holds the rule
+ * here, and that is why it comes in three parts: the rule, the probe proving the rule has teeth,
+ * and the frozen screen, where the anchor that now comes from the constant still comes out bearing
+ * the field name.
  */
 
 import { describe, expect, test } from 'bun:test';
@@ -36,7 +38,7 @@ const FROZEN_SCREEN = join(import.meta.dir, 'golden', 'secretaria-aluno-novo.txt
 
 const FIELD_NAMES = Object.values(FIELDS.student);
 
-/** A chave da constante é o que o template escreve; o valor é o que sai no HTML. */
+/** The constant's key is what the template writes; the value is what comes out in the HTML. */
 const FIELD_NAME: Record<string, string> = FIELDS.student;
 const FIELD_KEYS = Object.keys(FIELD_NAME);
 
@@ -55,7 +57,7 @@ const anchorsOf = (source: string): Anchor[] =>
     value: finding[2] ?? '',
   }));
 
-/** O que sobra da âncora depois de tirar o que veio por interpolação: o pedaço escrito à mão. */
+/** What is left of the anchor once the interpolated part is taken out: the piece written by hand. */
 const writtenByHand = (value: string): string => value.replaceAll(ETA_BLOCK, '');
 
 const anchorsThatRewriteTheField = (source: string): string[] =>
@@ -68,7 +70,7 @@ const INTERPOLATING_ANCHOR = new RegExp(
   'g',
 );
 
-/** Desfaz a correção: devolve o `id`/`for` a nome escrito à mão, como estava antes. */
+/** Undoes the fix: puts the `id`/`for` back to a hand-written name, the way it used to be. */
 const withTheFieldRewrittenByHand = (source: string): string =>
   source.replaceAll(
     INTERPOLATING_ANCHOR,
@@ -84,15 +86,15 @@ const DEAD_PROBE =
 const probeVerdict = (source: string, regression: string): string =>
   regression === source ? DEAD_PROBE : LIVE_PROBE;
 
-describe('o nome do campo do aluno vem da constante em toda âncora', () => {
-  test('nenhum `id` ou `for` do formulário reescreve o nome do campo à mão', async () => {
+describe('the student field name comes from the constant in every anchor', () => {
+  test('no `id` or `for` in the form rewrites the field name by hand', async () => {
     const source = await templateSource();
 
     expect(anchorsOf(source).length).toBeGreaterThan(0);
     expect(anchorsThatRewriteTheField(source)).toEqual([]);
   });
 
-  test('a sonda: devolver a âncora ao nome escrito à mão volta a ser acusado', async () => {
+  test('the probe: putting the anchor back to a hand-written name is reported again', async () => {
     const source = await templateSource();
     const regression = withTheFieldRewrittenByHand(source);
 
@@ -100,7 +102,7 @@ describe('o nome do campo do aluno vem da constante em toda âncora', () => {
     expect(anchorsThatRewriteTheField(regression).length).toBeGreaterThan(0);
   });
 
-  test('a tela congelada continua casando cada `for` com o `id` de mesmo nome', async () => {
+  test('the frozen screen still matches every `for` to the `id` of the same name', async () => {
     const html = await Bun.file(FROZEN_SCREEN).text();
     const anchors = anchorsOf(html);
 

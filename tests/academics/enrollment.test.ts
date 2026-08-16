@@ -1,7 +1,7 @@
 /*
- * Matricular e transferir — as duas escritas do acadêmico que o banco protege sozinho.
- * O índice único parcial `active_enrollment_unique_per_year` é a regra; o caso de uso existe para
- * traduzi-la em erro de campo legível em vez de deixar a violação do PostgreSQL chegar à tela.
+ * Enrolling and transferring — the two academics writes the database guards on its own.
+ * The partial unique index `active_enrollment_unique_per_year` is the rule; the use case exists to
+ * turn it into a readable field error instead of letting the PostgreSQL violation reach the screen.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -40,8 +40,8 @@ async function studentStatuses(studentId: string): Promise<string[]> {
 
 beforeEach(clearDatabase);
 
-describe('matricular', () => {
-  test('cria a matrícula ativa do aluno na turma do ano letivo', async () => {
+describe('enroll', () => {
+  test('creates the student\'s active enrollment in the class group of that academic year', async () => {
     const scenario = await fullScenario();
     const student = await createStudent({ networkId: scenario.network.id, name: 'Ana Souza' });
     const [, emptyClassGroup] = scenario.classGroups;
@@ -72,7 +72,7 @@ describe('matricular', () => {
     expect(inClassGroup.map((row) => row.id)).toEqual([enrollment.id]);
   });
 
-  test('a matrícula recém-criada é recuperável por id', async () => {
+  test('the freshly created enrollment can be fetched back by id', async () => {
     const scenario = await fullScenario();
     const student = await createStudent({ networkId: scenario.network.id });
     const [, emptyClassGroup] = scenario.classGroups;
@@ -90,7 +90,7 @@ describe('matricular', () => {
     expect(await academics.enrollmentById(scenario.network.id, created.id)).toEqual(created);
   });
 
-  test('segunda matrícula ativa do mesmo aluno no mesmo ano é recusada com erro de campo', async () => {
+  test('a second active enrollment for the same student in the same year is refused with a field error', async () => {
     const scenario = await fullScenario();
     const [alreadyEnrolled] = scenario.students;
     const [, anotherClassGroup] = scenario.classGroups;
@@ -113,7 +113,7 @@ describe('matricular', () => {
     expect(await studentStatuses(alreadyEnrolled.id)).toEqual(['active']);
   });
 
-  test('a recusa da matrícula duplicada é mensagem de negócio, não erro cru do banco', async () => {
+  test('the refusal of the duplicate enrollment is a business message, not a raw database error', async () => {
     const scenario = await fullScenario();
     const [alreadyEnrolled] = scenario.students;
     const [, anotherClassGroup] = scenario.classGroups;
@@ -131,7 +131,7 @@ describe('matricular', () => {
     expect(message).toMatch(/matrícula ativa/i);
   });
 
-  test('o mesmo aluno pode se matricular em outro ano letivo', async () => {
+  test('the same student can enroll in another academic year', async () => {
     const scenario = await fullScenario();
     const [alreadyEnrolled] = scenario.students;
     const nextYear = await createAcademicYear({ networkId: scenario.network.id, year: DEFAULT_YEAR + 1 });
@@ -151,7 +151,7 @@ describe('matricular', () => {
     expect(await studentStatuses(alreadyEnrolled.id)).toEqual(['active', 'active']);
   });
 
-  test('aluno de outra rede é recusado', async () => {
+  test('a student from another network is refused', async () => {
     const { a, b } = await twoNetworks();
 
     const result = await academics.enroll({
@@ -171,7 +171,7 @@ describe('matricular', () => {
     ]);
   });
 
-  test('turma de outra rede é recusada', async () => {
+  test('a class group from another network is refused', async () => {
     const { a, b } = await twoNetworks();
     const student = await createStudent({ networkId: a.network.id });
 
@@ -192,7 +192,7 @@ describe('matricular', () => {
     ]);
   });
 
-  test('ano letivo de outra rede é recusado', async () => {
+  test('an academic year from another network is refused', async () => {
     const { a, b } = await twoNetworks();
     const student = await createStudent({ networkId: a.network.id });
 
@@ -207,7 +207,7 @@ describe('matricular', () => {
     expect(errorsOf(result)[0]?.codigo).toBe('ano_letivo_nao_encontrado');
   });
 
-  test('turma de outro ano letivo da mesma rede é recusada', async () => {
+  test('a class group from another academic year of the same network is refused', async () => {
     const scenario = await fullScenario();
     const student = await createStudent({ networkId: scenario.network.id });
     const otherYear = await createAcademicYear({ networkId: scenario.network.id, year: DEFAULT_YEAR + 1 });
@@ -232,7 +232,7 @@ describe('matricular', () => {
     ]);
   });
 
-  test('data de matrícula fora do formato é recusada antes de escrever', async () => {
+  test('an enrollment date outside the format is refused before anything is written', async () => {
     const scenario = await fullScenario();
     const student = await createStudent({ networkId: scenario.network.id });
 
@@ -248,7 +248,7 @@ describe('matricular', () => {
     expect(await studentStatuses(student.id)).toEqual([]);
   });
 
-  test('ids fora do formato são recusados pela validação de entrada', async () => {
+  test('ids outside the format are refused by the input validation', async () => {
     const scenario = await fullScenario();
 
     const result = await academics.enroll({
@@ -263,8 +263,8 @@ describe('matricular', () => {
   });
 });
 
-describe('transferir', () => {
-  test('encerra a matrícula de origem e abre a nova na turma de destino, no mesmo ano', async () => {
+describe('transfer', () => {
+  test('closes the enrollment of origin and opens the new one in the destination class group, in the same year', async () => {
     const scenario = await fullScenario();
     const [source] = scenario.enrollments;
     const [sourceClassGroup, targetClassGroup] = scenario.classGroups;
@@ -287,7 +287,7 @@ describe('transferir', () => {
     expect(old?.classGroupId).toBe(sourceClassGroup.id);
   });
 
-  test('depois de transferir sobra exatamente uma matrícula ativa do aluno no ano', async () => {
+  test('after a transfer exactly one active enrollment of the student is left in the year', async () => {
     const scenario = await fullScenario();
     const [source] = scenario.enrollments;
 
@@ -305,7 +305,7 @@ describe('transferir', () => {
     expect(rows.map((row) => row.status)).toEqual(['active', 'transferred']);
   });
 
-  test('a turma de origem perde o aluno e a de destino ganha', async () => {
+  test('the class group of origin loses the student and the destination gains one', async () => {
     const scenario = await fullScenario();
     const [source] = scenario.enrollments;
     const [sourceClassGroup, targetClassGroup] = scenario.classGroups;
@@ -323,7 +323,7 @@ describe('transferir', () => {
     expect(atTarget.map((row) => row.studentId)).toEqual([source.studentId]);
   });
 
-  test('transferir para a mesma turma é recusado e nada muda', async () => {
+  test('transferring into the same class group is refused and nothing changes', async () => {
     const scenario = await fullScenario();
     const [source] = scenario.enrollments;
 
@@ -344,7 +344,7 @@ describe('transferir', () => {
     expect(await studentStatuses(source.studentId)).toEqual(['active']);
   });
 
-  test('transferir matrícula já transferida é recusado', async () => {
+  test('transferring an already transferred enrollment is refused', async () => {
     const scenario = await fullScenario();
     const [source] = scenario.enrollments;
     const [, targetClassGroup] = scenario.classGroups;
@@ -372,7 +372,7 @@ describe('transferir', () => {
     expect(await studentStatuses(source.studentId)).toEqual(['active', 'transferred']);
   });
 
-  test('a matrícula pode ser transferida de novo a partir da turma nova', async () => {
+  test('the enrollment can be transferred again, this time out of the new class group', async () => {
     const scenario = await fullScenario();
     const [source] = scenario.enrollments;
     const [sourceClassGroup, middleClassGroup] = scenario.classGroups;
@@ -399,7 +399,7 @@ describe('transferir', () => {
     expect(active[0]?.total).toBe(1);
   });
 
-  test('transferir para turma de outro ano letivo é recusado', async () => {
+  test('transferring into a class group of another academic year is refused', async () => {
     const scenario = await fullScenario();
     const [source] = scenario.enrollments;
     const otherYear = await createAcademicYear({ networkId: scenario.network.id, year: DEFAULT_YEAR + 1 });
@@ -424,7 +424,7 @@ describe('transferir', () => {
     expect(await studentStatuses(source.studentId)).toEqual(['active']);
   });
 
-  test('transferir para turma de outra rede é recusado', async () => {
+  test('transferring into a class group of another network is refused', async () => {
     const { a, b } = await twoNetworks();
     const [source] = a.enrollments;
 
@@ -439,7 +439,7 @@ describe('transferir', () => {
     expect(await studentStatuses(source.studentId)).toEqual(['active']);
   });
 
-  test('matrícula de outra rede não é alcançável pelo id', async () => {
+  test('an enrollment from another network is not reachable by its id', async () => {
     const { a, b } = await twoNetworks();
 
     const result = await academics.transfer({
@@ -459,7 +459,7 @@ describe('transferir', () => {
     expect(await studentStatuses(b.enrollments[0].studentId)).toEqual(['active']);
   });
 
-  test('matrícula inexistente é recusada', async () => {
+  test('an enrollment that does not exist is refused', async () => {
     const scenario = await fullScenario();
 
     const result = await academics.transfer({
@@ -472,7 +472,7 @@ describe('transferir', () => {
     expect(errorsOf(result)[0]?.codigo).toBe('matricula_nao_encontrada');
   });
 
-  test('data de transferência fora do formato é recusada', async () => {
+  test('a transfer date outside the format is refused', async () => {
     const scenario = await fullScenario();
     const [source] = scenario.enrollments;
 

@@ -1,10 +1,11 @@
--- Liga o usuário que entra no portal ao cadastro de responsável do módulo acadêmico.
--- O responsável é uma pessoa no acadêmico (`guardian`) e uma credencial na identidade
--- (`app_user`): sem esta coluna, o mural, o boletim e a frequência não teriam como sair do
--- usuário logado para os filhos dele. Nula para admin, secretaria e professor.
--- Vem depois de 0002 porque referencia `guardian`, criada lá.
+-- Ties the user who signs into the portal to the guardian record of the academics module.
+-- A guardian is a person in academics (`guardian`) and a credential in identity (`app_user`):
+-- without this column, the board, the report card and the attendance would have no way to get from
+-- the signed-in user to that user's children. Null for the administrator, the registrar and the
+-- teacher.
+-- It comes after 0002 because it references `guardian`, created there.
 
 ALTER TABLE app_user ADD COLUMN guardian_id uuid REFERENCES guardian(id);
 
--- Toda tela do responsável parte do usuário logado; o índice começa por network_id como os demais.
+-- Every guardian screen starts from the signed-in user; the index leads with network_id, like the rest.
 CREATE INDEX app_user_by_guardian ON app_user (network_id, guardian_id);

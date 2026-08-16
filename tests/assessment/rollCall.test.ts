@@ -1,7 +1,8 @@
 /*
- * A frequência do EscolaViva é POR DIA — nunca por aula. Este arquivo prova as duas consequências
- * disso: reenviar a chamada de uma data corrige a linha existente em vez de criar uma segunda, e a
- * constraint `attendance_unique_per_day` sustenta a mesma regra no banco.
+ * Attendance in EscolaViva is PER DAY — never per class period. This file proves the two
+ * consequences of that: resubmitting the roll call for a date corrects the existing row instead of
+ * creating a second one, and the `attendance_unique_per_day` constraint holds the same rule inside
+ * the database.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -58,26 +59,26 @@ async function enrollmentOfAnotherNetwork(): Promise<string> {
   return enrollment.id;
 }
 
-describe('frequencia (domínio)', () => {
-  test('aceita data ISO que existe no calendário', () => {
+describe('attendance (domain)', () => {
+  test('accepts an ISO date that exists on the calendar', () => {
     const accepted = ['2026-03-10', '2024-02-29', '2026-12-31'].map(isValidRollCallDate);
 
     expect(accepted).toEqual([true, true, true]);
   });
 
-  test('recusa data que não existe, mesmo com o formato certo', () => {
+  test('refuses a date that does not exist, even in the right format', () => {
     const rejected = ['2026-02-30', '2026-13-01', '2026-00-10'].map(isValidRollCallDate);
 
     expect(rejected).toEqual([false, false, false]);
   });
 
-  test('recusa qualquer coisa fora do formato AAAA-MM-DD', () => {
+  test('refuses anything outside the YYYY-MM-DD format', () => {
     const rejected = ['10/03/2026', '2026-3-10', '', 'ontem'].map(isValidRollCallDate);
 
     expect(rejected).toEqual([false, false, false, false]);
   });
 
-  test('trata o intervalo do ano letivo como fechado nas duas pontas', () => {
+  test('treats the academic year span as closed at both ends', () => {
     const start = isDateWithinAcademicYear('2026-02-01', '2026-02-01', '2026-12-15');
     const end = isDateWithinAcademicYear('2026-12-15', '2026-02-01', '2026-12-15');
     const middle = isDateWithinAcademicYear('2026-07-04', '2026-02-01', '2026-12-15');
@@ -85,7 +86,7 @@ describe('frequencia (domínio)', () => {
     expect([start, end, middle]).toEqual([true, true, true]);
   });
 
-  test('deixa de fora a data anterior ao início e a posterior ao fim', () => {
+  test('leaves out the date before the start and the one after the end', () => {
     const before = isDateWithinAcademicYear('2026-01-31', '2026-02-01', '2026-12-15');
     const after = isDateWithinAcademicYear('2026-12-16', '2026-02-01', '2026-12-15');
 
@@ -94,7 +95,7 @@ describe('frequencia (domínio)', () => {
 });
 
 describe('recordRollCall', () => {
-  test('grava a chamada do dia inteiro da turma', async () => {
+  test('records the whole day\'s roll call for the class group', async () => {
     const rows = scenario.enrollments.map((enrollment) => ({
       enrollmentId: enrollment.id,
       present: true,
@@ -111,7 +112,7 @@ describe('recordRollCall', () => {
     expect(await countAttendances(scenario.network.id)).toBe(5);
   });
 
-  test('a segunda chamada do mesmo dia atualiza a linha em vez de criar outra', async () => {
+  test('a second roll call for the same day updates the row instead of creating another', async () => {
     const rollCall = {
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[0].id,
@@ -142,7 +143,7 @@ describe('recordRollCall', () => {
     });
   });
 
-  test('a correção que devolve a presença ao aluno apaga a justificativa', async () => {
+  test('the correction that gives the student their presence back erases the excuse', async () => {
     const rollCall = {
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[0].id,
@@ -171,7 +172,7 @@ describe('recordRollCall', () => {
     });
   });
 
-  test('dias diferentes convivem como linhas separadas', async () => {
+  test('different days live side by side as separate rows', async () => {
     const rollCall = {
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[0].id,
@@ -184,7 +185,7 @@ describe('recordRollCall', () => {
     expect(await countAttendances(scenario.network.id)).toBe(2);
   });
 
-  test('recusa data anterior ao início do ano letivo', async () => {
+  test('refuses a date before the start of the academic year', async () => {
     const result = await assessment.recordRollCall({
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[0].id,
@@ -199,7 +200,7 @@ describe('recordRollCall', () => {
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
 
-  test('recusa data posterior ao fim do ano letivo', async () => {
+  test('refuses a date after the end of the academic year', async () => {
     const result = await assessment.recordRollCall({
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[0].id,
@@ -213,7 +214,7 @@ describe('recordRollCall', () => {
     });
   });
 
-  test('a recusa por data diz qual é o intervalo do ano letivo', async () => {
+  test('the refusal over a date says what the academic year span is', async () => {
     const result = await assessment.recordRollCall({
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[0].id,
@@ -226,7 +227,7 @@ describe('recordRollCall', () => {
     expect(message).toContain(scenario.academicYear.endDate);
   });
 
-  test('recusa data que não existe no calendário', async () => {
+  test('refuses a date that does not exist on the calendar', async () => {
     const result = await assessment.recordRollCall({
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[0].id,
@@ -245,7 +246,7 @@ describe('recordRollCall', () => {
     });
   });
 
-  test('recusa data em formato diferente de AAAA-MM-DD', async () => {
+  test('refuses a date in any format other than YYYY-MM-DD', async () => {
     const result = await assessment.recordRollCall({
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[0].id,
@@ -259,7 +260,7 @@ describe('recordRollCall', () => {
     });
   });
 
-  test('recusa turma que não é desta rede', async () => {
+  test('refuses a class group that does not belong to this network', async () => {
     const other = await fullScenario();
 
     const result = await assessment.recordRollCall({
@@ -275,7 +276,7 @@ describe('recordRollCall', () => {
     });
   });
 
-  test('recusa a chamada com matrícula de outra turma', async () => {
+  test('refuses a roll call carrying an enrollment from another class group', async () => {
     const student = await createStudent({ networkId: scenario.network.id });
     const outsider = await createEnrollment({
       networkId: scenario.network.id,
@@ -301,7 +302,7 @@ describe('recordRollCall', () => {
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
 
-  test('recusa a chamada com matrícula de outra rede', async () => {
+  test('refuses a roll call carrying an enrollment from another network', async () => {
     const fromAnotherNetwork = await enrollmentOfAnotherNetwork();
 
     const result = await assessment.recordRollCall({
@@ -321,7 +322,7 @@ describe('recordRollCall', () => {
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
 
-  test('recusa a chamada com o mesmo aluno duas vezes', async () => {
+  test('refuses a roll call carrying the same student twice', async () => {
     const result = await assessment.recordRollCall({
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[0].id,
@@ -338,7 +339,7 @@ describe('recordRollCall', () => {
     });
   });
 
-  test('recusa chamada sem linha nenhuma', async () => {
+  test('refuses a roll call with no row at all', async () => {
     const result = await assessment.recordRollCall({
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[0].id,
@@ -352,7 +353,7 @@ describe('recordRollCall', () => {
     });
   });
 
-  test('aceita justificativa com exatamente o limite em caracteres', async () => {
+  test('accepts an excuse of exactly the character limit', async () => {
     const excuse = 'x'.repeat(ASSESSMENT_LIMITS.excuseCharacters);
 
     const result = await assessment.recordRollCall({
@@ -373,7 +374,7 @@ describe('recordRollCall', () => {
     );
   });
 
-  test('recusa justificativa com um caractere além do limite', async () => {
+  test('refuses an excuse one character past the limit', async () => {
     const result = await assessment.recordRollCall({
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[0].id,
@@ -395,8 +396,8 @@ describe('recordRollCall', () => {
   });
 });
 
-describe('constraint frequencia_unica_por_dia', () => {
-  test('o banco barra a segunda linha do mesmo aluno no mesmo dia', async () => {
+describe('the attendance_unique_per_day constraint', () => {
+  test('the database blocks a second row for the same student on the same day', async () => {
     const sql = testSql();
     const insert = async (): Promise<void> => {
       await sql`

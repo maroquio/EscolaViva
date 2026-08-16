@@ -1,8 +1,7 @@
 /*
- * I12: `X-Forwarded-For` é escrito por qualquer cliente. Sem proxy confiável declarado, acreditar
- * nele é deixar o usuário escolher o próprio IP — e o IP vai para a tabela de sessão. Com proxies
- * declarados, a cadeia é lida da direita para a esquerda: o primeiro salto que não é nosso é o
- * cliente.
+ * I12: `X-Forwarded-For` is written by any client at all. With no trusted proxy declared, believing
+ * it means letting the user pick their own IP — and the IP goes into the session table. With
+ * proxies declared, the chain is read right to left: the first hop that is not ours is the client.
  */
 
 import { describe, expect, test } from 'bun:test';
@@ -17,8 +16,8 @@ function requestWith(headers: Record<string, string>): Request {
   return new Request('http://escolaviva.test/login', { headers });
 }
 
-describe('clientIp — sem proxy confiável', () => {
-  test('ignora X-Forwarded-For e devolve o endereço remoto', () => {
+describe('clientIp — with no trusted proxy', () => {
+  test('ignores X-Forwarded-For and gives back the remote address', () => {
     const request = requestWith({ 'X-Forwarded-For': '1.2.3.4' });
 
     const ip = clientIp(request, REMOTE_IP, []);
@@ -26,7 +25,7 @@ describe('clientIp — sem proxy confiável', () => {
     expect(ip).toBe(REMOTE_IP);
   });
 
-  test('ignora uma cadeia inteira forjada pelo cliente', () => {
+  test('ignores a whole chain forged by the client', () => {
     const request = requestWith({ 'X-Forwarded-For': `${CLIENT_IP}, 1.2.3.4, 5.6.7.8` });
 
     const ip = clientIp(request, REMOTE_IP, []);
@@ -34,7 +33,7 @@ describe('clientIp — sem proxy confiável', () => {
     expect(ip).toBe(REMOTE_IP);
   });
 
-  test('sem cabeçalho nenhum devolve o endereço remoto', () => {
+  test('with no header at all it gives back the remote address', () => {
     const request = requestWith({});
 
     const ip = clientIp(request, REMOTE_IP, []);
@@ -42,7 +41,7 @@ describe('clientIp — sem proxy confiável', () => {
     expect(ip).toBe(REMOTE_IP);
   });
 
-  test('endereço remoto desconhecido vira string vazia em vez de quebrar', () => {
+  test('an unknown remote address becomes an empty string instead of breaking', () => {
     const request = requestWith({ 'X-Forwarded-For': CLIENT_IP });
 
     const ip = clientIp(request, undefined, []);
@@ -51,8 +50,8 @@ describe('clientIp — sem proxy confiável', () => {
   });
 });
 
-describe('clientIp — com proxy confiável', () => {
-  test('devolve o endereço à esquerda do proxy confiável', () => {
+describe('clientIp — with a trusted proxy', () => {
+  test('gives back the address to the left of the trusted proxy', () => {
     const request = requestWith({ 'X-Forwarded-For': `${CLIENT_IP}, ${EDGE_PROXY}` });
 
     const ip = clientIp(request, EDGE_PROXY, [EDGE_PROXY]);
@@ -60,7 +59,7 @@ describe('clientIp — com proxy confiável', () => {
     expect(ip).toBe(CLIENT_IP);
   });
 
-  test('descarta todos os saltos confiáveis da direita para a esquerda', () => {
+  test('discards every trusted hop, right to left', () => {
     const request = requestWith({
       'X-Forwarded-For': `${CLIENT_IP}, ${INTERNAL_PROXY}, ${EDGE_PROXY}`,
     });
@@ -70,7 +69,7 @@ describe('clientIp — com proxy confiável', () => {
     expect(ip).toBe(CLIENT_IP);
   });
 
-  test('para no primeiro salto não confiável, mesmo com endereço forjado mais à esquerda', () => {
+  test('stops at the first untrusted hop, even with a forged address further left', () => {
     const request = requestWith({
       'X-Forwarded-For': `1.2.3.4, ${CLIENT_IP}, ${EDGE_PROXY}`,
     });
@@ -80,7 +79,7 @@ describe('clientIp — com proxy confiável', () => {
     expect(ip).toBe(CLIENT_IP);
   });
 
-  test('cadeia formada só por proxies confiáveis cai no endereço remoto', () => {
+  test('a chain made only of trusted proxies falls back to the remote address', () => {
     const request = requestWith({
       'X-Forwarded-For': `${INTERNAL_PROXY}, ${EDGE_PROXY}`,
     });
@@ -90,7 +89,7 @@ describe('clientIp — com proxy confiável', () => {
     expect(ip).toBe(EDGE_PROXY);
   });
 
-  test('sem o cabeçalho devolve o endereço remoto', () => {
+  test('without the header it gives back the remote address', () => {
     const request = requestWith({});
 
     const ip = clientIp(request, REMOTE_IP, [EDGE_PROXY]);
@@ -98,7 +97,7 @@ describe('clientIp — com proxy confiável', () => {
     expect(ip).toBe(REMOTE_IP);
   });
 
-  test('apara os espaços em volta de cada endereço da cadeia', () => {
+  test('trims the whitespace around each address in the chain', () => {
     const request = requestWith({
       'X-Forwarded-For': `   ${CLIENT_IP}   ,   ${EDGE_PROXY}   `,
     });
@@ -108,7 +107,7 @@ describe('clientIp — com proxy confiável', () => {
     expect(ip).toBe(CLIENT_IP);
   });
 
-  test('apara os espaços da lista de proxies confiáveis', () => {
+  test('trims the whitespace in the list of trusted proxies', () => {
     const request = requestWith({ 'X-Forwarded-For': `${CLIENT_IP}, ${EDGE_PROXY}` });
 
     const ip = clientIp(request, EDGE_PROXY, [`  ${EDGE_PROXY}  `]);
@@ -116,7 +115,7 @@ describe('clientIp — com proxy confiável', () => {
     expect(ip).toBe(CLIENT_IP);
   });
 
-  test('lê o cabeçalho independentemente da caixa do nome', () => {
+  test('reads the header no matter the case of its name', () => {
     const request = requestWith({ 'x-forwarded-for': `${CLIENT_IP}, ${EDGE_PROXY}` });
 
     const ip = clientIp(request, EDGE_PROXY, [EDGE_PROXY]);
@@ -125,8 +124,8 @@ describe('clientIp — com proxy confiável', () => {
   });
 });
 
-describe('clientIp — cabeçalho vazio ou com lixo', () => {
-  test('cabeçalho vazio devolve o endereço remoto', () => {
+describe('clientIp — an empty header, or one full of junk', () => {
+  test('an empty header gives back the remote address', () => {
     const request = requestWith({ 'X-Forwarded-For': '' });
 
     const ip = clientIp(request, REMOTE_IP, [EDGE_PROXY]);
@@ -134,7 +133,7 @@ describe('clientIp — cabeçalho vazio ou com lixo', () => {
     expect(ip).toBe(REMOTE_IP);
   });
 
-  test('cabeçalho só com vírgulas e espaços devolve o endereço remoto', () => {
+  test('a header of nothing but commas and spaces gives back the remote address', () => {
     const request = requestWith({ 'X-Forwarded-For': ' , ,, ' });
 
     const ip = clientIp(request, REMOTE_IP, [EDGE_PROXY]);
@@ -142,7 +141,7 @@ describe('clientIp — cabeçalho vazio ou com lixo', () => {
     expect(ip).toBe(REMOTE_IP);
   });
 
-  test('cabeçalho com texto que não é endereço não quebra e é devolvido como veio', () => {
+  test('a header holding text that is not an address does not break, and comes back as it arrived', () => {
     const request = requestWith({ 'X-Forwarded-For': 'lixo-qualquer' });
 
     const ip = clientIp(request, REMOTE_IP, [EDGE_PROXY]);
@@ -150,7 +149,7 @@ describe('clientIp — cabeçalho vazio ou com lixo', () => {
     expect(ip).toBe('lixo-qualquer');
   });
 
-  test('cabeçalho com lixo é ignorado quando não há proxy confiável', () => {
+  test('a header full of junk is ignored when there is no trusted proxy', () => {
     const request = requestWith({ 'X-Forwarded-For': 'lixo-qualquer' });
 
     const ip = clientIp(request, REMOTE_IP, []);

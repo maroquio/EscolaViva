@@ -51,13 +51,13 @@ async function call(preamble: string, name: string, argument: string): Promise<s
   return stdout.trim();
 }
 
-describe('scripts de backup e restauração', () => {
+describe('the backup and restore scripts', () => {
   beforeAll(async () => {
     backup = await Bun.file(BACKUP_SCRIPT_PATH).text();
     restore = await Bun.file(RESTORE_SCRIPT_PATH).text();
   });
 
-  test('a URL impressa no console não leva usuário nem senha', async () => {
+  test('the URL printed to the console carries neither user nor password', async () => {
     const definition = functionDefinition(backup, 'without_credentials');
 
     const printed = await call(definition, 'without_credentials', URL_WITH_SECRET);
@@ -66,7 +66,7 @@ describe('scripts de backup e restauração', () => {
     expect(printed).not.toContain('senha_secreta');
   });
 
-  test('a URL de dentro do compose troca o host publicado pelo nome do serviço', async () => {
+  test('the URL used inside compose swaps the published host for the service name', async () => {
     const service = capture(backup, DB_SERVICE, 'DB_SERVICE');
     const preamble = `DB_SERVICE=${service}\n${functionDefinition(backup, 'internal_url')}`;
 
@@ -81,7 +81,7 @@ describe('scripts de backup e restauração', () => {
     expect(withoutPort).toBe(`postgres://escolaviva:senha_secreta@${service}:5432/escolaviva`);
   });
 
-  test('a versão maior sai tanto da saída do cliente quanto da do servidor', async () => {
+  test('the major version comes out of the client output and out of the server output alike', async () => {
     const definition = functionDefinition(backup, 'major_version');
 
     const ofTheClient = await call(definition, 'major_version', 'pg_dump (PostgreSQL) 14.9');
@@ -92,7 +92,7 @@ describe('scripts de backup e restauração', () => {
     expect(Number(ofTheClient) < Number(ofTheServer)).toBe(true);
   });
 
-  test('o dump interrompido no meio não entra na contagem de retenção', () => {
+  test('a dump interrupted halfway does not count towards retention', () => {
     const template = capture(backup, FILE_TEMPLATE, 'o nome do arquivo de dump');
     const suffix = capture(backup, PARTIAL_SUFFIX, 'o sufixo do arquivo parcial');
     const pattern = new Bun.Glob(capture(backup, RETENTION_PATTERN, 'o padrão da retenção'));
@@ -103,14 +103,14 @@ describe('scripts de backup e restauração', () => {
     expect(pattern.match(`${ready}${suffix}`)).toBe(false);
   });
 
-  test('a retenção guarda um número declarado de dumps, e não um literal solto', () => {
+  test('retention keeps a declared number of dumps, not a loose literal', () => {
     const retention = capture(backup, /^RETENTION=(\d+)$/m, 'RETENTION');
 
     expect(backup).toContain('tail -n "+$((RETENTION + 1))"');
     expect(Number(retention)).toBeGreaterThan(0);
   });
 
-  test('os dois scripts leem DATABASE_URL do .env pelo mesmo bloco', () => {
+  test('both scripts read DATABASE_URL from .env through the very same block', () => {
     const ofTheBackup = ENV_READING_BLOCK.exec(backup)?.[0];
 
     const ofTheRestore = ENV_READING_BLOCK.exec(restore)?.[0];
@@ -119,7 +119,7 @@ describe('scripts de backup e restauração', () => {
     expect(ofTheRestore).toBe(ofTheBackup);
   });
 
-  test('os dois scripts escolhem o cliente compatível pelas mesmas funções', () => {
+  test('both scripts pick the compatible client through the very same functions', () => {
     const shared = ['major_version', 'server_version', 'internal_url'];
 
     const ofTheBackup = shared.map((name) => functionDefinition(backup, name));
@@ -131,13 +131,13 @@ describe('scripts de backup e restauração', () => {
     );
   });
 
-  test('a restauração sai com código próprio para cada falha que um agendador precisa ver', () => {
+  test('the restore exits with its own code for each failure a scheduler needs to see', () => {
     const codes = [...restore.matchAll(/^\s*exit (\d+)$/gm)].map((finding) => finding[1]);
 
     expect(new Set(codes)).toEqual(new Set(['1', '2', '3']));
   });
 
-  test('os dois scripts param no primeiro erro e não expandem variável não definida', () => {
+  test('both scripts stop at the first error and never expand an undefined variable', () => {
     const mode = [backup, restore].map((script) => script.includes('\nset -euo pipefail\n'));
 
     expect(mode).toEqual([true, true]);

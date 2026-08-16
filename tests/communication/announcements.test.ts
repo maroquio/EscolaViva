@@ -1,9 +1,9 @@
 /*
- * Comunicado, mural e taxa de leitura contra o banco real.
+ * Announcements, the board and the read rate, against the real database.
  *
- * Duas coisas concentram o valor deste arquivo: a lista vazia de destinatários, que significa "a
- * unidade inteira" e não pode alcançar ninguém de fora dela; e o `lido_em`, que é a instrumentação
- * da dor do Estágio 04 — ele precisa ser idempotente, senão a taxa medida vira ruído.
+ * Two things carry most of this file's value: the empty list of recipients, which means "the whole
+ * school" and must reach nobody outside it; and `read_at`, which is the instrumentation behind the
+ * pain of Stage 04 — it has to be idempotent, or the rate being measured turns into noise.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -30,7 +30,7 @@ beforeEach(async () => {
   scenario = await fullScenario();
 });
 
-/** Publica e estreita o `Result`: quando isto falha, o erro do arranjo aparece por inteiro. */
+/** Publishes and narrows the `Result`: when this fails, the error in the arrangement shows in full. */
 async function publish(input: {
   schoolId?: string;
   title?: string;
@@ -65,7 +65,7 @@ async function readsOf(announcementId: string, guardianId: string): Promise<(Dat
   return rows.map((row) => row.read_at);
 }
 
-/** Um responsável com aluno matriculado ativo na unidade indicada. */
+/** A guardian with a student actively enrolled at the given school. */
 async function guardianAtSchool(schoolId: string): Promise<string> {
   const classGroup = await createClassGroup({
     networkId: scenario.network.id,
@@ -89,7 +89,7 @@ async function guardianAtSchool(schoolId: string): Promise<string> {
 }
 
 describe('publishAnnouncement', () => {
-  test('publica com o nome do autor e a data de publicação preenchida', async () => {
+  test('publishes with the author name and the publication date filled in', async () => {
     const announcement = await publish({
       recipients: [{ guardianId: scenario.guardians[0].id }],
     });
@@ -101,7 +101,7 @@ describe('publishAnnouncement', () => {
     expect(announcement.publishedAt).toMatch(ISO_INSTANT);
   });
 
-  test('grava um destinatário para cada responsável da lista', async () => {
+  test('records one recipient for each guardian on the list', async () => {
     const chosen = [scenario.guardians[0].id, scenario.guardians[2].id];
 
     const announcement = await publish({
@@ -111,7 +111,7 @@ describe('publishAnnouncement', () => {
     expect(await recipientsOf(announcement.id)).toEqual([...chosen].sort());
   });
 
-  test('o mesmo responsável repetido na lista vira um destinatário só', async () => {
+  test('the same guardian repeated on the list becomes a single recipient', async () => {
     const announcement = await publish({
       recipients: [
         { guardianId: scenario.guardians[0].id },
@@ -122,7 +122,7 @@ describe('publishAnnouncement', () => {
     expect(await recipientsOf(announcement.id)).toEqual([scenario.guardians[0].id]);
   });
 
-  test('a lista vazia alcança todo responsável com aluno matriculado ativo na unidade', async () => {
+  test('an empty list reaches every guardian with a student actively enrolled at the school', async () => {
     const announcement = await publish({ recipients: [] });
 
     expect(await recipientsOf(announcement.id)).toEqual(
@@ -130,7 +130,7 @@ describe('publishAnnouncement', () => {
     );
   });
 
-  test('a lista vazia não alcança responsável de outra unidade da mesma rede', async () => {
+  test('an empty list does not reach a guardian from another school of the same network', async () => {
     const fromAnotherSchool = await guardianAtSchool(scenario.schools[1].id);
 
     const announcement = await publish({ recipients: [] });
@@ -138,7 +138,7 @@ describe('publishAnnouncement', () => {
     expect(await recipientsOf(announcement.id)).not.toContain(fromAnotherSchool);
   });
 
-  test('a lista vazia não alcança responsável de outra rede', async () => {
+  test('an empty list does not reach a guardian from another network', async () => {
     const other = await fullScenario();
 
     const announcement = await publish({ recipients: [] });
@@ -149,7 +149,7 @@ describe('publishAnnouncement', () => {
     }
   });
 
-  test('a lista vazia ignora responsável cujo aluno não tem matrícula ativa', async () => {
+  test('an empty list ignores a guardian whose student holds no active enrollment', async () => {
     const shutDown = await guardianAtSchool(scenario.schools[0].id);
     await testSql()`
       UPDATE enrollment SET status = 'cancelled'
@@ -160,7 +160,7 @@ describe('publishAnnouncement', () => {
     expect(await recipientsOf(announcement.id)).not.toContain(shutDown);
   });
 
-  test('recusa quando não há responsável nenhum para receber', async () => {
+  test('refuses when there is no guardian at all to receive it', async () => {
     const result = await communication.publishAnnouncement({
       networkId: scenario.network.id,
       schoolId: scenario.schools[1].id,
@@ -176,7 +176,7 @@ describe('publishAnnouncement', () => {
     });
   });
 
-  test('recusa título vazio e título longo demais', async () => {
+  test('refuses an empty title and a title that runs too long', async () => {
     const empty = communication.publishAnnouncement({
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
@@ -206,7 +206,7 @@ describe('publishAnnouncement', () => {
     });
   });
 
-  test('recusa corpo vazio', async () => {
+  test('refuses an empty body', async () => {
     const result = await communication.publishAnnouncement({
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
@@ -222,7 +222,7 @@ describe('publishAnnouncement', () => {
     });
   });
 
-  test('recusa unidade que não é desta rede', async () => {
+  test('refuses a school that does not belong to this network', async () => {
     const other = await fullScenario();
 
     const result = await communication.publishAnnouncement({
@@ -240,7 +240,7 @@ describe('publishAnnouncement', () => {
     });
   });
 
-  test('recusa autor que não é desta rede', async () => {
+  test('refuses an author who does not belong to this network', async () => {
     const other = await fullScenario();
 
     const result = await communication.publishAnnouncement({
@@ -260,7 +260,7 @@ describe('publishAnnouncement', () => {
 });
 
 describe('markAsRead', () => {
-  test('registra a leitura do destinatário', async () => {
+  test('records the recipient\'s reading', async () => {
     const announcement = await publish({
       recipients: [{ guardianId: scenario.guardians[0].id }],
     });
@@ -275,7 +275,7 @@ describe('markAsRead', () => {
     expect(await readsOf(announcement.id, scenario.guardians[0].id)).not.toEqual([null]);
   });
 
-  test('a segunda chamada não desloca a data da primeira leitura', async () => {
+  test('a second call does not move the date of the first reading', async () => {
     const announcement = await createAnnouncement({
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
@@ -292,7 +292,7 @@ describe('markAsRead', () => {
     expect(await readsOf(announcement.id, scenario.guardians[0].id)).toEqual([OLD_READ]);
   });
 
-  test('não cria leitura para quem não é destinatário', async () => {
+  test('creates no reading for someone who is not a recipient', async () => {
     const announcement = await publish({
       recipients: [{ guardianId: scenario.guardians[0].id }],
     });
@@ -307,7 +307,7 @@ describe('markAsRead', () => {
     expect(await readsOf(announcement.id, scenario.guardians[1].id)).toEqual([]);
   });
 
-  test('não marca a leitura a partir de outra rede', async () => {
+  test('does not mark the reading from another network', async () => {
     const announcement = await publish({
       recipients: [{ guardianId: scenario.guardians[0].id }],
     });
@@ -321,7 +321,7 @@ describe('markAsRead', () => {
     expect(await readsOf(announcement.id, scenario.guardians[0].id)).toEqual([null]);
   });
 
-  test('recusa identificador que não é uuid', async () => {
+  test('refuses an identifier that is not a uuid', async () => {
     const result = await communication.markAsRead({
       networkId: scenario.network.id,
       announcementId: 'nao-e-uuid',
@@ -336,7 +336,7 @@ describe('markAsRead', () => {
 });
 
 describe('guardianBoard', () => {
-  test('traz os comunicados do responsável do mais recente para o mais antigo', async () => {
+  test('brings the guardian\'s announcements from the most recent to the oldest', async () => {
     const base = {
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
@@ -375,7 +375,7 @@ describe('guardianBoard', () => {
     ]);
   });
 
-  test('não traz comunicado de que o responsável não é destinatário', async () => {
+  test('does not bring an announcement the guardian is no recipient of', async () => {
     await publish({ recipients: [{ guardianId: scenario.guardians[0].id }] });
 
     const board = await communication.guardianBoard(
@@ -386,7 +386,7 @@ describe('guardianBoard', () => {
     expect(board).toEqual([]);
   });
 
-  test('não traz comunicado que ainda não foi publicado', async () => {
+  test('does not bring an announcement that has not been published yet', async () => {
     await createAnnouncement({
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
@@ -403,7 +403,7 @@ describe('guardianBoard', () => {
     expect(board).toEqual([]);
   });
 
-  test('mostra a data de leitura de quem já leu', async () => {
+  test('shows the reading date for whoever has already read it', async () => {
     await createAnnouncement({
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
@@ -420,7 +420,7 @@ describe('guardianBoard', () => {
     expect(board[0]?.readAt).toBe(OLD_READ.toISOString());
   });
 
-  test('não traz comunicado de outra rede', async () => {
+  test('does not bring an announcement from another network', async () => {
     const other = await fullScenario();
     await createAnnouncement({
       networkId: other.network.id,
@@ -439,7 +439,7 @@ describe('guardianBoard', () => {
 });
 
 describe('announcementForGuardian', () => {
-  test('devolve o comunicado inteiro para quem é destinatário', async () => {
+  test('gives the whole announcement back to whoever is a recipient', async () => {
     const published = await publish({
       recipients: [{ guardianId: scenario.guardians[0].id }],
     });
@@ -453,7 +453,7 @@ describe('announcementForGuardian', () => {
     expect(announcement).toEqual(published);
   });
 
-  test('devolve null para quem não é destinatário', async () => {
+  test('gives back null for whoever is not a recipient', async () => {
     const published = await publish({
       recipients: [{ guardianId: scenario.guardians[0].id }],
     });
@@ -467,7 +467,7 @@ describe('announcementForGuardian', () => {
     expect(announcement).toBeNull();
   });
 
-  test('devolve null para comunicado que ainda não foi publicado', async () => {
+  test('gives back null for an announcement that has not been published yet', async () => {
     const draft = await createAnnouncement({
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
@@ -485,7 +485,7 @@ describe('announcementForGuardian', () => {
     expect(announcement).toBeNull();
   });
 
-  test('devolve null quando o comunicado é de outra rede', async () => {
+  test('gives back null when the announcement belongs to another network', async () => {
     const published = await publish({
       recipients: [{ guardianId: scenario.guardians[0].id }],
     });
@@ -501,7 +501,7 @@ describe('announcementForGuardian', () => {
 });
 
 describe('listAnnouncements', () => {
-  test('três leituras entre dez destinatários dão taxa de 0,3', async () => {
+  test('three readings among ten recipients make a rate of 0.3', async () => {
     const ten = await Promise.all(
       Array.from({ length: 10 }, () => createGuardian({ networkId: scenario.network.id })),
     );
@@ -530,7 +530,7 @@ describe('listAnnouncements', () => {
     ]);
   });
 
-  test('uma única chamada devolve todos os comunicados da rede com a taxa de cada um', async () => {
+  test('a single call gives back every announcement in the network along with each one\'s rate', async () => {
     const counts = [0, 1, 2, 3, 4, 5];
     const expected = [];
     for (const read of counts) {
@@ -560,7 +560,7 @@ describe('listAnnouncements', () => {
     expect(statistics.every((row) => row.recipients === 5)).toBe(true);
   });
 
-  test('o comunicado sem destinatário aparece com taxa 0', async () => {
+  test('an announcement with no recipient shows up at rate 0', async () => {
     const withoutAnyone = await createAnnouncement({
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
@@ -579,7 +579,7 @@ describe('listAnnouncements', () => {
     ]);
   });
 
-  test('filtra por unidade quando a unidade é informada', async () => {
+  test('filters by school when a school is given', async () => {
     const ofTheFirst = await publish({
       schoolId: scenario.schools[0].id,
       recipients: [{ guardianId: scenario.guardians[0].id }],
@@ -597,7 +597,7 @@ describe('listAnnouncements', () => {
     expect(statistics.map((row) => row.announcementId)).toEqual([ofTheFirst.id]);
   });
 
-  test('sem filtro traz as duas unidades da rede e nenhuma de outra', async () => {
+  test('with no filter it brings both schools of the network and none from another', async () => {
     await publish({
       schoolId: scenario.schools[0].id,
       recipients: [{ guardianId: scenario.guardians[0].id }],
@@ -618,7 +618,7 @@ describe('listAnnouncements', () => {
     expect(statistics).toHaveLength(2);
   });
 
-  test('o comunicado ainda não publicado fica no fim da lista', async () => {
+  test('the announcement not yet published sits at the end of the list', async () => {
     const draft = await createAnnouncement({
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,

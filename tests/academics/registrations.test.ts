@@ -1,8 +1,8 @@
 /*
- * Os cadastros que a secretaria alimenta antes de qualquer matrícula. Cada unicidade aqui é uma
- * constraint do banco (I8) traduzida em erro de campo pelo caso de uso — e cada uma delas vale
- * DENTRO da rede: duas prefeituras podem ter a mesma disciplina, a mesma turma e o mesmo e-mail
- * de responsável sem se atropelarem.
+ * The records the registrar feeds in before any enrollment. Every uniqueness here is a database
+ * constraint (I8) turned into a field error by the use case — and every one of them holds WITHIN
+ * the network: two city halls can carry the same subject, the same class group and the same
+ * guardian e-mail without running each other over.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -38,8 +38,8 @@ function errorsOf(result: Result<unknown>): ApplicationError[] {
 
 beforeEach(clearDatabase);
 
-describe('definirAnoLetivo', () => {
-  test('grava o ano letivo da rede com o período informado', async () => {
+describe('defineAcademicYear', () => {
+  test('records the network\'s academic year over the span given', async () => {
     const network = await createNetwork();
 
     const result = await academics.defineAcademicYear({
@@ -54,7 +54,7 @@ describe('definirAnoLetivo', () => {
     expect(await academics.listAcademicYears(network.id)).toEqual([academicYear]);
   });
 
-  test('recusa o mesmo ano duas vezes na rede', async () => {
+  test('refuses the same year twice within the network', async () => {
     const network = await createNetwork();
     await createAcademicYear({ networkId: network.id, year: 2027 });
 
@@ -68,7 +68,7 @@ describe('definirAnoLetivo', () => {
     expect(await academics.listAcademicYears(network.id)).toHaveLength(1);
   });
 
-  test('aceita o mesmo ano em outra rede', async () => {
+  test('accepts the same year in another network', async () => {
     const first = await createNetwork();
     const second = await createNetwork();
     await createAcademicYear({ networkId: first.id, year: 2027 });
@@ -81,7 +81,7 @@ describe('definirAnoLetivo', () => {
     expect(await academics.listAcademicYears(first.id)).toHaveLength(1);
   });
 
-  test('recusa período com término anterior ao início', async () => {
+  test('refuses a span whose end comes before its start', async () => {
     const network = await createNetwork();
 
     const result = await academics.defineAcademicYear({
@@ -97,7 +97,7 @@ describe('definirAnoLetivo', () => {
     ]);
   });
 
-  test('recusa ano fora da faixa que o produto atende', async () => {
+  test('refuses a year outside the range the product serves', async () => {
     const network = await createNetwork();
 
     const result = await academics.defineAcademicYear({
@@ -107,7 +107,7 @@ describe('definirAnoLetivo', () => {
     expect(errorsOf(result)[0]?.campo).toBe('year');
   });
 
-  test('lista os anos letivos do mais recente para o mais antigo', async () => {
+  test('lists the academic years from the most recent to the oldest', async () => {
     const network = await createNetwork();
     await createAcademicYear({ networkId: network.id, year: 2025 });
     await createAcademicYear({ networkId: network.id, year: 2027 });
@@ -119,8 +119,8 @@ describe('definirAnoLetivo', () => {
   });
 });
 
-describe('cadastrarDisciplina', () => {
-  test('grava a disciplina da rede', async () => {
+describe('registerSubject', () => {
+  test('records the network\'s subject', async () => {
     const network = await createNetwork();
 
     const result = await academics.registerSubject({ networkId: network.id, name: 'Matemática' });
@@ -130,7 +130,7 @@ describe('cadastrarDisciplina', () => {
     expect(await academics.listSubjects(network.id)).toEqual([subject]);
   });
 
-  test('recusa disciplina com nome repetido na rede', async () => {
+  test('refuses a subject whose name repeats within the network', async () => {
     const network = await createNetwork();
     await createSubject({ networkId: network.id, name: 'Matemática' });
 
@@ -146,7 +146,7 @@ describe('cadastrarDisciplina', () => {
     expect(await academics.listSubjects(network.id)).toHaveLength(1);
   });
 
-  test('aceita a mesma disciplina em outra rede', async () => {
+  test('accepts the same subject in another network', async () => {
     const first = await createNetwork();
     const second = await createNetwork();
     await createSubject({ networkId: first.id, name: 'Matemática' });
@@ -156,7 +156,7 @@ describe('cadastrarDisciplina', () => {
     expect(result.ok).toBe(true);
   });
 
-  test('recusa disciplina sem nome', async () => {
+  test('refuses a subject with no name', async () => {
     const network = await createNetwork();
 
     const result = await academics.registerSubject({ networkId: network.id, name: '   ' });
@@ -165,8 +165,8 @@ describe('cadastrarDisciplina', () => {
   });
 });
 
-describe('cadastrarTurma', () => {
-  test('grava a turma da unidade no ano letivo', async () => {
+describe('registerClassGroup', () => {
+  test('records the school\'s class group in the academic year', async () => {
     const network = await createNetwork();
     const school = await createSchool({ networkId: network.id });
     const academicYear = await createAcademicYear({ networkId: network.id });
@@ -184,7 +184,7 @@ describe('cadastrarTurma', () => {
     expect(await academics.classGroupById(network.id, classGroup.id)).toEqual(classGroup);
   });
 
-  test('recusa turma com o mesmo nome na mesma unidade e ano letivo', async () => {
+  test('refuses a class group with the same name in the same school and academic year', async () => {
     const network = await createNetwork();
     const school = await createSchool({ networkId: network.id });
     const academicYear = await createAcademicYear({ networkId: network.id });
@@ -207,7 +207,7 @@ describe('cadastrarTurma', () => {
     expect(await academics.listClassGroups(network.id)).toHaveLength(1);
   });
 
-  test('aceita o mesmo nome de turma em outra unidade da mesma rede', async () => {
+  test('accepts the same class group name in another school of the same network', async () => {
     const network = await createNetwork();
     const center = await createSchool({ networkId: network.id });
     const beach = await createSchool({ networkId: network.id });
@@ -224,7 +224,7 @@ describe('cadastrarTurma', () => {
     expect(result.ok).toBe(true);
   });
 
-  test('aceita o mesmo nome de turma na mesma unidade em outro ano letivo', async () => {
+  test('accepts the same class group name in the same school in another academic year', async () => {
     const network = await createNetwork();
     const school = await createSchool({ networkId: network.id });
     const thisYear = await createAcademicYear({ networkId: network.id, year: DEFAULT_YEAR });
@@ -241,7 +241,7 @@ describe('cadastrarTurma', () => {
     expect(result.ok).toBe(true);
   });
 
-  test('recusa turno que o domínio não conhece', async () => {
+  test('refuses a shift the domain does not know', async () => {
     const network = await createNetwork();
     const school = await createSchool({ networkId: network.id });
     const academicYear = await createAcademicYear({ networkId: network.id });
@@ -254,7 +254,7 @@ describe('cadastrarTurma', () => {
     expect(errorsOf(result)[0]?.campo).toBe('shift');
   });
 
-  test('recusa unidade de outra rede', async () => {
+  test('refuses a school from another network', async () => {
     const ours = await createNetwork();
     const foreign = await createNetwork();
     const otherSchool = await createSchool({ networkId: foreign.id });
@@ -274,7 +274,7 @@ describe('cadastrarTurma', () => {
     ]);
   });
 
-  test('recusa ano letivo de outra rede', async () => {
+  test('refuses an academic year from another network', async () => {
     const ours = await createNetwork();
     const foreign = await createNetwork();
     const school = await createSchool({ networkId: ours.id });
@@ -289,8 +289,8 @@ describe('cadastrarTurma', () => {
   });
 });
 
-describe('cadastrarAluno', () => {
-  test('grava o aluno da rede', async () => {
+describe('registerStudent', () => {
+  test('records the network\'s student', async () => {
     const network = await createNetwork();
 
     const result = await academics.registerStudent({
@@ -304,7 +304,7 @@ describe('cadastrarAluno', () => {
     expect(await academics.studentById(network.id, student.id)).toEqual(student);
   });
 
-  test('recusa data de nascimento no futuro', async () => {
+  test('refuses a date of birth in the future', async () => {
     const network = await createNetwork();
 
     const result = await academics.registerStudent({
@@ -321,7 +321,7 @@ describe('cadastrarAluno', () => {
     expect(await academics.searchStudents(network.id, 'Ana')).toHaveLength(0);
   });
 
-  test('recusa data de nascimento fora do formato', async () => {
+  test('refuses a date of birth outside the format', async () => {
     const network = await createNetwork();
 
     const result = await academics.registerStudent({
@@ -331,7 +331,7 @@ describe('cadastrarAluno', () => {
     expect(errorsOf(result)[0]?.campo).toBe('birthDate');
   });
 
-  test('recusa aluno sem nome', async () => {
+  test('refuses a student with no name', async () => {
     const network = await createNetwork();
 
     const result = await academics.registerStudent({
@@ -341,7 +341,7 @@ describe('cadastrarAluno', () => {
     expect(errorsOf(result)[0]?.campo).toBe('name');
   });
 
-  test('dois alunos podem ter o mesmo nome: homônimo não é duplicidade', async () => {
+  test('two students may share a name: a namesake is not a duplicate', async () => {
     const network = await createNetwork();
     await academics.registerStudent({
       networkId: network.id, name: 'Ana Souza', birthDate: '2014-05-10',
@@ -356,8 +356,8 @@ describe('cadastrarAluno', () => {
   });
 });
 
-describe('cadastrarResponsavel', () => {
-  test('grava o responsável com e-mail normalizado', async () => {
+describe('registerGuardian', () => {
+  test('records the guardian with the e-mail normalized', async () => {
     const network = await createNetwork();
 
     const result = await academics.registerGuardian({
@@ -371,7 +371,7 @@ describe('cadastrarResponsavel', () => {
     });
   });
 
-  test('telefone em branco vira ausência de telefone', async () => {
+  test('a blank phone becomes the absence of a phone', async () => {
     const network = await createNetwork();
 
     const result = await academics.registerGuardian({
@@ -381,7 +381,7 @@ describe('cadastrarResponsavel', () => {
     expect(valueOfResult(result).phone).toBeNull();
   });
 
-  test('recusa e-mail já cadastrado na rede', async () => {
+  test('refuses an e-mail already on record in the network', async () => {
     const network = await createNetwork();
     await createGuardian({ networkId: network.id, email: 'carla@familia.br' });
 
@@ -399,7 +399,7 @@ describe('cadastrarResponsavel', () => {
     expect(await academics.listGuardians(network.id)).toHaveLength(1);
   });
 
-  test('aceita o mesmo e-mail de responsável em outra rede', async () => {
+  test('accepts the same guardian e-mail in another network', async () => {
     const first = await createNetwork();
     const second = await createNetwork();
     await createGuardian({ networkId: first.id, email: 'carla@familia.br' });
@@ -413,7 +413,7 @@ describe('cadastrarResponsavel', () => {
     expect(await academics.listGuardians(second.id)).toHaveLength(1);
   });
 
-  test('recusa e-mail inválido', async () => {
+  test('refuses an invalid e-mail', async () => {
     const network = await createNetwork();
 
     const result = await academics.registerGuardian({
@@ -423,7 +423,7 @@ describe('cadastrarResponsavel', () => {
     expect(errorsOf(result)[0]?.campo).toBe('email');
   });
 
-  test('cadastra responsável sem CPF — o estrangeiro existe como contato', async () => {
+  test('records a guardian with no CPF — a foreigner exists as a contact', async () => {
     const network = await createNetwork({});
 
     const created = await academics.registerGuardian({
@@ -437,7 +437,7 @@ describe('cadastrarResponsavel', () => {
     if (created.ok) expect(created.valor.cpf).toBeNull();
   });
 
-  test('aceita CPF null explícito no cadastro', async () => {
+  test('accepts an explicit null CPF on the record', async () => {
     const network = await createNetwork({});
 
     const created = await academics.registerGuardian({
@@ -451,7 +451,7 @@ describe('cadastrarResponsavel', () => {
     if (created.ok) expect(created.valor.cpf).toBeNull();
   });
 
-  test('recusa CPF com verificador errado', async () => {
+  test('refuses a CPF whose check digit is wrong', async () => {
     const network = await createNetwork({});
 
     const created = await academics.registerGuardian({
@@ -465,7 +465,7 @@ describe('cadastrarResponsavel', () => {
     if (!created.ok) expect(created.erros[0]?.campo).toBe('cpf');
   });
 
-  test('guarda o CPF só com dígitos, mesmo digitado com pontuação', async () => {
+  test('stores the CPF as digits alone, even when typed with punctuation', async () => {
     const network = await createNetwork({});
 
     const created = await academics.registerGuardian({
@@ -480,8 +480,8 @@ describe('cadastrarResponsavel', () => {
   });
 });
 
-describe('vincularResponsavel', () => {
-  test('liga o responsável ao aluno com o parentesco informado', async () => {
+describe('linkGuardian', () => {
+  test('ties the guardian to the student under the relationship given', async () => {
     const network = await createNetwork();
     const student = await createStudent({ networkId: network.id });
     const guardian = await createGuardian({
@@ -502,7 +502,7 @@ describe('vincularResponsavel', () => {
     ]);
   });
 
-  test('recusa o mesmo vínculo duas vezes', async () => {
+  test('refuses the same link twice', async () => {
     const network = await createNetwork();
     const student = await createStudent({ networkId: network.id });
     const guardian = await createGuardian({ networkId: network.id });
@@ -525,7 +525,7 @@ describe('vincularResponsavel', () => {
     expect(await academics.studentGuardians(network.id, student.id)).toHaveLength(1);
   });
 
-  test('recusa aluno de outra rede', async () => {
+  test('refuses a student from another network', async () => {
     const ours = await createNetwork();
     const foreign = await createNetwork();
     const foreignStudent = await createStudent({ networkId: foreign.id });
@@ -539,7 +539,7 @@ describe('vincularResponsavel', () => {
     expect(errorsOf(result)[0]?.codigo).toBe('aluno_nao_encontrado');
   });
 
-  test('recusa responsável de outra rede', async () => {
+  test('refuses a guardian from another network', async () => {
     const ours = await createNetwork();
     const foreign = await createNetwork();
     const student = await createStudent({ networkId: ours.id });
@@ -553,7 +553,7 @@ describe('vincularResponsavel', () => {
     expect(errorsOf(result)[0]?.codigo).toBe('responsavel_nao_encontrado');
   });
 
-  test('recusa vínculo sem parentesco', async () => {
+  test('refuses a link with no relationship', async () => {
     const network = await createNetwork();
     const student = await createStudent({ networkId: network.id });
     const guardian = await createGuardian({ networkId: network.id });
@@ -567,8 +567,8 @@ describe('vincularResponsavel', () => {
   });
 });
 
-describe('alocarProfessor', () => {
-  test('aloca a disciplina na turma com o professor da unidade', async () => {
+describe('assignTeacher', () => {
+  test('allocates the subject to the class group under a teacher of that school', async () => {
     const scenario = await fullScenario();
     const [, emptyClassGroup] = scenario.classGroups;
     const subject = await createSubject({ networkId: scenario.network.id, name: 'Geografia' });
@@ -587,7 +587,7 @@ describe('alocarProfessor', () => {
     expect(await academics.listClassGroupSubjects(scenario.network.id, emptyClassGroup.id)).toEqual([assignment]);
   });
 
-  test('recusa quem não tem papel de professor na unidade da turma', async () => {
+  test('refuses whoever holds no teacher role in the class group\'s school', async () => {
     const scenario = await fullScenario();
     const [, emptyClassGroup] = scenario.classGroups;
     const subject = await createSubject({ networkId: scenario.network.id });
@@ -607,7 +607,7 @@ describe('alocarProfessor', () => {
     expect(await academics.listClassGroupSubjects(scenario.network.id, emptyClassGroup.id)).toHaveLength(0);
   });
 
-  test('recusa professor de outra unidade da mesma rede', async () => {
+  test('refuses a teacher from another school of the same network', async () => {
     const scenario = await fullScenario();
     const [, anotherSchool] = scenario.schools;
     const classGroupOfAnotherSchool = await createClassGroup({
@@ -623,7 +623,7 @@ describe('alocarProfessor', () => {
     expect(errorsOf(result)[0]?.codigo).toBe('sem_papel_de_professor');
   });
 
-  test('recusa professor de outra rede', async () => {
+  test('refuses a teacher from another network', async () => {
     const { a, b } = await twoNetworks();
     const [, emptyClassGroup] = a.classGroups;
     const subject = await createSubject({ networkId: a.network.id });
@@ -636,7 +636,7 @@ describe('alocarProfessor', () => {
     expect(errorsOf(result)[0]?.codigo).toBe('sem_papel_de_professor');
   });
 
-  test('recusa a mesma disciplina duas vezes na mesma turma', async () => {
+  test('refuses the same subject twice in the same class group', async () => {
     const scenario = await fullScenario();
     const [classGroupWithSubjects] = scenario.classGroups;
     const [portuguese] = scenario.subjects;
@@ -658,7 +658,7 @@ describe('alocarProfessor', () => {
     ).toHaveLength(3);
   });
 
-  test('a mesma disciplina pode ser alocada em outra turma', async () => {
+  test('the same subject can be allocated to another class group', async () => {
     const scenario = await fullScenario();
     const [, emptyClassGroup] = scenario.classGroups;
     const [portuguese] = scenario.subjects;
@@ -671,7 +671,7 @@ describe('alocarProfessor', () => {
     expect(result.ok).toBe(true);
   });
 
-  test('recusa turma de outra rede', async () => {
+  test('refuses a class group from another network', async () => {
     const { a, b } = await twoNetworks();
     const subject = await createSubject({ networkId: a.network.id });
 
@@ -683,7 +683,7 @@ describe('alocarProfessor', () => {
     expect(errorsOf(result)[0]?.codigo).toBe('turma_nao_encontrada');
   });
 
-  test('recusa disciplina de outra rede', async () => {
+  test('refuses a subject from another network', async () => {
     const { a, b } = await twoNetworks();
 
     const result = await academics.assignTeacher({
@@ -694,7 +694,7 @@ describe('alocarProfessor', () => {
     expect(errorsOf(result)[0]?.codigo).toBe('disciplina_nao_encontrada');
   });
 
-  test('recusa ids fora do formato antes de tocar no banco', async () => {
+  test('refuses ids outside the format before touching the database', async () => {
     const scenario = await fullScenario();
 
     const result = await academics.assignTeacher({

@@ -1,7 +1,7 @@
 /*
- * O domínio de `communication` sem banco: o que vale como título e corpo, o que conta como
- * publicado e a taxa de leitura — a medição que tira "ninguém lê o mural" do campo da opinião e
- * que, por isso, não pode devolver `NaN` para a tela.
+ * The `communication` domain with no database: what counts as a title and a body, what counts as
+ * published, and the read rate — the measurement that lifts "nobody reads the board" out of the
+ * realm of opinion, and which therefore must never hand `NaN` to the screen.
  */
 
 import { describe, expect, test } from 'bun:test';
@@ -16,38 +16,38 @@ import {
 import { readRate } from '../../src/communication/domain/recipient';
 
 describe('readRate', () => {
-  test('devolve 0 sem destinatário, em vez de dividir por zero', () => {
+  test('gives back 0 with no recipient, instead of dividing by zero', () => {
     const rate = readRate(0, 0);
 
     expect(rate).toBe(0);
     expect(Number.isNaN(rate)).toBe(false);
   });
 
-  test('devolve a fração de destinatários que leram', () => {
+  test('gives back the fraction of recipients who read it', () => {
     const rate = readRate(10, 3);
 
     expect(rate).toBe(0.3);
   });
 
-  test('devolve 0 quando o comunicado foi entregue e ninguém abriu', () => {
+  test('gives back 0 when the announcement was delivered and nobody opened it', () => {
     const rate = readRate(120, 0);
 
     expect(rate).toBe(0);
   });
 
-  test('devolve 1 quando todo destinatário leu', () => {
+  test('gives back 1 when every recipient read it', () => {
     const rate = readRate(7, 7);
 
     expect(rate).toBe(1);
   });
 
-  test('nunca passa de 1, mesmo com contagem inconsistente', () => {
+  test('never goes past 1, even on an inconsistent count', () => {
     const rate = readRate(4, 9);
 
     expect(rate).toBe(1);
   });
 
-  test('nunca fica negativa, mesmo com contagem inconsistente', () => {
+  test('never goes negative, even on an inconsistent count', () => {
     const rate = readRate(4, -2);
 
     expect(rate).toBe(0);
@@ -55,19 +55,19 @@ describe('readRate', () => {
 });
 
 describe('isValidTitle', () => {
-  test('aceita um título comum', () => {
+  test('accepts an ordinary title', () => {
     const valid = isValidTitle('Reunião de pais na quinta-feira');
 
     expect(valid).toBe(true);
   });
 
-  test('recusa título vazio ou só de espaços', () => {
+  test('refuses a title that is empty or made only of spaces', () => {
     const rejected = ['', '   ', '\n\t'].map(isValidTitle);
 
     expect(rejected).toEqual([false, false, false]);
   });
 
-  test('aceita o título no tamanho máximo e recusa um caractere além', () => {
+  test('accepts a title at the maximum length and refuses one character past it', () => {
     const atTheLimit = isValidTitle('t'.repeat(MAX_TITLE_LENGTH));
     const above = isValidTitle('t'.repeat(MAX_TITLE_LENGTH + 1));
 
@@ -75,7 +75,7 @@ describe('isValidTitle', () => {
     expect(above).toBe(false);
   });
 
-  test('mede o título já sem os espaços das pontas', () => {
+  test('measures the title with the surrounding spaces already gone', () => {
     const valid = isValidTitle(`  ${'t'.repeat(MAX_TITLE_LENGTH)}  `);
 
     expect(valid).toBe(true);
@@ -83,19 +83,19 @@ describe('isValidTitle', () => {
 });
 
 describe('isValidBody', () => {
-  test('aceita um corpo comum', () => {
+  test('accepts an ordinary body', () => {
     const valid = isValidBody('A reunião começa às 19h no auditório.');
 
     expect(valid).toBe(true);
   });
 
-  test('recusa corpo vazio ou só de espaços', () => {
+  test('refuses a body that is empty or made only of spaces', () => {
     const rejected = ['', '    '].map(isValidBody);
 
     expect(rejected).toEqual([false, false]);
   });
 
-  test('aceita o corpo no tamanho máximo e recusa um caractere além', () => {
+  test('accepts a body at the maximum length and refuses one character past it', () => {
     const atTheLimit = isValidBody('c'.repeat(MAX_BODY_LENGTH));
     const above = isValidBody('c'.repeat(MAX_BODY_LENGTH + 1));
 
@@ -105,13 +105,13 @@ describe('isValidBody', () => {
 });
 
 describe('isPublished', () => {
-  test('o comunicado sem data de publicação não está publicado', () => {
+  test('an announcement with no publication date is not published', () => {
     const published = isPublished({ publishedAt: null });
 
     expect(published).toBe(false);
   });
 
-  test('o comunicado com data de publicação está publicado', () => {
+  test('an announcement carrying a publication date is published', () => {
     const published = isPublished({ publishedAt: '2026-05-10T12:00:00.000Z' });
 
     expect(published).toBe(true);
@@ -119,7 +119,7 @@ describe('isPublished', () => {
 });
 
 describe('withAuthor', () => {
-  test('troca o id do autor pelo nome sem deixar o id vazar para fora do módulo', () => {
+  test('swaps the author id for the name without letting the id leak outside the module', () => {
     const stored = {
       id: 'c1',
       networkId: 'r1',
@@ -144,7 +144,7 @@ describe('withAuthor', () => {
     expect(Object.keys(announcement)).not.toContain('authorUserId');
   });
 
-  test('não altera o comunicado armazenado que recebeu', () => {
+  test('does not alter the stored announcement it was handed', () => {
     const stored = {
       id: 'c1',
       networkId: 'r1',

@@ -1,7 +1,7 @@
 /*
- * O fechamento de bimestre é a operação síncrona que planta a dor do Estágio 05: ela confere toda
- * matrícula ativa contra toda disciplina alocada antes de gravar, e recusa dizendo exatamente o que
- * falta. Depois de fechado, o bimestre não aceita mais nota — item 15 da Seção 9.
+ * Closing a term is the synchronous operation that plants the pain of Stage 05: it checks every
+ * active enrollment against every allocated subject before writing anything, and refuses by saying
+ * exactly what is missing. Once closed, a term takes no more grades — item 15 of Section 9.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -24,7 +24,7 @@ beforeEach(async () => {
   scenario = await fullScenario();
 });
 
-/** Lança `valor` para todas as matrículas em todas as disciplinas da turma no bimestre. */
+/** Posts `value` for every enrollment across every subject of the class group in that term. */
 async function postEverything(term: number, value = 7): Promise<void> {
   for (const classGroupSubject of scenario.classGroupSubjects) {
     await assessment.postGrades({
@@ -53,8 +53,8 @@ function messageOf(result: { ok: boolean } & Record<string, unknown>): string {
   return errors[0]?.mensagem ?? '';
 }
 
-describe('fechamentoBimestre (domínio)', () => {
-  test('expande a grade dos quatro bimestres tratando a ausência como bimestre aberto', () => {
+describe('termClosing (domain)', () => {
+  test('expands the grid of four terms, reading absence as an open term', () => {
     const saved = [{ term: 2, closedAt: '2026-05-10T12:00:00Z' }];
 
     const states = closingStates(saved);
@@ -67,14 +67,14 @@ describe('fechamentoBimestre (domínio)', () => {
     ]);
   });
 
-  test('turma sem fechamento nenhum tem os quatro bimestres abertos', () => {
+  test('a class group with no closing at all has all four terms open', () => {
     const states = closingStates([]);
 
     expect(states).toHaveLength(4);
     expect(states.every((state) => !state.closed)).toBe(true);
   });
 
-  test('só considera o ano encerrado quando os quatro bimestres estão fechados', () => {
+  test('calls the year over only once all four terms are closed', () => {
     const threeClosed = closingStates([1, 2, 3].map((term) => ({
       term,
       closedAt: '2026-05-10T12:00:00Z',
@@ -88,7 +88,7 @@ describe('fechamentoBimestre (domínio)', () => {
     expect(allTermsClosed(fourClosed)).toBe(true);
   });
 
-  test('lista só as disciplinas que ainda impedem o fechamento', () => {
+  test('lists only the subjects still standing in the way of the closing', () => {
     const subjects = [
       { id: 'a', subjectName: 'Matemática' },
       { id: 'b', subjectName: 'História' },
@@ -99,7 +99,7 @@ describe('fechamentoBimestre (domínio)', () => {
     expect(pendingItems).toEqual([{ subjectName: 'História', missing: 3 }]);
   });
 
-  test('a disciplina sem lançamento nenhum falta a turma inteira', () => {
+  test('a subject with nothing posted is missing the entire class group', () => {
     const subjects = [{ id: 'a', subjectName: 'Matemática' }];
 
     const pendingItems = closingPendingItems(subjects, 5, new Map());
@@ -107,13 +107,13 @@ describe('fechamentoBimestre (domínio)', () => {
     expect(pendingItems).toEqual([{ subjectName: 'Matemática', missing: 5 }]);
   });
 
-  test('a mensagem de uma pendência única fica no singular', () => {
+  test('the message for a single pending item stays in the singular', () => {
     const message = pendingItemsMessage([{ subjectName: 'História', missing: 1 }]);
 
     expect(message).toBe('Falta 1 nota para fechar o bimestre: História (1).');
   });
 
-  test('a mensagem soma as pendências e nomeia cada disciplina', () => {
+  test('the message adds the pending items up and names each subject', () => {
     const message = pendingItemsMessage([
       { subjectName: 'História', missing: 3 },
       { subjectName: 'Matemática', missing: 4 },
@@ -124,7 +124,7 @@ describe('fechamentoBimestre (domínio)', () => {
 });
 
 describe('closeTerm', () => {
-  test('recusa enquanto falta nota e diz quantas são e em quais disciplinas', async () => {
+  test('refuses while grades are missing, and says how many and in which subjects', async () => {
     await assessment.postGrades({
       networkId: scenario.network.id,
       classGroupSubjectId: scenario.classGroupSubjects[0].id,
@@ -145,7 +145,7 @@ describe('closeTerm', () => {
     expect(message).toContain(`${scenario.subjects[2].name} (5)`);
   });
 
-  test('a recusa por uma única nota faltando fica no singular e aponta a disciplina', async () => {
+  test('the refusal over a single missing grade stays in the singular and points at the subject', async () => {
     await postEverything(1);
     await assessment.postGrades({
       networkId: scenario.network.id,
@@ -162,7 +162,7 @@ describe('closeTerm', () => {
     );
   });
 
-  test('fecha quando toda matrícula ativa tem nota em toda disciplina alocada', async () => {
+  test('closes once every active enrollment has a grade in every allocated subject', async () => {
     await postEverything(1);
 
     const result = await close(1);
@@ -177,7 +177,7 @@ describe('closeTerm', () => {
     expect(states.slice(1).every((state) => !state.closed)).toBe(true);
   });
 
-  test('recusa fechar o mesmo bimestre duas vezes', async () => {
+  test('refuses to close the same term twice', async () => {
     await postEverything(1);
     await close(1);
 
@@ -189,7 +189,7 @@ describe('closeTerm', () => {
     });
   });
 
-  test('depois de fechado o bimestre não aceita mais lançamento de nota', async () => {
+  test('once closed, the term takes no further grade posting', async () => {
     await postEverything(1);
     await close(1);
 
@@ -213,7 +213,7 @@ describe('closeTerm', () => {
     expect(grades.get(scenario.enrollments[0].id)).toBe(7);
   });
 
-  test('o bimestre fechado não trava os outros três', async () => {
+  test('the closed term does not lock the other three', async () => {
     await postEverything(1);
     await close(1);
 
@@ -228,7 +228,7 @@ describe('closeTerm', () => {
     expect(result).toEqual({ ok: true, valor: 1 });
   });
 
-  test('o fechamento de uma turma não fecha o bimestre da turma vizinha', async () => {
+  test('closing one class group does not close the term of the class group next door', async () => {
     await createClassGroupSubject({
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[1].id,
@@ -243,7 +243,7 @@ describe('closeTerm', () => {
     expect(states.every((state) => !state.closed)).toBe(true);
   });
 
-  test('nota de aluno transferido não conta como pendência', async () => {
+  test('the grade of a transferred student does not count as a pending item', async () => {
     const transferred = scenario.enrollments[4];
     for (const classGroupSubject of scenario.classGroupSubjects) {
       await assessment.postGrades({
@@ -264,7 +264,7 @@ describe('closeTerm', () => {
     expect(result).toEqual({ ok: true, valor: undefined });
   });
 
-  test('recusa turma sem disciplina alocada', async () => {
+  test('refuses a class group with no subject allocated', async () => {
     const result = await close(1, scenario.classGroups[1].id);
 
     expect(result).toEqual({
@@ -273,7 +273,7 @@ describe('closeTerm', () => {
     });
   });
 
-  test('recusa turma sem matrícula ativa', async () => {
+  test('refuses a class group with no active enrollment', async () => {
     await createClassGroupSubject({
       networkId: scenario.network.id,
       classGroupId: scenario.classGroups[1].id,
@@ -289,7 +289,7 @@ describe('closeTerm', () => {
     });
   });
 
-  test('recusa turma que não é desta rede', async () => {
+  test('refuses a class group that does not belong to this network', async () => {
     const other = await fullScenario();
 
     const result = await close(1, other.classGroups[0].id);
@@ -300,7 +300,7 @@ describe('closeTerm', () => {
     });
   });
 
-  test('recusa bimestre fora de 1 a 4', async () => {
+  test('refuses a term outside 1 to 4', async () => {
     const result = await close(5);
 
     expect(result).toEqual({
@@ -309,7 +309,7 @@ describe('closeTerm', () => {
     });
   });
 
-  test('fecha os quatro bimestres da turma, um a um', async () => {
+  test('closes all four terms of the class group, one by one', async () => {
     for (const term of [1, 2, 3, 4]) {
       await postEverything(term);
       await close(term);
