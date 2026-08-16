@@ -33,6 +33,19 @@ steps 1 and 4 compressed into a single instant.
 
 ## Consequences
 
+- **The rule is a gate, not an agreement.** `tests/shared/migration_window.test.ts` reads every file
+  under `migrations/` and refuses the three shapes that compress the window into an instant: a
+  `RENAME`, an `ADD COLUMN` sharing a file with a `DROP COLUMN`, a `DROP TABLE` or a `SET NOT NULL`,
+  and an `ADD COLUMN ... NOT NULL` with no `DEFAULT`. The second half of that file feeds the check
+  sources that do break the rule and demands it accuse each one — without that, a check that always
+  answered "no violation" would pass every case above it.
+- **The window is demonstrated running, not described.** `tests/shared/migration_window_in_motion.test.ts`
+  renames a column against a real database in the four steps above, and states what each one buys:
+  both versions reading during the window, the previous version still writing because step 1 forbids
+  `NOT NULL` with no default, the close refusing while step 3 has not happened, and — as the
+  photographic negative — the one-step `RENAME` taking the previous version down at that very
+  instant. It exists because consolidating the migrations erased the historical example from
+  `migrations/`: the demonstration had to move somewhere that runs.
 - A change that "would be one line" becomes four migrations spread over weeks. That is the price of
   being able to roll the process back without rolling the database back.
 - Rollback stays available at all times: since no migration drops what the previous version reads,
