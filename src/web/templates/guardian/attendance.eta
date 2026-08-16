@@ -1,69 +1,69 @@
 <%
-const boletim = it.boletim;
-const dias = it.dias;
-const faltas = boletim.totalDias - boletim.presencas;
+const reportCard = it.reportCard;
+const days = it.days;
+const absences = reportCard.totalDays - reportCard.presentDays;
 
-const ROTULO_DA_PRESENCA = it.rotuloDaPresenca;
+const ATTENDANCE_LABEL = it.attendanceLabel;
 
-const CLASSE_DA_PRESENCA = it.classeDaEtiqueta.presenca;
+const ATTENDANCE_CLASS = it.tagClass.attendance;
 
-const SEM_VALOR = it.semValor;
+const MISSING = it.missingValue;
 
-const CRITERIO = it.criterio;
+const CRITERIA = it.criteria;
 
-const situacaoDoDia = (dia) => {
-  if (dia.presente) {
-    return { classe: CLASSE_DA_PRESENCA.presente, rotulo: ROTULO_DA_PRESENCA.presente };
+const dayStatus = (day) => {
+  if (day.present) {
+    return { className: ATTENDANCE_CLASS.present, label: ATTENDANCE_LABEL.present };
   }
-  if (dia.justificativa) {
+  if (day.excuse) {
     return {
-      classe: CLASSE_DA_PRESENCA.faltaJustificada,
-      rotulo: ROTULO_DA_PRESENCA.faltaJustificada,
+      className: ATTENDANCE_CLASS.excusedAbsence,
+      label: ATTENDANCE_LABEL.excusedAbsence,
     };
   }
-  return { classe: CLASSE_DA_PRESENCA.falta, rotulo: ROTULO_DA_PRESENCA.falta };
+  return { className: ATTENDANCE_CLASS.absence, label: ATTENDANCE_LABEL.absence };
 };
 %>
 <header class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Frequência</p>
-    <h1 class="pagina__titulo"><%= it.matricula.alunoNome %></h1>
+    <h1 class="pagina__titulo"><%= it.enrollment.studentName %></h1>
     <p class="pagina__resumo">
-      Turma <%= it.matricula.turmaNome %><%= it.apresentacao.separador %>ano letivo
-      <span class="numero"><%= it.matricula.ano %></span>
+      Turma <%= it.enrollment.classGroupName %><%= it.presentation.separator %>ano letivo
+      <span class="numero"><%= it.enrollment.year %></span>
     </p>
   </div>
   <p class="pagina__acoes">
     <a class="botao botao--secundario"
-       href="<%= it.rotas.responsavel.boletim({ id: it.matricula.id }) %>">Ver boletim</a>
-    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.painel() %>"><%= it.acoes.voltarPara.alunos %></a>
+       href="<%= it.routes.guardian.reportCard({ id: it.enrollment.id }) %>">Ver boletim</a>
+    <a class="botao botao--discreto" href="<%= it.routes.guardian.dashboard() %>"><%= it.actions.backTo.students %></a>
   </p>
 </header>
 
 <section class="secao" aria-labelledby="titulo-apuracao">
   <div class="secao__cabecalho">
     <h2 id="titulo-apuracao">Apuração do ano</h2>
-    <p class="secao__nota">São necessários <%= CRITERIO.frequencia %> de presença para aprovação</p>
+    <p class="secao__nota">São necessários <%= CRITERIA.attendance %> de presença para aprovação</p>
   </div>
 
   <div class="painel">
     <div class="cartao">
-      <p class="cartao__rotulo"><%= it.rotulos.frequencia %></p>
-      <p class="cartao__numero"><%= it.formatarPercentual(boletim.percentualFrequencia) %></p>
+      <p class="cartao__rotulo"><%= it.labels.attendance %></p>
+      <p class="cartao__numero"><%= it.formatPercent(reportCard.attendanceRate) %></p>
       <p class="cartao__detalhe">Presenças sobre dias com chamada</p>
     </div>
 
     <div class="cartao">
       <p class="cartao__rotulo">Presenças</p>
-      <p class="cartao__numero"><%= boletim.presencas %></p>
+      <p class="cartao__numero"><%= reportCard.presentDays %></p>
       <p class="cartao__detalhe">
-        de <span class="numero"><%= boletim.totalDias %></span> dias registrados
+        de <span class="numero"><%= reportCard.totalDays %></span> dias registrados
       </p>
     </div>
 
     <div class="cartao">
       <p class="cartao__rotulo">Faltas</p>
-      <p class="cartao__numero"><%= faltas %></p>
+      <p class="cartao__numero"><%= absences %></p>
       <p class="cartao__detalhe">Justificadas e não justificadas</p>
     </div>
   </div>
@@ -75,41 +75,41 @@ const situacaoDoDia = (dia) => {
     <p class="secao__nota">Do dia mais recente para o mais antigo</p>
   </div>
 
-  <% if (dias.length === 0) { %>
-    <%~ include(it.parciais.vazio, {
-      titulo: 'Nenhum dia de chamada registrado',
-      texto: 'A frequência aparece aqui assim que o professor registrar a primeira chamada da turma.',
+  <% if (days.length === 0) { %>
+    <%~ include(it.partials.empty, {
+      title: 'Nenhum dia de chamada registrado',
+      text: 'A frequência aparece aqui assim que o professor registrar a primeira chamada da turma.',
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">
     <table class="tabela">
-      <caption>Chamada de <%= it.matricula.alunoNome %></caption>
+      <caption>Chamada de <%= it.enrollment.studentName %></caption>
       <thead>
         <tr>
           <th scope="col" class="celula-centro">Data</th>
 <%
-// magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; por isso não é membro de `it.rotulos`. %>
+// magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; por isso não é membro de `it.labels`. %>
           <th scope="col" class="celula-centro">Situação</th>
           <th scope="col" class="celula-texto celula-elastica">Justificativa</th>
         </tr>
       </thead>
       <tbody>
-        <% dias.forEach((dia) => { const situacao = situacaoDoDia(dia); %>
+        <% days.forEach((day) => { const status = dayStatus(day); %>
         <tr>
           <th scope="row" class="celula-centro">
-            <time datetime="<%= dia.data %>"><%= it.formatarData(dia.data) %></time>
+            <time datetime="<%= day.date %>"><%= it.formatDate(day.date) %></time>
           </th>
           <td class="celula-centro">
-            <span class="etiqueta <%= situacao.classe %>"><%= situacao.rotulo %></span>
+            <span class="etiqueta <%= status.className %>"><%= status.label %></span>
           </td>
           <td class="celula-texto celula-elastica">
-            <%= dia.justificativa ? dia.justificativa : SEM_VALOR %>
+            <%= day.excuse ? day.excuse : MISSING %>
           </td>
         </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'dias registrados' }) %>
+  <%~ include(it.partials.pagination, { pagination: it.pagination, label: 'dias registrados' }) %>
   <% } %>
 </section>

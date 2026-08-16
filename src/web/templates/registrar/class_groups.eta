@@ -1,49 +1,49 @@
 <%
-const turmas = it.turmas ?? [];
-const unidades = it.unidades ?? [];
-const anosLetivos = it.anosLetivos ?? [];
-const filtro = it.filtro ?? { unidadeId: '', anoLetivoId: '' };
-const filtrando = filtro.unidadeId !== '' || filtro.anoLetivoId !== '';
-const listaDeTurmas = it.rotas.secretaria.turmas();
-const cadastroDeTurma = it.rotas.secretaria.turmaNova();
+const classGroups = it.classGroups ?? [];
+const schools = it.schools ?? [];
+const academicYears = it.academicYears ?? [];
+const filter = it.filter ?? { schoolId: '', academicYearId: '' };
+const filtering = filter.schoolId !== '' || filter.academicYearId !== '';
+const classGroupList = it.routes.registrar.classGroups();
+const classGroupForm = it.routes.registrar.classGroupNew();
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.secretaria %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.registrar %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       A turma pertence a uma unidade e a um ano letivo. É nela que se alocam as disciplinas com seus
       professores, e é para ela que os alunos são matriculados.
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.disciplinas() %>"><%= it.titulos.secretaria.disciplinas %></a>
-    <a class="botao botao--primario" href="<%= cadastroDeTurma %>"><%= it.titulos.secretaria.turmaNova %></a>
+    <a class="botao botao--secundario" href="<%= it.routes.registrar.subjects() %>"><%= it.titles.registrar.subjects %></a>
+    <a class="botao botao--primario" href="<%= classGroupForm %>"><%= it.titles.registrar.classGroupNew %></a>
   </div>
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="get" action="<%= listaDeTurmas %>">
+  <form class="formulario" method="get" action="<%= classGroupList %>">
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="unidade"><%= it.rotulos.unidade %></label>
-        <select id="unidade" name="<%= it.campoDaUnidade %>">
+        <label class="campo__rotulo" for="unidade"><%= it.labels.school %></label>
+        <select id="unidade" name="<%= it.schoolField %>">
           <option value="">Todas as suas unidades</option>
-          <% unidades.forEach((unidade) => { %>
-          <option value="<%= unidade.id %>" <%= filtro.unidadeId === unidade.id ? 'selected' : '' %>>
-            <%= unidade.nome %>
+          <% schools.forEach((school) => { %>
+          <option value="<%= school.id %>" <%= filter.schoolId === school.id ? 'selected' : '' %>>
+            <%= school.name %>
           </option>
           <% }) %>
         </select>
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="ano"><%= it.rotulos.anoLetivo %></label>
-        <select id="ano" name="<%= it.campoDoAno %>">
+        <label class="campo__rotulo" for="ano"><%= it.labels.academicYear %></label>
+        <select id="ano" name="<%= it.yearField %>">
           <option value="">Todos os anos</option>
-          <% anosLetivos.forEach((anoLetivo) => { %>
-          <option value="<%= anoLetivo.id %>" <%= filtro.anoLetivoId === anoLetivo.id ? 'selected' : '' %>>
-            <%= anoLetivo.ano %>
+          <% academicYears.forEach((academicYear) => { %>
+          <option value="<%= academicYear.id %>" <%= filter.academicYearId === academicYear.id ? 'selected' : '' %>>
+            <%= academicYear.year %>
           </option>
           <% }) %>
         </select>
@@ -52,8 +52,8 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Filtrar</button>
-      <% if (filtrando) { %>
-      <a class="botao botao--discreto" href="<%= listaDeTurmas %>">Limpar filtro</a>
+      <% if (filtering) { %>
+      <a class="botao botao--discreto" href="<%= classGroupList %>">Limpar filtro</a>
       <% } %>
     </div>
   </form>
@@ -62,24 +62,24 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
 <section class="secao" aria-labelledby="lista">
   <div class="secao__cabecalho">
     <h2 id="lista">Turmas</h2>
-    <% const quantas = it.navegacao === undefined ? turmas.length : it.navegacao.total; %>
+    <% const count = it.pagination === undefined ? classGroups.length : it.pagination.total; %>
     <p class="secao__nota">
-      <span class="numero"><%= quantas %></span>
-      <%= it.pluralizar(quantas, it.contagem.turma) %><%= filtrando ? ' no filtro atual' : '' %>
+      <span class="numero"><%= count %></span>
+      <%= it.pluralize(count, it.nouns.classGroup) %><%= filtering ? ' no filtro atual' : '' %>
     </p>
   </div>
 
-  <% if (turmas.length === 0) { %>
-  <%~ include(it.parciais.vazio, filtrando
+  <% if (classGroups.length === 0) { %>
+  <%~ include(it.partials.empty, filtering
     ? {
-        titulo: 'Nenhuma turma nesse filtro',
-        texto: 'Nenhuma turma das suas unidades combina com a unidade e o ano letivo escolhidos. Limpe o filtro para ver todas.',
-        acao: { href: listaDeTurmas, texto: 'Limpar filtro' }
+        title: 'Nenhuma turma nesse filtro',
+        text: 'Nenhuma turma das suas unidades combina com a unidade e o ano letivo escolhidos. Limpe o filtro para ver todas.',
+        action: { href: classGroupList, text: 'Limpar filtro' }
       }
     : {
-        titulo: 'Nenhuma turma cadastrada',
-        texto: 'Sem turma não há matrícula, alocação de professor nem chamada.',
-        acao: { href: cadastroDeTurma, texto: it.titulos.secretaria.turmaNova }
+        title: 'Nenhuma turma cadastrada',
+        text: 'Sem turma não há matrícula, alocação de professor nem chamada.',
+        action: { href: classGroupForm, text: it.titles.registrar.classGroupNew }
       }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -87,27 +87,27 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
       <caption>Turmas das unidades sob sua secretaria</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-centro"><%= it.rotulos.turma %></th>
+          <th scope="col" class="celula-centro"><%= it.labels.classGroup %></th>
           <th scope="col" class="celula-centro">Série</th>
           <th scope="col" class="celula-centro">Turno</th>
-          <th scope="col" class="celula-centro"><%= it.rotulos.unidade %></th>
-          <th scope="col" class="celula-centro"><%= it.rotulos.ano %></th>
-          <th scope="col" class="celula-centro"><%= it.rotulos.acoes %></th>
+          <th scope="col" class="celula-centro"><%= it.labels.school %></th>
+          <th scope="col" class="celula-centro"><%= it.labels.year %></th>
+          <th scope="col" class="celula-centro"><%= it.labels.actions %></th>
         </tr>
       </thead>
       <tbody>
-        <% turmas.forEach((turma) => { %>
+        <% classGroups.forEach((classGroup) => { %>
         <tr>
-          <th scope="row" class="celula-centro"><%= turma.nome %></th>
-          <td class="celula-centro"><%= turma.serie %></td>
-          <td class="celula-centro"><%= turma.turno %></td>
-          <td class="celula-centro"><%= turma.unidadeNome %></td>
-          <td class="numero celula-centro"><%= turma.ano === null ? it.semValor : turma.ano %></td>
+          <th scope="row" class="celula-centro"><%= classGroup.name %></th>
+          <td class="celula-centro"><%= classGroup.gradeLevel %></td>
+          <td class="celula-centro"><%= classGroup.shiftName %></td>
+          <td class="celula-centro"><%= classGroup.schoolName %></td>
+          <td class="numero celula-centro"><%= classGroup.year === null ? it.missingValue : classGroup.year %></td>
           <td class="celula-centro">
             <div class="tabela__acoes">
-              <a class="botao botao--secundario botao--miudo" href="<%= it.rotas.secretaria.turma({ id: turma.id }) %>">
-<% // magic-values: permitido — não é CONTAGEM.turma.singular, o substantivo que vem DEPOIS DE UM NÚMERO %>
-                Abrir<span class="visualmente-oculto"> turma <%= turma.nome %></span>
+              <a class="botao botao--secundario botao--miudo" href="<%= it.routes.registrar.classGroup({ id: classGroup.id }) %>">
+<% // magic-values: permitido — não é NOUNS.classGroup.singular, o substantivo que vem DEPOIS DE UM NÚMERO %>
+                Abrir<span class="visualmente-oculto"> turma <%= classGroup.name %></span>
               </a>
             </div>
           </td>
@@ -116,6 +116,6 @@ const cadastroDeTurma = it.rotas.secretaria.turmaNova();
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.turma.plural }) %>
+  <%~ include(it.partials.pagination, { pagination: it.pagination, label: it.nouns.classGroup.plural }) %>
   <% } %>
 </section>

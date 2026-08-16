@@ -1,56 +1,56 @@
-type NomesDeParametro<S extends string> = S extends `${string}:${infer Resto}`
-  ? Resto extends `${infer Nome}/${infer Cauda}`
-    ? Nome | NomesDeParametro<Cauda>
-    : Resto
+type ParamNames<S extends string> = S extends `${string}:${infer Rest}`
+  ? Rest extends `${infer Name}/${infer Tail}`
+    ? Name | ParamNames<Tail>
+    : Rest
   : never;
 
 export type Params<S extends string> = {
-  readonly [Nome in NomesDeParametro<S>]: string | number;
+  readonly [Name in ParamNames<S>]: string | number;
 };
 
-type Argumentos<S extends string> = [NomesDeParametro<S>] extends [never]
+type Args<S extends string> = [ParamNames<S>] extends [never]
   ? []
-  : [parametros: Params<S>];
+  : [params: Params<S>];
 
-export type Endereco<S extends string> = ((...parametros: Argumentos<S>) => string) & {
-  readonly padrao: S;
+export type RouteUrl<S extends string> = ((...params: Args<S>) => string) & {
+  readonly pattern: S;
 };
 
-export type Grupo<P extends string, R extends Record<string, string>> = {
-  readonly prefixo: P;
-} & { readonly [Nome in keyof R]: Endereco<R[Nome] & string> };
+export type Group<P extends string, R extends Record<string, string>> = {
+  readonly prefix: P;
+} & { readonly [Name in keyof R]: RouteUrl<R[Name] & string> };
 
-const PARAMETRO = /:([A-Za-z][A-Za-z0-9_]*)/g;
+const PARAM = /:([A-Za-z][A-Za-z0-9_]*)/g;
 
-const BARRA = '/';
+const SLASH = '/';
 
-const juntar = (prefixo: string, padrao: string): string => {
-  const bruto = `${prefixo}${padrao}`;
-  return bruto.length > 1 && bruto.endsWith(BARRA) ? bruto.slice(0, -1) : bruto;
+const join = (prefix: string, pattern: string): string => {
+  const raw = `${prefix}${pattern}`;
+  return raw.length > 1 && raw.endsWith(SLASH) ? raw.slice(0, -1) : raw;
 };
 
-const MENSAGEM_DE_PARAMETRO_FALTANDO = (nome: string, caminho: string): string =>
-  `rota montada sem o parâmetro "${nome}": ${caminho}`;
+const MISSING_PARAM_MESSAGE = (name: string, path: string): string =>
+  `rota montada sem o parâmetro "${name}": ${path}`;
 
-const preencher = (caminho: string, parametros: Record<string, string | number>): string =>
-  caminho.replace(PARAMETRO, (_inteiro, nome: string) => {
-    const valor = parametros[nome];
-    if (valor === undefined) {
-      throw new Error(MENSAGEM_DE_PARAMETRO_FALTANDO(nome, caminho));
+const fill = (path: string, params: Record<string, string | number>): string =>
+  path.replace(PARAM, (_whole, name: string) => {
+    const value = params[name];
+    if (value === undefined) {
+      throw new Error(MISSING_PARAM_MESSAGE(name, path));
     }
-    return encodeURIComponent(String(valor));
+    return encodeURIComponent(String(value));
   });
 
-export function grupo<P extends string, const R extends Record<string, string>>(
-  prefixo: P,
-  rotas: R,
-): Grupo<P, R> {
-  const enderecos = Object.entries(rotas).map(([nome, padrao]) => {
-    const absoluto = juntar(prefixo, padrao);
-    const endereco = (parametros: Record<string, string | number> = {}): string =>
-      preencher(absoluto, parametros);
-    return [nome, Object.assign(endereco, { padrao })] as const;
+export function group<P extends string, const R extends Record<string, string>>(
+  prefix: P,
+  routes: R,
+): Group<P, R> {
+  const urls = Object.entries(routes).map(([name, pattern]) => {
+    const absolute = join(prefix, pattern);
+    const url = (params: Record<string, string | number> = {}): string =>
+      fill(absolute, params);
+    return [name, Object.assign(url, { pattern })] as const;
   });
 
-  return { prefixo, ...Object.fromEntries(enderecos) } as Grupo<P, R>;
+  return { prefix, ...Object.fromEntries(urls) } as Group<P, R>;
 }

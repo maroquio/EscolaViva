@@ -1,16 +1,16 @@
 <%
-const contagens = it.contagens ?? { unidades: 0, usuarios: 0, turmas: 0, matriculados: 0 };
-const anoLetivo = it.anoLetivo ?? null;
-const rede = it.usuario === null ? '' : it.usuario.networkName;
-// magic-values: permitido — prosa das duas frases dos cartões, e não o substantivo contado `CONTAGEM.anoLetivo`
-const anoLetivoEmPalavras = 'ano letivo';
-const anoNoRotulo =
-  anoLetivo === null ? 'sem ' + anoLetivoEmPalavras : anoLetivoEmPalavras + ' ' + anoLetivo.ano;
+const counts = it.counts ?? { schools: 0, users: 0, classGroups: 0, enrolled: 0 };
+const academicYear = it.academicYear ?? null;
+const network = it.user === null ? '' : it.user.networkName;
+// magic-values: permitido — prosa das duas frases dos cartões, e não o substantivo contado `NOUNS.academicYear`
+const academicYearInWords = 'ano letivo';
+const yearInLabel =
+  academicYear === null ? 'sem ' + academicYearInWords : academicYearInWords + ' ' + academicYear.year;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.rede %></p>
-    <h1 class="pagina__titulo"><%= rede %></h1>
+    <p class="sobretitulo"><%= it.areas.network %></p>
+    <h1 class="pagina__titulo"><%= network %></h1>
     <p class="pagina__resumo">
       A rede é o contorno de tudo o que este sistema mostra: nenhuma consulta atravessa para outra
       rede, e é daqui que saem as unidades, os acessos e o calendário que a secretaria usa.
@@ -25,28 +25,28 @@ const anoNoRotulo =
   </div>
 
   <div class="painel">
-    <a class="cartao" href="<%= it.rotas.rede.unidades() %>">
-      <span class="cartao__rotulo"><%= it.titulos.rede.unidades %></span>
-      <span class="cartao__numero"><%= contagens.unidades %></span>
+    <a class="cartao" href="<%= it.routes.network.schools() %>">
+      <span class="cartao__rotulo"><%= it.titles.network.schools %></span>
+      <span class="cartao__numero"><%= counts.schools %></span>
       <span class="cartao__detalhe">Escolas ativas e inativas da rede</span>
     </a>
 
-    <a class="cartao" href="<%= it.rotas.rede.usuarios() %>">
-      <span class="cartao__rotulo"><%= it.titulos.rede.usuarios %></span>
-      <span class="cartao__numero"><%= contagens.usuarios %></span>
+    <a class="cartao" href="<%= it.routes.network.users() %>">
+      <span class="cartao__rotulo"><%= it.titles.network.users %></span>
+      <span class="cartao__numero"><%= counts.users %></span>
       <span class="cartao__detalhe">Pessoas com acesso, somando todos os papéis</span>
     </a>
 
     <div class="cartao">
       <span class="cartao__rotulo">Turmas</span>
-      <span class="cartao__numero"><%= contagens.turmas %></span>
-      <span class="cartao__detalhe">Abertas no <%= anoNoRotulo %></span>
+      <span class="cartao__numero"><%= counts.classGroups %></span>
+      <span class="cartao__detalhe">Abertas no <%= yearInLabel %></span>
     </div>
 
     <div class="cartao">
       <span class="cartao__rotulo">Matriculados</span>
-      <span class="cartao__numero"><%= contagens.matriculados %></span>
-      <span class="cartao__detalhe">Matrículas ativas no <%= anoNoRotulo %></span>
+      <span class="cartao__numero"><%= counts.enrolled %></span>
+      <span class="cartao__detalhe">Matrículas ativas no <%= yearInLabel %></span>
     </div>
   </div>
 </section>
@@ -55,25 +55,25 @@ const anoNoRotulo =
   <div class="secao__cabecalho">
     <h2 id="ano-titulo">Ano letivo em vigor</h2>
     <p class="secao__nota">
-      <%= it.anosDefinidos %> ano(s) definido(s) nesta rede.
+      <%= it.definedYears %> ano(s) definido(s) nesta rede.
     </p>
   </div>
 
-  <% if (anoLetivo === null) { %>
-    <%~ include(it.parciais.vazio, {
-      titulo: 'Nenhum ano letivo definido',
-      texto: 'Sem ano letivo não existe turma nem matrícula. É o primeiro passo depois de criar as unidades.',
-      acao: { href: it.rotas.rede.anosLetivos(), texto: it.titulos.rede.anoNovo }
+  <% if (academicYear === null) { %>
+    <%~ include(it.partials.empty, {
+      title: 'Nenhum ano letivo definido',
+      text: 'Sem ano letivo não existe turma nem matrícula. É o primeiro passo depois de criar as unidades.',
+      action: { href: it.routes.network.academicYears(), text: it.titles.network.yearNew }
     }) %>
   <% } else { %>
   <div class="quadro">
     <dl class="lista-definicoes">
-      <dt><%= it.rotulos.ano %></dt>
-      <dd class="numero"><%= anoLetivo.ano %></dd>
-      <dt><%= it.rotulos.inicio %></dt>
-      <dd class="numero"><%= it.formatarData(anoLetivo.dataInicio) %></dd>
-      <dt><%= it.rotulos.termino %></dt>
-      <dd class="numero"><%= it.formatarData(anoLetivo.dataFim) %></dd>
+      <dt><%= it.labels.year %></dt>
+      <dd class="numero"><%= academicYear.year %></dd>
+      <dt><%= it.labels.start %></dt>
+      <dd class="numero"><%= it.formatDate(academicYear.startDate) %></dd>
+      <dt><%= it.labels.end %></dt>
+      <dd class="numero"><%= it.formatDate(academicYear.endDate) %></dd>
     </dl>
   </div>
   <% } %>

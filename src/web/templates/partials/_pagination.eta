@@ -1,21 +1,21 @@
 <%
-const ROTULO_PADRAO = 'itens';
+const DEFAULT_LABEL = 'itens';
 
-const nav = it.navegacao ?? null;
-const rotulo = it.rotulo ?? ROTULO_PADRAO;
+const nav = it.pagination ?? null;
+const label = it.label ?? DEFAULT_LABEL;
 %>
 <% if (nav !== null && nav.total > 0) { %>
-<nav class="paginacao" aria-label="Paginação de <%= rotulo %>">
+<nav class="paginacao" aria-label="Paginação de <%= label %>">
   <p class="paginacao__contagem">
-    <span class="numero"><%= nav.primeiro %>–<%= nav.ultimo %></span>
-    de <span class="numero"><%= nav.total %></span> <%= rotulo %>
+    <span class="numero"><%= nav.first %>–<%= nav.last %></span>
+    de <span class="numero"><%= nav.total %></span> <%= label %>
   </p>
 
-  <% if (nav.varias) { %>
+  <% if (nav.many) { %>
   <ul class="paginacao__lista">
     <li>
-      <% if (nav.anterior !== null) { %>
-      <a class="paginacao__passo" href="<%= nav.anterior %>" rel="prev">
+      <% if (nav.previous !== null) { %>
+      <a class="paginacao__passo" href="<%= nav.previous %>" rel="prev">
         <span aria-hidden="true">&lsaquo;</span> Anterior
       </a>
       <% } else { %>
@@ -27,21 +27,21 @@ const rotulo = it.rotulo ?? ROTULO_PADRAO;
 
     <% nav.links.forEach((link) => { %>
     <li>
-      <% if (link.atual) { %>
+      <% if (link.current) { %>
       <span class="paginacao__numero paginacao__numero--atual" aria-current="page">
-        <%= link.numero %>
+        <%= link.number %>
       </span>
       <% } else { %>
-      <a class="paginacao__numero" href="<%= link.href %>" aria-label="Página <%= link.numero %>">
-        <%= link.numero %>
+      <a class="paginacao__numero" href="<%= link.href %>" aria-label="Página <%= link.number %>">
+        <%= link.number %>
       </a>
       <% } %>
     </li>
     <% }) %>
 
     <li>
-      <% if (nav.proxima !== null) { %>
-      <a class="paginacao__passo" href="<%= nav.proxima %>" rel="next">
+      <% if (nav.next !== null) { %>
+      <a class="paginacao__passo" href="<%= nav.next %>" rel="next">
         Próxima <span aria-hidden="true">&rsaquo;</span>
       </a>
       <% } else { %>

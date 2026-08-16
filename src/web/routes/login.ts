@@ -14,34 +14,34 @@ import {
 } from '../../shared/http';
 import { logger } from '../../shared/log';
 import {
-  AVISOS,
-  CAMPOS,
-  EVENTOS_DE_LOG,
-  PARAMETROS,
-  ROTAS,
+  FIELDS,
+  INITIAL_VALUES,
+  LOG_EVENTS,
+  NOTICES,
+  PARAMS,
+  ROUTES,
   TEMPLATES,
-  TITULOS,
-  VALORES_INICIAIS,
+  TITLES,
 } from '../constants';
-import { renderizar } from '../render';
+import { render } from '../render';
 
-const DESTINO_APOS_ENTRAR = ROTAS.publicas.painel();
+const TARGET_AFTER_SIGN_IN = ROUTES.public.dashboard();
 
-const DESTINO_APOS_SAIR = `${ROTAS.publicas.login()}?${PARAMETROS.ok}=${encodeURIComponent(AVISOS.sessaoEncerrada)}`;
+const TARGET_AFTER_SIGN_OUT = `${ROUTES.public.login()}?${PARAMS.ok}=${encodeURIComponent(NOTICES.sessionEnded)}`;
 
-export const rotasLogin = new Hono<{ Variables: Variables }>();
+export const loginRoutes = new Hono<{ Variables: Variables }>();
 
-const texto = (corpo: FormBody, campo: string): string => {
-  const valor = corpo[campo];
-  return typeof valor === 'string' ? valor.trim() : '';
+const text = (body: FormBody, field: string): string => {
+  const value = body[field];
+  return typeof value === 'string' ? value.trim() : '';
 };
 
-const senhaDigitada = (corpo: FormBody): string => {
-  const valor = corpo[CAMPOS.login.senha];
-  return typeof valor === 'string' ? valor : '';
+const typedPassword = (body: FormBody): string => {
+  const value = body[FIELDS.login.password];
+  return typeof value === 'string' ? value : '';
 };
 
-const enderecoRemoto = (c: Context): string | undefined => {
+const remoteAddress = (c: Context): string | undefined => {
   try {
     return getConnInfo(c).remote.address;
   } catch {
@@ -49,53 +49,53 @@ const enderecoRemoto = (c: Context): string | undefined => {
   }
 };
 
-const telaDeEntrada = (c: Context, dados: Record<string, unknown> = {}): Response =>
-  renderizar(c, TEMPLATES.login, {
-    titulo: TITULOS.login,
-    valores: VALORES_INICIAIS.login,
-    erros: [],
-    ...dados,
+const signInScreen = (c: Context, data: Record<string, unknown> = {}): Response =>
+  render(c, TEMPLATES.login, {
+    title: TITLES.login,
+    values: INITIAL_VALUES.login,
+    errors: [],
+    ...data,
   });
 
-rotasLogin.get(ROTAS.publicas.login.padrao, (c) => {
-  if (currentUserOrNull(c) !== null) return c.redirect(DESTINO_APOS_ENTRAR, 303);
-  return telaDeEntrada(c);
+loginRoutes.get(ROUTES.public.login.pattern, (c) => {
+  if (currentUserOrNull(c) !== null) return c.redirect(TARGET_AFTER_SIGN_IN, 303);
+  return signInScreen(c);
 });
 
-rotasLogin.post(ROTAS.publicas.login.padrao, async (c) => {
-  if (currentUserOrNull(c) !== null) return c.redirect(DESTINO_APOS_ENTRAR, 303);
+loginRoutes.post(ROUTES.public.login.pattern, async (c) => {
+  if (currentUserOrNull(c) !== null) return c.redirect(TARGET_AFTER_SIGN_IN, 303);
 
-  const corpo = c.get(CONTEXT_VARIABLES.body);
-  const redeSlug = texto(corpo, CAMPOS.login.redeSlug);
-  const cpf = texto(corpo, CAMPOS.login.cpf);
-  const ip = clientIp(c.req.raw, enderecoRemoto(c), config.trustedProxies);
+  const body = c.get(CONTEXT_VARIABLES.body);
+  const networkSlug = text(body, FIELDS.login.networkSlug);
+  const cpf = text(body, FIELDS.login.cpf);
+  const ip = clientIp(c.req.raw, remoteAddress(c), config.trustedProxies);
 
-  const resultado = await identity.authenticate({
-    networkSlug: redeSlug,
+  const result = await identity.authenticate({
+    networkSlug,
     loginIdentifier: cpf,
-    password: senhaDigitada(corpo),
+    password: typedPassword(body),
     ip,
   });
 
-  if (!resultado.ok) {
+  if (!result.ok) {
     logger.warn(
-      { rede_slug: redeSlug, resultado: EVENTOS_DE_LOG.recusado, ip },
-      EVENTOS_DE_LOG.tentativaDeEntrada,
+      { network_slug: networkSlug, result: LOG_EVENTS.rejected, ip },
+      LOG_EVENTS.signInAttempt,
     );
-    return telaDeEntrada(c, { valores: { redeSlug, cpf }, erros: resultado.erros });
+    return signInScreen(c, { values: { networkSlug, cpf }, errors: result.erros });
   }
 
-  await openSession(c, resultado.valor.sessionId);
+  await openSession(c, result.valor.sessionId);
   logger.info(
-    { rede_slug: redeSlug, resultado: EVENTOS_DE_LOG.sucesso, ip },
-    EVENTOS_DE_LOG.tentativaDeEntrada,
+    { network_slug: networkSlug, result: LOG_EVENTS.success, ip },
+    LOG_EVENTS.signInAttempt,
   );
-  return c.redirect(DESTINO_APOS_ENTRAR, 303);
+  return c.redirect(TARGET_AFTER_SIGN_IN, 303);
 });
 
-rotasLogin.post(ROTAS.publicas.logout.padrao, async (c) => {
-  const sessaoId = currentSessionId(c);
-  if (sessaoId !== null) await identity.endSession(sessaoId);
+loginRoutes.post(ROUTES.public.logout.pattern, async (c) => {
+  const sessionId = currentSessionId(c);
+  if (sessionId !== null) await identity.endSession(sessionId);
   await closeSession(c);
-  return c.redirect(DESTINO_APOS_SAIR, 303);
+  return c.redirect(TARGET_AFTER_SIGN_OUT, 303);
 });

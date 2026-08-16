@@ -1,38 +1,38 @@
 <%
-const alunos = it.alunos ?? [];
-const termo = it.termo ?? '';
-const buscou = it.buscou === true;
+const students = it.students ?? [];
+const term = it.term ?? '';
+const searched = it.searched === true;
 
-const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoDeMatricula;
+const STATUS_CLASS = it.tagClass.enrollmentStatus;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.secretaria %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.registrar %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       Procure pelo nome para abrir a ficha, matricular, transferir ou vincular um responsável.
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.alunoNovo() %>"><%= it.titulos.secretaria.alunoNovo %></a>
+    <a class="botao botao--primario" href="<%= it.routes.registrar.studentNew() %>"><%= it.titles.registrar.studentNew %></a>
   </div>
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="get" action="<%= it.rotas.secretaria.alunos() %>" role="search" aria-label="<%= it.acoes.buscarAluno %>">
+  <form class="formulario" method="get" action="<%= it.routes.registrar.students() %>" role="search" aria-label="<%= it.actions.searchStudent %>">
     <div class="campo">
       <label class="campo__rotulo" for="q">Nome do aluno</label>
-      <input id="q" name="<%= it.campoDaBusca %>" type="search" value="<%= termo %>" autocomplete="off"
-             maxlength="<%= it.limiteDoNome %>" aria-describedby="q<%= it.sufixos.ajuda %>">
-      <p class="campo__ajuda" id="q<%= it.sufixos.ajuda %>">
+      <input id="q" name="<%= it.searchField %>" type="search" value="<%= term %>" autocomplete="off"
+             maxlength="<%= it.nameLimit %>" aria-describedby="q<%= it.suffixes.help %>">
+      <p class="campo__ajuda" id="q<%= it.suffixes.help %>">
         Encontra qualquer trecho do nome, sem diferenciar maiúsculas. Lista em ordem alfabética,
-        <%= it.linhasPorPagina %> por página.
+        <%= it.rowsPerPage %> por página.
       </p>
     </div>
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Buscar</button>
-      <% if (termo !== '') { %>
-      <a class="botao botao--discreto" href="<%= it.rotas.secretaria.alunos() %>">Limpar busca</a>
+      <% if (term !== '') { %>
+      <a class="botao botao--discreto" href="<%= it.routes.registrar.students() %>">Limpar busca</a>
       <% } %>
     </div>
   </form>
@@ -41,58 +41,58 @@ const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoDeMatricula;
 <section class="secao" aria-labelledby="resultado">
   <div class="secao__cabecalho">
     <h2 id="resultado">Resultado</h2>
-    <% if (buscou) { %>
-    <% const achados = it.navegacao === undefined ? alunos.length : it.navegacao.total; %>
+    <% if (searched) { %>
+    <% const found = it.pagination === undefined ? students.length : it.pagination.total; %>
     <p class="secao__nota">
-      <span class="numero"><%= achados %></span>
-      <%= achados === 1 ? 'aluno encontrado' : 'alunos encontrados' %>
+      <span class="numero"><%= found %></span>
+      <%= found === 1 ? 'aluno encontrado' : 'alunos encontrados' %>
     </p>
     <% } %>
   </div>
 
-  <% if (!buscou) { %>
-  <%~ include(it.parciais.vazio, {
-    titulo: 'Comece pela busca',
-    texto: 'Digite parte do nome do aluno acima. A lista só aparece depois da busca — é ela que evita carregar a rede inteira para achar uma pessoa.'
+  <% if (!searched) { %>
+  <%~ include(it.partials.empty, {
+    title: 'Comece pela busca',
+    text: 'Digite parte do nome do aluno acima. A lista só aparece depois da busca — é ela que evita carregar a rede inteira para achar uma pessoa.'
   }) %>
-  <% } else if (alunos.length === 0) { %>
-  <%~ include(it.parciais.vazio, {
-    titulo: 'Nenhum aluno com esse nome',
-    texto: 'Confira a grafia ou tente apenas o primeiro nome. Se o aluno ainda não existe nesta rede, cadastre-o agora.',
-    acao: { href: it.rotas.secretaria.alunoNovo(), texto: it.titulos.secretaria.alunoNovo }
+  <% } else if (students.length === 0) { %>
+  <%~ include(it.partials.empty, {
+    title: 'Nenhum aluno com esse nome',
+    text: 'Confira a grafia ou tente apenas o primeiro nome. Se o aluno ainda não existe nesta rede, cadastre-o agora.',
+    action: { href: it.routes.registrar.studentNew(), text: it.titles.registrar.studentNew }
   }) %>
   <% } else { %>
   <div class="tabela-rolagem">
     <table class="tabela">
-      <caption>Alunos encontrados para “<%= termo %>”</caption>
+      <caption>Alunos encontrados para “<%= term %>”</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-elastica"><%= it.rotulos.aluno %></th>
+          <th scope="col" class="celula-elastica"><%= it.labels.student %></th>
           <th scope="col" class="celula-centro">Nascimento</th>
-          <th scope="col" class="celula-centro"><%= it.rotulos.turma %></th>
-          <th scope="col" class="celula-centro"><%= it.rotulos.ano %></th>
-          <th scope="col" class="celula-centro"><%= it.rotulos.matricula %></th>
-          <th scope="col" class="celula-centro"><%= it.rotulos.acoes %></th>
+          <th scope="col" class="celula-centro"><%= it.labels.classGroup %></th>
+          <th scope="col" class="celula-centro"><%= it.labels.year %></th>
+          <th scope="col" class="celula-centro"><%= it.labels.enrollment %></th>
+          <th scope="col" class="celula-centro"><%= it.labels.actions %></th>
         </tr>
       </thead>
       <tbody>
-        <% alunos.forEach((aluno) => { %>
+        <% students.forEach((student) => { %>
         <tr>
-          <th scope="row" class="celula-elastica"><%= aluno.nome %></th>
-          <td class="numero celula-centro"><%= it.formatarData(aluno.dataNascimento) %></td>
-          <td class="celula-centro"><%= aluno.turmaNome === null ? it.semValor : aluno.turmaNome %></td>
-          <td class="numero celula-centro"><%= aluno.ano === null ? it.semValor : aluno.ano %></td>
+          <th scope="row" class="celula-elastica"><%= student.name %></th>
+          <td class="numero celula-centro"><%= it.formatDate(student.birthDate) %></td>
+          <td class="celula-centro"><%= student.classGroupName === null ? it.missingValue : student.classGroupName %></td>
+          <td class="numero celula-centro"><%= student.year === null ? it.missingValue : student.year %></td>
           <td class="celula-centro">
-            <% if (aluno.situacao === null) { %>
+            <% if (student.status === null) { %>
                         <span class="etiqueta">Sem matrícula</span>
             <% } else { %>
-            <span class="etiqueta <%= CLASSE_DA_SITUACAO[aluno.situacao] %>"><%= aluno.situacaoNome %></span>
+            <span class="etiqueta <%= STATUS_CLASS[student.status] %>"><%= it.statusLabel[student.status] %></span>
             <% } %>
           </td>
           <td class="celula-centro">
             <div class="tabela__acoes">
-              <a class="botao botao--secundario botao--miudo" href="<%= it.rotas.secretaria.aluno({ id: aluno.id }) %>">
-                Abrir ficha<span class="visualmente-oculto"> de <%= aluno.nome %></span>
+              <a class="botao botao--secundario botao--miudo" href="<%= it.routes.registrar.student({ id: student.id }) %>">
+                Abrir ficha<span class="visualmente-oculto"> de <%= student.name %></span>
               </a>
             </div>
           </td>
@@ -101,6 +101,6 @@ const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoDeMatricula;
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: 'alunos encontrados' }) %>
+  <%~ include(it.partials.pagination, { pagination: it.pagination, label: 'alunos encontrados' }) %>
   <% } %>
 </section>

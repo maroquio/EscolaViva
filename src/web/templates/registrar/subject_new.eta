@@ -1,12 +1,12 @@
 <%
-const valores = it.valores ?? {};
-const campos = it.campos.disciplina;
-const { erroDe, descricao } = it;
+const values = it.values ?? {};
+const fields = it.fields.subject;
+const { errorFor, describedBy } = it;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= it.titulos.secretaria.disciplinas %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.subjects %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       A disciplina vale para toda a rede. Depois de cadastrar, aloque-a nas turmas com o professor
       responsável.
@@ -15,8 +15,8 @@ const { erroDe, descricao } = it;
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="post" action="<%= it.rotas.secretaria.disciplinas() %>">
-    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
+  <form class="formulario" method="post" action="<%= it.routes.registrar.subjects() %>">
+    <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
     <div class="campo">
       <label class="campo__rotulo" for="nome">
@@ -24,23 +24,23 @@ const { erroDe, descricao } = it;
       </label>
       <input
         id="nome"
-        name="<%= campos.nome %>"
+        name="<%= fields.name %>"
         type="text"
         required
-        maxlength="<%= it.limiteDoNome %>"
+        maxlength="<%= it.nameLimit %>"
         autocomplete="off"
-        value="<%= valores.nome ?? '' %>"
-        <% if (erroDe(campos.nome) !== '') { %>aria-invalid="true"<% } %>
-        aria-describedby="<%= descricao(campos.nome, true) %>">
-      <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.nome) %>">Único na rede: não há duas “Matemática”.</p>
-      <% if (erroDe(campos.nome) !== '') { %>
-      <p class="campo__erro" id="<%= it.idDoErro(campos.nome) %>"><%= erroDe(campos.nome) %></p>
+        value="<%= values.name ?? '' %>"
+        <% if (errorFor(fields.name) !== '') { %>aria-invalid="true"<% } %>
+        aria-describedby="<%= describedBy(fields.name, true) %>">
+      <p class="campo__ajuda" id="<%= it.helpId(fields.name) %>">Único na rede: não há duas “Matemática”.</p>
+      <% if (errorFor(fields.name) !== '') { %>
+      <p class="campo__erro" id="<%= it.errorId(fields.name) %>"><%= errorFor(fields.name) %></p>
       <% } %>
     </div>
 
     <div class="acoes">
-      <button class="botao botao--primario" type="submit"><%= it.titulos.secretaria.disciplinaNova %></button>
-      <a class="botao botao--discreto" href="<%= it.rotas.secretaria.disciplinas() %>"><%= it.acoes.cancelar %></a>
+      <button class="botao botao--primario" type="submit"><%= it.titles.registrar.subjectNew %></button>
+      <a class="botao botao--discreto" href="<%= it.routes.registrar.subjects() %>"><%= it.actions.cancel %></a>
     </div>
   </form>
 </div>

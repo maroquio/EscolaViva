@@ -1,89 +1,89 @@
 <%
-const linhas = it.linhas ?? [];
-const fechado = it.fechado === true;
-const bimestre = it.bimestre;
-const alocacao = it.alocacao;
-const legenda = `Notas do ${it.rotuloDeBimestre(bimestre)}${it.separador}${alocacao.disciplinaNome}${it.separador}${alocacao.turmaNome}`;
+const rows = it.rows ?? [];
+const closed = it.closed === true;
+const term = it.term;
+const assignment = it.assignment;
+const caption = `Notas do ${it.termLabel(term)}${it.separator}${assignment.subjectName}${it.separator}${assignment.classGroupName}`;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= alocacao.turmaNome %><%= it.separador %><%= alocacao.serie %><%= it.separadorDeTurno %><%= alocacao.turno %></p>
-    <h1 class="pagina__titulo"><%= alocacao.disciplinaNome %></h1>
+    <p class="sobretitulo"><%= assignment.classGroupName %><%= it.separator %><%= assignment.gradeLevel %><%= it.shiftSeparator %><%= assignment.shift %></p>
+    <h1 class="pagina__titulo"><%= assignment.subjectName %></h1>
     <p class="pagina__resumo">
-      Lançamento de notas de <%= it.notaMinima %> a <%= it.notaMaxima %>, com uma casa decimal. O que estiver em branco no envio deixa de
+      Lançamento de notas de <%= it.minGrade %> a <%= it.maxGrade %>, com uma casa decimal. O que estiver em branco no envio deixa de
       existir como nota do aluno neste bimestre.
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="<%= it.hrefChamada %>">Chamada</a>
-    <a class="botao botao--discreto" href="<%= it.hrefFechamento %>">Fechamento</a>
-    <a class="botao botao--discreto" href="<%= it.rotas.professor.painel() %>"><%= it.titulos.professor.painel %></a>
+    <a class="botao botao--discreto" href="<%= it.rollCallHref %>">Chamada</a>
+    <a class="botao botao--discreto" href="<%= it.closingHref %>">Fechamento</a>
+    <a class="botao botao--discreto" href="<%= it.routes.teacher.dashboard() %>"><%= it.titles.teacher.dashboard %></a>
   </p>
 </div>
 
 <nav class="acoes" aria-label="Bimestre">
   <span class="sobretitulo">Bimestre</span>
-  <% it.bimestres.forEach((numero) => { %>
-  <a class="botao <%= numero === bimestre ? 'botao--secundario' : 'botao--discreto' %>"
-     href="<%= it.acaoDoFormulario %>?<%= it.campoBimestre %>=<%= numero %>"
-     <% if (numero === bimestre) { %>aria-current="page"<% } %>><%= numero %>º</a>
+  <% it.terms.forEach((number) => { %>
+  <a class="botao <%= number === term ? 'botao--secundario' : 'botao--discreto' %>"
+     href="<%= it.formAction %>?<%= it.termField %>=<%= number %>"
+     <% if (number === term) { %>aria-current="page"<% } %>><%= number %>º</a>
   <% }) %>
 </nav>
 
-<% if (fechado) { %>
+<% if (closed) { %>
 <p class="aviso aviso--atencao" role="status">
-  O <%= it.rotuloDeBimestre(bimestre) %> desta turma está fechado. As notas continuam visíveis, mas não podem
+  O <%= it.termLabel(term) %> desta turma está fechado. As notas continuam visíveis, mas não podem
   mais ser alteradas — nem por aqui, nem por nenhum outro caminho do sistema.
 </p>
 <% } %>
 
-<% if (linhas.length === 0) { %>
-<%~ include(it.parciais.vazio, {
-  titulo: it.semAlunoMatriculado,
-  texto: 'Esta turma não tem matrícula ativa, então não há nota a lançar. A matrícula é feita pela secretaria.',
+<% if (rows.length === 0) { %>
+<%~ include(it.partials.empty, {
+  title: it.noEnrolledStudent,
+  text: 'Esta turma não tem matrícula ativa, então não há nota a lançar. A matrícula é feita pela secretaria.',
 }) %>
 <% } else { %>
 
-<% if (!fechado) { %>
-<form class="formulario formulario--largo" method="post" action="<%= it.acaoDoFormulario %>">
-  <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
-  <input type="hidden" name="<%= it.campoBimestre %>" value="<%= bimestre %>">
+<% if (!closed) { %>
+<form class="formulario formulario--largo" method="post" action="<%= it.formAction %>">
+  <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
+  <input type="hidden" name="<%= it.termField %>" value="<%= term %>">
 <% } %>
 
   <div class="tabela-rolagem">
     <table class="tabela">
-      <caption><%= legenda %></caption>
+      <caption><%= caption %></caption>
       <thead>
         <tr>
-          <th scope="col"><%= it.rotulos.aluno %></th>
-          <th scope="col">Nota (<%= it.notaMinima %> a <%= it.notaMaxima %>)</th>
+          <th scope="col"><%= it.labels.student %></th>
+          <th scope="col">Nota (<%= it.minGrade %> a <%= it.maxGrade %>)</th>
         </tr>
       </thead>
       <tbody>
-        <% linhas.forEach((linha) => { %>
+        <% rows.forEach((row) => { %>
         <tr>
-          <th scope="row"><%= linha.alunoNome %></th>
+          <th scope="row"><%= row.studentName %></th>
           <td class="numero">
-            <% if (fechado) { %>
-            <%= it.formatarNota(linha.valor === '' ? null : linha.valor) %>
+            <% if (closed) { %>
+            <%= it.formatGrade(row.value === '' ? null : row.value) %>
             <% } else { %>
-            <label class="visualmente-oculto" for="<%= it.prefixoNota %><%= linha.matriculaId %>">
-              Nota de <%= linha.alunoNome %> no <%= it.rotuloDeBimestre(bimestre) %>
+            <label class="visualmente-oculto" for="<%= it.gradePrefix %><%= row.enrollmentId %>">
+              Nota de <%= row.studentName %> no <%= it.termLabel(term) %>
 
             </label>
             <input class="entrada-numerica"
                    type="number"
                    inputmode="decimal"
                    step="0.1"
-                   min="<%= it.notaMinima %>"
-                   max="<%= it.notaMaxima %>"
+                   min="<%= it.minGrade %>"
+                   max="<%= it.maxGrade %>"
                    autocomplete="off"
-                   id="<%= it.prefixoNota %><%= linha.matriculaId %>"
-                   name="<%= it.prefixoNota %><%= linha.matriculaId %>"
-                   value="<%= linha.valor %>"
-                   <% if (linha.erro) { %>aria-invalid="true" aria-describedby="<%= it.prefixos.erroDeCelula %><%= linha.matriculaId %>"<% } %>>
-            <% if (linha.erro) { %>
-            <p class="campo__erro" id="<%= it.prefixos.erroDeCelula %><%= linha.matriculaId %>"><%= linha.erro %></p>
+                   id="<%= it.gradePrefix %><%= row.enrollmentId %>"
+                   name="<%= it.gradePrefix %><%= row.enrollmentId %>"
+                   value="<%= row.value %>"
+                   <% if (row.error) { %>aria-invalid="true" aria-describedby="<%= it.prefixes.cellError %><%= row.enrollmentId %>"<% } %>>
+            <% if (row.error) { %>
+            <p class="campo__erro" id="<%= it.prefixes.cellError %><%= row.enrollmentId %>"><%= row.error %></p>
             <% } %>
             <% } %>
           </td>
@@ -93,9 +93,9 @@ const legenda = `Notas do ${it.rotuloDeBimestre(bimestre)}${it.separador}${aloca
     </table>
   </div>
 
-<% if (!fechado) { %>
+<% if (!closed) { %>
   <div class="acoes">
-    <button class="botao botao--primario" type="submit">Salvar notas do <%= it.rotuloDeBimestre(bimestre) %></button>
+    <button class="botao botao--primario" type="submit">Salvar notas do <%= it.termLabel(term) %></button>
     <span class="suave">Campo deixado em branco apaga a nota já lançada daquele aluno.</span>
   </div>
 </form>

@@ -1,52 +1,52 @@
 <%
-const usuario = it.usuario;
-const papeis = new Set(usuario === null ? [] : usuario.roles.map((p) => p.role));
+const user = it.user;
+const roles = new Set(user === null ? [] : user.roles.map((p) => p.role));
 
-const QUALQUER_PAPEL = Object.values(it.papel);
+const ANY_ROLE = Object.values(it.role);
 
-const grupos = [
-  { titulo: it.areas.rede, papeis: [it.papel.networkAdmin], itens: [
-    { href: it.rotas.rede.painel(), texto: it.titulos.rede.painel },
-    { href: it.rotas.rede.unidades(), texto: it.titulos.rede.unidades },
-    { href: it.rotas.rede.usuarios(), texto: it.titulos.rede.usuarios },
-    { href: it.rotas.rede.anosLetivos(), texto: it.titulos.rede.anos },
+const groups = [
+  { title: it.areas.network, roles: [it.role.networkAdmin], items: [
+    { href: it.routes.network.dashboard(), text: it.titles.network.dashboard },
+    { href: it.routes.network.schools(), text: it.titles.network.schools },
+    { href: it.routes.network.users(), text: it.titles.network.users },
+    { href: it.routes.network.academicYears(), text: it.titles.network.years },
   ] },
-  { titulo: it.areas.secretaria, papeis: [it.papel.registrar], itens: [
-    { href: it.rotas.secretaria.painel(), texto: it.titulos.secretaria.painel },
-    { href: it.rotas.secretaria.alunos(), texto: it.titulos.secretaria.alunos },
-    { href: it.rotas.secretaria.responsaveis(), texto: it.titulos.secretaria.responsaveis },
-    { href: it.rotas.secretaria.turmas(), texto: it.titulos.secretaria.turmas },
-    { href: it.rotas.secretaria.disciplinas(), texto: it.titulos.secretaria.disciplinas },
+  { title: it.areas.registrar, roles: [it.role.registrar], items: [
+    { href: it.routes.registrar.dashboard(), text: it.titles.registrar.dashboard },
+    { href: it.routes.registrar.students(), text: it.titles.registrar.students },
+    { href: it.routes.registrar.guardians(), text: it.titles.registrar.guardians },
+    { href: it.routes.registrar.classGroups(), text: it.titles.registrar.classGroups },
+    { href: it.routes.registrar.subjects(), text: it.titles.registrar.subjects },
   ] },
-  { titulo: it.areas.ensino, papeis: [it.papel.teacher], itens: [
-    { href: it.rotas.professor.painel(), texto: it.titulos.professor.painel },
+  { title: it.areas.teaching, roles: [it.role.teacher], items: [
+    { href: it.routes.teacher.dashboard(), text: it.titles.teacher.dashboard },
   ] },
-  { titulo: it.areas.acompanhamento, papeis: [it.papel.guardian], itens: [
-    { href: it.rotas.responsavel.painel(), texto: it.titulos.responsavel.painel },
-    { href: it.rotas.responsavel.mural(), texto: 'Mural' },
+  { title: it.areas.monitoring, roles: [it.role.guardian], items: [
+    { href: it.routes.guardian.dashboard(), text: it.titles.guardian.dashboard },
+    { href: it.routes.guardian.board(), text: 'Mural' },
   ] },
-  { titulo: it.areas.comunicacao, papeis: [it.papel.networkAdmin, it.papel.registrar], itens: [
-    { href: it.rotas.comunicados.lista(), texto: it.titulos.comunicados.lista },
+  { title: it.areas.communication, roles: [it.role.networkAdmin, it.role.registrar], items: [
+    { href: it.routes.announcements.list(), text: it.titles.announcements.list },
   ] },
-  { titulo: it.areas.conta, papeis: QUALQUER_PAPEL, itens: [
-    { href: it.rotas.conta.senha(), texto: it.titulos.trocarSenha },
+  { title: it.areas.account, roles: ANY_ROLE, items: [
+    { href: it.routes.account.password(), text: it.titles.changePassword },
   ] },
-].filter((grupo) => grupo.papeis.some((papel) => papeis.has(papel)));
+].filter((group) => group.roles.some((role) => roles.has(role)));
 
-const caminho = it.caminhoAtual ?? '';
-const candidatos = grupos
-  .flatMap((grupo) => grupo.itens.map((item) => item.href))
-  .filter((href) => caminho === href || caminho.startsWith(href + '/'));
-const atual = candidatos.sort((a, b) => b.length - a.length)[0] ?? '';
+const path = it.currentPath ?? '';
+const candidates = groups
+  .flatMap((group) => group.items.map((item) => item.href))
+  .filter((href) => path === href || path.startsWith(href + '/'));
+const current = candidates.sort((a, b) => b.length - a.length)[0] ?? '';
 %>
 <nav class="navegacao" aria-label="Navegação principal">
-  <% grupos.forEach((grupo) => { %>
+  <% groups.forEach((group) => { %>
   <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo"><%= grupo.titulo %></h2>
+    <h2 class="navegacao__titulo"><%= group.title %></h2>
     <ul class="navegacao__lista">
-      <% grupo.itens.forEach((item) => { %>
+      <% group.items.forEach((item) => { %>
       <li>
-        <a class="navegacao__link" href="<%= item.href %>"<% if (item.href === atual) { %> aria-current="page"<% } %>><%= item.texto %></a>
+        <a class="navegacao__link" href="<%= item.href %>"<% if (item.href === current) { %> aria-current="page"<% } %>><%= item.text %></a>
       </li>
       <% }) %>
     </ul>

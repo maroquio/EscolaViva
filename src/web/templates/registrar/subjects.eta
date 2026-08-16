@@ -1,18 +1,18 @@
 <%
-const disciplinas = it.disciplinas ?? [];
+const subjects = it.subjects ?? [];
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.secretaria %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.registrar %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       Cadastradas uma vez para toda a rede. Cada turma recebe as suas na tela da turma, sempre com
       o professor responsável.
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.turmas() %>"><%= it.titulos.secretaria.turmas %></a>
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.disciplinaNova() %>"><%= it.titulos.secretaria.disciplinaNova %></a>
+    <a class="botao botao--secundario" href="<%= it.routes.registrar.classGroups() %>"><%= it.titles.registrar.classGroups %></a>
+    <a class="botao botao--primario" href="<%= it.routes.registrar.subjectNew() %>"><%= it.titles.registrar.subjectNew %></a>
   </div>
 </div>
 
@@ -20,17 +20,17 @@ const disciplinas = it.disciplinas ?? [];
   <div class="secao__cabecalho">
     <h2 id="cadastradas">Cadastradas na rede</h2>
     <p class="secao__nota">
-      <% const quantas = it.navegacao === undefined ? disciplinas.length : it.navegacao.total; %>
-      <span class="numero"><%= quantas %></span>
-      <%= it.pluralizar(quantas, it.contagem.disciplina) %>
+      <% const count = it.pagination === undefined ? subjects.length : it.pagination.total; %>
+      <span class="numero"><%= count %></span>
+      <%= it.pluralize(count, it.nouns.subject) %>
     </p>
   </div>
 
-  <% if (disciplinas.length === 0) { %>
-  <%~ include(it.parciais.vazio, {
-    titulo: 'Nenhuma disciplina cadastrada',
-    texto: 'Sem disciplina não há alocação de professor, e sem alocação não há lançamento de nota.',
-    acao: { href: it.rotas.secretaria.disciplinaNova(), texto: it.titulos.secretaria.disciplinaNova }
+  <% if (subjects.length === 0) { %>
+  <%~ include(it.partials.empty, {
+    title: 'Nenhuma disciplina cadastrada',
+    text: 'Sem disciplina não há alocação de professor, e sem alocação não há lançamento de nota.',
+    action: { href: it.routes.registrar.subjectNew(), text: it.titles.registrar.subjectNew }
   }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -38,18 +38,18 @@ const disciplinas = it.disciplinas ?? [];
       <caption>Disciplinas disponíveis para alocar nas turmas</caption>
       <thead>
         <tr>
-          <th scope="col"><%= it.rotulos.disciplina %></th>
+          <th scope="col"><%= it.labels.subject %></th>
         </tr>
       </thead>
       <tbody>
-        <% disciplinas.forEach((disciplina) => { %>
+        <% subjects.forEach((subject) => { %>
         <tr>
-          <th scope="row"><%= disciplina.nome %></th>
+          <th scope="row"><%= subject.name %></th>
         </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.disciplina.plural }) %>
+  <%~ include(it.partials.pagination, { pagination: it.pagination, label: it.nouns.subject.plural }) %>
   <% } %>
 </section>

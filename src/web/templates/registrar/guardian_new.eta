@@ -1,12 +1,12 @@
 <%
-const valores = it.valores ?? {};
-const { erroDe, descricao } = it;
-const campos = it.campos.responsavel;
+const values = it.values ?? {};
+const { errorFor, describedBy } = it;
+const fields = it.fields.guardian;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= it.titulos.secretaria.responsaveis %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.guardians %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       Quem recebe comunicado e acompanha boletim e frequência. Depois de cadastrar, vincule-o ao
       aluno pela ficha dele.
@@ -15,8 +15,8 @@ const campos = it.campos.responsavel;
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="post" action="<%= it.rotas.secretaria.responsaveis() %>">
-    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
+  <form class="formulario" method="post" action="<%= it.routes.registrar.guardians() %>">
+    <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
     <div class="campo">
       <label class="campo__rotulo" for="nome">
@@ -24,58 +24,58 @@ const campos = it.campos.responsavel;
       </label>
       <input
         id="nome"
-        name="<%= campos.nome %>"
+        name="<%= fields.name %>"
         type="text"
         required
-        maxlength="<%= it.limiteDoNome %>"
+        maxlength="<%= it.nameLimit %>"
         autocomplete="off"
-        value="<%= valores.nome ?? '' %>"
-        <% if (erroDe(campos.nome) !== '') { %>aria-invalid="true"<% } %>
-        <% if (descricao(campos.nome) !== '') { %>aria-describedby="<%= descricao(campos.nome) %>"<% } %>>
-      <% if (erroDe(campos.nome) !== '') { %>
-      <p class="campo__erro" id="<%= it.idDoErro(campos.nome) %>"><%= erroDe(campos.nome) %></p>
+        value="<%= values.name ?? '' %>"
+        <% if (errorFor(fields.name) !== '') { %>aria-invalid="true"<% } %>
+        <% if (describedBy(fields.name) !== '') { %>aria-describedby="<%= describedBy(fields.name) %>"<% } %>>
+      <% if (errorFor(fields.name) !== '') { %>
+      <p class="campo__erro" id="<%= it.errorId(fields.name) %>"><%= errorFor(fields.name) %></p>
       <% } %>
     </div>
 
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="email">
-          <%= it.rotulos.email %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.labels.email %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="email"
-          name="<%= campos.email %>"
+          name="<%= fields.email %>"
           type="email"
           required
-          maxlength="<%= it.limiteDoEmail %>"
+          maxlength="<%= it.emailLimit %>"
           autocomplete="off"
-          value="<%= valores.email ?? '' %>"
-          <% if (erroDe(campos.email) !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao(campos.email, true) %>">
-        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.email) %>">
+          value="<%= values.email ?? '' %>"
+          <% if (errorFor(fields.email) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= describedBy(fields.email, true) %>">
+        <p class="campo__ajuda" id="<%= it.helpId(fields.email) %>">
           Único na rede. É por ele que o responsável recebe comunicado — não é usado para entrar.
         </p>
-        <% if (erroDe(campos.email) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.email) %>"><%= erroDe(campos.email) %></p>
+        <% if (errorFor(fields.email) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.email) %>"><%= errorFor(fields.email) %></p>
         <% } %>
       </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="cpf"><%= it.rotulos.cpf %></label>
+        <label class="campo__rotulo" for="cpf"><%= it.labels.cpf %></label>
         <input
           id="cpf"
-          name="<%= campos.cpf %>"
+          name="<%= fields.cpf %>"
           type="text"
-          maxlength="<%= it.limiteDoCpfComMascara %>"
+          maxlength="<%= it.maskedCpfLimit %>"
           autocomplete="off"
-          value="<%= valores.cpf ?? '' %>"
-          <% if (erroDe(campos.cpf) !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao(campos.cpf, true) %>">
-        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.cpf) %>">
+          value="<%= values.cpf ?? '' %>"
+          <% if (errorFor(fields.cpf) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= describedBy(fields.cpf, true) %>">
+        <p class="campo__ajuda" id="<%= it.helpId(fields.cpf) %>">
           Opcional. Sem CPF a pessoa fica como contato e não recebe acesso ao portal.
         </p>
-        <% if (erroDe(campos.cpf) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.cpf) %>"><%= erroDe(campos.cpf) %></p>
+        <% if (errorFor(fields.cpf) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.cpf) %>"><%= errorFor(fields.cpf) %></p>
         <% } %>
       </div>
 
@@ -83,23 +83,23 @@ const campos = it.campos.responsavel;
         <label class="campo__rotulo" for="telefone">Telefone</label>
         <input
           id="telefone"
-          name="<%= campos.telefone %>"
+          name="<%= fields.phone %>"
           type="tel"
-          maxlength="<%= it.limiteDoTelefone %>"
+          maxlength="<%= it.phoneLimit %>"
           autocomplete="off"
-          value="<%= valores.telefone ?? '' %>"
-          <% if (erroDe(campos.telefone) !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao(campos.telefone, true) %>">
-        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.telefone) %>">Opcional. Em branco significa sem telefone.</p>
-        <% if (erroDe(campos.telefone) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.telefone) %>"><%= erroDe(campos.telefone) %></p>
+          value="<%= values.phone ?? '' %>"
+          <% if (errorFor(fields.phone) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= describedBy(fields.phone, true) %>">
+        <p class="campo__ajuda" id="<%= it.helpId(fields.phone) %>">Opcional. Em branco significa sem telefone.</p>
+        <% if (errorFor(fields.phone) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.phone) %>"><%= errorFor(fields.phone) %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
-      <button class="botao botao--primario" type="submit"><%= it.titulos.secretaria.responsavelNovo %></button>
-      <a class="botao botao--discreto" href="<%= it.rotas.secretaria.responsaveis() %>"><%= it.acoes.cancelar %></a>
+      <button class="botao botao--primario" type="submit"><%= it.titles.registrar.guardianNew %></button>
+      <a class="botao botao--discreto" href="<%= it.routes.registrar.guardians() %>"><%= it.actions.cancel %></a>
     </div>
   </form>
 </div>

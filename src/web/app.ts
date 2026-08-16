@@ -14,24 +14,24 @@ import {
   type Variables,
 } from '../shared/http';
 import {
-  DETALHES_DE_ERRO,
+  ASSET_NAME,
+  ASSET_TYPES,
+  DASHBOARD_BY_ROLE,
+  DEFAULT_ASSET_TYPE,
+  ERROR_DETAILS,
+  ERROR_PAGES,
   ERROR_TITLES,
-  ERRO_INESPERADO_EM_TEXTO,
-  NOME_DE_ASSET,
-  PAGINAS_DE_ERRO,
-  PAINEL_POR_PAPEL,
-  PREFIXO_PUBLICO,
-  ROTAS,
-  TIPOS_DE_ASSET,
-  TIPO_DE_ASSET_PADRAO,
+  PUBLIC_PREFIX,
+  ROUTES,
+  UNEXPECTED_ERROR_TEXT,
 } from './constants';
-import { rotasSaude } from './health';
-import { renderizarErro } from './render';
-import { montarRotas } from './routes';
+import { healthRoutes } from './health';
+import { renderError } from './render';
+import { mountRoutes } from './routes';
 
-const PASTA_PUBLICO = join(import.meta.dir, '..', '..', ASSETS.directory);
+const PUBLIC_DIR = join(import.meta.dir, '..', '..', ASSETS.directory);
 
-const SEPARADOR_DE_EXTENSAO = '.';
+const EXTENSION_SEPARATOR = '.';
 
 export const app = new Hono<{ Variables: Variables }>();
 
@@ -40,63 +40,63 @@ app.use(correlationMiddleware);
 app.use(cacheControlMiddleware);
 app.use(createSessionMiddleware(identity.validSession));
 
-app.onError(async (erro, c) => {
-  const resposta = await errorsMiddleware(c, () => Promise.reject(erro));
-  return resposta ?? c.text(ERRO_INESPERADO_EM_TEXTO, 500);
+app.onError(async (error, c) => {
+  const response = await errorsMiddleware(c, () => Promise.reject(error));
+  return response ?? c.text(UNEXPECTED_ERROR_TEXT, 500);
 });
 
-const tipoDoAsset = (nome: string): string => {
-  const extensao = nome.slice(nome.lastIndexOf(SEPARADOR_DE_EXTENSAO) + 1).toLowerCase();
-  return TIPOS_DE_ASSET[extensao] ?? TIPO_DE_ASSET_PADRAO;
+const assetType = (name: string): string => {
+  const extension = name.slice(name.lastIndexOf(EXTENSION_SEPARATOR) + 1).toLowerCase();
+  return ASSET_TYPES[extension] ?? DEFAULT_ASSET_TYPE;
 };
 
-app.get(ROTAS.publicas.publico.padrao, async (c) => {
-  const nome = c.req.path.slice(PREFIXO_PUBLICO.length);
-  if (!NOME_DE_ASSET.test(nome)) {
-    return renderizarErro(
+app.get(ROUTES.public.assets.pattern, async (c) => {
+  const name = c.req.path.slice(PUBLIC_PREFIX.length);
+  if (!ASSET_NAME.test(name)) {
+    return renderError(
       c,
       404,
-      PAGINAS_DE_ERRO.assetNomeInvalido.titulo,
-      PAGINAS_DE_ERRO.assetNomeInvalido.detalhe,
+      ERROR_PAGES.invalidAssetName.title,
+      ERROR_PAGES.invalidAssetName.detail,
     );
   }
 
-  const arquivo = Bun.file(join(PASTA_PUBLICO, nome));
-  if (!(await arquivo.exists())) {
-    return renderizarErro(
+  const file = Bun.file(join(PUBLIC_DIR, name));
+  if (!(await file.exists())) {
+    return renderError(
       c,
       404,
-      PAGINAS_DE_ERRO.assetInexistente.titulo,
-      PAGINAS_DE_ERRO.assetInexistente.detalhe,
+      ERROR_PAGES.missingAsset.title,
+      ERROR_PAGES.missingAsset.detail,
     );
   }
 
-  return new Response(arquivo, { headers: { 'Content-Type': tipoDoAsset(nome) } });
+  return new Response(file, { headers: { 'Content-Type': assetType(name) } });
 });
 
-app.route(ROTAS.publicas.prefixo, rotasSaude);
+app.route(ROUTES.public.prefix, healthRoutes);
 
-app.get(ROTAS.publicas.raiz.padrao, (c) =>
+app.get(ROUTES.public.root.pattern, (c) =>
   c.redirect(
-    currentUserOrNull(c) === null ? ROTAS.publicas.login() : ROTAS.publicas.painel(),
+    currentUserOrNull(c) === null ? ROUTES.public.login() : ROUTES.public.dashboard(),
     303,
   ),
 );
 
-app.get(ROTAS.publicas.painel.padrao, requireLogin(), (c) => {
-  const usuario = currentUser(c);
-  const painel = PAINEL_POR_PAPEL.find(({ papel }) => hasRole(usuario, papel));
-  if (painel === undefined) {
-    return renderizarErro(
+app.get(ROUTES.public.dashboard.pattern, requireLogin(), (c) => {
+  const user = currentUser(c);
+  const dashboard = DASHBOARD_BY_ROLE.find(({ role }) => hasRole(user, role));
+  if (dashboard === undefined) {
+    return renderError(
       c,
       403,
-      PAGINAS_DE_ERRO.contaSemPapel.titulo,
-      PAGINAS_DE_ERRO.contaSemPapel.detalhe,
+      ERROR_PAGES.accountWithoutRole.title,
+      ERROR_PAGES.accountWithoutRole.detail,
     );
   }
-  return c.redirect(painel.destino, 303);
+  return c.redirect(dashboard.target, 303);
 });
 
-montarRotas(app);
+mountRoutes(app);
 
-app.notFound((c) => renderizarErro(c, 404, ERROR_TITLES[404], DETALHES_DE_ERRO[404]));
+app.notFound((c) => renderError(c, 404, ERROR_TITLES[404], ERROR_DETAILS[404]));

@@ -1,13 +1,13 @@
 <%
-const valores = it.valores ?? { redeSlug: '', cpf: '' };
-const campos = it.campos.login;
+const values = it.values ?? { networkSlug: '', cpf: '' };
+const fields = it.fields.login;
 
-const { erroDe, descricao } = it;
+const { errorFor, describedBy } = it;
 %>
-<h1><%= it.titulo %></h1>
+<h1><%= it.title %></h1>
 
-<form class="formulario" method="post" action="<%= it.rotas.publicas.login() %>">
-  <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
+<form class="formulario" method="post" action="<%= it.routes.public.login() %>">
+  <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
   <div class="campo">
     <label class="campo__rotulo" for="redeSlug">
@@ -15,44 +15,44 @@ const { erroDe, descricao } = it;
     </label>
     <input
       id="redeSlug"
-      name="<%= campos.redeSlug %>"
+      name="<%= fields.networkSlug %>"
       type="text"
       required
       autocomplete="organization"
       autocapitalize="none"
       spellcheck="false"
-      value="<%= valores.redeSlug %>"
-      <% if (erroDe(campos.redeSlug) !== '') { %>aria-invalid="true"<% } %>
-      aria-describedby="<%= descricao(campos.redeSlug, true) %>">
-    <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.redeSlug) %>">
+      value="<%= values.networkSlug %>"
+      <% if (errorFor(fields.networkSlug) !== '') { %>aria-invalid="true"<% } %>
+      aria-describedby="<%= describedBy(fields.networkSlug, true) %>">
+    <p class="campo__ajuda" id="<%= it.helpId(fields.networkSlug) %>">
       O apelido curto da rede, informado pela secretaria — tudo minúsculo, sem espaço.
     </p>
-    <% if (erroDe(campos.redeSlug) !== '') { %>
-    <p class="campo__erro" id="<%= it.idDoErro(campos.redeSlug) %>"><%= erroDe(campos.redeSlug) %></p>
+    <% if (errorFor(fields.networkSlug) !== '') { %>
+    <p class="campo__erro" id="<%= it.errorId(fields.networkSlug) %>"><%= errorFor(fields.networkSlug) %></p>
     <% } %>
   </div>
 
   <div class="campo">
     <label class="campo__rotulo" for="cpf">
-      <%= it.rotulos.cpf %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <%= it.labels.cpf %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
     </label>
     <input
       id="cpf"
-      name="<%= campos.cpf %>"
+      name="<%= fields.cpf %>"
       type="text"
       required
       inputmode="numeric"
       autocomplete="username"
       autocapitalize="none"
       spellcheck="false"
-      value="<%= valores.cpf %>"
-      <% if (erroDe(campos.cpf) !== '') { %>aria-invalid="true"<% } %>
-      aria-describedby="<%= descricao(campos.cpf, true) %>">
-    <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.cpf) %>">
+      value="<%= values.cpf %>"
+      <% if (errorFor(fields.cpf) !== '') { %>aria-invalid="true"<% } %>
+      aria-describedby="<%= describedBy(fields.cpf, true) %>">
+    <p class="campo__ajuda" id="<%= it.helpId(fields.cpf) %>">
       O CPF pode ser digitado com ou sem pontos e traço.
     </p>
-    <% if (erroDe(campos.cpf) !== '') { %>
-    <p class="campo__erro" id="<%= it.idDoErro(campos.cpf) %>"><%= erroDe(campos.cpf) %></p>
+    <% if (errorFor(fields.cpf) !== '') { %>
+    <p class="campo__erro" id="<%= it.errorId(fields.cpf) %>"><%= errorFor(fields.cpf) %></p>
     <% } %>
   </div>
 
@@ -62,18 +62,18 @@ const { erroDe, descricao } = it;
     </label>
     <input
       id="senha"
-      name="<%= campos.senha %>"
+      name="<%= fields.password %>"
       type="password"
       required
       autocomplete="current-password"
-      <% if (erroDe(campos.senha) !== '') { %>aria-invalid="true"<% } %>
-      <% if (descricao(campos.senha, false) !== '') { %>aria-describedby="<%= descricao(campos.senha, false) %>"<% } %>>
-    <% if (erroDe(campos.senha) !== '') { %>
-    <p class="campo__erro" id="<%= it.idDoErro(campos.senha) %>"><%= erroDe(campos.senha) %></p>
+      <% if (errorFor(fields.password) !== '') { %>aria-invalid="true"<% } %>
+      <% if (describedBy(fields.password, false) !== '') { %>aria-describedby="<%= describedBy(fields.password, false) %>"<% } %>>
+    <% if (errorFor(fields.password) !== '') { %>
+    <p class="campo__erro" id="<%= it.errorId(fields.password) %>"><%= errorFor(fields.password) %></p>
     <% } %>
   </div>
 
   <div class="acoes">
-    <button class="botao botao--primario" type="submit"><%= it.titulos.login %></button>
+    <button class="botao botao--primario" type="submit"><%= it.titles.login %></button>
   </div>
 </form>

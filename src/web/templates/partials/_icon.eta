@@ -1,21 +1,21 @@
 <%
-const INDIGO_INSTITUCIONAL = '%23264a91';
-const PAPEL = '%23faf8f3';
-const INICIAL_DA_MARCA = 'E';
+const INSTITUTIONAL_INDIGO = '%23264a91';
+const PAPER = '%23faf8f3';
+const BRAND_INITIAL = 'E';
 
-const CANTO_ARREDONDADO = " rx='6'";
-const SEM_CANTO = '';
+const ROUNDED_CORNER = " rx='6'";
+const NO_CORNER = '';
 
-const marca = (canto) =>
+const brand = (corner) =>
   `data:image/svg+xml,` +
   `%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E` +
-  `%3Crect width='32' height='32'${canto} fill='${INDIGO_INSTITUCIONAL}'/%3E` +
+  `%3Crect width='32' height='32'${corner} fill='${INSTITUTIONAL_INDIGO}'/%3E` +
   `%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700'` +
-  ` fill='${PAPEL}' text-anchor='middle'%3E${INICIAL_DA_MARCA}%3C/text%3E` +
+  ` fill='${PAPER}' text-anchor='middle'%3E${BRAND_INITIAL}%3C/text%3E` +
   `%3C/svg%3E`;
 
-const ICONE_DA_ABA = marca(CANTO_ARREDONDADO);
-const ICONE_DA_TELA_DE_INICIO = marca(SEM_CANTO);
+const TAB_ICON = brand(ROUNDED_CORNER);
+const HOME_SCREEN_ICON = brand(NO_CORNER);
 %>
-<link rel="icon" href="<%~ ICONE_DA_ABA %>">
-<link rel="apple-touch-icon" href="<%~ ICONE_DA_TELA_DE_INICIO %>">
+<link rel="icon" href="<%~ TAB_ICON %>">
+<link rel="apple-touch-icon" href="<%~ HOME_SCREEN_ICON %>">

@@ -1,106 +1,108 @@
 <%
-const aluno = it.aluno;
-const turmas = it.turmas ?? [];
-const anosLetivos = it.anosLetivos ?? [];
-const valores = it.valores ?? {};
-const campos = it.campos.matricula;
-const { erroDe, descricao } = it;
+const student = it.student;
+const classGroups = it.classGroups ?? [];
+const academicYears = it.academicYears ?? [];
+const values = it.values ?? {};
+const fields = it.fields.enrollment;
+const { errorFor, describedBy } = it;
 
-const valor = (campo, padrao) => (valores[campo] === undefined ? padrao : valores[campo]);
+const chosenClassGroup = values.classGroupId ?? '';
+const chosenYear = values.academicYearId ?? '';
+const enrollmentDate = values.enrollmentDate ?? it.today;
 
-const agrupar = (lista) => {
-  const grupos = [];
-  lista.forEach((turma) => {
-    let grupo = grupos.find((candidato) => candidato.anoLetivoId === turma.anoLetivoId);
-    if (grupo === undefined) {
-      grupo = { anoLetivoId: turma.anoLetivoId, ano: turma.ano, turmas: [] };
-      grupos.push(grupo);
+const groupByYear = (items) => {
+  const groups = [];
+  items.forEach((classGroup) => {
+    let group = groups.find((candidate) => candidate.academicYearId === classGroup.academicYearId);
+    if (group === undefined) {
+      group = { academicYearId: classGroup.academicYearId, year: classGroup.year, classGroups: [] };
+      groups.push(group);
     }
-    grupo.turmas.push(turma);
+    group.classGroups.push(classGroup);
   });
-  return grupos.sort((a, b) => (b.ano ?? 0) - (a.ano ?? 0));
+  return groups.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
 };
 
-const grupos = agrupar(turmas);
-const fichaDoAluno = it.rotas.secretaria.aluno({ id: aluno.id });
+const groups = groupByYear(classGroups);
+const studentRecord = it.routes.registrar.student({ id: student.id });
 
-const rotuloDaTurma = (turma) =>
-  [turma.nome, turma.serie, turma.turno, turma.unidadeNome].join(it.apresentacao.separador);
+const classGroupLabel = (classGroup) =>
+  [classGroup.name, classGroup.gradeLevel, classGroup.shiftName, classGroup.schoolName].join(it.presentation.separator);
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= aluno.nome %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= student.name %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       Um aluno tem, no máximo, uma matrícula ativa por ano letivo.
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= fichaDoAluno %>"><%= it.acoes.voltarPara.ficha %></a>
+    <a class="botao botao--secundario" href="<%= studentRecord %>"><%= it.actions.backTo.record %></a>
   </div>
 </div>
 
 <div class="quadro">
-  <% if (turmas.length === 0 || anosLetivos.length === 0) { %>
+  <% if (classGroups.length === 0 || academicYears.length === 0) { %>
   <p class="suave leitura">Não há turma disponível nas suas unidades.</p>
   <div class="acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.turmaNova() %>"><%= it.titulos.secretaria.turmaNova %></a>
-    <a class="botao botao--discreto" href="<%= fichaDoAluno %>"><%= it.acoes.voltarPara.ficha %></a>
+    <a class="botao botao--primario" href="<%= it.routes.registrar.classGroupNew() %>"><%= it.titles.registrar.classGroupNew %></a>
+    <a class="botao botao--discreto" href="<%= studentRecord %>"><%= it.actions.backTo.record %></a>
   </div>
   <% } else { %>
-  <form class="formulario" method="post" action="<%= it.rotas.secretaria.matriculas() %>">
-    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
-    <input type="hidden" name="<%= campos.alunoId %>" value="<%= aluno.id %>">
+  <form class="formulario" method="post" action="<%= it.routes.registrar.enrollments() %>">
+    <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
+    <input type="hidden" name="<%= fields.studentId %>" value="<%= student.id %>">
 
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="turmaId">
-          <%= it.rotulos.turma %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.labels.classGroup %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
           id="turmaId"
-          name="<%= campos.turmaId %>"
+          name="<%= fields.classGroupId %>"
           required
-          <% if (erroDe(campos.turmaId) !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao(campos.turmaId) !== '') { %>aria-describedby="<%= descricao(campos.turmaId) %>"<% } %>>
-          <option value=""><%= it.opcaoVazia %></option>
-          <% grupos.forEach((grupo) => { %>
-          <optgroup label="<%= it.rotulos.anoLetivo %> <%= grupo.ano === null ? it.semValor : grupo.ano %>">
-            <% grupo.turmas.forEach((turma) => { %>
-            <option value="<%= turma.id %>" <%= valor(campos.turmaId, '') === turma.id ? 'selected' : '' %>>
-              <%= rotuloDaTurma(turma) %>
+          <% if (errorFor(fields.classGroupId) !== '') { %>aria-invalid="true"<% } %>
+          <% if (describedBy(fields.classGroupId) !== '') { %>aria-describedby="<%= describedBy(fields.classGroupId) %>"<% } %>>
+          <option value=""><%= it.emptyOption %></option>
+          <% groups.forEach((group) => { %>
+          <optgroup label="<%= it.labels.academicYear %> <%= group.year === null ? it.missingValue : group.year %>">
+            <% group.classGroups.forEach((classGroup) => { %>
+            <option value="<%= classGroup.id %>" <%= chosenClassGroup === classGroup.id ? 'selected' : '' %>>
+              <%= classGroupLabel(classGroup) %>
             </option>
             <% }) %>
           </optgroup>
           <% }) %>
         </select>
-        <% if (erroDe(campos.turmaId) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.turmaId) %>"><%= erroDe(campos.turmaId) %></p>
+        <% if (errorFor(fields.classGroupId) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.classGroupId) %>"><%= errorFor(fields.classGroupId) %></p>
         <% } %>
       </div>
 
       <div class="campo">
         <label class="campo__rotulo" for="anoLetivoId">
-          <%= it.rotulos.anoLetivo %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.labels.academicYear %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
           id="anoLetivoId"
-          name="<%= campos.anoLetivoId %>"
+          name="<%= fields.academicYearId %>"
           required
-          <% if (erroDe(campos.anoLetivoId) !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao(campos.anoLetivoId, true) %>">
-          <option value=""><%= it.opcaoVazia %></option>
-          <% anosLetivos.forEach((anoLetivo) => { %>
-          <option value="<%= anoLetivo.id %>" <%= valor(campos.anoLetivoId, '') === anoLetivo.id ? 'selected' : '' %>>
-            <%= anoLetivo.ano %>
+          <% if (errorFor(fields.academicYearId) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= describedBy(fields.academicYearId, true) %>">
+          <option value=""><%= it.emptyOption %></option>
+          <% academicYears.forEach((academicYear) => { %>
+          <option value="<%= academicYear.id %>" <%= chosenYear === academicYear.id ? 'selected' : '' %>>
+            <%= academicYear.year %>
           </option>
           <% }) %>
         </select>
-        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.anoLetivoId) %>">
+        <p class="campo__ajuda" id="<%= it.helpId(fields.academicYearId) %>">
           Precisa ser o mesmo ano da turma escolhida — o servidor recusa o par que não fecha.
         </p>
-        <% if (erroDe(campos.anoLetivoId) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.anoLetivoId) %>"><%= erroDe(campos.anoLetivoId) %></p>
+        <% if (errorFor(fields.academicYearId) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.academicYearId) %>"><%= errorFor(fields.academicYearId) %></p>
         <% } %>
       </div>
 
@@ -110,21 +112,21 @@ const rotuloDaTurma = (turma) =>
         </label>
         <input
           id="dataMatricula"
-          name="<%= campos.dataMatricula %>"
+          name="<%= fields.enrollmentDate %>"
           type="date"
           required
-          value="<%= valor(campos.dataMatricula, it.hoje) %>"
-          <% if (erroDe(campos.dataMatricula) !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao(campos.dataMatricula) !== '') { %>aria-describedby="<%= descricao(campos.dataMatricula) %>"<% } %>>
-        <% if (erroDe(campos.dataMatricula) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.dataMatricula) %>"><%= erroDe(campos.dataMatricula) %></p>
+          value="<%= enrollmentDate %>"
+          <% if (errorFor(fields.enrollmentDate) !== '') { %>aria-invalid="true"<% } %>
+          <% if (describedBy(fields.enrollmentDate) !== '') { %>aria-describedby="<%= describedBy(fields.enrollmentDate) %>"<% } %>>
+        <% if (errorFor(fields.enrollmentDate) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.enrollmentDate) %>"><%= errorFor(fields.enrollmentDate) %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Matricular</button>
-      <a class="botao botao--discreto" href="<%= fichaDoAluno %>"><%= it.acoes.cancelar %></a>
+      <a class="botao botao--discreto" href="<%= studentRecord %>"><%= it.actions.cancel %></a>
     </div>
   </form>
   <% } %>

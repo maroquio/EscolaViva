@@ -1,32 +1,32 @@
 <%
-const comunicado = it.comunicado;
-const lidoEm = it.lidoEm;
+const announcement = it.announcement;
+const readAt = it.readAt;
 %>
 <header class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Comunicado</p>
-    <h1 class="pagina__titulo"><%= comunicado.titulo %></h1>
+    <h1 class="pagina__titulo"><%= announcement.title %></h1>
     <p class="pagina__resumo">
-      Publicado por <%= comunicado.autorNome %> em
-      <time datetime="<%= comunicado.publicadoEm %>">
-        <%= it.formatarDataHora(comunicado.publicadoEm) %>
+      Publicado por <%= announcement.authorName %> em
+      <time datetime="<%= announcement.publishedAt %>">
+        <%= it.formatDateTime(announcement.publishedAt) %>
       </time>
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.mural() %>"><%= it.acoes.voltarPara.mural %></a>
+    <a class="botao botao--discreto" href="<%= it.routes.guardian.board() %>"><%= it.actions.backTo.board %></a>
   </p>
 </header>
 
 <article class="pilha">
   <div class="quadro leitura">
-    <p class="texto-corrido"><%= comunicado.corpo %></p>
+    <p class="texto-corrido"><%= announcement.body %></p>
   </div>
 
   <footer class="acoes">
-    <% if (lidoEm === null) { %>
-    <form method="post" action="<%= it.rotas.responsavel.comunicadoLido({ comunicadoId: comunicado.id }) %>">
-      <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
+    <% if (readAt === null) { %>
+    <form method="post" action="<%= it.routes.guardian.announcementRead({ comunicadoId: announcement.id }) %>">
+      <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
       <button class="botao botao--primario" type="submit">Marcar como lido</button>
     </form>
     <p class="suave">
@@ -36,7 +36,7 @@ const lidoEm = it.lidoEm;
     <p class="linha">
       <span class="etiqueta etiqueta--aprovado">Lido</span>
       <span class="suave">
-        em <time datetime="<%= lidoEm %>"><%= it.formatarDataHora(lidoEm) %></time>
+        em <time datetime="<%= readAt %>"><%= it.formatDateTime(readAt) %></time>
       </span>
     </p>
     <% } %>

@@ -1,29 +1,29 @@
 <%
-const usuario = it.usuario;
-const unidades = usuario === null ? [] : [...new Set(usuario.roles.map((p) => p.schoolName))];
+const user = it.user;
+const schools = user === null ? [] : [...new Set(user.roles.map((p) => p.schoolName))];
 %>
 <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="<%= it.rotas.publicas.painel() %>"><%~ it.apresentacao.marca %></a>
+  <a class="marca cabecalho__marca" href="<%= it.routes.public.dashboard() %>"><%~ it.presentation.brand %></a>
 
-  <% if (usuario !== null) { %>
+  <% if (user !== null) { %>
   <div class="cabecalho__contexto">
-    <span class="cabecalho__rede"><%= usuario.networkName %></span>
+    <span class="cabecalho__rede"><%= user.networkName %></span>
     <span class="cabecalho__unidade">
-      <% if (unidades.length === 0) { %>
+      <% if (schools.length === 0) { %>
         sem unidade atribuída
-      <% } else if (unidades.length === 1) { %>
-        <%= unidades[0] %>
+      <% } else if (schools.length === 1) { %>
+        <%= schools[0] %>
       <% } else { %>
-        <%= unidades.length %> <%= it.contagem.unidade.plural %>
+        <%= schools.length %> <%= it.nouns.school.plural %>
 
       <% } %>
     </span>
   </div>
 
   <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="<%= usuario.email %>"><%= usuario.name %></span>
-    <form class="cabecalho__sair" method="post" action="<%= it.rotas.publicas.logout() %>">
-      <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
+    <span class="cabecalho__nome" title="<%= user.email %>"><%= user.name %></span>
+    <form class="cabecalho__sair" method="post" action="<%= it.routes.public.logout() %>">
+      <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
       <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
     </form>
   </div>

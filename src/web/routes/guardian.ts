@@ -5,10 +5,9 @@ import {
   ASSESSMENT_VOCABULARY,
   PASSING,
   assessment,
-  type AttendanceEntry,
   type ReportCard,
 } from '../../assessment';
-import { communication, type Announcement, type BoardItem } from '../../communication';
+import { communication, type BoardItem } from '../../communication';
 import { ROLE } from '../../identity';
 import {
   NotFound,
@@ -19,271 +18,226 @@ import {
 } from '../../shared/http';
 import { emptyPage } from '../../shared/pagination';
 import {
-  APRESENTACAO,
-  AVISOS,
-  DIAGNOSTICOS,
+  DIAGNOSTICS,
   MISSING_VALUE,
-  PARAMETROS,
-  ROTAS,
+  NOTICES,
+  PARAMS,
+  PRESENTATION,
+  ROUTES,
   TEMPLATES,
-  TITULOS,
+  TITLES,
 } from '../constants';
-import { navegacao, paginaDaQuery } from '../pagination';
-import { formatarNota, renderizar } from '../render';
+import { pageFromQuery, pagination } from '../pagination';
+import { formatGrade, render } from '../render';
 
-export const rotasResponsavel = new Hono<{ Variables: Variables }>();
+export const guardianRoutes = new Hono<{ Variables: Variables }>();
 
-rotasResponsavel.use(requireRole(ROLE.guardian));
+guardianRoutes.use(requireRole(ROLE.guardian));
 
-const PARCIAIS = { parciais: TEMPLATES.parciais };
+const PARTIALS = { partials: TEMPLATES.partials };
 
-const ROTULOS_DA_AVALIACAO = {
-  rotuloDaSituacao: ASSESSMENT_VOCABULARY.finalStatus,
-  rotuloDaPresenca: {
-    presente: ASSESSMENT_VOCABULARY.attendance.present,
-    faltaJustificada: ASSESSMENT_VOCABULARY.attendance.excusedAbsence,
-    falta: ASSESSMENT_VOCABULARY.attendance.absence,
+const ASSESSMENT_LABELS = {
+  statusLabel: ASSESSMENT_VOCABULARY.finalStatus,
+  attendanceLabel: {
+    present: ASSESSMENT_VOCABULARY.attendance.present,
+    excusedAbsence: ASSESSMENT_VOCABULARY.attendance.excusedAbsence,
+    absence: ASSESSMENT_VOCABULARY.attendance.absence,
   },
 };
 
-const ROTULOS_DO_ACADEMICO = {
-  rotuloDaSituacao: ACADEMIC_VOCABULARY.enrollmentStatus,
+const ACADEMIC_LABELS = {
+  statusLabel: ACADEMIC_VOCABULARY.enrollmentStatus,
 };
 
-const matriculaParaTela = (matricula: Enrollment) => ({
-  id: matricula.id,
-  alunoNome: matricula.studentName,
-  turmaNome: matricula.classGroupName,
-  ano: matricula.year,
-  situacao: matricula.status,
-});
+const toScreenScale = (inHundredths: number): number => inHundredths / ARITHMETIC.hundredths;
 
-const naEscalaDaTela = (emCentesimos: number): number => emCentesimos / ARITHMETIC.hundredths;
-
-const CRITERIO_DE_APROVACAO = {
-  media: formatarNota(naEscalaDaTela(PASSING.minimumAverageInHundredths)),
-  frequencia: `${naEscalaDaTela(PASSING.minimumAttendanceInHundredths)}${APRESENTACAO.sufixoDePercentual}`,
+const PASSING_CRITERIA = {
+  average: formatGrade(toScreenScale(PASSING.minimumAverageInHundredths)),
+  attendance: `${toScreenScale(PASSING.minimumAttendanceInHundredths)}${PRESENTATION.percentSuffix}`,
 };
 
-const responsavelDaSessao = (c: Context): string | null => currentUser(c).guardianId;
+const sessionGuardian = (c: Context): string | null => currentUser(c).guardianId;
 
-const matriculaSobResponsabilidade = async (
+const enrollmentUnderResponsibility = async (
   c: Context,
-  matriculaId: string,
+  enrollmentId: string,
 ): Promise<Enrollment> => {
-  const responsavelId = responsavelDaSessao(c);
-  if (responsavelId === null) throw new NotFound(DIAGNOSTICOS.contaSemResponsavel);
+  const guardianId = sessionGuardian(c);
+  if (guardianId === null) throw new NotFound(DIAGNOSTICS.accountWithoutGuardian);
 
-  const matriculas = await academics.guardianEnrollments(currentNetwork(c), responsavelId);
-  const matricula = matriculas.find((linha) => linha.id === matriculaId);
-  if (matricula === undefined) {
-    throw new NotFound(DIAGNOSTICOS.matriculaForaDaResponsabilidade);
+  const enrollments = await academics.guardianEnrollments(currentNetwork(c), guardianId);
+  const enrollment = enrollments.find((row) => row.id === enrollmentId);
+  if (enrollment === undefined) {
+    throw new NotFound(DIAGNOSTICS.enrollmentOutsideResponsibility);
   }
-  return matricula;
+  return enrollment;
 };
 
-const boletimParaTela = (boletim: ReportCard) => ({
-  matriculaId: boletim.enrollmentId,
-  alunoNome: boletim.studentName,
-  turmaNome: boletim.classGroupName,
-  ano: boletim.year,
-  linhas: boletim.rows.map((linha) => ({
-    disciplinaNome: linha.subjectName,
-    notas: linha.grades,
-    media: linha.average,
-  })),
-  mediasPorBimestre: boletim.termAverages,
-  mediaGeral: boletim.overallAverage,
-  percentualFrequencia: boletim.attendanceRate,
-  totalDias: boletim.totalDays,
-  presencas: boletim.presentDays,
-  situacao: boletim.status,
-});
+const termsOf = (reportCard: ReportCard): number[] =>
+  Array.from({ length: reportCard.rows[0]?.grades.length ?? 0 }, (_, index) => index + 1);
 
-const itemDoMuralParaTela = (item: BoardItem) => ({
-  comunicadoId: item.announcementId,
-  titulo: item.title,
-  publicadoEm: item.publishedAt,
-  lidoEm: item.readAt,
-});
+const withNotice = (target: string, notice: Record<string, string>): string =>
+  `${target}?${new URLSearchParams(notice).toString()}`;
 
-const comunicadoParaTela = (comunicado: Announcement) => ({
-  id: comunicado.id,
-  titulo: comunicado.title,
-  corpo: comunicado.body,
-  autorNome: comunicado.authorName,
-  publicadoEm: comunicado.publishedAt,
-});
+guardianRoutes.get(ROUTES.guardian.dashboard.pattern, async (c) => {
+  const networkId = currentNetwork(c);
+  const guardianId = sessionGuardian(c);
 
-const diaParaTela = (dia: AttendanceEntry) => ({
-  data: dia.date,
-  presente: dia.present,
-  justificativa: dia.excuse,
-});
-
-const bimestresDe = (boletim: ReportCard): number[] =>
-  Array.from({ length: boletim.rows[0]?.grades.length ?? 0 }, (_, indice) => indice + 1);
-
-const comMensagem = (destino: string, aviso: Record<string, string>): string =>
-  `${destino}?${new URLSearchParams(aviso).toString()}`;
-
-rotasResponsavel.get(ROTAS.responsavel.painel.padrao, async (c) => {
-  const redeId = currentNetwork(c);
-  const responsavelId = responsavelDaSessao(c);
-
-  if (responsavelId === null) {
-    return renderizar(c, TEMPLATES.responsavel.painel, {
-      ...PARCIAIS,
-      ...ROTULOS_DO_ACADEMICO,
-      titulo: TITULOS.responsavel.painel,
-      matriculas: [],
-      navegacao: navegacao(c, emptyPage<Enrollment>()),
-      naoLidos: [],
-      totalNaoLidos: 0,
-      totalNoMural: 0,
+  if (guardianId === null) {
+    return render(c, TEMPLATES.guardian.dashboard, {
+      ...PARTIALS,
+      ...ACADEMIC_LABELS,
+      title: TITLES.guardian.dashboard,
+      enrollments: [],
+      pagination: pagination(c, emptyPage<Enrollment>()),
+      unread: [],
+      unreadTotal: 0,
+      boardTotal: 0,
     });
   }
 
-  const [pagina, naoLidos, contagem] = await Promise.all([
-    academics.guardianEnrollmentsPage(redeId, responsavelId, paginaDaQuery(c)),
-    communication.boardPage(redeId, responsavelId, false, 1),
-    communication.boardCounts(redeId, responsavelId),
+  const [page, unread, counts] = await Promise.all([
+    academics.guardianEnrollmentsPage(networkId, guardianId, pageFromQuery(c)),
+    communication.boardPage(networkId, guardianId, false, 1),
+    communication.boardCounts(networkId, guardianId),
   ]);
 
-  return renderizar(c, TEMPLATES.responsavel.painel, {
-    ...PARCIAIS,
-    ...ROTULOS_DO_ACADEMICO,
-    titulo: TITULOS.responsavel.painel,
-    matriculas: pagina.items.map(matriculaParaTela),
-    navegacao: navegacao(c, pagina),
-    naoLidos: naoLidos.items.map(itemDoMuralParaTela),
-    totalNaoLidos: contagem.unread,
-    totalNoMural: contagem.total,
+  return render(c, TEMPLATES.guardian.dashboard, {
+    ...PARTIALS,
+    ...ACADEMIC_LABELS,
+    title: TITLES.guardian.dashboard,
+    enrollments: page.items,
+    pagination: pagination(c, page),
+    unread: unread.items,
+    unreadTotal: counts.unread,
+    boardTotal: counts.total,
   });
 });
 
-rotasResponsavel.get(ROTAS.responsavel.boletim.padrao, async (c) => {
-  const { id: matriculaId } = c.req.param();
-  await matriculaSobResponsabilidade(c, matriculaId);
+guardianRoutes.get(ROUTES.guardian.reportCard.pattern, async (c) => {
+  const { id: enrollmentId } = c.req.param();
+  await enrollmentUnderResponsibility(c, enrollmentId);
 
-  const boletim = await assessment.reportCard(currentNetwork(c), matriculaId);
-  if (boletim === null) throw new NotFound(DIAGNOSTICOS.matriculaSemBoletim);
+  const reportCard = await assessment.reportCard(currentNetwork(c), enrollmentId);
+  if (reportCard === null) throw new NotFound(DIAGNOSTICS.enrollmentWithoutReportCard);
 
-  return renderizar(c, TEMPLATES.responsavel.boletim, {
-    ...PARCIAIS,
-    rotuloDaSituacao: ROTULOS_DA_AVALIACAO.rotuloDaSituacao,
-    criterio: CRITERIO_DE_APROVACAO,
-    titulo: TITULOS.responsavel.boletim(boletim.studentName),
-    matriculaId,
-    boletim: boletimParaTela(boletim),
-    bimestres: bimestresDe(boletim),
+  return render(c, TEMPLATES.guardian.reportCard, {
+    ...PARTIALS,
+    statusLabel: ASSESSMENT_LABELS.statusLabel,
+    criteria: PASSING_CRITERIA,
+    title: TITLES.guardian.reportCard(reportCard.studentName),
+    enrollmentId,
+    reportCard,
+    terms: termsOf(reportCard),
   });
 });
 
-rotasResponsavel.get(ROTAS.responsavel.frequencia.padrao, async (c) => {
-  const { id: matriculaId } = c.req.param();
-  const redeId = currentNetwork(c);
-  const matricula = await matriculaSobResponsabilidade(c, matriculaId);
+guardianRoutes.get(ROUTES.guardian.attendance.pattern, async (c) => {
+  const { id: enrollmentId } = c.req.param();
+  const networkId = currentNetwork(c);
+  const enrollment = await enrollmentUnderResponsibility(c, enrollmentId);
 
-  const [dias, boletim] = await Promise.all([
-    assessment.attendancePage(redeId, matriculaId, paginaDaQuery(c)),
-    assessment.reportCard(redeId, matriculaId),
+  const [days, reportCard] = await Promise.all([
+    assessment.attendancePage(networkId, enrollmentId, pageFromQuery(c)),
+    assessment.reportCard(networkId, enrollmentId),
   ]);
-  if (boletim === null) throw new NotFound(DIAGNOSTICOS.matriculaSemFrequencia);
+  if (reportCard === null) throw new NotFound(DIAGNOSTICS.enrollmentWithoutAttendance);
 
-  return renderizar(c, TEMPLATES.responsavel.frequencia, {
-    ...PARCIAIS,
-    rotuloDaPresenca: ROTULOS_DA_AVALIACAO.rotuloDaPresenca,
-    semValor: MISSING_VALUE,
-    criterio: CRITERIO_DE_APROVACAO,
-    titulo: TITULOS.responsavel.frequencia(matricula.studentName),
-    matricula: matriculaParaTela(matricula),
-    boletim: boletimParaTela(boletim),
-    dias: dias.items.map(diaParaTela),
-    navegacao: navegacao(c, dias),
+  return render(c, TEMPLATES.guardian.attendance, {
+    ...PARTIALS,
+    attendanceLabel: ASSESSMENT_LABELS.attendanceLabel,
+    missingValue: MISSING_VALUE,
+    criteria: PASSING_CRITERIA,
+    title: TITLES.guardian.attendance(enrollment.studentName),
+    enrollment,
+    reportCard,
+    days: days.items,
+    pagination: pagination(c, days),
   });
 });
 
-rotasResponsavel.get(ROTAS.responsavel.mural.padrao, async (c) => {
-  const responsavelId = responsavelDaSessao(c);
-  const redeId = currentNetwork(c);
-  const [naoLidos, lidos] =
-    responsavelId === null
+guardianRoutes.get(ROUTES.guardian.board.pattern, async (c) => {
+  const guardianId = sessionGuardian(c);
+  const networkId = currentNetwork(c);
+  const [unread, read] =
+    guardianId === null
       ? [emptyPage<BoardItem>(), emptyPage<BoardItem>()]
       : await Promise.all([
           communication.boardPage(
-            redeId,
-            responsavelId,
+            networkId,
+            guardianId,
             false,
-            paginaDaQuery(c, PARAMETROS.paginaDeNaoLidos),
+            pageFromQuery(c, PARAMS.unreadPage),
           ),
           communication.boardPage(
-            redeId,
-            responsavelId,
+            networkId,
+            guardianId,
             true,
-            paginaDaQuery(c, PARAMETROS.paginaDeLidos),
+            pageFromQuery(c, PARAMS.readPage),
           ),
         ]);
 
-  return renderizar(c, TEMPLATES.responsavel.mural, {
-    ...PARCIAIS,
-    titulo: TITULOS.responsavel.mural,
-    naoLidos: naoLidos.items.map(itemDoMuralParaTela),
-    navegacaoNaoLidos: navegacao(c, naoLidos, PARAMETROS.paginaDeNaoLidos),
-    totalNaoLidos: naoLidos.total,
-    lidos: lidos.items.map(itemDoMuralParaTela),
-    navegacaoLidos: navegacao(c, lidos, PARAMETROS.paginaDeLidos),
-    totalLidos: lidos.total,
+  return render(c, TEMPLATES.guardian.board, {
+    ...PARTIALS,
+    title: TITLES.guardian.board,
+    unread: unread.items,
+    unreadPagination: pagination(c, unread, PARAMS.unreadPage),
+    unreadTotal: unread.total,
+    read: read.items,
+    readPagination: pagination(c, read, PARAMS.readPage),
+    readTotal: read.total,
   });
 });
 
-rotasResponsavel.get(ROTAS.responsavel.comunicado.padrao, async (c) => {
-  const { comunicadoId } = c.req.param();
-  const redeId = currentNetwork(c);
-  const responsavelId = responsavelDaSessao(c);
-  if (responsavelId === null) throw new NotFound(DIAGNOSTICOS.contaSemResponsavel);
+guardianRoutes.get(ROUTES.guardian.announcement.pattern, async (c) => {
+  const { comunicadoId: announcementId } = c.req.param();
+  const networkId = currentNetwork(c);
+  const guardianId = sessionGuardian(c);
+  if (guardianId === null) throw new NotFound(DIAGNOSTICS.accountWithoutGuardian);
 
-  const [comunicado, mural] = await Promise.all([
-    communication.announcementForGuardian(redeId, responsavelId, comunicadoId),
-    communication.guardianBoard(redeId, responsavelId),
+  const [announcement, board] = await Promise.all([
+    communication.announcementForGuardian(networkId, guardianId, announcementId),
+    communication.guardianBoard(networkId, guardianId),
   ]);
-  if (comunicado === null) throw new NotFound(DIAGNOSTICOS.comunicadoForaDoMural);
+  if (announcement === null) throw new NotFound(DIAGNOSTICS.announcementOutsideBoard);
 
-  return renderizar(c, TEMPLATES.responsavel.comunicado, {
-    titulo: comunicado.title,
-    comunicado: comunicadoParaTela(comunicado),
-    lidoEm: mural.find((item) => item.announcementId === comunicadoId)?.readAt ?? null,
+  return render(c, TEMPLATES.guardian.announcement, {
+    title: announcement.title,
+    announcement,
+    readAt: board.find((item) => item.announcementId === announcementId)?.readAt ?? null,
   });
 });
 
-rotasResponsavel.post(ROTAS.responsavel.comunicadoLido.padrao, async (c) => {
-  const { comunicadoId } = c.req.param();
-  const redeId = currentNetwork(c);
-  const responsavelId = responsavelDaSessao(c);
-  if (responsavelId === null) throw new NotFound(DIAGNOSTICOS.contaSemResponsavel);
+guardianRoutes.post(ROUTES.guardian.announcementRead.pattern, async (c) => {
+  const { comunicadoId: announcementId } = c.req.param();
+  const networkId = currentNetwork(c);
+  const guardianId = sessionGuardian(c);
+  if (guardianId === null) throw new NotFound(DIAGNOSTICS.accountWithoutGuardian);
 
-  const comunicado = await communication.announcementForGuardian(
-    redeId,
-    responsavelId,
-    comunicadoId,
+  const announcement = await communication.announcementForGuardian(
+    networkId,
+    guardianId,
+    announcementId,
   );
-  if (comunicado === null) throw new NotFound(DIAGNOSTICOS.comunicadoForaDoMural);
+  if (announcement === null) throw new NotFound(DIAGNOSTICS.announcementOutsideBoard);
 
-  const resultado = await communication.markAsRead({
-    networkId: redeId,
-    announcementId: comunicadoId,
-    guardianId: responsavelId,
+  const result = await communication.markAsRead({
+    networkId,
+    announcementId,
+    guardianId,
   });
-  if (!resultado.ok) {
-    const mensagem = resultado.erros[0]?.mensagem ?? AVISOS.leituraNaoRegistrada;
+  if (!result.ok) {
+    const message = result.erros[0]?.mensagem ?? NOTICES.readNotRecorded;
     return c.redirect(
-      comMensagem(ROTAS.responsavel.comunicado({ comunicadoId }), { [PARAMETROS.erro]: mensagem }),
+      withNotice(ROUTES.guardian.announcement({ comunicadoId: announcementId }), {
+        [PARAMS.error]: message,
+      }),
       303,
     );
   }
 
   return c.redirect(
-    comMensagem(ROTAS.responsavel.mural(), { [PARAMETROS.ok]: AVISOS.comunicadoLido }),
+    withNotice(ROUTES.guardian.board(), { [PARAMS.ok]: NOTICES.announcementRead }),
     303,
   );
 });

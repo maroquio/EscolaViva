@@ -1,17 +1,17 @@
-<% if (it.mensagem) { %>
-<p class="aviso aviso--sucesso" role="status"><%= it.mensagem %></p>
+<% if (it.message) { %>
+<p class="aviso aviso--sucesso" role="status"><%= it.message %></p>
 <% } %>
 
-<% if (it.erro) { %>
-<p class="aviso aviso--erro" role="alert"><%= it.erro %></p>
+<% if (it.error) { %>
+<p class="aviso aviso--erro" role="alert"><%= it.error %></p>
 <% } %>
 
-<% if (Array.isArray(it.erros) && it.erros.length > 0) { %>
+<% if (Array.isArray(it.errors) && it.errors.length > 0) { %>
 <div class="aviso aviso--erro" role="alert">
   <p class="aviso__titulo">Não foi possível concluir</p>
   <ul>
-    <% it.erros.forEach((problema) => { %>
-    <li><%= problema.mensagem %></li>
+    <% it.errors.forEach((problem) => { %>
+    <li><%= problem.mensagem %></li>
     <% }) %>
   </ul>
 </div>

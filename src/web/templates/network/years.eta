@@ -1,17 +1,17 @@
 <%
-const anos = it.anos ?? [];
+const years = it.years ?? [];
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.rede %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.network %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       O ano letivo delimita as matrículas: um aluno tem uma matrícula ativa por ano, e é esse
       recorte que o boletim e a frequência usam.
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.rede.anoLetivoNovo() %>"><%= it.titulos.rede.anoNovo %></a>
+    <a class="botao botao--primario" href="<%= it.routes.network.academicYearNew() %>"><%= it.titles.network.yearNew %></a>
   </div>
 </div>
 
@@ -21,11 +21,11 @@ const anos = it.anos ?? [];
     <p class="secao__nota">Do mais recente para o mais antigo</p>
   </div>
 
-  <% if (anos.length === 0) { %>
-    <%~ include(it.parciais.vazio, {
-      titulo: 'Nenhum ano letivo definido',
-      texto: 'Enquanto não houver um ano definido, a secretaria não consegue criar turmas nem matricular alunos.',
-      acao: { href: it.rotas.rede.anoLetivoNovo(), texto: it.titulos.rede.anoNovo }
+  <% if (years.length === 0) { %>
+    <%~ include(it.partials.empty, {
+      title: 'Nenhum ano letivo definido',
+      text: 'Enquanto não houver um ano definido, a secretaria não consegue criar turmas nem matricular alunos.',
+      action: { href: it.routes.network.academicYearNew(), text: it.titles.network.yearNew }
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -33,22 +33,22 @@ const anos = it.anos ?? [];
       <caption>Calendário letivo da rede</caption>
       <thead>
         <tr>
-          <th scope="col"><%= it.rotulos.ano %></th>
-          <th scope="col"><%= it.rotulos.inicio %></th>
-          <th scope="col"><%= it.rotulos.termino %></th>
+          <th scope="col"><%= it.labels.year %></th>
+          <th scope="col"><%= it.labels.start %></th>
+          <th scope="col"><%= it.labels.end %></th>
         </tr>
       </thead>
       <tbody>
-        <% anos.forEach((anoLetivo) => { %>
+        <% years.forEach((academicYear) => { %>
         <tr>
-          <th scope="row" class="numero"><%= anoLetivo.ano %></th>
-          <td class="numero"><%= it.formatarData(anoLetivo.dataInicio) %></td>
-          <td class="numero"><%= it.formatarData(anoLetivo.dataFim) %></td>
+          <th scope="row" class="numero"><%= academicYear.year %></th>
+          <td class="numero"><%= it.formatDate(academicYear.startDate) %></td>
+          <td class="numero"><%= it.formatDate(academicYear.endDate) %></td>
         </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.anoLetivo.plural }) %>
+  <%~ include(it.partials.pagination, { pagination: it.pagination, label: it.nouns.academicYear.plural }) %>
   <% } %>
 </section>

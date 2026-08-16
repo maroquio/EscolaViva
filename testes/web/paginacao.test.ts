@@ -17,8 +17,8 @@ import {
   type Cenario,
 } from '../apoio/fabricas';
 import { DEFAULT_PAGE_SIZE } from '../../src/shared/pagination';
-import { PARAMETROS } from '../../src/web/constants';
-import { idDaAjuda } from '../../src/web/render';
+import { PARAMS } from '../../src/web/constants';
+import { helpId } from '../../src/web/render';
 import { abrir, entrar } from './apoio';
 
 beforeEach(limparBanco);
@@ -197,7 +197,7 @@ describe('portal do responsável', () => {
 });
 
 describe('a ajuda da busca de alunos promete o recorte que a tela entrega', () => {
-  const AJUDA = new RegExp(`id="${idDaAjuda(PARAMETROS.busca)}"[^>]*>([\\s\\S]*?)</p>`);
+  const AJUDA = new RegExp(`id="${helpId(PARAMS.search)}"[^>]*>([\\s\\S]*?)</p>`);
 
   const numerosDaAjuda = (pagina: string): number[] =>
     ((AJUDA.exec(pagina)?.[1] ?? '').match(/\d+/g) ?? []).map(Number);

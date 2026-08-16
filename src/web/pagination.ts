@@ -1,63 +1,63 @@
 import type { Context } from 'hono';
 import { requestedPage, type Page } from '../shared/pagination';
-import { PAGINACAO, PARAMETROS } from './constants';
+import { PAGINATION, PARAMS } from './constants';
 
-const METADE_DA_JANELA = Math.floor(PAGINACAO.janela / 2);
+const HALF_WINDOW = Math.floor(PAGINATION.window / 2);
 
-export type LinkDePagina = { numero: number; href: string; atual: boolean };
+export type PageLink = { number: number; href: string; current: boolean };
 
-export type Navegacao = {
-  readonly parametro: string;
-  readonly pagina: number;
-  readonly paginas: number;
+export type Pagination = {
+  readonly param: string;
+  readonly page: number;
+  readonly pages: number;
   readonly total: number;
-  readonly primeiro: number;
-  readonly ultimo: number;
-  readonly anterior: string | null;
-  readonly proxima: string | null;
-  readonly links: readonly LinkDePagina[];
-  readonly varias: boolean;
+  readonly first: number;
+  readonly last: number;
+  readonly previous: string | null;
+  readonly next: string | null;
+  readonly links: readonly PageLink[];
+  readonly many: boolean;
 };
 
-export function paginaDaQuery(c: Context, parametro: string = PARAMETROS.paginaPadrao): number {
-  return requestedPage(c.req.query(parametro));
+export function pageFromQuery(c: Context, param: string = PARAMS.defaultPage): number {
+  return requestedPage(c.req.query(param));
 }
 
-const enderecoDaPagina = (c: Context, parametro: string, numero: number): string => {
-  const parametros = new URLSearchParams(c.req.query());
-  if (numero <= 1) parametros.delete(parametro);
-  else parametros.set(parametro, String(numero));
-  const consulta = parametros.toString();
-  return consulta === '' ? c.req.path : `${c.req.path}?${consulta}`;
+const pageUrl = (c: Context, param: string, number: number): string => {
+  const params = new URLSearchParams(c.req.query());
+  if (number <= 1) params.delete(param);
+  else params.set(param, String(number));
+  const query = params.toString();
+  return query === '' ? c.req.path : `${c.req.path}?${query}`;
 };
 
-const janelaDe = (atual: number, paginas: number): number[] => {
-  if (paginas <= PAGINACAO.janela) return Array.from({ length: paginas }, (_, i) => i + 1);
-  const inicio = Math.min(Math.max(1, atual - METADE_DA_JANELA), paginas - PAGINACAO.janela + 1);
-  return Array.from({ length: PAGINACAO.janela }, (_, i) => inicio + i);
+const windowOf = (current: number, pages: number): number[] => {
+  if (pages <= PAGINATION.window) return Array.from({ length: pages }, (_, i) => i + 1);
+  const start = Math.min(Math.max(1, current - HALF_WINDOW), pages - PAGINATION.window + 1);
+  return Array.from({ length: PAGINATION.window }, (_, i) => start + i);
 };
 
-export function navegacao(
+export function pagination(
   c: Context,
-  pagina: Page<unknown>,
-  parametro: string = PARAMETROS.paginaPadrao,
-): Navegacao {
-  const { page: atual, pages: paginas, total, size: tamanho, items: itens } = pagina;
-  const primeiro = total === 0 ? 0 : (atual - 1) * tamanho + 1;
+  page: Page<unknown>,
+  param: string = PARAMS.defaultPage,
+): Pagination {
+  const { page: current, pages, total, size, items } = page;
+  const first = total === 0 ? 0 : (current - 1) * size + 1;
   return {
-    parametro,
-    pagina: atual,
-    paginas,
+    param,
+    page: current,
+    pages,
     total,
-    primeiro,
-    ultimo: total === 0 ? 0 : primeiro + itens.length - 1,
-    anterior: atual > 1 ? enderecoDaPagina(c, parametro, atual - 1) : null,
-    proxima: atual < paginas ? enderecoDaPagina(c, parametro, atual + 1) : null,
-    links: janelaDe(atual, paginas).map((numero) => ({
-      numero,
-      href: enderecoDaPagina(c, parametro, numero),
-      atual: numero === atual,
+    first,
+    last: total === 0 ? 0 : first + items.length - 1,
+    previous: current > 1 ? pageUrl(c, param, current - 1) : null,
+    next: current < pages ? pageUrl(c, param, current + 1) : null,
+    links: windowOf(current, pages).map((number) => ({
+      number,
+      href: pageUrl(c, param, number),
+      current: number === current,
     })),
-    varias: paginas > 1,
+    many: pages > 1,
   };
 }

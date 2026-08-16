@@ -1,12 +1,12 @@
 <%
-const turmas = it.turmas ?? [];
+const classGroups = it.classGroups ?? [];
 
-const idDaTurma = (turmaId) => `turma-${turmaId}`;
+const classGroupDomId = (classGroupId) => `turma-${classGroupId}`;
 %>
 <div class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Professor</p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       As turmas em que você leciona nesta rede. Cada disciplina abre o diário de notas; a chamada e o
       fechamento valem para a turma inteira.
@@ -14,33 +14,33 @@ const idDaTurma = (turmaId) => `turma-${turmaId}`;
   </div>
 </div>
 
-<% if (turmas.length === 0) { %>
-<%~ include(it.parciais.vazio, {
-  titulo: 'Nenhuma turma alocada',
-  texto: 'Você ainda não foi alocado como professor em nenhuma disciplina desta rede. A alocação é feita pela secretaria, na tela da turma.',
+<% if (classGroups.length === 0) { %>
+<%~ include(it.partials.empty, {
+  title: 'Nenhuma turma alocada',
+  text: 'Você ainda não foi alocado como professor em nenhuma disciplina desta rede. A alocação é feita pela secretaria, na tela da turma.',
 }) %>
 <% } %>
 
-<% turmas.forEach((turma) => { %>
-<section class="secao" aria-labelledby="<%= idDaTurma(turma.turmaId) %>">
+<% classGroups.forEach((classGroup) => { %>
+<section class="secao" aria-labelledby="<%= classGroupDomId(classGroup.classGroupId) %>">
   <div class="secao__cabecalho">
-    <h2 id="<%= idDaTurma(turma.turmaId) %>"><%= turma.turmaNome %></h2>
-    <p class="secao__nota"><%= turma.serie %><%= it.separadorDeTurno %><%= turma.turno %></p>
+    <h2 id="<%= classGroupDomId(classGroup.classGroupId) %>"><%= classGroup.classGroupName %></h2>
+    <p class="secao__nota"><%= classGroup.gradeLevel %><%= it.shiftSeparator %><%= classGroup.shift %></p>
   </div>
 
   <div class="painel">
-    <% turma.disciplinas.forEach((disciplina) => { %>
-    <a class="cartao" href="<%= disciplina.hrefNotas %>">
-      <span class="cartao__rotulo"><%= it.rotulos.disciplina %></span>
-      <strong><%= disciplina.disciplinaNome %></strong>
+    <% classGroup.subjects.forEach((subject) => { %>
+    <a class="cartao" href="<%= subject.gradesHref %>">
+      <span class="cartao__rotulo"><%= it.labels.subject %></span>
+      <strong><%= subject.subjectName %></strong>
       <span class="cartao__detalhe">Lançar notas do bimestre</span>
     </a>
     <% }) %>
   </div>
 
   <div class="acoes">
-    <a class="botao botao--secundario" href="<%= turma.hrefChamada %>">Chamada do dia</a>
-    <a class="botao botao--secundario" href="<%= turma.hrefFechamento %>">Fechamento de bimestre</a>
+    <a class="botao botao--secundario" href="<%= classGroup.rollCallHref %>">Chamada do dia</a>
+    <a class="botao botao--secundario" href="<%= classGroup.closingHref %>">Fechamento de bimestre</a>
   </div>
 </section>
 <% }) %>

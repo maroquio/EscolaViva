@@ -1,12 +1,12 @@
 <%
-const valores = it.valores ?? { ano: '', dataInicio: '', dataFim: '' };
-const campos = it.campos.anoLetivo;
-const { erroDe, descricao } = it;
+const values = it.values ?? { year: '', startDate: '', endDate: '' };
+const fields = it.fields.academicYear;
+const { errorFor, describedBy } = it;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.rede %><%= it.apresentacao.separador %><%= it.titulos.rede.anos %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.network %><%= it.presentation.separator %><%= it.titles.network.years %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       O período define o que conta como "este ano" para matrícula, boletim e frequência. Não pode
       haver dois anos iguais na mesma rede.
@@ -15,70 +15,70 @@ const { erroDe, descricao } = it;
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="post" action="<%= it.rotas.rede.anosLetivos() %>">
-    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
+  <form class="formulario" method="post" action="<%= it.routes.network.academicYears() %>">
+    <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="ano">
-          <%= it.rotulos.ano %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.labels.year %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="ano"
-          name="<%= campos.ano %>"
+          name="<%= fields.year %>"
           type="number"
           required
-          min="<%= it.anoMinimo %>"
-          max="<%= it.anoMaximo %>"
+          min="<%= it.minYear %>"
+          max="<%= it.maxYear %>"
           step="1"
           inputmode="numeric"
-          value="<%= valores.ano %>"
-          <% if (erroDe(campos.ano) !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao(campos.ano) !== '') { %>aria-describedby="<%= descricao(campos.ano) %>"<% } %>>
-        <% if (erroDe(campos.ano) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.ano) %>"><%= erroDe(campos.ano) %></p>
+          value="<%= values.year %>"
+          <% if (errorFor(fields.year) !== '') { %>aria-invalid="true"<% } %>
+          <% if (describedBy(fields.year) !== '') { %>aria-describedby="<%= describedBy(fields.year) %>"<% } %>>
+        <% if (errorFor(fields.year) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.year) %>"><%= errorFor(fields.year) %></p>
         <% } %>
       </div>
 
       <div class="campo">
         <label class="campo__rotulo" for="dataInicio">
-          <%= it.rotulos.inicio %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.labels.start %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="dataInicio"
-          name="<%= campos.dataInicio %>"
+          name="<%= fields.startDate %>"
           type="date"
           required
-          value="<%= valores.dataInicio %>"
-          <% if (erroDe(campos.dataInicio) !== '') { %>aria-invalid="true"<% } %>
-          <% if (descricao(campos.dataInicio) !== '') { %>aria-describedby="<%= descricao(campos.dataInicio) %>"<% } %>>
-        <% if (erroDe(campos.dataInicio) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.dataInicio) %>"><%= erroDe(campos.dataInicio) %></p>
+          value="<%= values.startDate %>"
+          <% if (errorFor(fields.startDate) !== '') { %>aria-invalid="true"<% } %>
+          <% if (describedBy(fields.startDate) !== '') { %>aria-describedby="<%= describedBy(fields.startDate) %>"<% } %>>
+        <% if (errorFor(fields.startDate) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.startDate) %>"><%= errorFor(fields.startDate) %></p>
         <% } %>
       </div>
 
       <div class="campo">
         <label class="campo__rotulo" for="dataFim">
-          <%= it.rotulos.termino %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.labels.end %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="dataFim"
-          name="<%= campos.dataFim %>"
+          name="<%= fields.endDate %>"
           type="date"
           required
-          value="<%= valores.dataFim %>"
-          <% if (erroDe(campos.dataFim) !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao(campos.dataFim, true) %>">
-        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.dataFim) %>">Precisa ser posterior à data de início.</p>
-        <% if (erroDe(campos.dataFim) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.dataFim) %>"><%= erroDe(campos.dataFim) %></p>
+          value="<%= values.endDate %>"
+          <% if (errorFor(fields.endDate) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= describedBy(fields.endDate, true) %>">
+        <p class="campo__ajuda" id="<%= it.helpId(fields.endDate) %>">Precisa ser posterior à data de início.</p>
+        <% if (errorFor(fields.endDate) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.endDate) %>"><%= errorFor(fields.endDate) %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
-      <button class="botao botao--primario" type="submit"><%= it.titulos.rede.anoNovo %></button>
-      <a class="botao botao--discreto" href="<%= it.rotas.rede.anosLetivos() %>"><%= it.acoes.cancelar %></a>
+      <button class="botao botao--primario" type="submit"><%= it.titles.network.yearNew %></button>
+      <a class="botao botao--discreto" href="<%= it.routes.network.academicYears() %>"><%= it.actions.cancel %></a>
     </div>
   </form>
 </div>

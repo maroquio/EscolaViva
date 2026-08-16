@@ -1,19 +1,19 @@
 <%
-const correlacaoId = it.correlacaoId ?? '';
+const correlationId = it.correlationId ?? '';
 %>
 <div class="erro">
   <div>
     <p class="erro__status">Erro <%= it.status %></p>
-    <h1><%= it.titulo %></h1>
+    <h1><%= it.title %></h1>
   </div>
 
-  <p class="leitura"><%= it.detalhe %></p>
+  <p class="leitura"><%= it.detail %></p>
 
-  <% if (correlacaoId !== '') { %>
+  <% if (correlationId !== '') { %>
   <div class="erro__ocorrencia">
     <dl class="lista-definicoes">
       <dt>Ocorrência</dt>
-      <dd><code class="codigo"><%= correlacaoId %></code></dd>
+      <dd><code class="codigo"><%= correlationId %></code></dd>
     </dl>
     <p class="erro__instrucao">
       Informe este código ao pedir ajuda: ele localiza exatamente esta ocorrência no registro do sistema.
@@ -22,7 +22,7 @@ const correlacaoId = it.correlacaoId ?? '';
   <% } %>
 
   <p class="linha">
-    <a class="botao botao--secundario" href="<%= it.rotas.publicas.painel() %>"><%= it.acoes.voltarPara.painel %></a>
-    <a class="botao botao--discreto" href="<%= it.rotas.publicas.login() %>">Entrar novamente</a>
+    <a class="botao botao--secundario" href="<%= it.routes.public.dashboard() %>"><%= it.actions.backTo.dashboard %></a>
+    <a class="botao botao--discreto" href="<%= it.routes.public.login() %>">Entrar novamente</a>
   </p>
 </div>

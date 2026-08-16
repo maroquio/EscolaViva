@@ -1,36 +1,36 @@
 <%
-const unidades = it.unidades ?? [];
+const schools = it.schools ?? [];
 
-const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
-const SEM_VALOR = it.ausente;
+const STATUS_LABEL = it.statusLabel;
+const MISSING = it.missing;
 
-const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
+const STATUS_CLASS = { yes: 'etiqueta etiqueta--ativa', no: 'etiqueta' };
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.rede %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.network %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       Cada escola da rede é uma unidade. Papéis, turmas e comunicados existem sempre dentro de
       uma — ninguém é "professor da rede".
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.rede.unidadeNova() %>"><%= it.titulos.rede.unidadeNova %></a>
+    <a class="botao botao--primario" href="<%= it.routes.network.schoolNew() %>"><%= it.titles.network.schoolNew %></a>
   </div>
 </div>
 
 <section class="secao" aria-labelledby="lista-unidades-titulo">
   <div class="secao__cabecalho">
     <h2 id="lista-unidades-titulo">Unidades da rede</h2>
-    <p class="secao__nota"><%= it.navegacao === undefined ? unidades.length : it.navegacao.total %> no total</p>
+    <p class="secao__nota"><%= it.pagination === undefined ? schools.length : it.pagination.total %> no total</p>
   </div>
 
-  <% if (unidades.length === 0) { %>
-    <%~ include(it.parciais.vazio, {
-      titulo: 'Nenhuma unidade criada',
-      texto: 'A primeira unidade abre o caminho para os usuários e as turmas.',
-      acao: { href: it.rotas.rede.unidadeNova(), texto: it.titulos.rede.unidadeNova }
+  <% if (schools.length === 0) { %>
+    <%~ include(it.partials.empty, {
+      title: 'Nenhuma unidade criada',
+      text: 'A primeira unidade abre o caminho para os usuários e as turmas.',
+      action: { href: it.routes.network.schoolNew(), text: it.titles.network.schoolNew }
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -38,25 +38,25 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
       <caption>Unidades cadastradas</caption>
       <thead>
         <tr>
-          <th scope="col"><%= it.rotulos.unidade %></th>
+          <th scope="col"><%= it.labels.school %></th>
           <th scope="col">Código INEP</th>
-<% // magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em ROTULOS; nem é o `IDENTITY_VOCABULARY.schoolActive` da célula abaixo %>
+<% // magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em LABELS; nem é o `IDENTITY_VOCABULARY.schoolActive` da célula abaixo %>
           <th scope="col">Situação</th>
         </tr>
       </thead>
       <tbody>
-        <% unidades.forEach((unidade) => { %>
+        <% schools.forEach((school) => { %>
         <tr>
-          <th scope="row"><%= unidade.name %></th>
-          <td class="numero"><%= unidade.inepCode === null ? SEM_VALOR : unidade.inepCode %></td>
+          <th scope="row"><%= school.name %></th>
+          <td class="numero"><%= school.inepCode === null ? MISSING : school.inepCode %></td>
           <td>
-            <span class="<%= unidade.active ? CLASSE_DA_SITUACAO.sim : CLASSE_DA_SITUACAO.nao %>"><%= unidade.active ? ROTULO_DA_SITUACAO.yes : ROTULO_DA_SITUACAO.no %></span>
+            <span class="<%= school.active ? STATUS_CLASS.yes : STATUS_CLASS.no %>"><%= school.active ? STATUS_LABEL.yes : STATUS_LABEL.no %></span>
           </td>
         </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.unidade.plural }) %>
+  <%~ include(it.partials.pagination, { pagination: it.pagination, label: it.nouns.school.plural }) %>
   <% } %>
 </section>

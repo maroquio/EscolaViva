@@ -1,18 +1,18 @@
 <%
-const responsaveis = it.responsaveis ?? [];
+const guardians = it.guardians ?? [];
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.secretaria %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.registrar %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       Quem recebe comunicado e acompanha boletim e frequência. Depois de cadastrar, vincule o
       responsável ao aluno pela ficha dele.
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.alunos() %>"><%= it.acoes.buscarAluno %></a>
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.responsavelNovo() %>"><%= it.titulos.secretaria.responsavelNovo %></a>
+    <a class="botao botao--secundario" href="<%= it.routes.registrar.students() %>"><%= it.actions.searchStudent %></a>
+    <a class="botao botao--primario" href="<%= it.routes.registrar.guardianNew() %>"><%= it.titles.registrar.guardianNew %></a>
   </div>
 </div>
 
@@ -20,17 +20,17 @@ const responsaveis = it.responsaveis ?? [];
   <div class="secao__cabecalho">
     <h2 id="cadastrados">Cadastrados na rede</h2>
     <p class="secao__nota">
-      <% const quantos = it.navegacao === undefined ? responsaveis.length : it.navegacao.total; %>
-      <span class="numero"><%= quantos %></span>
-      <%= it.pluralizar(quantos, it.contagem.responsavel) %>
+      <% const count = it.pagination === undefined ? guardians.length : it.pagination.total; %>
+      <span class="numero"><%= count %></span>
+      <%= it.pluralize(count, it.nouns.guardian) %>
     </p>
   </div>
 
-  <% if (responsaveis.length === 0) { %>
-  <%~ include(it.parciais.vazio, {
-    titulo: 'Nenhum responsável cadastrado',
-    texto: 'O e-mail é único na rede: é por ele que o responsável recebe comunicado — não é usado para entrar.',
-    acao: { href: it.rotas.secretaria.responsavelNovo(), texto: it.titulos.secretaria.responsavelNovo }
+  <% if (guardians.length === 0) { %>
+  <%~ include(it.partials.empty, {
+    title: 'Nenhum responsável cadastrado',
+    text: 'O e-mail é único na rede: é por ele que o responsável recebe comunicado — não é usado para entrar.',
+    action: { href: it.routes.registrar.guardianNew(), text: it.titles.registrar.guardianNew }
   }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -38,24 +38,24 @@ const responsaveis = it.responsaveis ?? [];
       <caption>Responsáveis cadastrados nesta rede</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-elastica"><%= it.rotulos.responsavel %></th>
-          <th scope="col" class="celula-centro"><%= it.rotulos.cpf %></th>
-          <th scope="col" class="celula-texto"><%= it.rotulos.email %></th>
+          <th scope="col" class="celula-elastica"><%= it.labels.guardian %></th>
+          <th scope="col" class="celula-centro"><%= it.labels.cpf %></th>
+          <th scope="col" class="celula-texto"><%= it.labels.email %></th>
           <th scope="col" class="celula-centro">Telefone</th>
         </tr>
       </thead>
       <tbody>
-        <% responsaveis.forEach((pessoa) => { %>
+        <% guardians.forEach((guardian) => { %>
         <tr>
-          <th scope="row" class="celula-elastica"><%= pessoa.nome %></th>
-          <td class="numero celula-centro"><%= it.formatarCpf(pessoa.cpf ?? '') %></td>
-          <td class="celula-texto"><%= pessoa.email %></td>
-          <td class="numero celula-centro"><%= pessoa.telefone === null ? it.semValor : pessoa.telefone %></td>
+          <th scope="row" class="celula-elastica"><%= guardian.name %></th>
+          <td class="numero celula-centro"><%= it.formatCpf(guardian.cpf ?? '') %></td>
+          <td class="celula-texto"><%= guardian.email %></td>
+          <td class="numero celula-centro"><%= guardian.phone === null ? it.missingValue : guardian.phone %></td>
         </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.responsavel.plural }) %>
+  <%~ include(it.partials.pagination, { pagination: it.pagination, label: it.nouns.guardian.plural }) %>
   <% } %>
 </section>

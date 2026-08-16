@@ -1,14 +1,14 @@
 <%
-const estados = it.estados ?? [];
-const turma = it.turma;
-const disciplinas = turma.disciplinas ?? [];
-const ROTULO_DO_FECHAMENTO = it.rotuloDoFechamento;
-const CLASSE_DO_FECHAMENTO = it.classeDaEtiqueta.fechamento;
+const states = it.states ?? [];
+const classGroup = it.classGroup;
+const subjects = classGroup.subjects ?? [];
+const CLOSING_LABEL = it.closingLabel;
+const CLOSING_CLASS = it.tagClass.closing;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= turma.serie %><%= it.separadorDeTurno %><%= turma.turno %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= classGroup.gradeLevel %><%= it.shiftSeparator %><%= classGroup.shift %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       Fechar um bimestre confere as notas de todos os alunos em todas as disciplinas da turma antes
       de gravar. A página só responde quando a conferência termina — em turmas grandes isso leva
@@ -16,53 +16,53 @@ const CLASSE_DO_FECHAMENTO = it.classeDaEtiqueta.fechamento;
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="<%= turma.hrefChamada %>">Chamada</a>
-    <a class="botao botao--discreto" href="<%= it.rotas.professor.painel() %>"><%= it.titulos.professor.painel %></a>
+    <a class="botao botao--discreto" href="<%= classGroup.rollCallHref %>">Chamada</a>
+    <a class="botao botao--discreto" href="<%= it.routes.teacher.dashboard() %>"><%= it.titles.teacher.dashboard %></a>
   </p>
 </div>
 
 <ol class="pilha pilha--larga">
-  <% estados.forEach((estado) => { %>
+  <% states.forEach((state) => { %>
   <li class="quadro">
     <div class="secao__cabecalho">
-      <h2><%= it.rotuloDeBimestre(estado.bimestre) %></h2>
-      <span class="etiqueta <%= estado.fechado ? CLASSE_DO_FECHAMENTO.fechado : CLASSE_DO_FECHAMENTO.aberto %>">
-        <%= estado.fechado ? ROTULO_DO_FECHAMENTO.fechado : ROTULO_DO_FECHAMENTO.aberto %>
+      <h2><%= it.termLabel(state.term) %></h2>
+      <span class="etiqueta <%= state.closed ? CLOSING_CLASS.closed : CLOSING_CLASS.open %>">
+        <%= state.closed ? CLOSING_LABEL.closed : CLOSING_LABEL.open %>
       </span>
     </div>
 
-    <% if (estado.fechado) { %>
+    <% if (state.closed) { %>
     <dl class="lista-definicoes">
       <dt>Fechado em</dt>
-      <dd><time class="numero" datetime="<%= estado.fechadoEm %>"><%= it.formatarDataHora(estado.fechadoEm) %></time></dd>
+      <dd><time class="numero" datetime="<%= state.closedAt %>"><%= it.formatDateTime(state.closedAt) %></time></dd>
     </dl>
     <p class="suave">As notas deste bimestre não podem mais ser alteradas.</p>
     <% } else { %>
 
-    <% if (it.bimestreRecusado === estado.bimestre) { %>
-    <p class="campo__erro" id="<%= it.prefixos.pendencia %><%= estado.bimestre %>">
+    <% if (it.rejectedTerm === state.term) { %>
+    <p class="campo__erro" id="<%= it.prefixes.pending %><%= state.term %>">
       Este bimestre não foi fechado: o aviso no topo da página diz quantas notas faltam e em quais
       disciplinas.
     </p>
     <% } %>
 
-    <% if (disciplinas.length > 0) { %>
+    <% if (subjects.length > 0) { %>
     <p class="suave">Minhas disciplinas nesta turma:</p>
     <ul class="linha">
-      <% disciplinas.forEach((disciplina) => { %>
+      <% subjects.forEach((subject) => { %>
       <li>
-        <a href="<%= disciplina.hrefNotas %>?<%= it.campoBimestre %>=<%= estado.bimestre %>"><%= disciplina.disciplinaNome %></a>
+        <a href="<%= subject.gradesHref %>?<%= it.termField %>=<%= state.term %>"><%= subject.subjectName %></a>
       </li>
       <% }) %>
     </ul>
     <% } %>
 
-    <form class="acoes" method="post" action="<%= it.acaoDoFormulario %>">
-      <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
-      <input type="hidden" name="<%= it.campoBimestre %>" value="<%= estado.bimestre %>">
+    <form class="acoes" method="post" action="<%= it.formAction %>">
+      <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
+      <input type="hidden" name="<%= it.termField %>" value="<%= state.term %>">
       <button class="botao botao--primario" type="submit"
-              <% if (it.bimestreRecusado === estado.bimestre) { %>aria-describedby="<%= it.prefixos.pendencia %><%= estado.bimestre %>"<% } %>>
-        Fechar <%= it.rotuloDeBimestre(estado.bimestre) %>
+              <% if (it.rejectedTerm === state.term) { %>aria-describedby="<%= it.prefixes.pending %><%= state.term %>"<% } %>>
+        Fechar <%= it.termLabel(state.term) %>
 
       </button>
       <span class="suave">A conferência é feita agora, com a página aberta.</span>

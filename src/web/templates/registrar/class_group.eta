@@ -1,43 +1,43 @@
 <%
-const turma = it.turma;
-const alocacoes = it.alocacoes ?? [];
-const matriculas = it.matriculas ?? [];
+const classGroup = it.classGroup;
+const assignments = it.assignments ?? [];
+const enrollments = it.enrollments ?? [];
 
-const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoDeMatricula;
+const STATUS_CLASS = it.tagClass.enrollmentStatus;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= it.rotulos.turma %></p>
-    <h1 class="pagina__titulo"><%= turma.nome %></h1>
+    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.labels.classGroup %></p>
+    <h1 class="pagina__titulo"><%= classGroup.name %></h1>
     <p class="pagina__resumo">
-      <%= turma.serie %><%= it.apresentacao.separador %><%= turma.turno %><%= it.apresentacao.separador %><%= turma.unidadeNome %><%= it.apresentacao.separador %>ano letivo
-      <span class="numero"><%= turma.ano === null ? it.semValor : turma.ano %></span>
+      <%= classGroup.gradeLevel %><%= it.presentation.separator %><%= classGroup.shiftName %><%= it.presentation.separator %><%= classGroup.schoolName %><%= it.presentation.separator %>ano letivo
+      <span class="numero"><%= classGroup.year === null ? it.missingValue : classGroup.year %></span>
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.turmas() %>"><%= it.acoes.voltarPara.turmas %></a>
+    <a class="botao botao--secundario" href="<%= it.routes.registrar.classGroups() %>"><%= it.actions.backTo.classGroups %></a>
   </div>
 </div>
 
 <section class="secao" aria-labelledby="alocacoes">
   <div class="secao__cabecalho">
     <h2 id="alocacoes">Disciplinas alocadas</h2>
-    <% const quantasAlocacoes =
-         it.navegacaoAlocacoes === undefined ? alocacoes.length : it.navegacaoAlocacoes.total; %>
+    <% const assignmentCount =
+         it.assignmentsPagination === undefined ? assignments.length : it.assignmentsPagination.total; %>
     <p class="secao__nota">
-      <span class="numero"><%= quantasAlocacoes %></span>
-      <%= it.pluralizar(quantasAlocacoes, it.contagem.disciplina) %>
+      <span class="numero"><%= assignmentCount %></span>
+      <%= it.pluralize(assignmentCount, it.nouns.subject) %>
     </p>
   </div>
 
   <div class="pilha pilha--larga">
-    <% if (alocacoes.length === 0) { %>
-    <%~ include(it.parciais.vazio, {
-      titulo: 'Nenhuma disciplina alocada',
-      texto: 'Enquanto não houver disciplina com professor nesta turma, nenhum professor consegue lançar nota nem registrar chamada aqui.',
-      acao: {
-        href: it.rotas.secretaria.turmaDisciplinaNova({ id: turma.id }),
-        texto: 'Alocar disciplina'
+    <% if (assignments.length === 0) { %>
+    <%~ include(it.partials.empty, {
+      title: 'Nenhuma disciplina alocada',
+      text: 'Enquanto não houver disciplina com professor nesta turma, nenhum professor consegue lançar nota nem registrar chamada aqui.',
+      action: {
+        href: it.routes.registrar.classGroupSubjectNew({ id: classGroup.id }),
+        text: 'Alocar disciplina'
       }
     }) %>
     <% } else { %>
@@ -46,27 +46,27 @@ const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoDeMatricula;
         <caption>Quem leciona o quê nesta turma</caption>
         <thead>
           <tr>
-            <th scope="col"><%= it.rotulos.disciplina %></th>
+            <th scope="col"><%= it.labels.subject %></th>
             <th scope="col" class="celula-texto">Professor</th>
           </tr>
         </thead>
         <tbody>
-          <% alocacoes.forEach((alocacao) => { %>
+          <% assignments.forEach((assignment) => { %>
           <tr>
-            <th scope="row"><%= alocacao.disciplinaNome %></th>
-            <td class="celula-texto"><%= alocacao.professorNome %></td>
+            <th scope="row"><%= assignment.subjectName %></th>
+            <td class="celula-texto"><%= assignment.teacherName %></td>
           </tr>
           <% }) %>
         </tbody>
       </table>
     </div>
-    <%~ include(it.parciais.paginacao, {
-      navegacao: it.navegacaoAlocacoes, rotulo: 'disciplinas alocadas'
+    <%~ include(it.partials.pagination, {
+      pagination: it.assignmentsPagination, label: 'disciplinas alocadas'
     }) %>
 
     <div class="acoes">
-      <a class="botao botao--primario" href="<%= it.rotas.secretaria.turmaDisciplinaNova({ id: turma.id }) %>">
-        <%= it.titulos.secretaria.alocar %>
+      <a class="botao botao--primario" href="<%= it.routes.registrar.classGroupSubjectNew({ id: classGroup.id }) %>">
+        <%= it.titles.registrar.assign %>
 
       </a>
     </div>
@@ -76,20 +76,20 @@ const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoDeMatricula;
 
 <section class="secao" aria-labelledby="matriculados">
   <div class="secao__cabecalho">
-    <h2 id="matriculados"><%= it.rotulos.matriculasAtivas %></h2>
-    <% const quantosAlunos =
-         it.navegacaoMatriculas === undefined ? matriculas.length : it.navegacaoMatriculas.total; %>
+    <h2 id="matriculados"><%= it.labels.activeEnrollments %></h2>
+    <% const studentCount =
+         it.enrollmentsPagination === undefined ? enrollments.length : it.enrollmentsPagination.total; %>
     <p class="secao__nota">
-      <span class="numero"><%= quantosAlunos %></span>
-      <%= it.pluralizar(quantosAlunos, it.contagem.aluno) %>
+      <span class="numero"><%= studentCount %></span>
+      <%= it.pluralize(studentCount, it.nouns.student) %>
     </p>
   </div>
 
-  <% if (matriculas.length === 0) { %>
-  <%~ include(it.parciais.vazio, {
-    titulo: it.semAlunoMatriculado,
-    texto: 'Matricule pela ficha do aluno: procure pelo nome e escolha esta turma.',
-    acao: { href: it.rotas.secretaria.alunos(), texto: it.acoes.buscarAluno }
+  <% if (enrollments.length === 0) { %>
+  <%~ include(it.partials.empty, {
+    title: it.noEnrolledStudent,
+    text: 'Matricule pela ficha do aluno: procure pelo nome e escolha esta turma.',
+    action: { href: it.routes.registrar.students(), text: it.actions.searchStudent }
   }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -97,25 +97,25 @@ const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoDeMatricula;
       <caption>Alunos com matrícula ativa nesta turma</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-elastica"><%= it.rotulos.aluno %></th>
+          <th scope="col" class="celula-elastica"><%= it.labels.student %></th>
           <th scope="col" class="celula-centro">Matriculado em</th>
-<% // magic-values: permitido — a cabeça da coluna não é um rótulo de `ROTULOS` %>
+<% // magic-values: permitido — a cabeça da coluna não é um rótulo de `LABELS` %>
           <th scope="col" class="celula-centro">Situação</th>
-          <th scope="col" class="celula-centro"><%= it.rotulos.acoes %></th>
+          <th scope="col" class="celula-centro"><%= it.labels.actions %></th>
         </tr>
       </thead>
       <tbody>
-        <% matriculas.forEach((matricula) => { %>
+        <% enrollments.forEach((enrollment) => { %>
         <tr>
-          <th scope="row" class="celula-elastica"><%= matricula.alunoNome %></th>
-          <td class="numero celula-centro"><%= it.formatarData(matricula.dataMatricula) %></td>
+          <th scope="row" class="celula-elastica"><%= enrollment.studentName %></th>
+          <td class="numero celula-centro"><%= it.formatDate(enrollment.enrollmentDate) %></td>
           <td class="celula-centro">
-            <span class="etiqueta <%= CLASSE_DA_SITUACAO[matricula.situacao] %>"><%= matricula.situacaoNome %></span>
+            <span class="etiqueta <%= STATUS_CLASS[enrollment.status] %>"><%= it.statusLabel[enrollment.status] %></span>
           </td>
           <td class="celula-centro">
             <div class="tabela__acoes">
-              <a class="botao botao--secundario botao--miudo" href="<%= it.rotas.secretaria.aluno({ id: matricula.alunoId }) %>">
-                Abrir ficha<span class="visualmente-oculto"> de <%= matricula.alunoNome %></span>
+              <a class="botao botao--secundario botao--miudo" href="<%= it.routes.registrar.student({ id: enrollment.studentId }) %>">
+                Abrir ficha<span class="visualmente-oculto"> de <%= enrollment.studentName %></span>
               </a>
             </div>
           </td>
@@ -124,8 +124,8 @@ const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoDeMatricula;
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, {
-    navegacao: it.navegacaoMatriculas, rotulo: 'matrículas ativas'
+  <%~ include(it.partials.pagination, {
+    pagination: it.enrollmentsPagination, label: 'matrículas ativas'
   }) %>
   <% } %>
 </section>

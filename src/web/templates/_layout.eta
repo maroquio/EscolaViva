@@ -1,31 +1,31 @@
 <%
-const folhaDeEstilo = it.rotas.publicas
-  .publico()
-  .replace(it.curingaDeAsset, it.asset(it.nomeLogicoDaFolha));
+const stylesheet = it.routes.public
+  .assets()
+  .replace(it.assetWildcard, it.asset(it.stylesheetLogicalName));
 %><!doctype html>
-<html lang="<%= it.documento.idioma %>">
+<html lang="<%= it.document.language %>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="<%= it.documento.esquemaDeCor %>">
-  <meta name="robots" content="<%= it.documento.robots %>">
-  <title><%= it.titulo %><%= it.apresentacao.sufixoDoTitulo %></title>
-  <link rel="stylesheet" href="<%= folhaDeEstilo %>">
-  <%~ include(it.parciais.icone) %>
+  <meta name="color-scheme" content="<%= it.document.colorScheme %>">
+  <meta name="robots" content="<%= it.document.robots %>">
+  <title><%= it.title %><%= it.presentation.titleSuffix %></title>
+  <link rel="stylesheet" href="<%= stylesheet %>">
+  <%~ include(it.partials.icon) %>
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#<%= it.documento.idDoConteudo %>">Pular para o conteúdo</a>
+  <a class="pular-para-conteudo" href="#<%= it.document.contentId %>">Pular para o conteúdo</a>
 
   <div class="aplicacao">
-    <%~ include(it.parciais.cabecalho, it) %>
-    <%~ include(it.parciais.navegacao, it) %>
+    <%~ include(it.partials.header, it) %>
+    <%~ include(it.partials.navigation, it) %>
 
-    <main class="conteudo" id="<%= it.documento.idDoConteudo %>" tabindex="-1">
-      <%~ include(it.parciais.mensagens, it) %>
+    <main class="conteudo" id="<%= it.document.contentId %>" tabindex="-1">
+      <%~ include(it.partials.messages, it) %>
       <%~ it.body %>
     </main>
   </div>
 
-  <%~ include(it.parciais.scriptAvisos) %>
+  <%~ include(it.partials.noticesScript) %>
 </body>
 </html>

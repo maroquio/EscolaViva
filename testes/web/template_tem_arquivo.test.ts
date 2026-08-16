@@ -16,7 +16,7 @@ import { TEMPLATES } from '../../src/web/constants';
 const EXTENSAO = '.eta';
 
 const RAIZ = fileURLToPath(new URL('../..', import.meta.url));
-const DIRETORIO_DE_TEMPLATES = join(RAIZ, 'src', 'web', TEMPLATES.diretorio);
+const DIRETORIO_DE_TEMPLATES = join(RAIZ, 'src', 'web', TEMPLATES.directory);
 
 const caminhosDeclarados = (no: unknown): readonly string[] => {
   if (typeof no === 'string') return no.startsWith('/') ? [no] : [];

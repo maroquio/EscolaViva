@@ -1,70 +1,70 @@
 <%
-const turma = it.turma;
-const disciplinas = it.disciplinas ?? [];
-const professores = it.professores ?? [];
-const valores = it.valores ?? {};
-const { erroDe, descricao } = it;
-const campos = it.campos.alocacao;
-const podeAlocar = disciplinas.length > 0 && professores.length > 0;
-const paginaDaTurma = it.rotas.secretaria.turma({ id: turma.id });
+const classGroup = it.classGroup;
+const subjects = it.subjects ?? [];
+const teachers = it.teachers ?? [];
+const values = it.values ?? {};
+const { errorFor, describedBy } = it;
+const fields = it.fields.teachingAssignment;
+const canAssign = subjects.length > 0 && teachers.length > 0;
+const classGroupPage = it.routes.registrar.classGroup({ id: classGroup.id });
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.secretaria %><%= it.apresentacao.separador %><%= it.titulos.secretaria.turma(turma.nome) %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.classGroup(classGroup.name) %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
-      <%= turma.serie %><%= it.apresentacao.separador %><%= turma.turno %><%= it.apresentacao.separador %><%= turma.unidadeNome %><%= it.apresentacao.separador %>ano letivo
-      <span class="numero"><%= turma.ano === null ? it.semValor : turma.ano %></span>
+      <%= classGroup.gradeLevel %><%= it.presentation.separator %><%= classGroup.shiftName %><%= it.presentation.separator %><%= classGroup.schoolName %><%= it.presentation.separator %>ano letivo
+      <span class="numero"><%= classGroup.year === null ? it.missingValue : classGroup.year %></span>
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= paginaDaTurma %>"><%= it.acoes.voltarPara.turma %></a>
+    <a class="botao botao--secundario" href="<%= classGroupPage %>"><%= it.actions.backTo.classGroup %></a>
   </div>
 </div>
 
 <div class="quadro">
-  <% if (!podeAlocar) { %>
+  <% if (!canAssign) { %>
   <p class="suave leitura">
-    <% if (disciplinas.length === 0) { %>
+    <% if (subjects.length === 0) { %>
     Esta rede ainda não tem disciplina cadastrada.
     <% } else { %>
-    Nenhum usuário tem papel de professor em <%= turma.unidadeNome %>. Peça ao administrador da
+    Nenhum usuário tem papel de professor em <%= classGroup.schoolName %>. Peça ao administrador da
     rede para atribuir o papel antes de alocar.
     <% } %>
   </p>
   <div class="acoes">
-    <% if (disciplinas.length === 0) { %>
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.disciplinaNova() %>"><%= it.titulos.secretaria.disciplinaNova %></a>
+    <% if (subjects.length === 0) { %>
+    <a class="botao botao--primario" href="<%= it.routes.registrar.subjectNew() %>"><%= it.titles.registrar.subjectNew %></a>
     <% } %>
-    <a class="botao botao--discreto" href="<%= paginaDaTurma %>"><%= it.acoes.voltarPara.turma %></a>
+    <a class="botao botao--discreto" href="<%= classGroupPage %>"><%= it.actions.backTo.classGroup %></a>
   </div>
   <% } else { %>
-  <form class="formulario" method="post" action="<%= it.rotas.secretaria.turmaDisciplinas({ id: turma.id }) %>">
-    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
+  <form class="formulario" method="post" action="<%= it.routes.registrar.classGroupSubjects({ id: classGroup.id }) %>">
+    <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="disciplinaId">
-          <%= it.rotulos.disciplina %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.labels.subject %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <select
           id="disciplinaId"
-          name="<%= campos.disciplinaId %>"
+          name="<%= fields.subjectId %>"
           required
-          <% if (erroDe(campos.disciplinaId) !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao(campos.disciplinaId, true) %>">
-          <option value=""><%= it.opcaoVazia %></option>
-          <% disciplinas.forEach((disciplina) => { %>
-          <option value="<%= disciplina.id %>" <%= (valores.disciplinaId ?? '') === disciplina.id ? 'selected' : '' %>>
-            <%= disciplina.nome %>
+          <% if (errorFor(fields.subjectId) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= describedBy(fields.subjectId, true) %>">
+          <option value=""><%= it.emptyOption %></option>
+          <% subjects.forEach((subject) => { %>
+          <option value="<%= subject.id %>" <%= (values.subjectId ?? '') === subject.id ? 'selected' : '' %>>
+            <%= subject.name %>
           </option>
           <% }) %>
         </select>
-        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.disciplinaId) %>">
+        <p class="campo__ajuda" id="<%= it.helpId(fields.subjectId) %>">
           Cada disciplina entra uma única vez por turma.
         </p>
-        <% if (erroDe(campos.disciplinaId) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.disciplinaId) %>"><%= erroDe(campos.disciplinaId) %></p>
+        <% if (errorFor(fields.subjectId) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.subjectId) %>"><%= errorFor(fields.subjectId) %></p>
         <% } %>
       </div>
 
@@ -74,29 +74,29 @@ const paginaDaTurma = it.rotas.secretaria.turma({ id: turma.id });
         </label>
         <select
           id="professorUsuarioId"
-          name="<%= campos.professorUsuarioId %>"
+          name="<%= fields.teacherUserId %>"
           required
-          <% if (erroDe(campos.professorUsuarioId) !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao(campos.professorUsuarioId, true) %>">
-          <option value=""><%= it.opcaoVazia %></option>
-          <% professores.forEach((professor) => { %>
-          <option value="<%= professor.id %>" <%= (valores.professorUsuarioId ?? '') === professor.id ? 'selected' : '' %>>
-            <%= professor.name %>
+          <% if (errorFor(fields.teacherUserId) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= describedBy(fields.teacherUserId, true) %>">
+          <option value=""><%= it.emptyOption %></option>
+          <% teachers.forEach((teacher) => { %>
+          <option value="<%= teacher.id %>" <%= (values.teacherUserId ?? '') === teacher.id ? 'selected' : '' %>>
+            <%= teacher.name %>
           </option>
           <% }) %>
         </select>
-        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.professorUsuarioId) %>">
-          Somente quem tem papel de professor em <%= turma.unidadeNome %>.
+        <p class="campo__ajuda" id="<%= it.helpId(fields.teacherUserId) %>">
+          Somente quem tem papel de professor em <%= classGroup.schoolName %>.
         </p>
-        <% if (erroDe(campos.professorUsuarioId) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.professorUsuarioId) %>"><%= erroDe(campos.professorUsuarioId) %></p>
+        <% if (errorFor(fields.teacherUserId) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.teacherUserId) %>"><%= errorFor(fields.teacherUserId) %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
       <button class="botao botao--primario" type="submit">Alocar</button>
-      <a class="botao botao--discreto" href="<%= paginaDaTurma %>"><%= it.acoes.cancelar %></a>
+      <a class="botao botao--discreto" href="<%= classGroupPage %>"><%= it.actions.cancel %></a>
     </div>
   </form>
   <% } %>

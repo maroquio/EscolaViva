@@ -1,29 +1,29 @@
 <%
-const comunicados = it.comunicados;
-const resumo = it.resumo;
+const announcements = it.announcements;
+const summary = it.summary;
 %>
 <header class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.comunicacao %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.communication %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       O que foi enviado ao mural dos responsáveis, com quantos receberam e quantos leram.
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.comunicados.novo() %>"><%= it.titulos.comunicados.novo %></a>
+    <a class="botao botao--primario" href="<%= it.routes.announcements.new() %>"><%= it.titles.announcements.new %></a>
   </p>
 </header>
 
-<form class="filtro" method="get" action="<%= it.rotas.comunicados.lista() %>">
-  <label class="campo__rotulo" for="filtro-unidade"><%= it.rotulos.unidade %></label>
-  <select id="filtro-unidade" name="<%= it.campoDaUnidade %>">
-    <% if (it.veTodaARede) { %>
-    <option value=""<% if (it.unidadeAtual === '') { %> selected<% } %>>Toda a rede</option>
+<form class="filtro" method="get" action="<%= it.routes.announcements.list() %>">
+  <label class="campo__rotulo" for="filtro-unidade"><%= it.labels.school %></label>
+  <select id="filtro-unidade" name="<%= it.schoolField %>">
+    <% if (it.seesWholeNetwork) { %>
+    <option value=""<% if (it.currentSchool === '') { %> selected<% } %>>Toda a rede</option>
     <% } %>
-    <% it.unidades.forEach((unidade) => { %>
-    <option value="<%= unidade.id %>"<% if (unidade.id === it.unidadeAtual) { %> selected<% } %>>
-      <%= unidade.name %>
+    <% it.schools.forEach((school) => { %>
+    <option value="<%= school.id %>"<% if (school.id === it.currentSchool) { %> selected<% } %>>
+      <%= school.name %>
     </option>
     <% }) %>
   </select>
@@ -40,19 +40,19 @@ const resumo = it.resumo;
     <div class="painel">
       <div class="cartao">
         <p class="cartao__rotulo">Taxa de leitura</p>
-        <p class="cartao__numero"><%= it.formatarTaxa(resumo.taxa) %></p>
+        <p class="cartao__numero"><%= it.formatRate(summary.rate) %></p>
         <p class="cartao__detalhe">Leituras sobre destinatários alcançados</p>
       </div>
 
       <div class="cartao">
-        <p class="cartao__rotulo"><%= it.rotulos.destinatarios %></p>
-        <p class="cartao__numero"><%= resumo.destinatarios %></p>
+        <p class="cartao__rotulo"><%= it.labels.recipients %></p>
+        <p class="cartao__numero"><%= summary.recipients %></p>
         <p class="cartao__detalhe">Responsáveis que receberam algum comunicado</p>
       </div>
 
       <div class="cartao">
         <p class="cartao__rotulo">Leituras</p>
-        <p class="cartao__numero"><%= resumo.leituras %></p>
+        <p class="cartao__numero"><%= summary.reads %></p>
         <p class="cartao__detalhe">Marcadas pelo próprio responsável no mural</p>
       </div>
     </div>
@@ -71,11 +71,11 @@ const resumo = it.resumo;
     <p class="secao__nota">Do mais recente para o mais antigo</p>
   </div>
 
-  <% if (comunicados.length === 0) { %>
-    <%~ include(it.parciais.vazio, {
-      titulo: 'Nenhum comunicado neste recorte',
-      texto: 'Ainda não há comunicado publicado para a unidade escolhida. O primeiro envio já entra nesta lista com a medição de leitura.',
-      acao: { href: it.rotas.comunicados.novo(), texto: 'Publicar o primeiro comunicado' },
+  <% if (announcements.length === 0) { %>
+    <%~ include(it.partials.empty, {
+      title: 'Nenhum comunicado neste recorte',
+      text: 'Ainda não há comunicado publicado para a unidade escolhida. O primeiro envio já entra nesta lista com a medição de leitura.',
+      action: { href: it.routes.announcements.new(), text: 'Publicar o primeiro comunicado' },
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -85,34 +85,34 @@ const resumo = it.resumo;
         <tr>
           <th scope="col">Comunicado</th>
           <th scope="col">Publicado em</th>
-          <th scope="col"><%= it.rotulos.destinatarios %></th>
+          <th scope="col"><%= it.labels.recipients %></th>
           <th scope="col">Leituras</th>
           <th scope="col">Taxa de leitura</th>
         </tr>
       </thead>
       <tbody>
-        <% comunicados.forEach((item) => { %>
+        <% announcements.forEach((item) => { %>
         <tr>
-          <td class="celula-texto"><%= item.titulo %></td>
+          <td class="celula-texto"><%= item.title %></td>
           <td class="numero">
-            <time datetime="<%= item.publicadoEm %>"><%= it.formatarData(item.publicadoEm) %></time>
+            <time datetime="<%= item.publishedAt %>"><%= it.formatDate(item.publishedAt) %></time>
           </td>
-          <td class="numero"><%= item.destinatarios %></td>
-          <td class="numero"><%= item.leituras %></td>
-          <td class="numero"><%= it.formatarTaxa(item.taxa) %></td>
+          <td class="numero"><%= item.recipients %></td>
+          <td class="numero"><%= item.reads %></td>
+          <td class="numero"><%= it.formatRate(item.rate) %></td>
         </tr>
         <% }) %>
       </tbody>
       <tfoot>
         <tr>
           <td class="celula-texto" colspan="2">Total do recorte</td>
-          <td class="numero"><%= resumo.destinatarios %></td>
-          <td class="numero"><%= resumo.leituras %></td>
-          <td class="numero"><%= it.formatarTaxa(resumo.taxa) %></td>
+          <td class="numero"><%= summary.recipients %></td>
+          <td class="numero"><%= summary.reads %></td>
+          <td class="numero"><%= it.formatRate(summary.rate) %></td>
         </tr>
       </tfoot>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.comunicado.plural }) %>
+  <%~ include(it.partials.pagination, { pagination: it.pagination, label: it.nouns.announcement.plural }) %>
   <% } %>
 </section>

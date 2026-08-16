@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { deleteCookie, getSignedCookie, setSignedCookie } from 'hono/cookie';
-import { ACADEMIC_LIMITS, academics, type AcademicYear, type ClassGroup } from '../../academics';
+import { ACADEMIC_LIMITS, academics, type ClassGroup } from '../../academics';
 import {
   IDENTITY_LIMITS,
   IDENTITY_VOCABULARY,
@@ -20,352 +20,348 @@ import {
 } from '../../shared/http';
 import { logger } from '../../shared/log';
 import {
-  ANO_EM_QUATRO_DIGITOS,
-  AVISOS,
-  CAMPOS,
-  CODIGOS_DE_AVISO,
-  COOKIE_DO_CONVITE,
-  ERROS_DE_FORMULARIO,
-  EVENTOS_DE_LOG,
-  LINHAS_DE_ATRIBUICAO,
+  FIELDS,
+  FORM_ERRORS,
+  FOUR_DIGIT_YEAR,
+  ID_SUFFIXES,
+  INITIAL_VALUES,
+  INVITE_COOKIE,
+  LOG_EVENTS,
   MISSING_VALUE,
-  PARAMETROS,
-  ROTAS,
-  SUFIXOS_DE_ID,
+  NOTICES,
+  NOTICE_CODES,
+  PARAMS,
+  ROLE_ASSIGNMENT_ROWS,
+  ROUTES,
   TEMPLATES,
-  TITULOS,
-  VALORES_INICIAIS,
+  TITLES,
 } from '../constants';
-import { navegacao, paginaDaQuery } from '../pagination';
-import { renderizar, type DadosDeTemplate } from '../render';
+import { pageFromQuery, pagination } from '../pagination';
+import { render, type TemplateData } from '../render';
 
-const MENSAGENS: Record<string, string> = {
-  [CODIGOS_DE_AVISO.unidadeCriada]: AVISOS.unidadeCriada,
-  [CODIGOS_DE_AVISO.usuarioConvidado]: AVISOS.usuarioConvidado,
-  [CODIGOS_DE_AVISO.anoDefinido]: AVISOS.anoDefinido,
+const MESSAGES: Record<string, string> = {
+  [NOTICE_CODES.schoolCreated]: NOTICES.schoolCreated,
+  [NOTICE_CODES.userInvited]: NOTICES.userInvited,
+  [NOTICE_CODES.yearDefined]: NOTICES.yearDefined,
 };
 
-const PAPEIS_DA_TELA: readonly { valor: Role; rotulo: string }[] = ROLES.map((valor) => ({
-  valor,
-  rotulo: IDENTITY_VOCABULARY.role[valor],
+const ROLE_OPTIONS: readonly { value: Role; label: string }[] = ROLES.map((value) => ({
+  value,
+  label: IDENTITY_VOCABULARY.role[value],
 }));
 
-const PARCIAIS = { parciais: TEMPLATES.parciais };
-const SUFIXOS = { sufixos: SUFIXOS_DE_ID };
+const PARTIALS = { partials: TEMPLATES.partials };
+const SUFFIXES = { suffixes: ID_SUFFIXES };
 
-export const rotasRede = new Hono<{ Variables: Variables }>();
+export const networkRoutes = new Hono<{ Variables: Variables }>();
 
-rotasRede.use(requireRole(ROLE.networkAdmin));
+networkRoutes.use(requireRole(ROLE.networkAdmin));
 
-const texto = (corpo: FormBody, campo: string): string => {
-  const valor = corpo[campo];
-  return typeof valor === 'string' ? valor.trim() : '';
+const text = (body: FormBody, field: string): string => {
+  const value = body[field];
+  return typeof value === 'string' ? value.trim() : '';
 };
 
-const lista = (corpo: FormBody, campo: string): string[] => {
-  const valor = corpo[campo];
-  if (Array.isArray(valor)) return valor.map((item) => (typeof item === 'string' ? item.trim() : ''));
-  return typeof valor === 'string' ? [valor.trim()] : [];
+const list = (body: FormBody, field: string): string[] => {
+  const value = body[field];
+  if (Array.isArray(value)) return value.map((item) => (typeof item === 'string' ? item.trim() : ''));
+  return typeof value === 'string' ? [value.trim()] : [];
 };
 
-const mensagemDaQuery = (c: Context): string | undefined =>
-  MENSAGENS[c.req.query(PARAMETROS.ok) ?? ''];
+const queryMessage = (c: Context): string | undefined =>
+  MESSAGES[c.req.query(PARAMS.ok) ?? ''];
 
-type ContagensDaRede = { unidades: number; usuarios: number; turmas: number; matriculados: number };
+type NetworkCounts = { schools: number; users: number; classGroups: number; enrolled: number };
 
-const anoParaTela = (anoLetivo: AcademicYear) => ({
-  id: anoLetivo.id,
-  ano: anoLetivo.year,
-  dataInicio: anoLetivo.startDate,
-  dataFim: anoLetivo.endDate,
-});
-
-const contarRede = async (redeId: string, anoLetivoId: string | null): Promise<ContagensDaRede> => {
-  const [{ schools, users }, turmas] = await Promise.all([
-    identity.countSchoolsAndUsers(redeId),
-    anoLetivoId === null
+const countNetwork = async (
+  networkId: string,
+  academicYearId: string | null,
+): Promise<NetworkCounts> => {
+  const [{ schools, users }, classGroups] = await Promise.all([
+    identity.countSchoolsAndUsers(networkId),
+    academicYearId === null
       ? Promise.resolve<ClassGroup[]>([])
-      : academics.listClassGroups(redeId, { academicYearId: anoLetivoId }),
+      : academics.listClassGroups(networkId, { academicYearId }),
   ]);
-  const matriculas = await Promise.all(
-    turmas.map((turma) => academics.activeEnrollmentsOfClassGroup(redeId, turma.id)),
+  const enrollments = await Promise.all(
+    classGroups.map((classGroup) =>
+      academics.activeEnrollmentsOfClassGroup(networkId, classGroup.id),
+    ),
   );
   return {
-    unidades: schools,
-    usuarios: users,
-    turmas: turmas.length,
-    matriculados: matriculas.reduce((total, daTurma) => total + daTurma.length, 0),
+    schools,
+    users,
+    classGroups: classGroups.length,
+    enrolled: enrollments.reduce((total, ofClassGroup) => total + ofClassGroup.length, 0),
   };
 };
 
-rotasRede.get(ROTAS.rede.painel.padrao, async (c) => {
-  const redeId = currentNetwork(c);
-  const anos = (await academics.listAcademicYears(redeId)).map(anoParaTela);
-  const anoLetivo = anos[0] ?? null;
-  const contagens = await contarRede(redeId, anoLetivo === null ? null : anoLetivo.id);
-  return renderizar(c, TEMPLATES.rede.painel, {
-    ...PARCIAIS,
-    titulo: TITULOS.rede.painel,
-    contagens,
-    anoLetivo,
-    anosDefinidos: anos.length,
+networkRoutes.get(ROUTES.network.dashboard.pattern, async (c) => {
+  const networkId = currentNetwork(c);
+  const years = await academics.listAcademicYears(networkId);
+  const academicYear = years[0] ?? null;
+  const counts = await countNetwork(networkId, academicYear === null ? null : academicYear.id);
+  return render(c, TEMPLATES.network.dashboard, {
+    ...PARTIALS,
+    title: TITLES.network.dashboard,
+    counts,
+    academicYear,
+    definedYears: years.length,
   });
 });
 
-const telaDeUnidades = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const pagina = await identity.schoolsPage(currentNetwork(c), paginaDaQuery(c));
-  return renderizar(c, TEMPLATES.rede.unidades, {
-    ...PARCIAIS,
-    titulo: TITULOS.rede.unidades,
-    rotuloDaSituacao: IDENTITY_VOCABULARY.schoolActive,
-    ausente: MISSING_VALUE,
-    unidades: pagina.items,
-    navegacao: navegacao(c, pagina),
-    ...dados,
+const schoolsScreen = async (c: Context, data: TemplateData = {}): Promise<Response> => {
+  const page = await identity.schoolsPage(currentNetwork(c), pageFromQuery(c));
+  return render(c, TEMPLATES.network.schools, {
+    ...PARTIALS,
+    title: TITLES.network.schools,
+    statusLabel: IDENTITY_VOCABULARY.schoolActive,
+    missing: MISSING_VALUE,
+    schools: page.items,
+    pagination: pagination(c, page),
+    ...data,
   });
 };
 
-const formDeUnidade = (c: Context, dados: DadosDeTemplate = {}): Response =>
-  renderizar(c, TEMPLATES.rede.unidadeNova, {
-    ...SUFIXOS,
-    titulo: TITULOS.rede.unidadeNova,
-    valores: VALORES_INICIAIS.unidade,
-    limiteDoNome: IDENTITY_LIMITS.school.name,
-    limiteDoCodigoInep: IDENTITY_LIMITS.school.inepCode,
-    erros: [],
-    ...dados,
+const schoolForm = (c: Context, data: TemplateData = {}): Response =>
+  render(c, TEMPLATES.network.schoolNew, {
+    ...SUFFIXES,
+    title: TITLES.network.schoolNew,
+    values: INITIAL_VALUES.school,
+    nameLimit: IDENTITY_LIMITS.school.name,
+    inepCodeLimit: IDENTITY_LIMITS.school.inepCode,
+    errors: [],
+    ...data,
   });
 
-rotasRede.get(ROTAS.rede.unidades.padrao, (c) =>
-  telaDeUnidades(c, { mensagem: mensagemDaQuery(c) }),
+networkRoutes.get(ROUTES.network.schools.pattern, (c) =>
+  schoolsScreen(c, { message: queryMessage(c) }),
 );
 
-rotasRede.get(ROTAS.rede.unidadeNova.padrao, (c) => formDeUnidade(c));
+networkRoutes.get(ROUTES.network.schoolNew.pattern, (c) => schoolForm(c));
 
-rotasRede.post(ROTAS.rede.unidades.padrao, async (c) => {
-  const redeId = currentNetwork(c);
-  const corpo = c.get(CONTEXT_VARIABLES.body);
-  const valores = {
-    nome: texto(corpo, CAMPOS.unidade.nome),
-    codigoInep: texto(corpo, CAMPOS.unidade.codigoInep),
+networkRoutes.post(ROUTES.network.schools.pattern, async (c) => {
+  const networkId = currentNetwork(c);
+  const body = c.get(CONTEXT_VARIABLES.body);
+  const values = {
+    name: text(body, FIELDS.school.name),
+    inepCode: text(body, FIELDS.school.inepCode),
   };
 
-  const resultado = await identity.createSchool({
-    networkId: redeId,
-    name: valores.nome,
-    inepCode: valores.codigoInep,
+  const result = await identity.createSchool({
+    networkId,
+    name: values.name,
+    inepCode: values.inepCode,
   });
-  if (!resultado.ok) return formDeUnidade(c, { valores, erros: resultado.erros });
+  if (!result.ok) return schoolForm(c, { values, errors: result.erros });
 
-  logger.info({ rede_id: redeId, unidade_id: resultado.valor.id }, EVENTOS_DE_LOG.unidadeCriada);
+  logger.info({ network_id: networkId, school_id: result.valor.id }, LOG_EVENTS.schoolCreated);
   return c.redirect(
-    `${ROTAS.rede.unidades()}?${PARAMETROS.ok}=${CODIGOS_DE_AVISO.unidadeCriada}`,
+    `${ROUTES.network.schools()}?${PARAMS.ok}=${NOTICE_CODES.schoolCreated}`,
     303,
   );
 });
 
-const guardarConvite = (c: Context, usuarioId: string, senha: string): Promise<void> =>
+const storeInvite = (c: Context, userId: string, password: string): Promise<void> =>
   setSignedCookie(
     c,
-    COOKIE_DO_CONVITE.nome,
-    `${usuarioId}${COOKIE_DO_CONVITE.separador}${senha}`,
+    INVITE_COOKIE.name,
+    `${userId}${INVITE_COOKIE.separator}${password}`,
     config.sessionSecret,
     {
-      path: ROTAS.rede.usuarios(),
+      path: ROUTES.network.users(),
       httpOnly: true,
       secure: config.secureCookie,
-      sameSite: COOKIE_DO_CONVITE.sameSite,
-      maxAge: COOKIE_DO_CONVITE.validadeEmSegundos,
+      sameSite: INVITE_COOKIE.sameSite,
+      maxAge: INVITE_COOKIE.maxAgeInSeconds,
     },
   );
 
-const retirarConvite = async (
+const takeInvite = async (
   c: Context,
-): Promise<{ usuarioId: string; senha: string } | null> => {
-  const valor = await getSignedCookie(c, config.sessionSecret, COOKIE_DO_CONVITE.nome);
-  if (typeof valor !== 'string') return null;
-  deleteCookie(c, COOKIE_DO_CONVITE.nome, {
-    path: ROTAS.rede.usuarios(),
+): Promise<{ userId: string; password: string } | null> => {
+  const value = await getSignedCookie(c, config.sessionSecret, INVITE_COOKIE.name);
+  if (typeof value !== 'string') return null;
+  deleteCookie(c, INVITE_COOKIE.name, {
+    path: ROUTES.network.users(),
     secure: config.secureCookie,
   });
-  const corte = valor.indexOf(COOKIE_DO_CONVITE.separador);
-  if (corte <= 0) return null;
-  return { usuarioId: valor.slice(0, corte), senha: valor.slice(corte + 1) };
+  const cut = value.indexOf(INVITE_COOKIE.separator);
+  if (cut <= 0) return null;
+  return { userId: value.slice(0, cut), password: value.slice(cut + 1) };
 };
 
-type LinhaDeAtribuicao = { unidadeId: string; papel: string };
+type RoleAssignmentRow = { schoolId: string; role: string };
 
-const ehPapel = (valor: string): valor is Role =>
-  PAPEIS_DA_TELA.some((opcao) => opcao.valor === valor);
+const isRole = (value: string): value is Role =>
+  ROLE_OPTIONS.some((option) => option.value === value);
 
-const linhasDoFormulario = (corpo: FormBody): LinhaDeAtribuicao[] => {
-  const unidades = lista(corpo, CAMPOS.usuario.unidades);
-  const papeis = lista(corpo, CAMPOS.usuario.papeis);
-  const total = Math.max(unidades.length, papeis.length, LINHAS_DE_ATRIBUICAO);
-  return Array.from({ length: total }, (_, indice) => ({
-    unidadeId: unidades[indice] ?? '',
-    papel: papeis[indice] ?? '',
+const formRows = (body: FormBody): RoleAssignmentRow[] => {
+  const schools = list(body, FIELDS.user.schools);
+  const roles = list(body, FIELDS.user.roles);
+  const total = Math.max(schools.length, roles.length, ROLE_ASSIGNMENT_ROWS);
+  return Array.from({ length: total }, (_, index) => ({
+    schoolId: schools[index] ?? '',
+    role: roles[index] ?? '',
   }));
 };
 
-const linhasVazias = (): LinhaDeAtribuicao[] =>
-  Array.from({ length: LINHAS_DE_ATRIBUICAO }, () => ({ unidadeId: '', papel: '' }));
+const emptyRows = (): RoleAssignmentRow[] =>
+  Array.from({ length: ROLE_ASSIGNMENT_ROWS }, () => ({ schoolId: '', role: '' }));
 
-const telaDeUsuarios = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const pagina = await identity.usersPage(currentNetwork(c), paginaDaQuery(c));
-  return renderizar(c, TEMPLATES.rede.usuarios, {
-    ...PARCIAIS,
-    titulo: TITULOS.rede.usuarios,
-    rotuloDaSituacao: IDENTITY_VOCABULARY.active,
-    semPapel: IDENTITY_VOCABULARY.noRole,
-    usuarios: pagina.items,
-    navegacao: navegacao(c, pagina),
-    papeis: PAPEIS_DA_TELA,
-    convite: null,
-    ...dados,
+const usersScreen = async (c: Context, data: TemplateData = {}): Promise<Response> => {
+  const page = await identity.usersPage(currentNetwork(c), pageFromQuery(c));
+  return render(c, TEMPLATES.network.users, {
+    ...PARTIALS,
+    title: TITLES.network.users,
+    statusLabel: IDENTITY_VOCABULARY.active,
+    noRole: IDENTITY_VOCABULARY.noRole,
+    users: page.items,
+    pagination: pagination(c, page),
+    roles: ROLE_OPTIONS,
+    invite: null,
+    ...data,
   });
 };
 
-const formDeUsuario = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const redeId = currentNetwork(c);
-  const [unidades, responsaveis] = await Promise.all([
-    identity.listSchools(redeId),
-    academics.listGuardians(redeId),
+const userForm = async (c: Context, data: TemplateData = {}): Promise<Response> => {
+  const networkId = currentNetwork(c);
+  const [schools, guardians] = await Promise.all([
+    identity.listSchools(networkId),
+    academics.listGuardians(networkId),
   ]);
-  return renderizar(c, TEMPLATES.rede.usuarioNovo, {
-    ...SUFIXOS,
-    titulo: TITULOS.rede.usuarioNovo,
-    unidades,
-    responsaveis: responsaveis.map((responsavel) => ({
-      id: responsavel.id,
-      nome: responsavel.name,
-      email: responsavel.email,
-    })),
-    papeis: PAPEIS_DA_TELA,
-    valores: VALORES_INICIAIS.usuario,
-    limiteDoNome: IDENTITY_LIMITS.user.name,
-    tamanhoDoCpf: MASKED_CPF_LENGTH,
-    linhas: linhasVazias(),
-    erros: [],
-    ...dados,
+  return render(c, TEMPLATES.network.userNew, {
+    ...SUFFIXES,
+    title: TITLES.network.userNew,
+    schools,
+    guardians,
+    roles: ROLE_OPTIONS,
+    values: INITIAL_VALUES.user,
+    nameLimit: IDENTITY_LIMITS.user.name,
+    cpfLength: MASKED_CPF_LENGTH,
+    rows: emptyRows(),
+    errors: [],
+    ...data,
   });
 };
 
-rotasRede.get(ROTAS.rede.usuarios.padrao, async (c) => {
-  const convite = await retirarConvite(c);
-  return await telaDeUsuarios(c, { convite, mensagem: mensagemDaQuery(c) });
+networkRoutes.get(ROUTES.network.users.pattern, async (c) => {
+  const invite = await takeInvite(c);
+  return await usersScreen(c, { invite, message: queryMessage(c) });
 });
 
-rotasRede.get(ROTAS.rede.usuarioNovo.padrao, (c) => formDeUsuario(c));
+networkRoutes.get(ROUTES.network.userNew.pattern, (c) => userForm(c));
 
-rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
-  const redeId = currentNetwork(c);
-  const corpo = c.get(CONTEXT_VARIABLES.body);
-  const valores = {
-    nome: texto(corpo, CAMPOS.usuario.nome),
-    email: texto(corpo, CAMPOS.usuario.email),
-    cpf: texto(corpo, CAMPOS.usuario.cpf),
-    responsavelId: texto(corpo, CAMPOS.usuario.responsavelId),
+networkRoutes.post(ROUTES.network.users.pattern, async (c) => {
+  const networkId = currentNetwork(c);
+  const body = c.get(CONTEXT_VARIABLES.body);
+  const values = {
+    name: text(body, FIELDS.user.name),
+    email: text(body, FIELDS.user.email),
+    cpf: text(body, FIELDS.user.cpf),
+    guardianId: text(body, FIELDS.user.guardianId),
   };
-  const linhas = linhasDoFormulario(corpo);
+  const rows = formRows(body);
 
-  const preenchidas = linhas.filter((linha) => linha.unidadeId !== '' || linha.papel !== '');
-  const atribuicoes = preenchidas.flatMap((linha) =>
-    linha.unidadeId !== '' && ehPapel(linha.papel)
-      ? [{ schoolId: linha.unidadeId, role: linha.papel }]
-      : [],
+  const filled = rows.filter((row) => row.schoolId !== '' || row.role !== '');
+  const roleAssignments = filled.flatMap((row) =>
+    row.schoolId !== '' && isRole(row.role) ? [{ schoolId: row.schoolId, role: row.role }] : [],
   );
-  if (atribuicoes.length !== preenchidas.length) {
-    return await formDeUsuario(c, {
-      valores,
-      linhas,
-      erros: [ERROS_DE_FORMULARIO.atribuicaoIncompleta],
+  if (roleAssignments.length !== filled.length) {
+    return await userForm(c, {
+      values,
+      rows,
+      errors: [FORM_ERRORS.incompleteRoleAssignment],
     });
   }
 
-  const cadastro =
-    valores.responsavelId === '' || !isUuid(valores.responsavelId)
+  const registered =
+    values.guardianId === '' || !isUuid(values.guardianId)
       ? null
-      : await academics.guardianById(redeId, valores.responsavelId);
+      : await academics.guardianById(networkId, values.guardianId);
 
-  const resultado = await identity.inviteUser({
-    networkId: redeId,
-    name: valores.nome,
-    email: valores.email,
-    cpf: valores.cpf,
-    registeredCpf: cadastro?.cpf ?? null,
-    ...(cadastro === null ? {} : { registeredName: cadastro.name }),
-    roleAssignments: atribuicoes,
-    guardianId: valores.responsavelId === '' ? null : valores.responsavelId,
+  const result = await identity.inviteUser({
+    networkId,
+    name: values.name,
+    email: values.email,
+    cpf: values.cpf,
+    registeredCpf: registered?.cpf ?? null,
+    ...(registered === null ? {} : { registeredName: registered.name }),
+    roleAssignments,
+    guardianId: values.guardianId === '' ? null : values.guardianId,
   });
-  if (!resultado.ok) return await formDeUsuario(c, { valores, linhas, erros: resultado.erros });
+  if (!result.ok) return await userForm(c, { values, rows, errors: result.erros });
 
   logger.info(
-    { rede_id: redeId, usuario_id: resultado.valor.userId, atribuicoes: atribuicoes.length },
-    EVENTOS_DE_LOG.usuarioConvidado,
+    {
+      network_id: networkId,
+      user_id: result.valor.userId,
+      role_assignments: roleAssignments.length,
+    },
+    LOG_EVENTS.userInvited,
   );
-  await guardarConvite(c, resultado.valor.userId, resultado.valor.temporaryPassword);
+  await storeInvite(c, result.valor.userId, result.valor.temporaryPassword);
   return c.redirect(
-    `${ROTAS.rede.usuarios()}?${PARAMETROS.ok}=${CODIGOS_DE_AVISO.usuarioConvidado}`,
+    `${ROUTES.network.users()}?${PARAMS.ok}=${NOTICE_CODES.userInvited}`,
     303,
   );
 });
 
-const telaDeAnos = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const pagina = await academics.academicYearsPage(currentNetwork(c), paginaDaQuery(c));
-  return renderizar(c, TEMPLATES.rede.anos, {
-    ...PARCIAIS,
-    titulo: TITULOS.rede.anos,
-    anos: pagina.items.map(anoParaTela),
-    navegacao: navegacao(c, pagina),
-    ...dados,
+const yearsScreen = async (c: Context, data: TemplateData = {}): Promise<Response> => {
+  const page = await academics.academicYearsPage(currentNetwork(c), pageFromQuery(c));
+  return render(c, TEMPLATES.network.years, {
+    ...PARTIALS,
+    title: TITLES.network.years,
+    years: page.items,
+    pagination: pagination(c, page),
+    ...data,
   });
 };
 
-const formDeAno = (c: Context, dados: DadosDeTemplate = {}): Response =>
-  renderizar(c, TEMPLATES.rede.anoNovo, {
-    ...SUFIXOS,
-    titulo: TITULOS.rede.anoNovo,
-    valores: VALORES_INICIAIS.anoLetivo,
-    anoMinimo: ACADEMIC_LIMITS.academicYear.minYear,
-    anoMaximo: ACADEMIC_LIMITS.academicYear.maxYear,
-    erros: [],
-    ...dados,
+const yearForm = (c: Context, data: TemplateData = {}): Response =>
+  render(c, TEMPLATES.network.yearNew, {
+    ...SUFFIXES,
+    title: TITLES.network.yearNew,
+    values: INITIAL_VALUES.academicYear,
+    minYear: ACADEMIC_LIMITS.academicYear.minYear,
+    maxYear: ACADEMIC_LIMITS.academicYear.maxYear,
+    errors: [],
+    ...data,
   });
 
-rotasRede.get(ROTAS.rede.anosLetivos.padrao, (c) =>
-  telaDeAnos(c, { mensagem: mensagemDaQuery(c) }),
+networkRoutes.get(ROUTES.network.academicYears.pattern, (c) =>
+  yearsScreen(c, { message: queryMessage(c) }),
 );
 
-rotasRede.get(ROTAS.rede.anoLetivoNovo.padrao, (c) => formDeAno(c));
+networkRoutes.get(ROUTES.network.academicYearNew.pattern, (c) => yearForm(c));
 
-rotasRede.post(ROTAS.rede.anosLetivos.padrao, async (c) => {
-  const redeId = currentNetwork(c);
-  const corpo = c.get(CONTEXT_VARIABLES.body);
-  const valores = {
-    ano: texto(corpo, CAMPOS.anoLetivo.ano),
-    dataInicio: texto(corpo, CAMPOS.anoLetivo.dataInicio),
-    dataFim: texto(corpo, CAMPOS.anoLetivo.dataFim),
+networkRoutes.post(ROUTES.network.academicYears.pattern, async (c) => {
+  const networkId = currentNetwork(c);
+  const body = c.get(CONTEXT_VARIABLES.body);
+  const values = {
+    year: text(body, FIELDS.academicYear.year),
+    startDate: text(body, FIELDS.academicYear.startDate),
+    endDate: text(body, FIELDS.academicYear.endDate),
   };
 
-  if (!ANO_EM_QUATRO_DIGITOS.test(valores.ano)) {
-    return formDeAno(c, { valores, erros: [ERROS_DE_FORMULARIO.anoInvalido] });
+  if (!FOUR_DIGIT_YEAR.test(values.year)) {
+    return yearForm(c, { values, errors: [FORM_ERRORS.invalidYear] });
   }
 
-  const resultado = await academics.defineAcademicYear({
-    networkId: redeId,
-    year: Number(valores.ano),
-    startDate: valores.dataInicio,
-    endDate: valores.dataFim,
+  const result = await academics.defineAcademicYear({
+    networkId,
+    year: Number(values.year),
+    startDate: values.startDate,
+    endDate: values.endDate,
   });
-  if (!resultado.ok) return formDeAno(c, { valores, erros: resultado.erros });
+  if (!result.ok) return yearForm(c, { values, errors: result.erros });
 
   logger.info(
-    { rede_id: redeId, ano_letivo_id: resultado.valor.id },
-    EVENTOS_DE_LOG.anoLetivoDefinido,
+    { network_id: networkId, academic_year_id: result.valor.id },
+    LOG_EVENTS.academicYearDefined,
   );
   return c.redirect(
-    `${ROTAS.rede.anosLetivos()}?${PARAMETROS.ok}=${CODIGOS_DE_AVISO.anoDefinido}`,
+    `${ROUTES.network.academicYears()}?${PARAMS.ok}=${NOTICE_CODES.yearDefined}`,
     303,
   );
 });

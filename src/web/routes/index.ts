@@ -1,38 +1,38 @@
 import type { Hono } from 'hono';
 import { idempotencyMiddleware, type Variables } from '../../shared/http';
-import { GRUPOS_DE_ESCRITA, ROTAS, curingaDe } from '../constants';
-import { rotasComunicados } from './announcements';
-import { rotasConta } from './account';
-import { rotasLogin } from './login';
-import { rotasProfessor } from './teacher';
-import { rotasRede } from './network';
-import { rotasResponsavel } from './guardian';
-import { rotasSecretaria } from './registrar';
+import { ROUTES, WRITE_GROUPS, wildcardOf } from '../constants';
+import { announcementRoutes } from './announcements';
+import { accountRoutes } from './account';
+import { loginRoutes } from './login';
+import { teacherRoutes } from './teacher';
+import { networkRoutes } from './network';
+import { guardianRoutes } from './guardian';
+import { registrarRoutes } from './registrar';
 
-export type AplicacaoWeb = Hono<{ Variables: Variables }>;
+export type WebApp = Hono<{ Variables: Variables }>;
 
-export function montarRotas(app: AplicacaoWeb): void {
-  app.use(ROTAS.publicas.login.padrao, idempotencyMiddleware);
-  for (const prefixo of GRUPOS_DE_ESCRITA) {
-    app.use(prefixo, idempotencyMiddleware);
-    app.use(curingaDe(prefixo), idempotencyMiddleware);
+export function mountRoutes(app: WebApp): void {
+  app.use(ROUTES.public.login.pattern, idempotencyMiddleware);
+  for (const prefix of WRITE_GROUPS) {
+    app.use(prefix, idempotencyMiddleware);
+    app.use(wildcardOf(prefix), idempotencyMiddleware);
   }
 
-  app.route(ROTAS.publicas.prefixo, rotasLogin);
-  app.route(ROTAS.conta.prefixo, rotasConta);
-  app.route(ROTAS.rede.prefixo, rotasRede);
-  app.route(ROTAS.secretaria.prefixo, rotasSecretaria);
-  app.route(ROTAS.professor.prefixo, rotasProfessor);
-  app.route(ROTAS.responsavel.prefixo, rotasResponsavel);
-  app.route(ROTAS.comunicados.prefixo, rotasComunicados);
+  app.route(ROUTES.public.prefix, loginRoutes);
+  app.route(ROUTES.account.prefix, accountRoutes);
+  app.route(ROUTES.network.prefix, networkRoutes);
+  app.route(ROUTES.registrar.prefix, registrarRoutes);
+  app.route(ROUTES.teacher.prefix, teacherRoutes);
+  app.route(ROUTES.guardian.prefix, guardianRoutes);
+  app.route(ROUTES.announcements.prefix, announcementRoutes);
 }
 
 export {
-  rotasComunicados,
-  rotasConta,
-  rotasLogin,
-  rotasProfessor,
-  rotasRede,
-  rotasResponsavel,
-  rotasSecretaria,
+  accountRoutes,
+  announcementRoutes,
+  guardianRoutes,
+  loginRoutes,
+  networkRoutes,
+  registrarRoutes,
+  teacherRoutes,
 };

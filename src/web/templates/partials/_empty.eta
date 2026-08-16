@@ -1,12 +1,12 @@
 <%
-const acao = it.acao ?? null;
+const action = it.action ?? null;
 %>
 <div class="vazio">
-  <p class="vazio__titulo"><%= it.titulo %></p>
-  <% if (it.texto) { %>
-  <p class="vazio__texto"><%= it.texto %></p>
+  <p class="vazio__titulo"><%= it.title %></p>
+  <% if (it.text) { %>
+  <p class="vazio__texto"><%= it.text %></p>
   <% } %>
-  <% if (acao !== null) { %>
-  <a class="botao botao--secundario" href="<%= acao.href %>"><%= acao.texto %></a>
+  <% if (action !== null) { %>
+  <a class="botao botao--secundario" href="<%= action.href %>"><%= action.text %></a>
   <% } %>
 </div>

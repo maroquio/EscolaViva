@@ -4,8 +4,8 @@
  * Num formulário o nome do campo aparece quatro vezes na mesma linha de código: no `name`, que é o
  * que o navegador manda de volta; no `id`, que é a âncora do controle; no `for` do rótulo, que
  * casa com esse `id`; e dentro dos ids derivados (`nome-ajuda`, `nome-erro`), que o
- * `aria-describedby` cita. Três dessas quatro já vinham da constante — `name="<%= campos.nome %>"`,
- * `it.idDaAjuda(campos.nome)`, `descricao(campos.nome, true)`. A quarta, o `id` base, estava
+ * `aria-describedby` cita. Três dessas quatro já vinham da constante — `name="<%= fields.name %>"`,
+ * `it.helpId(fields.name)`, `describedBy(fields.name, true)`. A quarta, o `id` base, estava
  * reescrita à mão.
  *
  * Isso não é cosmética: `id`, `for` e `name` do mesmo controle têm de ser a MESMA palavra, senão o
@@ -21,7 +21,7 @@
 
 import { describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
-import { CAMPOS } from '../../src/web/constants';
+import { FIELDS } from '../../src/web/constants';
 import { firstExistingPath } from '../apoio/paths';
 
 const RAIZ_DO_PROJETO = join(import.meta.dir, '..', '..');
@@ -34,7 +34,11 @@ const TEMPLATE = () =>
 
 const TELA_CONGELADA = join(import.meta.dir, 'golden', 'secretaria-aluno-novo.txt');
 
-const NOMES_DOS_CAMPOS = Object.values(CAMPOS.aluno);
+const NOMES_DOS_CAMPOS = Object.values(FIELDS.student);
+
+/** A chave da constante é o que o template escreve; o valor é o que sai no HTML. */
+const NOME_DO_CAMPO: Record<string, string> = FIELDS.student;
+const CHAVES_DOS_CAMPOS = Object.keys(NOME_DO_CAMPO);
 
 const ANCORA = /\b(id|for)\s*=\s*"([^"]*)"/g;
 
@@ -60,7 +64,7 @@ const ancorasQueReescrevemOCampo = (fonte: string): string[] =>
     .map(({ atributo, valor }) => `${atributo}="${valor}"`);
 
 const ANCORA_QUE_INTERPOLA = new RegExp(
-  `\\b(id|for)="<%=\\s*campos\\.(${NOMES_DOS_CAMPOS.join('|')})\\s*%>"`,
+  `\\b(id|for)="<%=\\s*fields\\.(${CHAVES_DOS_CAMPOS.join('|')})\\s*%>"`,
   'g',
 );
 
@@ -68,7 +72,7 @@ const ANCORA_QUE_INTERPOLA = new RegExp(
 const comOCampoReescritoAMao = (fonte: string): string =>
   fonte.replaceAll(
     ANCORA_QUE_INTERPOLA,
-    (_inteiro, atributo: string, campo: string) => `${atributo}="${campo}"`,
+    (_inteiro, atributo: string, chave: string) => `${atributo}="${NOME_DO_CAMPO[chave] ?? chave}"`,
   );
 
 const SONDA_VIVA = 'a sonda devolveu ao menos uma âncora ao nome escrito à mão';

@@ -1,41 +1,41 @@
 <%
-const usuarios = it.usuarios ?? [];
-const papeis = it.papeis ?? [];
-const convite = it.convite ?? null;
-const convidado = convite === null ? null : (usuarios.find((u) => u.id === convite.usuarioId) ?? null);
+const users = it.users ?? [];
+const roles = it.roles ?? [];
+const invite = it.invite ?? null;
+const invited = invite === null ? null : (users.find((u) => u.id === invite.userId) ?? null);
 
-const rotuloDoPapel = (valor) => {
-  const achado = papeis.find((opcao) => opcao.valor === valor);
-  return achado === undefined ? valor : achado.rotulo;
+const roleLabel = (value) => {
+  const found = roles.find((option) => option.value === value);
+  return found === undefined ? value : found.label;
 };
 
-const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
+const STATUS_LABEL = it.statusLabel;
 
-const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
+const STATUS_CLASS = { yes: 'etiqueta etiqueta--ativa', no: 'etiqueta' };
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.rede %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.network %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       Todo acesso nasce aqui. O papel decide o que a pessoa vê, e ele existe sempre dentro de uma
       unidade: a mesma pessoa pode ser secretária em uma escola e responsável em outra.
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.rede.usuarioNovo() %>"><%= it.titulos.rede.usuarioNovo %></a>
+    <a class="botao botao--primario" href="<%= it.routes.network.userNew() %>"><%= it.titles.network.userNew %></a>
   </div>
 </div>
 
-<% if (convite !== null && convidado !== null) { %>
+<% if (invite !== null && invited !== null) { %>
 <div class="aviso aviso--atencao" role="status">
-  <p class="aviso__titulo">Senha provisória de <%= convidado.name %></p>
-  <p><code class="codigo"><%= convite.senha %></code></p>
+  <p class="aviso__titulo">Senha provisória de <%= invited.name %></p>
+  <p><code class="codigo"><%= invite.password %></code></p>
   <p>
     Anote agora: esta senha aparece uma única vez e não pode ser recuperada depois que você sair
     desta página. Entregue-a pessoalmente ou por um canal que vocês já usem — o envio automático
     por e-mail entra no Estágio 04. Peça que a pessoa entre com
-    <strong><%= convidado.email %></strong> e troque a senha no primeiro acesso.
+    <strong><%= invited.email %></strong> e troque a senha no primeiro acesso.
   </p>
 </div>
 <% } %>
@@ -43,14 +43,14 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
 <section class="secao" aria-labelledby="lista-usuarios-titulo">
   <div class="secao__cabecalho">
     <h2 id="lista-usuarios-titulo">Quem tem acesso</h2>
-    <p class="secao__nota"><%= it.navegacao === undefined ? usuarios.length : it.navegacao.total %> no total</p>
+    <p class="secao__nota"><%= it.pagination === undefined ? users.length : it.pagination.total %> no total</p>
   </div>
 
-  <% if (usuarios.length === 0) { %>
-    <%~ include(it.parciais.vazio, {
-      titulo: 'Nenhum usuário cadastrado',
-      texto: 'Convide a secretaria primeiro: é ela quem cadastra alunos, responsáveis e turmas.',
-      acao: { href: it.rotas.rede.usuarioNovo(), texto: it.titulos.rede.usuarioNovo }
+  <% if (users.length === 0) { %>
+    <%~ include(it.partials.empty, {
+      title: 'Nenhum usuário cadastrado',
+      text: 'Convide a secretaria primeiro: é ela quem cadastra alunos, responsáveis e turmas.',
+      action: { href: it.routes.network.userNew(), text: it.titles.network.userNew }
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">
@@ -58,37 +58,37 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
       <caption>Usuários da rede</caption>
       <thead>
         <tr>
-          <th scope="col"><%= it.rotulos.nome %></th>
-          <th scope="col"><%= it.rotulos.cpf %></th>
-          <th scope="col"><%= it.rotulos.email %></th>
+          <th scope="col"><%= it.labels.name %></th>
+          <th scope="col"><%= it.labels.cpf %></th>
+          <th scope="col"><%= it.labels.email %></th>
           <th scope="col">Papéis</th>
-<% // magic-values: permitido — não é um `ROTULOS.situacao`, nem o `IDENTITY_VOCABULARY.active` da célula abaixo %>
+<% // magic-values: permitido — não é um `LABELS.status`, nem o `IDENTITY_VOCABULARY.active` da célula abaixo %>
           <th scope="col">Situação</th>
         </tr>
       </thead>
       <tbody>
-        <% usuarios.forEach((usuario) => { %>
+        <% users.forEach((user) => { %>
         <tr>
-          <th scope="row"><%= usuario.name %></th>
-          <td class="celula-texto"><%= it.formatarCpf(usuario.cpf ?? '') %></td>
-          <td class="celula-texto"><%= usuario.email %></td>
+          <th scope="row"><%= user.name %></th>
+          <td class="celula-texto"><%= it.formatCpf(user.cpf ?? '') %></td>
+          <td class="celula-texto"><%= user.email %></td>
           <td class="celula-texto">
-            <% if (usuario.roles.length === 0) { %>
-            <span class="suave"><%= it.semPapel %></span>
+            <% if (user.roles.length === 0) { %>
+            <span class="suave"><%= it.noRole %></span>
             <% } else { %>
-            <% usuario.roles.forEach((atribuicao) => { %>
-            <div><%= rotuloDoPapel(atribuicao.role) %><%= it.apresentacao.separador %><%= atribuicao.schoolName %></div>
+            <% user.roles.forEach((assignment) => { %>
+            <div><%= roleLabel(assignment.role) %><%= it.presentation.separator %><%= assignment.schoolName %></div>
             <% }) %>
             <% } %>
           </td>
           <td>
-            <span class="<%= usuario.active ? CLASSE_DA_SITUACAO.sim : CLASSE_DA_SITUACAO.nao %>"><%= usuario.active ? ROTULO_DA_SITUACAO.yes : ROTULO_DA_SITUACAO.no %></span>
+            <span class="<%= user.active ? STATUS_CLASS.yes : STATUS_CLASS.no %>"><%= user.active ? STATUS_LABEL.yes : STATUS_LABEL.no %></span>
           </td>
         </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.usuario.plural }) %>
+  <%~ include(it.partials.pagination, { pagination: it.pagination, label: it.nouns.user.plural }) %>
   <% } %>
 </section>

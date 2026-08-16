@@ -1,89 +1,89 @@
 <%
-const linhas = it.linhas ?? [];
-const data = it.data;
-const turma = it.turma;
-const legenda = `Chamada de ${it.formatarData(data)}${it.separador}${turma.turmaNome}`;
+const rows = it.rows ?? [];
+const date = it.date;
+const classGroup = it.classGroup;
+const caption = `Chamada de ${it.formatDate(date)}${it.separator}${classGroup.classGroupName}`;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= turma.serie %><%= it.separadorDeTurno %><%= turma.turno %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= classGroup.gradeLevel %><%= it.shiftSeparator %><%= classGroup.shift %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       Presença de um dia inteiro. A justificativa é o que o responsável informou sobre a falta, e
       aparece depois no acompanhamento de frequência do aluno.
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="<%= turma.hrefFechamento %>">Fechamento</a>
-    <a class="botao botao--discreto" href="<%= it.rotas.professor.painel() %>"><%= it.titulos.professor.painel %></a>
+    <a class="botao botao--discreto" href="<%= classGroup.closingHref %>">Fechamento</a>
+    <a class="botao botao--discreto" href="<%= it.routes.teacher.dashboard() %>"><%= it.titles.teacher.dashboard %></a>
   </p>
 </div>
 
 <div class="acoes">
   <nav class="linha" aria-label="Dia da chamada">
     <a class="botao botao--secundario" rel="prev"
-       href="<%= it.acaoDoFormulario %>?<%= it.campoData %>=<%= it.diaAnterior %>">
-      Dia anterior<%= it.separador %><time class="numero" datetime="<%= it.diaAnterior %>"><%= it.formatarData(it.diaAnterior) %></time>
+       href="<%= it.formAction %>?<%= it.dateField %>=<%= it.previousDay %>">
+      Dia anterior<%= it.separator %><time class="numero" datetime="<%= it.previousDay %>"><%= it.formatDate(it.previousDay) %></time>
     </a>
     <a class="botao botao--secundario" rel="next"
-       href="<%= it.acaoDoFormulario %>?<%= it.campoData %>=<%= it.diaSeguinte %>">
-      Dia seguinte<%= it.separador %><time class="numero" datetime="<%= it.diaSeguinte %>"><%= it.formatarData(it.diaSeguinte) %></time>
+       href="<%= it.formAction %>?<%= it.dateField %>=<%= it.nextDay %>">
+      Dia seguinte<%= it.separator %><time class="numero" datetime="<%= it.nextDay %>"><%= it.formatDate(it.nextDay) %></time>
     </a>
   </nav>
 
-  <form class="linha" method="get" action="<%= it.acaoDoFormulario %>">
+  <form class="linha" method="get" action="<%= it.formAction %>">
     <label class="campo__rotulo" for="ir-para-o-dia">Ir para o dia</label>
     <span class="campo">
-      <input type="date" id="ir-para-o-dia" name="<%= it.campoData %>" value="<%= data %>">
+      <input type="date" id="ir-para-o-dia" name="<%= it.dateField %>" value="<%= date %>">
     </span>
     <button class="botao botao--secundario" type="submit">Abrir</button>
   </form>
 </div>
 
-<% if (linhas.length === 0) { %>
-<%~ include(it.parciais.vazio, {
-  titulo: it.semAlunoMatriculado,
-  texto: 'Esta turma não tem matrícula ativa, então não há chamada a registrar. A matrícula é feita pela secretaria.',
+<% if (rows.length === 0) { %>
+<%~ include(it.partials.empty, {
+  title: it.noEnrolledStudent,
+  text: 'Esta turma não tem matrícula ativa, então não há chamada a registrar. A matrícula é feita pela secretaria.',
 }) %>
 <% } else { %>
 
-<form class="formulario formulario--largo" method="post" action="<%= it.acaoDoFormulario %>">
-  <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
-  <input type="hidden" name="<%= it.campoData %>" value="<%= data %>">
+<form class="formulario formulario--largo" method="post" action="<%= it.formAction %>">
+  <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
+  <input type="hidden" name="<%= it.dateField %>" value="<%= date %>">
 
   <div class="tabela-rolagem">
     <table class="tabela">
-      <caption><%= legenda %></caption>
+      <caption><%= caption %></caption>
       <thead>
         <tr>
-          <th scope="col"><%= it.rotulos.aluno %></th>
+          <th scope="col"><%= it.labels.student %></th>
           <th scope="col">Presente</th>
           <th scope="col">Justificativa da falta</th>
         </tr>
       </thead>
       <tbody>
-        <% linhas.forEach((linha) => { %>
+        <% rows.forEach((row) => { %>
         <tr>
-          <th scope="row"><%= linha.alunoNome %></th>
+          <th scope="row"><%= row.studentName %></th>
           <td>
-            <label class="visualmente-oculto" for="<%= it.prefixoPresenca %><%= linha.matriculaId %>">
-              <%= linha.alunoNome %> esteve presente em <%= it.formatarData(data) %>
+            <label class="visualmente-oculto" for="<%= it.presentPrefix %><%= row.enrollmentId %>">
+              <%= row.studentName %> esteve presente em <%= it.formatDate(date) %>
             </label>
             <input type="checkbox"
-                   id="<%= it.prefixoPresenca %><%= linha.matriculaId %>"
-                   name="<%= it.prefixoPresenca %><%= linha.matriculaId %>"
-                   <% if (linha.presente) { %>checked<% } %>>
+                   id="<%= it.presentPrefix %><%= row.enrollmentId %>"
+                   name="<%= it.presentPrefix %><%= row.enrollmentId %>"
+                   <% if (row.present) { %>checked<% } %>>
           </td>
           <td class="celula-texto">
-            <label class="visualmente-oculto" for="<%= it.prefixoJustificativa %><%= linha.matriculaId %>">
-              Justificativa da falta de <%= linha.alunoNome %>
+            <label class="visualmente-oculto" for="<%= it.excusePrefix %><%= row.enrollmentId %>">
+              Justificativa da falta de <%= row.studentName %>
             </label>
             <input type="text"
                    autocomplete="off"
-                   maxlength="<%= it.limiteDaJustificativa %>"
-                   id="<%= it.prefixoJustificativa %><%= linha.matriculaId %>"
-                   name="<%= it.prefixoJustificativa %><%= linha.matriculaId %>"
-                   value="<%= linha.justificativa %>">
+                   maxlength="<%= it.excuseLimit %>"
+                   id="<%= it.excusePrefix %><%= row.enrollmentId %>"
+                   name="<%= it.excusePrefix %><%= row.enrollmentId %>"
+                   value="<%= row.excuse %>">
           </td>
         </tr>
         <% }) %>

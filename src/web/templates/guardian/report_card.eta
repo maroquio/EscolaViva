@@ -1,24 +1,24 @@
 <%
-const boletim = it.boletim;
+const reportCard = it.reportCard;
 
-const criterio = it.criterio;
+const criteria = it.criteria;
 
-const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoFinal;
+const STATUS_CLASS = it.tagClass.finalStatus;
 
-const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
+const STATUS_LABEL = it.statusLabel;
 %>
 <header class="pagina__cabecalho">
   <div>
     <p class="sobretitulo">Boletim</p>
-    <h1 class="pagina__titulo"><%= boletim.alunoNome %></h1>
+    <h1 class="pagina__titulo"><%= reportCard.studentName %></h1>
     <p class="pagina__resumo">
-      <%= it.rotulos.turma %> <%= boletim.turmaNome %><%= it.apresentacao.separador %>ano letivo <span class="numero"><%= boletim.ano %></span>
+      <%= it.labels.classGroup %> <%= reportCard.classGroupName %><%= it.presentation.separator %>ano letivo <span class="numero"><%= reportCard.year %></span>
     </p>
   </div>
   <p class="pagina__acoes">
     <a class="botao botao--secundario"
-       href="<%= it.rotas.responsavel.frequencia({ id: it.matriculaId }) %>">Ver frequência</a>
-    <a class="botao botao--discreto" href="<%= it.rotas.responsavel.painel() %>"><%= it.acoes.voltarPara.alunos %></a>
+       href="<%= it.routes.guardian.attendance({ id: it.enrollmentId }) %>">Ver frequência</a>
+    <a class="botao botao--discreto" href="<%= it.routes.guardian.dashboard() %>"><%= it.actions.backTo.students %></a>
   </p>
 </header>
 
@@ -32,34 +32,34 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
     <div class="painel">
       <div class="cartao">
         <p class="cartao__rotulo">Média geral</p>
-        <p class="cartao__numero"><%= it.formatarNota(boletim.mediaGeral) %></p>
+        <p class="cartao__numero"><%= it.formatGrade(reportCard.overallAverage) %></p>
         <p class="cartao__detalhe">Média simples das disciplinas cursadas</p>
       </div>
 
       <div class="cartao">
-        <p class="cartao__rotulo"><%= it.rotulos.frequencia %></p>
-        <p class="cartao__numero"><%= it.formatarPercentual(boletim.percentualFrequencia) %></p>
+        <p class="cartao__rotulo"><%= it.labels.attendance %></p>
+        <p class="cartao__numero"><%= it.formatPercent(reportCard.attendanceRate) %></p>
         <p class="cartao__detalhe">
-          <span class="numero"><%= boletim.presencas %></span> de
-          <span class="numero"><%= boletim.totalDias %></span> dias com chamada registrada
+          <span class="numero"><%= reportCard.presentDays %></span> de
+          <span class="numero"><%= reportCard.totalDays %></span> dias com chamada registrada
         </p>
       </div>
 
       <div class="cartao">
-<% // magic-values: permitido — substantivo genérico que encabeça cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em ROTULOS %>
+<% // magic-values: permitido — substantivo genérico que encabeça cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em LABELS %>
         <p class="cartao__rotulo">Situação</p>
         <p>
-          <span class="etiqueta <%= CLASSE_DA_SITUACAO[boletim.situacao] %>">
-            <%= ROTULO_DA_SITUACAO[boletim.situacao] %>
+          <span class="etiqueta <%= STATUS_CLASS[reportCard.status] %>">
+            <%= STATUS_LABEL[reportCard.status] %>
           </span>
         </p>
-        <p class="cartao__detalhe">Critério: média <%= criterio.media %> e frequência <%= criterio.frequencia %></p>
+        <p class="cartao__detalhe">Critério: média <%= criteria.average %> e frequência <%= criteria.attendance %></p>
       </div>
     </div>
 
     <p class="suave">
       A situação sai destes dois números: é aprovado quem termina o ano com média final de
-      <strong><%= criterio.media %> ou mais</strong> e frequência de <strong><%= criterio.frequencia %> ou mais</strong> — as duas
+      <strong><%= criteria.average %> ou mais</strong> e frequência de <strong><%= criteria.attendance %> ou mais</strong> — as duas
       condições ao mesmo tempo. Enquanto algum bimestre não estiver fechado, ou faltar nota em
       alguma disciplina, o ano permanece em curso e ninguém é reprovado por lançamento que ainda
       não aconteceu.
@@ -73,42 +73,42 @@ const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
     <p class="secao__nota">O travessão marca bimestre sem nota lançada</p>
   </div>
 
-  <% if (boletim.linhas.length === 0) { %>
-    <%~ include(it.parciais.vazio, {
-      titulo: 'Nenhuma disciplina alocada nesta turma',
-      texto: 'A turma ainda não tem professor alocado em nenhuma disciplina, então não há nota a mostrar. A secretaria da unidade faz essa alocação.',
+  <% if (reportCard.rows.length === 0) { %>
+    <%~ include(it.partials.empty, {
+      title: 'Nenhuma disciplina alocada nesta turma',
+      text: 'A turma ainda não tem professor alocado em nenhuma disciplina, então não há nota a mostrar. A secretaria da unidade faz essa alocação.',
     }) %>
   <% } else { %>
   <div class="tabela-rolagem">
     <table class="tabela">
-      <caption>Notas de <%= boletim.alunoNome %> em <%= boletim.ano %></caption>
+      <caption>Notas de <%= reportCard.studentName %> em <%= reportCard.year %></caption>
       <thead>
         <tr>
-          <th scope="col"><%= it.rotulos.disciplina %></th>
-          <% it.bimestres.forEach((bimestre) => { %>
-          <th scope="col" class="celula-centro"><%= it.rotuloDeBimestre(bimestre) %></th>
+          <th scope="col"><%= it.labels.subject %></th>
+          <% it.terms.forEach((term) => { %>
+          <th scope="col" class="celula-centro"><%= it.termLabel(term) %></th>
           <% }) %>
           <th scope="col" class="celula-centro">Média anual</th>
         </tr>
       </thead>
       <tbody>
-        <% boletim.linhas.forEach((linha) => { %>
+        <% reportCard.rows.forEach((row) => { %>
         <tr>
-          <th scope="row"><%= linha.disciplinaNome %></th>
-          <% linha.notas.forEach((nota) => { %>
-          <td class="numero celula-centro"><%= it.formatarNota(nota) %></td>
+          <th scope="row"><%= row.subjectName %></th>
+          <% row.grades.forEach((grade) => { %>
+          <td class="numero celula-centro"><%= it.formatGrade(grade) %></td>
           <% }) %>
-          <td class="numero celula-centro"><%= it.formatarNota(linha.media) %></td>
+          <td class="numero celula-centro"><%= it.formatGrade(row.average) %></td>
         </tr>
         <% }) %>
       </tbody>
       <tfoot>
         <tr>
           <th scope="row">Médias</th>
-          <% boletim.mediasPorBimestre.forEach((mediaDoBimestre) => { %>
-          <td class="numero celula-centro"><%= it.formatarNota(mediaDoBimestre) %></td>
+          <% reportCard.termAverages.forEach((termAverage) => { %>
+          <td class="numero celula-centro"><%= it.formatGrade(termAverage) %></td>
           <% }) %>
-          <td class="numero celula-centro"><%= it.formatarNota(boletim.mediaGeral) %></td>
+          <td class="numero celula-centro"><%= it.formatGrade(reportCard.overallAverage) %></td>
         </tr>
       </tfoot>
     </table>

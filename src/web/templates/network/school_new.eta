@@ -1,12 +1,12 @@
 <%
-const valores = it.valores ?? { nome: '', codigoInep: '' };
-const { erroDe, descricao } = it;
-const campos = it.campos.unidade;
+const values = it.values ?? { name: '', inepCode: '' };
+const { errorFor, describedBy } = it;
+const fields = it.fields.school;
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.rede %><%= it.apresentacao.separador %><%= it.titulos.rede.unidades %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.network %><%= it.presentation.separator %><%= it.titles.network.schools %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       A unidade é onde tudo o mais acontece: sem ela não há turma, papel nem comunicado. O nome
       precisa ser único dentro da rede.
@@ -15,27 +15,27 @@ const campos = it.campos.unidade;
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="post" action="<%= it.rotas.rede.unidades() %>">
-    <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
+  <form class="formulario" method="post" action="<%= it.routes.network.schools() %>">
+    <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
     <div class="formulario__linha">
       <div class="campo">
         <label class="campo__rotulo" for="nome">
-          <%= it.rotulos.nome %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+          <%= it.labels.name %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
           id="nome"
-          name="<%= campos.nome %>"
+          name="<%= fields.name %>"
           type="text"
           required
-          maxlength="<%= it.limiteDoNome %>"
+          maxlength="<%= it.nameLimit %>"
           autocomplete="off"
-          value="<%= valores.nome %>"
-          <% if (erroDe(campos.nome) !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao(campos.nome, true) %>">
-        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.nome) %>">Como a escola é chamada no dia a dia.</p>
-        <% if (erroDe(campos.nome) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.nome) %>"><%= erroDe(campos.nome) %></p>
+          value="<%= values.name %>"
+          <% if (errorFor(fields.name) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= describedBy(fields.name, true) %>">
+        <p class="campo__ajuda" id="<%= it.helpId(fields.name) %>">Como a escola é chamada no dia a dia.</p>
+        <% if (errorFor(fields.name) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.name) %>"><%= errorFor(fields.name) %></p>
         <% } %>
       </div>
 
@@ -43,24 +43,24 @@ const campos = it.campos.unidade;
         <label class="campo__rotulo" for="codigoInep">Código INEP</label>
         <input
           id="codigoInep"
-          name="<%= campos.codigoInep %>"
+          name="<%= fields.inepCode %>"
           type="text"
-          maxlength="<%= it.limiteDoCodigoInep %>"
+          maxlength="<%= it.inepCodeLimit %>"
           inputmode="numeric"
           autocomplete="off"
-          value="<%= valores.codigoInep %>"
-          <% if (erroDe(campos.codigoInep) !== '') { %>aria-invalid="true"<% } %>
-          aria-describedby="<%= descricao(campos.codigoInep, true) %>">
-        <p class="campo__ajuda" id="<%= it.idDaAjuda(campos.codigoInep) %>">Opcional. Pode ser preenchido depois.</p>
-        <% if (erroDe(campos.codigoInep) !== '') { %>
-        <p class="campo__erro" id="<%= it.idDoErro(campos.codigoInep) %>"><%= erroDe(campos.codigoInep) %></p>
+          value="<%= values.inepCode %>"
+          <% if (errorFor(fields.inepCode) !== '') { %>aria-invalid="true"<% } %>
+          aria-describedby="<%= describedBy(fields.inepCode, true) %>">
+        <p class="campo__ajuda" id="<%= it.helpId(fields.inepCode) %>">Opcional. Pode ser preenchido depois.</p>
+        <% if (errorFor(fields.inepCode) !== '') { %>
+        <p class="campo__erro" id="<%= it.errorId(fields.inepCode) %>"><%= errorFor(fields.inepCode) %></p>
         <% } %>
       </div>
     </div>
 
     <div class="acoes">
-      <button class="botao botao--primario" type="submit"><%= it.titulos.rede.unidadeNova %></button>
-      <a class="botao botao--discreto" href="<%= it.rotas.rede.unidades() %>"><%= it.acoes.cancelar %></a>
+      <button class="botao botao--primario" type="submit"><%= it.titles.network.schoolNew %></button>
+      <a class="botao botao--discreto" href="<%= it.routes.network.schools() %>"><%= it.actions.cancel %></a>
     </div>
   </form>
 </div>

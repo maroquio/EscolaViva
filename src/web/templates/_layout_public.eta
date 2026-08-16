@@ -1,38 +1,38 @@
 <%
-const folhaDeEstilo = it.rotas.publicas
-  .publico()
-  .replace(it.curingaDeAsset, it.asset(it.nomeLogicoDaFolha));
+const stylesheet = it.routes.public
+  .assets()
+  .replace(it.assetWildcard, it.asset(it.stylesheetLogicalName));
 %><!doctype html>
-<html lang="<%= it.documento.idioma %>">
+<html lang="<%= it.document.language %>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="<%= it.documento.esquemaDeCor %>">
-  <meta name="robots" content="<%= it.documento.robots %>">
-  <title><%= it.titulo %><%= it.apresentacao.sufixoDoTitulo %></title>
-  <link rel="stylesheet" href="<%= folhaDeEstilo %>">
-  <%~ include(it.parciais.icone) %>
+  <meta name="color-scheme" content="<%= it.document.colorScheme %>">
+  <meta name="robots" content="<%= it.document.robots %>">
+  <title><%= it.title %><%= it.presentation.titleSuffix %></title>
+  <link rel="stylesheet" href="<%= stylesheet %>">
+  <%~ include(it.partials.icon) %>
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#<%= it.documento.idDoConteudo %>">Pular para o conteúdo</a>
+  <a class="pular-para-conteudo" href="#<%= it.document.contentId %>">Pular para o conteúdo</a>
 
   <div class="publico">
-    <main class="publico__cartao" id="<%= it.documento.idDoConteudo %>" tabindex="-1">
+    <main class="publico__cartao" id="<%= it.document.contentId %>" tabindex="-1">
       <header>
-        <span class="marca publico__marca"><%~ it.apresentacao.marca %></span>
-        <p class="publico__titulo"><%= it.apresentacao.subtituloPublico %></p>
+        <span class="marca publico__marca"><%~ it.presentation.brand %></span>
+        <p class="publico__titulo"><%= it.presentation.publicSubtitle %></p>
       </header>
 
-      <%~ include(it.parciais.mensagens, it) %>
+      <%~ include(it.partials.messages, it) %>
       <%~ it.body %>
 
       <p class="publico__rodape">
-        <%= it.apresentacao.rodapePublico %>
+        <%= it.presentation.publicFooter %>
 
       </p>
     </main>
   </div>
 
-  <%~ include(it.parciais.scriptAvisos) %>
+  <%~ include(it.partials.noticesScript) %>
 </body>
 </html>

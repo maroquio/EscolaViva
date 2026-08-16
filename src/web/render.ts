@@ -15,249 +15,249 @@ import {
   type ErrorStatus,
 } from '../shared/http';
 import {
-  ACOES,
-  APRESENTACAO,
+  ACTIONS,
   AREAS,
-  CAMPOS,
-  CLASSE_DA_ETIQUETA,
-  CONTAGEM,
-  CURINGA_DE_ASSET,
-  DETALHES_DE_ERRO,
-  DOCUMENTO,
+  ASSET_WILDCARD,
+  DOCUMENT,
+  ERROR_DETAILS,
   ERROR_TITLES,
-  PARAMETROS,
-  ROTAS,
-  ROTULOS,
-  SEM_ALUNO_MATRICULADO,
-  SUFIXOS_DE_ID,
+  FIELDS,
+  ID_SUFFIXES,
+  LABELS,
+  NOUNS,
+  NO_ENROLLED_STUDENT,
+  PARAMS,
+  PRESENTATION,
+  ROUTES,
+  TAG_CLASS,
   TEMPLATES,
-  TITULOS,
-  type SubstantivoContavel,
+  TITLES,
+  type CountableNoun,
 } from './constants';
 
-const RAIZ = join(import.meta.dir, '..', '..');
-const CAMINHO_DO_MANIFESTO = join(RAIZ, ASSETS.directory, ASSETS.manifest);
+const ROOT = join(import.meta.dir, '..', '..');
+const MANIFEST_PATH = join(ROOT, ASSETS.directory, ASSETS.manifest);
 
-const CODIFICACAO_DO_MANIFESTO = 'utf8';
+const MANIFEST_ENCODING = 'utf8';
 
-const emDesenvolvimento = config.environment === DEVELOPMENT_ENV;
+const inDevelopment = config.environment === DEVELOPMENT_ENV;
 
 const eta = new Eta({
-  views: join(import.meta.dir, TEMPLATES.diretorio),
+  views: join(import.meta.dir, TEMPLATES.directory),
   autoEscape: true,
-  cache: !emDesenvolvimento,
-  cacheFilepaths: !emDesenvolvimento,
+  cache: !inDevelopment,
+  cacheFilepaths: !inDevelopment,
 });
 
-let manifesto: Record<string, string> | null = null;
+let manifest: Record<string, string> | null = null;
 
-const lerManifesto = (): Record<string, string> => {
+const readManifest = (): Record<string, string> => {
   try {
-    const bruto: unknown = JSON.parse(readFileSync(CAMINHO_DO_MANIFESTO, CODIFICACAO_DO_MANIFESTO));
-    if (typeof bruto !== 'object' || bruto === null) return {};
-    return bruto as Record<string, string>;
+    const raw: unknown = JSON.parse(readFileSync(MANIFEST_PATH, MANIFEST_ENCODING));
+    if (typeof raw !== 'object' || raw === null) return {};
+    return raw as Record<string, string>;
   } catch {
     return {};
   }
 };
 
-export function asset(nome: string): string {
-  if (manifesto === null || emDesenvolvimento) manifesto = lerManifesto();
-  return manifesto[nome] ?? nome;
+export function asset(name: string): string {
+  if (manifest === null || inDevelopment) manifest = readManifest();
+  return manifest[name] ?? name;
 }
 
-const DATA_ISO = /^(\d{4})-(\d{2})-(\d{2})/;
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})/;
 
-const SEPARADOR_DECIMAL_DO_TO_FIXED = '.';
+const TO_FIXED_DECIMAL_SEPARATOR = '.';
 
-type ValorDeData = string | Date | null | undefined;
-type ValorNumerico = number | string | null | undefined;
+type DateValue = string | Date | null | undefined;
+type NumericValue = number | string | null | undefined;
 
-const doisDigitos = (valor: number): string =>
-  String(valor).padStart(APRESENTACAO.colunaDeDoisDigitos, APRESENTACAO.preenchimentoDeDigito);
+const twoDigits = (value: number): string =>
+  String(value).padStart(PRESENTATION.twoDigitWidth, PRESENTATION.digitPad);
 
-const comoData = (valor: ValorDeData): Date | null => {
-  if (valor === null || valor === undefined || valor === '') return null;
-  const data = valor instanceof Date ? valor : new Date(valor);
-  return Number.isNaN(data.getTime()) ? null : data;
+const asDate = (value: DateValue): Date | null => {
+  if (value === null || value === undefined || value === '') return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 };
 
-const comoNumero = (valor: ValorNumerico): number | null => {
-  if (valor === null || valor === undefined || valor === '') return null;
-  const numero = typeof valor === 'number' ? valor : Number(valor);
-  return Number.isFinite(numero) ? numero : null;
+const asNumber = (value: NumericValue): number | null => {
+  if (value === null || value === undefined || value === '') return null;
+  const number = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(number) ? number : null;
 };
 
-const umaCasaTruncada = (valor: number): string => {
-  const decimos = Math.trunc(valor * APRESENTACAO.fatorDeUmaCasa);
-  return (decimos / APRESENTACAO.fatorDeUmaCasa)
+const oneDecimalTruncated = (value: number): string => {
+  const tenths = Math.trunc(value * PRESENTATION.oneDecimalFactor);
+  return (tenths / PRESENTATION.oneDecimalFactor)
     .toFixed(1)
-    .replace(SEPARADOR_DECIMAL_DO_TO_FIXED, APRESENTACAO.separadorDecimal);
+    .replace(TO_FIXED_DECIMAL_SEPARATOR, PRESENTATION.decimalSeparator);
 };
 
-export function formatarData(valor: ValorDeData): string {
-  if (typeof valor === 'string') {
-    const partes = DATA_ISO.exec(valor);
-    const [, ano, mes, dia] = partes ?? [];
-    if (ano !== undefined && mes !== undefined && dia !== undefined) return `${dia}/${mes}/${ano}`;
+export function formatDate(value: DateValue): string {
+  if (typeof value === 'string') {
+    const parts = ISO_DATE.exec(value);
+    const [, year, month, day] = parts ?? [];
+    if (year !== undefined && month !== undefined && day !== undefined) return `${day}/${month}/${year}`;
   }
-  const data = comoData(valor);
-  if (data === null) return MISSING_VALUE;
-  return `${doisDigitos(data.getDate())}/${doisDigitos(data.getMonth() + 1)}/${data.getFullYear()}`;
+  const date = asDate(value);
+  if (date === null) return MISSING_VALUE;
+  return `${twoDigits(date.getDate())}/${twoDigits(date.getMonth() + 1)}/${date.getFullYear()}`;
 }
 
-export function formatarDataHora(valor: ValorDeData): string {
-  const data = comoData(valor);
-  if (data === null) return MISSING_VALUE;
-  const hora = `${doisDigitos(data.getHours())}:${doisDigitos(data.getMinutes())}`;
-  return `${doisDigitos(data.getDate())}/${doisDigitos(data.getMonth() + 1)}/${data.getFullYear()} ${hora}`;
+export function formatDateTime(value: DateValue): string {
+  const date = asDate(value);
+  if (date === null) return MISSING_VALUE;
+  const time = `${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`;
+  return `${twoDigits(date.getDate())}/${twoDigits(date.getMonth() + 1)}/${date.getFullYear()} ${time}`;
 }
 
-export function formatarNota(valor: ValorNumerico): string {
-  const numero = comoNumero(valor);
-  return numero === null ? MISSING_VALUE : umaCasaTruncada(numero);
+export function formatGrade(value: NumericValue): string {
+  const number = asNumber(value);
+  return number === null ? MISSING_VALUE : oneDecimalTruncated(number);
 }
 
-export function formatarPercentual(valor: ValorNumerico): string {
-  const numero = comoNumero(valor);
-  return numero === null ? MISSING_VALUE : `${umaCasaTruncada(numero)}${APRESENTACAO.sufixoDePercentual}`;
+export function formatPercent(value: NumericValue): string {
+  const number = asNumber(value);
+  return number === null ? MISSING_VALUE : `${oneDecimalTruncated(number)}${PRESENTATION.percentSuffix}`;
 }
 
-export function formatarTaxa(fracao: ValorNumerico): string {
-  const numero = comoNumero(fracao);
-  return numero === null ? MISSING_VALUE : formatarPercentual(numero * APRESENTACAO.fatorPercentual);
+export function formatRate(fraction: NumericValue): string {
+  const number = asNumber(fraction);
+  return number === null ? MISSING_VALUE : formatPercent(number * PRESENTATION.percentFactor);
 }
 
-export function pluralizar(quantidade: number, substantivo: SubstantivoContavel): string {
-  return quantidade === 1 ? substantivo.singular : substantivo.plural;
+export function pluralize(quantity: number, noun: CountableNoun): string {
+  return quantity === 1 ? noun.singular : noun.plural;
 }
 
-export const idDoErro = (campo: string): string => `${campo}${SUFIXOS_DE_ID.erro}`;
+export const errorId = (field: string): string => `${field}${ID_SUFFIXES.error}`;
 
-export const idDaAjuda = (campo: string): string => `${campo}${SUFIXOS_DE_ID.ajuda}`;
+export const helpId = (field: string): string => `${field}${ID_SUFFIXES.help}`;
 
-const ALCANCES = { unidade: AUDIENCE.school, selecionados: AUDIENCE.selected } as const;
+const AUDIENCES = { school: AUDIENCE.school, selected: AUDIENCE.selected } as const;
 
-export type DadosDeTemplate = Record<string, unknown>;
+export type TemplateData = Record<string, unknown>;
 
-const CHAVES_DO_CONTEXTO = {
-  erros: 'erros',
-  mensagem: 'mensagem',
-  erro: 'erro',
-  usuario: 'usuario',
+const CONTEXT_KEYS = {
+  errors: 'errors',
+  message: 'message',
+  error: 'error',
+  user: 'user',
 } as const;
 
-const textoDaQuery = (c: Context, nome: string): string | null => {
-  const bruto = c.req.query(nome);
-  if (bruto === undefined) return null;
-  const texto = bruto.trim().slice(0, APRESENTACAO.limiteDaMensagem);
-  return texto === '' ? null : texto;
+const queryText = (c: Context, name: string): string | null => {
+  const raw = c.req.query(name);
+  if (raw === undefined) return null;
+  const text = raw.trim().slice(0, PRESENTATION.messageLimit);
+  return text === '' ? null : text;
 };
 
-const auxiliares = {
+const helpers = {
   asset,
-  curingaDeAsset: CURINGA_DE_ASSET,
-  nomeLogicoDaFolha: ASSETS.stylesheetLogicalName,
-  campoChave: KEY_FIELD,
-  rotas: ROTAS,
-  parciais: TEMPLATES.parciais,
-  documento: DOCUMENTO,
-  apresentacao: APRESENTACAO,
-  titulos: TITULOS,
-  papel: ROLE,
-  alcances: ALCANCES,
-  campos: CAMPOS,
-  idDoErro,
-  idDaAjuda,
+  assetWildcard: ASSET_WILDCARD,
+  stylesheetLogicalName: ASSETS.stylesheetLogicalName,
+  keyField: KEY_FIELD,
+  routes: ROUTES,
+  partials: TEMPLATES.partials,
+  document: DOCUMENT,
+  presentation: PRESENTATION,
+  titles: TITLES,
+  role: ROLE,
+  audiences: AUDIENCES,
+  fields: FIELDS,
+  errorId,
+  helpId,
   areas: AREAS,
-  rotulos: ROTULOS,
-  classeDaEtiqueta: CLASSE_DA_ETIQUETA,
-  contagem: CONTAGEM,
-  acoes: ACOES,
-  semAlunoMatriculado: SEM_ALUNO_MATRICULADO,
-  rotuloDeBimestre: TERM_LABEL,
-  formatarCpf: formatCpf,
-  formatarData,
-  formatarDataHora,
-  formatarNota,
-  formatarPercentual,
-  formatarTaxa,
-  pluralizar,
+  labels: LABELS,
+  tagClass: TAG_CLASS,
+  nouns: NOUNS,
+  actions: ACTIONS,
+  noEnrolledStudent: NO_ENROLLED_STUDENT,
+  termLabel: TERM_LABEL,
+  formatCpf,
+  formatDate,
+  formatDateTime,
+  formatGrade,
+  formatPercent,
+  formatRate,
+  pluralize,
 } as const;
 
-type Problema = { readonly campo: string; readonly mensagem: string };
+type Problem = { readonly campo: string; readonly mensagem: string };
 
-const problemasDe = (dados: DadosDeTemplate): readonly Problema[] => {
-  const erros = dados[CHAVES_DO_CONTEXTO.erros];
-  return Array.isArray(erros) ? (erros as readonly Problema[]) : [];
+const problemsOf = (data: TemplateData): readonly Problem[] => {
+  const errors = data[CONTEXT_KEYS.errors];
+  return Array.isArray(errors) ? (errors as readonly Problem[]) : [];
 };
 
-const SEPARADOR_DE_IDS = ' ';
+const ID_SEPARATOR = ' ';
 
-const auxiliaresDeErro = (dados: DadosDeTemplate) => {
-  const problemas = problemasDe(dados);
+const errorHelpers = (data: TemplateData) => {
+  const problems = problemsOf(data);
 
-  const erroDe = (campo: string): string =>
-    problemas.find((problema) => problema.campo === campo)?.mensagem ?? '';
+  const errorFor = (field: string): string =>
+    problems.find((problem) => problem.campo === field)?.mensagem ?? '';
 
-  const descricao = (campo: string, temAjuda = false): string =>
-    [temAjuda ? idDaAjuda(campo) : '', erroDe(campo) === '' ? '' : idDoErro(campo)]
+  const describedBy = (field: string, hasHelp = false): string =>
+    [hasHelp ? helpId(field) : '', errorFor(field) === '' ? '' : errorId(field)]
       .filter((id) => id !== '')
-      .join(SEPARADOR_DE_IDS);
+      .join(ID_SEPARATOR);
 
-  return { erroDe, descricao };
+  return { errorFor, describedBy };
 };
 
-const contextoDeTemplate = (c: Context, dados: DadosDeTemplate): DadosDeTemplate => ({
-  titulo: TITULOS.produto,
-  ...dados,
-  ...auxiliares,
-  ...auxiliaresDeErro(dados),
-  usuario: currentUserOrNull(c),
-  chave: crypto.randomUUID(),
-  caminhoAtual: c.req.path,
-  correlacaoId: currentContext()?.correlationId ?? '',
-  mensagem: dados[CHAVES_DO_CONTEXTO.mensagem] ?? textoDaQuery(c, PARAMETROS.ok),
-  erro: dados[CHAVES_DO_CONTEXTO.erro] ?? textoDaQuery(c, PARAMETROS.erro),
+const templateContext = (c: Context, data: TemplateData): TemplateData => ({
+  title: TITLES.product,
+  ...data,
+  ...helpers,
+  ...errorHelpers(data),
+  user: currentUserOrNull(c),
+  key: crypto.randomUUID(),
+  currentPath: c.req.path,
+  correlationId: currentContext()?.correlationId ?? '',
+  message: data[CONTEXT_KEYS.message] ?? queryText(c, PARAMS.ok),
+  error: data[CONTEXT_KEYS.error] ?? queryText(c, PARAMS.error),
 });
 
-const DOCUMENTO_COMPLETO = /^\s*<!doctype/i;
+const FULL_DOCUMENT = /^\s*<!doctype/i;
 
-const envolver = (html: string, contexto: DadosDeTemplate, layout: string): string =>
-  DOCUMENTO_COMPLETO.test(html) ? html : eta.render(layout, { ...contexto, body: html });
+const wrap = (html: string, context: TemplateData, layout: string): string =>
+  FULL_DOCUMENT.test(html) ? html : eta.render(layout, { ...context, body: html });
 
-const layoutPadrao = (contexto: DadosDeTemplate): string =>
-  contexto[CHAVES_DO_CONTEXTO.usuario] === null ? TEMPLATES.layoutPublico : TEMPLATES.layout;
+const defaultLayout = (context: TemplateData): string =>
+  context[CONTEXT_KEYS.user] === null ? TEMPLATES.publicLayout : TEMPLATES.layout;
 
-export function renderizar(c: Context, template: string, dados: DadosDeTemplate = {}): Response {
-  const contexto = contextoDeTemplate(c, dados);
-  const corpo = eta.render(template, contexto);
-  return c.html(envolver(corpo, contexto, layoutPadrao(contexto)));
+export function render(c: Context, template: string, data: TemplateData = {}): Response {
+  const context = templateContext(c, data);
+  const body = eta.render(template, context);
+  return c.html(wrap(body, context, defaultLayout(context)));
 }
 
-export function renderizarErro(
+export function renderError(
   c: Context,
   status: ErrorStatus,
-  titulo: string,
-  detalhe: string,
+  title: string,
+  detail: string,
 ): Response {
-  const contexto = contextoDeTemplate(c, { titulo, detalhe, status });
-  const corpo = eta.render(TEMPLATES.erro, contexto);
-  return c.html(envolver(corpo, contexto, layoutPadrao(contexto)), status);
+  const context = templateContext(c, { title, detail, status });
+  const body = eta.render(TEMPLATES.error, context);
+  return c.html(wrap(body, context, defaultLayout(context)), status);
 }
 
-registerErrorRenderer((status, correlacaoId) => {
-  const dados: DadosDeTemplate = {
-    ...auxiliares,
-    titulo: ERROR_TITLES[status],
-    detalhe: DETALHES_DE_ERRO[status],
+registerErrorRenderer((status, correlationId) => {
+  const data: TemplateData = {
+    ...helpers,
+    title: ERROR_TITLES[status],
+    detail: ERROR_DETAILS[status],
     status,
-    correlacaoId,
-    usuario: null,
-    chave: crypto.randomUUID(),
-    caminhoAtual: '',
-    mensagem: null,
-    erro: null,
+    correlationId,
+    user: null,
+    key: crypto.randomUUID(),
+    currentPath: '',
+    message: null,
+    error: null,
   };
-  return eta.render(TEMPLATES.layoutPublico, { ...dados, body: eta.render(TEMPLATES.erro, dados) });
+  return eta.render(TEMPLATES.publicLayout, { ...data, body: eta.render(TEMPLATES.error, data) });
 });

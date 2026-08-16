@@ -16,225 +16,205 @@ import {
 } from '../../shared/http';
 import type { ApplicationError } from '../../shared/result';
 import {
-  AVISOS,
-  CAMPOS,
-  DIAGNOSTICOS,
-  ERROS_DE_FORMULARIO,
-  PARAMETROS,
-  ROTAS,
-  SEM_SELECAO_NO_ENVIO,
+  DIAGNOSTICS,
+  FIELDS,
+  FORM_ERRORS,
+  NOTICES,
+  NO_SELECTION_ON_SEND,
+  PARAMS,
+  ROUTES,
   TEMPLATES,
-  TITULOS,
+  TITLES,
 } from '../constants';
-import { navegacao, paginaDaQuery } from '../pagination';
-import { renderizar } from '../render';
+import { pageFromQuery, pagination } from '../pagination';
+import { render } from '../render';
 
-type ValoresDoComunicado = {
-  unidadeId: string;
-  titulo: string;
-  corpo: string;
-  alcance: Audience;
-  selecionados: string[];
+type AnnouncementValues = {
+  schoolId: string;
+  title: string;
+  body: string;
+  audience: Audience;
+  selected: string[];
 };
 
-type ContextoDeEnvio = {
-  unidades: School[];
-  unidade: School | null;
-  responsaveis: { id: string; nome: string }[];
+type SendContext = {
+  schools: School[];
+  school: School | null;
+  guardians: { id: string; name: string }[];
 };
 
-export const rotasComunicados = new Hono<{ Variables: Variables }>();
+export const announcementRoutes = new Hono<{ Variables: Variables }>();
 
-rotasComunicados.use(requireRole(ROLE.registrar, ROLE.networkAdmin));
+announcementRoutes.use(requireRole(ROLE.registrar, ROLE.networkAdmin));
 
-const unidadesDoUsuario = async (
-  usuario: SessionUser,
-  veTodaARede: boolean,
+const userSchools = async (
+  user: SessionUser,
+  seesWholeNetwork: boolean,
 ): Promise<School[]> => {
-  const unidades = await identity.listSchools(usuario.networkId);
-  if (veTodaARede) return unidades;
-  const permitidas = new Set(schoolsForRole(usuario, ROLE.registrar));
-  return unidades.filter((unidade) => permitidas.has(unidade.id));
+  const schools = await identity.listSchools(user.networkId);
+  if (seesWholeNetwork) return schools;
+  const allowed = new Set(schoolsForRole(user, ROLE.registrar));
+  return schools.filter((school) => allowed.has(school.id));
 };
 
-const recorteDaLista = (
-  unidades: readonly School[],
-  pedida: string,
-  veTodaARede: boolean,
+const listScope = (
+  schools: readonly School[],
+  requested: string,
+  seesWholeNetwork: boolean,
 ): string | null => {
-  if (pedida !== '') {
-    if (!unidades.some((unidade) => unidade.id === pedida)) {
-      throw new NotFound(DIAGNOSTICOS.unidadeForaDoAlcance);
+  if (requested !== '') {
+    if (!schools.some((school) => school.id === requested)) {
+      throw new NotFound(DIAGNOSTICS.schoolOutOfScope);
     }
-    return pedida;
+    return requested;
   }
-  if (veTodaARede) return null;
-  return unidades[0]?.id ?? null;
+  if (seesWholeNetwork) return null;
+  return schools[0]?.id ?? null;
 };
 
-const SEM_RESUMO = { recipients: 0, reads: 0, rate: 0 };
+const EMPTY_SUMMARY = { recipients: 0, reads: 0, rate: 0 };
 
-const estatisticaParaTela = (estatistica: ReadStatistic) => ({
-  titulo: estatistica.title,
-  publicadoEm: estatistica.publishedAt,
-  destinatarios: estatistica.recipients,
-  leituras: estatistica.reads,
-  taxa: estatistica.rate,
-});
+announcementRoutes.get(ROUTES.announcements.list.pattern, async (c) => {
+  const user = currentUser(c);
+  const seesWholeNetwork = hasRole(user, ROLE.networkAdmin);
+  const schools = await userSchools(user, seesWholeNetwork);
+  const scope = listScope(schools, c.req.query(PARAMS.schoolId) ?? '', seesWholeNetwork);
 
-rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
-  const usuario = currentUser(c);
-  const veTodaARede = hasRole(usuario, ROLE.networkAdmin);
-  const unidades = await unidadesDoUsuario(usuario, veTodaARede);
-  const recorte = recorteDaLista(
-    unidades,
-    c.req.query(PARAMETROS.unidadeId) ?? '',
-    veTodaARede,
-  );
-
-  const semAlcance = recorte === null && !veTodaARede;
-  const [pagina, resumo] = await Promise.all([
-    semAlcance
+  const outOfScope = scope === null && !seesWholeNetwork;
+  const [page, summary] = await Promise.all([
+    outOfScope
       ? Promise.resolve(emptyPage<ReadStatistic>())
-      : communication.announcementsPage(usuario.networkId, recorte ?? undefined, paginaDaQuery(c)),
-    semAlcance
-      ? Promise.resolve(SEM_RESUMO)
-      : communication.announcementsSummary(usuario.networkId, recorte ?? undefined),
+      : communication.announcementsPage(user.networkId, scope ?? undefined, pageFromQuery(c)),
+    outOfScope
+      ? Promise.resolve(EMPTY_SUMMARY)
+      : communication.announcementsSummary(user.networkId, scope ?? undefined),
   ]);
 
-  return renderizar(c, TEMPLATES.comunicados.lista, {
-    titulo: TITULOS.comunicados.lista,
-    campoDaUnidade: PARAMETROS.unidadeId,
-    comunicados: pagina.items.map(estatisticaParaTela),
-    navegacao: navegacao(c, pagina),
-    resumo: {
-      destinatarios: resumo.recipients,
-      leituras: resumo.reads,
-      taxa: resumo.rate,
-    },
-    unidades,
-    unidadeAtual: recorte ?? '',
-    veTodaARede,
+  return render(c, TEMPLATES.announcements.list, {
+    title: TITLES.announcements.list,
+    schoolField: PARAMS.schoolId,
+    announcements: page.items,
+    pagination: pagination(c, page),
+    summary,
+    schools,
+    currentSchool: scope ?? '',
+    seesWholeNetwork,
   });
 });
 
-const textoDoCampo = (formulario: FormBody, campo: string): string => {
-  const valor = formulario[campo];
-  return typeof valor === 'string' ? valor.trim() : '';
+const fieldText = (form: FormBody, field: string): string => {
+  const value = form[field];
+  return typeof value === 'string' ? value.trim() : '';
 };
 
-const listaDoCampo = (formulario: FormBody, campo: string): string[] => {
-  const valor = formulario[campo];
-  if (typeof valor === 'string') return [valor];
-  if (!Array.isArray(valor)) return [];
-  return valor.filter((item): item is string => typeof item === 'string');
+const fieldList = (form: FormBody, field: string): string[] => {
+  const value = form[field];
+  if (typeof value === 'string') return [value];
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === 'string');
 };
 
-const valoresDoFormulario = (formulario: FormBody): ValoresDoComunicado => ({
-  unidadeId: textoDoCampo(formulario, CAMPOS.comunicado.unidadeId),
-  titulo: textoDoCampo(formulario, CAMPOS.comunicado.titulo),
-  corpo: textoDoCampo(formulario, CAMPOS.comunicado.corpo),
-  alcance:
-    textoDoCampo(formulario, CAMPOS.comunicado.alcance) === AUDIENCE.selected
+const formValues = (form: FormBody): AnnouncementValues => ({
+  schoolId: fieldText(form, FIELDS.announcement.schoolId),
+  title: fieldText(form, FIELDS.announcement.title),
+  body: fieldText(form, FIELDS.announcement.body),
+  audience:
+    fieldText(form, FIELDS.announcement.audience) === AUDIENCE.selected
       ? AUDIENCE.selected
       : AUDIENCE.school,
-  selecionados: listaDoCampo(formulario, CAMPOS.comunicado.responsaveis),
+  selected: fieldList(form, FIELDS.announcement.guardians),
 });
 
-const contextoDeEnvio = async (
-  usuario: SessionUser,
-  unidadeIdPedida: string,
-): Promise<ContextoDeEnvio> => {
-  const todas = await unidadesDoUsuario(usuario, hasRole(usuario, ROLE.networkAdmin));
-  const unidades = todas.filter((unidade) => unidade.active);
-  const unidade = unidades.find((item) => item.id === unidadeIdPedida) ?? null;
-  if (unidadeIdPedida !== '' && unidade === null) {
-    throw new NotFound(DIAGNOSTICOS.unidadeForaDoAlcance);
+const sendContext = async (
+  user: SessionUser,
+  requestedSchoolId: string,
+): Promise<SendContext> => {
+  const all = await userSchools(user, hasRole(user, ROLE.networkAdmin));
+  const schools = all.filter((school) => school.active);
+  const school = schools.find((item) => item.id === requestedSchoolId) ?? null;
+  if (requestedSchoolId !== '' && school === null) {
+    throw new NotFound(DIAGNOSTICS.schoolOutOfScope);
   }
-  const daUnidade =
-    unidade === null ? [] : await academics.schoolGuardians(usuario.networkId, unidade.id);
-  const responsaveis = daUnidade.map((responsavel) => ({
-    id: responsavel.id,
-    nome: responsavel.name,
-  }));
-  return { unidades, unidade, responsaveis };
+  const guardians =
+    school === null ? [] : await academics.schoolGuardians(user.networkId, school.id);
+  return { schools, school, guardians };
 };
 
-const LINHAS_DA_MENSAGEM = 10;
+const MESSAGE_ROWS = 10;
 
-const paginaDeEnvio = (
+const sendPage = (
   c: Context,
-  contexto: ContextoDeEnvio,
-  valores: ValoresDoComunicado,
-  erros: ApplicationError[],
+  context: SendContext,
+  values: AnnouncementValues,
+  errors: ApplicationError[],
 ): Response =>
-  renderizar(c, TEMPLATES.comunicados.novo, {
-    titulo: TITULOS.comunicados.novo,
-    campoDaUnidade: PARAMETROS.unidadeId,
-    linhasDaMensagem: LINHAS_DA_MENSAGEM,
-    ...contexto,
-    valores,
-    erros,
+  render(c, TEMPLATES.announcements.new, {
+    title: TITLES.announcements.new,
+    schoolField: PARAMS.schoolId,
+    messageRows: MESSAGE_ROWS,
+    ...context,
+    values,
+    errors,
   });
 
-const valoresIniciais = (unidadeId: string): ValoresDoComunicado => ({
-  unidadeId,
-  titulo: '',
-  corpo: '',
-  alcance: AUDIENCE.school,
-  selecionados: [],
+const initialValues = (schoolId: string): AnnouncementValues => ({
+  schoolId,
+  title: '',
+  body: '',
+  audience: AUDIENCE.school,
+  selected: [],
 });
 
-const SEM_SELECAO: ApplicationError = {
-  ...ERROS_DE_FORMULARIO.semSelecao,
-  mensagem: SEM_SELECAO_NO_ENVIO,
+const NO_SELECTION: ApplicationError = {
+  ...FORM_ERRORS.noSelection,
+  mensagem: NO_SELECTION_ON_SEND,
 };
 
-const conferirDestinatarios = (
-  valores: ValoresDoComunicado,
-  responsaveis: readonly { id: string }[],
+const checkRecipients = (
+  values: AnnouncementValues,
+  guardians: readonly { id: string }[],
 ): ApplicationError | null => {
-  if (valores.alcance === AUDIENCE.school) return null;
-  if (valores.selecionados.length === 0) return SEM_SELECAO;
-  const daUnidade = new Set(responsaveis.map((responsavel) => responsavel.id));
-  if (valores.selecionados.every((id) => daUnidade.has(id))) return null;
-  return ERROS_DE_FORMULARIO.destinatarioForaDaUnidade;
+  if (values.audience === AUDIENCE.school) return null;
+  if (values.selected.length === 0) return NO_SELECTION;
+  const ofSchool = new Set(guardians.map((guardian) => guardian.id));
+  if (values.selected.every((id) => ofSchool.has(id))) return null;
+  return FORM_ERRORS.recipientOutsideSchool;
 };
 
-rotasComunicados.get(ROTAS.comunicados.novo.padrao, async (c) => {
-  const usuario = currentUser(c);
-  const contexto = await contextoDeEnvio(usuario, c.req.query(PARAMETROS.unidadeId) ?? '');
-  return paginaDeEnvio(c, contexto, valoresIniciais(contexto.unidade?.id ?? ''), []);
+announcementRoutes.get(ROUTES.announcements.new.pattern, async (c) => {
+  const user = currentUser(c);
+  const context = await sendContext(user, c.req.query(PARAMS.schoolId) ?? '');
+  return sendPage(c, context, initialValues(context.school?.id ?? ''), []);
 });
 
-rotasComunicados.post(ROTAS.comunicados.novo.padrao, async (c) => {
-  const usuario = currentUser(c);
-  const valores = valoresDoFormulario(c.get(CONTEXT_VARIABLES.body));
-  const contexto = await contextoDeEnvio(usuario, valores.unidadeId);
+announcementRoutes.post(ROUTES.announcements.new.pattern, async (c) => {
+  const user = currentUser(c);
+  const values = formValues(c.get(CONTEXT_VARIABLES.body));
+  const context = await sendContext(user, values.schoolId);
 
-  if (contexto.unidade === null) {
-    return paginaDeEnvio(c, contexto, valores, [ERROS_DE_FORMULARIO.unidadeAusente]);
+  if (context.school === null) {
+    return sendPage(c, context, values, [FORM_ERRORS.missingSchool]);
   }
 
-  const recusa = conferirDestinatarios(valores, contexto.responsaveis);
-  if (recusa !== null) return paginaDeEnvio(c, contexto, valores, [recusa]);
+  const rejection = checkRecipients(values, context.guardians);
+  if (rejection !== null) return sendPage(c, context, values, [rejection]);
 
-  const resultado = await communication.publishAnnouncement({
-    networkId: usuario.networkId,
-    schoolId: contexto.unidade.id,
-    title: valores.titulo,
-    body: valores.corpo,
-    authorUserId: usuario.id,
+  const result = await communication.publishAnnouncement({
+    networkId: user.networkId,
+    schoolId: context.school.id,
+    title: values.title,
+    body: values.body,
+    authorUserId: user.id,
     recipients:
-      valores.alcance === AUDIENCE.school
+      values.audience === AUDIENCE.school
         ? []
-        : valores.selecionados.map((guardianId) => ({ guardianId })),
+        : values.selected.map((guardianId) => ({ guardianId })),
   });
-  if (!resultado.ok) return paginaDeEnvio(c, contexto, valores, resultado.erros);
+  if (!result.ok) return sendPage(c, context, values, result.erros);
 
-  const destino = new URLSearchParams({
-    [PARAMETROS.unidadeId]: contexto.unidade.id,
-    [PARAMETROS.ok]: AVISOS.comunicadoPublicado,
+  const target = new URLSearchParams({
+    [PARAMS.schoolId]: context.school.id,
+    [PARAMS.ok]: NOTICES.announcementPublished,
   });
-  return c.redirect(`${ROTAS.comunicados.lista()}?${destino.toString()}`, 303);
+  return c.redirect(`${ROUTES.announcements.list()}?${target.toString()}`, 303);
 });

@@ -1,43 +1,43 @@
 <%
-const unidades = it.unidades ?? [];
-const totais = it.totais;
-const anoCorrente = it.anoCorrente ?? null;
+const schools = it.schools ?? [];
+const totals = it.totals;
+const currentYear = it.currentYear ?? null;
 
-const atalhos = [
-  { href: it.rotas.secretaria.alunoNovo(), rotulo: it.rotulos.aluno,
-    titulo: it.titulos.secretaria.alunoNovo,
-    detalhe: 'Nome e data de nascimento. A matrícula vem depois, na ficha.' },
-  { href: it.rotas.secretaria.alunos(), rotulo: it.rotulos.matricula,
-    titulo: 'Buscar e matricular',
-    detalhe: 'Procure pelo nome para matricular, transferir ou vincular responsável.' },
-  { href: it.rotas.secretaria.turmas(), rotulo: it.rotulos.turma,
-    titulo: 'Turmas e professores',
-    detalhe: 'Abra a turma para alocar disciplina e professor da unidade.' },
-  { href: it.rotas.secretaria.responsaveis(), rotulo: it.rotulos.responsavel,
-    // magic-values: permitido — não é `TITULOS.secretaria.responsavelNovo` nem `TITULOS.secretaria.responsaveis`
-    titulo: 'Cadastrar responsável',
-    detalhe: 'Quem recebe comunicado e responde pelo aluno.' },
+const shortcuts = [
+  { href: it.routes.registrar.studentNew(), label: it.labels.student,
+    title: it.titles.registrar.studentNew,
+    detail: 'Nome e data de nascimento. A matrícula vem depois, na ficha.' },
+  { href: it.routes.registrar.students(), label: it.labels.enrollment,
+    title: 'Buscar e matricular',
+    detail: 'Procure pelo nome para matricular, transferir ou vincular responsável.' },
+  { href: it.routes.registrar.classGroups(), label: it.labels.classGroup,
+    title: 'Turmas e professores',
+    detail: 'Abra a turma para alocar disciplina e professor da unidade.' },
+  { href: it.routes.registrar.guardians(), label: it.labels.guardian,
+    // magic-values: permitido — não é `TITLES.registrar.guardianNew` nem `TITLES.registrar.guardians`
+    title: 'Cadastrar responsável',
+    detail: 'Quem recebe comunicado e responde pelo aluno.' },
 ];
 %>
 <div class="pagina__cabecalho">
   <div>
-    <p class="sobretitulo"><%= it.areas.secretaria %></p>
-    <h1 class="pagina__titulo"><%= it.titulo %></h1>
+    <p class="sobretitulo"><%= it.areas.registrar %></p>
+    <h1 class="pagina__titulo"><%= it.title %></h1>
     <p class="pagina__resumo">
       Matrícula, transferência, turma e disciplina em um lugar só. Os números abaixo consideram
       apenas as unidades em que você tem o papel de secretaria.
     </p>
   </div>
   <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.rotas.secretaria.alunoNovo() %>"><%= it.titulos.secretaria.alunoNovo %></a>
-    <a class="botao botao--secundario" href="<%= it.rotas.secretaria.alunos() %>"><%= it.acoes.buscarAluno %></a>
+    <a class="botao botao--primario" href="<%= it.routes.registrar.studentNew() %>"><%= it.titles.registrar.studentNew %></a>
+    <a class="botao botao--secundario" href="<%= it.routes.registrar.students() %>"><%= it.actions.searchStudent %></a>
   </div>
 </div>
 
-<% if (unidades.length === 0) { %>
-<%~ include(it.parciais.vazio, {
-  titulo: 'Nenhuma unidade atribuída',
-  texto: 'Seu acesso existe, mas ainda não foi ligado a nenhuma unidade. Peça ao administrador da rede para atribuir o papel de secretaria em uma unidade.'
+<% if (schools.length === 0) { %>
+<%~ include(it.partials.empty, {
+  title: 'Nenhuma unidade atribuída',
+  text: 'Seu acesso existe, mas ainda não foi ligado a nenhuma unidade. Peça ao administrador da rede para atribuir o papel de secretaria em uma unidade.'
 }) %>
 <% } else { %>
 
@@ -45,50 +45,50 @@ const atalhos = [
   <div class="secao__cabecalho">
     <h2 id="numeros">Hoje</h2>
     <p class="secao__nota">
-      <% if (anoCorrente === null) { %>
+      <% if (currentYear === null) { %>
         Nenhum ano letivo definido nesta rede
       <% } else { %>
-        Ano letivo mais recente: <span class="numero"><%= anoCorrente.ano %></span>
-        (<%= it.formatarData(anoCorrente.dataInicio) %> a <%= it.formatarData(anoCorrente.dataFim) %>)
+        Ano letivo mais recente: <span class="numero"><%= currentYear.year %></span>
+        (<%= it.formatDate(currentYear.startDate) %> a <%= it.formatDate(currentYear.endDate) %>)
       <% } %>
     </p>
   </div>
 
   <div class="painel">
     <div class="cartao">
-      <p class="cartao__rotulo"><%= it.rotulos.matriculasAtivas %></p>
-      <p class="cartao__numero"><%= totais.matriculas %></p>
+      <p class="cartao__rotulo"><%= it.labels.activeEnrollments %></p>
+      <p class="cartao__numero"><%= totals.enrollments %></p>
       <p class="cartao__detalhe">alunos com matrícula ativa nas suas turmas</p>
     </div>
     <div class="cartao">
       <p class="cartao__rotulo">Turmas</p>
-      <p class="cartao__numero"><%= totais.turmas %></p>
+      <p class="cartao__numero"><%= totals.classGroups %></p>
       <p class="cartao__detalhe">em todos os anos letivos das suas unidades</p>
     </div>
     <div class="cartao">
       <p class="cartao__rotulo">Responsáveis</p>
-      <p class="cartao__numero"><%= totais.responsaveis %></p>
+      <p class="cartao__numero"><%= totals.guardians %></p>
       <p class="cartao__detalhe">com aluno matriculado nas suas unidades</p>
     </div>
     <div class="cartao">
       <p class="cartao__rotulo">Disciplinas</p>
-      <p class="cartao__numero"><%= totais.disciplinas %></p>
+      <p class="cartao__numero"><%= totals.subjects %></p>
       <p class="cartao__detalhe">cadastradas na rede, disponíveis para alocar</p>
     </div>
   </div>
 </section>
 
 <%
-const totalDeUnidades = it.navegacao === undefined ? unidades.length : it.navegacao.total;
+const schoolCount = it.pagination === undefined ? schools.length : it.pagination.total;
 %>
-<% if (totalDeUnidades > 1) { %>
+<% if (schoolCount > 1) { %>
 <section class="secao" aria-labelledby="por-unidade">
   <div class="secao__cabecalho">
     <h2 id="por-unidade">Por unidade</h2>
     <p class="secao__nota">
       Você responde por
-      <span class="numero"><%= totalDeUnidades %></span>
-      <%= it.contagem.unidade.plural %>
+      <span class="numero"><%= schoolCount %></span>
+      <%= it.nouns.school.plural %>
 
     </p>
   </div>
@@ -98,25 +98,25 @@ const totalDeUnidades = it.navegacao === undefined ? unidades.length : it.navega
       <caption>Números de cada unidade sob sua secretaria</caption>
       <thead>
         <tr>
-          <th scope="col"><%= it.rotulos.unidade %></th>
+          <th scope="col"><%= it.labels.school %></th>
           <th scope="col">Turmas</th>
-          <th scope="col"><%= it.rotulos.matriculasAtivas %></th>
+          <th scope="col"><%= it.labels.activeEnrollments %></th>
           <th scope="col">Responsáveis</th>
         </tr>
       </thead>
       <tbody>
-        <% unidades.forEach((unidade) => { %>
+        <% schools.forEach((school) => { %>
         <tr>
-          <th scope="row"><%= unidade.nome %></th>
-          <td class="numero"><%= unidade.turmas %></td>
-          <td class="numero"><%= unidade.matriculas %></td>
-          <td class="numero"><%= unidade.responsaveis %></td>
+          <th scope="row"><%= school.name %></th>
+          <td class="numero"><%= school.classGroups %></td>
+          <td class="numero"><%= school.enrollments %></td>
+          <td class="numero"><%= school.guardians %></td>
         </tr>
         <% }) %>
       </tbody>
     </table>
   </div>
-  <%~ include(it.parciais.paginacao, { navegacao: it.navegacao, rotulo: it.contagem.unidade.plural }) %>
+  <%~ include(it.partials.pagination, { pagination: it.pagination, label: it.nouns.school.plural }) %>
 </section>
 <% } %>
 
@@ -126,11 +126,11 @@ const totalDeUnidades = it.navegacao === undefined ? unidades.length : it.navega
   </div>
 
   <div class="painel">
-    <% atalhos.forEach((atalho) => { %>
-    <a class="cartao" href="<%= atalho.href %>">
-      <p class="cartao__rotulo"><%= atalho.rotulo %></p>
-      <h3><%= atalho.titulo %></h3>
-      <p class="cartao__detalhe"><%= atalho.detalhe %></p>
+    <% shortcuts.forEach((shortcut) => { %>
+    <a class="cartao" href="<%= shortcut.href %>">
+      <p class="cartao__rotulo"><%= shortcut.label %></p>
+      <h3><%= shortcut.title %></h3>
+      <p class="cartao__detalhe"><%= shortcut.detail %></p>
     </a>
     <% }) %>
   </div>
