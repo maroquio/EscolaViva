@@ -1,5 +1,5 @@
 import { Hono, type Context } from 'hono';
-import { identidade } from '../../identidade';
+import { identidade } from '../../identity';
 import { CONTEXT_VARIABLES } from '../../shared/constants';
 import { currentUser, requireLogin, type FormBody, type Variables } from '../../shared/http';
 import { logger } from '../../shared/log';

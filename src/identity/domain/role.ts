@@ -1,4 +1,4 @@
-import { ERROS_INTERNOS } from '../constantes';
+import { ERROS_INTERNOS } from '../constants';
 
 export const PAPEIS = ['network_admin', 'registrar', 'teacher', 'guardian'] as const;
 

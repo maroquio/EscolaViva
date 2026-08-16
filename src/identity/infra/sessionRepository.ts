@@ -1,7 +1,7 @@
 import type { Connection } from '../../shared/db';
-import { paraStatusDeRede, type Rede } from '../dominio/rede';
-import type { Sessao } from '../dominio/sessao';
-import type { Usuario } from '../dominio/usuario';
+import { paraStatusDeRede, type Rede } from '../domain/network';
+import type { Sessao } from '../domain/session';
+import type { Usuario } from '../domain/user';
 
 export type SessaoComDono = { sessao: Sessao; rede: Rede; usuario: Usuario };
 

@@ -1,4 +1,4 @@
-import { autenticar } from './aplicacao/autenticar';
+import { autenticar } from './application/authenticate';
 import {
   contarUnidadesEUsuarios,
   ehProfessorNaUnidade,
@@ -11,16 +11,16 @@ import {
   redePorSlug,
   sessaoValida,
   unidadePorId,
-} from './aplicacao/consultas';
-import { convidarUsuario } from './aplicacao/convidarUsuario';
-import { criarUnidade } from './aplicacao/criarUnidade';
-import { encerrarSessao } from './aplicacao/encerrarSessao';
-import { expurgarSessoesExpiradas } from './aplicacao/expurgarSessoes';
-import { trocarSenha } from './aplicacao/trocarSenha';
+} from './application/queries';
+import { convidarUsuario } from './application/inviteUser';
+import { criarUnidade } from './application/createSchool';
+import { encerrarSessao } from './application/endSession';
+import { expurgarSessoesExpiradas } from './application/purgeSessions';
+import { trocarSenha } from './application/changePassword';
 
-export type { Papel, PapelEmUnidade } from './dominio/papel';
-export type { Unidade } from './dominio/unidade';
-export type { UsuarioAutenticado, UsuarioResumo } from './dominio/usuario';
+export type { Papel, PapelEmUnidade } from './domain/role';
+export type { Unidade } from './domain/school';
+export type { UsuarioAutenticado, UsuarioResumo } from './domain/user';
 
 export const identidade = {
   autenticar,
@@ -50,8 +50,8 @@ export {
   PAPEL,
   REDE_ATIVA,
   VOCABULARIO as VOCABULARIO_DE_IDENTIDADE,
-} from './constantes';
+} from './constants';
 
-export { PAPEIS } from './dominio/papel';
-export { STATUS_DE_REDE } from './dominio/rede';
-export { TAMANHO_MINIMO_DE_SENHA } from './dominio/usuario';
+export { PAPEIS } from './domain/role';
+export { STATUS_DE_REDE } from './domain/network';
+export { TAMANHO_MINIMO_DE_SENHA } from './domain/user';

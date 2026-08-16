@@ -1,7 +1,7 @@
 import { CAMPOS_DO_ACADEMICO } from '../academico';
 import { CAMPOS_DA_AVALIACAO, ROTULO_DE_BIMESTRE } from '../avaliacao';
 import { CAMPOS_DA_COMUNICACAO } from '../comunicacao';
-import { CAMPOS_DE_IDENTIDADE, PAPEL } from '../identidade';
+import { CAMPOS_DE_IDENTIDADE, PAPEL } from '../identity';
 import { ASSETS, ENTRY_PATHS, HEALTH_PATHS, MISSING_VALUE } from '../shared/constants';
 import { grupo } from './rotas/mapa';
 

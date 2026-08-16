@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
-import * as sessaoRepositorio from '../infra/sessaoRepositorio';
+import * as sessaoRepositorio from '../infra/sessionRepository';
 
 const schema = z.string().uuid();
 

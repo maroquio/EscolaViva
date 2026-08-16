@@ -8,7 +8,7 @@ import {
   VOCABULARIO_DE_IDENTIDADE,
   identidade,
   type Papel,
-} from '../../identidade';
+} from '../../identity';
 import { config } from '../../shared/config';
 import { CONTEXT_VARIABLES, MASKED_CPF_LENGTH } from '../../shared/constants';
 import {

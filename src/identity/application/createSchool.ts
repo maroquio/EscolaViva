@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
-import type { Unidade } from '../dominio/unidade';
-import * as unidadeRepositorio from '../infra/unidadeRepositorio';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
+import type { Unidade } from '../domain/school';
+import * as unidadeRepositorio from '../infra/schoolRepository';
 
 const schema = z.object({
   redeId: z.string().uuid(MENSAGENS.unidade.redeInvalida),

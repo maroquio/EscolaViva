@@ -8,7 +8,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { academico } from '../../src/academico';
-import { identidade } from '../../src/identidade';
+import { identidade } from '../../src/identity';
 import { limparBanco } from '../apoio/banco';
 import {
   ANO_PADRAO,

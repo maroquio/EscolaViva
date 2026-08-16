@@ -1,5 +1,5 @@
 import type { Connection } from '../../shared/db';
-import { paraStatusDeRede, type Rede } from '../dominio/rede';
+import { paraStatusDeRede, type Rede } from '../domain/network';
 
 type LinhaDeRede = { id: string; name: string; slug: string; status: string };
 

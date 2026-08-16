@@ -8,7 +8,7 @@ import {
   type Boletim,
 } from '../../avaliacao';
 import { comunicacao, type ItemDoMural } from '../../comunicacao';
-import { PAPEL } from '../../identidade';
+import { PAPEL } from '../../identity';
 import {
   NotFound,
   currentNetwork,

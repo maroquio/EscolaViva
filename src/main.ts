@@ -1,4 +1,4 @@
-import { EVENTOS_DE_LOG_DE_IDENTIDADE, EXPURGO_DE_SESSOES, identidade } from './identidade';
+import { EVENTOS_DE_LOG_DE_IDENTIDADE, EXPURGO_DE_SESSOES, identidade } from './identity';
 import { config } from './shared/config';
 import { LOCK_KEYS, MINUTE_MS, PROCESS_MESSAGES, SERVER, TIME } from './shared/constants';
 import { closeDatabase } from './shared/db';

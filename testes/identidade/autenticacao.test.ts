@@ -4,7 +4,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { identidade } from '../../src/identidade';
+import { identidade } from '../../src/identity';
 import { generateCpf } from '../../src/shared/document';
 import type { ApplicationError, Result } from '../../src/shared/result';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';

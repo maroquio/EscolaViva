@@ -1,5 +1,5 @@
-import type { PapelEmUnidade } from './papel';
-import type { Rede } from './rede';
+import type { PapelEmUnidade } from './role';
+import type { Rede } from './network';
 
 export const TAMANHO_MINIMO_DE_SENHA = 10;
 

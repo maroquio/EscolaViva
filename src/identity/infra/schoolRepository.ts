@@ -1,6 +1,6 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import type { Unidade } from '../dominio/unidade';
+import type { Unidade } from '../domain/school';
 
 type LinhaDeUnidade = {
   id: string;

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { academico } from '../../academico';
-import { identidade } from '../../identidade';
+import { identidade } from '../../identity';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';

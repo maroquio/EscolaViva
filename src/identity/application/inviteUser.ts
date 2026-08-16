@@ -11,11 +11,11 @@ import {
   PAPEL,
   SEGURANCA,
   SEPARADOR_DE_ATRIBUICAO,
-} from '../constantes';
-import { PAPEIS, type Papel } from '../dominio/papel';
-import { emailNormalizado, type Usuario } from '../dominio/usuario';
-import * as unidadeRepositorio from '../infra/unidadeRepositorio';
-import * as usuarioRepositorio from '../infra/usuarioRepositorio';
+} from '../constants';
+import { PAPEIS, type Papel } from '../domain/role';
+import { emailNormalizado, type Usuario } from '../domain/user';
+import * as unidadeRepositorio from '../infra/schoolRepository';
+import * as usuarioRepositorio from '../infra/userRepository';
 
 const schema = z.object({
   redeId: z.string().uuid(MENSAGENS.usuario.redeInvalida),

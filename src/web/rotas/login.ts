@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { getConnInfo } from 'hono/bun';
-import { identidade } from '../../identidade';
+import { identidade } from '../../identity';
 import { config } from '../../shared/config';
 import { CONTEXT_VARIABLES } from '../../shared/constants';
 import {

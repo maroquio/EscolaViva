@@ -7,7 +7,7 @@ import {
   VOCABULARIO_DA_AVALIACAO,
   avaliacao,
 } from '../../avaliacao';
-import { PAPEL } from '../../identidade';
+import { PAPEL } from '../../identity';
 import { CONTEXT_VARIABLES, FORMATS, ISO_DATE_LENGTH, LOCALE, TIME } from '../../shared/constants';
 import {
   BusinessRuleViolation,

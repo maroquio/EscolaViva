@@ -1,7 +1,7 @@
 import { Hono, type Context } from 'hono';
 import { academico } from '../../academico';
 import { ALCANCE, comunicacao, type Alcance, type EstatisticaDeLeitura } from '../../comunicacao';
-import { PAPEL, identidade, type Unidade } from '../../identidade';
+import { PAPEL, identidade, type Unidade } from '../../identity';
 import { CONTEXT_VARIABLES } from '../../shared/constants';
 import { emptyPage } from '../../shared/pagination';
 import {

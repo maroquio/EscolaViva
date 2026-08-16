@@ -5,24 +5,24 @@
 
 import { describe, expect, test } from 'bun:test';
 import { generateCpf } from '../../src/shared/document';
-import { PAPEIS, papelValido, paraPapel } from '../../src/identidade/dominio/papel';
+import { PAPEIS, papelValido, paraPapel } from '../../src/identity/domain/role';
 import {
   STATUS_DE_REDE,
   paraStatusDeRede,
   redeAtiva,
   type Rede,
-} from '../../src/identidade/dominio/rede';
+} from '../../src/identity/domain/network';
 import {
   expiracaoDaSessao,
   sessaoExpirou,
   type Sessao,
-} from '../../src/identidade/dominio/sessao';
+} from '../../src/identity/domain/session';
 import {
   TAMANHO_MINIMO_DE_SENHA,
   emailNormalizado,
   usuarioAutenticado,
   type Usuario,
-} from '../../src/identidade/dominio/usuario';
+} from '../../src/identity/domain/user';
 
 const HORA_EM_MS = 3_600_000;
 const AGORA = new Date('2026-03-10T08:00:00.000Z');

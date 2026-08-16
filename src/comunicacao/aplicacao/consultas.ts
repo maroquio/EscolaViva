@@ -1,4 +1,4 @@
-import { identidade } from '../../identidade';
+import { identidade } from '../../identity';
 import { reader } from '../../shared/db';
 import { DEFAULT_PAGE_SIZE, queryPage, type Page } from '../../shared/pagination';
 import { ERROS_INTERNOS } from '../constantes';

@@ -8,7 +8,7 @@ import {
   type Matricula,
   type Turma,
 } from '../../academico';
-import { PAPEL, identidade } from '../../identidade';
+import { PAPEL, identidade } from '../../identity';
 import {
   CONTEXT_VARIABLES,
   ISO_DATE_LENGTH,

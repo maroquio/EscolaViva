@@ -2,14 +2,14 @@ import { z } from 'zod';
 import { reader } from '../../shared/db';
 import { DEFAULT_PAGE_SIZE, emptyPage, queryPage, type Page } from '../../shared/pagination';
 import { systemClock } from '../../shared/ports';
-import { redeAtiva } from '../dominio/rede';
-import { sessaoExpirou } from '../dominio/sessao';
-import type { Unidade } from '../dominio/unidade';
-import { usuarioAutenticado, type UsuarioAutenticado, type UsuarioResumo } from '../dominio/usuario';
-import * as redeRepositorio from '../infra/redeRepositorio';
-import * as sessaoRepositorio from '../infra/sessaoRepositorio';
-import * as unidadeRepositorio from '../infra/unidadeRepositorio';
-import * as usuarioRepositorio from '../infra/usuarioRepositorio';
+import { redeAtiva } from '../domain/network';
+import { sessaoExpirou } from '../domain/session';
+import type { Unidade } from '../domain/school';
+import { usuarioAutenticado, type UsuarioAutenticado, type UsuarioResumo } from '../domain/user';
+import * as redeRepositorio from '../infra/networkRepository';
+import * as sessaoRepositorio from '../infra/sessionRepository';
+import * as unidadeRepositorio from '../infra/schoolRepository';
+import * as usuarioRepositorio from '../infra/userRepository';
 
 const identificador = z.string().uuid();
 

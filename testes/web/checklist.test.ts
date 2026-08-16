@@ -14,6 +14,7 @@
 import { SQL } from 'bun';
 import { join } from 'node:path';
 import { unlink } from 'node:fs/promises';
+import { existsSync, readdirSync } from 'node:fs';
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { config } from '../../src/shared/config';
 import { generateCpf } from '../../src/shared/document';
@@ -56,27 +57,48 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
    * em um módulo só provava que a alternância casa aquele nome — um erro de digitação em
    * qualquer um dos outros três ('assesment', 'comunication') deixaria aquele módulo sem
    * regra nenhuma e a saída continuaria verde. Por isso cada regra é plantada nos quatro.
+   *
+   * A lista sai do disco, e não de literais: durante a conversão do repositório para inglês
+   * cada módulo troca de nome numa fase diferente, e uma lista escrita à mão passaria a
+   * plantar violação em pasta inexistente — o depcruise reprovaria por outro motivo e o teste
+   * continuaria "vermelho certo pelo motivo errado", ou pior, verde por não achar nada.
+   * O mesmo vale para a pasta de domínio, que é `dominio` antes da fase do módulo e `domain`
+   * depois dela.
    */
-  const MODULOS = ['academico', 'avaliacao', 'comunicacao', 'identidade'] as const;
+  const modulosDeDominio = (): readonly string[] =>
+    readdirSync(join(RAIZ_DO_PROJETO, 'src'), { withFileTypes: true })
+      .filter((entrada) => entrada.isDirectory())
+      .map((entrada) => entrada.name)
+      .filter((nome) => nome !== 'shared' && nome !== 'web')
+      .filter((nome) => existsSync(join(RAIZ_DO_PROJETO, 'src', nome, 'index.ts')))
+      .sort();
 
-  const ALVO_INTERNO: Readonly<Record<(typeof MODULOS)[number], string>> = {
-    academico: 'identidade/dominio/usuario',
-    avaliacao: 'academico/dominio/aluno',
-    comunicacao: 'identidade/dominio/papel',
-    identidade: 'academico/dominio/turma',
+  const pastaDeDominio = (modulo: string): string =>
+    existsSync(join(RAIZ_DO_PROJETO, 'src', modulo, 'domain')) ? 'domain' : 'dominio';
+
+  /** Um arquivo interno de OUTRO módulo: é o atalho que a regra proíbe. */
+  const alvoInterno = (modulo: string, modulos: readonly string[]): string => {
+    const outro = modulos.find((candidato) => candidato !== modulo) ?? modulo;
+    const pasta = pastaDeDominio(outro);
+    const arquivo = readdirSync(join(RAIZ_DO_PROJETO, 'src', outro, pasta))
+      .filter((nome) => nome.endsWith('.ts'))
+      .sort()[0];
+    return `${outro}/${pasta}/${(arquivo ?? '').replace(/\.ts$/, '')}`;
   };
+
+  const MODULOS = modulosDeDominio();
 
   const VIOLACOES: readonly Violacao[] = MODULOS.flatMap((modulo) => [
     {
       regra: 'no-cross-module-shortcut',
       caminho: `src/${modulo}/_violacao_de_teste.ts`,
       conteudo:
-        `import type * as Interno from '../${ALVO_INTERNO[modulo]}';\n` +
+        `import type * as Interno from '../${alvoInterno(modulo, MODULOS)}';\n` +
         'export type Atalho = keyof typeof Interno;\n',
     },
     {
       regra: 'pure-domain',
-      caminho: `src/${modulo}/dominio/_violacao_de_teste.ts`,
+      caminho: `src/${modulo}/${pastaDeDominio(modulo)}/_violacao_de_teste.ts`,
       conteudo:
         "import { reader } from '../../shared/db';\n" +
         'export const conexao = (): unknown => reader();\n',
@@ -85,10 +107,14 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
       regra: 'shared-knows-no-domain',
       caminho: `src/shared/_violacao_de_teste_${modulo}.ts`,
       conteudo:
-        `import { ${modulo} } from '../${modulo}';\n` +
-        `export const porta = (): unknown => ${modulo};\n`,
+        `import * as modulo from '../${modulo}';\n` +
+        'export const porta = (): unknown => modulo;\n',
     },
   ]);
+
+  test('a lista de módulos veio do disco e não está vazia', () => {
+    expect(MODULOS.length).toBeGreaterThanOrEqual(4);
+  });
 
   const rodarCheck = (): Promise<{ codigo: number; saida: string; erro: string }> =>
     rodarProcesso(['x', 'depcruise', 'src', '--config', 'config/.dependency-cruiser.js'], {});

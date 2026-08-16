@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { Hono } from 'hono';
-import { identidade } from '../identidade';
+import { identidade } from '../identity';
 import { ASSETS } from '../shared/constants';
 import {
   cacheControlMiddleware,

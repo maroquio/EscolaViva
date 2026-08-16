@@ -1,5 +1,5 @@
-import type { Papel } from './dominio/papel';
-import type { StatusDeRede } from './dominio/rede';
+import type { Papel } from './domain/role';
+import type { StatusDeRede } from './domain/network';
 
 export const PAPEL = {
   adminRede: 'network_admin',

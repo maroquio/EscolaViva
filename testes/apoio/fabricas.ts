@@ -5,7 +5,7 @@
  */
 
 import type { SituacaoMatricula } from '../../src/academico';
-import type { Papel } from '../../src/identidade';
+import type { Papel } from '../../src/identity';
 import { generateCpf } from '../../src/shared/document';
 import { sqlDeTeste } from './banco';
 

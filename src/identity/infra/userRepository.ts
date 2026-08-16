@@ -1,8 +1,8 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import { PAPEL } from '../constantes';
-import { paraPapel, type Papel, type PapelEmUnidade } from '../dominio/papel';
-import type { Usuario, UsuarioResumo } from '../dominio/usuario';
+import { PAPEL } from '../constants';
+import { paraPapel, type Papel, type PapelEmUnidade } from '../domain/role';
+import type { Usuario, UsuarioResumo } from '../domain/user';
 
 export type Credenciais = { usuario: Usuario; senhaHash: string };
 

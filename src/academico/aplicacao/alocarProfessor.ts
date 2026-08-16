@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { identidade } from '../../identidade/index';
+import { identidade } from '../../identity/index';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';

@@ -4,7 +4,7 @@ import { Eta } from 'eta';
 import type { Context } from 'hono';
 import { ROTULO_DE_BIMESTRE } from '../avaliacao';
 import { ALCANCE } from '../comunicacao';
-import { PAPEL } from '../identidade';
+import { PAPEL } from '../identity';
 import { config } from '../shared/config';
 import { ASSETS, DEVELOPMENT_ENV, KEY_FIELD, MISSING_VALUE } from '../shared/constants';
 import { formatCpf } from '../shared/document';

@@ -1,5 +1,5 @@
 import { MATRICULA_ATIVA, TURNOS } from '../src/academico';
-import { REDE_ATIVA } from '../src/identidade';
+import { REDE_ATIVA } from '../src/identity';
 import { config } from '../src/shared/config';
 import { LOCALE, PRODUCTION_ENV, TIME, WEEK_DAYS } from '../src/shared/constants';
 import { closeDatabase, writer, type Connection } from '../src/shared/db';

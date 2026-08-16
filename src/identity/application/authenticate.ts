@@ -5,13 +5,13 @@ import { normalizeCpf } from '../../shared/document';
 import { logger } from '../../shared/log';
 import { systemClock, uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, EVENTOS_DE_LOG, MENSAGENS, SEGURANCA } from '../constantes';
-import { redeAtiva } from '../dominio/rede';
-import { expiracaoDaSessao, type Sessao } from '../dominio/sessao';
-import { usuarioAutenticado, type UsuarioAutenticado } from '../dominio/usuario';
-import * as redeRepositorio from '../infra/redeRepositorio';
-import * as sessaoRepositorio from '../infra/sessaoRepositorio';
-import * as usuarioRepositorio from '../infra/usuarioRepositorio';
+import { CAMPOS, CODIGOS, EVENTOS_DE_LOG, MENSAGENS, SEGURANCA } from '../constants';
+import { redeAtiva } from '../domain/network';
+import { expiracaoDaSessao, type Sessao } from '../domain/session';
+import { usuarioAutenticado, type UsuarioAutenticado } from '../domain/user';
+import * as redeRepositorio from '../infra/networkRepository';
+import * as sessaoRepositorio from '../infra/sessionRepository';
+import * as usuarioRepositorio from '../infra/userRepository';
 
 const schema = z.object({
   redeSlug: z.string().trim().min(1, MENSAGENS.login.redeObrigatoria),

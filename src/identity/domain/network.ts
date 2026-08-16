@@ -1,4 +1,4 @@
-import { ERROS_INTERNOS, REDE_ATIVA } from '../constantes';
+import { ERROS_INTERNOS, REDE_ATIVA } from '../constants';
 
 export const STATUS_DE_REDE = ['active', 'suspended', 'cancelled'] as const;
 

@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { reader, unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
-import { TAMANHO_MINIMO_DE_SENHA } from '../dominio/usuario';
-import * as usuarioRepositorio from '../infra/usuarioRepositorio';
+import { CAMPOS, CODIGOS, MENSAGENS } from '../constants';
+import { TAMANHO_MINIMO_DE_SENHA } from '../domain/user';
+import * as usuarioRepositorio from '../infra/userRepository';
 
 const schema = z.object({
   usuarioId: z.string().uuid(MENSAGENS.senha.usuarioInvalido),
