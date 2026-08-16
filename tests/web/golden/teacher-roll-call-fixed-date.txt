@@ -1,4 +1,4 @@
-GET /teacher/class-groups/{{turma1}}/roll-call?date=2026-03-05
+GET /teacher/class-groups/{{classGroup1}}/roll-call?date=2026-03-05
 role: teacher
 status: 200
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Chamada · 6A · EscolaViva</title>
-  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{cssHash}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -33,7 +33,7 @@ Vary: Cookie
   <div class="header__user">
     <span class="header__name" title="carla@golden.test">Carla Professora</span>
     <form class="header__signout" method="post" action="/logout">
-      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{key}}">
       <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
@@ -70,7 +70,7 @@ Vary: Cookie
     </p>
   </div>
   <p class="page__actions">
-    <a class="button button--quiet" href="/teacher/class-groups/{{turma1}}/closing">Fechamento</a>
+    <a class="button button--quiet" href="/teacher/class-groups/{{classGroup1}}/closing">Fechamento</a>
     <a class="button button--quiet" href="/teacher">Minhas turmas</a>
   </p>
 </div>
@@ -78,16 +78,16 @@ Vary: Cookie
 <div class="actions">
   <nav class="row" aria-label="Dia da chamada">
     <a class="button button--secondary" rel="prev"
-       href="/teacher/class-groups/{{turma1}}/roll-call?date=2026-03-04">
+       href="/teacher/class-groups/{{classGroup1}}/roll-call?date=2026-03-04">
       Dia anterior · <time class="number" datetime="2026-03-04">04/03/2026</time>
     </a>
     <a class="button button--secondary" rel="next"
-       href="/teacher/class-groups/{{turma1}}/roll-call?date=2026-03-06">
+       href="/teacher/class-groups/{{classGroup1}}/roll-call?date=2026-03-06">
       Dia seguinte · <time class="number" datetime="2026-03-06">06/03/2026</time>
     </a>
   </nav>
 
-  <form class="row" method="get" action="/teacher/class-groups/{{turma1}}/roll-call">
+  <form class="row" method="get" action="/teacher/class-groups/{{classGroup1}}/roll-call">
     <label class="field__label" for="go-to-day">Ir para o dia</label>
     <span class="field">
       <input type="date" id="go-to-day" name="date" value="2026-03-05">
@@ -97,8 +97,8 @@ Vary: Cookie
 </div>
 
 
-<form class="form form--wide" method="post" action="/teacher/class-groups/{{turma1}}/roll-call">
-  <input type="hidden" name="_key" value="{{chave}}">
+<form class="form form--wide" method="post" action="/teacher/class-groups/{{classGroup1}}/roll-call">
+  <input type="hidden" name="_key" value="{{key}}">
   <input type="hidden" name="date" value="2026-03-05">
 
   <div class="table-scroll">
@@ -115,252 +115,252 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 01 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula01}}">
+            <label class="visually-hidden" for="present_{{enrollment01}}">
               Aluno 01 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula01}}"
-                   name="present_{{matricula01}}"
+                   id="present_{{enrollment01}}"
+                   name="present_{{enrollment01}}"
                    >
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula01}}">
+            <label class="visually-hidden" for="excuse_{{enrollment01}}">
               Justificativa da falta de Aluno 01 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula01}}"
-                   name="excuse_{{matricula01}}"
+                   id="excuse_{{enrollment01}}"
+                   name="excuse_{{enrollment01}}"
                    value="Consulta médica com atestado.">
           </td>
         </tr>
                 <tr>
           <th scope="row">Aluno 02 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula02}}">
+            <label class="visually-hidden" for="present_{{enrollment02}}">
               Aluno 02 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula02}}"
-                   name="present_{{matricula02}}"
+                   id="present_{{enrollment02}}"
+                   name="present_{{enrollment02}}"
                    checked>
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula02}}">
+            <label class="visually-hidden" for="excuse_{{enrollment02}}">
               Justificativa da falta de Aluno 02 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula02}}"
-                   name="excuse_{{matricula02}}"
+                   id="excuse_{{enrollment02}}"
+                   name="excuse_{{enrollment02}}"
                    value="">
           </td>
         </tr>
                 <tr>
           <th scope="row">Aluno 03 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula03}}">
+            <label class="visually-hidden" for="present_{{enrollment03}}">
               Aluno 03 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula03}}"
-                   name="present_{{matricula03}}"
+                   id="present_{{enrollment03}}"
+                   name="present_{{enrollment03}}"
                    checked>
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula03}}">
+            <label class="visually-hidden" for="excuse_{{enrollment03}}">
               Justificativa da falta de Aluno 03 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula03}}"
-                   name="excuse_{{matricula03}}"
+                   id="excuse_{{enrollment03}}"
+                   name="excuse_{{enrollment03}}"
                    value="">
           </td>
         </tr>
                 <tr>
           <th scope="row">Aluno 04 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula04}}">
+            <label class="visually-hidden" for="present_{{enrollment04}}">
               Aluno 04 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula04}}"
-                   name="present_{{matricula04}}"
+                   id="present_{{enrollment04}}"
+                   name="present_{{enrollment04}}"
                    checked>
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula04}}">
+            <label class="visually-hidden" for="excuse_{{enrollment04}}">
               Justificativa da falta de Aluno 04 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula04}}"
-                   name="excuse_{{matricula04}}"
+                   id="excuse_{{enrollment04}}"
+                   name="excuse_{{enrollment04}}"
                    value="">
           </td>
         </tr>
                 <tr>
           <th scope="row">Aluno 05 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula05}}">
+            <label class="visually-hidden" for="present_{{enrollment05}}">
               Aluno 05 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula05}}"
-                   name="present_{{matricula05}}"
+                   id="present_{{enrollment05}}"
+                   name="present_{{enrollment05}}"
                    checked>
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula05}}">
+            <label class="visually-hidden" for="excuse_{{enrollment05}}">
               Justificativa da falta de Aluno 05 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula05}}"
-                   name="excuse_{{matricula05}}"
+                   id="excuse_{{enrollment05}}"
+                   name="excuse_{{enrollment05}}"
                    value="">
           </td>
         </tr>
                 <tr>
           <th scope="row">Aluno 06 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula06}}">
+            <label class="visually-hidden" for="present_{{enrollment06}}">
               Aluno 06 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula06}}"
-                   name="present_{{matricula06}}"
+                   id="present_{{enrollment06}}"
+                   name="present_{{enrollment06}}"
                    checked>
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula06}}">
+            <label class="visually-hidden" for="excuse_{{enrollment06}}">
               Justificativa da falta de Aluno 06 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula06}}"
-                   name="excuse_{{matricula06}}"
+                   id="excuse_{{enrollment06}}"
+                   name="excuse_{{enrollment06}}"
                    value="">
           </td>
         </tr>
                 <tr>
           <th scope="row">Aluno 07 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula07}}">
+            <label class="visually-hidden" for="present_{{enrollment07}}">
               Aluno 07 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula07}}"
-                   name="present_{{matricula07}}"
+                   id="present_{{enrollment07}}"
+                   name="present_{{enrollment07}}"
                    checked>
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula07}}">
+            <label class="visually-hidden" for="excuse_{{enrollment07}}">
               Justificativa da falta de Aluno 07 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula07}}"
-                   name="excuse_{{matricula07}}"
+                   id="excuse_{{enrollment07}}"
+                   name="excuse_{{enrollment07}}"
                    value="">
           </td>
         </tr>
                 <tr>
           <th scope="row">Aluno 08 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula08}}">
+            <label class="visually-hidden" for="present_{{enrollment08}}">
               Aluno 08 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula08}}"
-                   name="present_{{matricula08}}"
+                   id="present_{{enrollment08}}"
+                   name="present_{{enrollment08}}"
                    checked>
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula08}}">
+            <label class="visually-hidden" for="excuse_{{enrollment08}}">
               Justificativa da falta de Aluno 08 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula08}}"
-                   name="excuse_{{matricula08}}"
+                   id="excuse_{{enrollment08}}"
+                   name="excuse_{{enrollment08}}"
                    value="">
           </td>
         </tr>
                 <tr>
           <th scope="row">Aluno 09 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula09}}">
+            <label class="visually-hidden" for="present_{{enrollment09}}">
               Aluno 09 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula09}}"
-                   name="present_{{matricula09}}"
+                   id="present_{{enrollment09}}"
+                   name="present_{{enrollment09}}"
                    checked>
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula09}}">
+            <label class="visually-hidden" for="excuse_{{enrollment09}}">
               Justificativa da falta de Aluno 09 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula09}}"
-                   name="excuse_{{matricula09}}"
+                   id="excuse_{{enrollment09}}"
+                   name="excuse_{{enrollment09}}"
                    value="">
           </td>
         </tr>
                 <tr>
           <th scope="row">Aluno 10 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula10}}">
+            <label class="visually-hidden" for="present_{{enrollment10}}">
               Aluno 10 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula10}}"
-                   name="present_{{matricula10}}"
+                   id="present_{{enrollment10}}"
+                   name="present_{{enrollment10}}"
                    checked>
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula10}}">
+            <label class="visually-hidden" for="excuse_{{enrollment10}}">
               Justificativa da falta de Aluno 10 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula10}}"
-                   name="excuse_{{matricula10}}"
+                   id="excuse_{{enrollment10}}"
+                   name="excuse_{{enrollment10}}"
                    value="">
           </td>
         </tr>
                 <tr>
           <th scope="row">Aluno 11 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula11}}">
+            <label class="visually-hidden" for="present_{{enrollment11}}">
               Aluno 11 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula11}}"
-                   name="present_{{matricula11}}"
+                   id="present_{{enrollment11}}"
+                   name="present_{{enrollment11}}"
                    checked>
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula11}}">
+            <label class="visually-hidden" for="excuse_{{enrollment11}}">
               Justificativa da falta de Aluno 11 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula11}}"
-                   name="excuse_{{matricula11}}"
+                   id="excuse_{{enrollment11}}"
+                   name="excuse_{{enrollment11}}"
                    value="">
           </td>
         </tr>
                 <tr>
           <th scope="row">Aluno 12 da Silva</th>
           <td>
-            <label class="visually-hidden" for="present_{{matricula12}}">
+            <label class="visually-hidden" for="present_{{enrollment12}}">
               Aluno 12 da Silva esteve presente em 05/03/2026            </label>
             <input type="checkbox"
-                   id="present_{{matricula12}}"
-                   name="present_{{matricula12}}"
+                   id="present_{{enrollment12}}"
+                   name="present_{{enrollment12}}"
                    checked>
           </td>
           <td class="cell-text">
-            <label class="visually-hidden" for="excuse_{{matricula12}}">
+            <label class="visually-hidden" for="excuse_{{enrollment12}}">
               Justificativa da falta de Aluno 12 da Silva            </label>
             <input type="text"
                    autocomplete="off"
                    maxlength="500"
-                   id="excuse_{{matricula12}}"
-                   name="excuse_{{matricula12}}"
+                   id="excuse_{{enrollment12}}"
+                   name="excuse_{{enrollment12}}"
                    value="">
           </td>
         </tr>

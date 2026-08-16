@@ -1,4 +1,4 @@
-GET /teacher/class-groups/{{turma1}}/closing
+GET /teacher/class-groups/{{classGroup1}}/closing
 role: teacher
 status: 200
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Fechamento · 6A · EscolaViva</title>
-  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{cssHash}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -33,7 +33,7 @@ Vary: Cookie
   <div class="header__user">
     <span class="header__name" title="carla@golden.test">Carla Professora</span>
     <form class="header__signout" method="post" action="/logout">
-      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{key}}">
       <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
@@ -71,7 +71,7 @@ Vary: Cookie
     </p>
   </div>
   <p class="page__actions">
-    <a class="button button--quiet" href="/teacher/class-groups/{{turma1}}/roll-call">Chamada</a>
+    <a class="button button--quiet" href="/teacher/class-groups/{{classGroup1}}/roll-call">Chamada</a>
     <a class="button button--quiet" href="/teacher">Minhas turmas</a>
   </p>
 </div>
@@ -86,7 +86,7 @@ Vary: Cookie
 
         <dl class="definition-list">
       <dt>Fechado em</dt>
-      <dd><time class="number" datetime="{{carimboDeTempo}}">20/04/2026 {{hora}}</time></dd>
+      <dd><time class="number" datetime="{{timestamp}}">20/04/2026 {{time}}</time></dd>
     </dl>
     <p class="muted">As notas deste bimestre não podem mais ser alteradas.</p>
       </li>
@@ -102,18 +102,18 @@ Vary: Cookie
         <p class="muted">Minhas disciplinas nesta turma:</p>
     <ul class="row">
             <li>
-        <a href="/teacher/subjects/{{alocacao3}}/grades?term=2">História</a>
+        <a href="/teacher/subjects/{{assignment3}}/grades?term=2">História</a>
       </li>
             <li>
-        <a href="/teacher/subjects/{{alocacao1}}/grades?term=2">Língua Portuguesa</a>
+        <a href="/teacher/subjects/{{assignment1}}/grades?term=2">Língua Portuguesa</a>
       </li>
             <li>
-        <a href="/teacher/subjects/{{alocacao2}}/grades?term=2">Matemática</a>
+        <a href="/teacher/subjects/{{assignment2}}/grades?term=2">Matemática</a>
       </li>
           </ul>
     
-    <form class="actions" method="post" action="/teacher/class-groups/{{turma1}}/closing">
-      <input type="hidden" name="_key" value="{{chave}}">
+    <form class="actions" method="post" action="/teacher/class-groups/{{classGroup1}}/closing">
+      <input type="hidden" name="_key" value="{{key}}">
       <input type="hidden" name="term" value="2">
       <button class="button button--primary" type="submit"
               >
@@ -135,18 +135,18 @@ Vary: Cookie
         <p class="muted">Minhas disciplinas nesta turma:</p>
     <ul class="row">
             <li>
-        <a href="/teacher/subjects/{{alocacao3}}/grades?term=3">História</a>
+        <a href="/teacher/subjects/{{assignment3}}/grades?term=3">História</a>
       </li>
             <li>
-        <a href="/teacher/subjects/{{alocacao1}}/grades?term=3">Língua Portuguesa</a>
+        <a href="/teacher/subjects/{{assignment1}}/grades?term=3">Língua Portuguesa</a>
       </li>
             <li>
-        <a href="/teacher/subjects/{{alocacao2}}/grades?term=3">Matemática</a>
+        <a href="/teacher/subjects/{{assignment2}}/grades?term=3">Matemática</a>
       </li>
           </ul>
     
-    <form class="actions" method="post" action="/teacher/class-groups/{{turma1}}/closing">
-      <input type="hidden" name="_key" value="{{chave}}">
+    <form class="actions" method="post" action="/teacher/class-groups/{{classGroup1}}/closing">
+      <input type="hidden" name="_key" value="{{key}}">
       <input type="hidden" name="term" value="3">
       <button class="button button--primary" type="submit"
               >
@@ -168,18 +168,18 @@ Vary: Cookie
         <p class="muted">Minhas disciplinas nesta turma:</p>
     <ul class="row">
             <li>
-        <a href="/teacher/subjects/{{alocacao3}}/grades?term=4">História</a>
+        <a href="/teacher/subjects/{{assignment3}}/grades?term=4">História</a>
       </li>
             <li>
-        <a href="/teacher/subjects/{{alocacao1}}/grades?term=4">Língua Portuguesa</a>
+        <a href="/teacher/subjects/{{assignment1}}/grades?term=4">Língua Portuguesa</a>
       </li>
             <li>
-        <a href="/teacher/subjects/{{alocacao2}}/grades?term=4">Matemática</a>
+        <a href="/teacher/subjects/{{assignment2}}/grades?term=4">Matemática</a>
       </li>
           </ul>
     
-    <form class="actions" method="post" action="/teacher/class-groups/{{turma1}}/closing">
-      <input type="hidden" name="_key" value="{{chave}}">
+    <form class="actions" method="post" action="/teacher/class-groups/{{classGroup1}}/closing">
+      <input type="hidden" name="_key" value="{{key}}">
       <input type="hidden" name="term" value="4">
       <button class="button button--primary" type="submit"
               >

@@ -1,4 +1,4 @@
-GET /announcements/new?schoolId={{unidadeA}}
+GET /announcements/new?schoolId={{schoolA}}
 role: admin
 status: 200
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Novo comunicado · EscolaViva</title>
-  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{cssHash}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -34,7 +34,7 @@ Vary: Cookie
   <div class="header__user">
     <span class="header__name" title="alice@golden.test">Alice Diretora</span>
     <form class="header__signout" method="post" action="/logout">
-      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{key}}">
       <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
@@ -102,8 +102,8 @@ Vary: Cookie
   </div>
 
   <form class="form form--wide" method="post" action="/announcements/new">
-    <input type="hidden" name="_key" value="{{chave}}">
-    <input type="hidden" name="schoolId" value="{{unidadeA}}">
+    <input type="hidden" name="_key" value="{{key}}">
+    <input type="hidden" name="schoolId" value="{{schoolA}}">
 
     <div class="field reading">
       <label class="field__label" for="title">
@@ -162,87 +162,87 @@ Vary: Cookie
 
         <ul class="options-grid">
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel01}}"
-                   name="guardians[]" value="{{responsavel01}}"
+            <input type="checkbox" id="guardian-{{guardian01}}"
+                   name="guardians[]" value="{{guardian01}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel01}}">
+            <label class="field__label" for="guardian-{{guardian01}}">
               Responsável 01 da Silva            </label>
           </li>
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel02}}"
-                   name="guardians[]" value="{{responsavel02}}"
+            <input type="checkbox" id="guardian-{{guardian02}}"
+                   name="guardians[]" value="{{guardian02}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel02}}">
+            <label class="field__label" for="guardian-{{guardian02}}">
               Responsável 02 da Silva            </label>
           </li>
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel03}}"
-                   name="guardians[]" value="{{responsavel03}}"
+            <input type="checkbox" id="guardian-{{guardian03}}"
+                   name="guardians[]" value="{{guardian03}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel03}}">
+            <label class="field__label" for="guardian-{{guardian03}}">
               Responsável 03 da Silva            </label>
           </li>
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel04}}"
-                   name="guardians[]" value="{{responsavel04}}"
+            <input type="checkbox" id="guardian-{{guardian04}}"
+                   name="guardians[]" value="{{guardian04}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel04}}">
+            <label class="field__label" for="guardian-{{guardian04}}">
               Responsável 04 da Silva            </label>
           </li>
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel05}}"
-                   name="guardians[]" value="{{responsavel05}}"
+            <input type="checkbox" id="guardian-{{guardian05}}"
+                   name="guardians[]" value="{{guardian05}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel05}}">
+            <label class="field__label" for="guardian-{{guardian05}}">
               Responsável 05 da Silva            </label>
           </li>
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel06}}"
-                   name="guardians[]" value="{{responsavel06}}"
+            <input type="checkbox" id="guardian-{{guardian06}}"
+                   name="guardians[]" value="{{guardian06}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel06}}">
+            <label class="field__label" for="guardian-{{guardian06}}">
               Responsável 06 da Silva            </label>
           </li>
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel07}}"
-                   name="guardians[]" value="{{responsavel07}}"
+            <input type="checkbox" id="guardian-{{guardian07}}"
+                   name="guardians[]" value="{{guardian07}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel07}}">
+            <label class="field__label" for="guardian-{{guardian07}}">
               Responsável 07 da Silva            </label>
           </li>
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel08}}"
-                   name="guardians[]" value="{{responsavel08}}"
+            <input type="checkbox" id="guardian-{{guardian08}}"
+                   name="guardians[]" value="{{guardian08}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel08}}">
+            <label class="field__label" for="guardian-{{guardian08}}">
               Responsável 08 da Silva            </label>
           </li>
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel09}}"
-                   name="guardians[]" value="{{responsavel09}}"
+            <input type="checkbox" id="guardian-{{guardian09}}"
+                   name="guardians[]" value="{{guardian09}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel09}}">
+            <label class="field__label" for="guardian-{{guardian09}}">
               Responsável 09 da Silva            </label>
           </li>
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel10}}"
-                   name="guardians[]" value="{{responsavel10}}"
+            <input type="checkbox" id="guardian-{{guardian10}}"
+                   name="guardians[]" value="{{guardian10}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel10}}">
+            <label class="field__label" for="guardian-{{guardian10}}">
               Responsável 10 da Silva            </label>
           </li>
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel11}}"
-                   name="guardians[]" value="{{responsavel11}}"
+            <input type="checkbox" id="guardian-{{guardian11}}"
+                   name="guardians[]" value="{{guardian11}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel11}}">
+            <label class="field__label" for="guardian-{{guardian11}}">
               Responsável 11 da Silva            </label>
           </li>
                     <li class="field field--choice">
-            <input type="checkbox" id="guardian-{{responsavel12}}"
-                   name="guardians[]" value="{{responsavel12}}"
+            <input type="checkbox" id="guardian-{{guardian12}}"
+                   name="guardians[]" value="{{guardian12}}"
                    >
-            <label class="field__label" for="guardian-{{responsavel12}}">
+            <label class="field__label" for="guardian-{{guardian12}}">
               Responsável 12 da Silva            </label>
           </li>
                   </ul>

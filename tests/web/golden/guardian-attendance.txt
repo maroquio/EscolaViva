@@ -1,4 +1,4 @@
-GET /guardian/enrollments/{{matricula01}}/attendance
+GET /guardian/enrollments/{{enrollment01}}/attendance
 role: guardian
 status: 200
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Frequência de Aluno 01 da Silva · EscolaViva</title>
-  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{cssHash}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -33,7 +33,7 @@ Vary: Cookie
   <div class="header__user">
     <span class="header__name" title="portal01@golden.test">Responsável 01 da Silva</span>
     <form class="header__signout" method="post" action="/logout">
-      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{key}}">
       <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
@@ -74,7 +74,7 @@ Vary: Cookie
   </div>
   <p class="page__actions">
     <a class="button button--secondary"
-       href="/guardian/enrollments/{{matricula01}}/report-card">Ver boletim</a>
+       href="/guardian/enrollments/{{enrollment01}}/report-card">Ver boletim</a>
     <a class="button button--quiet" href="/guardian">Voltar aos alunos</a>
   </p>
 </header>
@@ -245,12 +245,12 @@ Vary: Cookie
         1      </span>
           </li>
         <li>
-            <a class="pagination__number" href="/guardian/enrollments/{{matricula01}}/attendance?p=2" aria-label="Página 2">
+            <a class="pagination__number" href="/guardian/enrollments/{{enrollment01}}/attendance?p=2" aria-label="Página 2">
         2      </a>
           </li>
     
     <li>
-            <a class="pagination__step" href="/guardian/enrollments/{{matricula01}}/attendance?p=2" rel="next">
+            <a class="pagination__step" href="/guardian/enrollments/{{enrollment01}}/attendance?p=2" rel="next">
         Próxima <span aria-hidden="true">&rsaquo;</span>
       </a>
           </li>

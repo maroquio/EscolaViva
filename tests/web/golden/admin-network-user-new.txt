@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Convidar usuário · EscolaViva</title>
-  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{cssHash}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -34,7 +34,7 @@ Vary: Cookie
   <div class="header__user">
     <span class="header__name" title="alice@golden.test">Alice Diretora</span>
     <form class="header__signout" method="post" action="/logout">
-      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{key}}">
       <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
@@ -91,7 +91,7 @@ Vary: Cookie
 
 <div class="panel">
   <form class="form form--wide" method="post" action="/network/users">
-    <input type="hidden" name="_key" value="{{chave}}">
+    <input type="hidden" name="_key" value="{{key}}">
 
     <div class="form__row">
       <div class="field">
@@ -152,8 +152,8 @@ Vary: Cookie
             <label class="field__label" for="school-0">Unidade 1</label>
             <select id="school-0" name="schools[]">
               <option value="">Sem atribuição</option>
-                            <option value="{{unidadeA}}" >Escola Central</option>
-                            <option value="{{unidadeB}}" >Escola do Bairro</option>
+                            <option value="{{schoolA}}" >Escola Central</option>
+                            <option value="{{schoolB}}" >Escola do Bairro</option>
                           </select>
           </div>
 
@@ -173,8 +173,8 @@ Vary: Cookie
             <label class="field__label" for="school-1">Unidade 2</label>
             <select id="school-1" name="schools[]">
               <option value="">Sem atribuição</option>
-                            <option value="{{unidadeA}}" >Escola Central</option>
-                            <option value="{{unidadeB}}" >Escola do Bairro</option>
+                            <option value="{{schoolA}}" >Escola Central</option>
+                            <option value="{{schoolB}}" >Escola do Bairro</option>
                           </select>
           </div>
 
@@ -194,8 +194,8 @@ Vary: Cookie
             <label class="field__label" for="school-2">Unidade 3</label>
             <select id="school-2" name="schools[]">
               <option value="">Sem atribuição</option>
-                            <option value="{{unidadeA}}" >Escola Central</option>
-                            <option value="{{unidadeB}}" >Escola do Bairro</option>
+                            <option value="{{schoolA}}" >Escola Central</option>
+                            <option value="{{schoolB}}" >Escola do Bairro</option>
                           </select>
           </div>
 
@@ -220,18 +220,18 @@ Vary: Cookie
         name="guardianId"
                 aria-describedby="guardianId-help">
         <option value="">Nenhum</option>
-                <option value="{{responsavel01}}" >Responsável 01 da Silva — responsavel01@golden.test</option>
-                <option value="{{responsavel02}}" >Responsável 02 da Silva — responsavel02@golden.test</option>
-                <option value="{{responsavel03}}" >Responsável 03 da Silva — responsavel03@golden.test</option>
-                <option value="{{responsavel04}}" >Responsável 04 da Silva — responsavel04@golden.test</option>
-                <option value="{{responsavel05}}" >Responsável 05 da Silva — responsavel05@golden.test</option>
-                <option value="{{responsavel06}}" >Responsável 06 da Silva — responsavel06@golden.test</option>
-                <option value="{{responsavel07}}" >Responsável 07 da Silva — responsavel07@golden.test</option>
-                <option value="{{responsavel08}}" >Responsável 08 da Silva — responsavel08@golden.test</option>
-                <option value="{{responsavel09}}" >Responsável 09 da Silva — responsavel09@golden.test</option>
-                <option value="{{responsavel10}}" >Responsável 10 da Silva — responsavel10@golden.test</option>
-                <option value="{{responsavel11}}" >Responsável 11 da Silva — responsavel11@golden.test</option>
-                <option value="{{responsavel12}}" >Responsável 12 da Silva — responsavel12@golden.test</option>
+                <option value="{{guardian01}}" >Responsável 01 da Silva — responsavel01@golden.test</option>
+                <option value="{{guardian02}}" >Responsável 02 da Silva — responsavel02@golden.test</option>
+                <option value="{{guardian03}}" >Responsável 03 da Silva — responsavel03@golden.test</option>
+                <option value="{{guardian04}}" >Responsável 04 da Silva — responsavel04@golden.test</option>
+                <option value="{{guardian05}}" >Responsável 05 da Silva — responsavel05@golden.test</option>
+                <option value="{{guardian06}}" >Responsável 06 da Silva — responsavel06@golden.test</option>
+                <option value="{{guardian07}}" >Responsável 07 da Silva — responsavel07@golden.test</option>
+                <option value="{{guardian08}}" >Responsável 08 da Silva — responsavel08@golden.test</option>
+                <option value="{{guardian09}}" >Responsável 09 da Silva — responsavel09@golden.test</option>
+                <option value="{{guardian10}}" >Responsável 10 da Silva — responsavel10@golden.test</option>
+                <option value="{{guardian11}}" >Responsável 11 da Silva — responsavel11@golden.test</option>
+                <option value="{{guardian12}}" >Responsável 12 da Silva — responsavel12@golden.test</option>
               </select>
       <p class="field__help" id="guardianId-help">
         Obrigatório quando alguma atribuição acima for Responsável: é esse cadastro que liga a

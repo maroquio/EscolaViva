@@ -1,4 +1,4 @@
-GET /registrar/class-groups/{{turma1}}?pEnrollments=2
+GET /registrar/class-groups/{{classGroup1}}?pEnrollments=2
 role: registrar
 status: 200
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Turma 6A · EscolaViva</title>
-  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{cssHash}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -33,7 +33,7 @@ Vary: Cookie
   <div class="header__user">
     <span class="header__name" title="bruno@golden.test">Bruno Secretário</span>
     <form class="header__signout" method="post" action="/logout">
-      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{key}}">
       <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
@@ -136,7 +136,7 @@ Vary: Cookie
   </nav>
 
     <div class="actions">
-      <a class="button button--primary" href="/registrar/class-groups/{{turma1}}/subjects/new">
+      <a class="button button--primary" href="/registrar/class-groups/{{classGroup1}}/subjects/new">
         Alocar disciplina e professor
       </a>
     </div>
@@ -171,7 +171,7 @@ Vary: Cookie
           </td>
           <td class="cell-center">
             <div class="table__actions">
-              <a class="button button--secondary button--small" href="/registrar/students/{{aluno11}}">
+              <a class="button button--secondary button--small" href="/registrar/students/{{student11}}">
                 Abrir ficha<span class="visually-hidden"> de Aluno 11 da Silva</span>
               </a>
             </div>
@@ -185,7 +185,7 @@ Vary: Cookie
           </td>
           <td class="cell-center">
             <div class="table__actions">
-              <a class="button button--secondary button--small" href="/registrar/students/{{aluno12}}">
+              <a class="button button--secondary button--small" href="/registrar/students/{{student12}}">
                 Abrir ficha<span class="visually-hidden"> de Aluno 12 da Silva</span>
               </a>
             </div>
@@ -201,13 +201,13 @@ Vary: Cookie
 
     <ul class="pagination__list">
     <li>
-            <a class="pagination__step" href="/registrar/class-groups/{{turma1}}" rel="prev">
+            <a class="pagination__step" href="/registrar/class-groups/{{classGroup1}}" rel="prev">
         <span aria-hidden="true">&lsaquo;</span> Anterior
       </a>
           </li>
 
         <li>
-            <a class="pagination__number" href="/registrar/class-groups/{{turma1}}" aria-label="Página 1">
+            <a class="pagination__number" href="/registrar/class-groups/{{classGroup1}}" aria-label="Página 1">
         1      </a>
           </li>
         <li>

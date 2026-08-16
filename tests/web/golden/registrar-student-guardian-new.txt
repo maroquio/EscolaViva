@@ -1,4 +1,4 @@
-GET /registrar/students/{{aluno01}}/guardians/new
+GET /registrar/students/{{student01}}/guardians/new
 role: registrar
 status: 200
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Vincular responsável · EscolaViva</title>
-  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{cssHash}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -33,7 +33,7 @@ Vary: Cookie
   <div class="header__user">
     <span class="header__name" title="bruno@golden.test">Bruno Secretário</span>
     <form class="header__signout" method="post" action="/logout">
-      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{key}}">
       <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
@@ -89,13 +89,13 @@ Vary: Cookie
     </p>
   </div>
   <div class="page__actions">
-    <a class="button button--secondary" href="/registrar/students/{{aluno01}}">Voltar à ficha</a>
+    <a class="button button--secondary" href="/registrar/students/{{student01}}">Voltar à ficha</a>
   </div>
 </div>
 
 <div class="panel">
-    <form class="form" method="post" action="/registrar/students/{{aluno01}}/guardians">
-    <input type="hidden" name="_key" value="{{chave}}">
+    <form class="form" method="post" action="/registrar/students/{{student01}}/guardians">
+    <input type="hidden" name="_key" value="{{key}}">
 
     <div class="form__row">
       <div class="field">
@@ -108,27 +108,27 @@ Vary: Cookie
           required
                     >
           <option value="">Selecione…</option>
-                    <option value="{{responsavel02}}" >
+                    <option value="{{guardian02}}" >
             Responsável 02 da Silva — responsavel02@golden.test          </option>
-                    <option value="{{responsavel03}}" >
+                    <option value="{{guardian03}}" >
             Responsável 03 da Silva — responsavel03@golden.test          </option>
-                    <option value="{{responsavel04}}" >
+                    <option value="{{guardian04}}" >
             Responsável 04 da Silva — responsavel04@golden.test          </option>
-                    <option value="{{responsavel05}}" >
+                    <option value="{{guardian05}}" >
             Responsável 05 da Silva — responsavel05@golden.test          </option>
-                    <option value="{{responsavel06}}" >
+                    <option value="{{guardian06}}" >
             Responsável 06 da Silva — responsavel06@golden.test          </option>
-                    <option value="{{responsavel07}}" >
+                    <option value="{{guardian07}}" >
             Responsável 07 da Silva — responsavel07@golden.test          </option>
-                    <option value="{{responsavel08}}" >
+                    <option value="{{guardian08}}" >
             Responsável 08 da Silva — responsavel08@golden.test          </option>
-                    <option value="{{responsavel09}}" >
+                    <option value="{{guardian09}}" >
             Responsável 09 da Silva — responsavel09@golden.test          </option>
-                    <option value="{{responsavel10}}" >
+                    <option value="{{guardian10}}" >
             Responsável 10 da Silva — responsavel10@golden.test          </option>
-                    <option value="{{responsavel11}}" >
+                    <option value="{{guardian11}}" >
             Responsável 11 da Silva — responsavel11@golden.test          </option>
-                    <option value="{{responsavel12}}" >
+                    <option value="{{guardian12}}" >
             Responsável 12 da Silva — responsavel12@golden.test          </option>
                   </select>
               </div>
@@ -167,7 +167,7 @@ Vary: Cookie
 
     <div class="actions">
       <button class="button button--primary" type="submit">Vincular responsável</button>
-      <a class="button button--quiet" href="/registrar/students/{{aluno01}}">Cancelar</a>
+      <a class="button button--quiet" href="/registrar/students/{{student01}}">Cancelar</a>
     </div>
   </form>
   </div>

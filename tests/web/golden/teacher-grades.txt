@@ -1,4 +1,4 @@
-GET /teacher/subjects/{{alocacao1}}/grades
+GET /teacher/subjects/{{assignment1}}/grades
 role: teacher
 status: 200
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Língua Portuguesa · 6A · EscolaViva</title>
-  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{cssHash}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -33,7 +33,7 @@ Vary: Cookie
   <div class="header__user">
     <span class="header__name" title="carla@golden.test">Carla Professora</span>
     <form class="header__signout" method="post" action="/logout">
-      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{key}}">
       <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
@@ -70,8 +70,8 @@ Vary: Cookie
     </p>
   </div>
   <p class="page__actions">
-    <a class="button button--quiet" href="/teacher/class-groups/{{turma1}}/roll-call">Chamada</a>
-    <a class="button button--quiet" href="/teacher/class-groups/{{turma1}}/closing">Fechamento</a>
+    <a class="button button--quiet" href="/teacher/class-groups/{{classGroup1}}/roll-call">Chamada</a>
+    <a class="button button--quiet" href="/teacher/class-groups/{{classGroup1}}/closing">Fechamento</a>
     <a class="button button--quiet" href="/teacher">Minhas turmas</a>
   </p>
 </div>
@@ -79,16 +79,16 @@ Vary: Cookie
 <nav class="actions" aria-label="Bimestre">
   <span class="overline">Bimestre</span>
     <a class="button button--secondary"
-     href="/teacher/subjects/{{alocacao1}}/grades?term=1"
+     href="/teacher/subjects/{{assignment1}}/grades?term=1"
      aria-current="page">1º</a>
     <a class="button button--quiet"
-     href="/teacher/subjects/{{alocacao1}}/grades?term=2"
+     href="/teacher/subjects/{{assignment1}}/grades?term=2"
      >2º</a>
     <a class="button button--quiet"
-     href="/teacher/subjects/{{alocacao1}}/grades?term=3"
+     href="/teacher/subjects/{{assignment1}}/grades?term=3"
      >3º</a>
     <a class="button button--quiet"
-     href="/teacher/subjects/{{alocacao1}}/grades?term=4"
+     href="/teacher/subjects/{{assignment1}}/grades?term=4"
      >4º</a>
   </nav>
 

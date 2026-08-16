@@ -1,4 +1,4 @@
-GET /registrar/class-groups?school={{unidadeA}}&year={{anoCorrente}}
+GET /registrar/class-groups?school={{schoolA}}&year={{currentYear}}
 role: registrar
 status: 200
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Turmas · EscolaViva</title>
-  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{cssHash}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -33,7 +33,7 @@ Vary: Cookie
   <div class="header__user">
     <span class="header__name" title="bruno@golden.test">Bruno Secretário</span>
     <form class="header__signout" method="post" action="/logout">
-      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{key}}">
       <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
@@ -102,7 +102,7 @@ Vary: Cookie
         <label class="field__label" for="school">Unidade</label>
         <select id="school" name="school">
           <option value="">Todas as suas unidades</option>
-                    <option value="{{unidadeA}}" selected>
+                    <option value="{{schoolA}}" selected>
             Escola Central          </option>
                   </select>
       </div>
@@ -111,9 +111,9 @@ Vary: Cookie
         <label class="field__label" for="year">Ano letivo</label>
         <select id="year" name="year">
           <option value="">Todos os anos</option>
-                    <option value="{{anoCorrente}}" selected>
+                    <option value="{{currentYear}}" selected>
             2026          </option>
-                    <option value="{{anoAnterior}}" >
+                    <option value="{{previousYear}}" >
             2025          </option>
                   </select>
       </div>
@@ -156,7 +156,7 @@ Vary: Cookie
           <td class="number cell-center">2026</td>
           <td class="cell-center">
             <div class="table__actions">
-              <a class="button button--secondary button--small" href="/registrar/class-groups/{{turma1}}">
+              <a class="button button--secondary button--small" href="/registrar/class-groups/{{classGroup1}}">
                 Abrir<span class="visually-hidden"> turma 6A</span>
               </a>
             </div>
@@ -170,7 +170,7 @@ Vary: Cookie
           <td class="number cell-center">2026</td>
           <td class="cell-center">
             <div class="table__actions">
-              <a class="button button--secondary button--small" href="/registrar/class-groups/{{turma2}}">
+              <a class="button button--secondary button--small" href="/registrar/class-groups/{{classGroup2}}">
                 Abrir<span class="visually-hidden"> turma 7B</span>
               </a>
             </div>
