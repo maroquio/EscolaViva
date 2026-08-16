@@ -8,7 +8,7 @@ import {
   falhaDeCampo,
   sucesso,
   type Resultado,
-} from '../../shared/resultado';
+} from '../../shared/result';
 import { CAMPOS, CODIGOS, ERROS_INTERNOS, MENSAGENS } from '../constantes';
 import { MATRICULA_ATIVA, podeTransferir, type Matricula } from '../dominio/matricula';
 import type { Turma } from '../dominio/turma';

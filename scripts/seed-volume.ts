@@ -1,7 +1,7 @@
 import { MATRICULA_ATIVA, TURNOS } from '../src/academico';
 import { REDE_ATIVA } from '../src/identidade';
 import { config } from '../src/shared/config';
-import { AMBIENTE_PRODUCAO, DIAS_DA_SEMANA, LOCALE, TEMPO } from '../src/shared/constantes';
+import { AMBIENTE_PRODUCAO, DIAS_DA_SEMANA, LOCALE, TEMPO } from '../src/shared/constants';
 import { encerrar, escrita, type Conexao } from '../src/shared/db';
 
 const SLUG = 'volume';

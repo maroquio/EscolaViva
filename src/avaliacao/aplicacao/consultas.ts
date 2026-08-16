@@ -1,6 +1,6 @@
 import { academico } from '../../academico';
 import { leitura } from '../../shared/db';
-import { TAMANHO_PADRAO, consultarPagina, type Pagina } from '../../shared/paginacao';
+import { TAMANHO_PADRAO, consultarPagina, type Pagina } from '../../shared/pagination';
 import {
   mediaDaDisciplina,
   mediaGeral,

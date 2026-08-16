@@ -1,4 +1,4 @@
-import { TAMANHO_PADRAO } from '../constantes';
+import { TAMANHO_PADRAO } from '../constants';
 
 export { TAMANHO_PADRAO };
 

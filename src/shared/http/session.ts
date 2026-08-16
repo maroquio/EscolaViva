@@ -1,9 +1,9 @@
 import type { Context, MiddlewareHandler } from 'hono';
 import { deleteCookie, getSignedCookie, setSignedCookie } from 'hono/cookie';
 import { config } from '../config';
-import { COOKIE, MOTIVOS_INTERNOS, TEMPO, VARIAVEIS_DE_CONTEXTO } from '../constantes';
-import { comContexto, contextoAtual } from './correlacao';
-import { NaoAutorizado } from './erros';
+import { COOKIE, MOTIVOS_INTERNOS, TEMPO, VARIAVEIS_DE_CONTEXTO } from '../constants';
+import { comContexto, contextoAtual } from './correlation';
+import { NaoAutorizado } from './errors';
 
 export type PapelDaSessao = 'network_admin' | 'registrar' | 'teacher' | 'guardian';
 

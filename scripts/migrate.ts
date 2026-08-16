@@ -1,7 +1,7 @@
 import { SQL } from 'bun';
 import { join, resolve } from 'node:path';
 import { config } from '../src/shared/config/index';
-import { CHAVES_DE_LOCK, MIGRACOES } from '../src/shared/constantes';
+import { CHAVES_DE_LOCK, MIGRACOES } from '../src/shared/constants';
 import { ARGUMENTOS, MENSAGENS_DA_MIGRACAO as MENSAGENS } from './constantes';
 
 const DIRETORIO_DE_MIGRACOES = resolve(import.meta.dir, '..', MIGRACOES.diretorio);

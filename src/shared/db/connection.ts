@@ -1,6 +1,6 @@
 import { SQL } from 'bun';
 import { config } from '../config';
-import { BANCO } from '../constantes';
+import { BANCO } from '../constants';
 
 export type Conexao = SQL;
 

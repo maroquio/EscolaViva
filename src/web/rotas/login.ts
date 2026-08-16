@@ -2,7 +2,7 @@ import { Hono, type Context } from 'hono';
 import { getConnInfo } from 'hono/bun';
 import { identidade } from '../../identidade';
 import { config } from '../../shared/config';
-import { VARIAVEIS_DE_CONTEXTO } from '../../shared/constantes';
+import { VARIAVEIS_DE_CONTEXTO } from '../../shared/constants';
 import {
   abrirSessao,
   fecharSessao,

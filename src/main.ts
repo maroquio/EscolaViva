@@ -6,7 +6,7 @@ import {
   MINUTO_MS,
   SERVIDOR,
   TEMPO,
-} from './shared/constantes';
+} from './shared/constants';
 import { encerrar } from './shared/db';
 import { iniciarAgendador, type Job } from './shared/jobs';
 import { logger } from './shared/log';

@@ -1,5 +1,5 @@
 import type { Conexao } from '../../shared/db';
-import type { Faixa } from '../../shared/paginacao';
+import type { Faixa } from '../../shared/pagination';
 import { LIMITES } from '../constantes';
 import type { Aluno } from '../dominio/aluno';
 

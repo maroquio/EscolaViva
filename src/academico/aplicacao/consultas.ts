@@ -1,5 +1,5 @@
 import { leitura } from '../../shared/db';
-import { TAMANHO_PADRAO, consultarPagina, type Pagina } from '../../shared/paginacao';
+import { TAMANHO_PADRAO, consultarPagina, type Pagina } from '../../shared/pagination';
 import type { Aluno } from '../dominio/aluno';
 import type { AnoLetivo } from '../dominio/anoLetivo';
 import type { Disciplina } from '../dominio/disciplina';

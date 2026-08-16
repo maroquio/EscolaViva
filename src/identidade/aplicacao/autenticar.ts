@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { config } from '../../shared/config';
 import { leitura, unidadeDeTrabalho } from '../../shared/db';
-import { normalizarCpf } from '../../shared/documento';
+import { normalizarCpf } from '../../shared/document';
 import { logger } from '../../shared/log';
 import { clockDoSistema, idGeneratorUuid } from '../../shared/ports';
 import {
@@ -10,7 +10,7 @@ import {
   falhaDeCampo,
   sucesso,
   type Resultado,
-} from '../../shared/resultado';
+} from '../../shared/result';
 import { CAMPOS, CODIGOS, EVENTOS_DE_LOG, MENSAGENS, SEGURANCA } from '../constantes';
 import { redeAtiva } from '../dominio/rede';
 import { expiracaoDaSessao, type Sessao } from '../dominio/sessao';

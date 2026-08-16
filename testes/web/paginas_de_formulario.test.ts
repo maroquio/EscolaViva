@@ -12,7 +12,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { gerarCpf } from '../../src/shared/documento';
+import { gerarCpf } from '../../src/shared/document';
 import { limparBanco } from '../apoio/banco';
 import { cenarioCompleto, duasRedes, type Cenario } from '../apoio/fabricas';
 import { abrir, entrar, enviar } from './apoio';

@@ -1,6 +1,6 @@
 import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { ATIVOS } from '../src/shared/constantes';
+import { ATIVOS } from '../src/shared/constants';
 
 const RAIZ = join(import.meta.dir, '..');
 

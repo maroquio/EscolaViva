@@ -6,8 +6,8 @@ import { ROTULO_DE_BIMESTRE } from '../avaliacao';
 import { ALCANCE } from '../comunicacao';
 import { PAPEL } from '../identidade';
 import { config } from '../shared/config';
-import { AMBIENTE_DESENVOLVIMENTO, ATIVOS, AUSENTE, CAMPO_CHAVE } from '../shared/constantes';
-import { formatarCpf } from '../shared/documento';
+import { AMBIENTE_DESENVOLVIMENTO, ATIVOS, AUSENTE, CAMPO_CHAVE } from '../shared/constants';
+import { formatarCpf } from '../shared/document';
 import {
   contextoAtual,
   registrarRenderizadorDeErro,

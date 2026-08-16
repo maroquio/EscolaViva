@@ -7,7 +7,7 @@ import {
   falhaDeCampo,
   sucesso,
   type Resultado,
-} from '../../shared/resultado';
+} from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import { dataDeChamadaValida, dataDentroDoAnoLetivo } from '../dominio/frequencia';
 import * as frequenciaRepositorio from '../infra/frequenciaRepositorio';

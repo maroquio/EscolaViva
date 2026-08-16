@@ -5,8 +5,8 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { identidade } from '../../src/identidade';
-import { gerarCpf } from '../../src/shared/documento';
-import type { ErroDeAplicacao, Resultado } from '../../src/shared/resultado';
+import { gerarCpf } from '../../src/shared/document';
+import type { ErroDeAplicacao, Resultado } from '../../src/shared/result';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
   cenarioCompleto,

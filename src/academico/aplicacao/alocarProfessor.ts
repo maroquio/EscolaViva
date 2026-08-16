@@ -8,7 +8,7 @@ import {
   falhaDeCampo,
   sucesso,
   type Resultado,
-} from '../../shared/resultado';
+} from '../../shared/result';
 import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import type { TurmaDisciplina } from '../dominio/turma';
 import * as disciplinas from '../infra/disciplinaRepositorio';

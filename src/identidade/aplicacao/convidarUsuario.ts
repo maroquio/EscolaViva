@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { unidadeDeTrabalho } from '../../shared/db';
-import { cpfValido, normalizarCpf } from '../../shared/documento';
+import { cpfValido, normalizarCpf } from '../../shared/document';
 import { idGeneratorUuid } from '../../shared/ports';
-import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/resultado';
+import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/result';
 import {
   CAMPOS,
   CODIGOS,

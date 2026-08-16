@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { MiddlewareHandler } from 'hono';
-import { CABECALHOS, FORMATOS, VARIAVEIS_DE_CONTEXTO } from '../constantes';
+import { CABECALHOS, FORMATOS, VARIAVEIS_DE_CONTEXTO } from '../constants';
 import { registrarFonteDeCorrelacao } from '../log/logger';
 
 export type ContextoRequisicao = { correlacaoId: string; usuarioId?: string; redeId?: string };

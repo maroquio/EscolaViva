@@ -14,7 +14,7 @@ import {
   TAMANHO_DA_DATA_ISO,
   TEMPO,
   VARIAVEIS_DE_CONTEXTO,
-} from '../../shared/constantes';
+} from '../../shared/constants';
 import {
   NaoEncontrado,
   RegraDeNegocio,
@@ -25,7 +25,7 @@ import {
   type Variaveis,
 } from '../../shared/http';
 import { clockDoSistema } from '../../shared/ports';
-import type { ErroDeAplicacao } from '../../shared/resultado';
+import type { ErroDeAplicacao } from '../../shared/result';
 import {
   APRESENTACAO,
   AVISOS,

@@ -26,7 +26,7 @@
 
 import { join } from 'node:path';
 import { app } from '../../src/web/app';
-import { gerarCpf } from '../../src/shared/documento';
+import { gerarCpf } from '../../src/shared/document';
 import { sqlDeTeste } from '../apoio/banco';
 import {
   SENHA_PADRAO,

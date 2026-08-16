@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, test } from 'bun:test';
-import { cpfValido, formatarCpf, gerarCpf, normalizarCpf } from '../../src/shared/documento';
+import { cpfValido, formatarCpf, gerarCpf, normalizarCpf } from '../../src/shared/document';
 
 /** CPF de teste consagrado: os dois verificadores fecham. Não pertence a ninguém. */
 const VALIDO = '52998224725';

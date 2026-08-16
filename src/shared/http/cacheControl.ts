@@ -1,6 +1,6 @@
 import type { MiddlewareHandler } from 'hono';
-import { ATIVOS, CABECALHOS, CACHE } from '../constantes';
-import { usuarioAtualOuNulo } from './sessao';
+import { ATIVOS, CABECALHOS, CACHE } from '../constants';
+import { usuarioAtualOuNulo } from './session';
 
 export const middlewareCacheControl: MiddlewareHandler = async (c, next) => {
   await next();

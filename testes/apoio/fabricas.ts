@@ -6,7 +6,7 @@
 
 import type { SituacaoMatricula } from '../../src/academico';
 import type { Papel } from '../../src/identidade';
-import { gerarCpf } from '../../src/shared/documento';
+import { gerarCpf } from '../../src/shared/document';
 import { sqlDeTeste } from './banco';
 
 export type StatusDeRede = 'active' | 'suspended' | 'cancelled';

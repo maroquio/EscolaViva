@@ -1,7 +1,7 @@
 import type { Context } from 'hono';
-import { MOTIVOS_INTERNOS } from '../constantes';
-import { NaoAutorizado } from './erros';
-import { usuarioAtualOuNulo } from './sessao';
+import { MOTIVOS_INTERNOS } from '../constants';
+import { NaoAutorizado } from './errors';
+import { usuarioAtualOuNulo } from './session';
 
 export function redeAtual(c: Context): string {
   const usuario = usuarioAtualOuNulo(c);

@@ -2,8 +2,8 @@ import { Hono, type Context } from 'hono';
 import { academico } from '../../academico';
 import { ALCANCE, comunicacao, type Alcance, type EstatisticaDeLeitura } from '../../comunicacao';
 import { PAPEL, identidade, type Unidade } from '../../identidade';
-import { VARIAVEIS_DE_CONTEXTO } from '../../shared/constantes';
-import { paginaVazia } from '../../shared/paginacao';
+import { VARIAVEIS_DE_CONTEXTO } from '../../shared/constants';
+import { paginaVazia } from '../../shared/pagination';
 import {
   NaoEncontrado,
   exigirPapel,
@@ -14,7 +14,7 @@ import {
   type UsuarioDaSessao,
   type Variaveis,
 } from '../../shared/http';
-import type { ErroDeAplicacao } from '../../shared/resultado';
+import type { ErroDeAplicacao } from '../../shared/result';
 import {
   AVISOS,
   CAMPOS,

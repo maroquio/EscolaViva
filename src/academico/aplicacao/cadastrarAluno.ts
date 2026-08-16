@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TAMANHO_DA_DATA_ISO } from '../../shared/constantes';
+import { TAMANHO_DA_DATA_ISO } from '../../shared/constants';
 import { unidadeDeTrabalho } from '../../shared/db';
 import { clockDoSistema, idGeneratorUuid } from '../../shared/ports';
 import {
@@ -8,7 +8,7 @@ import {
   falhaDeCampo,
   sucesso,
   type Resultado,
-} from '../../shared/resultado';
+} from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import { idadeEm, type Aluno } from '../dominio/aluno';
 import * as alunos from '../infra/alunoRepositorio';

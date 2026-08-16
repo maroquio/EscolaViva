@@ -17,7 +17,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { gerarCpf } from '../../src/shared/documento';
+import { gerarCpf } from '../../src/shared/document';
 import { limparBanco } from '../apoio/banco';
 import {
   cenarioCompleto,

@@ -1,8 +1,8 @@
-import { CHAVES_PROIBIDAS, LOG } from '../constantes';
+import { CHAVES_PROIBIDAS, LOG } from '../constants';
 
 export type CamposDeLog = Record<string, unknown>;
 
-export { CHAVES_PROIBIDAS } from '../constantes';
+export { CHAVES_PROIBIDAS } from '../constants';
 
 const PROIBIDAS = new Set(CHAVES_PROIBIDAS.map((chave) => chave.toLowerCase()));
 

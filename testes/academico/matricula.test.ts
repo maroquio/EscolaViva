@@ -6,7 +6,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { academico } from '../../src/academico';
-import type { ErroDeAplicacao, Resultado } from '../../src/shared/resultado';
+import type { ErroDeAplicacao, Resultado } from '../../src/shared/result';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
   ANO_PADRAO,

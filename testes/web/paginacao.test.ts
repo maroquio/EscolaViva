@@ -16,7 +16,7 @@ import {
   criarResponsavel,
   type Cenario,
 } from '../apoio/fabricas';
-import { TAMANHO_PADRAO } from '../../src/shared/paginacao';
+import { TAMANHO_PADRAO } from '../../src/shared/pagination';
 import { PARAMETROS } from '../../src/web/constantes';
 import { idDaAjuda } from '../../src/web/render';
 import { abrir, entrar } from './apoio';

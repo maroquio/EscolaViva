@@ -16,7 +16,7 @@ import { join } from 'node:path';
 import { unlink } from 'node:fs/promises';
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { config } from '../../src/shared/config';
-import { gerarCpf } from '../../src/shared/documento';
+import { gerarCpf } from '../../src/shared/document';
 import { CHAVES_PROIBIDAS } from '../../src/shared/log';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {

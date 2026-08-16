@@ -5,7 +5,7 @@ import {
   consultarPagina,
   paginaVazia,
   type Pagina,
-} from '../../shared/paginacao';
+} from '../../shared/pagination';
 import { clockDoSistema } from '../../shared/ports';
 import { redeAtiva } from '../dominio/rede';
 import { sessaoExpirou } from '../dominio/sessao';

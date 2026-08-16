@@ -1,4 +1,4 @@
-import { CABECALHOS, SEPARADOR_DE_ENCAMINHAMENTO } from '../constantes';
+import { CABECALHOS, SEPARADOR_DE_ENCAMINHAMENTO } from '../constants';
 
 const cadeiaEncaminhada = (req: Request): string[] =>
   (req.headers.get(CABECALHOS.encaminhado) ?? '')

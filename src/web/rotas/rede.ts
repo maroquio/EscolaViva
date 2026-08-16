@@ -10,7 +10,7 @@ import {
   type Papel,
 } from '../../identidade';
 import { config } from '../../shared/config';
-import { TAMANHO_DO_CPF_COM_MASCARA, VARIAVEIS_DE_CONTEXTO } from '../../shared/constantes';
+import { TAMANHO_DO_CPF_COM_MASCARA, VARIAVEIS_DE_CONTEXTO } from '../../shared/constants';
 import {
   ehIdentificador,
   exigirPapel,

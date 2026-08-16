@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { leitura, unidadeDeTrabalho } from '../../shared/db';
-import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/resultado';
+import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/result';
 import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import { TAMANHO_MINIMO_DE_SENHA } from '../dominio/usuario';
 import * as usuarioRepositorio from '../infra/usuarioRepositorio';

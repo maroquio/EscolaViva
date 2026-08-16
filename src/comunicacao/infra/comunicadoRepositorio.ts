@@ -1,5 +1,5 @@
 import type { Conexao } from '../../shared/db';
-import { recorte, type Faixa } from '../../shared/paginacao';
+import { recorte, type Faixa } from '../../shared/pagination';
 import { ERROS_INTERNOS } from '../constantes';
 import type { ComunicadoArmazenado } from '../dominio/comunicado';
 import type { ContagemDeLeitura, ItemDoMural } from '../dominio/destinatario';

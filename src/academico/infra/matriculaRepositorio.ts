@@ -1,5 +1,5 @@
 import type { Conexao } from '../../shared/db';
-import { recorte, type Faixa } from '../../shared/paginacao';
+import { recorte, type Faixa } from '../../shared/pagination';
 import { ERROS_INTERNOS } from '../constantes';
 import { situacaoValida, type Matricula, type SituacaoMatricula } from '../dominio/matricula';
 

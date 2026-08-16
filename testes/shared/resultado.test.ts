@@ -12,7 +12,7 @@ import {
   falhaDeCampo,
   sucesso,
   type ErroDeAplicacao,
-} from '../../src/shared/resultado';
+} from '../../src/shared/result';
 
 /** Issues de zod de verdade: é delas que `errosDeSchema` vive em todos os casos de uso. */
 function issuesDe(schema: z.ZodTypeAny, entrada: unknown): z.ZodIssue[] {

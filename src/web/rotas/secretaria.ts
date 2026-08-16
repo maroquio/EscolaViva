@@ -15,7 +15,7 @@ import {
   TAMANHO_DA_DATA_ISO,
   TAMANHO_DO_CPF_COM_MASCARA,
   VARIAVEIS_DE_CONTEXTO,
-} from '../../shared/constantes';
+} from '../../shared/constants';
 import {
   ehIdentificador,
   exigirPapel,
@@ -24,9 +24,9 @@ import {
   type CorpoDeFormulario,
   type Variaveis,
 } from '../../shared/http';
-import { fatiar } from '../../shared/paginacao';
+import { fatiar } from '../../shared/pagination';
 import { clockDoSistema } from '../../shared/ports';
-import type { ErroDeAplicacao } from '../../shared/resultado';
+import type { ErroDeAplicacao } from '../../shared/result';
 import {
   APRESENTACAO,
   AVISOS,

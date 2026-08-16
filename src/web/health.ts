@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { verificarBanco } from '../shared/db';
 import type { Variaveis } from '../shared/http';
-import { CABECALHOS, PRAZO_DA_SONDA_MS } from '../shared/constantes';
+import { CABECALHOS, PRAZO_DA_SONDA_MS } from '../shared/constants';
 import { CORPO_DE_SAUDE, ROTAS, SEM_CACHE_NA_SAUDE } from './constantes';
 
 export const rotasSaude = new Hono<{ Variables: Variaveis }>();

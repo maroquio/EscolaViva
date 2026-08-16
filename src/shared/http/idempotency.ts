@@ -8,12 +8,12 @@ import {
   METODOS,
   MOTIVOS_INTERNOS,
   VARIAVEIS_DE_CONTEXTO,
-} from '../constantes';
+} from '../constants';
 import type { Conexao } from '../db';
 import { escrita } from '../db';
 import { logger, redigir } from '../log';
-import { paginaDeErro } from './erros';
-import { usuarioAtualOuNulo } from './sessao';
+import { paginaDeErro } from './errors';
+import { usuarioAtualOuNulo } from './session';
 
 export { CAMPO_CHAVE };
 

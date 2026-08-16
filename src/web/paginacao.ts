@@ -1,5 +1,5 @@
 import type { Context } from 'hono';
-import { paginaPedida, type Pagina } from '../shared/paginacao';
+import { paginaPedida, type Pagina } from '../shared/pagination';
 import { PAGINACAO, PARAMETROS } from './constantes';
 
 const METADE_DA_JANELA = Math.floor(PAGINACAO.janela / 2);

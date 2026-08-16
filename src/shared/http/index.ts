@@ -1,8 +1,8 @@
-import type { CorpoDeFormulario } from './idempotencia';
-import type { UsuarioDaSessao } from './sessao';
+import type { CorpoDeFormulario } from './idempotency';
+import type { UsuarioDaSessao } from './session';
 
-export { comContexto, contextoAtual, middlewareCorrelacao } from './correlacao';
-export type { ContextoRequisicao } from './correlacao';
+export { comContexto, contextoAtual, middlewareCorrelacao } from './correlation';
+export type { ContextoRequisicao } from './correlation';
 
 export { ipDoCliente } from './ip';
 
@@ -16,15 +16,15 @@ export {
   sessaoIdAtual,
   usuarioAtual,
   usuarioAtualOuNulo,
-} from './sessao';
-export type { CarregadorDeUsuario, PapelDaSessao, UsuarioDaSessao } from './sessao';
+} from './session';
+export type { CarregadorDeUsuario, PapelDaSessao, UsuarioDaSessao } from './session';
 
-export { exigirLogin, exigirPapel, temPapel, unidadesDoPapel } from './autorizacao';
+export { exigirLogin, exigirPapel, temPapel, unidadesDoPapel } from './authorization';
 
 export { redeAtual } from './tenant';
 
-export { CAMPO_CHAVE, middlewareIdempotencia } from './idempotencia';
-export type { CorpoDeFormulario } from './idempotencia';
+export { CAMPO_CHAVE, middlewareIdempotencia } from './idempotency';
+export type { CorpoDeFormulario } from './idempotency';
 
 export {
   NaoAutorizado,
@@ -33,10 +33,10 @@ export {
   RegraDeNegocio,
   middlewareErros,
   registrarRenderizadorDeErro,
-} from './erros';
-export type { RenderizadorDeErro, StatusDeErro } from './erros';
+} from './errors';
+export type { RenderizadorDeErro, StatusDeErro } from './errors';
 
-export { ehIdentificador } from './identificador';
+export { ehIdentificador } from './identifier';
 
 export type Variaveis = {
   correlacaoId: string;

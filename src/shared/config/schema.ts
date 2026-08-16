@@ -9,7 +9,7 @@ import {
   SEPARADOR_DE_LISTA_DE_AMBIENTE,
   TAMANHO_MINIMO_DO_SEGREDO,
   VERDADEIRO_DE_AMBIENTE,
-} from '../constantes';
+} from '../constants';
 
 export type Config = {
   ambiente: (typeof AMBIENTES)[number];

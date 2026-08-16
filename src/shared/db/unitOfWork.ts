@@ -1,4 +1,4 @@
-import { escrita, type Conexao } from './conexao';
+import { escrita, type Conexao } from './connection';
 
 export type UnidadeDeTrabalho = { sql: Conexao };
 

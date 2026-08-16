@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { cpfValido, normalizarCpf } from '../../shared/documento';
+import { cpfValido, normalizarCpf } from '../../shared/document';
 import { unidadeDeTrabalho } from '../../shared/db';
 import { idGeneratorUuid } from '../../shared/ports';
 import {
@@ -8,7 +8,7 @@ import {
   falhaDeCampo,
   sucesso,
   type Resultado,
-} from '../../shared/resultado';
+} from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import type { Responsavel } from '../dominio/responsavel';
 import * as responsaveis from '../infra/responsavelRepositorio';

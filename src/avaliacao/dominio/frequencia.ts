@@ -1,4 +1,4 @@
-import { FORMATOS, TAMANHO_DA_DATA_ISO } from '../../shared/constantes';
+import { FORMATOS, TAMANHO_DA_DATA_ISO } from '../../shared/constants';
 import { MEIA_NOITE_UTC } from '../constantes';
 
 export type LinhaDeChamada = {

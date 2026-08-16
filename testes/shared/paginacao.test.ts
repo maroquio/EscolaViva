@@ -17,7 +17,7 @@ import {
   recorte,
   totalDePaginas,
   type Faixa,
-} from '../../src/shared/paginacao';
+} from '../../src/shared/pagination';
 
 describe('paginaPedida', () => {
   test('ausência vira a primeira página', () => {

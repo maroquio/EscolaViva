@@ -2,10 +2,10 @@ import { CAMPOS_DO_ACADEMICO } from '../academico';
 import { CAMPOS_DA_AVALIACAO, ROTULO_DE_BIMESTRE } from '../avaliacao';
 import { CAMPOS_DA_COMUNICACAO } from '../comunicacao';
 import { CAMPOS_DE_IDENTIDADE, PAPEL } from '../identidade';
-import { ATIVOS, AUSENTE, CAMINHOS_DE_ENTRADA, CAMINHOS_DE_SAUDE } from '../shared/constantes';
+import { ATIVOS, AUSENTE, CAMINHOS_DE_ENTRADA, CAMINHOS_DE_SAUDE } from '../shared/constants';
 import { grupo } from './rotas/mapa';
 
-export { ATIVOS, AUSENTE, TITULOS_DE_ERRO } from '../shared/constantes';
+export { ATIVOS, AUSENTE, TITULOS_DE_ERRO } from '../shared/constants';
 
 export const PREFIXO_PUBLICO = ATIVOS.prefixoDeUrl;
 

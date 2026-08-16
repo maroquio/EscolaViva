@@ -7,7 +7,7 @@ import {
   falhaDeCampo,
   sucesso,
   type Resultado,
-} from '../../shared/resultado';
+} from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import type { Disciplina } from '../dominio/disciplina';
 import * as disciplinas from '../infra/disciplinaRepositorio';

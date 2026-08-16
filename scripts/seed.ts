@@ -6,9 +6,9 @@ import {
   DIAS_DA_SEMANA,
   TAMANHO_DA_DATA_ISO,
   TEMPO,
-} from '../src/shared/constantes';
+} from '../src/shared/constants';
 import { encerrar, escrita, unidadeDeTrabalho, type Conexao } from '../src/shared/db';
-import { formatarCpf, gerarCpf } from '../src/shared/documento';
+import { formatarCpf, gerarCpf } from '../src/shared/document';
 import { idGeneratorUuid } from '../src/shared/ports';
 
 const SLUG = 'demo';

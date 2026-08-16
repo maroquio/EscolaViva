@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, test } from 'bun:test';
-import { gerarCpf } from '../../src/shared/documento';
+import { gerarCpf } from '../../src/shared/document';
 import { PAPEIS, papelValido, paraPapel } from '../../src/identidade/dominio/papel';
 import {
   paraStatusDeRede,

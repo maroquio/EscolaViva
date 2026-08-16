@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { Hono } from 'hono';
 import { identidade } from '../identidade';
-import { ATIVOS } from '../shared/constantes';
+import { ATIVOS } from '../shared/constants';
 import {
   criarMiddlewareSessao,
   exigirLogin,

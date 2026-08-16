@@ -1,9 +1,9 @@
 import type { Context, MiddlewareHandler } from 'hono';
-import { CAMINHOS_DE_ENTRADA, METODOS, MOTIVOS_INTERNOS } from '../constantes';
+import { CAMINHOS_DE_ENTRADA, METODOS, MOTIVOS_INTERNOS } from '../constants';
 import { logger, redigir } from '../log';
-import { NaoAutorizado, paginaDeErro } from './erros';
-import type { PapelDaSessao, UsuarioDaSessao } from './sessao';
-import { usuarioAtualOuNulo } from './sessao';
+import { NaoAutorizado, paginaDeErro } from './errors';
+import type { PapelDaSessao, UsuarioDaSessao } from './session';
+import { usuarioAtualOuNulo } from './session';
 
 export function temPapel(u: UsuarioDaSessao, papel: PapelDaSessao): boolean {
   return u.papeis.some((atribuicao) => atribuicao.papel === papel);

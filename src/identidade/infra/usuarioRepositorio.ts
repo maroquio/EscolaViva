@@ -1,5 +1,5 @@
 import type { Conexao } from '../../shared/db';
-import { recorte, type Faixa } from '../../shared/paginacao';
+import { recorte, type Faixa } from '../../shared/pagination';
 import { PAPEL } from '../constantes';
 import { paraPapel, type Papel, type PapelEmUnidade } from '../dominio/papel';
 import type { Usuario, UsuarioResumo } from '../dominio/usuario';

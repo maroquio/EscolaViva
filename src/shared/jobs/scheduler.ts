@@ -1,4 +1,4 @@
-import { MENSAGENS_DE_PROCESSO } from '../constantes';
+import { MENSAGENS_DE_PROCESSO } from '../constants';
 import { logger } from '../log';
 import { comLockExclusivo } from './lock';
 

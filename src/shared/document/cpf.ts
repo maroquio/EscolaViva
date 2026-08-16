@@ -1,4 +1,4 @@
-import { AUSENTE } from '../constantes';
+import { AUSENTE } from '../constants';
 
 const SOMENTE_DIGITOS = /^[0-9]{11}$/;
 const TODOS_IGUAIS = /^(\d)\1{10}$/;

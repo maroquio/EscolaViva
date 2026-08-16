@@ -9,4 +9,4 @@ export {
   totalDePaginas,
   type Faixa,
   type Pagina,
-} from './pagina';
+} from './page';

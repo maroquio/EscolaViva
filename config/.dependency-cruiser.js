@@ -49,7 +49,7 @@ const configuracao = {
       name: 'pure-domain',
       comment:
         'O domínio não sabe que existe banco, HTTP, log, agendador ou biblioteca de terceiro. ' +
-        'Só pode alcançar `src/shared/ports/`, `src/shared/resultado.ts` e `src/shared/documento/` — ' +
+        'Só pode alcançar `src/shared/ports/`, `src/shared/result.ts` e `src/shared/document/` — ' +
         'este último por ser valor puro, sem I/O e sem regra de negócio de nenhum módulo: a ' +
         'aritmética do CPF é a mesma para identidade e para academico, e duplicá-la seria pior que ' +
         'compartilhá-la. É o que torna o teste de regra pedagógica um teste puro, e o que destrava ' +

@@ -1,9 +1,9 @@
 import { Hono, type Context } from 'hono';
 import { identidade } from '../../identidade';
-import { VARIAVEIS_DE_CONTEXTO } from '../../shared/constantes';
+import { VARIAVEIS_DE_CONTEXTO } from '../../shared/constants';
 import { exigirLogin, usuarioAtual, type CorpoDeFormulario, type Variaveis } from '../../shared/http';
 import { logger } from '../../shared/log';
-import type { ErroDeAplicacao } from '../../shared/resultado';
+import type { ErroDeAplicacao } from '../../shared/result';
 import {
   AVISOS,
   CAMPOS,

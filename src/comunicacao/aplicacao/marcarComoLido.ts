@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { unidadeDeTrabalho } from '../../shared/db';
-import { errosDeSchema, falha, sucesso, type Resultado } from '../../shared/resultado';
+import { errosDeSchema, falha, sucesso, type Resultado } from '../../shared/result';
 import { marcarLeitura } from '../infra/comunicadoRepositorio';
 
 export type EntradaDeLeitura = {

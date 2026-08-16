@@ -1,7 +1,7 @@
 import { pino } from 'pino';
 import { config } from '../config';
-import { LOG, NIVEIS_DE_LOG } from '../constantes';
-import { redigir, type CamposDeLog } from './redacao';
+import { LOG, NIVEIS_DE_LOG } from '../constants';
+import { redigir, type CamposDeLog } from './redaction';
 
 type Nivel = (typeof NIVEIS_DE_LOG)[number];
 

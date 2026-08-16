@@ -7,7 +7,7 @@ import {
   falhaDeCampo,
   sucesso,
   type Resultado,
-} from '../../shared/resultado';
+} from '../../shared/result';
 import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import { mensagemDePendencias, pendenciasDoFechamento } from '../dominio/fechamentoBimestre';
 import { bimestreValido } from '../dominio/nota';

@@ -1,4 +1,4 @@
-import { TEMPO } from '../../shared/constantes';
+import { TEMPO } from '../../shared/constants';
 
 export type Sessao = {
   id: string;

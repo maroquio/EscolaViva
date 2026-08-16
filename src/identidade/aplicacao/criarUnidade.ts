@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { unidadeDeTrabalho } from '../../shared/db';
 import { idGeneratorUuid } from '../../shared/ports';
-import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/resultado';
+import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import type { Unidade } from '../dominio/unidade';
 import * as unidadeRepositorio from '../infra/unidadeRepositorio';

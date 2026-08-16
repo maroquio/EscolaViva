@@ -8,7 +8,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { gerarCpf } from '../../src/shared/documento';
+import { gerarCpf } from '../../src/shared/document';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import { cenarioCompleto, criarRede, criarUsuario, SENHA_PADRAO } from '../apoio/fabricas';
 import { abrir, cookieDaResposta, entrar, enviar, postar } from './apoio';

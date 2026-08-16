@@ -1,7 +1,7 @@
 import type { Context, MiddlewareHandler } from 'hono';
-import { ENTIDADES_HTML, EVENTOS_DE_LOG_HTTP, TITULOS_DE_ERRO } from '../constantes';
+import { ENTIDADES_HTML, EVENTOS_DE_LOG_HTTP, TITULOS_DE_ERRO } from '../constants';
 import { logger, redigir } from '../log';
-import { contextoAtual } from './correlacao';
+import { contextoAtual } from './correlation';
 
 export class NaoAutorizado extends Error {}
 export class NaoEncontrado extends Error {}

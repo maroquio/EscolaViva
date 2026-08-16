@@ -16,7 +16,7 @@ import {
   usuarioAtual,
   type Variaveis,
 } from '../../shared/http';
-import { paginaVazia } from '../../shared/paginacao';
+import { paginaVazia } from '../../shared/pagination';
 import {
   APRESENTACAO,
   AUSENTE,

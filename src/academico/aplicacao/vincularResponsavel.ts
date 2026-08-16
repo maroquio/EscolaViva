@@ -6,7 +6,7 @@ import {
   falhaDeCampo,
   sucesso,
   type Resultado,
-} from '../../shared/resultado';
+} from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import * as alunos from '../infra/alunoRepositorio';
 import * as responsaveis from '../infra/responsavelRepositorio';
