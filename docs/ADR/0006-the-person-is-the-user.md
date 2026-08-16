@@ -1,7 +1,7 @@
 # ADR 0006 — The person is the user: the `guardian` table stops existing
 
-**Status:** accepted — Stage 01. **Implemented** in
-`migrations/0002_the_person_is_the_user.sql`.
+**Status:** accepted — Stage 01. **Implemented**, and since folded into
+`migrations/0001_initial_schema.sql`.
 **Supersedes:** the consequence "a guardian without a CPF still exists as a contact" from ADR 0004,
 and decisions 1, 2 and 3 of ADR 0005.
 
@@ -103,11 +103,18 @@ the extra query. Under the new premises it is strictly worse than deleting the t
   the new `user_id` columns is where that failure surfaces, loudly, instead of silently dropping
   rows. In this repository the data comes from `scripts/seed.ts`, which was changed first so every
   guardian is born as an `app_user` with a CPF and a role.
-- **It went in as one migration, not as the pair ADR 0003 asks for.** The compatibility window would
-  be `0002` opening (nullable columns, backfill) and `0003` closing (`NOT NULL`, primary-key swap,
-  the two `DROP`s). It was collapsed into `0002` by an explicit call: there is no previous version
-  in flight and no data but the seed's. ADR 0003 stands — this is a deliberate exception to it,
-  recorded here so it is not read as precedent.
+- **It went in as one migration, and then as none.** The compatibility window would be `0002`
+  opening (nullable columns, backfill) and `0003` closing (`NOT NULL`, primary-key swap, the two
+  `DROP`s). It was collapsed into a single `0002` by an explicit call — no previous version in
+  flight, no data but the seed's — and that file was afterwards folded into
+  `migrations/0001_initial_schema.sql`, which is now the whole directory. A schema built from the
+  consolidated baseline is structurally identical, object by object, to one that applied the old
+  `0001` and then `0002`.
+- **Consolidating took the last example of the window with it, so the window moved.** ADR 0003 is no
+  longer honoured by whoever remembers it: `tests/shared/migration_window.test.ts` refuses any
+  migration that compresses the window, and `tests/shared/migration_window_in_motion.test.ts` runs
+  the four steps against a real database. The exception this decision took is recorded above and is
+  not precedent — the gate would refuse the same file today.
 - **`linkGuardian` does not grant the role in the same transaction.** The `identity` facade exposes no
   write that accepts the `sql` of an in-flight unit of work, and opening that door would leak
   infrastructure through the published language. The two operations stay separate, as they are today,

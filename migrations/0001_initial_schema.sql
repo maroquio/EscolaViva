@@ -1,22 +1,23 @@
 -- The whole schema of Stage 01, in one migration.
 --
--- This file replaces the eight migrations that built the schema one module at a time. They
--- told the story of how the schema came to be — including a compatibility window that was
--- opened and closed again for the CPF (ADR 0003, ADR 0004). That story belongs to the ADRs
--- and to the git history; a migration directory is not the place to keep it once the window
--- has closed, and eight files to reach a single starting point is eight chances of reading
--- an intermediate state as if it were the current one.
+-- This file is the starting point, not the story. It replaces the eight migrations that built
+-- the schema one module at a time and the ninth that carried out ADR 0006 — including two
+-- compatibility windows that were opened and closed again, one for the CPF (ADR 0004) and one
+-- for the guardian who became a user (ADR 0006). That story belongs to the ADRs and to the git
+-- history; a migration directory is not the place to keep it once the windows have closed, and
+-- nine files to reach a single starting point is nine chances of reading an intermediate state
+-- as if it were the current one.
 --
--- Two shapes here are inherited from that history and are kept on purpose:
+-- **This file only creates.** There is no ALTER and no DROP in it, and that is a property, not
+-- a coincidence: `tests/shared/migration_window.test.ts` reads every file in this directory and
+-- refuses the ones that compress the window ADR 0003 requires — a rename, an ADD COLUMN sharing
+-- a file with a DROP, a NOT NULL with no default. A consolidated baseline passes those rules by
+-- construction, so the gate needs no exception for it, and the next migration to arrive is
+-- checked from the first line.
 --
---   `app_user.guardian_id` and `app_user.cpf` sit at the end of the table, after the
---   timestamps, and so does `guardian.cpf`. They arrived through ALTER TABLE, and physical
---   column order is what `SELECT *` returns — preserving it keeps this file byte-equivalent
---   to the schema the eight migrations produced.
---
---   The CHECK on both CPF columns still reads `cpf IS NULL OR ...` even where the column is
---   NOT NULL. The NULL branch is dead on `app_user` and live on `guardian`, and writing the
---   two the same way says they answer to the same rule.
+-- The window itself, applied end to end against a real database, is demonstrated in
+-- `tests/shared/migration_window_in_motion.test.ts`. Consolidating erases the example from this
+-- directory; that test is where it went, and it runs.
 
 -- Keeps `updated_at` current on every table that carries it.
 CREATE FUNCTION set_updated_at() RETURNS trigger
@@ -63,10 +64,11 @@ CREATE TABLE school (
 CREATE TRIGGER school_updated_at BEFORE UPDATE ON school
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- `guardian_id` ties the account that signs into the portal to the guardian record of the
--- academics module: a guardian is a person there and a credential here. Null for the
--- administrator, the registrar and the teacher. The foreign key is added after `guardian`
--- exists, further down.
+-- `app_user` is the person, not merely the credential (ADR 0006). There is no separate record
+-- of a guardian: whoever answers for a student is a row here, reached through
+-- `student_guardian.user_id` — academics pointing at identity, the same direction as the
+-- teacher's `class_group_subject.teacher_user_id`. `phone` is the contact column that used to
+-- justify the second table.
 --
 -- The CPF is what a person types to sign in (ADR 0004); e-mail is contact only, and is not
 -- unique — a mother and a father may share a family address.
@@ -74,23 +76,19 @@ CREATE TABLE app_user (
   id             uuid PRIMARY KEY,
   network_id     uuid NOT NULL REFERENCES network(id),
   email          text NOT NULL,
+  cpf            text NOT NULL,
+  phone          text,
   password_hash  text NOT NULL,
   name           text NOT NULL,
   active         boolean NOT NULL DEFAULT true,
   created_at     timestamptz NOT NULL DEFAULT now(),
   updated_at     timestamptz NOT NULL DEFAULT now(),
-  guardian_id    uuid,
-  cpf            text NOT NULL,
-  CONSTRAINT user_cpf_format CHECK (cpf IS NULL OR cpf ~ '^[0-9]{11}$'),
+  CONSTRAINT user_cpf_format CHECK (cpf ~ '^[0-9]{11}$'),
   CONSTRAINT user_cpf_unique_in_network UNIQUE (network_id, cpf)
 );
 
 CREATE TRIGGER app_user_updated_at BEFORE UPDATE ON app_user
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
--- Every guardian screen starts from the signed-in user; the index leads with network_id,
--- like the rest.
-CREATE INDEX app_user_by_guardian ON app_user (network_id, guardian_id);
 
 CREATE TABLE user_role (
   network_id  uuid NOT NULL REFERENCES network(id),
@@ -203,48 +201,25 @@ CREATE TRIGGER student_updated_at BEFORE UPDATE ON student
 -- The registrar looks a student up by name before enrolling them.
 CREATE INDEX student_by_name ON student (network_id, name);
 
-CREATE TABLE guardian (
-  id          uuid PRIMARY KEY,
-  network_id  uuid NOT NULL REFERENCES network(id),
-  name        text NOT NULL,
-  email       text NOT NULL,
-  phone       text,
-  created_at  timestamptz NOT NULL DEFAULT now(),
-  updated_at  timestamptz NOT NULL DEFAULT now(),
-  cpf         text,
-  CONSTRAINT guardian_email_unique_in_network UNIQUE (network_id, email),
-  CONSTRAINT guardian_cpf_format CHECK (cpf IS NULL OR cpf ~ '^[0-9]{11}$')
-);
-
-CREATE TRIGGER guardian_updated_at BEFORE UPDATE ON guardian
-  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
--- PARTIAL index: a guardian may exist without a CPF, and several NULLs do not collide with
--- one another. On `app_user` the same rule is a plain UNIQUE constraint, because there the
--- column is NOT NULL.
-CREATE UNIQUE INDEX guardian_cpf_unique_in_network
-  ON guardian (network_id, cpf) WHERE cpf IS NOT NULL;
-
--- Closes the cycle opened in `app_user`: the column was declared before this table existed.
-ALTER TABLE app_user ADD CONSTRAINT app_user_guardian_id_fkey
-  FOREIGN KEY (guardian_id) REFERENCES guardian(id);
-
+-- Who answers for a student, and under what relationship. `user_id` points at `app_user`:
+-- academics keeps the academic relationship and nothing else (ADR 0006). The pair is the
+-- primary key, so the same person answers for a student exactly once.
 CREATE TABLE student_guardian (
   network_id              uuid NOT NULL REFERENCES network(id),
   student_id              uuid NOT NULL REFERENCES student(id),
-  guardian_id             uuid NOT NULL REFERENCES guardian(id),
+  user_id                 uuid NOT NULL REFERENCES app_user(id),
   relationship            text NOT NULL,
   financially_responsible boolean NOT NULL DEFAULT false,
   created_at              timestamptz NOT NULL DEFAULT now(),
   updated_at              timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (student_id, guardian_id)
+  PRIMARY KEY (student_id, user_id)
 );
 
 CREATE TRIGGER student_guardian_updated_at BEFORE UPDATE ON student_guardian
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- The guardian portal starts from the guardian to reach the children.
-CREATE INDEX student_guardian_by_guardian ON student_guardian (network_id, guardian_id);
+-- The guardian portal starts from the signed-in user to reach the children.
+CREATE INDEX student_guardian_by_user ON student_guardian (network_id, user_id);
 
 CREATE TABLE enrollment (
   id                uuid PRIMARY KEY,
@@ -363,19 +338,19 @@ CREATE INDEX announcement_by_school ON announcement (network_id, school_id, publ
 CREATE TABLE announcement_recipient (
   network_id       uuid NOT NULL REFERENCES network(id),
   announcement_id  uuid NOT NULL REFERENCES announcement(id),
-  guardian_id      uuid NOT NULL REFERENCES guardian(id),
+  user_id          uuid NOT NULL REFERENCES app_user(id),
   read_at          timestamptz,
   created_at       timestamptz NOT NULL DEFAULT now(),
   updated_at       timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (announcement_id, guardian_id)
+  PRIMARY KEY (announcement_id, user_id)
 );
 
 CREATE TRIGGER announcement_recipient_updated_at BEFORE UPDATE ON announcement_recipient
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- The board is always assembled from the guardian's side.
-CREATE INDEX announcement_recipient_by_guardian
-  ON announcement_recipient (network_id, guardian_id);
+-- The board is always assembled from the guardian's side, and the guardian is a user.
+CREATE INDEX announcement_recipient_by_user
+  ON announcement_recipient (network_id, user_id);
 
 /* --- Platform: requests already processed (I4) ----------------------------- */
 
