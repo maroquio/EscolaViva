@@ -99,7 +99,7 @@ const sobretitulo = `${it.areas.rede}${it.apresentacao.separador}${it.titulos.re
             <select id="unidade-<%= indice %>" name="<%= campos.unidades %>">
               <option value="">Sem atribuição</option>
               <% unidades.forEach((unidade) => { %>
-              <option value="<%= unidade.id %>" <% if (unidade.id === linha.unidadeId) { %>selected<% } %>><%= unidade.nome %></option>
+              <option value="<%= unidade.id %>" <% if (unidade.id === linha.unidadeId) { %>selected<% } %>><%= unidade.name %></option>
               <% }) %>
             </select>
           </div>

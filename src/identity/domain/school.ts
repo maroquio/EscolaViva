@@ -1,7 +1,7 @@
-export type Unidade = {
+export type School = {
   id: string;
-  redeId: string;
-  nome: string;
-  codigoInep: string | null;
-  ativa: boolean;
+  networkId: string;
+  name: string;
+  inepCode: string | null;
+  active: boolean;
 };

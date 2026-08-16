@@ -5,81 +5,81 @@ import { normalizeCpf } from '../../shared/document';
 import { logger } from '../../shared/log';
 import { systemClock, uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, EVENTOS_DE_LOG, MENSAGENS, SEGURANCA } from '../constants';
-import { redeAtiva } from '../domain/network';
-import { expiracaoDaSessao, type Sessao } from '../domain/session';
-import { usuarioAutenticado, type UsuarioAutenticado } from '../domain/user';
-import * as redeRepositorio from '../infra/networkRepository';
-import * as sessaoRepositorio from '../infra/sessionRepository';
-import * as usuarioRepositorio from '../infra/userRepository';
+import { CODES, FIELDS, LOG_EVENTS, MESSAGES, SCHEMA_FIELD_NAMES, SECURITY } from '../constants';
+import { isNetworkActive } from '../domain/network';
+import { sessionExpiration, type Session } from '../domain/session';
+import { toAuthenticatedUser, type AuthenticatedUser } from '../domain/user';
+import * as networkRepository from '../infra/networkRepository';
+import * as sessionRepository from '../infra/sessionRepository';
+import * as userRepository from '../infra/userRepository';
 
 const schema = z.object({
-  redeSlug: z.string().trim().min(1, MENSAGENS.login.redeObrigatoria),
-  identificador: z.string().trim().min(1, MENSAGENS.login.cpfObrigatorio),
-  senha: z.string().min(1, MENSAGENS.login.senhaObrigatoria),
+  networkSlug: z.string().trim().min(1, MESSAGES.login.networkRequired),
+  loginIdentifier: z.string().trim().min(1, MESSAGES.login.cpfRequired),
+  password: z.string().min(1, MESSAGES.login.passwordRequired),
   ip: z.string(),
 });
 
-const CREDENCIAIS_INVALIDAS = {
-  codigo: CODIGOS.credenciaisInvalidas,
-  mensagem: MENSAGENS.login.credenciaisInvalidas,
+const INVALID_CREDENTIALS = {
+  codigo: CODES.invalidCredentials,
+  mensagem: MESSAGES.login.invalidCredentials,
 };
 
-async function criarSessao(redeId: string, usuarioId: string, ip: string): Promise<Sessao> {
-  const agora = systemClock.now();
-  const sessao: Sessao = {
+async function createSession(networkId: string, userId: string, ip: string): Promise<Session> {
+  const now = systemClock.now();
+  const session: Session = {
     id: uuidIdGenerator.next(),
-    redeId,
-    usuarioId,
-    criadoEm: agora,
-    expiraEm: expiracaoDaSessao(agora, config.sessionDurationHours),
+    networkId,
+    userId,
+    createdAt: now,
+    expiresAt: sessionExpiration(now, config.sessionDurationHours),
     ip: ip === '' ? null : ip,
   };
   await unitOfWork(async ({ sql }) => {
-    await sessaoRepositorio.inserir(sql, sessao);
+    await sessionRepository.insert(sql, session);
   });
-  return sessao;
+  return session;
 }
 
-export async function autenticar(entrada: {
-  redeSlug: string;
-  identificador: string;
-  senha: string;
+export async function authenticate(input: {
+  networkSlug: string;
+  loginIdentifier: string;
+  password: string;
   ip: string;
-}): Promise<Result<{ sessaoId: string; usuario: UsuarioAutenticado }>> {
-  const analise = schema.safeParse(entrada);
-  if (!analise.success) return failure(...schemaErrors(analise.error.issues));
-  const dados = analise.data;
+}): Promise<Result<{ sessionId: string; user: AuthenticatedUser }>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.login));
+  const data = parsed.data;
 
   const sql = reader();
-  const rede = await redeRepositorio.porSlug(sql, dados.redeSlug);
-  if (rede === null || !redeAtiva(rede)) {
+  const network = await networkRepository.bySlug(sql, data.networkSlug);
+  if (network === null || !isNetworkActive(network)) {
     return fieldFailure(
-      CAMPOS.login.redeSlug,
-      CODIGOS.redeIndisponivel,
-      MENSAGENS.login.redeIndisponivel,
+      FIELDS.login.networkSlug,
+      CODES.networkUnavailable,
+      MESSAGES.login.networkUnavailable,
     );
   }
 
-  const credenciais = await usuarioRepositorio.credenciaisPorCpf(
+  const credentials = await userRepository.credentialsByCpf(
     sql,
-    rede.id,
-    normalizeCpf(dados.identificador),
+    network.id,
+    normalizeCpf(data.loginIdentifier),
   );
-  const senhaConfere = await Bun.password.verify(
-    dados.senha,
-    credenciais?.senhaHash ?? SEGURANCA.hashDeUsuarioInexistente,
+  const passwordMatches = await Bun.password.verify(
+    data.password,
+    credentials?.passwordHash ?? SECURITY.nonexistentUserHash,
   );
-  if (credenciais === null || !senhaConfere) {
-    logger.warn({ network_id: rede.id }, EVENTOS_DE_LOG.autenticacaoRecusada);
-    return failure(CREDENCIAIS_INVALIDAS);
+  if (credentials === null || !passwordMatches) {
+    logger.warn({ network_id: network.id }, LOG_EVENTS.authenticationRejected);
+    return failure(INVALID_CREDENTIALS);
   }
 
-  const papeis = await usuarioRepositorio.papeisDoUsuario(sql, rede.id, credenciais.usuario.id);
-  const sessao = await criarSessao(rede.id, credenciais.usuario.id, dados.ip);
-  logger.info({ network_id: rede.id, user_id: sessao.usuarioId }, EVENTOS_DE_LOG.sessaoAberta);
+  const roles = await userRepository.userRoles(sql, network.id, credentials.user.id);
+  const session = await createSession(network.id, credentials.user.id, data.ip);
+  logger.info({ network_id: network.id, user_id: session.userId }, LOG_EVENTS.sessionOpened);
   return success({
-    sessaoId: sessao.id,
-    usuario: usuarioAutenticado(credenciais.usuario, rede, papeis),
+    sessionId: session.id,
+    user: toAuthenticatedUser(credentials.user, network, roles),
   });
 }

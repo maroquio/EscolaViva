@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { academico } from '../../academico';
-import { identidade } from '../../identity';
+import { identity } from '../../identity';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
@@ -96,8 +96,8 @@ export async function publicarComunicado(
   if (!texto.ok) return failure(...texto.erros);
 
   const [unidade, nomes] = await Promise.all([
-    identidade.unidadePorId(dados.redeId, dados.unidadeId),
-    identidade.nomesDeUsuarios(dados.redeId, [dados.autorUsuarioId]),
+    identity.schoolById(dados.redeId, dados.unidadeId),
+    identity.userNames(dados.redeId, [dados.autorUsuarioId]),
   ]);
   if (unidade === null) {
     return fieldFailure(

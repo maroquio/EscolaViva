@@ -19,9 +19,11 @@ export const fieldFailure = <T = never>(
 
 export const schemaErrors = (
   issues: { path: (string | number)[]; message: string; code: string }[],
+  fieldNames: Readonly<Record<string, string>> = {},
 ): ApplicationError[] =>
   issues.map((issue) => {
-    const campo = issue.path.join(FIELD_PATH_SEPARATOR);
+    const caminho = issue.path.join(FIELD_PATH_SEPARATOR);
+    const campo = fieldNames[caminho] ?? caminho;
     const error: ApplicationError = { codigo: issue.code, mensagem: issue.message };
     return campo === '' ? error : { ...error, campo };
   });

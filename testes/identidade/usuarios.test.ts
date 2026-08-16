@@ -8,7 +8,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { identidade } from '../../src/identity';
+import { identity } from '../../src/identity';
 import { generateCpf } from '../../src/shared/document';
 import type { ApplicationError, Result } from '../../src/shared/result';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
@@ -41,30 +41,30 @@ describe('convidarUsuario', () => {
     const centro = await criarUnidadeDeTeste({ networkId: rede.id, name: 'Escola Centro' });
     const praia = await criarUnidadeDeTeste({ networkId: rede.id, name: 'Escola Praia' });
 
-    const resultado = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Ana Souza',
+    const resultado = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Ana Souza',
       email: 'ana.souza@convite.br',
       cpf: generateCpf(3),
-      atribuicoes: [
-        { unidadeId: centro.id, papel: 'teacher' },
-        { unidadeId: praia.id, papel: 'registrar' },
+      roleAssignments: [
+        { schoolId: centro.id, role: 'teacher' },
+        { schoolId: praia.id, role: 'registrar' },
       ],
     });
 
-    const { usuarioId, senhaProvisoria } = valorDe(resultado);
-    expect(senhaProvisoria).toHaveLength(12);
-    const usuarios = await identidade.listarUsuarios(rede.id);
+    const { userId, temporaryPassword } = valorDe(resultado);
+    expect(temporaryPassword).toHaveLength(12);
+    const usuarios = await identity.listUsers(rede.id);
     expect(usuarios).toEqual([
       {
-        id: usuarioId,
-        nome: 'Ana Souza',
+        id: userId,
+        name: 'Ana Souza',
         email: 'ana.souza@convite.br',
         cpf: generateCpf(3),
-        ativo: true,
-        papeis: [
-          { unidadeId: centro.id, unidadeNome: 'Escola Centro', papel: 'teacher' },
-          { unidadeId: praia.id, unidadeNome: 'Escola Praia', papel: 'registrar' },
+        active: true,
+        roles: [
+          { schoolId: centro.id, schoolName: 'Escola Centro', role: 'teacher' },
+          { schoolId: praia.id, schoolName: 'Escola Praia', role: 'registrar' },
         ],
       },
     ]);
@@ -73,42 +73,42 @@ describe('convidarUsuario', () => {
   test('a senha provisória devolvida realmente autentica', async () => {
     const rede = await criarRede({ slug: 'provisoria' });
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
-    const convite = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Bia Nunes',
+    const convite = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Bia Nunes',
       email: 'bia@provisoria.br',
       cpf: generateCpf(4),
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'registrar' }],
+      roleAssignments: [{ schoolId: unidade.id, role: 'registrar' }],
     });
 
-    const entrada = await identidade.autenticar({
-      redeSlug: 'provisoria',
-      identificador: generateCpf(4),
-      senha: valorDe(convite).senhaProvisoria,
+    const entrada = await identity.authenticate({
+      networkSlug: 'provisoria',
+      loginIdentifier: generateCpf(4),
+      password: valorDe(convite).temporaryPassword,
       ip: '',
     });
 
-    expect(valorDe(entrada).usuario.id).toBe(valorDe(convite).usuarioId);
+    expect(valorDe(entrada).user.id).toBe(valorDe(convite).userId);
   });
 
   test('o e-mail é guardado normalizado e autentica em qualquer caixa', async () => {
     const rede = await criarRede({ slug: 'normalizado' });
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
 
-    const convite = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Carlos Lima',
+    const convite = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Carlos Lima',
       email: '  Carlos.LIMA@Escola.BR  ',
       cpf: generateCpf(5),
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'teacher' }],
+      roleAssignments: [{ schoolId: unidade.id, role: 'teacher' }],
     });
 
-    const usuarios = await identidade.listarUsuarios(rede.id);
+    const usuarios = await identity.listUsers(rede.id);
     expect(usuarios[0]?.email).toBe('carlos.lima@escola.br');
-    const entrada = await identidade.autenticar({
-      redeSlug: 'normalizado',
-      identificador: generateCpf(5),
-      senha: valorDe(convite).senhaProvisoria,
+    const entrada = await identity.authenticate({
+      networkSlug: 'normalizado',
+      loginIdentifier: generateCpf(5),
+      password: valorDe(convite).temporaryPassword,
       ip: '',
     });
     expect(entrada.ok).toBe(true);
@@ -119,12 +119,12 @@ describe('convidarUsuario', () => {
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
     await criarUsuario({ networkId: rede.id, email: 'ocupado@escola.br' });
 
-    const resultado = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Outra Pessoa',
+    const resultado = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Outra Pessoa',
       email: 'ocupado@escola.br',
       cpf: generateCpf(6),
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'teacher' }],
+      roleAssignments: [{ schoolId: unidade.id, role: 'teacher' }],
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -134,7 +134,7 @@ describe('convidarUsuario', () => {
         mensagem: 'já existe usuário com este e-mail na rede',
       },
     ]);
-    expect(await identidade.listarUsuarios(rede.id)).toHaveLength(1);
+    expect(await identity.listUsers(rede.id)).toHaveLength(1);
   });
 
   test('a checagem de e-mail duplicado enxerga a diferença de caixa', async () => {
@@ -142,12 +142,12 @@ describe('convidarUsuario', () => {
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
     await criarUsuario({ networkId: rede.id, email: 'ocupado@escola.br' });
 
-    const resultado = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Outra Pessoa',
+    const resultado = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Outra Pessoa',
       email: 'OCUPADO@Escola.BR',
       cpf: generateCpf(7),
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'teacher' }],
+      roleAssignments: [{ schoolId: unidade.id, role: 'teacher' }],
     });
 
     expect(errosDe(resultado)[0]?.codigo).toBe('email_em_uso');
@@ -160,17 +160,17 @@ describe('convidarUsuario', () => {
     const doColegio = await criarUnidadeDeTeste({ networkId: colegio.id });
     await criarUsuario({ networkId: prefeitura.id, email: 'ana.souza@escola.br' });
 
-    const resultado = await identidade.convidarUsuario({
-      redeId: colegio.id,
-      nome: 'Ana Souza',
+    const resultado = await identity.inviteUser({
+      networkId: colegio.id,
+      name: 'Ana Souza',
       email: 'ana.souza@escola.br',
       cpf: generateCpf(8),
-      atribuicoes: [{ unidadeId: doColegio.id, papel: 'registrar' }],
+      roleAssignments: [{ schoolId: doColegio.id, role: 'registrar' }],
     });
 
     expect(resultado.ok).toBe(true);
-    expect(await identidade.listarUsuarios(prefeitura.id)).toHaveLength(1);
-    expect(await identidade.listarUsuarios(colegio.id)).toHaveLength(1);
+    expect(await identity.listUsers(prefeitura.id)).toHaveLength(1);
+    expect(await identity.listUsers(colegio.id)).toHaveLength(1);
     expect(daPrefeitura.networkId).not.toBe(doColegio.networkId);
   });
 
@@ -178,12 +178,12 @@ describe('convidarUsuario', () => {
     const rede = await criarRede();
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
 
-    const resultado = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Mãe da Ana',
+    const resultado = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Mãe da Ana',
       email: 'mae.da.ana@familia.br',
       cpf: generateCpf(9),
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'guardian' }],
+      roleAssignments: [{ schoolId: unidade.id, role: 'guardian' }],
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -194,7 +194,7 @@ describe('convidarUsuario', () => {
           'quem entra como responsável precisa estar ligado a um cadastro de responsável',
       },
     ]);
-    expect(await identidade.listarUsuarios(rede.id)).toHaveLength(0);
+    expect(await identity.listUsers(rede.id)).toHaveLength(0);
   });
 
   test('papel de responsável com cadastro ligado entra e carrega o vínculo na sessão', async () => {
@@ -202,22 +202,22 @@ describe('convidarUsuario', () => {
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
     const responsavel = await criarResponsavel({ networkId: rede.id });
 
-    const convite = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Mãe da Ana',
+    const convite = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Mãe da Ana',
       email: 'mae.da.ana@familia.br',
       cpf: generateCpf(10),
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'guardian' }],
-      responsavelId: responsavel.id,
+      roleAssignments: [{ schoolId: unidade.id, role: 'guardian' }],
+      guardianId: responsavel.id,
     });
 
-    const entrada = await identidade.autenticar({
-      redeSlug: 'portal',
-      identificador: generateCpf(10),
-      senha: valorDe(convite).senhaProvisoria,
+    const entrada = await identity.authenticate({
+      networkSlug: 'portal',
+      loginIdentifier: generateCpf(10),
+      password: valorDe(convite).temporaryPassword,
       ip: '',
     });
-    expect(valorDe(entrada).usuario.responsavelId).toBe(responsavel.id);
+    expect(valorDe(entrada).user.guardianId).toBe(responsavel.id);
   });
 
   test('recusa unidade de outra rede sem criar o usuário', async () => {
@@ -225,12 +225,12 @@ describe('convidarUsuario', () => {
     const alheia = await criarRede();
     const unidadeAlheia = await criarUnidadeDeTeste({ networkId: alheia.id });
 
-    const resultado = await identidade.convidarUsuario({
-      redeId: nossa.id,
-      nome: 'Intrusa',
+    const resultado = await identity.inviteUser({
+      networkId: nossa.id,
+      name: 'Intrusa',
       email: 'intrusa@escola.br',
       cpf: generateCpf(11),
-      atribuicoes: [{ unidadeId: unidadeAlheia.id, papel: 'network_admin' }],
+      roleAssignments: [{ schoolId: unidadeAlheia.id, role: 'network_admin' }],
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -240,18 +240,18 @@ describe('convidarUsuario', () => {
         mensagem: 'unidade não pertence a esta rede',
       },
     ]);
-    expect(await identidade.listarUsuarios(nossa.id)).toHaveLength(0);
+    expect(await identity.listUsers(nossa.id)).toHaveLength(0);
   });
 
   test('convite sem nenhuma atribuição é recusado', async () => {
     const rede = await criarRede();
 
-    const resultado = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Sem Papel',
+    const resultado = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Sem Papel',
       email: 'sem.papel@escola.br',
       cpf: generateCpf(12),
-      atribuicoes: [],
+      roleAssignments: [],
     });
 
     expect(errosDe(resultado)[0]?.campo).toBe('atribuicoes');
@@ -261,37 +261,37 @@ describe('convidarUsuario', () => {
     const rede = await criarRede();
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
 
-    const resultado = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Ana Souza',
+    const resultado = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Ana Souza',
       email: 'ana-arroba-nada',
       cpf: generateCpf(13),
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'teacher' }],
+      roleAssignments: [{ schoolId: unidade.id, role: 'teacher' }],
     });
 
     expect(errosDe(resultado)[0]?.campo).toBe('email');
-    expect(await identidade.listarUsuarios(rede.id)).toHaveLength(0);
+    expect(await identity.listUsers(rede.id)).toHaveLength(0);
   });
 
   test('o mesmo par unidade e papel repetido no formulário vira uma única linha', async () => {
     const rede = await criarRede();
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id, name: 'Escola Única' });
 
-    const resultado = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Ana Souza',
+    const resultado = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Ana Souza',
       email: 'ana@escola.br',
       cpf: generateCpf(14),
-      atribuicoes: [
-        { unidadeId: unidade.id, papel: 'teacher' },
-        { unidadeId: unidade.id, papel: 'teacher' },
+      roleAssignments: [
+        { schoolId: unidade.id, role: 'teacher' },
+        { schoolId: unidade.id, role: 'teacher' },
       ],
     });
 
     expect(resultado.ok).toBe(true);
-    const usuarios = await identidade.listarUsuarios(rede.id);
-    expect(usuarios[0]?.papeis).toEqual([
-      { unidadeId: unidade.id, unidadeNome: 'Escola Única', papel: 'teacher' },
+    const usuarios = await identity.listUsers(rede.id);
+    expect(usuarios[0]?.roles).toEqual([
+      { schoolId: unidade.id, schoolName: 'Escola Única', role: 'teacher' },
     ]);
   });
 
@@ -299,12 +299,12 @@ describe('convidarUsuario', () => {
     const rede = await criarRede({});
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
 
-    const convite = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Rui Barbosa Neto',
+    const convite = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Rui Barbosa Neto',
       email: 'rui@escolaviva.test',
       cpf: '11111111111',
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'registrar' }],
+      roleAssignments: [{ schoolId: unidade.id, role: 'registrar' }],
     });
 
     expect(convite.ok).toBe(false);
@@ -316,12 +316,12 @@ describe('convidarUsuario', () => {
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
     await criarUsuario({ networkId: rede.id, cpf: '52998224725', papeis: [] });
 
-    const convite = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Outra Pessoa',
+    const convite = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Outra Pessoa',
       email: 'outra@escolaviva.test',
       cpf: '52998224725',
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'registrar' }],
+      roleAssignments: [{ schoolId: unidade.id, role: 'registrar' }],
     });
 
     expect(convite.ok).toBe(false);
@@ -334,12 +334,12 @@ describe('convidarUsuario', () => {
     const unidadeB = await criarUnidadeDeTeste({ networkId: b.id });
     await criarUsuario({ networkId: a.id, cpf: '52998224725', papeis: [] });
 
-    const convite = await identidade.convidarUsuario({
-      redeId: b.id,
-      nome: 'Homônimo de Outra Rede',
+    const convite = await identity.inviteUser({
+      networkId: b.id,
+      name: 'Homônimo de Outra Rede',
       email: 'homonimo@escolaviva.test',
       cpf: '52998224725',
-      atribuicoes: [{ unidadeId: unidadeB.id, papel: 'registrar' }],
+      roleAssignments: [{ schoolId: unidadeB.id, role: 'registrar' }],
     });
 
     expect(convite.ok).toBe(true);
@@ -350,15 +350,15 @@ describe('convidarUsuario', () => {
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
     const responsavel = await criarResponsavel({ networkId: rede.id, cpf: '52998224725' });
 
-    const convite = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Mãe do Aluno',
+    const convite = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Mãe do Aluno',
       email: 'mae@escolaviva.test',
       cpf: generateCpf(1),
-      responsavelId: responsavel.id,
-      cpfDoCadastro: responsavel.cpf,
-      nomeDoCadastro: responsavel.name,
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'guardian' }],
+      guardianId: responsavel.id,
+      registeredCpf: responsavel.cpf,
+      registeredName: responsavel.name,
+      roleAssignments: [{ schoolId: unidade.id, role: 'guardian' }],
     });
 
     expect(convite.ok).toBe(false);
@@ -376,15 +376,15 @@ describe('convidarUsuario', () => {
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
     const responsavel = await criarResponsavel({ networkId: rede.id, cpf: null });
 
-    const convite = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Pai do Aluno',
+    const convite = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Pai do Aluno',
       email: 'pai@escolaviva.test',
       cpf: generateCpf(2),
-      responsavelId: responsavel.id,
-      cpfDoCadastro: null,
-      nomeDoCadastro: responsavel.name,
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'guardian' }],
+      guardianId: responsavel.id,
+      registeredCpf: null,
+      registeredName: responsavel.name,
+      roleAssignments: [{ schoolId: unidade.id, role: 'guardian' }],
     });
 
     expect(convite.ok).toBe(true);
@@ -394,19 +394,19 @@ describe('convidarUsuario', () => {
     const rede = await criarRede({});
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id });
 
-    const convite = await identidade.convidarUsuario({
-      redeId: rede.id,
-      nome: 'Marina Alves Correia',
+    const convite = await identity.inviteUser({
+      networkId: rede.id,
+      name: 'Marina Alves Correia',
       email: 'marina@escolaviva.test',
       cpf: '52998224725',
-      atribuicoes: [{ unidadeId: unidade.id, papel: 'registrar' }],
+      roleAssignments: [{ schoolId: unidade.id, role: 'registrar' }],
     });
     if (!convite.ok) throw new Error('convite recusado no cenário');
-    // `identidade` não expõe consulta de usuário por id, e criar uma porta pública só para
+    // `identity` não expõe consulta de usuário por id, e criar uma porta pública só para
     // satisfazer um teste seria escopo que ninguém pediu. `checklist.test.ts` já afirma "a linha
     // caiu no banco" exatamente assim.
     const linhas = await sqlDeTeste()<{ cpf: string }[]>`
-      SELECT cpf FROM app_user WHERE id = ${convite.valor.usuarioId}`;
+      SELECT cpf FROM app_user WHERE id = ${convite.valor.userId}`;
 
     expect(linhas[0]?.cpf).toBe('52998224725');
   });
@@ -416,40 +416,40 @@ describe('unidades da rede', () => {
   test('criarUnidade grava a unidade ativa e ela aparece na listagem', async () => {
     const rede = await criarRede();
 
-    const resultado = await identidade.criarUnidade({
-      redeId: rede.id,
-      nome: 'Escola Municipal Aurora',
-      codigoInep: '32012345',
+    const resultado = await identity.createSchool({
+      networkId: rede.id,
+      name: 'Escola Municipal Aurora',
+      inepCode: '32012345',
     });
 
     const unidade = valorDe(resultado);
     expect(unidade).toEqual({
       id: unidade.id,
-      redeId: rede.id,
-      nome: 'Escola Municipal Aurora',
-      codigoInep: '32012345',
-      ativa: true,
+      networkId: rede.id,
+      name: 'Escola Municipal Aurora',
+      inepCode: '32012345',
+      active: true,
     });
-    expect(await identidade.listarUnidades(rede.id)).toEqual([unidade]);
+    expect(await identity.listSchools(rede.id)).toEqual([unidade]);
   });
 
   test('código INEP em branco vira ausência de código', async () => {
     const rede = await criarRede();
 
-    const resultado = await identidade.criarUnidade({
-      redeId: rede.id,
-      nome: 'Escola Sem INEP',
-      codigoInep: '',
+    const resultado = await identity.createSchool({
+      networkId: rede.id,
+      name: 'Escola Sem INEP',
+      inepCode: '',
     });
 
-    expect(valorDe(resultado).codigoInep).toBeNull();
+    expect(valorDe(resultado).inepCode).toBeNull();
   });
 
   test('recusa unidade com nome já usado na rede', async () => {
     const rede = await criarRede();
     await criarUnidadeDeTeste({ networkId: rede.id, name: 'Escola Centro' });
 
-    const resultado = await identidade.criarUnidade({ redeId: rede.id, nome: 'Escola Centro' });
+    const resultado = await identity.createSchool({ networkId: rede.id, name: 'Escola Centro' });
 
     expect(errosDe(resultado)).toEqual([
       {
@@ -458,7 +458,7 @@ describe('unidades da rede', () => {
         mensagem: 'já existe unidade com este nome na rede',
       },
     ]);
-    expect(await identidade.listarUnidades(rede.id)).toHaveLength(1);
+    expect(await identity.listSchools(rede.id)).toHaveLength(1);
   });
 
   test('o mesmo nome de unidade é aceito em outra rede', async () => {
@@ -466,7 +466,7 @@ describe('unidades da rede', () => {
     const segunda = await criarRede();
     await criarUnidadeDeTeste({ networkId: primeira.id, name: 'Escola Centro' });
 
-    const resultado = await identidade.criarUnidade({ redeId: segunda.id, nome: 'Escola Centro' });
+    const resultado = await identity.createSchool({ networkId: segunda.id, name: 'Escola Centro' });
 
     expect(resultado.ok).toBe(true);
   });
@@ -474,7 +474,7 @@ describe('unidades da rede', () => {
   test('unidade sem nome é recusada', async () => {
     const rede = await criarRede();
 
-    const resultado = await identidade.criarUnidade({ redeId: rede.id, nome: '   ' });
+    const resultado = await identity.createSchool({ networkId: rede.id, name: '   ' });
 
     expect(errosDe(resultado)[0]?.campo).toBe('nome');
   });
@@ -483,21 +483,21 @@ describe('unidades da rede', () => {
     const rede = await criarRede();
     const unidade = await criarUnidadeDeTeste({ networkId: rede.id, name: 'Escola Centro' });
 
-    const encontrada = await identidade.unidadePorId(rede.id, unidade.id);
+    const encontrada = await identity.schoolById(rede.id, unidade.id);
 
-    expect(encontrada?.nome).toBe('Escola Centro');
-    expect(await identidade.unidadePorId(rede.id, crypto.randomUUID())).toBeNull();
+    expect(encontrada?.name).toBe('Escola Centro');
+    expect(await identity.schoolById(rede.id, crypto.randomUUID())).toBeNull();
   });
 
   test('id fora do formato devolve nulo e lista vazia em vez de erro de conversão', async () => {
     const rede = await criarRede();
     await criarUnidadeDeTeste({ networkId: rede.id });
 
-    const encontrada = await identidade.unidadePorId(rede.id, 'nao-e-uuid');
+    const encontrada = await identity.schoolById(rede.id, 'nao-e-uuid');
 
     expect(encontrada).toBeNull();
-    expect(await identidade.listarUnidades('nao-e-uuid')).toEqual([]);
-    expect(await identidade.listarUsuarios('nao-e-uuid')).toEqual([]);
+    expect(await identity.listSchools('nao-e-uuid')).toEqual([]);
+    expect(await identity.listUsers('nao-e-uuid')).toEqual([]);
   });
 });
 
@@ -506,13 +506,13 @@ describe('professores da unidade', () => {
     const cenario = await cenarioCompleto();
     const [centro, praia] = cenario.unidades;
 
-    const naUnidadeCerta = await identidade.ehProfessorNaUnidade(
+    const naUnidadeCerta = await identity.isTeacherAtSchool(
       cenario.rede.id, cenario.professor.id, centro.id,
     );
 
     expect(naUnidadeCerta).toBe(true);
     expect(
-      await identidade.ehProfessorNaUnidade(cenario.rede.id, cenario.professor.id, praia.id),
+      await identity.isTeacherAtSchool(cenario.rede.id, cenario.professor.id, praia.id),
     ).toBe(false);
   });
 
@@ -520,7 +520,7 @@ describe('professores da unidade', () => {
     const cenario = await cenarioCompleto();
     const [centro] = cenario.unidades;
 
-    const secretariaEhProfessora = await identidade.ehProfessorNaUnidade(
+    const secretariaEhProfessora = await identity.isTeacherAtSchool(
       cenario.rede.id, cenario.secretaria.id, centro.id,
     );
 
@@ -544,11 +544,11 @@ describe('professores da unidade', () => {
       networkId: rede.id, name: 'Dina Melo', papeis: [{ schoolId: centro.id, role: 'registrar' }],
     });
 
-    const professores = await identidade.professoresDaUnidade(rede.id, centro.id);
+    const professores = await identity.schoolTeachers(rede.id, centro.id);
 
     expect(professores).toEqual([
-      { id: alice.id, nome: 'Alice Reis' },
-      { id: bruna.id, nome: 'Bruna Alves' },
+      { id: alice.id, name: 'Alice Reis' },
+      { id: bruna.id, name: 'Bruna Alves' },
     ]);
   });
 
@@ -560,7 +560,7 @@ describe('professores da unidade', () => {
       papeis: [{ schoolId: centro.id, role: 'teacher' }],
     });
 
-    const professores = await identidade.professoresDaUnidade(rede.id, centro.id);
+    const professores = await identity.schoolTeachers(rede.id, centro.id);
 
     expect(professores).toEqual([]);
   });
@@ -570,10 +570,10 @@ describe('consultas de apoio', () => {
   test('redePorSlug devolve a rede da tela de login e nulo para slug desconhecido', async () => {
     const rede = await criarRede({ name: 'Rede Serra', slug: 'serra' });
 
-    const encontrada = await identidade.redePorSlug('serra');
+    const encontrada = await identity.networkBySlug('serra');
 
-    expect(encontrada).toEqual({ id: rede.id, nome: 'Rede Serra', slug: 'serra', status: 'active' });
-    expect(await identidade.redePorSlug('nao-existe')).toBeNull();
+    expect(encontrada).toEqual({ id: rede.id, name: 'Rede Serra', slug: 'serra', status: 'active' });
+    expect(await identity.networkBySlug('nao-existe')).toBeNull();
   });
 
   test('nomesDeUsuarios resolve os nomes pedidos em um mapa', async () => {
@@ -581,7 +581,7 @@ describe('consultas de apoio', () => {
     const ana = await criarUsuario({ networkId: rede.id, name: 'Ana Souza' });
     const bia = await criarUsuario({ networkId: rede.id, name: 'Bia Nunes' });
 
-    const nomes = await identidade.nomesDeUsuarios(rede.id, [ana.id, bia.id, ana.id]);
+    const nomes = await identity.userNames(rede.id, [ana.id, bia.id, ana.id]);
 
     expect(nomes).toEqual(new Map([[ana.id, 'Ana Souza'], [bia.id, 'Bia Nunes']]));
   });
@@ -590,10 +590,10 @@ describe('consultas de apoio', () => {
     const rede = await criarRede();
     const ana = await criarUsuario({ networkId: rede.id, name: 'Ana Souza' });
 
-    const nomes = await identidade.nomesDeUsuarios(rede.id, ['lixo', ana.id]);
+    const nomes = await identity.userNames(rede.id, ['lixo', ana.id]);
 
     expect(nomes).toEqual(new Map([[ana.id, 'Ana Souza']]));
-    expect(await identidade.nomesDeUsuarios(rede.id, [])).toEqual(new Map());
+    expect(await identity.userNames(rede.id, [])).toEqual(new Map());
   });
 
   test('listarUsuarios traz também quem está desativado, marcado como tal', async () => {
@@ -601,9 +601,9 @@ describe('consultas de apoio', () => {
     await criarUsuario({ networkId: rede.id, name: 'Ana Souza' });
     await criarUsuario({ networkId: rede.id, name: 'Zeca Paz', active: false });
 
-    const usuarios = await identidade.listarUsuarios(rede.id);
+    const usuarios = await identity.listUsers(rede.id);
 
-    expect(usuarios.map((u) => [u.nome, u.ativo])).toEqual([
+    expect(usuarios.map((u) => [u.name, u.active])).toEqual([
       ['Ana Souza', true],
       ['Zeca Paz', false],
     ]);
@@ -615,11 +615,11 @@ describe('isolamento de tenant', () => {
     const { a, b } = await duasRedes();
     const idsDeB = [b.admin.id, b.secretaria.id, b.professor.id];
 
-    const unidades = await identidade.listarUnidades(a.rede.id);
-    const usuarios = await identidade.listarUsuarios(a.rede.id);
-    const nomes = await identidade.nomesDeUsuarios(a.rede.id, idsDeB);
+    const unidades = await identity.listSchools(a.rede.id);
+    const usuarios = await identity.listUsers(a.rede.id);
+    const nomes = await identity.userNames(a.rede.id, idsDeB);
 
-    expect(unidades.every((unidade) => unidade.redeId === a.rede.id)).toBe(true);
+    expect(unidades.every((unidade) => unidade.networkId === a.rede.id)).toBe(true);
     expect(unidades.map((unidade) => unidade.id)).not.toContain(b.unidades[0].id);
     expect(usuarios.map((usuario) => usuario.id)).not.toContain(b.admin.id);
     expect(usuarios.every((usuario) => !usuario.email.includes(b.admin.email))).toBe(true);
@@ -629,25 +629,25 @@ describe('isolamento de tenant', () => {
   test('unidade e papel de outra rede não são alcançáveis pelo id', async () => {
     const { a, b } = await duasRedes();
 
-    const unidadeAlheia = await identidade.unidadePorId(a.rede.id, b.unidades[0].id);
+    const unidadeAlheia = await identity.schoolById(a.rede.id, b.unidades[0].id);
 
     expect(unidadeAlheia).toBeNull();
     expect(
-      await identidade.ehProfessorNaUnidade(a.rede.id, b.professor.id, b.unidades[0].id),
+      await identity.isTeacherAtSchool(a.rede.id, b.professor.id, b.unidades[0].id),
     ).toBe(false);
-    expect(await identidade.professoresDaUnidade(a.rede.id, b.unidades[0].id)).toEqual([]);
+    expect(await identity.schoolTeachers(a.rede.id, b.unidades[0].id)).toEqual([]);
   });
 
   test('os papéis carregados na sessão são apenas os da rede do usuário', async () => {
     const { a, b } = await duasRedes();
 
-    const entrada = await identidade.autenticar({
-      redeSlug: a.rede.slug, identificador: a.admin.cpf, senha: a.senha, ip: '',
+    const entrada = await identity.authenticate({
+      networkSlug: a.rede.slug, loginIdentifier: a.admin.cpf, password: a.senha, ip: '',
     });
 
-    const papeis = valorDe(entrada).usuario.papeis;
+    const papeis = valorDe(entrada).user.roles;
     const unidadesDeB = [b.unidades[0].id, b.unidades[1].id];
-    expect(papeis.every((papel) => !unidadesDeB.includes(papel.unidadeId))).toBe(true);
+    expect(papeis.every((papel) => !unidadesDeB.includes(papel.schoolId))).toBe(true);
     expect(papeis).toHaveLength(2);
   });
 });

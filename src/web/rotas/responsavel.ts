@@ -8,7 +8,7 @@ import {
   type Boletim,
 } from '../../avaliacao';
 import { comunicacao, type ItemDoMural } from '../../comunicacao';
-import { PAPEL } from '../../identity';
+import { ROLE } from '../../identity';
 import {
   NotFound,
   currentNetwork,
@@ -32,7 +32,7 @@ import { formatarNota, renderizar } from '../render';
 
 export const rotasResponsavel = new Hono<{ Variables: Variables }>();
 
-rotasResponsavel.use(requireRole(PAPEL.responsavel));
+rotasResponsavel.use(requireRole(ROLE.guardian));
 
 const PARCIAIS = { parciais: TEMPLATES.parciais };
 
@@ -52,7 +52,7 @@ const CRITERIO_DE_APROVACAO = {
   frequencia: `${naEscalaDaTela(APROVACAO.frequenciaMinimaEmCentesimos)}${APRESENTACAO.sufixoDePercentual}`,
 };
 
-const responsavelDaSessao = (c: Context): string | null => currentUser(c).responsavelId;
+const responsavelDaSessao = (c: Context): string | null => currentUser(c).guardianId;
 
 const matriculaSobResponsabilidade = async (c: Context, matriculaId: string): Promise<Matricula> => {
   const responsavelId = responsavelDaSessao(c);

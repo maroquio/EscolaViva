@@ -81,7 +81,7 @@ const paginaDaTurma = it.rotas.secretaria.turma({ id: turma.id });
           <option value=""><%= it.opcaoVazia %></option>
           <% professores.forEach((professor) => { %>
           <option value="<%= professor.id %>" <%= (valores.professorUsuarioId ?? '') === professor.id ? 'selected' : '' %>>
-            <%= professor.nome %>
+            <%= professor.name %>
           </option>
           <% }) %>
         </select>

@@ -8,7 +8,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { academico } from '../../src/academico';
-import { identidade } from '../../src/identity';
+import { identity } from '../../src/identity';
 import { limparBanco } from '../apoio/banco';
 import {
   ANO_PADRAO,
@@ -230,16 +230,16 @@ describe('paginaDeUsuarios', () => {
   test('os papéis vêm só dos usuários da página, e chegam completos', async () => {
     const cenario = await cenarioCompleto();
 
-    const pagina = await identidade.paginaDeUsuarios(cenario.rede.id, 1, 2);
+    const pagina = await identity.usersPage(cenario.rede.id, 1, 2);
 
     expect(pagina.items).toHaveLength(2);
     expect(pagina.total).toBe(4);
     const admin = pagina.items.find((usuario) => usuario.id === cenario.admin.id);
-    if (admin !== undefined) expect(admin.papeis).toHaveLength(2);
+    if (admin !== undefined) expect(admin.roles).toHaveLength(2);
   });
 
   test('rede com id malformado devolve página vazia em vez de estourar', async () => {
-    const pagina = await identidade.paginaDeUsuarios('nao-e-uuid', 1, 20);
+    const pagina = await identity.usersPage('nao-e-uuid', 1, 20);
 
     expect(pagina).toMatchObject({ items: [], total: 0, page: 1 });
   });

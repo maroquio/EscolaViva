@@ -23,7 +23,7 @@ const resumo = it.resumo;
     <% } %>
     <% it.unidades.forEach((unidade) => { %>
     <option value="<%= unidade.id %>"<% if (unidade.id === it.unidadeAtual) { %> selected<% } %>>
-      <%= unidade.nome %>
+      <%= unidade.name %>
     </option>
     <% }) %>
   </select>

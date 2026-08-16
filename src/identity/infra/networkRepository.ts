@@ -1,21 +1,21 @@
 import type { Connection } from '../../shared/db';
-import { paraStatusDeRede, type Rede } from '../domain/network';
+import { toNetworkStatus, type Network } from '../domain/network';
 
-type LinhaDeRede = { id: string; name: string; slug: string; status: string };
+type NetworkRow = { id: string; name: string; slug: string; status: string };
 
-const paraRede = (linha: LinhaDeRede): Rede => ({
-  id: linha.id,
-  nome: linha.name,
-  slug: linha.slug,
-  status: paraStatusDeRede(linha.status),
+const toNetwork = (row: NetworkRow): Network => ({
+  id: row.id,
+  name: row.name,
+  slug: row.slug,
+  status: toNetworkStatus(row.status),
 });
 
-export async function porSlug(sql: Connection, slug: string): Promise<Rede | null> {
-  const linhas = await sql<LinhaDeRede[]>`
+export async function bySlug(sql: Connection, slug: string): Promise<Network | null> {
+  const rows = await sql<NetworkRow[]>`
     SELECT id, name, slug, status
     FROM network
     WHERE slug = ${slug}
   `;
-  const linha = linhas[0];
-  return linha === undefined ? null : paraRede(linha);
+  const row = rows[0];
+  return row === undefined ? null : toNetwork(row);
 }

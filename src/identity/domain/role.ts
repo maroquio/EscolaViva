@@ -1,16 +1,16 @@
-import { ERROS_INTERNOS } from '../constants';
+import { INTERNAL_ERRORS, ROLE } from '../constants';
 
-export const PAPEIS = ['network_admin', 'registrar', 'teacher', 'guardian'] as const;
+export const ROLES = [ROLE.networkAdmin, ROLE.registrar, ROLE.teacher, ROLE.guardian] as const;
 
-export type Papel = (typeof PAPEIS)[number];
+export type Role = (typeof ROLES)[number];
 
-export type PapelEmUnidade = { unidadeId: string; unidadeNome: string; papel: Papel };
+export type RoleInSchool = { schoolId: string; schoolName: string; role: Role };
 
-export function papelValido(valor: string): valor is Papel {
-  return (PAPEIS as readonly string[]).includes(valor);
+export function isValidRole(value: string): value is Role {
+  return (ROLES as readonly string[]).includes(value);
 }
 
-export function paraPapel(valor: string): Papel {
-  if (!papelValido(valor)) throw new Error(ERROS_INTERNOS.papelForaDoDominio(valor));
-  return valor;
+export function toRole(value: string): Role {
+  if (!isValidRole(value)) throw new Error(INTERNAL_ERRORS.roleOutOfDomain(value));
+  return value;
 }

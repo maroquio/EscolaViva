@@ -1,18 +1,18 @@
 import { TIME } from '../../shared/constants';
 
-export type Sessao = {
+export type Session = {
   id: string;
-  redeId: string;
-  usuarioId: string;
-  criadoEm: Date;
-  expiraEm: Date;
+  networkId: string;
+  userId: string;
+  createdAt: Date;
+  expiresAt: Date;
   ip: string | null;
 };
 
-export function expiracaoDaSessao(agora: Date, duracaoHoras: number): Date {
-  return new Date(agora.getTime() + duracaoHoras * TIME.msPerHour);
+export function sessionExpiration(now: Date, durationHours: number): Date {
+  return new Date(now.getTime() + durationHours * TIME.msPerHour);
 }
 
-export function sessaoExpirou(sessao: Sessao, agora: Date): boolean {
-  return sessao.expiraEm.getTime() <= agora.getTime();
+export function hasSessionExpired(session: Session, now: Date): boolean {
+  return session.expiresAt.getTime() <= now.getTime();
 }

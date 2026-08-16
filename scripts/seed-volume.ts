@@ -1,5 +1,5 @@
 import { MATRICULA_ATIVA, TURNOS } from '../src/academico';
-import { REDE_ATIVA } from '../src/identity';
+import { ACTIVE_NETWORK_STATUS } from '../src/identity';
 import { config } from '../src/shared/config';
 import { LOCALE, PRODUCTION_ENV, TIME, WEEK_DAYS } from '../src/shared/constants';
 import { closeDatabase, writer, type Connection } from '../src/shared/db';
@@ -115,7 +115,7 @@ async function garantirRede(sql: Connection): Promise<string> {
   const id = crypto.randomUUID();
   await sql`
     INSERT INTO network (id, name, slug, status)
-    VALUES (${id}, ${REDE}, ${SLUG}, ${REDE_ATIVA})`;
+    VALUES (${id}, ${REDE}, ${SLUG}, ${ACTIVE_NETWORK_STATUS})`;
   return id;
 }
 

@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { Hono } from 'hono';
-import { identidade } from '../identity';
+import { identity } from '../identity';
 import { ASSETS } from '../shared/constants';
 import {
   cacheControlMiddleware,
@@ -38,7 +38,7 @@ export const app = new Hono<{ Variables: Variables }>();
 app.use(errorsMiddleware);
 app.use(correlationMiddleware);
 app.use(cacheControlMiddleware);
-app.use(createSessionMiddleware(identidade.sessaoValida));
+app.use(createSessionMiddleware(identity.validSession));
 
 app.onError(async (erro, c) => {
   const resposta = await errorsMiddleware(c, () => Promise.reject(erro));

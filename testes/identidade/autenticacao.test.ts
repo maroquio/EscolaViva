@@ -4,7 +4,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { identidade } from '../../src/identity';
+import { identity } from '../../src/identity';
 import { generateCpf } from '../../src/shared/document';
 import type { ApplicationError, Result } from '../../src/shared/result';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
@@ -32,9 +32,9 @@ function errosDe(resultado: Result<unknown>): ApplicationError[] {
   return resultado.erros;
 }
 
-async function contarSessoes(usuarioId: string): Promise<number> {
+async function contarSessoes(userId: string): Promise<number> {
   const linhas = await sqlDeTeste()<{ total: number }[]>`
-    SELECT count(*)::int AS total FROM session WHERE user_id = ${usuarioId}`;
+    SELECT count(*)::int AS total FROM session WHERE user_id = ${userId}`;
   return linhas[0]?.total ?? 0;
 }
 
@@ -55,29 +55,29 @@ describe('autenticar', () => {
       ],
     });
 
-    const resultado = await identidade.autenticar({
-      redeSlug: 'serra',
-      identificador: usuario.cpf,
-      senha: SENHA_PADRAO,
+    const resultado = await identity.authenticate({
+      networkSlug: 'serra',
+      loginIdentifier: usuario.cpf,
+      password: SENHA_PADRAO,
       ip: '203.0.113.7',
     });
 
-    const { sessaoId, usuario: autenticado } = valorDe(resultado);
+    const { sessionId, user: autenticado } = valorDe(resultado);
     expect(autenticado).toEqual({
       id: usuario.id,
-      redeId: rede.id,
-      redeNome: 'Rede Municipal Serra',
-      redeSlug: 'serra',
-      nome: 'Ana Souza',
+      networkId: rede.id,
+      networkName: 'Rede Municipal Serra',
+      networkSlug: 'serra',
+      name: 'Ana Souza',
       email: 'ana.souza@serra.br',
-      papeis: [
-        { unidadeId: centro.id, unidadeNome: 'Escola Centro', papel: 'teacher' },
-        { unidadeId: praia.id, unidadeNome: 'Escola Praia', papel: 'registrar' },
+      roles: [
+        { schoolId: centro.id, schoolName: 'Escola Centro', role: 'teacher' },
+        { schoolId: praia.id, schoolName: 'Escola Praia', role: 'registrar' },
       ],
-      responsavelId: null,
+      guardianId: null,
     });
     const linhas = await sqlDeTeste()<{ user_id: string; expires_at: Date; ip: string | null }[]>`
-      SELECT user_id, expires_at, ip FROM session WHERE id = ${sessaoId}`;
+      SELECT user_id, expires_at, ip FROM session WHERE id = ${sessionId}`;
     expect(linhas).toHaveLength(1);
     expect(linhas[0]?.user_id).toBe(usuario.id);
     expect(linhas[0]?.ip).toBe('203.0.113.7');
@@ -88,16 +88,16 @@ describe('autenticar', () => {
     const rede = await criarRede({ slug: 'sem-ip' });
     const usuario = await criarUsuario({ networkId: rede.id, email: 'carlos@escola.br' });
 
-    const resultado = await identidade.autenticar({
-      redeSlug: 'sem-ip',
-      identificador: usuario.cpf,
-      senha: SENHA_PADRAO,
+    const resultado = await identity.authenticate({
+      networkSlug: 'sem-ip',
+      loginIdentifier: usuario.cpf,
+      password: SENHA_PADRAO,
       ip: '',
     });
 
-    const { sessaoId } = valorDe(resultado);
+    const { sessionId } = valorDe(resultado);
     const linhas = await sqlDeTeste()<{ ip: string | null }[]>`
-      SELECT ip FROM session WHERE id = ${sessaoId}`;
+      SELECT ip FROM session WHERE id = ${sessionId}`;
     expect(linhas[0]?.ip).toBeNull();
   });
 
@@ -107,14 +107,14 @@ describe('autenticar', () => {
     const inativo = await criarUsuario({ networkId: rede.id, email: 'inativo@escola.br', active: false });
 
     const [senhaErrada, cpfInexistente, usuarioInativo] = await Promise.all([
-      identidade.autenticar({
-        redeSlug: 'generica', identificador: ativo.cpf, senha: 'senha-errada-1', ip: '',
+      identity.authenticate({
+        networkSlug: 'generica', loginIdentifier: ativo.cpf, password: 'senha-errada-1', ip: '',
       }),
-      identidade.autenticar({
-        redeSlug: 'generica', identificador: generateCpf(999_998), senha: SENHA_PADRAO, ip: '',
+      identity.authenticate({
+        networkSlug: 'generica', loginIdentifier: generateCpf(999_998), password: SENHA_PADRAO, ip: '',
       }),
-      identidade.autenticar({
-        redeSlug: 'generica', identificador: inativo.cpf, senha: SENHA_PADRAO, ip: '',
+      identity.authenticate({
+        networkSlug: 'generica', loginIdentifier: inativo.cpf, password: SENHA_PADRAO, ip: '',
       }),
     ]);
 
@@ -135,11 +135,11 @@ describe('autenticar', () => {
     const inativo = await criarUsuario({ networkId: rede.id, email: 'inativo@escola.br', active: false });
 
     await Promise.all([
-      identidade.autenticar({
-        redeSlug: 'sem-sessao', identificador: usuario.cpf, senha: 'senha-errada-1', ip: '',
+      identity.authenticate({
+        networkSlug: 'sem-sessao', loginIdentifier: usuario.cpf, password: 'senha-errada-1', ip: '',
       }),
-      identidade.autenticar({
-        redeSlug: 'sem-sessao', identificador: inativo.cpf, senha: SENHA_PADRAO, ip: '',
+      identity.authenticate({
+        networkSlug: 'sem-sessao', loginIdentifier: inativo.cpf, password: SENHA_PADRAO, ip: '',
       }),
     ]);
 
@@ -152,11 +152,11 @@ describe('autenticar', () => {
     const usuario = await criarUsuario({ networkId: suspensa.id, email: 'ana@escola.br' });
 
     const [redeSuspensa, redeInexistente] = await Promise.all([
-      identidade.autenticar({
-        redeSlug: 'suspensa', identificador: usuario.cpf, senha: SENHA_PADRAO, ip: '',
+      identity.authenticate({
+        networkSlug: 'suspensa', loginIdentifier: usuario.cpf, password: SENHA_PADRAO, ip: '',
       }),
-      identidade.autenticar({
-        redeSlug: 'rede-que-nao-existe', identificador: usuario.cpf, senha: SENHA_PADRAO, ip: '',
+      identity.authenticate({
+        networkSlug: 'rede-que-nao-existe', loginIdentifier: usuario.cpf, password: SENHA_PADRAO, ip: '',
       }),
     ]);
 
@@ -177,8 +177,8 @@ describe('autenticar', () => {
     const cancelada = await criarRede({ slug: 'cancelada', status: 'cancelled' });
     const usuario = await criarUsuario({ networkId: cancelada.id, email: 'ana@escola.br' });
 
-    const resultado = await identidade.autenticar({
-      redeSlug: 'cancelada', identificador: usuario.cpf, senha: SENHA_PADRAO, ip: '',
+    const resultado = await identity.authenticate({
+      networkSlug: 'cancelada', loginIdentifier: usuario.cpf, password: SENHA_PADRAO, ip: '',
     });
 
     expect(errosDe(resultado)[0]?.codigo).toBe('rede_indisponivel');
@@ -189,12 +189,12 @@ describe('autenticar', () => {
     const rede = await criarRede({ slug: 'em-branco' });
     await criarUsuario({ networkId: rede.id, email: 'ana@escola.br' });
 
-    const resultado = await identidade.autenticar({
-      redeSlug: '', identificador: '', senha: '', ip: '',
+    const resultado = await identity.authenticate({
+      networkSlug: '', loginIdentifier: '', password: '', ip: '',
     });
 
     const campos = errosDe(resultado).map((erro) => erro.campo);
-    expect(campos).toEqual(['redeSlug', 'identificador', 'senha']);
+    expect(campos).toEqual(['redeSlug', 'cpf', 'senha']);
   });
 
   test('o mesmo CPF em redes diferentes autentica cada um na sua rede', async () => {
@@ -205,25 +205,25 @@ describe('autenticar', () => {
     const daSegunda = await criarUsuario({ networkId: segunda.id, cpf: cpfCompartilhado });
 
     const [naPrimeira, naSegunda] = await Promise.all([
-      identidade.autenticar({
-        redeSlug: 'primeira', identificador: cpfCompartilhado, senha: SENHA_PADRAO, ip: '',
+      identity.authenticate({
+        networkSlug: 'primeira', loginIdentifier: cpfCompartilhado, password: SENHA_PADRAO, ip: '',
       }),
-      identidade.autenticar({
-        redeSlug: 'segunda', identificador: cpfCompartilhado, senha: SENHA_PADRAO, ip: '',
+      identity.authenticate({
+        networkSlug: 'segunda', loginIdentifier: cpfCompartilhado, password: SENHA_PADRAO, ip: '',
       }),
     ]);
 
-    expect(valorDe(naPrimeira).usuario.id).toBe(daPrimeira.id);
-    expect(valorDe(naSegunda).usuario.id).toBe(daSegunda.id);
+    expect(valorDe(naPrimeira).user.id).toBe(daPrimeira.id);
+    expect(valorDe(naSegunda).user.id).toBe(daSegunda.id);
   });
 
   test('entra com CPF cru', async () => {
     const cenario = await cenarioCompleto();
 
-    const entrada = await identidade.autenticar({
-      redeSlug: cenario.rede.slug,
-      identificador: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const entrada = await identity.authenticate({
+      networkSlug: cenario.rede.slug,
+      loginIdentifier: cenario.secretaria.cpf,
+      password: cenario.senha,
       ip: '',
     });
 
@@ -235,8 +235,8 @@ describe('autenticar', () => {
     const cpf = cenario.secretaria.cpf;
     const pontuado = `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9)}`;
 
-    const entrada = await identidade.autenticar({
-      redeSlug: cenario.rede.slug, identificador: pontuado, senha: cenario.senha, ip: '',
+    const entrada = await identity.authenticate({
+      networkSlug: cenario.rede.slug, loginIdentifier: pontuado, password: cenario.senha, ip: '',
     });
 
     expect(entrada.ok).toBe(true);
@@ -245,9 +245,9 @@ describe('autenticar', () => {
   test('e-mail não entra mais — o identificador é o CPF', async () => {
     const cenario = await cenarioCompleto();
 
-    const entrada = await identidade.autenticar({
-      redeSlug: cenario.rede.slug, identificador: cenario.secretaria.email,
-      senha: cenario.senha, ip: '',
+    const entrada = await identity.authenticate({
+      networkSlug: cenario.rede.slug, loginIdentifier: cenario.secretaria.email,
+      password: cenario.senha, ip: '',
     });
 
     expect(entrada.ok).toBe(false);
@@ -257,11 +257,11 @@ describe('autenticar', () => {
     const cenario = await cenarioCompleto();
 
     const [inexistente, senhaErrada] = await Promise.all([
-      identidade.autenticar({
-        redeSlug: cenario.rede.slug, identificador: generateCpf(999_999), senha: cenario.senha, ip: '',
+      identity.authenticate({
+        networkSlug: cenario.rede.slug, loginIdentifier: generateCpf(999_999), password: cenario.senha, ip: '',
       }),
-      identidade.autenticar({
-        redeSlug: cenario.rede.slug, identificador: cenario.secretaria.cpf, senha: 'errada', ip: '',
+      identity.authenticate({
+        networkSlug: cenario.rede.slug, loginIdentifier: cenario.secretaria.cpf, password: 'errada', ip: '',
       }),
     ]);
 
@@ -283,17 +283,17 @@ describe('sessaoValida', () => {
     });
     const sessao = await criarSessao({ networkId: rede.id, userId: usuario.id });
 
-    const encontrado = await identidade.sessaoValida(sessao.id);
+    const encontrado = await identity.validSession(sessao.id);
 
     expect(encontrado).toEqual({
       id: usuario.id,
-      redeId: rede.id,
-      redeNome: 'Rede Norte',
-      redeSlug: 'norte',
-      nome: 'Ana Souza',
+      networkId: rede.id,
+      networkName: 'Rede Norte',
+      networkSlug: 'norte',
+      name: 'Ana Souza',
       email: 'ana@norte.br',
-      papeis: [{ unidadeId: unidade.id, unidadeNome: 'Escola Norte', papel: 'network_admin' }],
-      responsavelId: null,
+      roles: [{ schoolId: unidade.id, schoolName: 'Escola Norte', role: 'network_admin' }],
+      guardianId: null,
     });
   });
 
@@ -304,7 +304,7 @@ describe('sessaoValida', () => {
       networkId: rede.id, userId: usuario.id, expiresAt: new Date(Date.now() - HORA_EM_MS),
     });
 
-    const encontrado = await identidade.sessaoValida(vencida.id);
+    const encontrado = await identity.validSession(vencida.id);
 
     expect(encontrado).toBeNull();
     expect(await contarSessoes(usuario.id)).toBe(1);
@@ -314,7 +314,7 @@ describe('sessaoValida', () => {
     const rede = await criarRede();
     await criarUsuario({ networkId: rede.id });
 
-    const encontrado = await identidade.sessaoValida(crypto.randomUUID());
+    const encontrado = await identity.validSession(crypto.randomUUID());
 
     expect(encontrado).toBeNull();
   });
@@ -323,7 +323,7 @@ describe('sessaoValida', () => {
     const rede = await criarRede();
     await criarUsuario({ networkId: rede.id });
 
-    const encontrado = await identidade.sessaoValida('nao-e-um-uuid');
+    const encontrado = await identity.validSession('nao-e-um-uuid');
 
     expect(encontrado).toBeNull();
   });
@@ -335,7 +335,7 @@ describe('sessaoValida', () => {
 
     await sqlDeTeste()`UPDATE network SET status = 'suspended' WHERE id = ${rede.id}`;
 
-    expect(await identidade.sessaoValida(sessao.id)).toBeNull();
+    expect(await identity.validSession(sessao.id)).toBeNull();
   });
 
   test('desativar o usuário derruba a sessão dele', async () => {
@@ -345,7 +345,7 @@ describe('sessaoValida', () => {
 
     await sqlDeTeste()`UPDATE app_user SET active = false WHERE id = ${usuario.id}`;
 
-    expect(await identidade.sessaoValida(sessao.id)).toBeNull();
+    expect(await identity.validSession(sessao.id)).toBeNull();
   });
 });
 
@@ -355,9 +355,9 @@ describe('encerrarSessao', () => {
     const usuario = await criarUsuario({ networkId: rede.id });
     const sessao = await criarSessao({ networkId: rede.id, userId: usuario.id });
 
-    await identidade.encerrarSessao(sessao.id);
+    await identity.endSession(sessao.id);
 
-    expect(await identidade.sessaoValida(sessao.id)).toBeNull();
+    expect(await identity.validSession(sessao.id)).toBeNull();
     expect(await contarSessoes(usuario.id)).toBe(0);
   });
 
@@ -367,9 +367,9 @@ describe('encerrarSessao', () => {
     const doNotebook = await criarSessao({ networkId: rede.id, userId: usuario.id });
     const doCelular = await criarSessao({ networkId: rede.id, userId: usuario.id });
 
-    await identidade.encerrarSessao(doNotebook.id);
+    await identity.endSession(doNotebook.id);
 
-    expect(await identidade.sessaoValida(doCelular.id)).not.toBeNull();
+    expect(await identity.validSession(doCelular.id)).not.toBeNull();
     expect(await contarSessoes(usuario.id)).toBe(1);
   });
 
@@ -378,7 +378,7 @@ describe('encerrarSessao', () => {
     const usuario = await criarUsuario({ networkId: rede.id });
     await criarSessao({ networkId: rede.id, userId: usuario.id });
 
-    await identidade.encerrarSessao('cookie-forjado');
+    await identity.endSession('cookie-forjado');
 
     expect(await contarSessoes(usuario.id)).toBe(1);
   });
@@ -396,11 +396,11 @@ describe('expurgarSessoesExpiradas', () => {
     });
     const viva = await criarSessao({ networkId: rede.id, userId: usuario.id });
 
-    const removidas = await identidade.expurgarSessoesExpiradas();
+    const removidas = await identity.purgeExpiredSessions();
 
     expect(removidas).toBe(2);
     expect(await contarSessoes(usuario.id)).toBe(1);
-    expect(await identidade.sessaoValida(viva.id)).not.toBeNull();
+    expect(await identity.validSession(viva.id)).not.toBeNull();
   });
 
   test('sem sessão vencida não remove nada e devolve zero', async () => {
@@ -408,7 +408,7 @@ describe('expurgarSessoesExpiradas', () => {
     const usuario = await criarUsuario({ networkId: rede.id });
     await criarSessao({ networkId: rede.id, userId: usuario.id });
 
-    const removidas = await identidade.expurgarSessoesExpiradas();
+    const removidas = await identity.purgeExpiredSessions();
 
     expect(removidas).toBe(0);
     expect(await contarSessoes(usuario.id)).toBe(1);
@@ -420,8 +420,8 @@ describe('trocarSenha', () => {
     const rede = await criarRede();
     const usuario = await criarUsuario({ networkId: rede.id });
 
-    const resultado = await identidade.trocarSenha({
-      usuarioId: usuario.id, senhaAtual: 'chute-errado-1', senhaNova: SENHA_NOVA,
+    const resultado = await identity.changePassword({
+      userId: usuario.id, currentPassword: 'chute-errado-1', newPassword: SENHA_NOVA,
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -433,8 +433,8 @@ describe('trocarSenha', () => {
     const rede = await criarRede();
     const usuario = await criarUsuario({ networkId: rede.id });
 
-    const resultado = await identidade.trocarSenha({
-      usuarioId: usuario.id, senhaAtual: SENHA_PADRAO, senhaNova: 'curta123',
+    const resultado = await identity.changePassword({
+      userId: usuario.id, currentPassword: SENHA_PADRAO, newPassword: 'curta123',
     });
 
     expect(errosDe(resultado)[0]?.campo).toBe('senhaNova');
@@ -444,16 +444,16 @@ describe('trocarSenha', () => {
     const rede = await criarRede({ slug: 'troca' });
     const usuario = await criarUsuario({ networkId: rede.id, email: 'ana@troca.br' });
 
-    const troca = await identidade.trocarSenha({
-      usuarioId: usuario.id, senhaAtual: SENHA_PADRAO, senhaNova: SENHA_NOVA,
+    const troca = await identity.changePassword({
+      userId: usuario.id, currentPassword: SENHA_PADRAO, newPassword: SENHA_NOVA,
     });
 
     expect(troca.ok).toBe(true);
-    const comNova = await identidade.autenticar({
-      redeSlug: 'troca', identificador: usuario.cpf, senha: SENHA_NOVA, ip: '',
+    const comNova = await identity.authenticate({
+      networkSlug: 'troca', loginIdentifier: usuario.cpf, password: SENHA_NOVA, ip: '',
     });
-    const comAntiga = await identidade.autenticar({
-      redeSlug: 'troca', identificador: usuario.cpf, senha: SENHA_PADRAO, ip: '',
+    const comAntiga = await identity.authenticate({
+      networkSlug: 'troca', loginIdentifier: usuario.cpf, password: SENHA_PADRAO, ip: '',
     });
     expect(comNova.ok).toBe(true);
     expect(errosDe(comAntiga)[0]?.codigo).toBe('credenciais_invalidas');
@@ -464,12 +464,12 @@ describe('trocarSenha', () => {
     const ana = await criarUsuario({ networkId: rede.id, email: 'ana@vizinhos.br' });
     const bia = await criarUsuario({ networkId: rede.id, email: 'bia@vizinhos.br' });
 
-    await identidade.trocarSenha({
-      usuarioId: ana.id, senhaAtual: SENHA_PADRAO, senhaNova: SENHA_NOVA,
+    await identity.changePassword({
+      userId: ana.id, currentPassword: SENHA_PADRAO, newPassword: SENHA_NOVA,
     });
 
-    const resultado = await identidade.autenticar({
-      redeSlug: 'vizinhos', identificador: bia.cpf, senha: SENHA_PADRAO, ip: '',
+    const resultado = await identity.authenticate({
+      networkSlug: 'vizinhos', loginIdentifier: bia.cpf, password: SENHA_PADRAO, ip: '',
     });
     expect(resultado.ok).toBe(true);
   });
@@ -478,8 +478,8 @@ describe('trocarSenha', () => {
     const rede = await criarRede();
     await criarUsuario({ networkId: rede.id });
 
-    const resultado = await identidade.trocarSenha({
-      usuarioId: crypto.randomUUID(), senhaAtual: SENHA_PADRAO, senhaNova: SENHA_NOVA,
+    const resultado = await identity.changePassword({
+      userId: crypto.randomUUID(), currentPassword: SENHA_PADRAO, newPassword: SENHA_NOVA,
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -491,10 +491,10 @@ describe('trocarSenha', () => {
     const rede = await criarRede();
     await criarUsuario({ networkId: rede.id });
 
-    const resultado = await identidade.trocarSenha({
-      usuarioId: 'nao-e-uuid', senhaAtual: SENHA_PADRAO, senhaNova: SENHA_NOVA,
+    const resultado = await identity.changePassword({
+      userId: 'nao-e-uuid', currentPassword: SENHA_PADRAO, newPassword: SENHA_NOVA,
     });
 
-    expect(errosDe(resultado)[0]?.campo).toBe('usuarioId');
+    expect(errosDe(resultado)[0]?.campo).toBe('userId');
   });
 });

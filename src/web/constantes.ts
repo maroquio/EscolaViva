@@ -1,7 +1,7 @@
 import { CAMPOS_DO_ACADEMICO } from '../academico';
 import { CAMPOS_DA_AVALIACAO, ROTULO_DE_BIMESTRE } from '../avaliacao';
 import { CAMPOS_DA_COMUNICACAO } from '../comunicacao';
-import { CAMPOS_DE_IDENTIDADE, PAPEL } from '../identity';
+import { IDENTITY_FIELDS, ROLE } from '../identity';
 import { ASSETS, ENTRY_PATHS, HEALTH_PATHS, MISSING_VALUE } from '../shared/constants';
 import { grupo } from './rotas/mapa';
 
@@ -91,10 +91,10 @@ export const GRUPOS_DE_ESCRITA = [
 export const curingaDe = (prefixo: string): string => `${prefixo}/*`;
 
 export const PAINEL_POR_PAPEL = [
-  { papel: PAPEL.adminRede, destino: ROTAS.rede.painel() },
-  { papel: PAPEL.secretaria, destino: ROTAS.secretaria.painel() },
-  { papel: PAPEL.professor, destino: ROTAS.professor.painel() },
-  { papel: PAPEL.responsavel, destino: ROTAS.responsavel.painel() },
+  { papel: ROLE.networkAdmin, destino: ROTAS.rede.painel() },
+  { papel: ROLE.registrar, destino: ROTAS.secretaria.painel() },
+  { papel: ROLE.teacher, destino: ROTAS.professor.painel() },
+  { papel: ROLE.guardian, destino: ROTAS.responsavel.painel() },
 ] as const;
 
 export const TEMPLATES = {
@@ -181,8 +181,16 @@ export const PARAMETROS = {
 } as const;
 
 export const CAMPOS = {
-  login: CAMPOS_DE_IDENTIDADE.login,
-  senha: CAMPOS_DE_IDENTIDADE.senha,
+  login: {
+    redeSlug: IDENTITY_FIELDS.login.networkSlug,
+    cpf: IDENTITY_FIELDS.login.cpf,
+    senha: IDENTITY_FIELDS.login.password,
+  },
+  senha: {
+    atual: IDENTITY_FIELDS.password.current,
+    nova: IDENTITY_FIELDS.password.new,
+    confirmacao: IDENTITY_FIELDS.password.confirmation,
+  },
   aluno: CAMPOS_DO_ACADEMICO.aluno,
   responsavel: CAMPOS_DO_ACADEMICO.responsavel,
   vinculo: CAMPOS_DO_ACADEMICO.vinculo,
@@ -191,8 +199,16 @@ export const CAMPOS = {
   turma: CAMPOS_DO_ACADEMICO.turma,
   disciplina: CAMPOS_DO_ACADEMICO.disciplina,
   alocacao: CAMPOS_DO_ACADEMICO.alocacao,
-  unidade: CAMPOS_DE_IDENTIDADE.unidade,
-  usuario: { ...CAMPOS_DE_IDENTIDADE.usuario, unidades: 'unidade[]', papeis: 'papel[]' },
+  unidade: { nome: IDENTITY_FIELDS.school.name, codigoInep: IDENTITY_FIELDS.school.inepCode },
+  usuario: {
+    nome: IDENTITY_FIELDS.user.name,
+    email: IDENTITY_FIELDS.user.email,
+    cpf: IDENTITY_FIELDS.user.cpf,
+    atribuicoes: IDENTITY_FIELDS.user.roleAssignments,
+    responsavelId: IDENTITY_FIELDS.user.guardianId,
+    unidades: 'unidade[]',
+    papeis: 'papel[]',
+  },
   anoLetivo: CAMPOS_DO_ACADEMICO.anoLetivo,
   comunicado: { ...CAMPOS_DA_COMUNICACAO, responsaveis: 'responsaveis[]' },
   diario: { nota: 'nota_', presenca: 'presenca_', justificativa: 'justificativa_' },

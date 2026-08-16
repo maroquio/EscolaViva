@@ -1,7 +1,7 @@
 <%
 const contagens = it.contagens ?? { unidades: 0, usuarios: 0, turmas: 0, matriculados: 0 };
 const anoLetivo = it.anoLetivo ?? null;
-const rede = it.usuario === null ? '' : it.usuario.redeNome;
+const rede = it.usuario === null ? '' : it.usuario.networkName;
 // magic-values: permitido — prosa das duas frases dos cartões, e não o substantivo contado `CONTAGEM.anoLetivo`
 const anoLetivoEmPalavras = 'ano letivo';
 const anoNoRotulo =

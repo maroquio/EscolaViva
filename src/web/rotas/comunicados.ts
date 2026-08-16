@@ -1,7 +1,7 @@
 import { Hono, type Context } from 'hono';
 import { academico } from '../../academico';
 import { ALCANCE, comunicacao, type Alcance, type EstatisticaDeLeitura } from '../../comunicacao';
-import { PAPEL, identidade, type Unidade } from '../../identity';
+import { ROLE, identity, type School } from '../../identity';
 import { CONTEXT_VARIABLES } from '../../shared/constants';
 import { emptyPage } from '../../shared/pagination';
 import {
@@ -38,27 +38,27 @@ type ValoresDoComunicado = {
 };
 
 type ContextoDeEnvio = {
-  unidades: Unidade[];
-  unidade: Unidade | null;
+  unidades: School[];
+  unidade: School | null;
   responsaveis: { id: string; nome: string }[];
 };
 
 export const rotasComunicados = new Hono<{ Variables: Variables }>();
 
-rotasComunicados.use(requireRole(PAPEL.secretaria, PAPEL.adminRede));
+rotasComunicados.use(requireRole(ROLE.registrar, ROLE.networkAdmin));
 
 const unidadesDoUsuario = async (
   usuario: SessionUser,
   veTodaARede: boolean,
-): Promise<Unidade[]> => {
-  const unidades = await identidade.listarUnidades(usuario.redeId);
+): Promise<School[]> => {
+  const unidades = await identity.listSchools(usuario.networkId);
   if (veTodaARede) return unidades;
-  const permitidas = new Set(schoolsForRole(usuario, PAPEL.secretaria));
+  const permitidas = new Set(schoolsForRole(usuario, ROLE.registrar));
   return unidades.filter((unidade) => permitidas.has(unidade.id));
 };
 
 const recorteDaLista = (
-  unidades: readonly Unidade[],
+  unidades: readonly School[],
   pedida: string,
   veTodaARede: boolean,
 ): string | null => {
@@ -76,7 +76,7 @@ const SEM_RESUMO = { destinatarios: 0, leituras: 0, taxa: 0 };
 
 rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
   const usuario = currentUser(c);
-  const veTodaARede = hasRole(usuario, PAPEL.adminRede);
+  const veTodaARede = hasRole(usuario, ROLE.networkAdmin);
   const unidades = await unidadesDoUsuario(usuario, veTodaARede);
   const recorte = recorteDaLista(
     unidades,
@@ -88,10 +88,10 @@ rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
   const [pagina, resumo] = await Promise.all([
     semAlcance
       ? Promise.resolve(emptyPage<EstatisticaDeLeitura>())
-      : comunicacao.paginaDeComunicados(usuario.redeId, recorte ?? undefined, paginaDaQuery(c)),
+      : comunicacao.paginaDeComunicados(usuario.networkId, recorte ?? undefined, paginaDaQuery(c)),
     semAlcance
       ? Promise.resolve(SEM_RESUMO)
-      : comunicacao.resumoDeComunicados(usuario.redeId, recorte ?? undefined),
+      : comunicacao.resumoDeComunicados(usuario.networkId, recorte ?? undefined),
   ]);
 
   return renderizar(c, TEMPLATES.comunicados.lista, {
@@ -137,14 +137,14 @@ const contextoDeEnvio = async (
   usuario: SessionUser,
   unidadeIdPedida: string,
 ): Promise<ContextoDeEnvio> => {
-  const todas = await unidadesDoUsuario(usuario, hasRole(usuario, PAPEL.adminRede));
-  const unidades = todas.filter((unidade) => unidade.ativa);
+  const todas = await unidadesDoUsuario(usuario, hasRole(usuario, ROLE.networkAdmin));
+  const unidades = todas.filter((unidade) => unidade.active);
   const unidade = unidades.find((item) => item.id === unidadeIdPedida) ?? null;
   if (unidadeIdPedida !== '' && unidade === null) {
     throw new NotFound(DIAGNOSTICOS.unidadeForaDoAlcance);
   }
   const responsaveis =
-    unidade === null ? [] : await academico.responsaveisDaUnidade(usuario.redeId, unidade.id);
+    unidade === null ? [] : await academico.responsaveisDaUnidade(usuario.networkId, unidade.id);
   return { unidades, unidade, responsaveis };
 };
 
@@ -208,7 +208,7 @@ rotasComunicados.post(ROTAS.comunicados.novo.padrao, async (c) => {
   if (recusa !== null) return paginaDeEnvio(c, contexto, valores, [recusa]);
 
   const resultado = await comunicacao.publicarComunicado({
-    redeId: usuario.redeId,
+    redeId: usuario.networkId,
     unidadeId: contexto.unidade.id,
     titulo: valores.titulo,
     corpo: valores.corpo,

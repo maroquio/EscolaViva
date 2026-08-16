@@ -1,4 +1,4 @@
-import { EVENTOS_DE_LOG_DE_IDENTIDADE, EXPURGO_DE_SESSOES, identidade } from './identity';
+import { IDENTITY_LOG_EVENTS, SESSION_PURGE, identity } from './identity';
 import { config } from './shared/config';
 import { LOCK_KEYS, MINUTE_MS, PROCESS_MESSAGES, SERVER, TIME } from './shared/constants';
 import { closeDatabase } from './shared/db';
@@ -9,14 +9,14 @@ import { app } from './web/app';
 const DESFECHO_DA_DRENAGEM = { drenou: 'drenou', expirou: 'expirou' } as const;
 
 const expurgoDeSessoes: Job = {
-  name: EXPURGO_DE_SESSOES.nome,
+  name: SESSION_PURGE.name,
   lockKey: LOCK_KEYS.sessionPurge,
-  intervalMs: EXPURGO_DE_SESSOES.intervaloEmMinutos * MINUTE_MS,
+  intervalMs: SESSION_PURGE.intervalInMinutes * MINUTE_MS,
   async run(): Promise<void> {
-    const removidas = await identidade.expurgarSessoesExpiradas();
+    const removidas = await identity.purgeExpiredSessions();
     logger.info(
-      { job: EXPURGO_DE_SESSOES.nome, removidas },
-      EVENTOS_DE_LOG_DE_IDENTIDADE.sessoesExpiradasRemovidas,
+      { job: SESSION_PURGE.name, removidas },
+      IDENTITY_LOG_EVENTS.expiredSessionsRemoved,
     );
   },
 };

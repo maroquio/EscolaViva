@@ -29,7 +29,7 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
 
 <% if (convite !== null && convidado !== null) { %>
 <div class="aviso aviso--atencao" role="status">
-  <p class="aviso__titulo">Senha provisória de <%= convidado.nome %></p>
+  <p class="aviso__titulo">Senha provisória de <%= convidado.name %></p>
   <p><code class="codigo"><%= convite.senha %></code></p>
   <p>
     Anote agora: esta senha aparece uma única vez e não pode ser recuperada depois que você sair
@@ -62,27 +62,27 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
           <th scope="col"><%= it.rotulos.cpf %></th>
           <th scope="col"><%= it.rotulos.email %></th>
           <th scope="col">Papéis</th>
-<% // magic-values: permitido — não é um `ROTULOS.situacao`, nem o `VOCABULARIO_DE_IDENTIDADE.ativo` da célula abaixo %>
+<% // magic-values: permitido — não é um `ROTULOS.situacao`, nem o `IDENTITY_VOCABULARY.active` da célula abaixo %>
           <th scope="col">Situação</th>
         </tr>
       </thead>
       <tbody>
         <% usuarios.forEach((usuario) => { %>
         <tr>
-          <th scope="row"><%= usuario.nome %></th>
+          <th scope="row"><%= usuario.name %></th>
           <td class="celula-texto"><%= it.formatarCpf(usuario.cpf ?? '') %></td>
           <td class="celula-texto"><%= usuario.email %></td>
           <td class="celula-texto">
-            <% if (usuario.papeis.length === 0) { %>
+            <% if (usuario.roles.length === 0) { %>
             <span class="suave"><%= it.semPapel %></span>
             <% } else { %>
-            <% usuario.papeis.forEach((atribuicao) => { %>
-            <div><%= rotuloDoPapel(atribuicao.papel) %><%= it.apresentacao.separador %><%= atribuicao.unidadeNome %></div>
+            <% usuario.roles.forEach((atribuicao) => { %>
+            <div><%= rotuloDoPapel(atribuicao.role) %><%= it.apresentacao.separador %><%= atribuicao.schoolName %></div>
             <% }) %>
             <% } %>
           </td>
           <td>
-            <span class="<%= usuario.ativo ? CLASSE_DA_SITUACAO.sim : CLASSE_DA_SITUACAO.nao %>"><%= usuario.ativo ? ROTULO_DA_SITUACAO.sim : ROTULO_DA_SITUACAO.nao %></span>
+            <span class="<%= usuario.active ? CLASSE_DA_SITUACAO.sim : CLASSE_DA_SITUACAO.nao %>"><%= usuario.active ? ROTULO_DA_SITUACAO.yes : ROTULO_DA_SITUACAO.no %></span>
           </td>
         </tr>
         <% }) %>

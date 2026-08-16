@@ -1,5 +1,5 @@
 import { Hono, type Context } from 'hono';
-import { identidade } from '../../identity';
+import { identity } from '../../identity';
 import { CONTEXT_VARIABLES } from '../../shared/constants';
 import { currentUser, requireLogin, type FormBody, type Variables } from '../../shared/http';
 import { logger } from '../../shared/log';
@@ -50,10 +50,10 @@ rotasConta.post(ROTAS.conta.senha.padrao, async (c) => {
     return telaDeSenha(c, [ERROS_DE_FORMULARIO.confirmacaoDiferente]);
   }
 
-  const resultado = await identidade.trocarSenha({
-    usuarioId: usuario.id,
-    senhaAtual: senha(corpo, CAMPOS.senha.atual),
-    senhaNova,
+  const resultado = await identity.changePassword({
+    userId: usuario.id,
+    currentPassword: senha(corpo, CAMPOS.senha.atual),
+    newPassword: senhaNova,
   });
   if (!resultado.ok) return telaDeSenha(c, resultado.erros);
 

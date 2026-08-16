@@ -44,7 +44,7 @@ const { erroDe, descricao, idDoErro, idDaAjuda } = it;
               <% if (erroDe(campos.unidadeId) !== '') { %>aria-invalid="true"<% } %>>
         <option value="">Escolha a unidade</option>
         <% it.unidades.forEach((unidade) => { %>
-        <option value="<%= unidade.id %>"><%= unidade.nome %></option>
+        <option value="<%= unidade.id %>"><%= unidade.name %></option>
         <% }) %>
       </select>
       <p class="campo__ajuda" id="<%= idDaAjuda(campos.unidadeId) %>">
@@ -66,7 +66,7 @@ const { erroDe, descricao, idDoErro, idDaAjuda } = it;
   <div class="secao__cabecalho">
     <h2 id="titulo-mensagem">Passo 2<%= it.apresentacao.separador %>Mensagem</h2>
     <p class="secao__nota">
-      <%= it.rotulos.unidade %> <strong><%= it.unidade.nome %></strong><%= separadorAntesDaQuebra %>
+      <%= it.rotulos.unidade %> <strong><%= it.unidade.name %></strong><%= separadorAntesDaQuebra %>
 
       <a href="<%= it.rotas.comunicados.novo() %>">trocar unidade</a>
     </p>

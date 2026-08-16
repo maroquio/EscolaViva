@@ -2,48 +2,48 @@ import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
-import type { Unidade } from '../domain/school';
-import * as unidadeRepositorio from '../infra/schoolRepository';
+import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import type { School } from '../domain/school';
+import * as schoolRepository from '../infra/schoolRepository';
 
 const schema = z.object({
-  redeId: z.string().uuid(MENSAGENS.unidade.redeInvalida),
-  nome: z
+  networkId: z.string().uuid(MESSAGES.school.invalidNetwork),
+  name: z
     .string()
     .trim()
-    .min(1, MENSAGENS.unidade.nomeObrigatorio)
-    .max(LIMITES.unidade.nome, MENSAGENS.unidade.nomeLongo),
-  codigoInep: z
+    .min(1, MESSAGES.school.nameRequired)
+    .max(LIMITS.school.name, MESSAGES.school.nameTooLong),
+  inepCode: z
     .string()
     .trim()
-    .max(LIMITES.unidade.codigoInep, MENSAGENS.unidade.inepLongo)
+    .max(LIMITS.school.inepCode, MESSAGES.school.inepTooLong)
     .nullable()
     .optional(),
 });
 
-export async function criarUnidade(entrada: {
-  redeId: string;
-  nome: string;
-  codigoInep?: string | null | undefined;
-}): Promise<Result<Unidade>> {
-  const analise = schema.safeParse(entrada);
-  if (!analise.success) return failure(...schemaErrors(analise.error.issues));
-  const dados = analise.data;
+export async function createSchool(input: {
+  networkId: string;
+  name: string;
+  inepCode?: string | null | undefined;
+}): Promise<Result<School>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.school));
+  const data = parsed.data;
 
-  const codigoInep = dados.codigoInep === '' ? null : (dados.codigoInep ?? null);
-  const unidade: Unidade = {
+  const inepCode = data.inepCode === '' ? null : (data.inepCode ?? null);
+  const school: School = {
     id: uuidIdGenerator.next(),
-    redeId: dados.redeId,
-    nome: dados.nome,
-    codigoInep,
-    ativa: true,
+    networkId: data.networkId,
+    name: data.name,
+    inepCode,
+    active: true,
   };
 
   return await unitOfWork(async ({ sql }) => {
-    if (await unidadeRepositorio.existeNome(sql, unidade.redeId, unidade.nome)) {
-      return fieldFailure(CAMPOS.unidade.nome, CODIGOS.nomeEmUso, MENSAGENS.unidade.nomeEmUso);
+    if (await schoolRepository.nameExists(sql, school.networkId, school.name)) {
+      return fieldFailure(FIELDS.school.name, CODES.nameInUse, MESSAGES.school.nameInUse);
     }
-    await unidadeRepositorio.inserir(sql, unidade);
-    return success(unidade);
+    await schoolRepository.insert(sql, school);
+    return success(school);
   });
 }

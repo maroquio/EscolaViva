@@ -8,7 +8,7 @@ import {
   type Matricula,
   type Turma,
 } from '../../academico';
-import { PAPEL, identidade } from '../../identity';
+import { ROLE, identity } from '../../identity';
 import {
   CONTEXT_VARIABLES,
   ISO_DATE_LENGTH,
@@ -111,9 +111,9 @@ const naoEncontrado = (c: Contexto): Response =>
 
 const unidadesDaSecretaria = (c: Contexto): Unidade[] => {
   const nomePorId = new Map<string, string>();
-  for (const atribuicao of currentUser(c).papeis) {
-    if (atribuicao.papel === PAPEL.secretaria) {
-      nomePorId.set(atribuicao.unidadeId, atribuicao.unidadeNome);
+  for (const atribuicao of currentUser(c).roles) {
+    if (atribuicao.role === ROLE.registrar) {
+      nomePorId.set(atribuicao.schoolId, atribuicao.schoolName);
     }
   }
   return [...nomePorId].map(([id, nome]) => ({ id, nome })).sort(porNome);
@@ -159,7 +159,7 @@ const matriculaEmLista = (matricula: Matricula): Dados => ({
 
 export const rotasSecretaria = new Hono<{ Variables: Variables }>();
 
-rotasSecretaria.use(requireRole(PAPEL.secretaria));
+rotasSecretaria.use(requireRole(ROLE.registrar));
 
 rotasSecretaria.get(ROTAS.secretaria.painel.padrao, async (c) => {
   const redeId = currentNetwork(c);
@@ -626,7 +626,7 @@ const telaDaTurma = async (c: Contexto, turma: Turma): Promise<Response> => {
       paginaDaQuery(c, PARAMETROS.paginaDeMatriculas),
     ),
   ]);
-  const nomes = await identidade.nomesDeUsuarios(
+  const nomes = await identity.userNames(
     redeId,
     alocacoes.items.map((a) => a.professorUsuarioId),
   );
@@ -660,7 +660,7 @@ const formDeAlocacao = async (
   const redeId = currentNetwork(c);
   const [disciplinas, professores] = await Promise.all([
     academico.listarDisciplinas(redeId),
-    identidade.professoresDaUnidade(redeId, turma.unidadeId),
+    identity.schoolTeachers(redeId, turma.unidadeId),
   ]);
   return renderizar(c, TEMPLATES.secretaria.turmaDisciplinaNova, {
     ...DA_CAMADA,

@@ -1,121 +1,142 @@
-import type { Papel } from './domain/role';
-import type { StatusDeRede } from './domain/network';
+import type { Role } from './domain/role';
+import type { NetworkStatus } from './domain/network';
 
-export const PAPEL = {
-  adminRede: 'network_admin',
-  secretaria: 'registrar',
-  professor: 'teacher',
-  responsavel: 'guardian',
-} as const satisfies Record<string, Papel>;
-
-export const REDE_ATIVA = 'active' as const satisfies StatusDeRede;
-
-export const LIMITES = {
-  usuario: { nome: 120 },
-  unidade: { nome: 120, codigoInep: 20 },
+export const ROLE = {
+  networkAdmin: 'network_admin',
+  registrar: 'registrar',
+  teacher: 'teacher',
+  guardian: 'guardian',
 } as const;
 
-export const SEGURANCA = {
-  hashDeUsuarioInexistente:
+export const ACTIVE_NETWORK_STATUS = 'active' as const satisfies NetworkStatus;
+
+export const LIMITS = {
+  user: { name: 120 },
+  school: { name: 120, inepCode: 20 },
+} as const;
+
+export const SECURITY = {
+  nonexistentUserHash:
     '$argon2id$v=19$m=65536,t=2,p=1$XMdb31Dd1P5tOekJsaneq6Yl0CU6HnbV15d11ekBprQ$jxM302vDpER0f7uF9xQRIwAkDNaDTukAT0y3bg04lhQ',
-  alfabetoSemAmbiguidade: 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789',
-  tamanhoDaSenhaProvisoria: 12,
+  unambiguousAlphabet: 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789',
+  temporaryPasswordLength: 12,
 } as const;
 
-export const SEPARADOR_DE_ATRIBUICAO = ':';
+export const ROLE_ASSIGNMENT_SEPARATOR = ':';
 
-export const CAMPOS = {
-  login: { redeSlug: 'redeSlug', cpf: 'cpf', senha: 'senha' },
-  usuario: {
-    nome: 'nome',
+export const FIELDS = {
+  login: { networkSlug: 'redeSlug', cpf: 'cpf', password: 'senha' },
+  user: {
+    name: 'nome',
     email: 'email',
     cpf: 'cpf',
-    atribuicoes: 'atribuicoes',
-    responsavelId: 'responsavelId',
+    roleAssignments: 'atribuicoes',
+    guardianId: 'responsavelId',
   },
-  unidade: { nome: 'nome', codigoInep: 'codigoInep' },
-  senha: { atual: 'senhaAtual', nova: 'senhaNova', confirmacao: 'senhaConfirmacao' },
+  school: { name: 'nome', inepCode: 'codigoInep' },
+  password: { current: 'senhaAtual', new: 'senhaNova', confirmation: 'senhaConfirmacao' },
 } as const;
 
-export const CODIGOS = {
-  credenciaisInvalidas: 'credenciais_invalidas',
-  redeIndisponivel: 'rede_indisponivel',
-  unidadeDeOutraRede: 'unidade_de_outra_rede',
-  emailEmUso: 'email_em_uso',
-  cpfEmUso: 'cpf_em_uso',
-  responsavelObrigatorio: 'responsavel_obrigatorio',
-  cpfDivergeDoCadastro: 'cpf_diverge_do_cadastro',
-  nomeEmUso: 'nome_em_uso',
-  usuarioInexistente: 'usuario_inexistente',
-  senhaIncorreta: 'senha_incorreta',
-} as const;
-
-export const MENSAGENS = {
+export const SCHEMA_FIELD_NAMES = {
   login: {
-    redeObrigatoria: 'informe a rede',
-    cpfObrigatorio: 'informe o CPF',
-    senhaObrigatoria: 'informe a senha',
-    credenciaisInvalidas: 'CPF ou senha inválidos',
-    redeIndisponivel: 'rede não encontrada ou fora de operação',
+    networkSlug: FIELDS.login.networkSlug,
+    loginIdentifier: FIELDS.login.cpf,
+    password: FIELDS.login.password,
   },
-  usuario: {
-    redeInvalida: 'rede inválida',
-    nomeObrigatorio: 'informe o nome',
-    nomeLongo: 'nome longo demais',
-    emailObrigatorio: 'informe o e-mail',
-    emailInvalido: 'e-mail inválido',
-    cpfInvalido: 'Informe um CPF válido.',
-    unidadeInvalida: 'unidade inválida',
-    papelDesconhecido: 'papel desconhecido',
-    semAtribuicao: 'escolha ao menos uma unidade e um papel',
-    responsavelInvalido: 'responsável inválido',
-    unidadeDeOutraRede: 'unidade não pertence a esta rede',
-    emailEmUso: 'já existe usuário com este e-mail na rede',
-    cpfEmUso: 'já existe usuário com este CPF na rede',
-    responsavelObrigatorio:
+  user: {
+    name: FIELDS.user.name,
+    email: FIELDS.user.email,
+    cpf: FIELDS.user.cpf,
+    roleAssignments: FIELDS.user.roleAssignments,
+    guardianId: FIELDS.user.guardianId,
+  },
+  school: { name: FIELDS.school.name, inepCode: FIELDS.school.inepCode },
+  password: {
+    currentPassword: FIELDS.password.current,
+    newPassword: FIELDS.password.new,
+    confirmation: FIELDS.password.confirmation,
+  },
+} as const;
+
+export const CODES = {
+  invalidCredentials: 'credenciais_invalidas',
+  networkUnavailable: 'rede_indisponivel',
+  schoolFromAnotherNetwork: 'unidade_de_outra_rede',
+  emailInUse: 'email_em_uso',
+  cpfInUse: 'cpf_em_uso',
+  guardianRequired: 'responsavel_obrigatorio',
+  cpfMismatch: 'cpf_diverge_do_cadastro',
+  nameInUse: 'nome_em_uso',
+  userNotFound: 'usuario_inexistente',
+  wrongPassword: 'senha_incorreta',
+} as const;
+
+export const MESSAGES = {
+  login: {
+    networkRequired: 'informe a rede',
+    cpfRequired: 'informe o CPF',
+    passwordRequired: 'informe a senha',
+    invalidCredentials: 'CPF ou senha inválidos',
+    networkUnavailable: 'rede não encontrada ou fora de operação',
+  },
+  user: {
+    invalidNetwork: 'rede inválida',
+    nameRequired: 'informe o nome',
+    nameTooLong: 'nome longo demais',
+    emailRequired: 'informe o e-mail',
+    invalidEmail: 'e-mail inválido',
+    invalidCpf: 'Informe um CPF válido.',
+    invalidSchool: 'unidade inválida',
+    unknownRole: 'papel desconhecido',
+    noRoleAssignment: 'escolha ao menos uma unidade e um papel',
+    invalidGuardian: 'responsável inválido',
+    schoolFromAnotherNetwork: 'unidade não pertence a esta rede',
+    emailInUse: 'já existe usuário com este e-mail na rede',
+    cpfInUse: 'já existe usuário com este CPF na rede',
+    guardianRequired:
       'quem entra como responsável precisa estar ligado a um cadastro de responsável',
-    rotuloDeResponsavel: 'responsável',
-    cpfDivergeDoCadastro: (nomeDoCadastro: string): string =>
-      `O CPF não confere com o do cadastro de ${nomeDoCadastro}.`,
+    guardianLabel: 'responsável',
+    cpfMismatch: (registeredName: string): string =>
+      `O CPF não confere com o do cadastro de ${registeredName}.`,
   },
-  unidade: {
-    redeInvalida: 'rede inválida',
-    nomeObrigatorio: 'informe o nome da unidade',
-    nomeLongo: 'nome longo demais',
-    inepLongo: 'código INEP longo demais',
-    nomeEmUso: 'já existe unidade com este nome na rede',
+  school: {
+    invalidNetwork: 'rede inválida',
+    nameRequired: 'informe o nome da unidade',
+    nameTooLong: 'nome longo demais',
+    inepTooLong: 'código INEP longo demais',
+    nameInUse: 'já existe unidade com este nome na rede',
   },
-  senha: {
-    usuarioInvalido: 'usuário inválido',
-    atualObrigatoria: 'informe a senha atual',
-    novaCurta: (minimo: number): string =>
-      `a senha nova precisa de ao menos ${minimo} caracteres`,
-    usuarioInexistente: 'usuário não encontrado',
-    atualNaoConfere: 'a senha atual não confere',
+  password: {
+    invalidUser: 'usuário inválido',
+    currentRequired: 'informe a senha atual',
+    newTooShort: (minimum: number): string =>
+      `a senha nova precisa de ao menos ${minimum} caracteres`,
+    userNotFound: 'usuário não encontrado',
+    currentDoesNotMatch: 'a senha atual não confere',
   },
 } as const;
 
-export const ERROS_INTERNOS = {
-  papelForaDoDominio: (valor: string): string => `papel fora do domínio: ${valor}`,
-  statusDeRedeForaDoDominio: (valor: string): string => `status de rede fora do domínio: ${valor}`,
+export const INTERNAL_ERRORS = {
+  roleOutOfDomain: (value: string): string => `papel fora do domínio: ${value}`,
+  networkStatusOutOfDomain: (value: string): string => `status de rede fora do domínio: ${value}`,
 } as const;
 
-export const EVENTOS_DE_LOG = {
-  autenticacaoRecusada: 'tentativa de autenticação recusada',
-  sessaoAberta: 'sessão aberta',
-  sessoesExpiradasRemovidas: 'sessões expiradas removidas',
+export const LOG_EVENTS = {
+  authenticationRejected: 'tentativa de autenticação recusada',
+  sessionOpened: 'sessão aberta',
+  expiredSessionsRemoved: 'sessões expiradas removidas',
 } as const;
 
-export const EXPURGO_DE_SESSOES = { nome: 'expurgo-de-sessoes', intervaloEmMinutos: 15 } as const;
+export const SESSION_PURGE = { name: 'expurgo-de-sessoes', intervalInMinutes: 15 } as const;
 
-export const VOCABULARIO = {
-  papel: {
+export const VOCABULARY = {
+  role: {
     network_admin: 'Administração da rede',
     registrar: 'Secretaria',
     teacher: 'Professor',
     guardian: 'Responsável',
-  } as const satisfies Record<Papel, string>,
-  ativo: { sim: 'Ativo', nao: 'Inativo' },
-  unidadeAtiva: { sim: 'Ativa', nao: 'Inativa' },
-  semPapel: 'sem papel atribuído',
+  } as const satisfies Record<Role, string>,
+  active: { yes: 'Ativo', no: 'Inativo' },
+  schoolActive: { yes: 'Ativa', no: 'Inativa' },
+  noRole: 'sem papel atribuído',
 } as const;

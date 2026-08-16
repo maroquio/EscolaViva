@@ -1,55 +1,55 @@
-import type { PapelEmUnidade } from './role';
-import type { Rede } from './network';
+import type { RoleInSchool } from './role';
+import type { Network } from './network';
 
-export const TAMANHO_MINIMO_DE_SENHA = 10;
+export const MINIMUM_PASSWORD_LENGTH = 10;
 
-export type Usuario = {
+export type User = {
   id: string;
-  redeId: string;
-  nome: string;
+  networkId: string;
+  name: string;
   email: string;
   cpf: string;
-  ativo: boolean;
-  responsavelId: string | null;
+  active: boolean;
+  guardianId: string | null;
 };
 
-export type UsuarioAutenticado = {
+export type AuthenticatedUser = {
   id: string;
-  redeId: string;
-  redeNome: string;
-  redeSlug: string;
-  nome: string;
+  networkId: string;
+  networkName: string;
+  networkSlug: string;
+  name: string;
   email: string;
-  papeis: PapelEmUnidade[];
-  responsavelId: string | null;
+  roles: RoleInSchool[];
+  guardianId: string | null;
 };
 
-export type UsuarioResumo = {
+export type UserSummary = {
   id: string;
-  nome: string;
+  name: string;
   email: string;
   cpf: string | null;
-  ativo: boolean;
-  papeis: PapelEmUnidade[];
+  active: boolean;
+  roles: RoleInSchool[];
 };
 
-export function emailNormalizado(email: string): string {
+export function normalizedEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-export function usuarioAutenticado(
-  usuario: Usuario,
-  rede: Rede,
-  papeis: PapelEmUnidade[],
-): UsuarioAutenticado {
+export function toAuthenticatedUser(
+  user: User,
+  network: Network,
+  roles: RoleInSchool[],
+): AuthenticatedUser {
   return {
-    id: usuario.id,
-    redeId: rede.id,
-    redeNome: rede.nome,
-    redeSlug: rede.slug,
-    nome: usuario.nome,
-    email: usuario.email,
-    papeis,
-    responsavelId: usuario.responsavelId,
+    id: user.id,
+    networkId: network.id,
+    networkName: network.name,
+    networkSlug: network.slug,
+    name: user.name,
+    email: user.email,
+    roles,
+    guardianId: user.guardianId,
   };
 }

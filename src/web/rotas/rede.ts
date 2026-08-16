@@ -2,12 +2,12 @@ import { Hono, type Context } from 'hono';
 import { deleteCookie, getSignedCookie, setSignedCookie } from 'hono/cookie';
 import { LIMITES_DO_ACADEMICO, academico, type Turma } from '../../academico';
 import {
-  LIMITES_DE_IDENTIDADE,
-  PAPEIS,
-  PAPEL,
-  VOCABULARIO_DE_IDENTIDADE,
-  identidade,
-  type Papel,
+  IDENTITY_LIMITS,
+  IDENTITY_VOCABULARY,
+  ROLE,
+  ROLES,
+  identity,
+  type Role,
 } from '../../identity';
 import { config } from '../../shared/config';
 import { CONTEXT_VARIABLES, MASKED_CPF_LENGTH } from '../../shared/constants';
@@ -45,9 +45,9 @@ const MENSAGENS: Record<string, string> = {
   [CODIGOS_DE_AVISO.anoDefinido]: AVISOS.anoDefinido,
 };
 
-const PAPEIS_DA_TELA: readonly { valor: Papel; rotulo: string }[] = PAPEIS.map((valor) => ({
+const PAPEIS_DA_TELA: readonly { valor: Role; rotulo: string }[] = ROLES.map((valor) => ({
   valor,
-  rotulo: VOCABULARIO_DE_IDENTIDADE.papel[valor],
+  rotulo: IDENTITY_VOCABULARY.role[valor],
 }));
 
 const PARCIAIS = { parciais: TEMPLATES.parciais };
@@ -55,7 +55,7 @@ const SUFIXOS = { sufixos: SUFIXOS_DE_ID };
 
 export const rotasRede = new Hono<{ Variables: Variables }>();
 
-rotasRede.use(requireRole(PAPEL.adminRede));
+rotasRede.use(requireRole(ROLE.networkAdmin));
 
 const texto = (corpo: FormBody, campo: string): string => {
   const valor = corpo[campo];
@@ -74,8 +74,8 @@ const mensagemDaQuery = (c: Context): string | undefined =>
 type ContagensDaRede = { unidades: number; usuarios: number; turmas: number; matriculados: number };
 
 const contarRede = async (redeId: string, anoLetivoId: string | null): Promise<ContagensDaRede> => {
-  const [{ unidades, usuarios }, turmas] = await Promise.all([
-    identidade.contarUnidadesEUsuarios(redeId),
+  const [{ schools, users }, turmas] = await Promise.all([
+    identity.countSchoolsAndUsers(redeId),
     anoLetivoId === null
       ? Promise.resolve<Turma[]>([])
       : academico.listarTurmas(redeId, { anoLetivoId }),
@@ -84,8 +84,8 @@ const contarRede = async (redeId: string, anoLetivoId: string | null): Promise<C
     turmas.map((turma) => academico.matriculasAtivasDaTurma(redeId, turma.id)),
   );
   return {
-    unidades,
-    usuarios,
+    unidades: schools,
+    usuarios: users,
     turmas: turmas.length,
     matriculados: matriculas.reduce((total, daTurma) => total + daTurma.length, 0),
   };
@@ -106,11 +106,11 @@ rotasRede.get(ROTAS.rede.painel.padrao, async (c) => {
 });
 
 const telaDeUnidades = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const pagina = await identidade.paginaDeUnidades(currentNetwork(c), paginaDaQuery(c));
+  const pagina = await identity.schoolsPage(currentNetwork(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATES.rede.unidades, {
     ...PARCIAIS,
     titulo: TITULOS.rede.unidades,
-    rotuloDaSituacao: VOCABULARIO_DE_IDENTIDADE.unidadeAtiva,
+    rotuloDaSituacao: IDENTITY_VOCABULARY.schoolActive,
     ausente: MISSING_VALUE,
     unidades: pagina.items,
     navegacao: navegacao(c, pagina),
@@ -123,8 +123,8 @@ const formDeUnidade = (c: Context, dados: DadosDeTemplate = {}): Response =>
     ...SUFIXOS,
     titulo: TITULOS.rede.unidadeNova,
     valores: VALORES_INICIAIS.unidade,
-    limiteDoNome: LIMITES_DE_IDENTIDADE.unidade.nome,
-    limiteDoCodigoInep: LIMITES_DE_IDENTIDADE.unidade.codigoInep,
+    limiteDoNome: IDENTITY_LIMITS.school.name,
+    limiteDoCodigoInep: IDENTITY_LIMITS.school.inepCode,
     erros: [],
     ...dados,
   });
@@ -143,10 +143,10 @@ rotasRede.post(ROTAS.rede.unidades.padrao, async (c) => {
     codigoInep: texto(corpo, CAMPOS.unidade.codigoInep),
   };
 
-  const resultado = await identidade.criarUnidade({
-    redeId,
-    nome: valores.nome,
-    codigoInep: valores.codigoInep,
+  const resultado = await identity.createSchool({
+    networkId: redeId,
+    name: valores.nome,
+    inepCode: valores.codigoInep,
   });
   if (!resultado.ok) return formDeUnidade(c, { valores, erros: resultado.erros });
 
@@ -188,7 +188,7 @@ const retirarConvite = async (
 
 type LinhaDeAtribuicao = { unidadeId: string; papel: string };
 
-const ehPapel = (valor: string): valor is Papel =>
+const ehPapel = (valor: string): valor is Role =>
   PAPEIS_DA_TELA.some((opcao) => opcao.valor === valor);
 
 const linhasDoFormulario = (corpo: FormBody): LinhaDeAtribuicao[] => {
@@ -205,12 +205,12 @@ const linhasVazias = (): LinhaDeAtribuicao[] =>
   Array.from({ length: LINHAS_DE_ATRIBUICAO }, () => ({ unidadeId: '', papel: '' }));
 
 const telaDeUsuarios = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const pagina = await identidade.paginaDeUsuarios(currentNetwork(c), paginaDaQuery(c));
+  const pagina = await identity.usersPage(currentNetwork(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATES.rede.usuarios, {
     ...PARCIAIS,
     titulo: TITULOS.rede.usuarios,
-    rotuloDaSituacao: VOCABULARIO_DE_IDENTIDADE.ativo,
-    semPapel: VOCABULARIO_DE_IDENTIDADE.semPapel,
+    rotuloDaSituacao: IDENTITY_VOCABULARY.active,
+    semPapel: IDENTITY_VOCABULARY.noRole,
     usuarios: pagina.items,
     navegacao: navegacao(c, pagina),
     papeis: PAPEIS_DA_TELA,
@@ -222,7 +222,7 @@ const telaDeUsuarios = async (c: Context, dados: DadosDeTemplate = {}): Promise<
 const formDeUsuario = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
   const redeId = currentNetwork(c);
   const [unidades, responsaveis] = await Promise.all([
-    identidade.listarUnidades(redeId),
+    identity.listSchools(redeId),
     academico.listarResponsaveis(redeId),
   ]);
   return renderizar(c, TEMPLATES.rede.usuarioNovo, {
@@ -232,7 +232,7 @@ const formDeUsuario = async (c: Context, dados: DadosDeTemplate = {}): Promise<R
     responsaveis,
     papeis: PAPEIS_DA_TELA,
     valores: VALORES_INICIAIS.usuario,
-    limiteDoNome: LIMITES_DE_IDENTIDADE.usuario.nome,
+    limiteDoNome: IDENTITY_LIMITS.user.name,
     tamanhoDoCpf: MASKED_CPF_LENGTH,
     linhas: linhasVazias(),
     erros: [],
@@ -261,7 +261,7 @@ rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
   const preenchidas = linhas.filter((linha) => linha.unidadeId !== '' || linha.papel !== '');
   const atribuicoes = preenchidas.flatMap((linha) =>
     linha.unidadeId !== '' && ehPapel(linha.papel)
-      ? [{ unidadeId: linha.unidadeId, papel: linha.papel }]
+      ? [{ schoolId: linha.unidadeId, role: linha.papel }]
       : [],
   );
   if (atribuicoes.length !== preenchidas.length) {
@@ -277,23 +277,23 @@ rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
       ? null
       : await academico.responsavelPorId(redeId, valores.responsavelId);
 
-  const resultado = await identidade.convidarUsuario({
-    redeId,
-    nome: valores.nome,
+  const resultado = await identity.inviteUser({
+    networkId: redeId,
+    name: valores.nome,
     email: valores.email,
     cpf: valores.cpf,
-    cpfDoCadastro: cadastro?.cpf ?? null,
-    ...(cadastro === null ? {} : { nomeDoCadastro: cadastro.nome }),
-    atribuicoes,
-    responsavelId: valores.responsavelId === '' ? null : valores.responsavelId,
+    registeredCpf: cadastro?.cpf ?? null,
+    ...(cadastro === null ? {} : { registeredName: cadastro.nome }),
+    roleAssignments: atribuicoes,
+    guardianId: valores.responsavelId === '' ? null : valores.responsavelId,
   });
   if (!resultado.ok) return await formDeUsuario(c, { valores, linhas, erros: resultado.erros });
 
   logger.info(
-    { rede_id: redeId, usuario_id: resultado.valor.usuarioId, atribuicoes: atribuicoes.length },
+    { rede_id: redeId, usuario_id: resultado.valor.userId, atribuicoes: atribuicoes.length },
     EVENTOS_DE_LOG.usuarioConvidado,
   );
-  await guardarConvite(c, resultado.valor.usuarioId, resultado.valor.senhaProvisoria);
+  await guardarConvite(c, resultado.valor.userId, resultado.valor.temporaryPassword);
   return c.redirect(
     `${ROTAS.rede.usuarios()}?${PARAMETROS.ok}=${CODIGOS_DE_AVISO.usuarioConvidado}`,
     303,

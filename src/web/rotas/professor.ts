@@ -7,7 +7,7 @@ import {
   VOCABULARIO_DA_AVALIACAO,
   avaliacao,
 } from '../../avaliacao';
-import { PAPEL } from '../../identity';
+import { ROLE } from '../../identity';
 import { CONTEXT_VARIABLES, FORMATS, ISO_DATE_LENGTH, LOCALE, TIME } from '../../shared/constants';
 import {
   BusinessRuleViolation,
@@ -299,7 +299,7 @@ const telaDeFechamento = (
 
 export const rotasProfessor = new Hono<{ Variables: Variables }>();
 
-rotasProfessor.use(requireRole(PAPEL.professor));
+rotasProfessor.use(requireRole(ROLE.teacher));
 
 rotasProfessor.get(ROTAS.professor.painel.padrao, async (c) => {
   const turmas = agruparPorTurma(await alocacoesDoProfessor(c)).map(comLinks);

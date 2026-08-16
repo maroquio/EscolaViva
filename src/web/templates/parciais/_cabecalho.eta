@@ -1,13 +1,13 @@
 <%
 const usuario = it.usuario;
-const unidades = usuario === null ? [] : [...new Set(usuario.papeis.map((p) => p.unidadeNome))];
+const unidades = usuario === null ? [] : [...new Set(usuario.roles.map((p) => p.schoolName))];
 %>
 <header class="cabecalho">
   <a class="marca cabecalho__marca" href="<%= it.rotas.publicas.painel() %>"><%~ it.apresentacao.marca %></a>
 
   <% if (usuario !== null) { %>
   <div class="cabecalho__contexto">
-    <span class="cabecalho__rede"><%= usuario.redeNome %></span>
+    <span class="cabecalho__rede"><%= usuario.networkName %></span>
     <span class="cabecalho__unidade">
       <% if (unidades.length === 0) { %>
         sem unidade atribuída
@@ -21,7 +21,7 @@ const unidades = usuario === null ? [] : [...new Set(usuario.papeis.map((p) => p
   </div>
 
   <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="<%= usuario.email %>"><%= usuario.nome %></span>
+    <span class="cabecalho__nome" title="<%= usuario.email %>"><%= usuario.name %></span>
     <form class="cabecalho__sair" method="post" action="<%= it.rotas.publicas.logout() %>">
       <input type="hidden" name="<%= it.campoChave %>" value="<%= it.chave %>">
       <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>

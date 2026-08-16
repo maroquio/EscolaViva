@@ -40,17 +40,17 @@ const CLASSE_DA_SITUACAO = { sim: 'etiqueta etiqueta--ativa', nao: 'etiqueta' };
         <tr>
           <th scope="col"><%= it.rotulos.unidade %></th>
           <th scope="col">Código INEP</th>
-<% // magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em ROTULOS; nem é o `VOCABULARIO_DE_IDENTIDADE.unidadeAtiva` da célula abaixo %>
+<% // magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em ROTULOS; nem é o `IDENTITY_VOCABULARY.schoolActive` da célula abaixo %>
           <th scope="col">Situação</th>
         </tr>
       </thead>
       <tbody>
         <% unidades.forEach((unidade) => { %>
         <tr>
-          <th scope="row"><%= unidade.nome %></th>
-          <td class="numero"><%= unidade.codigoInep === null ? SEM_VALOR : unidade.codigoInep %></td>
+          <th scope="row"><%= unidade.name %></th>
+          <td class="numero"><%= unidade.inepCode === null ? SEM_VALOR : unidade.inepCode %></td>
           <td>
-            <span class="<%= unidade.ativa ? CLASSE_DA_SITUACAO.sim : CLASSE_DA_SITUACAO.nao %>"><%= unidade.ativa ? ROTULO_DA_SITUACAO.sim : ROTULO_DA_SITUACAO.nao %></span>
+            <span class="<%= unidade.active ? CLASSE_DA_SITUACAO.sim : CLASSE_DA_SITUACAO.nao %>"><%= unidade.active ? ROTULO_DA_SITUACAO.yes : ROTULO_DA_SITUACAO.no %></span>
           </td>
         </tr>
         <% }) %>

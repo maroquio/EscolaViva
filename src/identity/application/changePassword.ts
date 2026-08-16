@@ -1,47 +1,51 @@
 import { z } from 'zod';
 import { reader, unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, MENSAGENS } from '../constants';
-import { TAMANHO_MINIMO_DE_SENHA } from '../domain/user';
-import * as usuarioRepositorio from '../infra/userRepository';
+import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { MINIMUM_PASSWORD_LENGTH } from '../domain/user';
+import * as userRepository from '../infra/userRepository';
 
 const schema = z.object({
-  usuarioId: z.string().uuid(MENSAGENS.senha.usuarioInvalido),
-  senhaAtual: z.string().min(1, MENSAGENS.senha.atualObrigatoria),
-  senhaNova: z
+  userId: z.string().uuid(MESSAGES.password.invalidUser),
+  currentPassword: z.string().min(1, MESSAGES.password.currentRequired),
+  newPassword: z
     .string()
-    .min(TAMANHO_MINIMO_DE_SENHA, MENSAGENS.senha.novaCurta(TAMANHO_MINIMO_DE_SENHA)),
+    .min(MINIMUM_PASSWORD_LENGTH, MESSAGES.password.newTooShort(MINIMUM_PASSWORD_LENGTH)),
 });
 
-export async function trocarSenha(entrada: {
-  usuarioId: string;
-  senhaAtual: string;
-  senhaNova: string;
+export async function changePassword(input: {
+  userId: string;
+  currentPassword: string;
+  newPassword: string;
 }): Promise<Result<void>> {
-  const analise = schema.safeParse(entrada);
-  if (!analise.success) return failure(...schemaErrors(analise.error.issues));
-  const dados = analise.data;
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.password));
+  const data = parsed.data;
 
-  const credenciais = await usuarioRepositorio.credenciaisPorId(reader(), dados.usuarioId);
-  if (credenciais === null) {
+  const credentials = await userRepository.credentialsById(reader(), data.userId);
+  if (credentials === null) {
     return failure({
-      codigo: CODIGOS.usuarioInexistente,
-      mensagem: MENSAGENS.senha.usuarioInexistente,
+      codigo: CODES.userNotFound,
+      mensagem: MESSAGES.password.userNotFound,
     });
   }
 
-  const confere = await Bun.password.verify(dados.senhaAtual, credenciais.senhaHash);
-  if (!confere) {
-    return fieldFailure(CAMPOS.senha.atual, CODIGOS.senhaIncorreta, MENSAGENS.senha.atualNaoConfere);
+  const matches = await Bun.password.verify(data.currentPassword, credentials.passwordHash);
+  if (!matches) {
+    return fieldFailure(
+      FIELDS.password.current,
+      CODES.wrongPassword,
+      MESSAGES.password.currentDoesNotMatch,
+    );
   }
 
-  const senhaHash = await Bun.password.hash(dados.senhaNova);
+  const passwordHash = await Bun.password.hash(data.newPassword);
   await unitOfWork(async ({ sql }) => {
-    await usuarioRepositorio.atualizarSenha(
+    await userRepository.updatePassword(
       sql,
-      credenciais.usuario.redeId,
-      credenciais.usuario.id,
-      senhaHash,
+      credentials.user.networkId,
+      credentials.user.id,
+      passwordHash,
     );
   });
   return success<void>(undefined);

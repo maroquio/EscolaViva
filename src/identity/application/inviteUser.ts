@@ -4,150 +4,153 @@ import { isValidCpf, normalizeCpf } from '../../shared/document';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import {
-  CAMPOS,
-  CODIGOS,
-  LIMITES,
-  MENSAGENS,
-  PAPEL,
-  SEGURANCA,
-  SEPARADOR_DE_ATRIBUICAO,
+  CODES,
+  FIELDS,
+  LIMITS,
+  MESSAGES,
+  ROLE,
+  ROLE_ASSIGNMENT_SEPARATOR,
+  SCHEMA_FIELD_NAMES,
+  SECURITY,
 } from '../constants';
-import { PAPEIS, type Papel } from '../domain/role';
-import { emailNormalizado, type Usuario } from '../domain/user';
-import * as unidadeRepositorio from '../infra/schoolRepository';
-import * as usuarioRepositorio from '../infra/userRepository';
+import { ROLES, type Role } from '../domain/role';
+import { normalizedEmail, type User } from '../domain/user';
+import * as schoolRepository from '../infra/schoolRepository';
+import * as userRepository from '../infra/userRepository';
 
 const schema = z.object({
-  redeId: z.string().uuid(MENSAGENS.usuario.redeInvalida),
-  nome: z
+  networkId: z.string().uuid(MESSAGES.user.invalidNetwork),
+  name: z
     .string()
     .trim()
-    .min(1, MENSAGENS.usuario.nomeObrigatorio)
-    .max(LIMITES.usuario.nome, MENSAGENS.usuario.nomeLongo),
-  email: z.string().trim().min(1, MENSAGENS.usuario.emailObrigatorio).email(
-    MENSAGENS.usuario.emailInvalido,
+    .min(1, MESSAGES.user.nameRequired)
+    .max(LIMITS.user.name, MESSAGES.user.nameTooLong),
+  email: z.string().trim().min(1, MESSAGES.user.emailRequired).email(
+    MESSAGES.user.invalidEmail,
   ),
   cpf: z
     .string()
     .trim()
     .transform(normalizeCpf)
-    .refine(isValidCpf, MENSAGENS.usuario.cpfInvalido),
-  cpfDoCadastro: z.string().nullable().optional(),
-  nomeDoCadastro: z.string().optional(),
-  atribuicoes: z
+    .refine(isValidCpf, MESSAGES.user.invalidCpf),
+  registeredCpf: z.string().nullable().optional(),
+  registeredName: z.string().optional(),
+  roleAssignments: z
     .array(
       z.object({
-        unidadeId: z.string().uuid(MENSAGENS.usuario.unidadeInvalida),
-        papel: z.enum(PAPEIS, {
-          errorMap: () => ({ message: MENSAGENS.usuario.papelDesconhecido }),
+        schoolId: z.string().uuid(MESSAGES.user.invalidSchool),
+        role: z.enum(ROLES, {
+          errorMap: () => ({ message: MESSAGES.user.unknownRole }),
         }),
       }),
     )
-    .min(1, MENSAGENS.usuario.semAtribuicao),
-  responsavelId: z.string().uuid(MENSAGENS.usuario.responsavelInvalido).nullable().optional(),
+    .min(1, MESSAGES.user.noRoleAssignment),
+  guardianId: z.string().uuid(MESSAGES.user.invalidGuardian).nullable().optional(),
 });
 
-function senhaProvisoria(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(SEGURANCA.tamanhoDaSenhaProvisoria));
+function temporaryPassword(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(SECURITY.temporaryPasswordLength));
   return Array.from(bytes, (byte) =>
-    SEGURANCA.alfabetoSemAmbiguidade.charAt(byte % SEGURANCA.alfabetoSemAmbiguidade.length),
+    SECURITY.unambiguousAlphabet.charAt(byte % SECURITY.unambiguousAlphabet.length),
   ).join('');
 }
 
-type Atribuicao = { unidadeId: string; papel: Papel };
+type RoleAssignment = { schoolId: string; role: Role };
 
-function atribuicoesDistintas(atribuicoes: Atribuicao[]): Atribuicao[] {
-  const porChave = new Map<string, Atribuicao>();
-  for (const atribuicao of atribuicoes) {
-    porChave.set(
-      `${atribuicao.unidadeId}${SEPARADOR_DE_ATRIBUICAO}${atribuicao.papel}`,
-      atribuicao,
+function distinctRoleAssignments(roleAssignments: RoleAssignment[]): RoleAssignment[] {
+  const byKey = new Map<string, RoleAssignment>();
+  for (const roleAssignment of roleAssignments) {
+    byKey.set(
+      `${roleAssignment.schoolId}${ROLE_ASSIGNMENT_SEPARATOR}${roleAssignment.role}`,
+      roleAssignment,
     );
   }
-  return [...porChave.values()];
+  return [...byKey.values()];
 }
 
-type ConviteAceito = { usuarioId: string; senhaProvisoria: string };
+type AcceptedInvitation = { userId: string; temporaryPassword: string };
 
-type Convite = {
-  usuario: Usuario;
-  senhaHash: string;
-  senhaProvisoria: string;
-  atribuicoes: Atribuicao[];
+type Invitation = {
+  user: User;
+  passwordHash: string;
+  temporaryPassword: string;
+  roleAssignments: RoleAssignment[];
 };
 
-async function gravar(convite: Convite): Promise<Result<ConviteAceito>> {
-  const { usuario, atribuicoes } = convite;
+async function save(invitation: Invitation): Promise<Result<AcceptedInvitation>> {
+  const { user, roleAssignments } = invitation;
   return await unitOfWork(async ({ sql }) => {
-    const unidadesPedidas = atribuicoes.map((atribuicao) => atribuicao.unidadeId);
-    const unidadesDaRede = await unidadeRepositorio.idsNaRede(sql, usuario.redeId, unidadesPedidas);
-    if (unidadesPedidas.some((id) => !unidadesDaRede.has(id))) {
+    const requestedSchools = roleAssignments.map((roleAssignment) => roleAssignment.schoolId);
+    const networkSchools = await schoolRepository.idsInNetwork(
+      sql,
+      user.networkId,
+      requestedSchools,
+    );
+    if (requestedSchools.some((id) => !networkSchools.has(id))) {
       return fieldFailure(
-        CAMPOS.usuario.atribuicoes,
-        CODIGOS.unidadeDeOutraRede,
-        MENSAGENS.usuario.unidadeDeOutraRede,
+        FIELDS.user.roleAssignments,
+        CODES.schoolFromAnotherNetwork,
+        MESSAGES.user.schoolFromAnotherNetwork,
       );
     }
-    if (await usuarioRepositorio.existeEmail(sql, usuario.redeId, usuario.email)) {
-      return fieldFailure(CAMPOS.usuario.email, CODIGOS.emailEmUso, MENSAGENS.usuario.emailEmUso);
+    if (await userRepository.emailExists(sql, user.networkId, user.email)) {
+      return fieldFailure(FIELDS.user.email, CODES.emailInUse, MESSAGES.user.emailInUse);
     }
-    if (await usuarioRepositorio.existeCpf(sql, usuario.redeId, usuario.cpf)) {
-      return fieldFailure(CAMPOS.usuario.cpf, CODIGOS.cpfEmUso, MENSAGENS.usuario.cpfEmUso);
+    if (await userRepository.cpfExists(sql, user.networkId, user.cpf)) {
+      return fieldFailure(FIELDS.user.cpf, CODES.cpfInUse, MESSAGES.user.cpfInUse);
     }
 
-    await usuarioRepositorio.inserir(sql, usuario, convite.senhaHash);
-    await usuarioRepositorio.inserirPapeis(sql, usuario.redeId, usuario.id, atribuicoes);
-    return success({ usuarioId: usuario.id, senhaProvisoria: convite.senhaProvisoria });
+    await userRepository.insert(sql, user, invitation.passwordHash);
+    await userRepository.insertRoles(sql, user.networkId, user.id, roleAssignments);
+    return success({ userId: user.id, temporaryPassword: invitation.temporaryPassword });
   });
 }
 
-export async function convidarUsuario(entrada: {
-  redeId: string;
-  nome: string;
+export async function inviteUser(input: {
+  networkId: string;
+  name: string;
   email: string;
   cpf: string;
-  cpfDoCadastro?: string | null;
-  nomeDoCadastro?: string;
-  atribuicoes: Atribuicao[];
-  responsavelId?: string | null | undefined;
-}): Promise<Result<ConviteAceito>> {
-  const analise = schema.safeParse(entrada);
-  if (!analise.success) return failure(...schemaErrors(analise.error.issues));
-  const dados = analise.data;
+  registeredCpf?: string | null;
+  registeredName?: string;
+  roleAssignments: RoleAssignment[];
+  guardianId?: string | null | undefined;
+}): Promise<Result<AcceptedInvitation>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.user));
+  const data = parsed.data;
 
-  const atribuicoes = atribuicoesDistintas(dados.atribuicoes);
-  const responsavelId = dados.responsavelId ?? null;
-  const entraComoResponsavel = atribuicoes.some(({ papel }) => papel === PAPEL.responsavel);
-  if (entraComoResponsavel && responsavelId === null) {
+  const roleAssignments = distinctRoleAssignments(data.roleAssignments);
+  const guardianId = data.guardianId ?? null;
+  const entersAsGuardian = roleAssignments.some(({ role }) => role === ROLE.guardian);
+  if (entersAsGuardian && guardianId === null) {
     return fieldFailure(
-      CAMPOS.usuario.responsavelId,
-      CODIGOS.responsavelObrigatorio,
-      MENSAGENS.usuario.responsavelObrigatorio,
+      FIELDS.user.guardianId,
+      CODES.guardianRequired,
+      MESSAGES.user.guardianRequired,
     );
   }
 
-  const cpfDoCadastro = dados.cpfDoCadastro ?? null;
-  if (cpfDoCadastro !== null && cpfDoCadastro !== dados.cpf) {
+  const registeredCpf = data.registeredCpf ?? null;
+  if (registeredCpf !== null && registeredCpf !== data.cpf) {
     return fieldFailure(
-      CAMPOS.usuario.cpf,
-      CODIGOS.cpfDivergeDoCadastro,
-      MENSAGENS.usuario.cpfDivergeDoCadastro(
-        dados.nomeDoCadastro ?? MENSAGENS.usuario.rotuloDeResponsavel,
-      ),
+      FIELDS.user.cpf,
+      CODES.cpfMismatch,
+      MESSAGES.user.cpfMismatch(data.registeredName ?? MESSAGES.user.guardianLabel),
     );
   }
 
-  const senha = senhaProvisoria();
-  const senhaHash = await Bun.password.hash(senha);
-  const usuario: Usuario = {
+  const password = temporaryPassword();
+  const passwordHash = await Bun.password.hash(password);
+  const user: User = {
     id: uuidIdGenerator.next(),
-    redeId: dados.redeId,
-    nome: dados.nome,
-    email: emailNormalizado(dados.email),
-    cpf: dados.cpf,
-    ativo: true,
-    responsavelId,
+    networkId: data.networkId,
+    name: data.name,
+    email: normalizedEmail(data.email),
+    cpf: data.cpf,
+    active: true,
+    guardianId,
   };
 
-  return await gravar({ usuario, senhaHash, senhaProvisoria: senha, atribuicoes });
+  return await save({ user, passwordHash, temporaryPassword: password, roleAssignments });
 }

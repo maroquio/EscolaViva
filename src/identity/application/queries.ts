@@ -2,120 +2,120 @@ import { z } from 'zod';
 import { reader } from '../../shared/db';
 import { DEFAULT_PAGE_SIZE, emptyPage, queryPage, type Page } from '../../shared/pagination';
 import { systemClock } from '../../shared/ports';
-import { redeAtiva } from '../domain/network';
-import { sessaoExpirou } from '../domain/session';
-import type { Unidade } from '../domain/school';
-import { usuarioAutenticado, type UsuarioAutenticado, type UsuarioResumo } from '../domain/user';
-import * as redeRepositorio from '../infra/networkRepository';
-import * as sessaoRepositorio from '../infra/sessionRepository';
-import * as unidadeRepositorio from '../infra/schoolRepository';
-import * as usuarioRepositorio from '../infra/userRepository';
+import { isNetworkActive } from '../domain/network';
+import { hasSessionExpired } from '../domain/session';
+import type { School } from '../domain/school';
+import { toAuthenticatedUser, type AuthenticatedUser, type UserSummary } from '../domain/user';
+import * as networkRepository from '../infra/networkRepository';
+import * as sessionRepository from '../infra/sessionRepository';
+import * as schoolRepository from '../infra/schoolRepository';
+import * as userRepository from '../infra/userRepository';
 
-const identificador = z.string().uuid();
+const uuidSchema = z.string().uuid();
 
-const isUuid = (valor: string): boolean => identificador.safeParse(valor).success;
+const isUuid = (value: string): boolean => uuidSchema.safeParse(value).success;
 
-export async function sessaoValida(sessaoId: string): Promise<UsuarioAutenticado | null> {
-  if (!isUuid(sessaoId)) return null;
+export async function validSession(sessionId: string): Promise<AuthenticatedUser | null> {
+  if (!isUuid(sessionId)) return null;
   const sql = reader();
-  const encontrada = await sessaoRepositorio.porId(sql, sessaoId);
-  if (encontrada === null) return null;
+  const found = await sessionRepository.byId(sql, sessionId);
+  if (found === null) return null;
 
-  const { sessao, rede, usuario } = encontrada;
-  if (sessaoExpirou(sessao, systemClock.now())) return null;
-  if (!redeAtiva(rede) || !usuario.ativo) return null;
+  const { session, network, user } = found;
+  if (hasSessionExpired(session, systemClock.now())) return null;
+  if (!isNetworkActive(network) || !user.active) return null;
 
-  const papeis = await usuarioRepositorio.papeisDoUsuario(sql, rede.id, usuario.id);
-  return usuarioAutenticado(usuario, rede, papeis);
+  const roles = await userRepository.userRoles(sql, network.id, user.id);
+  return toAuthenticatedUser(user, network, roles);
 }
 
-export async function listarUnidades(redeId: string): Promise<Unidade[]> {
-  if (!isUuid(redeId)) return [];
-  return await unidadeRepositorio.listarPorRede(reader(), redeId);
+export async function listSchools(networkId: string): Promise<School[]> {
+  if (!isUuid(networkId)) return [];
+  return await schoolRepository.listByNetwork(reader(), networkId);
 }
 
-export async function unidadePorId(redeId: string, unidadeId: string): Promise<Unidade | null> {
-  if (!isUuid(redeId) || !isUuid(unidadeId)) return null;
-  return await unidadeRepositorio.porId(reader(), redeId, unidadeId);
+export async function schoolById(networkId: string, schoolId: string): Promise<School | null> {
+  if (!isUuid(networkId) || !isUuid(schoolId)) return null;
+  return await schoolRepository.byId(reader(), networkId, schoolId);
 }
 
-export async function paginaDeUnidades(
-  redeId: string,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<Unidade>> {
-  if (!isUuid(redeId)) return emptyPage<Unidade>(tamanho);
+export async function schoolsPage(
+  networkId: string,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<School>> {
+  if (!isUuid(networkId)) return emptyPage<School>(size);
   const sql = reader();
   return await queryPage(
-    pagina,
-    tamanho,
-    () => unidadeRepositorio.contarPorRede(sql, redeId),
-    (faixa) => unidadeRepositorio.listarPorRede(sql, redeId, faixa),
+    page,
+    size,
+    () => schoolRepository.countByNetwork(sql, networkId),
+    (range) => schoolRepository.listByNetwork(sql, networkId, range),
   );
 }
 
-export async function listarUsuarios(redeId: string): Promise<UsuarioResumo[]> {
-  if (!isUuid(redeId)) return [];
-  return await usuarioRepositorio.listarResumos(reader(), redeId);
+export async function listUsers(networkId: string): Promise<UserSummary[]> {
+  if (!isUuid(networkId)) return [];
+  return await userRepository.listSummaries(reader(), networkId);
 }
 
-export async function paginaDeUsuarios(
-  redeId: string,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<UsuarioResumo>> {
-  if (!isUuid(redeId)) return emptyPage<UsuarioResumo>(tamanho);
+export async function usersPage(
+  networkId: string,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<UserSummary>> {
+  if (!isUuid(networkId)) return emptyPage<UserSummary>(size);
   const sql = reader();
   return await queryPage(
-    pagina,
-    tamanho,
-    () => usuarioRepositorio.contarPorRede(sql, redeId),
-    (faixa) => usuarioRepositorio.listarResumos(sql, redeId, faixa),
+    page,
+    size,
+    () => userRepository.countByNetwork(sql, networkId),
+    (range) => userRepository.listSummaries(sql, networkId, range),
   );
 }
 
-export async function contarUnidadesEUsuarios(
-  redeId: string,
-): Promise<{ unidades: number; usuarios: number }> {
-  if (!isUuid(redeId)) return { unidades: 0, usuarios: 0 };
+export async function countSchoolsAndUsers(
+  networkId: string,
+): Promise<{ schools: number; users: number }> {
+  if (!isUuid(networkId)) return { schools: 0, users: 0 };
   const sql = reader();
-  const [unidades, usuarios] = await Promise.all([
-    unidadeRepositorio.contarPorRede(sql, redeId),
-    usuarioRepositorio.contarPorRede(sql, redeId),
+  const [schools, users] = await Promise.all([
+    schoolRepository.countByNetwork(sql, networkId),
+    userRepository.countByNetwork(sql, networkId),
   ]);
-  return { unidades, usuarios };
+  return { schools, users };
 }
 
-export async function redePorSlug(
+export async function networkBySlug(
   slug: string,
-): Promise<{ id: string; nome: string; slug: string; status: string } | null> {
-  return await redeRepositorio.porSlug(reader(), slug);
+): Promise<{ id: string; name: string; slug: string; status: string } | null> {
+  return await networkRepository.bySlug(reader(), slug);
 }
 
-export async function ehProfessorNaUnidade(
-  redeId: string,
-  usuarioId: string,
-  unidadeId: string,
+export async function isTeacherAtSchool(
+  networkId: string,
+  userId: string,
+  schoolId: string,
 ): Promise<boolean> {
-  if (!isUuid(redeId) || !isUuid(usuarioId) || !isUuid(unidadeId)) {
+  if (!isUuid(networkId) || !isUuid(userId) || !isUuid(schoolId)) {
     return false;
   }
-  return await usuarioRepositorio.ehProfessorNaUnidade(reader(), redeId, usuarioId, unidadeId);
+  return await userRepository.isTeacherAtSchool(reader(), networkId, userId, schoolId);
 }
 
-export async function professoresDaUnidade(
-  redeId: string,
-  unidadeId: string,
-): Promise<{ id: string; nome: string }[]> {
-  if (!isUuid(redeId) || !isUuid(unidadeId)) return [];
-  return await usuarioRepositorio.professoresDaUnidade(reader(), redeId, unidadeId);
+export async function schoolTeachers(
+  networkId: string,
+  schoolId: string,
+): Promise<{ id: string; name: string }[]> {
+  if (!isUuid(networkId) || !isUuid(schoolId)) return [];
+  return await userRepository.schoolTeachers(reader(), networkId, schoolId);
 }
 
-export async function nomesDeUsuarios(
-  redeId: string,
+export async function userNames(
+  networkId: string,
   ids: string[],
 ): Promise<Map<string, string>> {
-  if (!isUuid(redeId)) return new Map<string, string>();
-  const validos = [...new Set(ids.filter(isUuid))];
-  return await usuarioRepositorio.nomesPorIds(reader(), redeId, validos);
+  if (!isUuid(networkId)) return new Map<string, string>();
+  const valid = [...new Set(ids.filter(isUuid))];
+  return await userRepository.namesByIds(reader(), networkId, valid);
 }

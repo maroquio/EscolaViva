@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { identidade } from '../../identity/index';
+import { identity } from '../../identity/index';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
@@ -38,7 +38,7 @@ export async function cadastrarTurma(e: {
 
   const { redeId, unidadeId, anoLetivoId } = validada.data;
   return unitOfWork(async ({ sql }): Promise<Result<Turma>> => {
-    const unidade = await identidade.unidadePorId(redeId, unidadeId);
+    const unidade = await identity.schoolById(redeId, unidadeId);
     if (unidade === null) {
       return fieldFailure(
         CAMPOS.turma.unidadeId,

@@ -1,12 +1,12 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import { PAPEL } from '../constants';
-import { paraPapel, type Papel, type PapelEmUnidade } from '../domain/role';
-import type { Usuario, UsuarioResumo } from '../domain/user';
+import { ROLE } from '../constants';
+import { toRole, type Role, type RoleInSchool } from '../domain/role';
+import type { User, UserSummary } from '../domain/user';
 
-export type Credenciais = { usuario: Usuario; senhaHash: string };
+export type Credentials = { user: User; passwordHash: string };
 
-type LinhaDeUsuario = {
+type UserRow = {
   id: string;
   network_id: string;
   name: string;
@@ -16,224 +16,224 @@ type LinhaDeUsuario = {
   guardian_id: string | null;
 };
 
-type LinhaDeCredenciais = LinhaDeUsuario & { password_hash: string };
+type CredentialsRow = UserRow & { password_hash: string };
 
-type LinhaDePapel = { school_id: string; school_name: string; role: string };
+type RoleRow = { school_id: string; school_name: string; role: string };
 
-const paraUsuario = (linha: LinhaDeUsuario): Usuario => ({
-  id: linha.id,
-  redeId: linha.network_id,
-  nome: linha.name,
-  email: linha.email,
-  cpf: linha.cpf,
-  ativo: linha.active,
-  responsavelId: linha.guardian_id,
+const toUser = (row: UserRow): User => ({
+  id: row.id,
+  networkId: row.network_id,
+  name: row.name,
+  email: row.email,
+  cpf: row.cpf,
+  active: row.active,
+  guardianId: row.guardian_id,
 });
 
-const paraPapelEmUnidade = (linha: LinhaDePapel): PapelEmUnidade => ({
-  unidadeId: linha.school_id,
-  unidadeNome: linha.school_name,
-  papel: paraPapel(linha.role),
+const toRoleInSchool = (row: RoleRow): RoleInSchool => ({
+  schoolId: row.school_id,
+  schoolName: row.school_name,
+  role: toRole(row.role),
 });
 
-export async function credenciaisPorCpf(
+export async function credentialsByCpf(
   sql: Connection,
-  redeId: string,
+  networkId: string,
   cpf: string,
-): Promise<Credenciais | null> {
-  const linhas = await sql<LinhaDeCredenciais[]>`
+): Promise<Credentials | null> {
+  const rows = await sql<CredentialsRow[]>`
     SELECT id, network_id, name, email, cpf, active, guardian_id, password_hash
     FROM app_user
-    WHERE network_id = ${redeId} AND cpf = ${cpf} AND active
+    WHERE network_id = ${networkId} AND cpf = ${cpf} AND active
   `;
-  const linha = linhas[0];
-  return linha === undefined
-    ? null
-    : { usuario: paraUsuario(linha), senhaHash: linha.password_hash };
+  const row = rows[0];
+  return row === undefined ? null : { user: toUser(row), passwordHash: row.password_hash };
 }
 
-export async function credenciaisPorId(
+export async function credentialsById(
   sql: Connection,
-  usuarioId: string,
-): Promise<Credenciais | null> {
-  const linhas = await sql<LinhaDeCredenciais[]>`
+  userId: string,
+): Promise<Credentials | null> {
+  const rows = await sql<CredentialsRow[]>`
     SELECT id, network_id, name, email, cpf, active, guardian_id, password_hash
     FROM app_user
-    WHERE id = ${usuarioId} AND active
+    WHERE id = ${userId} AND active
   `;
-  const linha = linhas[0];
-  return linha === undefined
-    ? null
-    : { usuario: paraUsuario(linha), senhaHash: linha.password_hash };
+  const row = rows[0];
+  return row === undefined ? null : { user: toUser(row), passwordHash: row.password_hash };
 }
 
-export async function papeisDoUsuario(
+export async function userRoles(
   sql: Connection,
-  redeId: string,
-  usuarioId: string,
-): Promise<PapelEmUnidade[]> {
-  const linhas = await sql<LinhaDePapel[]>`
+  networkId: string,
+  userId: string,
+): Promise<RoleInSchool[]> {
+  const rows = await sql<RoleRow[]>`
     SELECT ur.school_id, s.name AS school_name, ur.role
     FROM user_role ur
     JOIN school s ON s.id = ur.school_id AND s.network_id = ur.network_id
-    WHERE ur.network_id = ${redeId} AND ur.user_id = ${usuarioId}
+    WHERE ur.network_id = ${networkId} AND ur.user_id = ${userId}
     ORDER BY s.name, ur.role
   `;
-  return linhas.map(paraPapelEmUnidade);
+  return rows.map(toRoleInSchool);
 }
 
-export async function listarResumos(
+export async function listSummaries(
   sql: Connection,
-  redeId: string,
-  faixa?: Range,
-): Promise<UsuarioResumo[]> {
-  const { limit, offset } = rangeParams(faixa);
-  const usuarios = await sql<LinhaDeUsuario[]>`
+  networkId: string,
+  range?: Range,
+): Promise<UserSummary[]> {
+  const { limit, offset } = rangeParams(range);
+  const users = await sql<UserRow[]>`
     SELECT id, network_id, name, email, cpf, active, guardian_id
     FROM app_user
-    WHERE network_id = ${redeId}
+    WHERE network_id = ${networkId}
     ORDER BY name
     LIMIT ${limit}::int OFFSET ${offset}::int
   `;
-  if (usuarios.length === 0) return [];
+  if (users.length === 0) return [];
 
-  const ids = usuarios.map((linha) => linha.id);
-  const papeis = await sql<(LinhaDePapel & { user_id: string })[]>`
+  const ids = users.map((row) => row.id);
+  const roles = await sql<(RoleRow & { user_id: string })[]>`
     SELECT ur.user_id, ur.school_id, s.name AS school_name, ur.role
     FROM user_role ur
     JOIN school s ON s.id = ur.school_id AND s.network_id = ur.network_id
-    WHERE ur.network_id = ${redeId} AND ur.user_id IN ${sql(ids)}
+    WHERE ur.network_id = ${networkId} AND ur.user_id IN ${sql(ids)}
     ORDER BY s.name, ur.role
   `;
 
-  const porUsuario = new Map<string, PapelEmUnidade[]>();
-  for (const linha of papeis) {
-    const acumulado = porUsuario.get(linha.user_id) ?? [];
-    porUsuario.set(linha.user_id, [...acumulado, paraPapelEmUnidade(linha)]);
+  const byUser = new Map<string, RoleInSchool[]>();
+  for (const row of roles) {
+    const accumulated = byUser.get(row.user_id) ?? [];
+    byUser.set(row.user_id, [...accumulated, toRoleInSchool(row)]);
   }
 
-  return usuarios.map((linha) => ({
-    id: linha.id,
-    nome: linha.name,
-    email: linha.email,
-    cpf: linha.cpf,
-    ativo: linha.active,
-    papeis: porUsuario.get(linha.id) ?? [],
+  return users.map((row) => ({
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    cpf: row.cpf,
+    active: row.active,
+    roles: byUser.get(row.id) ?? [],
   }));
 }
 
-export async function contarPorRede(sql: Connection, redeId: string): Promise<number> {
-  const linhas = await sql<{ total: number }[]>`
+export async function countByNetwork(sql: Connection, networkId: string): Promise<number> {
+  const rows = await sql<{ total: number }[]>`
     SELECT count(*)::int AS total
     FROM app_user
-    WHERE network_id = ${redeId}
+    WHERE network_id = ${networkId}
   `;
-  return linhas[0]?.total ?? 0;
+  return rows[0]?.total ?? 0;
 }
 
-export async function existeEmail(sql: Connection, redeId: string, email: string): Promise<boolean> {
-  const linhas = await sql<{ existe: number }[]>`
-    SELECT 1 AS existe
-    FROM app_user
-    WHERE network_id = ${redeId} AND email = ${email}
-    LIMIT 1
-  `;
-  return linhas.length > 0;
-}
-
-export async function existeCpf(sql: Connection, redeId: string, cpf: string): Promise<boolean> {
-  const linhas = await sql<{ existe: number }[]>`
-    SELECT 1 AS existe
-    FROM app_user
-    WHERE network_id = ${redeId} AND cpf = ${cpf}
-    LIMIT 1
-  `;
-  return linhas.length > 0;
-}
-
-export async function ehProfessorNaUnidade(
+export async function emailExists(
   sql: Connection,
-  redeId: string,
-  usuarioId: string,
-  unidadeId: string,
+  networkId: string,
+  email: string,
 ): Promise<boolean> {
-  const linhas = await sql<{ existe: number }[]>`
-    SELECT 1 AS existe
-    FROM user_role
-    WHERE network_id = ${redeId}
-      AND user_id = ${usuarioId}
-      AND school_id = ${unidadeId}
-      AND role = ${PAPEL.professor}
+  const rows = await sql<{ found: number }[]>`
+    SELECT 1 AS found
+    FROM app_user
+    WHERE network_id = ${networkId} AND email = ${email}
     LIMIT 1
   `;
-  return linhas.length > 0;
+  return rows.length > 0;
 }
 
-export async function professoresDaUnidade(
+export async function cpfExists(sql: Connection, networkId: string, cpf: string): Promise<boolean> {
+  const rows = await sql<{ found: number }[]>`
+    SELECT 1 AS found
+    FROM app_user
+    WHERE network_id = ${networkId} AND cpf = ${cpf}
+    LIMIT 1
+  `;
+  return rows.length > 0;
+}
+
+export async function isTeacherAtSchool(
   sql: Connection,
-  redeId: string,
-  unidadeId: string,
-): Promise<{ id: string; nome: string }[]> {
-  const linhas = await sql<{ id: string; name: string }[]>`
+  networkId: string,
+  userId: string,
+  schoolId: string,
+): Promise<boolean> {
+  const rows = await sql<{ found: number }[]>`
+    SELECT 1 AS found
+    FROM user_role
+    WHERE network_id = ${networkId}
+      AND user_id = ${userId}
+      AND school_id = ${schoolId}
+      AND role = ${ROLE.teacher}
+    LIMIT 1
+  `;
+  return rows.length > 0;
+}
+
+export async function schoolTeachers(
+  sql: Connection,
+  networkId: string,
+  schoolId: string,
+): Promise<{ id: string; name: string }[]> {
+  const rows = await sql<{ id: string; name: string }[]>`
     SELECT u.id, u.name
     FROM app_user u
     JOIN user_role ur ON ur.user_id = u.id AND ur.network_id = u.network_id
-    WHERE u.network_id = ${redeId}
-      AND ur.school_id = ${unidadeId}
-      AND ur.role = ${PAPEL.professor}
+    WHERE u.network_id = ${networkId}
+      AND ur.school_id = ${schoolId}
+      AND ur.role = ${ROLE.teacher}
       AND u.active
     ORDER BY u.name
   `;
-  return linhas.map((linha) => ({ id: linha.id, nome: linha.name }));
+  return rows.map((row) => ({ id: row.id, name: row.name }));
 }
 
-export async function nomesPorIds(
+export async function namesByIds(
   sql: Connection,
-  redeId: string,
+  networkId: string,
   ids: string[],
 ): Promise<Map<string, string>> {
   if (ids.length === 0) return new Map<string, string>();
-  const linhas = await sql<{ id: string; name: string }[]>`
+  const rows = await sql<{ id: string; name: string }[]>`
     SELECT id, name
     FROM app_user
-    WHERE network_id = ${redeId} AND id IN ${sql(ids)}
+    WHERE network_id = ${networkId} AND id IN ${sql(ids)}
   `;
-  return new Map(linhas.map((linha): [string, string] => [linha.id, linha.name]));
+  return new Map(rows.map((row): [string, string] => [row.id, row.name]));
 }
 
-export async function inserir(sql: Connection, usuario: Usuario, senhaHash: string): Promise<void> {
+export async function insert(sql: Connection, user: User, passwordHash: string): Promise<void> {
   await sql`
     INSERT INTO app_user (id, network_id, email, cpf, password_hash, name, active, guardian_id)
     VALUES (
-      ${usuario.id}, ${usuario.redeId}, ${usuario.email}, ${usuario.cpf}, ${senhaHash},
-      ${usuario.nome}, ${usuario.ativo}, ${usuario.responsavelId}
+      ${user.id}, ${user.networkId}, ${user.email}, ${user.cpf}, ${passwordHash},
+      ${user.name}, ${user.active}, ${user.guardianId}
     )
   `;
 }
 
-export async function inserirPapeis(
+export async function insertRoles(
   sql: Connection,
-  redeId: string,
-  usuarioId: string,
-  atribuicoes: { unidadeId: string; papel: Papel }[],
+  networkId: string,
+  userId: string,
+  roleAssignments: { schoolId: string; role: Role }[],
 ): Promise<void> {
-  for (const atribuicao of atribuicoes) {
+  for (const roleAssignment of roleAssignments) {
     await sql`
       INSERT INTO user_role (network_id, user_id, school_id, role)
-      VALUES (${redeId}, ${usuarioId}, ${atribuicao.unidadeId}, ${atribuicao.papel})
+      VALUES (${networkId}, ${userId}, ${roleAssignment.schoolId}, ${roleAssignment.role})
     `;
   }
 }
 
-export async function atualizarSenha(
+export async function updatePassword(
   sql: Connection,
-  redeId: string,
-  usuarioId: string,
-  senhaHash: string,
+  networkId: string,
+  userId: string,
+  passwordHash: string,
 ): Promise<void> {
   await sql`
     UPDATE app_user
-    SET password_hash = ${senhaHash}
-    WHERE network_id = ${redeId} AND id = ${usuarioId}
+    SET password_hash = ${passwordHash}
+    WHERE network_id = ${networkId} AND id = ${userId}
   `;
 }

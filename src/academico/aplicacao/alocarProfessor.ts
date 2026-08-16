@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { identidade } from '../../identity/index';
+import { identity } from '../../identity/index';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
@@ -42,7 +42,7 @@ export async function alocarProfessor(e: {
         MENSAGENS.disciplinaNaoEncontrada,
       );
     }
-    const ehProfessor = await identidade.ehProfessorNaUnidade(
+    const ehProfessor = await identity.isTeacherAtSchool(
       redeId,
       professorUsuarioId,
       turma.unidadeId,

@@ -1,57 +1,57 @@
-import { autenticar } from './application/authenticate';
+import { authenticate } from './application/authenticate';
 import {
-  contarUnidadesEUsuarios,
-  ehProfessorNaUnidade,
-  listarUnidades,
-  listarUsuarios,
-  nomesDeUsuarios,
-  paginaDeUnidades,
-  paginaDeUsuarios,
-  professoresDaUnidade,
-  redePorSlug,
-  sessaoValida,
-  unidadePorId,
+  countSchoolsAndUsers,
+  isTeacherAtSchool,
+  listSchools,
+  listUsers,
+  networkBySlug,
+  schoolById,
+  schoolTeachers,
+  schoolsPage,
+  userNames,
+  usersPage,
+  validSession,
 } from './application/queries';
-import { convidarUsuario } from './application/inviteUser';
-import { criarUnidade } from './application/createSchool';
-import { encerrarSessao } from './application/endSession';
-import { expurgarSessoesExpiradas } from './application/purgeSessions';
-import { trocarSenha } from './application/changePassword';
+import { inviteUser } from './application/inviteUser';
+import { createSchool } from './application/createSchool';
+import { endSession } from './application/endSession';
+import { purgeExpiredSessions } from './application/purgeSessions';
+import { changePassword } from './application/changePassword';
 
-export type { Papel, PapelEmUnidade } from './domain/role';
-export type { Unidade } from './domain/school';
-export type { UsuarioAutenticado, UsuarioResumo } from './domain/user';
+export type { Role, RoleInSchool } from './domain/role';
+export type { School } from './domain/school';
+export type { AuthenticatedUser, UserSummary } from './domain/user';
 
-export const identidade = {
-  autenticar,
-  sessaoValida,
-  encerrarSessao,
-  expurgarSessoesExpiradas,
-  trocarSenha,
-  convidarUsuario,
-  criarUnidade,
-  listarUnidades,
-  paginaDeUnidades,
-  unidadePorId,
-  listarUsuarios,
-  paginaDeUsuarios,
-  contarUnidadesEUsuarios,
-  redePorSlug,
-  ehProfessorNaUnidade,
-  professoresDaUnidade,
-  nomesDeUsuarios,
+export const identity = {
+  authenticate,
+  validSession,
+  endSession,
+  purgeExpiredSessions,
+  changePassword,
+  inviteUser,
+  createSchool,
+  listSchools,
+  schoolsPage,
+  schoolById,
+  listUsers,
+  usersPage,
+  countSchoolsAndUsers,
+  networkBySlug,
+  isTeacherAtSchool,
+  schoolTeachers,
+  userNames,
 };
 
 export {
-  CAMPOS as CAMPOS_DE_IDENTIDADE,
-  EVENTOS_DE_LOG as EVENTOS_DE_LOG_DE_IDENTIDADE,
-  EXPURGO_DE_SESSOES,
-  LIMITES as LIMITES_DE_IDENTIDADE,
-  PAPEL,
-  REDE_ATIVA,
-  VOCABULARIO as VOCABULARIO_DE_IDENTIDADE,
+  ACTIVE_NETWORK_STATUS,
+  FIELDS as IDENTITY_FIELDS,
+  LIMITS as IDENTITY_LIMITS,
+  LOG_EVENTS as IDENTITY_LOG_EVENTS,
+  ROLE,
+  SESSION_PURGE,
+  VOCABULARY as IDENTITY_VOCABULARY,
 } from './constants';
 
-export { PAPEIS } from './domain/role';
-export { STATUS_DE_REDE } from './domain/network';
-export { TAMANHO_MINIMO_DE_SENHA } from './domain/user';
+export { ROLES } from './domain/role';
+export { NETWORK_STATUSES } from './domain/network';
+export { MINIMUM_PASSWORD_LENGTH } from './domain/user';

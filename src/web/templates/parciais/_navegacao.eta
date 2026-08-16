@@ -1,31 +1,31 @@
 <%
 const usuario = it.usuario;
-const papeis = new Set(usuario === null ? [] : usuario.papeis.map((p) => p.papel));
+const papeis = new Set(usuario === null ? [] : usuario.roles.map((p) => p.role));
 
 const QUALQUER_PAPEL = Object.values(it.papel);
 
 const grupos = [
-  { titulo: it.areas.rede, papeis: [it.papel.adminRede], itens: [
+  { titulo: it.areas.rede, papeis: [it.papel.networkAdmin], itens: [
     { href: it.rotas.rede.painel(), texto: it.titulos.rede.painel },
     { href: it.rotas.rede.unidades(), texto: it.titulos.rede.unidades },
     { href: it.rotas.rede.usuarios(), texto: it.titulos.rede.usuarios },
     { href: it.rotas.rede.anosLetivos(), texto: it.titulos.rede.anos },
   ] },
-  { titulo: it.areas.secretaria, papeis: [it.papel.secretaria], itens: [
+  { titulo: it.areas.secretaria, papeis: [it.papel.registrar], itens: [
     { href: it.rotas.secretaria.painel(), texto: it.titulos.secretaria.painel },
     { href: it.rotas.secretaria.alunos(), texto: it.titulos.secretaria.alunos },
     { href: it.rotas.secretaria.responsaveis(), texto: it.titulos.secretaria.responsaveis },
     { href: it.rotas.secretaria.turmas(), texto: it.titulos.secretaria.turmas },
     { href: it.rotas.secretaria.disciplinas(), texto: it.titulos.secretaria.disciplinas },
   ] },
-  { titulo: it.areas.ensino, papeis: [it.papel.professor], itens: [
+  { titulo: it.areas.ensino, papeis: [it.papel.teacher], itens: [
     { href: it.rotas.professor.painel(), texto: it.titulos.professor.painel },
   ] },
-  { titulo: it.areas.acompanhamento, papeis: [it.papel.responsavel], itens: [
+  { titulo: it.areas.acompanhamento, papeis: [it.papel.guardian], itens: [
     { href: it.rotas.responsavel.painel(), texto: it.titulos.responsavel.painel },
     { href: it.rotas.responsavel.mural(), texto: 'Mural' },
   ] },
-  { titulo: it.areas.comunicacao, papeis: [it.papel.adminRede, it.papel.secretaria], itens: [
+  { titulo: it.areas.comunicacao, papeis: [it.papel.networkAdmin, it.papel.registrar], itens: [
     { href: it.rotas.comunicados.lista(), texto: it.titulos.comunicados.lista },
   ] },
   { titulo: it.areas.conta, papeis: QUALQUER_PAPEL, itens: [

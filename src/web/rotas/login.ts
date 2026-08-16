@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { getConnInfo } from 'hono/bun';
-import { identidade } from '../../identity';
+import { identity } from '../../identity';
 import { config } from '../../shared/config';
 import { CONTEXT_VARIABLES } from '../../shared/constants';
 import {
@@ -70,10 +70,10 @@ rotasLogin.post(ROTAS.publicas.login.padrao, async (c) => {
   const cpf = texto(corpo, CAMPOS.login.cpf);
   const ip = clientIp(c.req.raw, enderecoRemoto(c), config.trustedProxies);
 
-  const resultado = await identidade.autenticar({
-    redeSlug,
-    identificador: cpf,
-    senha: senhaDigitada(corpo),
+  const resultado = await identity.authenticate({
+    networkSlug: redeSlug,
+    loginIdentifier: cpf,
+    password: senhaDigitada(corpo),
     ip,
   });
 
@@ -85,7 +85,7 @@ rotasLogin.post(ROTAS.publicas.login.padrao, async (c) => {
     return telaDeEntrada(c, { valores: { redeSlug, cpf }, erros: resultado.erros });
   }
 
-  await openSession(c, resultado.valor.sessaoId);
+  await openSession(c, resultado.valor.sessionId);
   logger.info(
     { rede_slug: redeSlug, resultado: EVENTOS_DE_LOG.sucesso, ip },
     EVENTOS_DE_LOG.tentativaDeEntrada,
@@ -95,7 +95,7 @@ rotasLogin.post(ROTAS.publicas.login.padrao, async (c) => {
 
 rotasLogin.post(ROTAS.publicas.logout.padrao, async (c) => {
   const sessaoId = currentSessionId(c);
-  if (sessaoId !== null) await identidade.encerrarSessao(sessaoId);
+  if (sessaoId !== null) await identity.endSession(sessaoId);
   await closeSession(c);
   return c.redirect(DESTINO_APOS_SAIR, 303);
 });

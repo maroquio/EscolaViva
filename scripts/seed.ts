@@ -1,5 +1,5 @@
 import { MATRICULA_ATIVA, TURNOS } from '../src/academico';
-import { PAPEL, REDE_ATIVA, type Papel } from '../src/identity';
+import { ACTIVE_NETWORK_STATUS, ROLE, type Role } from '../src/identity';
 import { config } from '../src/shared/config';
 import { ISO_DATE_LENGTH, PRODUCTION_ENV, TIME, WEEK_DAYS } from '../src/shared/constants';
 import { closeDatabase, unitOfWork, writer, type Connection } from '../src/shared/db';
@@ -175,7 +175,7 @@ async function criarEstrutura(sql: Connection, ano: number): Promise<Estrutura> 
   const turmas = TURMAS.map((turma) => ({ ...turma, id: novoId() }));
 
   await sql`INSERT INTO network (id, name, slug, status)
-            VALUES (${redeId}, ${REDE}, ${SLUG}, ${REDE_ATIVA})`;
+            VALUES (${redeId}, ${REDE}, ${SLUG}, ${ACTIVE_NETWORK_STATUS})`;
   await inserir(sql, TABELA.unidade, unidades.map((u) => ({
     id: u.id, network_id: redeId, name: u.nome,
   })));
@@ -194,7 +194,7 @@ async function criarEstrutura(sql: Connection, ano: number): Promise<Estrutura> 
 }
 
 type Equipe = {
-  credenciais: { email: string; cpf: string; papel: Papel; onde: string }[];
+  credenciais: { email: string; cpf: string; papel: Role; onde: string }[];
   secretarias: string[]; professores: string[];
 };
 
@@ -212,7 +212,7 @@ async function criarEquipe(sql: Connection, e: Estrutura, hash: string): Promise
   const secretarias: string[] = [];
   const professores: string[] = [];
   let indice = 0;
-  const registrar = (nome: string, email: string, papel: Papel, unidades: Registro[]): string => {
+  const registrar = (nome: string, email: string, papel: Role, unidades: Registro[]): string => {
     const id = novoId();
     indice += 1;
     const cpf = generateCpf(indice);
@@ -227,17 +227,17 @@ async function criarEquipe(sql: Connection, e: Estrutura, hash: string): Promise
     });
     return id;
   };
-  registrar(NOME_DO_ADMIN, `${CAIXA.admin}@${DOMINIO}`, PAPEL.adminRede, e.unidades);
+  registrar(NOME_DO_ADMIN, `${CAIXA.admin}@${DOMINIO}`, ROLE.networkAdmin, e.unidades);
   e.unidades.forEach((unidade, i) => {
     const alvo = [unidade];
     const email = `${CAIXA.secretaria}${i + 1}@${DOMINIO}`;
-    secretarias.push(registrar(nomeDePessoa(), email, PAPEL.secretaria, alvo));
+    secretarias.push(registrar(nomeDePessoa(), email, ROLE.registrar, alvo));
   });
   for (let p = 0; p < PROFESSORES.total; p += 1) {
     const unidade = e.unidades[Math.floor(p / PROFESSORES.porUnidade)];
     if (unidade === undefined) throw new Error(ERROS.unidadeDoProfessor);
     const email = `${CAIXA.professor}${p + 1}@${DOMINIO}`;
-    professores.push(registrar(nomeDePessoa(), email, PAPEL.professor, [unidade]));
+    professores.push(registrar(nomeDePessoa(), email, ROLE.teacher, [unidade]));
   }
   await inserir(sql, TABELA.usuario, usuarios);
   await inserir(sql, TABELA.papelUsuario, papeis);
@@ -315,7 +315,7 @@ async function criarPessoas(sql: Connection, e: Estrutura, hash: string): Promis
         });
         papeis.push({
           network_id: e.redeId, user_id: usuarioId, school_id: unidade.id,
-          role: PAPEL.responsavel,
+          role: ROLE.guardian,
         });
         responsaveisPorUnidade[turma.unidadeIndice]?.push(respId);
         contas.push({ email, cpf });
@@ -523,7 +523,7 @@ function imprimirCredenciais(equipe: Equipe, responsaveis: { email: string; cpf:
     console.log(
       `  ${conta.email.padEnd(COLUNAS.email)} `
         + `${formatCpf(conta.cpf).padEnd(COLUNAS.cpf)} `
-        + `${PAPEL.responsavel.padEnd(COLUNAS.papel)} ${SAIDA.portalDoResponsavel}`,
+        + `${ROLE.guardian.padEnd(COLUNAS.papel)} ${SAIDA.portalDoResponsavel}`,
     );
   }
   const restantes = responsaveis.length - AMOSTRA_DE_RESPONSAVEIS;

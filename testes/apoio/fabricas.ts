@@ -5,13 +5,13 @@
  */
 
 import type { SituacaoMatricula } from '../../src/academico';
-import type { Papel } from '../../src/identity';
+import type { Role } from '../../src/identity';
 import { generateCpf } from '../../src/shared/document';
 import { sqlDeTeste } from './banco';
 
 export type StatusDeRede = 'active' | 'suspended' | 'cancelled';
 export type Turno = 'morning' | 'afternoon' | 'evening' | 'full_time';
-export type PapelEmUnidade = { schoolId: string; role: Papel };
+export type TestRoleInSchool = { schoolId: string; role: Role };
 
 /** A senha de todo usuário de teste. Dez caracteres: é o mínimo que o domínio aceita. */
 export const SENHA_PADRAO = 'teste-1234';
@@ -82,14 +82,14 @@ export type UsuarioDeTeste = {
   cpf: string;
   /** A senha em claro, para o teste conseguir autenticar depois. */
   senha: string;
-  active: boolean; guardianId: string | null; papeis: PapelEmUnidade[];
+  active: boolean; guardianId: string | null; papeis: TestRoleInSchool[];
 };
 
 export async function criarUsuario(opcoes: {
   networkId: string; name?: string | undefined; email?: string | undefined;
   cpf?: string | undefined; senha?: string | undefined;
   active?: boolean | undefined; guardianId?: string | null | undefined;
-  papeis?: PapelEmUnidade[] | undefined;
+  papeis?: TestRoleInSchool[] | undefined;
 }): Promise<UsuarioDeTeste> {
   const numero = proximo();
   const usuario: UsuarioDeTeste = {

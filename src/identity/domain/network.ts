@@ -1,20 +1,20 @@
-import { ERROS_INTERNOS, REDE_ATIVA } from '../constants';
+import { ACTIVE_NETWORK_STATUS, INTERNAL_ERRORS } from '../constants';
 
-export const STATUS_DE_REDE = ['active', 'suspended', 'cancelled'] as const;
+export const NETWORK_STATUSES = ['active', 'suspended', 'cancelled'] as const;
 
-export type StatusDeRede = (typeof STATUS_DE_REDE)[number];
+export type NetworkStatus = (typeof NETWORK_STATUSES)[number];
 
-export type Rede = { id: string; nome: string; slug: string; status: StatusDeRede };
+export type Network = { id: string; name: string; slug: string; status: NetworkStatus };
 
-function ehStatusDeRede(valor: string): valor is StatusDeRede {
-  return (STATUS_DE_REDE as readonly string[]).includes(valor);
+function isNetworkStatus(value: string): value is NetworkStatus {
+  return (NETWORK_STATUSES as readonly string[]).includes(value);
 }
 
-export function paraStatusDeRede(valor: string): StatusDeRede {
-  if (!ehStatusDeRede(valor)) throw new Error(ERROS_INTERNOS.statusDeRedeForaDoDominio(valor));
-  return valor;
+export function toNetworkStatus(value: string): NetworkStatus {
+  if (!isNetworkStatus(value)) throw new Error(INTERNAL_ERRORS.networkStatusOutOfDomain(value));
+  return value;
 }
 
-export function redeAtiva(rede: Rede): boolean {
-  return rede.status === REDE_ATIVA;
+export function isNetworkActive(network: Network): boolean {
+  return network.status === ACTIVE_NETWORK_STATUS;
 }

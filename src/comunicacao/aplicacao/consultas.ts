@@ -1,4 +1,4 @@
-import { identidade } from '../../identity';
+import { identity } from '../../identity';
 import { reader } from '../../shared/db';
 import { DEFAULT_PAGE_SIZE, queryPage, type Page } from '../../shared/pagination';
 import { ERROS_INTERNOS } from '../constantes';
@@ -61,7 +61,7 @@ export async function comunicadoParaResponsavel(
   const armazenado = await buscarParaResponsavel(reader(), redeId, responsavelId, comunicadoId);
   if (armazenado === null || !estaPublicado(armazenado)) return null;
 
-  const nomes = await identidade.nomesDeUsuarios(redeId, [armazenado.autorUsuarioId]);
+  const nomes = await identity.userNames(redeId, [armazenado.autorUsuarioId]);
   const autorNome = nomes.get(armazenado.autorUsuarioId);
   if (autorNome === undefined) throw new Error(ERROS_INTERNOS.autorForaDaRede);
   return comAutor(armazenado, autorNome);

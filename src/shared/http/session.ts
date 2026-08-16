@@ -9,13 +9,13 @@ export type SessionRole = 'network_admin' | 'registrar' | 'teacher' | 'guardian'
 
 export type SessionUser = {
   id: string;
-  redeId: string;
-  redeNome: string;
-  redeSlug: string;
-  nome: string;
+  networkId: string;
+  networkName: string;
+  networkSlug: string;
+  name: string;
   email: string;
-  papeis: { unidadeId: string; unidadeNome: string; papel: SessionRole }[];
-  responsavelId: string | null;
+  roles: { schoolId: string; schoolName: string; role: SessionRole }[];
+  guardianId: string | null;
 };
 
 export const SESSION_COOKIE = COOKIE.session;
@@ -55,7 +55,7 @@ export function createSessionMiddleware(load: UserLoader): MiddlewareHandler {
     store(c, sessionId, user);
     const context = currentContext();
     if (context === undefined) return next();
-    return withContext({ ...context, userId: user.id, networkId: user.redeId }, next);
+    return withContext({ ...context, userId: user.id, networkId: user.networkId }, next);
   };
 }
 

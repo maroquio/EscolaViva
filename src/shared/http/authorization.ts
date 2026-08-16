@@ -6,13 +6,13 @@ import type { SessionRole, SessionUser } from './session';
 import { currentUserOrNull } from './session';
 
 export function hasRole(u: SessionUser, role: SessionRole): boolean {
-  return u.papeis.some((roleAssignment) => roleAssignment.papel === role);
+  return u.roles.some((roleAssignment) => roleAssignment.role === role);
 }
 
 export function schoolsForRole(u: SessionUser, role: SessionRole): string[] {
-  return u.papeis
-    .filter((roleAssignment) => roleAssignment.papel === role)
-    .map((roleAssignment) => roleAssignment.unidadeId);
+  return u.roles
+    .filter((roleAssignment) => roleAssignment.role === role)
+    .map((roleAssignment) => roleAssignment.schoolId);
 }
 
 const rejectAnonymous = (c: Context): Response => {
