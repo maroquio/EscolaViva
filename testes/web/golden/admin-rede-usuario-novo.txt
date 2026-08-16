@@ -161,10 +161,10 @@ Vary: Cookie
             <label class="campo__rotulo" for="papel-0">Papel 1</label>
             <select id="papel-0" name="papel[]">
               <option value="">Sem atribuição</option>
-                            <option value="admin_rede" >Administração da rede</option>
-                            <option value="secretaria" >Secretaria</option>
-                            <option value="professor" >Professor</option>
-                            <option value="responsavel" >Responsável</option>
+                            <option value="network_admin" >Administração da rede</option>
+                            <option value="registrar" >Secretaria</option>
+                            <option value="teacher" >Professor</option>
+                            <option value="guardian" >Responsável</option>
                           </select>
           </div>
         </div>
@@ -182,10 +182,10 @@ Vary: Cookie
             <label class="campo__rotulo" for="papel-1">Papel 2</label>
             <select id="papel-1" name="papel[]">
               <option value="">Sem atribuição</option>
-                            <option value="admin_rede" >Administração da rede</option>
-                            <option value="secretaria" >Secretaria</option>
-                            <option value="professor" >Professor</option>
-                            <option value="responsavel" >Responsável</option>
+                            <option value="network_admin" >Administração da rede</option>
+                            <option value="registrar" >Secretaria</option>
+                            <option value="teacher" >Professor</option>
+                            <option value="guardian" >Responsável</option>
                           </select>
           </div>
         </div>
@@ -203,10 +203,10 @@ Vary: Cookie
             <label class="campo__rotulo" for="papel-2">Papel 3</label>
             <select id="papel-2" name="papel[]">
               <option value="">Sem atribuição</option>
-                            <option value="admin_rede" >Administração da rede</option>
-                            <option value="secretaria" >Secretaria</option>
-                            <option value="professor" >Professor</option>
-                            <option value="responsavel" >Responsável</option>
+                            <option value="network_admin" >Administração da rede</option>
+                            <option value="registrar" >Secretaria</option>
+                            <option value="teacher" >Professor</option>
+                            <option value="guardian" >Responsável</option>
                           </select>
           </div>
         </div>
