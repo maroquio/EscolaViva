@@ -4,7 +4,7 @@ export const meta = {
   whenToUse: 'Quando a decisão for que o código não carrega comentário.',
   phases: [
     { title: 'Remover', detail: 'um agente por área, partição disjunta' },
-    { title: 'Provar', detail: 'golden byte a byte, suíte verde, verificar exit 0' },
+    { title: 'Provar', detail: 'golden byte a byte, suíte verde, verify exit 0' },
   ],
 };
 
@@ -16,10 +16,10 @@ ATENÇÃO — OUTRA SESSÃO TRABALHA NESTE REPOSITÓRIO, commitando e fazendo pu
   - NUNCA rode git add, commit, push, checkout, rebase ou stash.
   - Arquivo fora do seu escopo modificado NÃO é regressão sua.
   - \`bun test\` com 'deadlock detected' é a suíte dela: crie um banco isolado via
-    DATABASE_URL_TESTE, use, e DROPE ao terminar.
+    TEST_DATABASE_URL, use, e DROPE ao terminar.
   - NÃO toque em docs/ — é dela.
 
-ESTADO: \`bun run verificar\` sai 0 — 714 testes, depcruise limpo (118 módulos), golden de
+ESTADO: \`bun run verify\` sai 0 — 714 testes, depcruise limpo (118 módulos), golden de
 75 telas com diff zero, verificador de magic values limpo.
 `;
 
@@ -39,7 +39,7 @@ FICA — e isto NÃO é negociação da decisão, é constatação de que estes 
 na função que exercem, e removê-los quebra o build:
 
   1. \`// magic-values: permitido — <motivo>\` é DIRETIVA. \`scripts/magic-values.ts\` a lê e a
-     parseia; removê-la reabre o achado que ela suprime e deixa \`bun run verificar\`
+     parseia; removê-la reabre o achado que ela suprime e deixa \`bun run verify\`
      vermelho. Preserve o marcador E o texto do motivo na mesma linha, porque a regra de
      auditoria confere esse texto. Se a prosa explicativa em volta dele for comentário
      comum, essa sai.
@@ -170,14 +170,14 @@ Na ordem:
 5. \`bun scripts/magic-values.ts\` — as diretivas \`// magic-values: permitido\` precisam ter
    sobrevivido. Se algum agente removeu uma, o achado reabriu: reponha a diretiva com o
    motivo, não o comentário em volta.
-6. \`bun run verificar\` exit 0.
+6. \`bun run verify\` exit 0.
 
 ${pendencias.length ? `PENDÊNCIAS relatadas:\n${pendencias.join('\n---\n')}` : ''}
 
 ${REGRAS}
 
 Relate o resultado exato de cada comando, com números.`,
-  { label: 'verificar', phase: 'Provar', effort: 'high' },
+  { label: 'verify', phase: 'Provar', effort: 'high' },
 );
 
 const critico = await agent(

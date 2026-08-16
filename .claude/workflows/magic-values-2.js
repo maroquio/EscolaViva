@@ -26,7 +26,7 @@ arquivos, nada commitado). Ele criou a infraestrutura de constantes:
   src/web/rotas/mapa.ts           grupo() + Params<S>
   scripts/magic-values.ts         o verificador
 
-ESTADO ATUAL: \`bun run verificar\` sai 0 — 714 testes verdes, depcruise limpo, golden
+ESTADO ATUAL: \`bun run verify\` sai 0 — 714 testes verdes, depcruise limpo, golden
 de 75 telas sem diff. NÃO PODE REGREDIR. Seu trabalho não pode mudar nenhuma tela:
 o teste golden em testes/web/golden.test.ts compara o HTML de todas elas com o que foi
 congelado. Diff no golden = você quebrou algo. JAMAIS rode \`bun run golden --regravar\`.
@@ -402,12 +402,12 @@ Na ordem, consertando antes de seguir:
    (varre .eta, detecta duplicação, restringe a isenção de status HTTP). Precisa sair
    limpo. Se acusar literal legítimo, extraia-o para o dono. Se acusar falso positivo,
    corrija a REGRA no script, nunca crie exceção pontual.
-6. \`bun run verificar\` inteiro, exit 0.
+6. \`bun run verify\` inteiro, exit 0.
 
 ${REGRAS}
 
 Relate o resultado exato de cada comando, com números.`,
-  { label: 'verificar', phase: 'Provar', effort: 'high' },
+  { label: 'verify', phase: 'Provar', effort: 'high' },
 );
 
 const critico = await agent(

@@ -16,10 +16,10 @@ ATENÇÃO — OUTRA SESSÃO TRABALHA AQUI, commitando e fazendo push.
   - NUNCA rode git add, commit, push, checkout, rebase ou stash.
   - Arquivo fora do seu escopo modificado NÃO é regressão sua.
   - \`bun test\` com 'deadlock detected' é a suíte dela: crie banco isolado via
-    DATABASE_URL_TESTE, use, e DROPE.
+    TEST_DATABASE_URL, use, e DROPE.
   - NÃO toque em docs/ nem em .claude/skills/.
 
-ESTADO: \`bun run verificar\` sai 0 — 751 testes, depcruise limpo (118 módulos), golden de
+ESTADO: \`bun run verify\` sai 0 — 751 testes, depcruise limpo (118 módulos), golden de
 75 telas com diff zero, \`scripts/magic-values.ts\` limpo.
 
 O QUE FOI FEITO, em dez passadas e 23 commits:
@@ -28,7 +28,7 @@ O QUE FOI FEITO, em dez passadas e 23 commits:
   - \`ROTAS\` com \`grupo()\`: o caminho existe uma vez e produz o padrão do router e o
     endereço absoluto; \`Params<S>\` faz parâmetro errado não compilar.
   - Zero literal solto nos 44 templates: rota, título, rótulo, limite e campo vêm por \`it\`.
-  - \`scripts/magic-values.ts\` no \`verificar\`, cobrindo {texto, número, composição, marca}
+  - \`scripts/magic-values.ts\` no \`verify\`, cobrindo {texto, número, composição, marca}
     × {nó que nomeia, nó fora, atributo varrido, atributo não varrido, bloco, template com
     interpolação, include, valor default}, mais auditoria da própria supressão: justificativa
     que confessa, que contradiz outra tela, ou que não silencia nada.
@@ -39,7 +39,7 @@ O QUE FOI FEITO, em dez passadas e 23 commits:
 
 const CRITERIO = `
 O DONO DO REPOSITÓRIO FIXOU O CRITÉRIO DE CONCLUSÃO: o trabalho encerra quando
-\`bun run verificar\` sair 0 E um crítico voltar VAZIO, em DUAS RODADAS SEGUIDAS.
+\`bun run verify\` sair 0 E um crítico voltar VAZIO, em DUAS RODADAS SEGUIDAS.
 
 Você é uma dessas rodadas. Isto não é uma revisão de cortesia.
 

@@ -1,12 +1,12 @@
 export const meta = {
   name: 'magic-values-5',
   description: 'Torna o verificador simétrico e fecha tudo que ele passar a acusar',
-  whenToUse: 'Quando "pronto" precisar virar `verificar` exit 0 em vez de julgamento de rodada.',
+  whenToUse: 'Quando "pronto" precisar virar `verify` exit 0 em vez de julgamento de rodada.',
   phases: [
     { title: 'Medir', detail: 'lint ganha repetição-sem-dono e enxerga dentro de <% %>, e lista tudo' },
     { title: 'Donos', detail: 'cria as constantes que faltam para o que o lint acusou' },
     { title: 'Fechar', detail: 'um agente por arquivo, partição disjunta' },
-    { title: 'Provar', detail: 'verificar exit 0, golden idêntico' },
+    { title: 'Provar', detail: 'verify exit 0, golden idêntico' },
   ],
 };
 
@@ -15,14 +15,14 @@ REPOSITÓRIO: EscolaViva — Bun + Hono + Eta + Postgres. Material didático (TE
 Bancos Docker de pé. Rode SEMPRE com \`env -u FORCE_COLOR\`.
 
 SITUAÇÃO: quatro passadas de refactor de magic values já rodaram, COMMITADAS até
-f69f831 mais a quarta no working tree. \`bun run verificar\` sai 0 hoje: 714 testes
+f69f831 mais a quarta no working tree. \`bun run verify\` sai 0 hoje: 714 testes
 verdes, depcruise limpo, golden de 75 telas com diff zero, lint limpo.
 
   src/{academico,identidade,avaliacao,comunicacao}/constantes.ts   LIMITES, CAMPOS, CODIGOS, MENSAGENS
   src/shared/constantes.ts    BANCO, FORMATOS, CAMPO_CHAVE, LOCALE, TEMPO
   src/web/constantes.ts       ROTAS, TEMPLATES, TITULOS, CAMPOS, AVISOS, APRESENTACAO, DOCUMENTO
   src/web/render.ts           injeta it.rotas, it.titulos, it.parciais, it.sufixos, it.documento…
-  scripts/magic-values.ts     o verificador, dentro do \`bun run verificar\`
+  scripts/magic-values.ts     o verificador, dentro do \`bun run verify\`
 
 O GOLDEN É A LINHA VERMELHA. testes/web/golden.test.ts compara o HTML das 75 telas com o
 congelado. Diff = você mudou uma tela. O texto renderizado sai BYTE A BYTE idêntico: você
@@ -174,7 +174,7 @@ agrupado por arquivo, mais a lista dos valores repetidos que ainda não têm don
 É esse inventário que particiona as próximas fases, então ele precisa ser exaustivo e os
 caminhos precisam ser relativos à raiz do repositório.
 
-O \`verificar\` vai ficar VERMELHO ao fim da sua tarefa, e está certo assim: as fases
+O \`verify\` vai ficar VERMELHO ao fim da sua tarefa, e está certo assim: as fases
 seguintes é que fecham os achados. Não esconda achado para deixá-lo verde.
 
 Se uma regra sua produzir falso positivo, corrija a REGRA — nunca crie exceção pontual.
@@ -291,7 +291,7 @@ precisa dar diff zero: se acusar, o texto renderizado mudou por sua causa.
 
 NOTA SOBRE O BANCO: outros agentes usam o mesmo banco de teste e podem causar
 'deadlock detected' no meio da sua corrida — é contenção de ambiente. Se acontecer, crie
-um banco isolado no mesmo container via DATABASE_URL_TESTE e o DROPE ao terminar.`,
+um banco isolado no mesmo container via TEST_DATABASE_URL e o DROPE ao terminar.`,
       {
         label: `fecha:${arquivo.split('/').pop()}`,
         phase: 'Fechar',
@@ -328,14 +328,14 @@ Na ordem, consertando antes de seguir:
 5. \`bun scripts/magic-values.ts\` — precisa sair limpo. Todo achado que sobrou: ou consome
    o dono, ou ganha \`// magic-values: permitido — <motivo>\` com justificativa específica.
    Se for falso positivo, corrija a REGRA, nunca crie exceção pontual.
-6. \`bun run verificar\` inteiro, exit 0.
+6. \`bun run verify\` inteiro, exit 0.
 
 ${pendencias.length ? `PENDÊNCIAS DE LEGIBILIDADE relatadas pelos agentes — avalie cada uma e decida:\n${pendencias.join('\n---\n')}` : ''}
 
 ${REGRAS}
 
 Relate o resultado exato de cada comando, com números.`,
-  { label: 'verificar', phase: 'Provar', effort: 'high' },
+  { label: 'verify', phase: 'Provar', effort: 'high' },
 );
 
 const critico = await agent(

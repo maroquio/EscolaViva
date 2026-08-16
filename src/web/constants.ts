@@ -594,13 +594,13 @@ export const DEFAULT_ASSET_TYPE = 'application/octet-stream';
 export const HEALTH_NO_CACHE = 'no-store';
 
 export const HEALTH_BODY = {
-  ok: { status: 'ok', banco: 'ok' },
-  degraded: { status: 'degradado', banco: 'indisponivel' },
+  ok: { status: 'ok', database: 'ok' },
+  degraded: { status: 'degraded', database: 'unavailable' },
   alive: { status: 'ok' },
 } as const;
 
 export const INVITE_COOKIE = {
-  name: 'ev_convite',
+  name: 'ev_invite',
   maxAgeInSeconds: 120,
   separator: ':',
   sameSite: 'Lax',

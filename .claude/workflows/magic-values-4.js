@@ -13,13 +13,13 @@ REPOSITÓRIO: EscolaViva — Bun + Hono + Eta + Postgres. Material didático (TE
 Bancos Docker de pé. Rode SEMPRE com \`env -u FORCE_COLOR\`.
 
 SITUAÇÃO: três passadas de refactor de magic values já rodaram e estão COMMITADAS
-(HEAD = f69f831), working tree limpo. \`bun run verificar\` sai 0: 714 testes verdes,
+(HEAD = f69f831), working tree limpo. \`bun run verify\` sai 0: 714 testes verdes,
 depcruise limpo (118 módulos), golden de 75 telas com diff zero, lint limpo.
 
 A infraestrutura existe:
   src/web/constantes.ts     ROTAS, TEMPLATES, TITULOS, CAMPOS, AVISOS, APRESENTACAO, DOCUMENTO
   src/web/render.ts         injeta it.rotas, it.titulos, it.parciais, it.documento, it.apresentacao
-  scripts/magic-values.ts   o verificador, dentro do \`bun run verificar\`
+  scripts/magic-values.ts   o verificador, dentro do \`bun run verify\`
 
 O GOLDEN É A LINHA VERMELHA. testes/web/golden.test.ts compara o HTML das 75 telas com o
 congelado. Diff = você mudou uma tela, o que este trabalho proíbe. O texto renderizado
@@ -170,7 +170,7 @@ Se o golden acusar, o texto renderizado mudou: conserte. NUNCA regrave o golden.
 
 NOTA SOBRE O BANCO: outros agentes usam o mesmo banco de teste e podem causar
 'deadlock detected' no meio da sua corrida — é contenção de ambiente, não regressão sua.
-Se acontecer, crie um banco isolado no mesmo container via DATABASE_URL_TESTE e o DROPE
+Se acontecer, crie um banco isolado no mesmo container via TEST_DATABASE_URL e o DROPE
 ao terminar.`,
       { label: `frente:${f.rotulo}`, phase: 'Ligar', schema: RESULTADO, effort: 'high' },
     ),
@@ -202,12 +202,12 @@ Na ordem, consertando antes de seguir:
 5. \`bun scripts/magic-values.ts\` — com a regra nova de texto de nó. Extraia cada achado
    legítimo para o dono. Se for falso positivo, corrija a REGRA, nunca crie exceção
    pontual.
-6. \`bun run verificar\` inteiro, exit 0.
+6. \`bun run verify\` inteiro, exit 0.
 
 ${REGRAS}
 
 Relate o resultado exato de cada comando, com números.`,
-  { label: 'verificar', phase: 'Provar', effort: 'high' },
+  { label: 'verify', phase: 'Provar', effort: 'high' },
 );
 
 const critico = await agent(

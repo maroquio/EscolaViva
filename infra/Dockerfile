@@ -4,14 +4,14 @@
 # nunca um build diferente por ambiente. É assim que "funciona na minha máquina" deixa de
 # ser uma frase possível, mesmo sem esteira de CI (que só entra no Estágio 12).
 
-FROM oven/bun:1.3-alpine AS dependencias
+FROM oven/bun:1.3-alpine AS dependencies
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
 # I10 — o CSS sai daqui com o hash no nome. `public/` não vem do contexto de build
 # (está no .dockerignore); é gerado dentro da imagem, a partir da fonte versionada.
-FROM dependencias AS ativos
+FROM dependencies AS assets
 COPY src ./src
 COPY scripts ./scripts
 RUN bun scripts/build-assets.ts
@@ -20,8 +20,8 @@ FROM oven/bun:1.3-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY --from=dependencias /app/node_modules ./node_modules
-COPY --from=ativos /app/public ./public
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=assets /app/public ./public
 COPY package.json ./
 COPY src ./src
 COPY migrations ./migrations

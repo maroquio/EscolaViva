@@ -5,7 +5,7 @@ export const meta = {
   phases: [
     { title: 'Auditar', detail: 'supressão que confessa e supressão que contradiz viram erro' },
     { title: 'Fechar', detail: 'um agente por arquivo da lista que o verificador produzir' },
-    { title: 'Provar', detail: 'verificar exit 0 e crítico vazio — primeira das duas rodadas' },
+    { title: 'Provar', detail: 'verify exit 0 e crítico vazio — primeira das duas rodadas' },
   ],
 };
 
@@ -17,17 +17,17 @@ ATENÇÃO — OUTRA SESSÃO TRABALHA NESTE REPOSITÓRIO AGORA, commitando e faze
   - NUNCA rode git add, commit, push, checkout, rebase ou stash.
   - Arquivo fora do seu escopo aparecer modificado NÃO é regressão sua.
   - \`bun test\` falhando com 'deadlock detected' ou violação de chave estrangeira é a
-    suíte dela no mesmo banco. Crie um banco isolado via DATABASE_URL_TESTE, use, e DROPE.
+    suíte dela no mesmo banco. Crie um banco isolado via TEST_DATABASE_URL, use, e DROPE.
   - NÃO toque em docs/diagrams/ — é trabalho dela.
 
-SITUAÇÃO: sete passadas de refactor de magic values, 15 commits. \`bun run verificar\` sai
+SITUAÇÃO: sete passadas de refactor de magic values, 15 commits. \`bun run verify\` sai
 0: 714 testes, depcruise limpo, golden de 75 telas com diff zero, verificador limpo.
 
   src/{academico,identidade,avaliacao,comunicacao}/constantes.ts
   src/shared/constantes.ts · src/web/constantes.ts · src/web/rotas/mapa.ts
   src/web/render.ts   injeta it.rotas, it.titulos, it.acoes, it.rotulos, it.contagem,
                       it.areas, it.apresentacao, it.parciais, it.sufixos, it.campos…
-  scripts/magic-values.ts   o verificador, dentro do \`bun run verificar\`
+  scripts/magic-values.ts   o verificador, dentro do \`bun run verify\`
 
 O GOLDEN É A LINHA VERMELHA. Diff = você mudou uma tela. JAMAIS \`golden --regravar\`.
 
@@ -168,7 +168,7 @@ nunca crie exceção pontual. Prove numa cópia em scratchpad, com positivos E n
 apague ao terminar.
 
 DEPOIS: rode e devolva o inventário COMPLETO agrupado por arquivo, caminhos relativos à
-raiz. Inclua as supressões que passarem a ser erro. O \`verificar\` fica VERMELHO — está
+raiz. Inclua as supressões que passarem a ser erro. O \`verify\` fica VERMELHO — está
 certo. Não esconda achado para deixá-lo verde.
 
 ${REGRAS}`,
@@ -251,14 +251,14 @@ Na ordem, consertando antes de seguir:
 4. Golden das 75 telas com diff zero. JAMAIS regrave.
 5. \`bun scripts/magic-values.ts\` limpo, com a auditoria de supressão ativa. Toda supressão
    restante precisa sobreviver à auditoria — dizer o que o valor NÃO é.
-6. \`bun run verificar\` exit 0.
+6. \`bun run verify\` exit 0.
 
 ${pendencias.length ? `PENDÊNCIAS DE LEGIBILIDADE relatadas — avalie cada uma:\n${pendencias.join('\n---\n')}` : ''}
 
 ${REGRAS}
 
 Relate o resultado exato de cada comando, com números.`,
-  { label: 'verificar', phase: 'Provar', effort: 'high' },
+  { label: 'verify', phase: 'Provar', effort: 'high' },
 );
 
 const critico = await agent(
@@ -266,7 +266,7 @@ const critico = await agent(
 
 Oitava passada concluída. Você é o CRÍTICO DE COMPLETUDE. NÃO edite arquivo.
 
-O USUÁRIO FIXOU O CRITÉRIO: encerra quando \`bun run verificar\` sair 0 E um crítico voltar
+O USUÁRIO FIXOU O CRITÉRIO: encerra quando \`bun run verify\` sair 0 E um crítico voltar
 VAZIO, duas rodadas seguidas. Sete passadas se declararam completas e as sete estavam
 erradas — sempre porque o defeito seguinte estava numa FORMA não medida: limites nos .eta,
 <h1>, rótulo de botão, texto em \`<% %>\`, repetição sem dono, número em prosa, composição,

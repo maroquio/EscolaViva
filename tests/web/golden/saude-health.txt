@@ -4,4 +4,4 @@ status: 200
 Content-Type: application/json
 Cache-Control: no-store
 ------------------------------------------------------------------------------
-{"status":"ok","banco":"ok"}
+{"status":"ok","database":"ok"}

@@ -1,49 +1,51 @@
 /*
- * Roda antes de qualquer arquivo de teste (`preload` do bunfig.toml).
+ * Runs before any test file (the `preload` entry in bunfig.toml).
  *
- * A aplicação lê o banco de `DATABASE_URL` uma única vez, no import de `src/shared/config`.
- * Por isso a troca precisa acontecer aqui e antes de qualquer import de `src/`: é o que faz
- * a suíte inteira falar com o banco descartável em vez do banco de desenvolvimento.
+ * The application reads the database from `DATABASE_URL` exactly once, when
+ * `src/shared/config` is imported. That is why the swap has to happen here and before any
+ * import of `src/`: it is what makes the whole suite talk to the throwaway database instead
+ * of the development one.
  */
 
-// 42 caracteres: `SESSION_SECRET` exige no mínimo 32 e é o mesmo em toda máquina que roda a suíte.
+// 42 characters: `SESSION_SECRET` demands at least 32, and this one is the same on every
+// machine that runs the suite.
 const TEST_SECRET = 'segredo-de-teste-com-mais-de-32-caracteres';
 const MINIMUM_SECRET_LENGTH = 32;
 
-const testUrl = Bun.env.DATABASE_URL_TESTE?.trim() ?? '';
+const testUrl = Bun.env.TEST_DATABASE_URL?.trim() ?? '';
 
 if (testUrl === '') {
   throw new Error(
-    'DATABASE_URL_TESTE não está definida — a suíte não roda sem o banco descartável.\n\n' +
+    'TEST_DATABASE_URL não está definida — a suíte não roda sem o banco descartável.\n\n' +
       'Suba o banco de teste e configure a variável:\n' +
-      '  docker compose up -d banco_teste\n  cp .env.example .env   (se ainda não existir)\n\n' +
-      'A linha esperada no .env, com a porta publicada em PORTA_BANCO_TESTE:\n' +
-      '  DATABASE_URL_TESTE=postgres://escolaviva:escolaviva_dev@localhost:5433/escolaviva_teste',
+      '  docker compose up -d test_database\n  cp .env.example .env   (se ainda não existir)\n\n' +
+      'A linha esperada no .env, com a porta publicada em TEST_DB_PORT:\n' +
+      '  TEST_DATABASE_URL=postgres://escolaviva:escolaviva_dev@localhost:5433/escolaviva_teste',
   );
 }
 
 if (testUrl === Bun.env.DATABASE_URL) {
   throw new Error(
-    'DATABASE_URL_TESTE aponta para o mesmo banco de DATABASE_URL.\n\n' +
+    'TEST_DATABASE_URL aponta para o mesmo banco de DATABASE_URL.\n\n' +
       'A suíte trunca todas as tabelas entre os casos: rodar assim apagaria o banco de\n' +
-      'desenvolvimento. Aponte DATABASE_URL_TESTE para o banco descartável:\n' +
-      '  docker compose up -d banco_teste',
+      'desenvolvimento. Aponte TEST_DATABASE_URL para o banco descartável:\n' +
+      '  docker compose up -d test_database',
   );
 }
 
 Bun.env.APP_ENV = 'test';
 Bun.env.DATABASE_URL = testUrl;
 
-// Um segredo próprio de teste evita que a suíte dependa do .env de quem a executa.
+// A secret of its own keeps the suite from depending on the .env of whoever runs it.
 if ((Bun.env.SESSION_SECRET ?? '').length < MINIMUM_SECRET_LENGTH) {
   Bun.env.SESSION_SECRET = TEST_SECRET;
 }
 
-// Import dinâmico de propósito: um `import` estático subiria `src/shared/config` antes das
-// linhas acima, porque imports são avaliados antes do corpo do módulo.
+// Dynamic import on purpose: a static `import` would pull `src/shared/config` up ahead of the
+// lines above, because imports are evaluated before the body of the module.
 const { clearDatabase, prepareDatabase } = await import('./database');
 
-// As migrações sobem uma vez por processo, e o banco começa limpo mesmo depois de uma
-// execução anterior interrompida no meio.
+// The migrations run once per process, and the database starts clean even after an earlier
+// run was interrupted halfway through.
 await prepareDatabase();
 await clearDatabase();

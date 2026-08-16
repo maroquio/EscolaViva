@@ -5,7 +5,7 @@ export const meta = {
   phases: [
     { title: 'Compor', detail: 'o verificador passa a reconhecer texto montado de constantes' },
     { title: 'Fechar', detail: 'um agente por arquivo da lista, mais a contradição do "ano letivo"' },
-    { title: 'Provar', detail: 'verificar exit 0 e crítico vazio — primeira das duas rodadas' },
+    { title: 'Provar', detail: 'verify exit 0 e crítico vazio — primeira das duas rodadas' },
   ],
 };
 
@@ -19,17 +19,17 @@ a passada anterior o HEAD avançou e os commits foram rebaseados. Consequências
   - Se um arquivo fora do seu escopo aparecer modificado, NÃO é seu e NÃO é regressão sua.
   - Se \`bun test\` falhar com 'deadlock detected' ou violação de chave estrangeira, é a
     suíte da outra sessão no mesmo banco. Crie um banco isolado no mesmo container via
-    DATABASE_URL_TESTE, use-o, e o DROPE ao terminar.
+    TEST_DATABASE_URL, use-o, e o DROPE ao terminar.
 
 SITUAÇÃO: seis passadas de refactor de magic values, todas commitadas (13 commits).
-\`bun run verificar\` sai 0: 714 testes verdes, depcruise limpo, golden de 75 telas com
+\`bun run verify\` sai 0: 714 testes verdes, depcruise limpo, golden de 75 telas com
 diff zero, \`scripts/magic-values.ts\` limpo.
 
   src/{academico,identidade,avaliacao,comunicacao}/constantes.ts
   src/shared/constantes.ts · src/web/constantes.ts · src/web/rotas/mapa.ts
   src/web/render.ts   injeta it.rotas, it.titulos, it.acoes, it.rotulos, it.contagem,
                       it.areas, it.separador, it.parciais, it.sufixos, it.campos…
-  scripts/magic-values.ts   o verificador, dentro do \`bun run verificar\`
+  scripts/magic-values.ts   o verificador, dentro do \`bun run verify\`
 
 O GOLDEN É A LINHA VERMELHA. Diff nele = você mudou uma tela. O texto renderizado sai
 BYTE A BYTE idêntico. JAMAIS rode \`bun run golden --regravar\`.
@@ -170,7 +170,7 @@ TAREFA — duas regras:
     composição de máquina e cada camada é dona legítima da sua.
 
 DEPOIS: rode o verificador e devolva o inventário COMPLETO agrupado por arquivo, com
-caminhos relativos à raiz. O \`verificar\` fica VERMELHO ao fim da sua tarefa — está certo.
+caminhos relativos à raiz. O \`verify\` fica VERMELHO ao fim da sua tarefa — está certo.
 Não esconda achado para deixá-lo verde. Prove cada regra numa cópia em scratchpad, com
 positivos E negativos, e apague ao terminar.
 
@@ -259,7 +259,7 @@ const pendencias = fechados.map((f) => f.pendencias).filter(Boolean);
 for (const p of pendencias) log(`PENDÊNCIA: ${p.slice(0, 200)}`);
 
 /* ------------------------------------------------------------------ *
- * FASE 3 — o critério do usuário: verificar 0 + crítico vazio.
+ * FASE 3 — o critério do usuário: verify 0 + crítico vazio.
  * ------------------------------------------------------------------ */
 
 phase('Provar');
@@ -277,14 +277,14 @@ Na ordem, consertando antes de seguir:
    conserte o CÓDIGO, jamais afrouxe o teste.
 4. Golden das 75 telas com diff zero. JAMAIS regrave.
 5. \`bun scripts/magic-values.ts\` limpo, com a regra de composição ativa.
-6. \`bun run verificar\` exit 0.
+6. \`bun run verify\` exit 0.
 
 ${pendencias.length ? `PENDÊNCIAS DE LEGIBILIDADE relatadas — avalie cada uma:\n${pendencias.join('\n---\n')}` : ''}
 
 ${REGRAS}
 
 Relate o resultado exato de cada comando, com números.`,
-  { label: 'verificar', phase: 'Provar', effort: 'high' },
+  { label: 'verify', phase: 'Provar', effort: 'high' },
 );
 
 const critico = await agent(
@@ -292,7 +292,7 @@ const critico = await agent(
 
 Sétima passada concluída. Você é o CRÍTICO DE COMPLETUDE. NÃO edite arquivo.
 
-O USUÁRIO FIXOU O CRITÉRIO: encerra quando \`bun run verificar\` sair 0 E um crítico voltar
+O USUÁRIO FIXOU O CRITÉRIO: encerra quando \`bun run verify\` sair 0 E um crítico voltar
 VAZIO, duas rodadas seguidas. Seis passadas se declararam completas e as seis estavam
 erradas, sempre porque o defeito seguinte estava numa FORMA não medida: limites nos .eta,
 <h1>, rótulo de botão, texto dentro de \`<% %>\`, repetição sem dono, número em prosa,

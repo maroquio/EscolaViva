@@ -1,13 +1,13 @@
 /*
- * I18: configuração faltando derruba o boot, não a requisição. `loadConfig` é pura de
- * propósito — recebe o mapa de variáveis —, então cada combinação de ambiente é exercida aqui
- * sem mexer no processo.
+ * I18: missing configuration brings the boot down, not the request. `loadConfig` is pure on
+ * purpose — it takes the map of variables — so every combination of environment is exercised here
+ * without touching the process.
  */
 
 import { describe, expect, test } from 'bun:test';
 import { config, loadConfig } from '../../src/shared/config';
 
-/** O mínimo que faz a configuração passar: as duas variáveis que não têm default. */
+/** The least that gets the configuration through: the two variables with no default. */
 const REQUIRED = {
   DATABASE_URL: 'postgres://escolaviva:senha@localhost:5442/escolaviva',
   SESSION_SECRET: 'segredo-de-teste-com-mais-de-32-caracteres',
@@ -15,7 +15,7 @@ const REQUIRED = {
 
 const MINIMUM_SECRET_LENGTH = 32;
 
-/** Devolve a mensagem da recusa; falha o teste se o ambiente tiver sido aceito. */
+/** Gives back the refusal message; fails the test if the environment was accepted instead. */
 function rejectionMessage(environment: Record<string, string | undefined>): string {
   try {
     loadConfig(environment);
@@ -25,8 +25,8 @@ function rejectionMessage(environment: Record<string, string | undefined>): stri
   throw new Error('loadConfig aceitou um ambiente que deveria ter recusado');
 }
 
-describe('loadConfig — variáveis obrigatórias', () => {
-  test('recusa ambiente vazio: sem configuração o processo não sobe', () => {
+describe('loadConfig — required variables', () => {
+  test('refuses an empty environment: with no configuration the process does not start', () => {
     const emptyEnvironment = {};
 
     const load = (): unknown => loadConfig(emptyEnvironment);
@@ -34,7 +34,7 @@ describe('loadConfig — variáveis obrigatórias', () => {
     expect(load).toThrow();
   });
 
-  test('a recusa cita todas as variáveis faltantes de uma vez, não só a primeira', () => {
+  test('the refusal names every missing variable at once, not just the first', () => {
     const emptyEnvironment = {};
 
     const message = rejectionMessage(emptyEnvironment);
@@ -43,7 +43,7 @@ describe('loadConfig — variáveis obrigatórias', () => {
     expect(message).toContain('SESSION_SECRET');
   });
 
-  test('recusa quando só falta SESSION_SECRET', () => {
+  test('refuses when SESSION_SECRET is the only one missing', () => {
     const withoutSecret = { DATABASE_URL: REQUIRED.DATABASE_URL };
 
     const message = rejectionMessage(withoutSecret);
@@ -52,7 +52,7 @@ describe('loadConfig — variáveis obrigatórias', () => {
     expect(message).not.toContain('DATABASE_URL');
   });
 
-  test('recusa quando só falta DATABASE_URL', () => {
+  test('refuses when DATABASE_URL is the only one missing', () => {
     const withoutDatabase = { SESSION_SECRET: REQUIRED.SESSION_SECRET };
 
     const message = rejectionMessage(withoutDatabase);
@@ -61,7 +61,7 @@ describe('loadConfig — variáveis obrigatórias', () => {
     expect(message).not.toContain('SESSION_SECRET');
   });
 
-  test('trata variável preenchida com vazio como ausente', () => {
+  test('treats a variable filled in as empty the same as an absent one', () => {
     const empty = { DATABASE_URL: '', SESSION_SECRET: '' };
 
     const message = rejectionMessage(empty);
@@ -72,7 +72,7 @@ describe('loadConfig — variáveis obrigatórias', () => {
 });
 
 describe('loadConfig — SESSION_SECRET', () => {
-  test(`recusa segredo com menos de ${MINIMUM_SECRET_LENGTH} caracteres`, () => {
+  test(`refuses a secret shorter than ${MINIMUM_SECRET_LENGTH} characters`, () => {
     const short = { ...REQUIRED, SESSION_SECRET: 'x'.repeat(MINIMUM_SECRET_LENGTH - 1) };
 
     const message = rejectionMessage(short);
@@ -80,7 +80,7 @@ describe('loadConfig — SESSION_SECRET', () => {
     expect(message).toContain('SESSION_SECRET');
   });
 
-  test(`aceita segredo com exatamente ${MINIMUM_SECRET_LENGTH} caracteres`, () => {
+  test(`accepts a secret of exactly ${MINIMUM_SECRET_LENGTH} characters`, () => {
     const atTheLimit = { ...REQUIRED, SESSION_SECRET: 'x'.repeat(MINIMUM_SECRET_LENGTH) };
 
     const loaded = loadConfig(atTheLimit);
@@ -90,7 +90,7 @@ describe('loadConfig — SESSION_SECRET', () => {
 });
 
 describe('loadConfig — defaults', () => {
-  test('aplica porta 3000, timeout de 25000 ms, 12 horas de sessão e nível info', () => {
+  test('applies port 3000, a 25000 ms timeout, a 12-hour session and the info level', () => {
     const onlyRequired = { ...REQUIRED };
 
     const loaded = loadConfig(onlyRequired);
@@ -101,7 +101,7 @@ describe('loadConfig — defaults', () => {
     expect(loaded.logLevel).toBe('info');
   });
 
-  test('sem PROXIES_CONFIAVEIS a lista de proxies nasce vazia', () => {
+  test('with no TRUSTED_PROXIES the proxy list is born empty', () => {
     const onlyRequired = { ...REQUIRED };
 
     const loaded = loadConfig(onlyRequired);
@@ -109,7 +109,7 @@ describe('loadConfig — defaults', () => {
     expect(loaded.trustedProxies).toEqual([]);
   });
 
-  test('sem APP_ENV o ambiente é development', () => {
+  test('with no APP_ENV the environment is development', () => {
     const onlyRequired = { ...REQUIRED };
 
     const loaded = loadConfig(onlyRequired);
@@ -117,12 +117,12 @@ describe('loadConfig — defaults', () => {
     expect(loaded.environment).toBe('development');
   });
 
-  test('converte os números vindos como texto do ambiente', () => {
+  test('converts the numbers that arrive from the environment as text', () => {
     const numbersAsText = {
       ...REQUIRED,
       PORT: '8080',
       HTTP_TIMEOUT_MS: '9000',
-      SESSAO_DURACAO_HORAS: '4',
+      SESSION_DURATION_HOURS: '4',
     };
 
     const loaded = loadConfig(numbersAsText);
@@ -134,7 +134,7 @@ describe('loadConfig — defaults', () => {
 });
 
 describe('loadConfig — secureCookie', () => {
-  test('deriva secureCookie de APP_ENV: verdadeiro em produção', () => {
+  test('derives secureCookie from APP_ENV: true in production', () => {
     const production = { ...REQUIRED, APP_ENV: 'production' };
 
     const loaded = loadConfig(production);
@@ -142,7 +142,7 @@ describe('loadConfig — secureCookie', () => {
     expect(loaded.secureCookie).toBe(true);
   });
 
-  test('deriva secureCookie de APP_ENV: falso em desenvolvimento e em teste', () => {
+  test('derives secureCookie from APP_ENV: false in development and in test', () => {
     const development = { ...REQUIRED, APP_ENV: 'development' };
     const teste = { ...REQUIRED, APP_ENV: 'test' };
 
@@ -153,42 +153,42 @@ describe('loadConfig — secureCookie', () => {
     expect(inTest.secureCookie).toBe(false);
   });
 
-  test('COOKIE_SEGURO explícito vence o derivado do ambiente', () => {
-    const productionWithoutTls = { ...REQUIRED, APP_ENV: 'production', COOKIE_SEGURO: 'false' };
+  test('an explicit SECURE_COOKIE beats the one derived from the environment', () => {
+    const productionWithoutTls = { ...REQUIRED, APP_ENV: 'production', SECURE_COOKIE: 'false' };
 
     const loaded = loadConfig(productionWithoutTls);
 
     expect(loaded.secureCookie).toBe(false);
   });
 
-  test('recusa COOKIE_SEGURO que não é true nem false', () => {
-    const invalid = { ...REQUIRED, COOKIE_SEGURO: 'sim' };
+  test('refuses a SECURE_COOKIE that is neither true nor false', () => {
+    const invalid = { ...REQUIRED, SECURE_COOKIE: 'sim' };
 
     const message = rejectionMessage(invalid);
 
-    expect(message).toContain('COOKIE_SEGURO');
+    expect(message).toContain('SECURE_COOKIE');
   });
 });
 
-describe('loadConfig — PROXIES_CONFIAVEIS', () => {
-  test('quebra a lista por vírgula, apara espaços e descarta itens vazios', () => {
-    const withSpaces = { ...REQUIRED, PROXIES_CONFIAVEIS: ' 10.0.0.1 , 10.0.0.2 ,,10.0.0.3 ' };
+describe('loadConfig — TRUSTED_PROXIES', () => {
+  test('splits the list on commas, trims the spaces and drops the empty items', () => {
+    const withSpaces = { ...REQUIRED, TRUSTED_PROXIES: ' 10.0.0.1 , 10.0.0.2 ,,10.0.0.3 ' };
 
     const loaded = loadConfig(withSpaces);
 
     expect(loaded.trustedProxies).toEqual(['10.0.0.1', '10.0.0.2', '10.0.0.3']);
   });
 
-  test('um único proxie sem vírgula vira lista de um item', () => {
-    const onlyOne = { ...REQUIRED, PROXIES_CONFIAVEIS: '172.17.0.1' };
+  test('a single proxy with no comma becomes a one-item list', () => {
+    const onlyOne = { ...REQUIRED, TRUSTED_PROXIES: '172.17.0.1' };
 
     const loaded = loadConfig(onlyOne);
 
     expect(loaded.trustedProxies).toEqual(['172.17.0.1']);
   });
 
-  test('lista só com vírgulas e espaços resulta em nenhum proxie confiável', () => {
-    const onlySeparators = { ...REQUIRED, PROXIES_CONFIAVEIS: ' , , ' };
+  test('a list of nothing but commas and spaces yields no trusted proxy at all', () => {
+    const onlySeparators = { ...REQUIRED, TRUSTED_PROXIES: ' , , ' };
 
     const loaded = loadConfig(onlySeparators);
 
@@ -196,8 +196,61 @@ describe('loadConfig — PROXIES_CONFIAVEIS', () => {
   });
 });
 
-describe('loadConfig — valores inválidos', () => {
-  test('recusa APP_ENV fora de development, test e production', () => {
+describe('loadConfig — the old variable names', () => {
+  const RENAMED: [string, string][] = [
+    ['SESSAO_DURACAO_HORAS', 'SESSION_DURATION_HOURS'],
+    ['PROXIES_CONFIAVEIS', 'TRUSTED_PROXIES'],
+    ['COOKIE_SEGURO', 'SECURE_COOKIE'],
+    ['PORTA_BANCO', 'DB_PORT'],
+    ['PORTA_BANCO_TESTE', 'TEST_DB_PORT'],
+    ['DATABASE_URL_TESTE', 'TEST_DATABASE_URL'],
+  ];
+
+  test.each(RENAMED)('refuses %s and says the new name is %s', (oldName, newName) => {
+    const withOldName = { ...REQUIRED, [oldName]: '1' };
+
+    const message = rejectionMessage(withOldName);
+
+    expect(message).toContain(oldName);
+    expect(message).toContain(newName);
+  });
+
+  test('refuses the old name even when filled in as empty: defined is defined', () => {
+    const emptyOldName = { ...REQUIRED, PROXIES_CONFIAVEIS: '' };
+
+    const message = rejectionMessage(emptyOldName);
+
+    expect(message).toContain('TRUSTED_PROXIES');
+  });
+
+  test('the refusal names every old name at once, not just the first', () => {
+    const several = { ...REQUIRED, PORTA_BANCO: '5432', COOKIE_SEGURO: 'false' };
+
+    const message = rejectionMessage(several);
+
+    expect(message).toContain('DB_PORT');
+    expect(message).toContain('SECURE_COOKIE');
+  });
+
+  test('the old name brings the boot down before the default slips in unnoticed', () => {
+    const wouldFallBackToDefault = { ...REQUIRED, SESSAO_DURACAO_HORAS: '99' };
+
+    const message = rejectionMessage(wouldFallBackToDefault);
+
+    expect(message).toContain('SESSION_DURATION_HOURS');
+  });
+
+  test('the new name gets through: the refusal is about the old name, not the value', () => {
+    const withNewName = { ...REQUIRED, SESSION_DURATION_HOURS: '99' };
+
+    const loaded = loadConfig(withNewName);
+
+    expect(loaded.sessionDurationHours).toBe(99);
+  });
+});
+
+describe('loadConfig — invalid values', () => {
+  test('refuses an APP_ENV outside development, test and production', () => {
     const madeUpEnvironment = { ...REQUIRED, APP_ENV: 'producao' };
 
     const message = rejectionMessage(madeUpEnvironment);
@@ -205,7 +258,7 @@ describe('loadConfig — valores inválidos', () => {
     expect(message).toContain('APP_ENV');
   });
 
-  test('recusa LOG_LEVEL fora de debug, info, warn e error', () => {
+  test('refuses a LOG_LEVEL outside debug, info, warn and error', () => {
     const madeUpLevel = { ...REQUIRED, LOG_LEVEL: 'verbose' };
 
     const message = rejectionMessage(madeUpLevel);
@@ -213,7 +266,7 @@ describe('loadConfig — valores inválidos', () => {
     expect(message).toContain('LOG_LEVEL');
   });
 
-  test('recusa PORT que não é número', () => {
+  test('refuses a PORT that is not a number', () => {
     const portAsText = { ...REQUIRED, PORT: 'oitenta' };
 
     const message = rejectionMessage(portAsText);
@@ -221,7 +274,7 @@ describe('loadConfig — valores inválidos', () => {
     expect(message).toContain('PORT');
   });
 
-  test('recusa PORT zero ou negativa', () => {
+  test('refuses a PORT of zero or below', () => {
     const portZero = { ...REQUIRED, PORT: '0' };
 
     const message = rejectionMessage(portZero);
@@ -229,7 +282,7 @@ describe('loadConfig — valores inválidos', () => {
     expect(message).toContain('PORT');
   });
 
-  test('recusa HTTP_TIMEOUT_MS negativo', () => {
+  test('refuses a negative HTTP_TIMEOUT_MS', () => {
     const negativeDeadline = { ...REQUIRED, HTTP_TIMEOUT_MS: '-1' };
 
     const message = rejectionMessage(negativeDeadline);
@@ -237,7 +290,7 @@ describe('loadConfig — valores inválidos', () => {
     expect(message).toContain('HTTP_TIMEOUT_MS');
   });
 
-  test('acusa todos os valores inválidos na mesma mensagem', () => {
+  test('reports every invalid value in the same message', () => {
     const several = { ...REQUIRED, APP_ENV: 'producao', LOG_LEVEL: 'verbose', PORT: 'oitenta' };
 
     const message = rejectionMessage(several);
@@ -248,8 +301,8 @@ describe('loadConfig — valores inválidos', () => {
   });
 });
 
-describe('config do processo', () => {
-  test('a suíte roda com o ambiente de teste já validado no import', () => {
+describe('the process config', () => {
+  test('the suite runs with the test environment already validated at import time', () => {
     const loaded = config;
 
     const environment = loaded.environment;
@@ -257,11 +310,11 @@ describe('config do processo', () => {
     expect(environment).toBe('test');
   });
 
-  test('a configuração do processo aponta para o banco descartável da suíte', () => {
+  test('the process configuration points at the suite\'s throwaway database', () => {
     const loaded = config;
 
     const url = loaded.databaseUrl;
 
-    expect(url).toBe(Bun.env.DATABASE_URL_TESTE?.trim() ?? '');
+    expect(url).toBe(Bun.env.TEST_DATABASE_URL?.trim() ?? '');
   });
 });

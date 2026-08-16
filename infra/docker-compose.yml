@@ -2,13 +2,13 @@
 # Qualquer serviço a mais aqui cobraria aluguel permanente sem resolver problema que exista hoje.
 
 # Sem esta linha o nome do projeto viria da pasta que contém este arquivo — `infra` — e o
-# volume passaria a se chamar `infra_dados_do_banco`. Quem já tinha banco de desenvolvimento
+# volume passaria a se chamar `infra_database_data`. Quem já tinha banco de desenvolvimento
 # não veria erro nenhum: veria um banco vazio, com os dados antigos parados num volume órfão.
 # Fixar o nome desacopla a identidade do projeto do lugar onde o arquivo mora.
 name: exemplo_saas
 
 services:
-  banco:
+  database:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: escolaviva
@@ -26,16 +26,16 @@ services:
     # A porta do host é configurável porque quem já tem PostgreSQL instalado na máquina
     # encontra 5432 ocupada. Dentro da rede do compose o serviço continua em 5432.
     ports:
-      - "${PORTA_BANCO:-5432}:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
-      - dados_do_banco:/var/lib/postgresql/data
+      - database_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U escolaviva -d escolaviva"]
       interval: 5s
       timeout: 3s
       retries: 12
 
-  banco_teste:
+  test_database:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: escolaviva_teste
@@ -52,7 +52,7 @@ services:
       - -c
       - full_page_writes=off
     ports:
-      - "${PORTA_BANCO_TESTE:-5433}:5432"
+      - "${TEST_DB_PORT:-5433}:5432"
     tmpfs:
       - /var/lib/postgresql/data
     healthcheck:
@@ -71,16 +71,16 @@ services:
       context: ..
       dockerfile: infra/Dockerfile
     depends_on:
-      banco:
+      database:
         condition: service_healthy
     env_file:
       - ../.env
     environment:
       # Dentro da rede do compose o banco atende pelo nome do serviço, não por localhost.
-      DATABASE_URL: postgres://escolaviva:escolaviva_dev@banco:5432/escolaviva
+      DATABASE_URL: postgres://escolaviva:escolaviva_dev@database:5432/escolaviva
       PORT: "3000"
     ports:
       - "3000:3000"
 
 volumes:
-  dados_do_banco:
+  database_data:

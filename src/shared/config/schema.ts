@@ -9,6 +9,7 @@ import {
   LOG_LEVELS,
   MINIMUM_SECRET_LENGTH,
   PRODUCTION_ENV,
+  RENAMED_ENVIRONMENT_VARIABLES,
 } from '../constants';
 
 export type Config = {
@@ -46,7 +47,7 @@ export const environmentSchema = z.object({
   SESSION_SECRET: z
     .string({ required_error: CONFIG_MESSAGES.missingSessionSecret })
     .min(MINIMUM_SECRET_LENGTH, CONFIG_MESSAGES.shortSessionSecret),
-  SESSAO_DURACAO_HORAS: z.coerce
+  SESSION_DURATION_HOURS: z.coerce
     .number({ invalid_type_error: CONFIG_MESSAGES.invalidDuration })
     .int()
     .positive()
@@ -56,11 +57,11 @@ export const environmentSchema = z.object({
     .int()
     .positive()
     .default(CONFIG_DEFAULTS.httpTimeoutMs),
-  PROXIES_CONFIAVEIS: z.string().default(''),
+  TRUSTED_PROXIES: z.string().default(''),
   LOG_LEVEL: z
     .enum(LOG_LEVELS, { errorMap: () => ({ message: CONFIG_MESSAGES.invalidLogLevel }) })
     .default(CONFIG_DEFAULTS.logLevel),
-  COOKIE_SEGURO: envBoolean.optional(),
+  SECURE_COOKIE: envBoolean.optional(),
 });
 
 const withoutEmptyValues = (
@@ -89,7 +90,26 @@ const invalidConfigMessage = (
   return [CONFIG_MESSAGES.reportHeader, ...lines, CONFIG_MESSAGES.reportFooter].join(LINE_BREAK);
 };
 
+const renamedVariablesFound = (
+  env: Record<string, string | undefined>,
+): [string, string][] =>
+  Object.entries(RENAMED_ENVIRONMENT_VARIABLES).filter(
+    ([oldName]) => env[oldName] !== undefined,
+  );
+
+const renamedVariablesMessage = (found: readonly [string, string][]): string => {
+  const lines = found.map(
+    ([oldName, newName]) => `  - ${oldName}: ${CONFIG_MESSAGES.renamedTo} ${newName}`,
+  );
+  return [CONFIG_MESSAGES.renamedHeader, ...lines, CONFIG_MESSAGES.renamedFooter].join(LINE_BREAK);
+};
+
 export function loadConfig(env: Record<string, string | undefined>): Config {
+  const renamed = renamedVariablesFound(env);
+  if (renamed.length > 0) {
+    throw new Error(renamedVariablesMessage(renamed));
+  }
+
   const parsed = environmentSchema.safeParse(withoutEmptyValues(env));
   if (!parsed.success) {
     throw new Error(invalidConfigMessage(parsed.error.issues));
@@ -101,13 +121,13 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     port: raw.PORT,
     databaseUrl: raw.DATABASE_URL,
     sessionSecret: raw.SESSION_SECRET,
-    sessionDurationHours: raw.SESSAO_DURACAO_HORAS,
+    sessionDurationHours: raw.SESSION_DURATION_HOURS,
     httpTimeoutMs: raw.HTTP_TIMEOUT_MS,
-    trustedProxies: commaSeparatedList(raw.PROXIES_CONFIAVEIS),
+    trustedProxies: commaSeparatedList(raw.TRUSTED_PROXIES),
     logLevel: raw.LOG_LEVEL,
     secureCookie:
-      raw.COOKIE_SEGURO === undefined
+      raw.SECURE_COOKIE === undefined
         ? raw.APP_ENV === PRODUCTION_ENV
-        : raw.COOKIE_SEGURO === ENV_TRUE,
+        : raw.SECURE_COOKIE === ENV_TRUE,
   };
 }

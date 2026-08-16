@@ -6,7 +6,7 @@ export const meta = {
     { title: 'Simetrizar', detail: 'número em texto de nó, atributos que faltam, template com interpolação' },
     { title: 'Encanar', detail: 'ALCANCE chega ao template e a supressão indevida cai' },
     { title: 'Fechar', detail: 'um agente por arquivo da lista que o verificador produzir' },
-    { title: 'Provar', detail: 'verificar exit 0 e crítico vazio — o critério fixado pelo usuário' },
+    { title: 'Provar', detail: 'verify exit 0 e crítico vazio — o critério fixado pelo usuário' },
   ],
 };
 
@@ -15,14 +15,14 @@ REPOSITÓRIO: EscolaViva — Bun + Hono + Eta + Postgres. Material didático (TE
 Bancos Docker de pé. Rode SEMPRE com \`env -u FORCE_COLOR\`.
 
 SITUAÇÃO: cinco passadas de refactor de magic values, todas COMMITADAS (HEAD tem 11
-commits, working tree limpo). \`bun run verificar\` sai 0: 714 testes verdes, depcruise
+commits, working tree limpo). \`bun run verify\` sai 0: 714 testes verdes, depcruise
 limpo, golden de 75 telas com diff zero, \`scripts/magic-values.ts\` limpo.
 
   src/{academico,identidade,avaliacao,comunicacao}/constantes.ts
   src/shared/constantes.ts · src/web/constantes.ts · src/web/rotas/mapa.ts
   src/web/render.ts   injeta it.rotas, it.titulos, it.acoes, it.rotulos, it.contagem,
                       it.areas, it.parciais, it.sufixos, it.campos, it.separador…
-  scripts/magic-values.ts   o verificador, dentro do \`bun run verificar\`
+  scripts/magic-values.ts   o verificador, dentro do \`bun run verify\`
 
 O GOLDEN É A LINHA VERMELHA. Diff nele = você mudou uma tela. O texto renderizado sai
 BYTE A BYTE idêntico: troca-se a ORIGEM do valor, nunca o valor.
@@ -167,7 +167,7 @@ provado por sonda. Faltam três posições, e cada uma tem caso real hoje:
 DEPOIS DE ESCREVER AS TRÊS: rode o verificador e devolva o inventário COMPLETO agrupado
 por arquivo, com caminhos relativos à raiz. É ele que particiona as fases seguintes.
 
-O \`verificar\` vai ficar VERMELHO ao fim da sua tarefa, e está certo. Não esconda achado
+O \`verify\` vai ficar VERMELHO ao fim da sua tarefa, e está certo. Não esconda achado
 para deixá-lo verde. Se uma regra produzir falso positivo, corrija a REGRA — nunca crie
 exceção pontual. Prove cada regra numa cópia em scratchpad e apague ao terminar.
 
@@ -263,7 +263,7 @@ Ao terminar:
 O lint ainda acusará OUTROS arquivos — não é problema seu. O golden precisa dar diff zero.
 
 NOTA SOBRE O BANCO: outros agentes usam o mesmo banco de teste; 'deadlock detected' é
-contenção de ambiente. Se acontecer, crie um banco isolado via DATABASE_URL_TESTE e o
+contenção de ambiente. Se acontecer, crie um banco isolado via TEST_DATABASE_URL e o
 DROPE ao terminar.`,
       { label: `fecha:${arquivo.split('/').pop()}`, phase: 'Fechar', schema: RESULTADO, effort: 'high' },
     ),
@@ -295,14 +295,14 @@ Na ordem, consertando antes de seguir:
 4. Golden das 75 telas com diff zero. JAMAIS regrave.
 5. \`bun scripts/magic-values.ts\` limpo. Todo achado restante: consome o dono, ou ganha
    justificativa específica. Falso positivo se corrige na REGRA.
-6. \`bun run verificar\` exit 0.
+6. \`bun run verify\` exit 0.
 
 ${pendencias.length ? `PENDÊNCIAS DE LEGIBILIDADE relatadas — avalie cada uma:\n${pendencias.join('\n---\n')}` : ''}
 
 ${REGRAS}
 
 Relate o resultado exato de cada comando, com números.`,
-  { label: 'verificar', phase: 'Provar', effort: 'high' },
+  { label: 'verify', phase: 'Provar', effort: 'high' },
 );
 
 const critico = await agent(
@@ -310,7 +310,7 @@ const critico = await agent(
 
 Sexta passada concluída. Você é o CRÍTICO DE COMPLETUDE. NÃO edite arquivo.
 
-O USUÁRIO FIXOU O CRITÉRIO DE CONCLUSÃO: o trabalho encerra quando \`bun run verificar\`
+O USUÁRIO FIXOU O CRITÉRIO DE CONCLUSÃO: o trabalho encerra quando \`bun run verify\`
 sair 0 E um crítico voltar VAZIO, duas rodadas seguidas. Você é a primeira dessas duas.
 Uma resposta "nenhum" que seja verdadeira vale mais do que achados inventados; uma que
 seja falsa custa outra passada inteira.

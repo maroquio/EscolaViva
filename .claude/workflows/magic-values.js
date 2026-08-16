@@ -354,7 +354,7 @@ TAREFA, nesta ordem:
 
 5. Escreva scripts/magic-values.ts: um verificador que varre src/ e scripts/ e falha
    com saída não-zero quando encontra literal solto fora das exceções da regra 6.
-   Ele precisa passar limpo no código já refatorado. NÃO altere o script "verificar"
+   Ele precisa passar limpo no código já refatorado. NÃO altere o script "verify"
    do package.json ainda — quem faz isso é a fase final, depois da suíte verde.
 
 6. NÃO reescreva nenhum call site. Você só CRIA arquivos novos e ajusta os index.ts.
@@ -450,14 +450,14 @@ Na ordem:
    legítimo, extraia-o para o arquivo de constantes do dono. Se acusar falso positivo,
    corrija a regra no próprio script, não crie exceção pontual.
 6. Só com tudo verde: adicione "magic": "bun scripts/magic-values.ts" ao package.json e
-   inclua-o no script "verificar", entre "check" e "test".
-7. Rode \`bun run verificar\` inteiro e confirme verde.
+   inclua-o no script "verify", entre "check" e "test".
+7. Rode \`bun run verify\` inteiro e confirme verde.
 
 ${REGRAS}
 
 Nunca rode git add, git commit ou git push. Relate o que consertou e o resultado final
 de cada comando, com os números exatos.`,
-  { label: 'verificar', phase: 'Verificar', effort: 'high' },
+  { label: 'verify', phase: 'Verificar', effort: 'high' },
 );
 
 const residuo = await agent(

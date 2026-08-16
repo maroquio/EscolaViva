@@ -15,8 +15,8 @@
     "magic": "bun scripts/magic-values.ts",
     "typecheck": "bunx tsc --noEmit",
     "test": "bun test",
-    "test:cobertura": "bun test --coverage",
-    "verificar": "bun run typecheck && bun run check && bun run magic && bun run test"
+    "test:coverage": "bun test --coverage",
+    "verify": "bun run typecheck && bun run check && bun run magic && bun run test"
   },
   "dependencies": {
     "eta": "^3",

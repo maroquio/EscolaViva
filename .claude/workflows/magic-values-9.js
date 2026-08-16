@@ -5,7 +5,7 @@ export const meta = {
   phases: [
     { title: 'Enxergar', detail: 'marcador sem achado correspondente vira erro' },
     { title: 'Limpar', detail: 'a órfã, os 16 marcadores inertes, o erro factual e as linhas longas' },
-    { title: 'Provar', detail: 'verificar exit 0 e crítico vazio — primeira das duas rodadas' },
+    { title: 'Provar', detail: 'verify exit 0 e crítico vazio — primeira das duas rodadas' },
   ],
 };
 
@@ -17,10 +17,10 @@ ATENÇÃO — OUTRA SESSÃO TRABALHA NESTE REPOSITÓRIO, commitando e fazendo pu
   - NUNCA rode git add, commit, push, checkout, rebase ou stash.
   - Arquivo fora do seu escopo modificado NÃO é regressão sua.
   - \`bun test\` com 'deadlock detected' é a suíte dela no mesmo banco: crie um banco
-    isolado via DATABASE_URL_TESTE, use, e DROPE.
+    isolado via TEST_DATABASE_URL, use, e DROPE.
   - NÃO toque em docs/diagrams/ — é dela.
 
-SITUAÇÃO: oito passadas, 17 commits. \`bun run verificar\` sai 0: 714 testes, depcruise
+SITUAÇÃO: oito passadas, 17 commits. \`bun run verify\` sai 0: 714 testes, depcruise
 limpo, golden de 75 telas com diff zero, verificador limpo.
 
 O VERIFICADOR ESTÁ CALIBRADO E NÃO DEVE SER ALARGADO. O crítico da passada anterior
@@ -118,7 +118,7 @@ Meça os falsos ANTES de aceitar cada regra. Se der mais falso que verdadeiro, a
 portão — nunca crie exceção pontual. Prove numa cópia em scratchpad, com positivos E
 negativos, e apague ao terminar.
 
-DEPOIS: rode e RELATE a lista completa, agrupada por arquivo. O \`verificar\` fica VERMELHO —
+DEPOIS: rode e RELATE a lista completa, agrupada por arquivo. O \`verify\` fica VERMELHO —
 está certo. Não esconda achado para deixá-lo verde.
 
 ${REGRAS}`,
@@ -261,14 +261,14 @@ Na ordem, consertando antes de seguir:
 4. Golden das 75 telas com diff zero. JAMAIS regrave.
 5. \`bun scripts/magic-values.ts\` limpo, com a regra de supressão morta ativa. Toda
    supressão restante precisa estar VIVA e sobreviver à auditoria.
-6. \`bun run verificar\` exit 0.
+6. \`bun run verify\` exit 0.
 
 ${pendencias.length ? `PENDÊNCIAS relatadas — avalie cada uma:\n${pendencias.join('\n---\n')}` : ''}
 
 ${REGRAS}
 
 Relate o resultado exato de cada comando, com números.`,
-  { label: 'verificar', phase: 'Provar', effort: 'high' },
+  { label: 'verify', phase: 'Provar', effort: 'high' },
 );
 
 const critico = await agent(
@@ -276,7 +276,7 @@ const critico = await agent(
 
 Nona passada concluída. Você é o CRÍTICO DE COMPLETUDE. NÃO edite arquivo.
 
-O USUÁRIO FIXOU O CRITÉRIO: encerra quando \`bun run verificar\` sair 0 E um crítico voltar
+O USUÁRIO FIXOU O CRITÉRIO: encerra quando \`bun run verify\` sair 0 E um crítico voltar
 VAZIO, duas rodadas seguidas. Oito passadas se declararam completas e as oito estavam
 erradas, sempre porque o defeito seguinte estava numa FORMA não medida — a última foi a
 supressão que não suprime nada, invisível porque a regra só via supressão que suprimiu.

@@ -17,7 +17,7 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   exit 1
 fi
 
-DB_SERVICE=banco
+DB_SERVICE=database
 COMPOSE=(docker compose -f "$ROOT/infra/docker-compose.yml")
 
 major_version() { sed -E 's/[^0-9]*([0-9]+).*/\1/' <<< "$1"; }

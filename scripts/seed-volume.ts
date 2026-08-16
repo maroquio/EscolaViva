@@ -237,7 +237,7 @@ SELECT substring(query, 1, 70)                              AS statement,
  LIMIT 10;
 
 -- 3. O que o banco está fazendo agora: conexões por estado e a consulta mais antiga em curso.
---    CPU do container: docker stats --no-stream $(docker compose ps -q banco)
+--    CPU do container: docker stats --no-stream $(docker compose ps -q database)
 SELECT state,
        count(*)                             AS connections,
        max(now() - query_start)             AS oldest

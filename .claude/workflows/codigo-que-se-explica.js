@@ -16,10 +16,10 @@ ATENÇÃO — OUTRA SESSÃO TRABALHA AQUI, commitando e fazendo push.
   - NUNCA rode git add, commit, push, checkout, rebase ou stash.
   - Arquivo fora do seu escopo modificado NÃO é regressão sua.
   - \`bun test\` com 'deadlock detected' é a suíte dela: crie banco isolado via
-    DATABASE_URL_TESTE, use, e DROPE.
+    TEST_DATABASE_URL, use, e DROPE.
   - NÃO toque em docs/.
 
-ESTADO: \`bun run verificar\` sai 0 — 714 testes, depcruise limpo, golden de 75 telas com
+ESTADO: \`bun run verify\` sai 0 — 714 testes, depcruise limpo, golden de 75 telas com
 diff zero, verificador de magic values limpo.
 
 DECISÃO JÁ TOMADA E EM VIGOR: o código deste repositório NÃO carrega comentário. 6.233
@@ -206,7 +206,7 @@ Quatro agentes acabaram de trabalhar. PROVE que nada quebrou e conserte o que qu
 3. \`bun test\` num banco isolado — eram 714 verdes, mais os testes novos desta passada.
 4. Golden das 75 telas com diff ZERO. JAMAIS regrave.
 5. \`bun scripts/magic-values.ts\` limpo.
-6. \`bun run verificar\` exit 0.
+6. \`bun run verify\` exit 0.
 7. CONFIRA QUE NENHUM COMENTÁRIO NOVO ENTROU: varra src/ e scripts/ e confirme que só
    restam as diretivas. Um agente pode ter "explicado" a renomeação com um docblock.
 
@@ -215,7 +215,7 @@ ${pendencias.length ? `PENDÊNCIAS relatadas:\n${pendencias.join('\n---\n')}` : 
 ${REGRAS}
 
 Relate o resultado exato de cada comando, com números.`,
-  { label: 'verificar', phase: 'Provar', effort: 'high' },
+  { label: 'verify', phase: 'Provar', effort: 'high' },
 );
 
 const critico = await agent(

@@ -40,6 +40,15 @@ export const MINIMUM_SECRET_LENGTH = 32;
 
 export const ENV_LIST_SEPARATOR = ',';
 
+export const RENAMED_ENVIRONMENT_VARIABLES = {
+  SESSAO_DURACAO_HORAS: 'SESSION_DURATION_HOURS',
+  PROXIES_CONFIAVEIS: 'TRUSTED_PROXIES',
+  COOKIE_SEGURO: 'SECURE_COOKIE',
+  PORTA_BANCO: 'DB_PORT',
+  PORTA_BANCO_TESTE: 'TEST_DB_PORT',
+  DATABASE_URL_TESTE: 'TEST_DATABASE_URL',
+} as const;
+
 export const CONFIG_MESSAGES = {
   invalidBoolean: 'use true ou false',
   invalidEnvironment: `use ${ENVIRONMENTS.join(', ').replace(/, ([^,]*)$/, ' ou $1')}`,
@@ -53,6 +62,12 @@ export const CONFIG_MESSAGES = {
   rootLabel: 'ambiente',
   reportHeader: 'Configuração de ambiente inválida — o processo não sobe (I18).',
   reportFooter: 'Consulte .env.example.',
+  renamedTo: 'foi renomeada para',
+  renamedHeader:
+    'Variável de ambiente com nome antigo — o processo não sobe (I18).\n' +
+    'Com o nome antigo o valor seria ignorado e o default entraria em silêncio.',
+  renamedFooter:
+    'Renomeie no .env (e no ambiente do processo) antes de subir. Consulte .env.example.',
 } as const;
 
 export const DATABASE = {
@@ -113,7 +128,7 @@ export const CONTEXT_VARIABLES = {
 } as const;
 
 export const COOKIE = {
-  session: 'ev_sessao',
+  session: 'ev_session',
   path: '/',
   sameSite: 'Lax',
 } as const;
