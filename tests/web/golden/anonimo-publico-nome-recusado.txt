@@ -1,4 +1,4 @@
-GET /publico/..%2Fsegredo
+GET /public/..%2Fsegredo
 papel: anonimo
 status: 404
 Content-Type: text/html; charset=UTF-8
@@ -12,7 +12,7 @@ Cache-Control: public, max-age=31536000, immutable
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Arquivo não encontrado · EscolaViva</title>
-  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -47,7 +47,7 @@ Cache-Control: public, max-age=31536000, immutable
   </div>
   
   <p class="linha">
-    <a class="botao botao--secundario" href="/painel">Voltar ao painel</a>
+    <a class="botao botao--secundario" href="/dashboard">Voltar ao painel</a>
     <a class="botao botao--discreto" href="/login">Entrar novamente</a>
   </p>
 </div>

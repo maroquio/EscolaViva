@@ -1,7 +1,7 @@
-GET /painel
+GET /dashboard
 papel: admin
 status: 303
-Location: /rede
+Location: /network
 Cache-Control: private, no-store
 Vary: Cookie
 ------------------------------------------------------------------------------

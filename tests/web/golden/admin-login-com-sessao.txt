@@ -1,7 +1,7 @@
 GET /login
 papel: admin
 status: 303
-Location: /painel
+Location: /dashboard
 Cache-Control: private, no-store
 Vary: Cookie
 ------------------------------------------------------------------------------

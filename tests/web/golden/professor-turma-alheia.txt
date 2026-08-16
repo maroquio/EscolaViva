@@ -1,4 +1,4 @@
-GET /professor/turmas/{{turma2}}/fechamento
+GET /teacher/class-groups/{{turma2}}/closing
 papel: professor
 status: 404
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Página não encontrada · EscolaViva</title>
-  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -48,7 +48,7 @@ Vary: Cookie
   </div>
   
   <p class="linha">
-    <a class="botao botao--secundario" href="/painel">Voltar ao painel</a>
+    <a class="botao botao--secundario" href="/dashboard">Voltar ao painel</a>
     <a class="botao botao--discreto" href="/login">Entrar novamente</a>
   </p>
 </div>

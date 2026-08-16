@@ -1,4 +1,4 @@
-GET /responsavel
+GET /guardian
 papel: responsavel
 status: 200
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Meus alunos · EscolaViva</title>
-  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -22,7 +22,7 @@ Vary: Cookie
 
   <div class="aplicacao">
     <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/painel">Escola<em>Viva</em></a>
+  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
 
     <div class="cabecalho__contexto">
     <span class="cabecalho__rede">Rede Modelo do Litoral</span>
@@ -43,10 +43,10 @@ Vary: Cookie
     <h2 class="navegacao__titulo">Acompanhamento</h2>
     <ul class="navegacao__lista">
             <li>
-        <a class="navegacao__link" href="/responsavel" aria-current="page">Meus alunos</a>
+        <a class="navegacao__link" href="/guardian" aria-current="page">Meus alunos</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/responsavel/mural">Mural</a>
+        <a class="navegacao__link" href="/guardian/board">Mural</a>
       </li>
           </ul>
   </div>
@@ -54,7 +54,7 @@ Vary: Cookie
     <h2 class="navegacao__titulo">Conta</h2>
     <ul class="navegacao__lista">
             <li>
-        <a class="navegacao__link" href="/conta/senha">Trocar senha</a>
+        <a class="navegacao__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
@@ -72,7 +72,7 @@ Vary: Cookie
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--secundario" href="/responsavel/mural">Abrir o mural</a>
+    <a class="botao botao--secundario" href="/guardian/board">Abrir o mural</a>
   </p>
 </header>
 
@@ -86,7 +86,7 @@ Vary: Cookie
       <p class="cartao__detalhe">Matrículas ligadas ao seu cadastro</p>
     </div>
 
-    <a class="cartao" href="/responsavel/mural">
+    <a class="cartao" href="/guardian/board">
       <span class="cartao__rotulo">Comunicados não lidos</span>
       <span class="cartao__numero">1</span>
       <span class="cartao__detalhe">
@@ -126,10 +126,10 @@ Vary: Cookie
           <td class="celula-centro">
             <span class="tabela__acoes">
                             <a class="botao botao--secundario botao--miudo"
-                 href="/responsavel/matriculas/{{matricula01}}/boletim">
+                 href="/guardian/enrollments/{{matricula01}}/report-card">
                 Boletim<span class="visualmente-oculto"> de Aluno 01 da Silva</span></a>
               <a class="botao botao--secundario botao--miudo"
-                 href="/responsavel/matriculas/{{matricula01}}/frequencia">
+                 href="/guardian/enrollments/{{matricula01}}/attendance">
                 Frequência<span class="visualmente-oculto"> de Aluno 01 da Silva</span></a>
             </span>
           </td>
@@ -148,14 +148,14 @@ Vary: Cookie
 <section class="secao" aria-labelledby="titulo-nao-lidos">
   <div class="secao__cabecalho">
     <h2 id="titulo-nao-lidos">Comunicados não lidos</h2>
-    <p class="secao__nota"><a href="/responsavel/mural">Ver o mural completo</a></p>
+    <p class="secao__nota"><a href="/guardian/board">Ver o mural completo</a></p>
   </div>
 
     <ul class="pilha">
         <li class="quadro">
       <div class="linha linha--entre">
         <h3>
-          <a href="/responsavel/mural/{{comunicado2}}">Feira de ciências</a>
+          <a href="/guardian/board/{{comunicado2}}">Feira de ciências</a>
         </h3>
         <span class="linha">
           <time class="suave" datetime="{{carimboDeTempo}}">

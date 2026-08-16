@@ -1,4 +1,4 @@
-GET /professor/turmas/{{turma1}}/chamada
+GET /teacher/class-groups/{{turma1}}/roll-call
 papel: professor
 status: 200
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Chamada · 6A · EscolaViva</title>
-  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -22,7 +22,7 @@ Vary: Cookie
 
   <div class="aplicacao">
     <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/painel">Escola<em>Viva</em></a>
+  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
 
     <div class="cabecalho__contexto">
     <span class="cabecalho__rede">Rede Modelo do Litoral</span>
@@ -43,7 +43,7 @@ Vary: Cookie
     <h2 class="navegacao__titulo">Ensino</h2>
     <ul class="navegacao__lista">
             <li>
-        <a class="navegacao__link" href="/professor" aria-current="page">Minhas turmas</a>
+        <a class="navegacao__link" href="/teacher" aria-current="page">Minhas turmas</a>
       </li>
           </ul>
   </div>
@@ -51,7 +51,7 @@ Vary: Cookie
     <h2 class="navegacao__titulo">Conta</h2>
     <ul class="navegacao__lista">
             <li>
-        <a class="navegacao__link" href="/conta/senha">Trocar senha</a>
+        <a class="navegacao__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
@@ -70,34 +70,34 @@ Vary: Cookie
     </p>
   </div>
   <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="/professor/turmas/{{turma1}}/fechamento">Fechamento</a>
-    <a class="botao botao--discreto" href="/professor">Minhas turmas</a>
+    <a class="botao botao--discreto" href="/teacher/class-groups/{{turma1}}/closing">Fechamento</a>
+    <a class="botao botao--discreto" href="/teacher">Minhas turmas</a>
   </p>
 </div>
 
 <div class="acoes">
   <nav class="linha" aria-label="Dia da chamada">
     <a class="botao botao--secundario" rel="prev"
-       href="/professor/turmas/{{turma1}}/chamada?data={{diaCorrente}}">
+       href="/teacher/class-groups/{{turma1}}/roll-call?date={{diaCorrente}}">
       Dia anterior · <time class="numero" datetime="{{diaCorrente}}">{{diaCorrente}}</time>
     </a>
     <a class="botao botao--secundario" rel="next"
-       href="/professor/turmas/{{turma1}}/chamada?data={{diaCorrente}}">
+       href="/teacher/class-groups/{{turma1}}/roll-call?date={{diaCorrente}}">
       Dia seguinte · <time class="numero" datetime="{{diaCorrente}}">{{diaCorrente}}</time>
     </a>
   </nav>
 
-  <form class="linha" method="get" action="/professor/turmas/{{turma1}}/chamada">
+  <form class="linha" method="get" action="/teacher/class-groups/{{turma1}}/roll-call">
     <label class="campo__rotulo" for="ir-para-o-dia">Ir para o dia</label>
     <span class="campo">
-      <input type="date" id="ir-para-o-dia" name="data" value="{{diaCorrente}}">
+      <input type="date" id="ir-para-o-dia" name="date" value="{{diaCorrente}}">
     </span>
     <button class="botao botao--secundario" type="submit">Abrir</button>
   </form>
 </div>
 
 
-<form class="formulario formulario--largo" method="post" action="/professor/turmas/{{turma1}}/chamada">
+<form class="formulario formulario--largo" method="post" action="/teacher/class-groups/{{turma1}}/roll-call">
   <input type="hidden" name="_chave" value="{{chave}}">
   <input type="hidden" name="data" value="{{diaCorrente}}">
 

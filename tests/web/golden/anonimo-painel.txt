@@ -1,4 +1,4 @@
-GET /painel
+GET /dashboard
 papel: anonimo
 status: 303
 Location: /login

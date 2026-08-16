@@ -1,7 +1,7 @@
-GET /painel
+GET /dashboard
 papel: professor
 status: 303
-Location: /professor
+Location: /teacher
 Cache-Control: private, no-store
 Vary: Cookie
 ------------------------------------------------------------------------------

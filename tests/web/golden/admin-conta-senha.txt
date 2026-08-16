@@ -1,4 +1,4 @@
-GET /conta/senha
+GET /account/password
 papel: admin
 status: 200
 Content-Type: text/html; charset=UTF-8
@@ -13,7 +13,7 @@ Vary: Cookie
   <meta name="color-scheme" content="light">
   <meta name="robots" content="noindex, nofollow">
   <title>Trocar senha · EscolaViva</title>
-  <link rel="stylesheet" href="/publico/app.{{hashDoCss}}.css">
+  <link rel="stylesheet" href="/public/app.{{hashDoCss}}.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -22,7 +22,7 @@ Vary: Cookie
 
   <div class="aplicacao">
     <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/painel">Escola<em>Viva</em></a>
+  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
 
     <div class="cabecalho__contexto">
     <span class="cabecalho__rede">Rede Modelo do Litoral</span>
@@ -44,16 +44,16 @@ Vary: Cookie
     <h2 class="navegacao__titulo">Rede</h2>
     <ul class="navegacao__lista">
             <li>
-        <a class="navegacao__link" href="/rede">Painel da rede</a>
+        <a class="navegacao__link" href="/network">Painel da rede</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/rede/unidades">Unidades</a>
+        <a class="navegacao__link" href="/network/schools">Unidades</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/rede/usuarios">Usuários</a>
+        <a class="navegacao__link" href="/network/users">Usuários</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/rede/anos-letivos">Anos letivos</a>
+        <a class="navegacao__link" href="/network/academic-years">Anos letivos</a>
       </li>
           </ul>
   </div>
@@ -61,7 +61,7 @@ Vary: Cookie
     <h2 class="navegacao__titulo">Comunicação</h2>
     <ul class="navegacao__lista">
             <li>
-        <a class="navegacao__link" href="/comunicados">Comunicados</a>
+        <a class="navegacao__link" href="/announcements">Comunicados</a>
       </li>
           </ul>
   </div>
@@ -69,7 +69,7 @@ Vary: Cookie
     <h2 class="navegacao__titulo">Conta</h2>
     <ul class="navegacao__lista">
             <li>
-        <a class="navegacao__link" href="/conta/senha" aria-current="page">Trocar senha</a>
+        <a class="navegacao__link" href="/account/password" aria-current="page">Trocar senha</a>
       </li>
           </ul>
   </div>
@@ -90,7 +90,7 @@ Vary: Cookie
 </div>
 
 <div class="quadro">
-  <form class="formulario" method="post" action="/conta/senha">
+  <form class="formulario" method="post" action="/account/password">
     <input type="hidden" name="_chave" value="{{chave}}">
 
     <div class="campo">
