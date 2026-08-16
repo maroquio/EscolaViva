@@ -34,7 +34,7 @@ Vary: Cookie
   <div class="cabecalho__usuario">
     <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
     <form class="cabecalho__sair" method="post" action="/logout">
-      <input type="hidden" name="_chave" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{chave}}">
       <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
     </form>
   </div>
@@ -91,7 +91,7 @@ Vary: Cookie
 
 <div class="quadro">
   <form class="formulario" method="post" action="/network/schools">
-    <input type="hidden" name="_chave" value="{{chave}}">
+    <input type="hidden" name="_key" value="{{chave}}">
 
     <div class="formulario__linha">
       <div class="campo">
@@ -100,28 +100,28 @@ Vary: Cookie
         </label>
         <input
           id="nome"
-          name="nome"
+          name="name"
           type="text"
           required
           maxlength="120"
           autocomplete="off"
           value=""
-                    aria-describedby="nome-ajuda">
-        <p class="campo__ajuda" id="nome-ajuda">Como a escola é chamada no dia a dia.</p>
+                    aria-describedby="name-ajuda">
+        <p class="campo__ajuda" id="name-ajuda">Como a escola é chamada no dia a dia.</p>
               </div>
 
       <div class="campo">
         <label class="campo__rotulo" for="codigoInep">Código INEP</label>
         <input
           id="codigoInep"
-          name="codigoInep"
+          name="inepCode"
           type="text"
           maxlength="20"
           inputmode="numeric"
           autocomplete="off"
           value=""
-                    aria-describedby="codigoInep-ajuda">
-        <p class="campo__ajuda" id="codigoInep-ajuda">Opcional. Pode ser preenchido depois.</p>
+                    aria-describedby="inepCode-ajuda">
+        <p class="campo__ajuda" id="inepCode-ajuda">Opcional. Pode ser preenchido depois.</p>
               </div>
     </div>
 

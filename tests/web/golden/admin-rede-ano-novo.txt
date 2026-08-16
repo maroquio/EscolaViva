@@ -34,7 +34,7 @@ Vary: Cookie
   <div class="cabecalho__usuario">
     <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
     <form class="cabecalho__sair" method="post" action="/logout">
-      <input type="hidden" name="_chave" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{chave}}">
       <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
     </form>
   </div>
@@ -91,7 +91,7 @@ Vary: Cookie
 
 <div class="quadro">
   <form class="formulario" method="post" action="/network/academic-years">
-    <input type="hidden" name="_chave" value="{{chave}}">
+    <input type="hidden" name="_key" value="{{chave}}">
 
     <div class="formulario__linha">
       <div class="campo">
@@ -100,7 +100,7 @@ Vary: Cookie
         </label>
         <input
           id="ano"
-          name="ano"
+          name="year"
           type="number"
           required
           min="2000"
@@ -117,7 +117,7 @@ Vary: Cookie
         </label>
         <input
           id="dataInicio"
-          name="dataInicio"
+          name="startDate"
           type="date"
           required
           value=""
@@ -130,12 +130,12 @@ Vary: Cookie
         </label>
         <input
           id="dataFim"
-          name="dataFim"
+          name="endDate"
           type="date"
           required
           value=""
-                    aria-describedby="dataFim-ajuda">
-        <p class="campo__ajuda" id="dataFim-ajuda">Precisa ser posterior à data de início.</p>
+                    aria-describedby="endDate-ajuda">
+        <p class="campo__ajuda" id="endDate-ajuda">Precisa ser posterior à data de início.</p>
               </div>
     </div>
 

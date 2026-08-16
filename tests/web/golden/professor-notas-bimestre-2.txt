@@ -33,7 +33,7 @@ Vary: Cookie
   <div class="cabecalho__usuario">
     <span class="cabecalho__nome" title="carla@golden.test">Carla Professora</span>
     <form class="cabecalho__sair" method="post" action="/logout">
-      <input type="hidden" name="_chave" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{chave}}">
       <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
     </form>
   </div>
@@ -95,8 +95,8 @@ Vary: Cookie
 
 
 <form class="formulario formulario--largo" method="post" action="/teacher/subjects/{{alocacao1}}/grades">
-  <input type="hidden" name="_chave" value="{{chave}}">
-  <input type="hidden" name="bimestre" value="2">
+  <input type="hidden" name="_key" value="{{chave}}">
+  <input type="hidden" name="term" value="2">
 
   <div class="tabela-rolagem">
     <table class="tabela">
@@ -111,7 +111,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 01 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula01}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula01}}">
               Nota de Aluno 01 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -121,8 +121,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula01}}"
-                   name="nota_{{matricula01}}"
+                   id="grade_{{matricula01}}"
+                   name="grade_{{matricula01}}"
                    value="7.5"
                    >
                                   </td>
@@ -130,7 +130,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 02 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula02}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula02}}">
               Nota de Aluno 02 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -140,8 +140,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula02}}"
-                   name="nota_{{matricula02}}"
+                   id="grade_{{matricula02}}"
+                   name="grade_{{matricula02}}"
                    value=""
                    >
                                   </td>
@@ -149,7 +149,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 03 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula03}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula03}}">
               Nota de Aluno 03 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -159,8 +159,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula03}}"
-                   name="nota_{{matricula03}}"
+                   id="grade_{{matricula03}}"
+                   name="grade_{{matricula03}}"
                    value=""
                    >
                                   </td>
@@ -168,7 +168,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 04 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula04}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula04}}">
               Nota de Aluno 04 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -178,8 +178,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula04}}"
-                   name="nota_{{matricula04}}"
+                   id="grade_{{matricula04}}"
+                   name="grade_{{matricula04}}"
                    value=""
                    >
                                   </td>
@@ -187,7 +187,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 05 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula05}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula05}}">
               Nota de Aluno 05 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -197,8 +197,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula05}}"
-                   name="nota_{{matricula05}}"
+                   id="grade_{{matricula05}}"
+                   name="grade_{{matricula05}}"
                    value=""
                    >
                                   </td>
@@ -206,7 +206,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 06 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula06}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula06}}">
               Nota de Aluno 06 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -216,8 +216,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula06}}"
-                   name="nota_{{matricula06}}"
+                   id="grade_{{matricula06}}"
+                   name="grade_{{matricula06}}"
                    value=""
                    >
                                   </td>
@@ -225,7 +225,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 07 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula07}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula07}}">
               Nota de Aluno 07 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -235,8 +235,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula07}}"
-                   name="nota_{{matricula07}}"
+                   id="grade_{{matricula07}}"
+                   name="grade_{{matricula07}}"
                    value=""
                    >
                                   </td>
@@ -244,7 +244,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 08 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula08}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula08}}">
               Nota de Aluno 08 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -254,8 +254,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula08}}"
-                   name="nota_{{matricula08}}"
+                   id="grade_{{matricula08}}"
+                   name="grade_{{matricula08}}"
                    value=""
                    >
                                   </td>
@@ -263,7 +263,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 09 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula09}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula09}}">
               Nota de Aluno 09 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -273,8 +273,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula09}}"
-                   name="nota_{{matricula09}}"
+                   id="grade_{{matricula09}}"
+                   name="grade_{{matricula09}}"
                    value=""
                    >
                                   </td>
@@ -282,7 +282,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 10 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula10}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula10}}">
               Nota de Aluno 10 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -292,8 +292,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula10}}"
-                   name="nota_{{matricula10}}"
+                   id="grade_{{matricula10}}"
+                   name="grade_{{matricula10}}"
                    value=""
                    >
                                   </td>
@@ -301,7 +301,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 11 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula11}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula11}}">
               Nota de Aluno 11 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -311,8 +311,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula11}}"
-                   name="nota_{{matricula11}}"
+                   id="grade_{{matricula11}}"
+                   name="grade_{{matricula11}}"
                    value=""
                    >
                                   </td>
@@ -320,7 +320,7 @@ Vary: Cookie
                 <tr>
           <th scope="row">Aluno 12 da Silva</th>
           <td class="numero">
-                        <label class="visualmente-oculto" for="nota_{{matricula12}}">
+                        <label class="visualmente-oculto" for="grade_{{matricula12}}">
               Nota de Aluno 12 da Silva no 2º bimestre
             </label>
             <input class="entrada-numerica"
@@ -330,8 +330,8 @@ Vary: Cookie
                    min="0"
                    max="10"
                    autocomplete="off"
-                   id="nota_{{matricula12}}"
-                   name="nota_{{matricula12}}"
+                   id="grade_{{matricula12}}"
+                   name="grade_{{matricula12}}"
                    value=""
                    >
                                   </td>

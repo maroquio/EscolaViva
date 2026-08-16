@@ -34,7 +34,7 @@ Vary: Cookie
   <div class="cabecalho__usuario">
     <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
     <form class="cabecalho__sair" method="post" action="/logout">
-      <input type="hidden" name="_chave" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{chave}}">
       <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
     </form>
   </div>
@@ -102,18 +102,18 @@ Vary: Cookie
   </div>
 
   <form class="formulario formulario--largo" method="post" action="/announcements/new">
-    <input type="hidden" name="_chave" value="{{chave}}">
-    <input type="hidden" name="unidadeId" value="{{unidadeA}}">
+    <input type="hidden" name="_key" value="{{chave}}">
+    <input type="hidden" name="schoolId" value="{{unidadeA}}">
 
     <div class="campo leitura">
       <label class="campo__rotulo" for="titulo">
         Título <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
-      <input type="text" id="titulo" name="titulo" required
+      <input type="text" id="titulo" name="title" required
              value=""
-             aria-describedby="titulo-ajuda"
+             aria-describedby="title-ajuda"
              >
-      <p class="campo__ajuda" id="titulo-ajuda">
+      <p class="campo__ajuda" id="title-ajuda">
         É a linha que o responsável vê na lista do mural.
       </p>
           </div>
@@ -122,19 +122,19 @@ Vary: Cookie
       <label class="campo__rotulo" for="corpo">
         Mensagem <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
-      <textarea id="corpo" name="corpo" required rows="10"
-                                aria-describedby="corpo-ajuda"></textarea>
-      <p class="campo__ajuda" id="corpo-ajuda">
+      <textarea id="corpo" name="body" required rows="10"
+                                aria-describedby="body-ajuda"></textarea>
+      <p class="campo__ajuda" id="body-ajuda">
         O texto aparece como foi digitado, com as quebras de linha preservadas.
       </p>
           </div>
 
-    <fieldset aria-describedby="destinatarios-ajuda">
+    <fieldset aria-describedby="recipients-ajuda">
       <legend>Destinatários</legend>
 
       <div class="pilha">
         <div class="campo campo--opcao">
-          <input type="radio" id="alcance-unidade" name="alcance" value="unidade"
+          <input type="radio" id="alcance-unidade" name="audience" value="unidade"
                  checked>
           <label class="campo__rotulo" for="alcance-unidade">
             Todos os responsáveis da unidade
@@ -143,14 +143,14 @@ Vary: Cookie
         </div>
 
         <div class="campo campo--opcao">
-          <input type="radio" id="alcance-selecionados" name="alcance" value="selecionados"
+          <input type="radio" id="alcance-selecionados" name="audience" value="selecionados"
                  >
           <label class="campo__rotulo" for="alcance-selecionados">
             Apenas os responsáveis marcados abaixo
           </label>
         </div>
 
-        <p class="campo__ajuda" id="destinatarios-ajuda">
+        <p class="campo__ajuda" id="recipients-ajuda">
           Enviar para toda a unidade alcança quem tiver aluno com matrícula ativa no dia do envio.
         </p>
 
@@ -163,84 +163,84 @@ Vary: Cookie
         <ul class="grade-opcoes">
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel01}}"
-                   name="responsaveis[]" value="{{responsavel01}}"
+                   name="guardians[]" value="{{responsavel01}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel01}}">
               Responsável 01 da Silva            </label>
           </li>
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel02}}"
-                   name="responsaveis[]" value="{{responsavel02}}"
+                   name="guardians[]" value="{{responsavel02}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel02}}">
               Responsável 02 da Silva            </label>
           </li>
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel03}}"
-                   name="responsaveis[]" value="{{responsavel03}}"
+                   name="guardians[]" value="{{responsavel03}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel03}}">
               Responsável 03 da Silva            </label>
           </li>
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel04}}"
-                   name="responsaveis[]" value="{{responsavel04}}"
+                   name="guardians[]" value="{{responsavel04}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel04}}">
               Responsável 04 da Silva            </label>
           </li>
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel05}}"
-                   name="responsaveis[]" value="{{responsavel05}}"
+                   name="guardians[]" value="{{responsavel05}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel05}}">
               Responsável 05 da Silva            </label>
           </li>
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel06}}"
-                   name="responsaveis[]" value="{{responsavel06}}"
+                   name="guardians[]" value="{{responsavel06}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel06}}">
               Responsável 06 da Silva            </label>
           </li>
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel07}}"
-                   name="responsaveis[]" value="{{responsavel07}}"
+                   name="guardians[]" value="{{responsavel07}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel07}}">
               Responsável 07 da Silva            </label>
           </li>
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel08}}"
-                   name="responsaveis[]" value="{{responsavel08}}"
+                   name="guardians[]" value="{{responsavel08}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel08}}">
               Responsável 08 da Silva            </label>
           </li>
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel09}}"
-                   name="responsaveis[]" value="{{responsavel09}}"
+                   name="guardians[]" value="{{responsavel09}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel09}}">
               Responsável 09 da Silva            </label>
           </li>
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel10}}"
-                   name="responsaveis[]" value="{{responsavel10}}"
+                   name="guardians[]" value="{{responsavel10}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel10}}">
               Responsável 10 da Silva            </label>
           </li>
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel11}}"
-                   name="responsaveis[]" value="{{responsavel11}}"
+                   name="guardians[]" value="{{responsavel11}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel11}}">
               Responsável 11 da Silva            </label>
           </li>
                     <li class="campo campo--opcao">
             <input type="checkbox" id="responsavel-{{responsavel12}}"
-                   name="responsaveis[]" value="{{responsavel12}}"
+                   name="guardians[]" value="{{responsavel12}}"
                    >
             <label class="campo__rotulo" for="responsavel-{{responsavel12}}">
               Responsável 12 da Silva            </label>
@@ -259,7 +259,7 @@ Vary: Cookie
 <script>
   (() => {
     const botao = document.getElementById('marcar-todos');
-    const caixas = Array.from(document.querySelectorAll('input[name="responsaveis[]"]'));
+    const caixas = Array.from(document.querySelectorAll('input[name="guardians[]"]'));
     const alcanceSelecionados = document.getElementById('alcance-selecionados');
     if (botao === null || caixas.length === 0) return;
 

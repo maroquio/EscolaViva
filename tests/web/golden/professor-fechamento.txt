@@ -33,7 +33,7 @@ Vary: Cookie
   <div class="cabecalho__usuario">
     <span class="cabecalho__nome" title="carla@golden.test">Carla Professora</span>
     <form class="cabecalho__sair" method="post" action="/logout">
-      <input type="hidden" name="_chave" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{chave}}">
       <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
     </form>
   </div>
@@ -113,8 +113,8 @@ Vary: Cookie
           </ul>
     
     <form class="acoes" method="post" action="/teacher/class-groups/{{turma1}}/closing">
-      <input type="hidden" name="_chave" value="{{chave}}">
-      <input type="hidden" name="bimestre" value="2">
+      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="term" value="2">
       <button class="botao botao--primario" type="submit"
               >
         Fechar 2º bimestre
@@ -146,8 +146,8 @@ Vary: Cookie
           </ul>
     
     <form class="acoes" method="post" action="/teacher/class-groups/{{turma1}}/closing">
-      <input type="hidden" name="_chave" value="{{chave}}">
-      <input type="hidden" name="bimestre" value="3">
+      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="term" value="3">
       <button class="botao botao--primario" type="submit"
               >
         Fechar 3º bimestre
@@ -179,8 +179,8 @@ Vary: Cookie
           </ul>
     
     <form class="acoes" method="post" action="/teacher/class-groups/{{turma1}}/closing">
-      <input type="hidden" name="_chave" value="{{chave}}">
-      <input type="hidden" name="bimestre" value="4">
+      <input type="hidden" name="_key" value="{{chave}}">
+      <input type="hidden" name="term" value="4">
       <button class="botao botao--primario" type="submit"
               >
         Fechar 4º bimestre

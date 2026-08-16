@@ -32,7 +32,7 @@ Cache-Control: no-store
       <h1>Entrar</h1>
 
 <form class="formulario" method="post" action="/login">
-  <input type="hidden" name="_chave" value="{{chave}}">
+  <input type="hidden" name="_key" value="{{chave}}">
 
   <div class="campo">
     <label class="campo__rotulo" for="redeSlug">
@@ -40,15 +40,15 @@ Cache-Control: no-store
     </label>
     <input
       id="redeSlug"
-      name="redeSlug"
+      name="networkSlug"
       type="text"
       required
       autocomplete="organization"
       autocapitalize="none"
       spellcheck="false"
       value=""
-            aria-describedby="redeSlug-ajuda">
-    <p class="campo__ajuda" id="redeSlug-ajuda">
+            aria-describedby="networkSlug-ajuda">
+    <p class="campo__ajuda" id="networkSlug-ajuda">
       O apelido curto da rede, informado pela secretaria — tudo minúsculo, sem espaço.
     </p>
       </div>
@@ -79,7 +79,7 @@ Cache-Control: no-store
     </label>
     <input
       id="senha"
-      name="senha"
+      name="password"
       type="password"
       required
       autocomplete="current-password"

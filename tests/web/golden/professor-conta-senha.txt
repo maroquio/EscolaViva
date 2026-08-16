@@ -33,7 +33,7 @@ Vary: Cookie
   <div class="cabecalho__usuario">
     <span class="cabecalho__nome" title="carla@golden.test">Carla Professora</span>
     <form class="cabecalho__sair" method="post" action="/logout">
-      <input type="hidden" name="_chave" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{chave}}">
       <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
     </form>
   </div>
@@ -73,7 +73,7 @@ Vary: Cookie
 
 <div class="quadro">
   <form class="formulario" method="post" action="/account/password">
-    <input type="hidden" name="_chave" value="{{chave}}">
+    <input type="hidden" name="_key" value="{{chave}}">
 
     <div class="campo">
       <label class="campo__rotulo" for="senhaAtual">
@@ -81,7 +81,7 @@ Vary: Cookie
       </label>
       <input
         id="senhaAtual"
-        name="senhaAtual"
+        name="currentPassword"
         type="password"
         required
         autocomplete="current-password"
@@ -94,12 +94,12 @@ Vary: Cookie
       </label>
       <input
         id="senhaNova"
-        name="senhaNova"
+        name="newPassword"
         type="password"
         required
         autocomplete="new-password"
-                aria-describedby="senhaNova-ajuda">
-      <p class="campo__ajuda" id="senhaNova-ajuda">
+                aria-describedby="newPassword-ajuda">
+      <p class="campo__ajuda" id="newPassword-ajuda">
         Escolha uma senha longa e que você não use em outro sistema. Se ela for curta demais, o
         servidor recusa e diz o mínimo exigido.
       </p>
@@ -111,7 +111,7 @@ Vary: Cookie
       </label>
       <input
         id="senhaConfirmacao"
-        name="senhaConfirmacao"
+        name="passwordConfirmation"
         type="password"
         required
         autocomplete="new-password"

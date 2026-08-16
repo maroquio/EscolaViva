@@ -34,7 +34,7 @@ Vary: Cookie
   <div class="cabecalho__usuario">
     <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
     <form class="cabecalho__sair" method="post" action="/logout">
-      <input type="hidden" name="_chave" value="{{chave}}">
+      <input type="hidden" name="_key" value="{{chave}}">
       <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
     </form>
   </div>
@@ -104,13 +104,13 @@ Vary: Cookie
         Unidade <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
       <select id="unidadeId" name="schoolId" required
-              aria-describedby="unidadeId-ajuda"
+              aria-describedby="schoolId-ajuda"
               >
         <option value="">Escolha a unidade</option>
                 <option value="{{unidadeA}}">Escola Central</option>
                 <option value="{{unidadeB}}">Escola do Bairro</option>
               </select>
-      <p class="campo__ajuda" id="unidadeId-ajuda">
+      <p class="campo__ajuda" id="schoolId-ajuda">
         Só aparecem as unidades ativas em que você tem papel.
       </p>
           </div>
