@@ -1,9 +1,8 @@
 <%
 const schools = it.schools ?? [];
-const guardians = it.guardians ?? [];
 const roles = it.roles ?? [];
 const rows = it.rows ?? [];
-const values = it.values ?? { name: '', email: '', cpf: '', guardianId: '' };
+const values = it.values ?? { name: '', email: '', cpf: '' };
 const fields = it.fields.user;
 const { errorFor, describedBy } = it;
 const overline = `${it.areas.network}${it.presentation.separator}${it.titles.network.users}`;
@@ -117,27 +116,6 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
         <% }) %>
       </div>
     </fieldset>
-
-    <div class="field">
-      <label class="field__label" for="guardianId">Cadastro de responsável</label>
-      <select
-        id="guardianId"
-        name="<%= fields.guardianId %>"
-        <% if (errorFor(fields.guardianId) !== '') { %>aria-invalid="true"<% } %>
-        aria-describedby="<%= describedBy(fields.guardianId, true) %>">
-        <option value="">Nenhum</option>
-        <% guardians.forEach((guardian) => { %>
-        <option value="<%= guardian.id %>" <% if (guardian.id === values.guardianId) { %>selected<% } %>><%= guardian.name %> — <%= guardian.email %></option>
-        <% }) %>
-      </select>
-      <p class="field__help" id="<%= it.helpId(fields.guardianId) %>">
-        Obrigatório quando alguma atribuição acima for Responsável: é esse cadastro que liga a
-        conta aos alunos. A secretaria cria o cadastro antes do convite.
-      </p>
-      <% if (errorFor(fields.guardianId) !== '') { %>
-      <p class="field__error" id="<%= it.errorId(fields.guardianId) %>"><%= errorFor(fields.guardianId) %></p>
-      <% } %>
-    </div>
 
     <div class="actions">
       <button class="button button--primary" type="submit">Criar usuário</button>

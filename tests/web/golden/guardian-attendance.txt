@@ -31,7 +31,7 @@ Vary: Cookie
   </div>
 
   <div class="header__user">
-    <span class="header__name" title="portal01@golden.test">Responsável 01 da Silva</span>
+    <span class="header__name" title="responsavel01@golden.test">Responsável 01 da Silva</span>
     <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{key}}">
       <button class="button button--quiet button--small" type="submit">Sair</button>

@@ -75,7 +75,6 @@ describe('authenticate', () => {
         { schoolId: center.id, schoolName: 'Escola Centro', role: 'teacher' },
         { schoolId: beach.id, schoolName: 'Escola Praia', role: 'registrar' },
       ],
-      guardianId: null,
     });
     const rows = await testSql()<{ user_id: string; expires_at: Date; ip: string | null }[]>`
       SELECT user_id, expires_at, ip FROM session WHERE id = ${sessionId}`;
@@ -295,7 +294,6 @@ describe('validSession', () => {
       name: 'Ana Souza',
       email: 'ana@norte.br',
       roles: [{ schoolId: school.id, schoolName: 'Escola Norte', role: 'network_admin' }],
-      guardianId: null,
     });
   });
 

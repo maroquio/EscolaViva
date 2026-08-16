@@ -79,17 +79,19 @@ export async function createSchool(options: {
 
 export type TestUser = {
   id: string; networkId: string; name: string; email: string;
-  /** Migration 0008 (ADR 0004): every `app_user` row carries a CPF, always — never `null` here. */
+  /** ADR 0004: every `app_user` row carries a CPF, always — never `null` here. */
   cpf: string;
+  /** ADR 0006: the contact column that used to live on `guardian`. */
+  phone: string | null;
   /** The plaintext password, so the test can authenticate later on. */
   password: string;
-  active: boolean; guardianId: string | null; roles: TestRoleInSchool[];
+  active: boolean; roles: TestRoleInSchool[];
 };
 
 export async function createUser(options: {
   networkId: string; name?: string | undefined; email?: string | undefined;
-  cpf?: string | undefined; password?: string | undefined;
-  active?: boolean | undefined; guardianId?: string | null | undefined;
+  cpf?: string | undefined; phone?: string | null | undefined; password?: string | undefined;
+  active?: boolean | undefined;
   roles?: TestRoleInSchool[] | undefined;
 }): Promise<TestUser> {
   const number = nextNumber();
@@ -97,8 +99,9 @@ export async function createUser(options: {
     id: newId(), networkId: options.networkId, name: options.name ?? `Pessoa de Teste ${number}`,
     email: options.email ?? `usuario${number}@${DOMAIN}`,
     cpf: options.cpf === undefined ? generateCpf(number) : options.cpf,
+    phone: options.phone ?? null,
     password: options.password ?? DEFAULT_PASSWORD,
-    active: options.active ?? true, guardianId: options.guardianId ?? null, roles: options.roles ?? [],
+    active: options.active ?? true, roles: options.roles ?? [],
   };
 
   // `password` and `roles` are not columns of `app_user`: the first becomes a hash, the second becomes rows.
@@ -187,34 +190,36 @@ export async function createStudent(options: {
   });
 }
 
-export type TestGuardian = {
-  id: string; networkId: string; name: string; email: string; cpf: string | null;
-  phone: string | null;
-};
-
+/**
+ * ADR 0006: a guardian is an `app_user`. This factory is `createUser` with the guardian's naming
+ * and, when a school is given, the role that lets them into the portal.
+ */
 export async function createGuardian(options: {
-  networkId: string; name?: string | undefined; email?: string | undefined;
-  cpf?: string | null | undefined; phone?: string | null | undefined;
-}): Promise<TestGuardian> {
+  networkId: string; schoolId?: string | undefined; name?: string | undefined;
+  email?: string | undefined; cpf?: string | undefined; phone?: string | null | undefined;
+  password?: string | undefined;
+}): Promise<TestUser> {
   const number = nextNumber();
-  return await insertRow('guardian', {
-    id: newId(), networkId: options.networkId, name: options.name ?? `Responsável de Teste ${number}`,
+  const { schoolId, ...rest } = options;
+  return await createUser({
+    ...rest,
+    name: options.name ?? `Responsável de Teste ${number}`,
     email: options.email ?? `responsavel${number}@${DOMAIN}`,
-    cpf: options.cpf === undefined ? generateCpf(number) : options.cpf, phone: options.phone ?? null,
+    ...(schoolId === undefined ? {} : { roles: [{ schoolId, role: 'guardian' as const }] }),
   });
 }
 
 export type TestGuardianLink = {
-  networkId: string; studentId: string; guardianId: string; relationship: string;
+  networkId: string; studentId: string; userId: string; relationship: string;
   financiallyResponsible: boolean;
 };
 
 export async function linkStudentGuardian(options: {
-  networkId: string; studentId: string; guardianId: string;
+  networkId: string; studentId: string; userId: string;
   relationship?: string | undefined; financiallyResponsible?: boolean | undefined;
 }): Promise<TestGuardianLink> {
   return await insertRow('student_guardian', {
-    networkId: options.networkId, studentId: options.studentId, guardianId: options.guardianId,
+    networkId: options.networkId, studentId: options.studentId, userId: options.userId,
     relationship: options.relationship ?? 'mãe',
     financiallyResponsible: options.financiallyResponsible ?? true,
   });
@@ -269,7 +274,7 @@ export async function createAttendance(options: {
   });
 }
 
-export type TestRecipient = { guardianId: string; readAt: Date | null };
+export type TestRecipient = { userId: string; readAt: Date | null };
 
 export type TestAnnouncement = {
   id: string; networkId: string; schoolId: string; title: string; body: string;
@@ -281,7 +286,7 @@ export async function createAnnouncement(options: {
   title?: string | undefined; body?: string | undefined;
   /** `null` builds the announcement that has not been published yet and shows up on no board. */
   publishedAt?: Date | null | undefined;
-  recipients?: { guardianId: string; readAt?: Date | null | undefined }[] | undefined;
+  recipients?: { userId: string; readAt?: Date | null | undefined }[] | undefined;
 }): Promise<TestAnnouncement> {
   const announcement: TestAnnouncement = {
     id: newId(), networkId: options.networkId, schoolId: options.schoolId,
@@ -294,9 +299,9 @@ export async function createAnnouncement(options: {
 
   const { recipients, ...columns } = announcement;
   await insertRow('announcement', columns);
-  for (const { guardianId, readAt } of recipients) {
+  for (const { userId, readAt } of recipients) {
     await insertRow('announcement_recipient', {
-      networkId: announcement.networkId, announcementId: announcement.id, guardianId, readAt,
+      networkId: announcement.networkId, announcementId: announcement.id, userId, readAt,
     });
   }
   return announcement;
@@ -316,21 +321,24 @@ export type Scenario = {
   subjects: [TestSubject, TestSubject, TestSubject];
   classGroupSubjects: [TestClassGroupSubject, TestClassGroupSubject, TestClassGroupSubject];
   students: [TestStudent, TestStudent, TestStudent, TestStudent, TestStudent];
-  guardians: [TestGuardian, TestGuardian, TestGuardian, TestGuardian, TestGuardian];
+  guardians: [TestUser, TestUser, TestUser, TestUser, TestUser];
   enrollments: [TestEnrollment, TestEnrollment, TestEnrollment, TestEnrollment, TestEnrollment];
   admin: TestUser; registrar: TestUser; teacher: TestUser;
-  /** The portal user, tied to `guardians[0]`. */
+  /** ADR 0006: the portal user **is** the guardian. The same object as `guardians[0]`. */
   guardian: TestUser;
   password: string;
 };
 
 async function enrollOneStudent(base: {
-  networkId: string; classGroupId: string; academicYearId: string; year: number;
-}): Promise<{ student: TestStudent; guardian: TestGuardian; enrollment: TestEnrollment }> {
+  networkId: string; schoolId: string; classGroupId: string; academicYearId: string;
+  year: number; password: string;
+}): Promise<{ student: TestStudent; guardian: TestUser; enrollment: TestEnrollment }> {
   const student = await createStudent({ networkId: base.networkId });
-  const guardian = await createGuardian({ networkId: base.networkId });
+  const guardian = await createGuardian({
+    networkId: base.networkId, schoolId: base.schoolId, password: base.password,
+  });
   await linkStudentGuardian({
-    networkId: base.networkId, studentId: student.id, guardianId: guardian.id,
+    networkId: base.networkId, studentId: student.id, userId: guardian.id,
   });
   const enrollment = await createEnrollment({
     networkId: base.networkId, studentId: student.id, classGroupId: base.classGroupId,
@@ -383,17 +391,13 @@ export async function fullScenario(options: {
   ]);
 
   const base = {
-    networkId, classGroupId: classGroupA.id, academicYearId: academicYear.id, year: academicYear.year,
+    networkId, schoolId: schoolA.id, classGroupId: classGroupA.id,
+    academicYearId: academicYear.id, year: academicYear.year, password,
   };
   const [one, two, three, four, five] = await Promise.all([
     enrollOneStudent(base), enrollOneStudent(base), enrollOneStudent(base),
     enrollOneStudent(base), enrollOneStudent(base),
   ]);
-
-  const guardian = await createUser({
-    networkId, password, guardianId: one.guardian.id,
-    roles: [{ schoolId: schoolA.id, role: 'guardian' }],
-  });
 
   return {
     network, academicYear, schools: [schoolA, schoolB], classGroups: [classGroupA, classGroupB],
@@ -404,7 +408,7 @@ export async function fullScenario(options: {
       one.guardian, two.guardian, three.guardian, four.guardian, five.guardian,
     ],
     enrollments: [one.enrollment, two.enrollment, three.enrollment, four.enrollment, five.enrollment],
-    admin, registrar, teacher, guardian, password,
+    admin, registrar, teacher, guardian: one.guardian, password,
   };
 }
 

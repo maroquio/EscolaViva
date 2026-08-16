@@ -297,25 +297,11 @@ describe('the subjects of a class group and of a teacher', () => {
 });
 
 describe('guardians', () => {
-  test('listGuardians brings the network\'s own in name order', async () => {
-    const network = await createNetwork();
-    await createGuardian({ networkId: network.id, name: 'Carla Dias' });
-    await createGuardian({ networkId: network.id, name: 'Ana Souza' });
-
-    const guardians = await academics.listGuardians(network.id);
-
-    expect(guardians.map((guardian) => guardian.name)).toEqual(['Ana Souza', 'Carla Dias']);
-  });
-
-  test('listGuardians does not bring a guardian from another network', async () => {
-    const { a, b } = await twoNetworks();
-
-    const guardians = await academics.listGuardians(a.network.id);
-
-    expect(guardians.every((guardian) => guardian.networkId === a.network.id)).toBe(true);
-    expect(guardians.map((guardian) => guardian.id)).not.toContain(b.guardians[0].id);
-  });
-
+  /*
+   * `listGuardians` left academics with the guardian record (ADR 0006); the listing is now
+   * `identity.usersPage` filtered by role, and it is proven in `tests/academics/pagination.test.ts`.
+   * What stays here is the link itself, which is all academics still owns.
+   */
   test('studentGuardians brings the link with its relationship and the financial mark', async () => {
     const network = await createNetwork();
     const student = await createStudent({ networkId: network.id });
@@ -326,25 +312,37 @@ describe('guardians', () => {
       networkId: network.id, name: 'Bruno Souza', email: 'bruno@familia.br',
     });
     await linkStudentGuardian({
-      networkId: network.id, studentId: student.id, guardianId: mother.id,
+      networkId: network.id, studentId: student.id, userId: mother.id,
       relationship: 'mãe', financiallyResponsible: true,
     });
     await linkStudentGuardian({
-      networkId: network.id, studentId: student.id, guardianId: father.id,
+      networkId: network.id, studentId: student.id, userId: father.id,
       relationship: 'pai', financiallyResponsible: false,
     });
 
     const guardianLinks = await academics.studentGuardians(network.id, student.id);
 
-    expect(guardianLinks).toEqual([
-      {
-        guardianId: mother.id, name: 'Ana Souza', email: 'ana@familia.br',
-        relationship: 'mãe', financiallyResponsible: true,
-      },
-      {
-        guardianId: father.id, name: 'Bruno Souza', email: 'bruno@familia.br',
-        relationship: 'pai', financiallyResponsible: false,
-      },
+    expect(guardianLinks).toHaveLength(2);
+    expect(guardianLinks).toContainEqual({
+      userId: mother.id, relationship: 'mãe', financiallyResponsible: true,
+    });
+    expect(guardianLinks).toContainEqual({
+      userId: father.id, relationship: 'pai', financiallyResponsible: false,
+    });
+  });
+
+  test('the name of a guardian is not academics to give: only the link comes back', async () => {
+    const network = await createNetwork();
+    const student = await createStudent({ networkId: network.id });
+    const mother = await createGuardian({ networkId: network.id, name: 'Ana Souza' });
+    await linkStudentGuardian({
+      networkId: network.id, studentId: student.id, userId: mother.id,
+    });
+
+    const [link] = await academics.studentGuardians(network.id, student.id);
+
+    expect(Object.keys(link ?? {}).sort()).toEqual([
+      'financiallyResponsible', 'relationship', 'userId',
     ]);
   });
 
@@ -366,7 +364,7 @@ describe('guardians', () => {
     });
     const departedStudent = await createStudent({ networkId: scenario.network.id });
     await linkStudentGuardian({
-      networkId: scenario.network.id, studentId: departedStudent.id, guardianId: withoutEnrollment.id,
+      networkId: scenario.network.id, studentId: departedStudent.id, userId: withoutEnrollment.id,
     });
     await createEnrollment({
       networkId: scenario.network.id, studentId: departedStudent.id, classGroupId: scenario.classGroups[0].id,
@@ -375,7 +373,7 @@ describe('guardians', () => {
 
     const schoolGuardiansList = await academics.schoolGuardians(scenario.network.id, school.id);
 
-    expect(schoolGuardiansList.map((guardian) => guardian.id)).not.toContain(withoutEnrollment.id);
+    expect(schoolGuardiansList).not.toContain(withoutEnrollment.id);
   });
 });
 
@@ -454,7 +452,7 @@ describe('enrollments', () => {
     const [guardian] = scenario.guardians;
     const sibling = await createStudent({ networkId: scenario.network.id, name: 'Irmão Caçula' });
     await linkStudentGuardian({
-      networkId: scenario.network.id, studentId: sibling.id, guardianId: guardian.id,
+      networkId: scenario.network.id, studentId: sibling.id, userId: guardian.id,
     });
     await createEnrollment({
       networkId: scenario.network.id, studentId: sibling.id, classGroupId: scenario.classGroups[1].id,

@@ -15,7 +15,6 @@ export type SessionUser = {
   name: string;
   email: string;
   roles: { schoolId: string; schoolName: string; role: SessionRole }[];
-  guardianId: string | null;
 };
 
 export const SESSION_COOKIE = COOKIE.session;

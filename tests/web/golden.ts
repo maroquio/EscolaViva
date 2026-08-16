@@ -46,7 +46,7 @@ import {
   linkStudentGuardian,
   type TestStudent,
   type TestEnrollment,
-  type TestGuardian,
+  type TestUser,
 } from '../support/factories';
 import { signIn } from './support';
 
@@ -179,7 +179,7 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
   const assignment3 = await assign(history.id);
 
   const students: TestStudent[] = [];
-  const guardians: TestGuardian[] = [];
+  const guardians: TestUser[] = [];
   const enrollments: TestEnrollment[] = [];
   for (let number = 1; number <= STUDENT_COUNT; number += 1) {
     const label = twoDigits(number);
@@ -188,13 +188,15 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     });
     const guardian = await createGuardian({
       networkId,
+      schoolId: schoolA.id,
       name: `Responsável ${label} da Silva`,
       email: `responsavel${label}@golden.test`,
       cpf: generateCpf(9_200_000 + number),
       phone: `2799000${label}${label}`,
+      password: DEFAULT_PASSWORD,
     });
     await linkStudentGuardian({
-      networkId, studentId: student.id, guardianId: guardian.id,
+      networkId, studentId: student.id, userId: guardian.id,
       relationship: number % 2 === 0 ? 'pai' : 'mãe', financiallyResponsible: number === 1,
     });
     const enrollment = await createEnrollment({
@@ -216,15 +218,9 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     roles: [],
   });
 
-  const guardian = await createUser({
-    networkId,
-    name: 'Responsável 01 da Silva',
-    email: 'portal01@golden.test',
-    cpf: generateCpf(9_100_004),
-    password: DEFAULT_PASSWORD,
-    guardianId: guardians[0]?.id ?? null,
-    roles: [{ schoolId: schoolA.id, role: 'guardian' }],
-  });
+  // ADR 0006: the portal user IS the guardian — there is no second record to tie it to.
+  const guardian = guardians[0];
+  if (guardian === undefined) throw new Error('the golden scenario needs at least one guardian');
 
   // Grades for two terms for the first student (the report card needs a full row) and for the
   // first term for the first four (the grades screen needs both a filled and an empty column).
@@ -275,9 +271,9 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     body: 'A reunião do primeiro bimestre acontece no dia 20, às 19h, no auditório da unidade.',
     publishedAt: new Date('2026-03-10T12:00:00.000Z'),
     recipients: [
-      { guardianId: guardians[0]?.id ?? '', readAt: new Date('2026-03-11T12:00:00.000Z') },
-      { guardianId: guardians[1]?.id ?? '' },
-      { guardianId: guardians[2]?.id ?? '' },
+      { userId: guardians[0]?.id ?? '', readAt: new Date('2026-03-11T12:00:00.000Z') },
+      { userId: guardians[1]?.id ?? '' },
+      { userId: guardians[2]?.id ?? '' },
     ],
   });
   const announcement2 = await createAnnouncement({
@@ -286,8 +282,8 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     body: 'A feira de ciências ocupa o pátio na primeira semana de maio.',
     publishedAt: new Date('2026-04-05T12:00:00.000Z'),
     recipients: [
-      { guardianId: guardians[0]?.id ?? '' },
-      { guardianId: guardians[1]?.id ?? '', readAt: new Date('2026-04-06T12:00:00.000Z') },
+      { userId: guardians[0]?.id ?? '' },
+      { userId: guardians[1]?.id ?? '', readAt: new Date('2026-04-06T12:00:00.000Z') },
     ],
   });
   const announcement3 = await createAnnouncement({
@@ -327,7 +323,6 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     [admin.id, '{{adminUser}}'],
     [registrar.id, '{{registrarUser}}'],
     [teacher.id, '{{teacherUser}}'],
-    [guardian.id, '{{guardianUser}}'],
     [roleless.id, '{{rolelessUser}}'],
     [classGroup1.id, '{{classGroup1}}'],
     [classGroup2.id, '{{classGroup2}}'],

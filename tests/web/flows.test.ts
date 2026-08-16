@@ -15,6 +15,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
+import { generateCpf } from '../../src/shared/document';
 import { clearDatabase, testSql } from '../support/database';
 import { fullScenario, type Scenario } from '../support/factories';
 import { open, signIn, send } from './support';
@@ -33,7 +34,7 @@ const targetIdentifier = (response: Response): string => {
 
 const guardianByEmail = async (networkId: string, email: string): Promise<string> => {
   const rows = await testSql()<{ id: string }[]>`
-    SELECT id::text FROM guardian WHERE network_id = ${networkId} AND email = ${email}`;
+    SELECT id::text FROM app_user WHERE network_id = ${networkId} AND email = ${email}`;
   const id = rows[0]?.id;
   if (id === undefined) throw new Error(`responsável ${email} não foi gravado`);
   return id;
@@ -67,14 +68,17 @@ describe('the registrar enrolls a new student, from the record to the class grou
 
     const guardian = await send(
       '/registrar/guardians',
-      { name: guardianName, email: guardianEmail, phone: '(27) 99999-0000' },
+      {
+        name: guardianName, email: guardianEmail, phone: '(27) 99999-0000',
+        cpf: generateCpf(7_100_001),
+      },
       cookie,
     );
     const guardianId = await guardianByEmail(scenario.network.id, guardianEmail);
 
     const guardianLink = await send(
       `/registrar/students/${studentId}/guardians`,
-      { guardianId: guardianId, relationship: 'mãe', financiallyResponsible: 'on' },
+      { userId: guardianId, relationship: 'mãe', financiallyResponsible: 'on' },
       cookie,
     );
 
@@ -114,13 +118,13 @@ describe('the registrar enrolls a new student, from the record to the class grou
     const studentId = targetIdentifier(registration);
     await send(
       '/registrar/guardians',
-      { name: 'Regina Sampaio', email: guardianEmail, phone: '' },
+      { name: 'Regina Sampaio', email: guardianEmail, phone: '', cpf: generateCpf(7_100_002) },
       cookie,
     );
     const guardianId = await guardianByEmail(scenario.network.id, guardianEmail);
     await send(
       `/registrar/students/${studentId}/guardians`,
-      { guardianId: guardianId, relationship: 'tia', financiallyResponsible: 'on' },
+      { userId: guardianId, relationship: 'tia', financiallyResponsible: 'on' },
       cookie,
     );
     await send(

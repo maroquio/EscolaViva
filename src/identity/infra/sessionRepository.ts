@@ -18,8 +18,8 @@ type SessionRow = {
   user_name: string;
   user_email: string;
   user_cpf: string;
+  user_phone: string | null;
   user_active: boolean;
-  guardian_id: string | null;
 };
 
 const toSessionWithOwner = (row: SessionRow): SessionWithOwner => ({
@@ -43,8 +43,8 @@ const toSessionWithOwner = (row: SessionRow): SessionWithOwner => ({
     name: row.user_name,
     email: row.user_email,
     cpf: row.user_cpf,
+    phone: row.user_phone,
     active: row.user_active,
-    guardianId: row.guardian_id,
   },
 });
 
@@ -53,7 +53,7 @@ export async function byId(sql: Connection, sessionId: string): Promise<SessionW
     SELECT s.id, s.network_id, s.user_id, s.created_at, s.expires_at, s.ip,
            n.name AS network_name, n.slug AS network_slug, n.status AS network_status,
            u.name AS user_name, u.email AS user_email, u.cpf AS user_cpf,
-           u.active AS user_active, u.guardian_id
+           u.phone AS user_phone, u.active AS user_active
     FROM session s
     JOIN network n ON n.id = s.network_id
     JOIN app_user u ON u.id = s.user_id AND u.network_id = s.network_id

@@ -243,14 +243,14 @@ describe('the screens of the guardian portal', () => {
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
       title: 'Reunião de pais na quinta',
-      recipients: [{ guardianId: guardian.id }],
+      recipients: [{ userId: guardian.id }],
     });
     const alreadyRead = await createAnnouncement({
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
       title: 'Calendário do primeiro bimestre',
-      recipients: [{ guardianId: guardian.id, readAt: new Date() }],
+      recipients: [{ userId: guardian.id, readAt: new Date() }],
     });
     const cookie = await signInAs(scenario, 'guardian');
 
@@ -291,14 +291,14 @@ describe('the screens of the guardian portal', () => {
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
       title: 'Feira de ciências no sábado',
-      recipients: [{ guardianId: guardian.id }],
+      recipients: [{ userId: guardian.id }],
     });
     const alreadyRead = await createAnnouncement({
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
       title: 'Uniforme novo a partir de março',
-      recipients: [{ guardianId: guardian.id, readAt: new Date() }],
+      recipients: [{ userId: guardian.id, readAt: new Date() }],
     });
     const cookie = await signInAs(scenario, 'guardian');
 
@@ -322,7 +322,7 @@ describe('the screens of the guardian portal', () => {
       authorUserId: scenario.registrar.id,
       title: 'Vacinação na escola',
       body: 'A equipe da unidade de saúde estará na escola na próxima terça-feira.',
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
     const cookie = await signInAs(scenario, 'guardian');
 
@@ -344,7 +344,7 @@ describe('the screens of the guardian portal', () => {
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
       title: 'Boletim disponível no portal',
-      recipients: [{ guardianId: scenario.guardians[0].id, readAt: new Date() }],
+      recipients: [{ userId: scenario.guardians[0].id, readAt: new Date() }],
     });
     const cookie = await signInAs(scenario, 'guardian');
 
@@ -363,7 +363,7 @@ describe('the screens of the guardian portal', () => {
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
-      recipients: [{ guardianId: scenario.guardians[1].id }],
+      recipients: [{ userId: scenario.guardians[1].id }],
     });
     const cookie = await signInAs(scenario, 'guardian');
 
@@ -379,7 +379,7 @@ describe('the screens of the guardian portal', () => {
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
       publishedAt: null,
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
     const cookie = await signInAs(scenario, 'guardian');
 
@@ -400,8 +400,8 @@ describe('the screens of whoever publishes to the board', () => {
       authorUserId: scenario.registrar.id,
       title,
       recipients: [
-        { guardianId: scenario.guardians[0].id, readAt: new Date() },
-        { guardianId: scenario.guardians[1].id },
+        { userId: scenario.guardians[0].id, readAt: new Date() },
+        { userId: scenario.guardians[1].id },
       ],
     });
 

@@ -15,7 +15,6 @@ import { clearDatabase, testSql } from '../support/database';
 import {
   fullScenario,
   createNetwork,
-  createGuardian,
   createSchool as createTestSchool,
   createUser,
   twoNetworks,
@@ -61,6 +60,7 @@ describe('inviteUser', () => {
         name: 'Ana Souza',
         email: 'ana.souza@convite.br',
         cpf: generateCpf(3),
+        phone: null,
         active: true,
         roles: [
           { schoolId: center.id, schoolName: 'Escola Centro', role: 'teacher' },
@@ -174,50 +174,38 @@ describe('inviteUser', () => {
     expect(cityHallSchool.networkId).not.toBe(collegeSchool.networkId);
   });
 
-  test('a guardian role with no guardian record behind it is refused', async () => {
-    const network = await createNetwork();
-    const school = await createTestSchool({ networkId: network.id });
-
-    const result = await identity.inviteUser({
-      networkId: network.id,
-      name: 'Mãe da Ana',
-      email: 'mae.da.ana@familia.br',
-      cpf: generateCpf(9),
-      roleAssignments: [{ schoolId: school.id, role: 'guardian' }],
-    });
-
-    expect(errorsOf(result)).toEqual([
-      {
-        field: 'guardianId',
-        code: 'guardian_required',
-        message:
-          'quem entra como responsável precisa estar ligado a um cadastro de responsável',
-      },
-    ]);
-    expect(await identity.listUsers(network.id)).toHaveLength(0);
-  });
-
-  test('a guardian role with the record tied in gets through and carries the link into the session', async () => {
+  /*
+   * The photographic negative of "a guardian role with no guardian record behind it is refused"
+   * and of "a guardian role with the record tied in carries the link into the session". ADR 0006
+   * deleted the record: the guardian role now needs nothing but the person, and the session has
+   * no link to carry.
+   */
+  test('a guardian role needs no record behind it, and the session carries no link', async () => {
     const network = await createNetwork({ slug: 'portal' });
     const school = await createTestSchool({ networkId: network.id });
-    const guardian = await createGuardian({ networkId: network.id });
 
     const invitation = await identity.inviteUser({
       networkId: network.id,
       name: 'Mãe da Ana',
       email: 'mae.da.ana@familia.br',
-      cpf: generateCpf(10),
+      cpf: generateCpf(9),
+      phone: '(27) 99988-7766',
       roleAssignments: [{ schoolId: school.id, role: 'guardian' }],
-      guardianId: guardian.id,
     });
+
+    expect(invitation.ok).toBe(true);
+    const users = await identity.listUsers(network.id, 'guardian');
+    expect(users.map((user) => [user.name, user.phone])).toEqual([
+      ['Mãe da Ana', '(27) 99988-7766'],
+    ]);
 
     const authenticated = await identity.authenticate({
       networkSlug: 'portal',
-      loginIdentifier: generateCpf(10),
+      loginIdentifier: generateCpf(9),
       password: valueOfResult(invitation).temporaryPassword,
       ip: '',
     });
-    expect(valueOfResult(authenticated).user.guardianId).toBe(guardian.id);
+    expect(Object.keys(valueOfResult(authenticated).user)).not.toContain('guardianId');
   });
 
   test('refuses a school from another network without creating the user', async () => {
@@ -345,50 +333,12 @@ describe('inviteUser', () => {
     expect(invitation.ok).toBe(true);
   });
 
-  test('refuses when the CPF typed in diverges from the guardian record', async () => {
-    const network = await createNetwork({});
-    const school = await createTestSchool({ networkId: network.id });
-    const guardian = await createGuardian({ networkId: network.id, cpf: '52998224725' });
-
-    const invitation = await identity.inviteUser({
-      networkId: network.id,
-      name: 'Mãe do Aluno',
-      email: 'mae@escolaviva.test',
-      cpf: generateCpf(1),
-      guardianId: guardian.id,
-      registeredCpf: guardian.cpf,
-      registeredName: guardian.name,
-      roleAssignments: [{ schoolId: school.id, role: 'guardian' }],
-    });
-
-    expect(invitation.ok).toBe(false);
-    if (!invitation.ok) {
-      expect(invitation.errors[0]?.field).toBe('cpf');
-      expect(invitation.errors[0]?.message).toContain(guardian.name);
-      expect(invitation.errors[0]?.message).not.toContain(guardian.cpf);
-    }
-  });
-
-  /* During the window the older records still carry no CPF; demanding one would block a flow that
-     used to work, which is the opposite of what compatibility promises. */
-  test('accepts when the guardian record has no CPF yet', async () => {
-    const network = await createNetwork({});
-    const school = await createTestSchool({ networkId: network.id });
-    const guardian = await createGuardian({ networkId: network.id, cpf: null });
-
-    const invitation = await identity.inviteUser({
-      networkId: network.id,
-      name: 'Pai do Aluno',
-      email: 'pai@escolaviva.test',
-      cpf: generateCpf(2),
-      guardianId: guardian.id,
-      registeredCpf: null,
-      registeredName: guardian.name,
-      roleAssignments: [{ schoolId: school.id, role: 'guardian' }],
-    });
-
-    expect(invitation.ok).toBe(true);
-  });
+  /*
+   * Both tests that lived here — "refuses when the CPF typed in diverges from the guardian
+   * record" and "accepts when the guardian record has no CPF yet" — compared the CPF typed in
+   * against a second record. ADR 0006 deleted that record, and with it the divergence they
+   * guarded: there is only one CPF now, and it is the one being typed.
+   */
 
   test('the CPF written down at invitation time comes back when the user is read', async () => {
     const network = await createNetwork({});
@@ -409,6 +359,68 @@ describe('inviteUser', () => {
       SELECT cpf FROM app_user WHERE id = ${invitation.value.userId}`;
 
     expect(rows[0]?.cpf).toBe('52998224725');
+  });
+
+  /*
+   * The three that follow came from `academics.registerGuardian`, which ADR 0006 deleted:
+   * registering a guardian is inviting a user, and these are the rules that moved along with it.
+   */
+  test('stores the CPF as digits alone, even when typed with punctuation', async () => {
+    const network = await createNetwork({});
+    const school = await createTestSchool({ networkId: network.id });
+
+    const invitation = await identity.inviteUser({
+      networkId: network.id,
+      name: 'Heloísa Braga Sampaio',
+      email: 'heloisa@escolaviva.test',
+      cpf: '529.982.247-25',
+      roleAssignments: [{ schoolId: school.id, role: 'guardian' }],
+    });
+    if (!invitation.ok) throw new Error('convite recusado no cenário');
+    const rows = await testSql()<{ cpf: string }[]>`
+      SELECT cpf FROM app_user WHERE id = ${invitation.value.userId}`;
+
+    expect(rows[0]?.cpf).toBe('52998224725');
+  });
+
+  test('a blank phone becomes the absence of a phone', async () => {
+    const network = await createNetwork({});
+    const school = await createTestSchool({ networkId: network.id });
+
+    const invitation = await identity.inviteUser({
+      networkId: network.id,
+      name: 'Carla Dias',
+      email: 'carla@familia.br',
+      cpf: generateCpf(21),
+      phone: '',
+      roleAssignments: [{ schoolId: school.id, role: 'guardian' }],
+    });
+
+    expect(invitation.ok).toBe(true);
+    expect((await identity.listUsers(network.id))[0]?.phone).toBeNull();
+  });
+
+  /*
+   * The photographic negative of "records a guardian with no CPF — a foreigner exists as a
+   * contact". ADR 0004 kept that person as a contact without portal access; ADR 0006 revoked the
+   * consequence: with no separate record to hold them, a guardian without a CPF stops being
+   * registrable at all. It is the accepted price of the decision, and this is where it is stated.
+   */
+  test('a guardian with no CPF stops being registrable', async () => {
+    const network = await createNetwork({});
+    const school = await createTestSchool({ networkId: network.id });
+
+    const invitation = await identity.inviteUser({
+      networkId: network.id,
+      name: 'Aiko Tanaka',
+      email: 'aiko@escolaviva.test',
+      cpf: '',
+      roleAssignments: [{ schoolId: school.id, role: 'guardian' }],
+    });
+
+    expect(invitation.ok).toBe(false);
+    if (!invitation.ok) expect(invitation.errors[0]?.field).toBe('cpf');
+    expect(await identity.listUsers(network.id)).toHaveLength(0);
   });
 });
 

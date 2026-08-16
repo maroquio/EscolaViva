@@ -4,7 +4,7 @@ import type { Student } from '../domain/student';
 import type { AcademicYear } from '../domain/academicYear';
 import type { Subject } from '../domain/subject';
 import type { Enrollment } from '../domain/enrollment';
-import type { Guardian, GuardianLink } from '../domain/guardian';
+import type { GuardianLink } from '../domain/guardian';
 import type {
   ClassGroup,
   ClassGroupSubject,
@@ -208,28 +208,6 @@ export function studentById(networkId: string, studentId: string): Promise<Stude
   return students.byId(reader(), networkId, studentId);
 }
 
-export function listGuardians(networkId: string): Promise<Guardian[]> {
-  return guardians.list(reader(), networkId);
-}
-
-export function guardiansPage(
-  networkId: string,
-  page: number,
-  size: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<Guardian>> {
-  const sql = reader();
-  return queryPage(
-    page,
-    size,
-    () => guardians.count(sql, networkId),
-    (range) => guardians.list(sql, networkId, range),
-  );
-}
-
-export function guardianById(networkId: string, guardianId: string): Promise<Guardian | null> {
-  return guardians.byId(reader(), networkId, guardianId);
-}
-
 export function studentGuardians(
   networkId: string,
   studentId: string,
@@ -237,25 +215,7 @@ export function studentGuardians(
   return guardians.ofStudent(reader(), networkId, studentId);
 }
 
-export function studentGuardiansPage(
-  networkId: string,
-  studentId: string,
-  page: number,
-  size: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<GuardianLink>> {
-  const sql = reader();
-  return queryPage(
-    page,
-    size,
-    () => guardians.countOfStudent(sql, networkId, studentId),
-    (range) => guardians.ofStudent(sql, networkId, studentId, range),
-  );
-}
-
-export function schoolGuardians(
-  networkId: string,
-  schoolId: string,
-): Promise<{ id: string; name: string }[]> {
+export function schoolGuardians(networkId: string, schoolId: string): Promise<string[]> {
   return guardians.ofSchool(reader(), networkId, schoolId);
 }
 
@@ -288,16 +248,13 @@ export function activeEnrollmentsOfClassGroupPage(
   );
 }
 
-export function guardianEnrollments(
-  networkId: string,
-  guardianId: string,
-): Promise<Enrollment[]> {
-  return enrollments.ofGuardian(reader(), networkId, guardianId);
+export function guardianEnrollments(networkId: string, userId: string): Promise<Enrollment[]> {
+  return enrollments.ofGuardian(reader(), networkId, userId);
 }
 
 export function guardianEnrollmentsPage(
   networkId: string,
-  guardianId: string,
+  userId: string,
   page: number,
   size: number = DEFAULT_PAGE_SIZE,
 ): Promise<Page<Enrollment>> {
@@ -305,8 +262,8 @@ export function guardianEnrollmentsPage(
   return queryPage(
     page,
     size,
-    () => enrollments.countOfGuardian(sql, networkId, guardianId),
-    (range) => enrollments.ofGuardian(sql, networkId, guardianId, range),
+    () => enrollments.countOfGuardian(sql, networkId, userId),
+    (range) => enrollments.ofGuardian(sql, networkId, userId, range),
   );
 }
 

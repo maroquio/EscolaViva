@@ -217,7 +217,7 @@ export async function activeOfStudents(
 export async function ofGuardian(
   sql: Connection,
   networkId: string,
-  guardianId: string,
+  userId: string,
   range?: Range,
 ): Promise<Enrollment[]> {
   const { limit, offset } = rangeParams(range);
@@ -230,7 +230,7 @@ export async function ofGuardian(
       JOIN class_group t ON t.id = m.class_group_id AND t.network_id = m.network_id
       JOIN academic_year al ON al.id = m.academic_year_id AND al.network_id = m.network_id
       JOIN student_guardian av ON av.student_id = m.student_id AND av.network_id = m.network_id
-     WHERE m.network_id = ${networkId} AND av.guardian_id = ${guardianId}
+     WHERE m.network_id = ${networkId} AND av.user_id = ${userId}
      ORDER BY al.year DESC, a.name
      LIMIT ${limit}::int OFFSET ${offset}::int`;
   return rows.map(toEnrollment);
@@ -239,12 +239,12 @@ export async function ofGuardian(
 export async function countOfGuardian(
   sql: Connection,
   networkId: string,
-  guardianId: string,
+  userId: string,
 ): Promise<number> {
   const rows: { total: number }[] = await sql`
     SELECT count(*)::int AS total
       FROM enrollment m
       JOIN student_guardian av ON av.student_id = m.student_id AND av.network_id = m.network_id
-     WHERE m.network_id = ${networkId} AND av.guardian_id = ${guardianId}`;
+     WHERE m.network_id = ${networkId} AND av.user_id = ${userId}`;
   return rows[0]?.total ?? 0;
 }

@@ -35,7 +35,7 @@ async function publish(input: {
   schoolId?: string;
   title?: string;
   body?: string;
-  recipients?: { guardianId: string }[];
+  recipients?: { userId: string }[];
 }): Promise<Announcement> {
   const result = await communication.publishAnnouncement({
     networkId: scenario.network.id,
@@ -52,16 +52,16 @@ async function publish(input: {
 }
 
 async function recipientsOf(announcementId: string): Promise<string[]> {
-  const rows = await testSql()<{ guardian_id: string }[]>`
-    SELECT guardian_id FROM announcement_recipient
+  const rows = await testSql()<{ user_id: string }[]>`
+    SELECT user_id FROM announcement_recipient
      WHERE announcement_id = ${announcementId}`;
-  return rows.map((row) => row.guardian_id).sort();
+  return rows.map((row) => row.user_id).sort();
 }
 
-async function readsOf(announcementId: string, guardianId: string): Promise<(Date | null)[]> {
+async function readsOf(announcementId: string, userId: string): Promise<(Date | null)[]> {
   const rows = await testSql()<{ read_at: Date | null }[]>`
     SELECT read_at FROM announcement_recipient
-     WHERE announcement_id = ${announcementId} AND guardian_id = ${guardianId}`;
+     WHERE announcement_id = ${announcementId} AND user_id = ${userId}`;
   return rows.map((row) => row.read_at);
 }
 
@@ -77,7 +77,7 @@ async function guardianAtSchool(schoolId: string): Promise<string> {
   await linkStudentGuardian({
     networkId: scenario.network.id,
     studentId: student.id,
-    guardianId: guardian.id,
+    userId: guardian.id,
   });
   await createEnrollment({
     networkId: scenario.network.id,
@@ -91,7 +91,7 @@ async function guardianAtSchool(schoolId: string): Promise<string> {
 describe('publishAnnouncement', () => {
   test('publishes with the author name and the publication date filled in', async () => {
     const announcement = await publish({
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     expect(announcement.title).toBe('Reunião de pais');
@@ -105,7 +105,7 @@ describe('publishAnnouncement', () => {
     const chosen = [scenario.guardians[0].id, scenario.guardians[2].id];
 
     const announcement = await publish({
-      recipients: chosen.map((guardianId) => ({ guardianId })),
+      recipients: chosen.map((userId) => ({ userId })),
     });
 
     expect(await recipientsOf(announcement.id)).toEqual([...chosen].sort());
@@ -114,8 +114,8 @@ describe('publishAnnouncement', () => {
   test('the same guardian repeated on the list becomes a single recipient', async () => {
     const announcement = await publish({
       recipients: [
-        { guardianId: scenario.guardians[0].id },
-        { guardianId: scenario.guardians[0].id },
+        { userId: scenario.guardians[0].id },
+        { userId: scenario.guardians[0].id },
       ],
     });
 
@@ -153,7 +153,7 @@ describe('publishAnnouncement', () => {
     const shutDown = await guardianAtSchool(scenario.schools[0].id);
     await testSql()`
       UPDATE enrollment SET status = 'cancelled'
-       WHERE student_id IN (SELECT student_id FROM student_guardian WHERE guardian_id = ${shutDown})`;
+       WHERE student_id IN (SELECT student_id FROM student_guardian WHERE user_id = ${shutDown})`;
 
     const announcement = await publish({ recipients: [] });
 
@@ -183,7 +183,7 @@ describe('publishAnnouncement', () => {
       title: '   ',
       body: 'Corpo do aviso.',
       authorUserId: scenario.registrar.id,
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
     const long = communication.publishAnnouncement({
       networkId: scenario.network.id,
@@ -191,7 +191,7 @@ describe('publishAnnouncement', () => {
       title: 't'.repeat(161),
       body: 'Corpo do aviso.',
       authorUserId: scenario.registrar.id,
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     const [withoutTitle, longTitle] = await Promise.all([empty, long]);
@@ -213,7 +213,7 @@ describe('publishAnnouncement', () => {
       title: 'Aviso',
       body: '  ',
       authorUserId: scenario.registrar.id,
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     expect(result).toEqual({
@@ -231,7 +231,7 @@ describe('publishAnnouncement', () => {
       title: 'Aviso',
       body: 'Corpo do aviso.',
       authorUserId: scenario.registrar.id,
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     expect(result).toEqual({
@@ -249,7 +249,7 @@ describe('publishAnnouncement', () => {
       title: 'Aviso',
       body: 'Corpo do aviso.',
       authorUserId: other.registrar.id,
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     expect(result).toEqual({
@@ -262,13 +262,13 @@ describe('publishAnnouncement', () => {
 describe('markAsRead', () => {
   test('records the recipient\'s reading', async () => {
     const announcement = await publish({
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     const result = await communication.markAsRead({
       networkId: scenario.network.id,
       announcementId: announcement.id,
-      guardianId: scenario.guardians[0].id,
+      userId: scenario.guardians[0].id,
     });
 
     expect(result).toEqual({ ok: true, value: undefined });
@@ -280,13 +280,13 @@ describe('markAsRead', () => {
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
-      recipients: [{ guardianId: scenario.guardians[0].id, readAt: OLD_READ }],
+      recipients: [{ userId: scenario.guardians[0].id, readAt: OLD_READ }],
     });
 
     await communication.markAsRead({
       networkId: scenario.network.id,
       announcementId: announcement.id,
-      guardianId: scenario.guardians[0].id,
+      userId: scenario.guardians[0].id,
     });
 
     expect(await readsOf(announcement.id, scenario.guardians[0].id)).toEqual([OLD_READ]);
@@ -294,13 +294,13 @@ describe('markAsRead', () => {
 
   test('creates no reading for someone who is not a recipient', async () => {
     const announcement = await publish({
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     const result = await communication.markAsRead({
       networkId: scenario.network.id,
       announcementId: announcement.id,
-      guardianId: scenario.guardians[1].id,
+      userId: scenario.guardians[1].id,
     });
 
     expect(result).toEqual({ ok: true, value: undefined });
@@ -309,13 +309,13 @@ describe('markAsRead', () => {
 
   test('does not mark the reading from another network', async () => {
     const announcement = await publish({
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     await communication.markAsRead({
       networkId: crypto.randomUUID(),
       announcementId: announcement.id,
-      guardianId: scenario.guardians[0].id,
+      userId: scenario.guardians[0].id,
     });
 
     expect(await readsOf(announcement.id, scenario.guardians[0].id)).toEqual([null]);
@@ -325,7 +325,7 @@ describe('markAsRead', () => {
     const result = await communication.markAsRead({
       networkId: scenario.network.id,
       announcementId: 'nao-e-uuid',
-      guardianId: scenario.guardians[0].id,
+      userId: scenario.guardians[0].id,
     });
 
     expect(result).toEqual({
@@ -341,7 +341,7 @@ describe('guardianBoard', () => {
       networkId: scenario.network.id,
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     };
     const old = await createAnnouncement({
       ...base,
@@ -376,7 +376,7 @@ describe('guardianBoard', () => {
   });
 
   test('does not bring an announcement the guardian is no recipient of', async () => {
-    await publish({ recipients: [{ guardianId: scenario.guardians[0].id }] });
+    await publish({ recipients: [{ userId: scenario.guardians[0].id }] });
 
     const board = await communication.guardianBoard(
       scenario.network.id,
@@ -392,7 +392,7 @@ describe('guardianBoard', () => {
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
       publishedAt: null,
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     const board = await communication.guardianBoard(
@@ -409,7 +409,7 @@ describe('guardianBoard', () => {
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
       publishedAt: new Date('2026-03-01T12:00:00.000Z'),
-      recipients: [{ guardianId: scenario.guardians[0].id, readAt: OLD_READ }],
+      recipients: [{ userId: scenario.guardians[0].id, readAt: OLD_READ }],
     });
 
     const board = await communication.guardianBoard(
@@ -426,7 +426,7 @@ describe('guardianBoard', () => {
       networkId: other.network.id,
       schoolId: other.schools[0].id,
       authorUserId: other.registrar.id,
-      recipients: [{ guardianId: other.guardians[0].id }],
+      recipients: [{ userId: other.guardians[0].id }],
     });
 
     const board = await communication.guardianBoard(
@@ -441,7 +441,7 @@ describe('guardianBoard', () => {
 describe('announcementForGuardian', () => {
   test('gives the whole announcement back to whoever is a recipient', async () => {
     const published = await publish({
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     const announcement = await communication.announcementForGuardian(
@@ -455,7 +455,7 @@ describe('announcementForGuardian', () => {
 
   test('gives back null for whoever is not a recipient', async () => {
     const published = await publish({
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     const announcement = await communication.announcementForGuardian(
@@ -473,7 +473,7 @@ describe('announcementForGuardian', () => {
       schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
       publishedAt: null,
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     const announcement = await communication.announcementForGuardian(
@@ -487,7 +487,7 @@ describe('announcementForGuardian', () => {
 
   test('gives back null when the announcement belongs to another network', async () => {
     const published = await publish({
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     const announcement = await communication.announcementForGuardian(
@@ -506,13 +506,13 @@ describe('listAnnouncements', () => {
       Array.from({ length: 10 }, () => createGuardian({ networkId: scenario.network.id })),
     );
     const announcement = await publish({
-      recipients: ten.map((guardian) => ({ guardianId: guardian.id })),
+      recipients: ten.map((guardian) => ({ userId: guardian.id })),
     });
     for (const guardian of ten.slice(0, 3)) {
       await communication.markAsRead({
         networkId: scenario.network.id,
         announcementId: announcement.id,
-        guardianId: guardian.id,
+        userId: guardian.id,
       });
     }
 
@@ -540,7 +540,7 @@ describe('listAnnouncements', () => {
         authorUserId: scenario.registrar.id,
         publishedAt: new Date(`2026-03-0${read + 1}T12:00:00.000Z`),
         recipients: scenario.guardians.map((guardian, position) => ({
-          guardianId: guardian.id,
+          userId: guardian.id,
           readAt: position < read ? OLD_READ : null,
         })),
       });
@@ -582,11 +582,11 @@ describe('listAnnouncements', () => {
   test('filters by school when a school is given', async () => {
     const ofTheFirst = await publish({
       schoolId: scenario.schools[0].id,
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
     await publish({
       schoolId: scenario.schools[1].id,
-      recipients: [{ guardianId: scenario.guardians[1].id }],
+      recipients: [{ userId: scenario.guardians[1].id }],
     });
 
     const statistics = await communication.listAnnouncements(
@@ -600,11 +600,11 @@ describe('listAnnouncements', () => {
   test('with no filter it brings both schools of the network and none from another', async () => {
     await publish({
       schoolId: scenario.schools[0].id,
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
     await publish({
       schoolId: scenario.schools[1].id,
-      recipients: [{ guardianId: scenario.guardians[1].id }],
+      recipients: [{ userId: scenario.guardians[1].id }],
     });
     const other = await fullScenario();
     await createAnnouncement({
@@ -626,7 +626,7 @@ describe('listAnnouncements', () => {
       publishedAt: null,
     });
     const published = await publish({
-      recipients: [{ guardianId: scenario.guardians[0].id }],
+      recipients: [{ userId: scenario.guardians[0].id }],
     });
 
     const statistics = await communication.listAnnouncements(scenario.network.id);

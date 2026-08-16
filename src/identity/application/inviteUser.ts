@@ -8,7 +8,6 @@ import {
   FIELDS,
   LIMITS,
   MESSAGES,
-  ROLE,
   ROLE_ASSIGNMENT_SEPARATOR,
   SECURITY,
 } from '../constants';
@@ -24,16 +23,23 @@ const schema = z.object({
     .trim()
     .min(1, MESSAGES.user.nameRequired)
     .max(LIMITS.user.name, MESSAGES.user.nameTooLong),
-  email: z.string().trim().min(1, MESSAGES.user.emailRequired).email(
-    MESSAGES.user.invalidEmail,
-  ),
+  email: z
+    .string()
+    .trim()
+    .min(1, MESSAGES.user.emailRequired)
+    .email(MESSAGES.user.invalidEmail)
+    .max(LIMITS.user.email, MESSAGES.user.emailTooLong),
   cpf: z
     .string()
     .trim()
     .transform(normalizeCpf)
     .refine(isValidCpf, MESSAGES.user.invalidCpf),
-  registeredCpf: z.string().nullable().optional(),
-  registeredName: z.string().optional(),
+  phone: z
+    .string()
+    .trim()
+    .max(LIMITS.user.phone, MESSAGES.user.phoneTooLong)
+    .nullish()
+    .transform((value) => (value === undefined || value === '' ? null : value)),
   roleAssignments: z
     .array(
       z.object({
@@ -44,7 +50,6 @@ const schema = z.object({
       }),
     )
     .min(1, MESSAGES.user.noRoleAssignment),
-  guardianId: z.string().uuid(MESSAGES.user.invalidGuardian).nullable().optional(),
 });
 
 function temporaryPassword(): string {
@@ -110,34 +115,14 @@ export async function inviteUser(input: {
   name: string;
   email: string;
   cpf: string;
-  registeredCpf?: string | null;
-  registeredName?: string;
+  phone?: string | null;
   roleAssignments: RoleAssignment[];
-  guardianId?: string | null | undefined;
 }): Promise<Result<AcceptedInvitation>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) return failure(...schemaErrors(parsed.error.issues));
   const data = parsed.data;
 
   const roleAssignments = distinctRoleAssignments(data.roleAssignments);
-  const guardianId = data.guardianId ?? null;
-  const entersAsGuardian = roleAssignments.some(({ role }) => role === ROLE.guardian);
-  if (entersAsGuardian && guardianId === null) {
-    return fieldFailure(
-      FIELDS.user.guardianId,
-      CODES.guardianRequired,
-      MESSAGES.user.guardianRequired,
-    );
-  }
-
-  const registeredCpf = data.registeredCpf ?? null;
-  if (registeredCpf !== null && registeredCpf !== data.cpf) {
-    return fieldFailure(
-      FIELDS.user.cpf,
-      CODES.cpfMismatch,
-      MESSAGES.user.cpfMismatch(data.registeredName ?? MESSAGES.user.guardianLabel),
-    );
-  }
 
   const password = temporaryPassword();
   const passwordHash = await Bun.password.hash(password);
@@ -147,8 +132,8 @@ export async function inviteUser(input: {
     name: data.name,
     email: normalizedEmail(data.email),
     cpf: data.cpf,
+    phone: data.phone,
     active: true,
-    guardianId,
   };
 
   return await save({ user, passwordHash, temporaryPassword: password, roleAssignments });

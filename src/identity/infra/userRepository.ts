@@ -2,7 +2,7 @@ import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
 import { ROLE } from '../constants';
 import { toRole, type Role, type RoleInSchool } from '../domain/role';
-import type { User, UserSummary } from '../domain/user';
+import type { User, UserContact, UserSummary } from '../domain/user';
 
 export type Credentials = { user: User; passwordHash: string };
 
@@ -12,8 +12,8 @@ type UserRow = {
   name: string;
   email: string;
   cpf: string;
+  phone: string | null;
   active: boolean;
-  guardian_id: string | null;
 };
 
 type CredentialsRow = UserRow & { password_hash: string };
@@ -26,8 +26,8 @@ const toUser = (row: UserRow): User => ({
   name: row.name,
   email: row.email,
   cpf: row.cpf,
+  phone: row.phone,
   active: row.active,
-  guardianId: row.guardian_id,
 });
 
 const toRoleInSchool = (row: RoleRow): RoleInSchool => ({
@@ -42,7 +42,7 @@ export async function credentialsByCpf(
   cpf: string,
 ): Promise<Credentials | null> {
   const rows = await sql<CredentialsRow[]>`
-    SELECT id, network_id, name, email, cpf, active, guardian_id, password_hash
+    SELECT id, network_id, name, email, cpf, phone, active, password_hash
     FROM app_user
     WHERE network_id = ${networkId} AND cpf = ${cpf} AND active
   `;
@@ -55,7 +55,7 @@ export async function credentialsById(
   userId: string,
 ): Promise<Credentials | null> {
   const rows = await sql<CredentialsRow[]>`
-    SELECT id, network_id, name, email, cpf, active, guardian_id, password_hash
+    SELECT id, network_id, name, email, cpf, phone, active, password_hash
     FROM app_user
     WHERE id = ${userId} AND active
   `;
@@ -81,14 +81,19 @@ export async function userRoles(
 export async function listSummaries(
   sql: Connection,
   networkId: string,
+  role?: Role,
   range?: Range,
 ): Promise<UserSummary[]> {
   const { limit, offset } = rangeParams(range);
+  const wanted = role ?? null;
   const users = await sql<UserRow[]>`
-    SELECT id, network_id, name, email, cpf, active, guardian_id
-    FROM app_user
-    WHERE network_id = ${networkId}
-    ORDER BY name
+    SELECT id, network_id, name, email, cpf, phone, active
+    FROM app_user u
+    WHERE u.network_id = ${networkId}
+      AND (${wanted}::text IS NULL OR EXISTS (
+            SELECT 1 FROM user_role ur
+            WHERE ur.network_id = u.network_id AND ur.user_id = u.id AND ur.role = ${wanted}))
+    ORDER BY u.name
     LIMIT ${limit}::int OFFSET ${offset}::int
   `;
   if (users.length === 0) return [];
@@ -113,16 +118,25 @@ export async function listSummaries(
     name: row.name,
     email: row.email,
     cpf: row.cpf,
+    phone: row.phone,
     active: row.active,
     roles: byUser.get(row.id) ?? [],
   }));
 }
 
-export async function countByNetwork(sql: Connection, networkId: string): Promise<number> {
+export async function countByNetwork(
+  sql: Connection,
+  networkId: string,
+  role?: Role,
+): Promise<number> {
+  const wanted = role ?? null;
   const rows = await sql<{ total: number }[]>`
     SELECT count(*)::int AS total
-    FROM app_user
-    WHERE network_id = ${networkId}
+    FROM app_user u
+    WHERE u.network_id = ${networkId}
+      AND (${wanted}::text IS NULL OR EXISTS (
+            SELECT 1 FROM user_role ur
+            WHERE ur.network_id = u.network_id AND ur.user_id = u.id AND ur.role = ${wanted}))
   `;
   return rows[0]?.total ?? 0;
 }
@@ -201,12 +215,26 @@ export async function namesByIds(
   return new Map(rows.map((row): [string, string] => [row.id, row.name]));
 }
 
+export async function contactsByIds(
+  sql: Connection,
+  networkId: string,
+  ids: string[],
+): Promise<Map<string, UserContact>> {
+  if (ids.length === 0) return new Map<string, UserContact>();
+  const rows = await sql<{ id: string; name: string; email: string; phone: string | null }[]>`
+    SELECT id, name, email, phone
+    FROM app_user
+    WHERE network_id = ${networkId} AND id IN ${sql(ids)}
+  `;
+  return new Map(rows.map((row): [string, UserContact] => [row.id, row]));
+}
+
 export async function insert(sql: Connection, user: User, passwordHash: string): Promise<void> {
   await sql`
-    INSERT INTO app_user (id, network_id, email, cpf, password_hash, name, active, guardian_id)
+    INSERT INTO app_user (id, network_id, email, cpf, phone, password_hash, name, active)
     VALUES (
-      ${user.id}, ${user.networkId}, ${user.email}, ${user.cpf}, ${passwordHash},
-      ${user.name}, ${user.active}, ${user.guardianId}
+      ${user.id}, ${user.networkId}, ${user.email}, ${user.cpf}, ${user.phone}, ${passwordHash},
+      ${user.name}, ${user.active}
     )
   `;
 }

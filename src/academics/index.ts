@@ -1,7 +1,6 @@
 import { assignTeacher } from './application/assignTeacher';
 import { registerStudent } from './application/registerStudent';
 import { registerSubject } from './application/registerSubject';
-import { registerGuardian } from './application/registerGuardian';
 import { registerClassGroup } from './application/registerClassGroup';
 import {
   academicYearsPage,
@@ -14,14 +13,11 @@ import {
   classGroupsPage,
   countsBySchool,
   enrollmentById,
-  guardianById,
   guardianEnrollments,
   guardianEnrollmentsPage,
-  guardiansPage,
   listAcademicYears,
   listClassGroupSubjects,
   listClassGroups,
-  listGuardians,
   listSubjects,
   schoolGuardians,
   scopeTotals,
@@ -29,7 +25,6 @@ import {
   studentById,
   studentEnrollmentsPage,
   studentGuardians,
-  studentGuardiansPage,
   studentHasEnrollment,
   studentsPage,
   subjectsPage,
@@ -45,7 +40,7 @@ export type { Student } from './domain/student';
 export type { AcademicYear } from './domain/academicYear';
 export type { Subject } from './domain/subject';
 export type { Enrollment, EnrollmentStatus } from './domain/enrollment';
-export type { Guardian, GuardianLink } from './domain/guardian';
+export type { GuardianLink } from './domain/guardian';
 export type { ClassGroup, ClassGroupSubject } from './domain/classGroup';
 export type { SchoolCounts, ClassGroupFilter } from './application/queries';
 
@@ -73,13 +68,8 @@ export const academics = {
   studentsPage,
   studentById,
   studentHasEnrollment,
-  registerGuardian,
-  listGuardians,
-  guardianById,
-  guardiansPage,
   linkGuardian,
   studentGuardians,
-  studentGuardiansPage,
   enroll,
   transfer,
   enrollmentById,

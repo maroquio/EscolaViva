@@ -7,13 +7,13 @@ import { markRead } from '../infra/announcementRepository';
 export type ReadInput = {
   networkId: string;
   announcementId: string;
-  guardianId: string;
+  userId: string;
 };
 
 const schema = z.object({
   networkId: z.string().uuid(),
   announcementId: z.string().uuid(),
-  guardianId: z.string().uuid(),
+  userId: z.string().uuid(),
 });
 
 export async function markAsRead(input: ReadInput): Promise<Result<void>> {

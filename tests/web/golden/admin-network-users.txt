@@ -96,7 +96,7 @@ Vary: Cookie
 <section class="section" aria-labelledby="users-list-title">
   <div class="section__header">
     <h2 id="users-list-title">Quem tem acesso</h2>
-    <p class="section__note">5 no total</p>
+    <p class="section__note">16 no total</p>
   </div>
 
     <div class="table-scroll">
@@ -159,8 +159,63 @@ Vary: Cookie
         </tr>
                 <tr>
           <th scope="row">Responsável 01 da Silva</th>
-          <td class="cell-text">109.100.004-25</td>
-          <td class="cell-text">portal01@golden.test</td>
+          <td class="cell-text">109.200.001-18</td>
+          <td class="cell-text">responsavel01@golden.test</td>
+          <td class="cell-text">
+                                    <div>Responsável · Escola Central</div>
+                                  </td>
+          <td>
+            <span class="tag tag--active">Ativo</span>
+          </td>
+        </tr>
+                <tr>
+          <th scope="row">Responsável 02 da Silva</th>
+          <td class="cell-text">109.200.002-07</td>
+          <td class="cell-text">responsavel02@golden.test</td>
+          <td class="cell-text">
+                                    <div>Responsável · Escola Central</div>
+                                  </td>
+          <td>
+            <span class="tag tag--active">Ativo</span>
+          </td>
+        </tr>
+                <tr>
+          <th scope="row">Responsável 03 da Silva</th>
+          <td class="cell-text">109.200.003-80</td>
+          <td class="cell-text">responsavel03@golden.test</td>
+          <td class="cell-text">
+                                    <div>Responsável · Escola Central</div>
+                                  </td>
+          <td>
+            <span class="tag tag--active">Ativo</span>
+          </td>
+        </tr>
+                <tr>
+          <th scope="row">Responsável 04 da Silva</th>
+          <td class="cell-text">109.200.004-60</td>
+          <td class="cell-text">responsavel04@golden.test</td>
+          <td class="cell-text">
+                                    <div>Responsável · Escola Central</div>
+                                  </td>
+          <td>
+            <span class="tag tag--active">Ativo</span>
+          </td>
+        </tr>
+                <tr>
+          <th scope="row">Responsável 05 da Silva</th>
+          <td class="cell-text">109.200.005-41</td>
+          <td class="cell-text">responsavel05@golden.test</td>
+          <td class="cell-text">
+                                    <div>Responsável · Escola Central</div>
+                                  </td>
+          <td>
+            <span class="tag tag--active">Ativo</span>
+          </td>
+        </tr>
+                <tr>
+          <th scope="row">Responsável 06 da Silva</th>
+          <td class="cell-text">109.200.006-22</td>
+          <td class="cell-text">responsavel06@golden.test</td>
           <td class="cell-text">
                                     <div>Responsável · Escola Central</div>
                                   </td>
@@ -173,9 +228,31 @@ Vary: Cookie
   </div>
   <nav class="pagination" aria-label="Paginação de usuários">
   <p class="pagination__count">
-    <span class="number">1–5</span>
-    de <span class="number">5</span> usuários  </p>
+    <span class="number">1–10</span>
+    de <span class="number">16</span> usuários  </p>
 
+    <ul class="pagination__list">
+    <li>
+            <span class="pagination__step pagination__step--inert" aria-hidden="true">
+        &lsaquo; Anterior
+      </span>
+          </li>
+
+        <li>
+            <span class="pagination__number pagination__number--current" aria-current="page">
+        1      </span>
+          </li>
+        <li>
+            <a class="pagination__number" href="/network/users?p=2" aria-label="Página 2">
+        2      </a>
+          </li>
+    
+    <li>
+            <a class="pagination__step" href="/network/users?p=2" rel="next">
+        Próxima <span aria-hidden="true">&rsaquo;</span>
+      </a>
+          </li>
+  </ul>
   </nav>
   </section>
     </main>

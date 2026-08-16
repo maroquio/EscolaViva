@@ -85,8 +85,8 @@ Vary: Cookie
     <p class="overline">Secretaria</p>
     <h1 class="page__title">Responsáveis</h1>
     <p class="page__summary">
-      Quem recebe comunicado e acompanha boletim e frequência. Depois de cadastrar, vincule o
-      responsável ao aluno pela ficha dele.
+      Quem recebe comunicado e acompanha boletim e frequência. O cadastro já cria o acesso ao
+      portal; depois, vincule o responsável ao aluno pela ficha dele.
     </p>
   </div>
   <div class="page__actions">
@@ -94,6 +94,7 @@ Vary: Cookie
     <a class="button button--primary" href="/registrar/guardians/new">Cadastrar responsável</a>
   </div>
 </div>
+
 
 <section class="section" aria-labelledby="registered">
   <div class="section__header">

@@ -23,7 +23,7 @@ export type AnnouncementInput = {
   title: string;
   body: string;
   authorUserId: string;
-  recipients: { guardianId: string }[];
+  recipients: { userId: string }[];
 };
 
 const schema = z.object({
@@ -32,7 +32,7 @@ const schema = z.object({
   title: z.string().trim(),
   body: z.string().trim(),
   authorUserId: z.string().uuid(),
-  recipients: z.array(z.object({ guardianId: z.string().uuid() })),
+  recipients: z.array(z.object({ userId: z.string().uuid() })),
 });
 
 type ValidatedData = z.infer<typeof schema>;
@@ -49,15 +49,14 @@ function checkText(data: ValidatedData): Result<void> {
 
 async function targetGuardians(data: ValidatedData): Promise<string[]> {
   if (data.recipients.length > 0) {
-    return [...new Set(data.recipients.map((recipient) => recipient.guardianId))];
+    return [...new Set(data.recipients.map((recipient) => recipient.userId))];
   }
-  const ofSchool = await academics.schoolGuardians(data.networkId, data.schoolId);
-  return ofSchool.map((guardian) => guardian.id);
+  return await academics.schoolGuardians(data.networkId, data.schoolId);
 }
 
 async function save(
   data: ValidatedData,
-  guardianIds: readonly string[],
+  userIds: readonly string[],
 ): Promise<StoredAnnouncement> {
   return await unitOfWork(async ({ sql }) => {
     const announcement = await insertPublished(sql, {
@@ -71,7 +70,7 @@ async function save(
     await insertRecipients(sql, {
       networkId: data.networkId,
       announcementId: announcement.id,
-      guardianIds,
+      userIds,
     });
     return announcement;
   });
@@ -101,10 +100,10 @@ export async function publishAnnouncement(
     return fieldFailure(FIELDS.authorUserId, CODES.unknownAuthor, MESSAGES.unknownAuthor);
   }
 
-  const guardianIds = await targetGuardians(data);
-  if (guardianIds.length === 0) {
+  const userIds = await targetGuardians(data);
+  if (userIds.length === 0) {
     return fieldFailure(FIELDS.recipients, CODES.noRecipients, MESSAGES.noRecipients);
   }
 
-  return success(withAuthor(await save(data, guardianIds), authorName));
+  return success(withAuthor(await save(data, userIds), authorName));
 }

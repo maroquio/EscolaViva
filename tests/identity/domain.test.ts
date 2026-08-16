@@ -154,8 +154,8 @@ describe('the user', () => {
       name: 'Ana Souza',
       email: 'ana.souza@escola.br',
       cpf: generateCpf(1),
+      phone: null,
       active: true,
-      guardianId: null,
     };
     const roles = [
       { schoolId: 'unidade-1', schoolName: 'Escola Centro', role: 'teacher' as const },
@@ -172,24 +172,29 @@ describe('the user', () => {
       name: 'Ana Souza',
       email: 'ana.souza@escola.br',
       roles,
-      guardianId: null,
     });
   });
 
-  test('whoever signs in as a guardian brings the guardian record along', () => {
+  /*
+   * The photographic negative of "whoever signs in as a guardian brings the guardian record
+   * along". ADR 0006 removed the record: whoever signs in as a guardian IS the guardian, and the
+   * session has nothing left to translate.
+   */
+  test('the authenticated user carries no guardian record, because there is none', () => {
     const user: User = {
       id: 'usuario-2',
       networkId: 'rede-1',
       name: 'Carlos Lima',
       email: 'carlos@familia.br',
       cpf: generateCpf(2),
+      phone: '(27) 99999-0000',
       active: true,
-      guardianId: 'responsavel-9',
     };
 
     const authenticatedUser = toAuthenticatedUser(user, networkWith('active'), []);
 
-    expect(authenticatedUser.guardianId).toBe('responsavel-9');
+    expect(Object.keys(authenticatedUser)).not.toContain('guardianId');
+    expect(authenticatedUser.id).toBe('usuario-2');
   });
 
   test('building the authenticated user does not alter the user it was handed', () => {
@@ -199,8 +204,8 @@ describe('the user', () => {
       name: 'Bia Nunes',
       email: 'bia@escola.br',
       cpf: generateCpf(3),
+      phone: null,
       active: true,
-      guardianId: null,
     };
     const copy = { ...user };
 

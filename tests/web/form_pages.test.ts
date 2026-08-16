@@ -15,7 +15,7 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { generateCpf } from '../../src/shared/document';
 import { clearDatabase } from '../support/database';
-import { fullScenario, twoNetworks, type Scenario } from '../support/factories';
+import { createUser, fullScenario, twoNetworks, type Scenario } from '../support/factories';
 import { open, signIn, send } from './support';
 
 const signInAs = (scenario: Scenario, who: 'admin' | 'registrar'): Promise<string> =>
@@ -261,23 +261,6 @@ describe('the rejected form goes back to the form, not to the list', () => {
     expect(html).not.toContain('Unidades cadastradas');
   });
 
-  test('the invitation refuses a CPF that diverges from the record, without publishing the number', async () => {
-    const scenario = await fullScenario();
-    const cookie = await signInAs(scenario, 'admin');
-    const guardian = scenario.guardians[0];
-
-    const response = await send('/network/users', {
-      name: 'Mãe do Aluno', email: 'mae@escolaviva.test', cpf: generateCpf(987_654),
-      guardianId: guardian.id, 'schools[]': scenario.schools[0].id, 'roles[]': 'guardian',
-    }, cookie);
-    const html = await response.text();
-
-    expect(response.status).toBe(200);
-    expect(html).toContain('id="cpf-error"');
-    expect(html).toContain(guardian.name);
-    expect(html).not.toContain(guardian.cpf);
-  });
-
   test('an invalid CPF on the guardian form comes back with the error anchored to the field', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
@@ -292,19 +275,55 @@ describe('the rejected form goes back to the form, not to the list', () => {
     expect(html).toContain('value="52998224724"');
   });
 
-  test('a guardianId outside the format does not bring the invitation down with a cast error', async () => {
+  /*
+   * ADR 0006 turned registering a guardian into inviting a user, and `user_role.school_id` is NOT
+   * NULL: the screen has to say which school the person enters through. A registrar of a single
+   * school never sees the field — the route takes the only one there is — so what needs guarding
+   * is the registrar of two.
+   */
+  test('a registrar of two schools has to pick one, and the guardian form says so', async () => {
     const scenario = await fullScenario();
-    const cookie = await signInAs(scenario, 'admin');
+    const [schoolA, schoolB] = scenario.schools;
+    const registrar = await createUser({
+      networkId: scenario.network.id,
+      password: scenario.password,
+      roles: [
+        { schoolId: schoolA.id, role: 'registrar' },
+        { schoolId: schoolB.id, role: 'registrar' },
+      ],
+    });
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug, cpf: registrar.cpf, password: scenario.password,
+    });
 
-    const response = await send('/network/users', {
-      name: 'Sem Cadastro', email: 'sem.cadastro@escolaviva.test', cpf: generateCpf(987_655),
-      guardianId: 'nao-e-uuid', 'schools[]': scenario.schools[0].id, 'roles[]': 'registrar',
+    const form = await (await open('/registrar/guardians/new', cookie)).text();
+    expect(form).toContain('name="schoolId"');
+    expect(form).toContain(`>${schoolB.name}</option>`);
+
+    const refused = await send('/registrar/guardians', {
+      name: 'Sem Unidade', email: 'sem.unidade@escolaviva.test', cpf: generateCpf(4_100_001),
+      schoolId: '',
     }, cookie);
-    const html = await response.text();
+    const html = await refused.text();
 
-    expect(response.status).toBe(200);
-    expect(html).toContain('id="guardianId-error"');
+    expect(refused.status).toBe(200);
+    expect(html).toContain('id="schoolId-error"');
+    expect(html).toContain('value="Sem Unidade"');
+
+    const accepted = await send('/registrar/guardians', {
+      name: 'Com Unidade', email: 'com.unidade@escolaviva.test', cpf: generateCpf(4_100_002),
+      schoolId: schoolB.id,
+    }, cookie);
+
+    expect(accepted.status).toBe(303);
   });
+
+  /*
+   * The two tests that lived here guarded the `guardianId` field of the invitation form: one for a
+   * CPF diverging from the record, one for an id outside the format. ADR 0006 deleted the record
+   * and the field; the negative — the form no longer carries it — is in
+   * `coverage_network_account_login.test.ts`.
+   */
 
   test('a rejected link comes back to the link page, without the whole student record', async () => {
     const scenario = await fullScenario();
@@ -313,7 +332,7 @@ describe('the rejected form goes back to the form, not to the list', () => {
 
     const response = await send(
       `/registrar/students/${studentId}/guardians`,
-      { guardianId: '', relationship: '' },
+      { userId: '', relationship: '' },
       cookie,
     );
     const html = await response.text();

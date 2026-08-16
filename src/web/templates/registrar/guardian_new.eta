@@ -2,14 +2,17 @@
 const values = it.values ?? {};
 const { errorFor, describedBy } = it;
 const fields = it.fields.guardian;
+const schools = it.schools ?? [];
+const chosenSchool = values.schoolId ?? '';
 %>
 <div class="page__header">
   <div>
     <p class="overline"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.guardians %></p>
     <h1 class="page__title"><%= it.title %></h1>
     <p class="page__summary">
-      Quem recebe comunicado e acompanha boletim e frequência. Depois de cadastrar, vincule-o ao
-      aluno pela ficha dele.
+      Quem recebe comunicado e acompanha boletim e frequência. Cadastrar cria o acesso ao portal:
+      a senha provisória é gerada agora e aparece uma única vez na lista. Depois, vincule o
+      responsável ao aluno pela ficha dele.
     </p>
   </div>
 </div>
@@ -53,7 +56,8 @@ const fields = it.fields.guardian;
           <% if (errorFor(fields.email) !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= describedBy(fields.email, true) %>">
         <p class="field__help" id="<%= it.helpId(fields.email) %>">
-          Único na rede. É por ele que o responsável recebe comunicado — não é usado para entrar.
+          Contato: é por ele que o responsável recebe comunicado. Não é usado para entrar, e uma
+          mesma família pode repetir o endereço.
         </p>
         <% if (errorFor(fields.email) !== '') { %>
         <p class="field__error" id="<%= it.errorId(fields.email) %>"><%= errorFor(fields.email) %></p>
@@ -61,18 +65,21 @@ const fields = it.fields.guardian;
       </div>
 
       <div class="field">
-        <label class="field__label" for="cpf"><%= it.labels.cpf %></label>
+        <label class="field__label" for="cpf">
+          <%= it.labels.cpf %> <span class="field__required" aria-hidden="true">*</span>
+        </label>
         <input
           id="cpf"
           name="<%= fields.cpf %>"
           type="text"
+          required
           maxlength="<%= it.maskedCpfLimit %>"
           autocomplete="off"
           value="<%= values.cpf ?? '' %>"
           <% if (errorFor(fields.cpf) !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= describedBy(fields.cpf, true) %>">
         <p class="field__help" id="<%= it.helpId(fields.cpf) %>">
-          Opcional. Sem CPF a pessoa fica como contato e não recebe acesso ao portal.
+          É por ele que o responsável entra. Com ou sem pontos.
         </p>
         <% if (errorFor(fields.cpf) !== '') { %>
         <p class="field__error" id="<%= it.errorId(fields.cpf) %>"><%= errorFor(fields.cpf) %></p>
@@ -96,6 +103,31 @@ const fields = it.fields.guardian;
         <% } %>
       </div>
     </div>
+
+    <% if (schools.length > 1) { %>
+    <div class="field">
+      <label class="field__label" for="schoolId">
+        <%= it.labels.school %> <span class="field__required" aria-hidden="true">*</span>
+      </label>
+      <select
+        id="schoolId"
+        name="<%= fields.schoolId %>"
+        required
+        <% if (errorFor(fields.schoolId) !== '') { %>aria-invalid="true"<% } %>
+        aria-describedby="<%= describedBy(fields.schoolId, true) %>">
+        <option value=""><%= it.emptyOption %></option>
+        <% schools.forEach((school) => { %>
+        <option value="<%= school.id %>" <%= chosenSchool === school.id ? 'selected' : '' %>><%= school.name %></option>
+        <% }) %>
+      </select>
+      <p class="field__help" id="<%= it.helpId(fields.schoolId) %>">
+        Onde o responsável entra no portal. O vínculo com cada aluno vem depois, pela ficha dele.
+      </p>
+      <% if (errorFor(fields.schoolId) !== '') { %>
+      <p class="field__error" id="<%= it.errorId(fields.schoolId) %>"><%= errorFor(fields.schoolId) %></p>
+      <% } %>
+    </div>
+    <% } %>
 
     <div class="actions">
       <button class="button button--primary" type="submit"><%= it.titles.registrar.guardianNew %></button>

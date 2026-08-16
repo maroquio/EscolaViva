@@ -4,8 +4,14 @@ import { DEFAULT_PAGE_SIZE, emptyPage, queryPage, type Page } from '../../shared
 import { systemClock } from '../../shared/ports';
 import { isNetworkActive } from '../domain/network';
 import { hasSessionExpired } from '../domain/session';
+import type { Role } from '../domain/role';
 import type { School } from '../domain/school';
-import { toAuthenticatedUser, type AuthenticatedUser, type UserSummary } from '../domain/user';
+import {
+  toAuthenticatedUser,
+  type AuthenticatedUser,
+  type UserContact,
+  type UserSummary,
+} from '../domain/user';
 import * as networkRepository from '../infra/networkRepository';
 import * as sessionRepository from '../infra/sessionRepository';
 import * as schoolRepository from '../infra/schoolRepository';
@@ -54,23 +60,24 @@ export async function schoolsPage(
   );
 }
 
-export async function listUsers(networkId: string): Promise<UserSummary[]> {
+export async function listUsers(networkId: string, role?: Role): Promise<UserSummary[]> {
   if (!isUuid(networkId)) return [];
-  return await userRepository.listSummaries(reader(), networkId);
+  return await userRepository.listSummaries(reader(), networkId, role);
 }
 
 export async function usersPage(
   networkId: string,
   page: number,
   size: number = DEFAULT_PAGE_SIZE,
+  role?: Role,
 ): Promise<Page<UserSummary>> {
   if (!isUuid(networkId)) return emptyPage<UserSummary>(size);
   const sql = reader();
   return await queryPage(
     page,
     size,
-    () => userRepository.countByNetwork(sql, networkId),
-    (range) => userRepository.listSummaries(sql, networkId, range),
+    () => userRepository.countByNetwork(sql, networkId, role),
+    (range) => userRepository.listSummaries(sql, networkId, role, range),
   );
 }
 
@@ -118,4 +125,13 @@ export async function userNames(
   if (!isUuid(networkId)) return new Map<string, string>();
   const valid = [...new Set(ids.filter(isUuid))];
   return await userRepository.namesByIds(reader(), networkId, valid);
+}
+
+export async function userContacts(
+  networkId: string,
+  ids: string[],
+): Promise<Map<string, UserContact>> {
+  if (!isUuid(networkId)) return new Map<string, UserContact>();
+  const valid = [...new Set(ids.filter(isUuid))];
+  return await userRepository.contactsByIds(reader(), networkId, valid);
 }

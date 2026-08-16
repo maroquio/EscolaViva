@@ -20,6 +20,7 @@ import {
   createGuardian,
   createClassGroup,
   createSchool,
+  createUser,
 } from '../support/factories';
 
 beforeEach(clearDatabase);
@@ -27,14 +28,19 @@ beforeEach(clearDatabase);
 /** Names numbered with a leading zero so that alphabetical order is creation order. */
 const numberedName = (position: number): string => `Pessoa ${String(position).padStart(3, '0')}`;
 
-describe('guardiansPage', () => {
+/*
+ * ADR 0006: the guardian listing left `academics` and became `identity.usersPage` filtered by
+ * role — the context that owns the name is the one that sorts and paginates by it.
+ */
+describe('the guardian page, now filtered by role in identity', () => {
   test('the first page brings the requested size, and the total counts them all', async () => {
     const network = await createNetwork();
+    const school = await createSchool({ networkId: network.id });
     for (let i = 1; i <= 7; i += 1) {
-      await createGuardian({ networkId: network.id, name: numberedName(i) });
+      await createGuardian({ networkId: network.id, schoolId: school.id, name: numberedName(i) });
     }
 
-    const page = await academics.guardiansPage(network.id, 1, 3);
+    const page = await identity.usersPage(network.id, 1, 3, 'guardian');
 
     expect(page.items.map((r) => r.name)).toEqual([
       numberedName(1), numberedName(2), numberedName(3),
@@ -44,14 +50,15 @@ describe('guardiansPage', () => {
 
   test('the next page picks up where the previous one stopped, repeating nothing and skipping nothing', async () => {
     const network = await createNetwork();
+    const school = await createSchool({ networkId: network.id });
     for (let i = 1; i <= 7; i += 1) {
-      await createGuardian({ networkId: network.id, name: numberedName(i) });
+      await createGuardian({ networkId: network.id, schoolId: school.id, name: numberedName(i) });
     }
 
     const [first, second, third] = await Promise.all([
-      academics.guardiansPage(network.id, 1, 3),
-      academics.guardiansPage(network.id, 2, 3),
-      academics.guardiansPage(network.id, 3, 3),
+      identity.usersPage(network.id, 1, 3, 'guardian'),
+      identity.usersPage(network.id, 2, 3, 'guardian'),
+      identity.usersPage(network.id, 3, 3, 'guardian'),
     ]);
 
     const traversed = [...first.items, ...second.items, ...third.items].map((r) => r.name);
@@ -60,11 +67,12 @@ describe('guardiansPage', () => {
 
   test('a page past the end gives back the last one, not an empty list', async () => {
     const network = await createNetwork();
+    const school = await createSchool({ networkId: network.id });
     for (let i = 1; i <= 5; i += 1) {
-      await createGuardian({ networkId: network.id, name: numberedName(i) });
+      await createGuardian({ networkId: network.id, schoolId: school.id, name: numberedName(i) });
     }
 
-    const page = await academics.guardiansPage(network.id, 99, 2);
+    const page = await identity.usersPage(network.id, 99, 2, 'guardian');
 
     expect(page.page).toBe(3);
     expect(page.items.map((r) => r.name)).toEqual([numberedName(5)]);
@@ -73,13 +81,32 @@ describe('guardiansPage', () => {
   test('the total never counts a guardian from another network', async () => {
     const ours = await createNetwork();
     const foreign = await createNetwork();
-    await createGuardian({ networkId: ours.id, name: numberedName(1) });
-    const fromOutside = await createGuardian({ networkId: foreign.id, name: numberedName(2) });
+    const ourSchool = await createSchool({ networkId: ours.id });
+    const foreignSchool = await createSchool({ networkId: foreign.id });
+    await createGuardian({ networkId: ours.id, schoolId: ourSchool.id, name: numberedName(1) });
+    const fromOutside = await createGuardian({
+      networkId: foreign.id, schoolId: foreignSchool.id, name: numberedName(2),
+    });
 
-    const page = await academics.guardiansPage(ours.id, 1, 50);
+    const page = await identity.usersPage(ours.id, 1, 50, 'guardian');
 
     expect(page.total).toBe(1);
     expect(page.items.map((r) => r.id)).not.toContain(fromOutside.id);
+  });
+
+  test('the role filter leaves out whoever is not a guardian', async () => {
+    const network = await createNetwork();
+    const school = await createSchool({ networkId: network.id });
+    await createGuardian({ networkId: network.id, schoolId: school.id, name: numberedName(1) });
+    await createUser({
+      networkId: network.id, name: numberedName(2),
+      roles: [{ schoolId: school.id, role: 'registrar' }],
+    });
+    await createUser({ networkId: network.id, name: numberedName(3) });
+
+    const page = await identity.usersPage(network.id, 1, 50, 'guardian');
+
+    expect(page.items.map((r) => r.name)).toEqual([numberedName(1)]);
   });
 });
 
@@ -233,7 +260,8 @@ describe('usersPage', () => {
     const page = await identity.usersPage(scenario.network.id, 1, 2);
 
     expect(page.items).toHaveLength(2);
-    expect(page.total).toBe(4);
+    // ADR 0006: the five guardians of the scenario are `app_user` rows like any other.
+    expect(page.total).toBe(3 + scenario.guardians.length);
     const admin = page.items.find((user) => user.id === scenario.admin.id);
     if (admin !== undefined) expect(admin.roles).toHaveLength(2);
   });

@@ -52,7 +52,9 @@ describe('slicing on the guardians screen', () => {
   const onePageAndARemainder = async (): Promise<Scenario> => {
     const scenario = await fullScenario();
     for (let i = 1; i <= PAGE_SIZE; i += 1) {
-      await createGuardian({ networkId: scenario.network.id, name: numberedName(i) });
+      await createGuardian({
+        networkId: scenario.network.id, schoolId: scenario.schools[0].id, name: numberedName(i),
+      });
     }
     return scenario;
   };
@@ -129,7 +131,9 @@ describe('the rest of the query survives the navigation', () => {
   test('going back to the first page drops the parameter from the URL instead of writing p=1', async () => {
     const scenario = await fullScenario();
     for (let i = 1; i <= PAGE_SIZE + REMAINDER; i += 1) {
-      await createGuardian({ networkId: scenario.network.id, name: numberedName(i) });
+      await createGuardian({
+        networkId: scenario.network.id, schoolId: scenario.schools[0].id, name: numberedName(i),
+      });
     }
 
     const page = await html('/registrar/guardians?p=2', await signInAsRegistrar(scenario));
@@ -170,12 +174,12 @@ describe('the guardian portal', () => {
     await createAnnouncement({
       networkId: scenario.network.id, schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
-      recipients: [{ guardianId: guardian.id }],
+      recipients: [{ userId: guardian.id }],
     });
     await createAnnouncement({
       networkId: scenario.network.id, schoolId: scenario.schools[0].id,
       authorUserId: scenario.registrar.id,
-      recipients: [{ guardianId: guardian.id, readAt: new Date() }],
+      recipients: [{ userId: guardian.id, readAt: new Date() }],
     });
 
     const page = await html('/guardian/board', await signInAsGuardian(scenario));

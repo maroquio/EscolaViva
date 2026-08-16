@@ -9,8 +9,8 @@ export type User = {
   name: string;
   email: string;
   cpf: string;
+  phone: string | null;
   active: boolean;
-  guardianId: string | null;
 };
 
 export type AuthenticatedUser = {
@@ -21,7 +21,6 @@ export type AuthenticatedUser = {
   name: string;
   email: string;
   roles: RoleInSchool[];
-  guardianId: string | null;
 };
 
 export type UserSummary = {
@@ -29,8 +28,16 @@ export type UserSummary = {
   name: string;
   email: string;
   cpf: string | null;
+  phone: string | null;
   active: boolean;
   roles: RoleInSchool[];
+};
+
+export type UserContact = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
 };
 
 export function normalizedEmail(email: string): string {
@@ -50,6 +57,5 @@ export function toAuthenticatedUser(
     name: user.name,
     email: user.email,
     roles,
-    guardianId: user.guardianId,
   };
 }

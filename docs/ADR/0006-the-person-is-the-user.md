@@ -1,14 +1,9 @@
 # ADR 0006 — The person is the user: the `guardian` table stops existing
 
-**Status:** accepted — Stage 01. **Recorded, not implemented.**
+**Status:** accepted — Stage 01. **Implemented** in
+`migrations/0002_the_person_is_the_user.sql`.
 **Supersedes:** the consequence "a guardian without a CPF still exists as a contact" from ADR 0004,
 and decisions 1, 2 and 3 of ADR 0005.
-
-> **Reading note.** The identifiers cited here (`app_user`, `guardian`, `student_guardian`) are the
-> post-conversion names: the repository's vocabulary has already moved to English, and this decision
-> deliberately waited for that so the migration is born with the final names instead of renaming the
-> same objects twice. What is still pending is the implementation — there is no `0009` migration and
-> no change under `src/`.
 
 ## Context
 
@@ -39,26 +34,23 @@ identity.**
 ```sql
 ALTER TABLE app_user ADD COLUMN phone text;
 
-DROP TABLE student_guardian;
-
-CREATE TABLE student_guardian (
-  network_id              uuid NOT NULL REFERENCES network(id),
-  student_id              uuid NOT NULL REFERENCES student(id),
-  user_id                 uuid NOT NULL REFERENCES app_user(id),
-  relationship            text NOT NULL,
-  financially_responsible boolean NOT NULL DEFAULT false,
-  PRIMARY KEY (student_id, user_id)
-);
+-- student_guardian and announcement_recipient swap guardian_id for
+-- user_id uuid NOT NULL REFERENCES app_user(id), and the primary key goes with it:
+-- (student_id, user_id) and (announcement_id, user_id).
 CREATE INDEX student_guardian_by_user ON student_guardian (network_id, user_id);
+CREATE INDEX announcement_recipient_by_user ON announcement_recipient (network_id, user_id);
 
--- announcement_recipient now references user_id in place of guardian_id
-
-DROP TABLE guardian;
+ALTER TABLE app_user DROP CONSTRAINT app_user_guardian_id_fkey;
+DROP INDEX app_user_by_guardian;
 ALTER TABLE app_user DROP COLUMN guardian_id;
+DROP TABLE guardian;
 ```
 
 Nineteen tables become eighteen, forty-two foreign keys become forty, and **none points against the
-direction of the code**. `identity` becomes a leaf of the graph in the database too.
+direction of the code**. `identity` becomes a leaf of the graph in the database too. Counted after
+the fact against the migrated schema, the arrows between modules are: `academics → identity` (10),
+`assessment → academics` (4), `assessment → identity` (5), `communication → identity` (5),
+`shared → identity` (1) — and from `identity`, only `identity → identity` (7).
 
 **What disappears with it:** `guardianId` leaves `AuthenticatedUser` and `SessionUser`. The guardian
 dashboard filters by `currentUser(c).id` directly — the logged-in user *is* the guardian, and there is
@@ -105,12 +97,17 @@ the extra query. Under the new premises it is strictly worse than deleting the t
 - **`guardian` comes to mean one thing only.** Today the name does two jobs: it is a value of `ROLES`,
   the permission, and it is the name of the record table. The ambiguity ADR 0005 flagged as a
   prerequisite for any change here resolves itself as a consequence, with no separate language work.
-- **The migration's obstacle is data, not DDL.** Following ADR 0003: `0009` opens the window with the
-  new columns nullable and backfills through `app_user.guardian_id`; the code starts reading the new
-  ones; `0010` closes with `NOT NULL`, the primary-key swap and the two `DROP`s. The backfill requires
-  one `app_user` per linked `guardian`, and `app_user.cpf` is `NOT NULL` — every guardian currently
-  registered without a CPF blocks the step. **It is CPF collection that decides the schedule, not the
-  migration.**
+- **The migration's obstacle is data, not DDL.** The backfill requires one `app_user` per linked
+  `guardian`, and `app_user.cpf` is `NOT NULL` — every guardian registered without a CPF blocks the
+  step. **It is CPF collection that decides the schedule, not the migration.** The `SET NOT NULL` on
+  the new `user_id` columns is where that failure surfaces, loudly, instead of silently dropping
+  rows. In this repository the data comes from `scripts/seed.ts`, which was changed first so every
+  guardian is born as an `app_user` with a CPF and a role.
+- **It went in as one migration, not as the pair ADR 0003 asks for.** The compatibility window would
+  be `0002` opening (nullable columns, backfill) and `0003` closing (`NOT NULL`, primary-key swap,
+  the two `DROP`s). It was collapsed into `0002` by an explicit call: there is no previous version
+  in flight and no data but the seed's. ADR 0003 stands — this is a deliberate exception to it,
+  recorded here so it is not read as precedent.
 - **`linkGuardian` does not grant the role in the same transaction.** The `identity` facade exposes no
   write that accepts the `sql` of an in-flight unit of work, and opening that door would leak
   infrastructure through the published language. The two operations stay separate, as they are today,
@@ -120,5 +117,14 @@ the extra query. Under the new premises it is strictly worse than deleting the t
   `student.user_id` would follow the same direction. What stays open in that case is what premise 1
   does not resolve: the `student` table has no CPF, and requiring a CPF from a first-grader is a
   product decision, not a schema one.
-- **None of this has been implemented.** There is no `0009` migration and no change under `src/`. This
-  ADR is the record of the decision and of the plan.
+- **Registering a guardian became inviting a user.** `academics.registerGuardian` is gone: the
+  registrar's screen calls `identity.inviteUser` and shows the temporary password, the way the
+  network's user screen already did. `user_role.school_id` is `NOT NULL`, so the form asks which
+  school the person enters through — implicitly when the registrar has one, with a select when they
+  have more. The listing follows the same move: it is `identity.usersPage` filtered by role.
+- **The guardian's name and e-mail stop being academics' to give.** `studentGuardians` hands back the
+  link alone — `userId`, `relationship`, `financiallyResponsible` — and whoever assembles the screen
+  resolves the contact through `identity.userContacts`. It is the pattern the teacher already used
+  (`class_group_subject.teacher_user_id` plus `identity.userNames`). Sorting and paginating the
+  student's guardian list moved into memory, which is what keeps the alphabetical order the screen
+  had while the name lived in the same table as the link.

@@ -85,8 +85,9 @@ Vary: Cookie
     <p class="overline">Secretaria · Responsáveis</p>
     <h1 class="page__title">Cadastrar responsável</h1>
     <p class="page__summary">
-      Quem recebe comunicado e acompanha boletim e frequência. Depois de cadastrar, vincule-o ao
-      aluno pela ficha dele.
+      Quem recebe comunicado e acompanha boletim e frequência. Cadastrar cria o acesso ao portal:
+      a senha provisória é gerada agora e aparece uma única vez na lista. Depois, vincule o
+      responsável ao aluno pela ficha dele.
     </p>
   </div>
 </div>
@@ -125,22 +126,26 @@ Vary: Cookie
           value=""
                     aria-describedby="email-help">
         <p class="field__help" id="email-help">
-          Único na rede. É por ele que o responsável recebe comunicado — não é usado para entrar.
+          Contato: é por ele que o responsável recebe comunicado. Não é usado para entrar, e uma
+          mesma família pode repetir o endereço.
         </p>
               </div>
 
       <div class="field">
-        <label class="field__label" for="cpf">CPF</label>
+        <label class="field__label" for="cpf">
+          CPF <span class="field__required" aria-hidden="true">*</span>
+        </label>
         <input
           id="cpf"
           name="cpf"
           type="text"
+          required
           maxlength="14"
           autocomplete="off"
           value=""
                     aria-describedby="cpf-help">
         <p class="field__help" id="cpf-help">
-          Opcional. Sem CPF a pessoa fica como contato e não recebe acesso ao portal.
+          É por ele que o responsável entra. Com ou sem pontos.
         </p>
               </div>
 
@@ -158,6 +163,7 @@ Vary: Cookie
               </div>
     </div>
 
+    
     <div class="actions">
       <button class="button button--primary" type="submit">Cadastrar responsável</button>
       <a class="button button--quiet" href="/registrar/guardians">Cancelar</a>

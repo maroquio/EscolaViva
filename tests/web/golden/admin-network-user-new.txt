@@ -213,32 +213,6 @@ Vary: Cookie
               </div>
     </fieldset>
 
-    <div class="field">
-      <label class="field__label" for="guardianId">Cadastro de responsável</label>
-      <select
-        id="guardianId"
-        name="guardianId"
-                aria-describedby="guardianId-help">
-        <option value="">Nenhum</option>
-                <option value="{{guardian01}}" >Responsável 01 da Silva — responsavel01@golden.test</option>
-                <option value="{{guardian02}}" >Responsável 02 da Silva — responsavel02@golden.test</option>
-                <option value="{{guardian03}}" >Responsável 03 da Silva — responsavel03@golden.test</option>
-                <option value="{{guardian04}}" >Responsável 04 da Silva — responsavel04@golden.test</option>
-                <option value="{{guardian05}}" >Responsável 05 da Silva — responsavel05@golden.test</option>
-                <option value="{{guardian06}}" >Responsável 06 da Silva — responsavel06@golden.test</option>
-                <option value="{{guardian07}}" >Responsável 07 da Silva — responsavel07@golden.test</option>
-                <option value="{{guardian08}}" >Responsável 08 da Silva — responsavel08@golden.test</option>
-                <option value="{{guardian09}}" >Responsável 09 da Silva — responsavel09@golden.test</option>
-                <option value="{{guardian10}}" >Responsável 10 da Silva — responsavel10@golden.test</option>
-                <option value="{{guardian11}}" >Responsável 11 da Silva — responsavel11@golden.test</option>
-                <option value="{{guardian12}}" >Responsável 12 da Silva — responsavel12@golden.test</option>
-              </select>
-      <p class="field__help" id="guardianId-help">
-        Obrigatório quando alguma atribuição acima for Responsável: é esse cadastro que liga a
-        conta aos alunos. A secretaria cria o cadastro antes do convite.
-      </p>
-          </div>
-
     <div class="actions">
       <button class="button button--primary" type="submit">Criar usuário</button>
       <a class="button button--quiet" href="/network/users">Cancelar</a>

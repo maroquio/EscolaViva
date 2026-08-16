@@ -7,7 +7,7 @@ import {
   assessment,
   type ReportCard,
 } from '../../assessment';
-import { communication, type BoardItem } from '../../communication';
+import { communication } from '../../communication';
 import { ROLE } from '../../identity';
 import {
   NotFound,
@@ -16,7 +16,6 @@ import {
   requireRole,
   type Variables,
 } from '../../shared/http';
-import { emptyPage } from '../../shared/pagination';
 import {
   DIAGNOSTICS,
   MISSING_VALUE,
@@ -56,16 +55,11 @@ const PASSING_CRITERIA = {
   attendance: `${toScreenScale(PASSING.minimumAttendanceInHundredths)}${PRESENTATION.percentSuffix}`,
 };
 
-const sessionGuardian = (c: Context): string | null => currentUser(c).guardianId;
-
 const enrollmentUnderResponsibility = async (
   c: Context,
   enrollmentId: string,
 ): Promise<Enrollment> => {
-  const guardianId = sessionGuardian(c);
-  if (guardianId === null) throw new NotFound(DIAGNOSTICS.accountWithoutGuardian);
-
-  const enrollments = await academics.guardianEnrollments(currentNetwork(c), guardianId);
+  const enrollments = await academics.guardianEnrollments(currentNetwork(c), currentUser(c).id);
   const enrollment = enrollments.find((row) => row.id === enrollmentId);
   if (enrollment === undefined) {
     throw new NotFound(DIAGNOSTICS.enrollmentOutsideResponsibility);
@@ -81,25 +75,12 @@ const withNotice = (target: string, notice: Record<string, string>): string =>
 
 guardianRoutes.get(ROUTES.guardian.dashboard.pattern, async (c) => {
   const networkId = currentNetwork(c);
-  const guardianId = sessionGuardian(c);
-
-  if (guardianId === null) {
-    return render(c, TEMPLATES.guardian.dashboard, {
-      ...PARTIALS,
-      ...ACADEMIC_LABELS,
-      title: TITLES.guardian.dashboard,
-      enrollments: [],
-      pagination: pagination(c, emptyPage<Enrollment>()),
-      unread: [],
-      unreadTotal: 0,
-      boardTotal: 0,
-    });
-  }
+  const userId = currentUser(c).id;
 
   const [page, unread, counts] = await Promise.all([
-    academics.guardianEnrollmentsPage(networkId, guardianId, pageFromQuery(c)),
-    communication.boardPage(networkId, guardianId, false, 1),
-    communication.boardCounts(networkId, guardianId),
+    academics.guardianEnrollmentsPage(networkId, userId, pageFromQuery(c)),
+    communication.boardPage(networkId, userId, false, 1),
+    communication.boardCounts(networkId, userId),
   ]);
 
   return render(c, TEMPLATES.guardian.dashboard, {
@@ -157,25 +138,12 @@ guardianRoutes.get(ROUTES.guardian.attendance.pattern, async (c) => {
 });
 
 guardianRoutes.get(ROUTES.guardian.board.pattern, async (c) => {
-  const guardianId = sessionGuardian(c);
+  const userId = currentUser(c).id;
   const networkId = currentNetwork(c);
-  const [unread, read] =
-    guardianId === null
-      ? [emptyPage<BoardItem>(), emptyPage<BoardItem>()]
-      : await Promise.all([
-          communication.boardPage(
-            networkId,
-            guardianId,
-            false,
-            pageFromQuery(c, PARAMS.unreadPage),
-          ),
-          communication.boardPage(
-            networkId,
-            guardianId,
-            true,
-            pageFromQuery(c, PARAMS.readPage),
-          ),
-        ]);
+  const [unread, read] = await Promise.all([
+    communication.boardPage(networkId, userId, false, pageFromQuery(c, PARAMS.unreadPage)),
+    communication.boardPage(networkId, userId, true, pageFromQuery(c, PARAMS.readPage)),
+  ]);
 
   return render(c, TEMPLATES.guardian.board, {
     ...PARTIALS,
@@ -192,12 +160,11 @@ guardianRoutes.get(ROUTES.guardian.board.pattern, async (c) => {
 guardianRoutes.get(ROUTES.guardian.announcement.pattern, async (c) => {
   const { announcementId } = c.req.param();
   const networkId = currentNetwork(c);
-  const guardianId = sessionGuardian(c);
-  if (guardianId === null) throw new NotFound(DIAGNOSTICS.accountWithoutGuardian);
+  const userId = currentUser(c).id;
 
   const [announcement, board] = await Promise.all([
-    communication.announcementForGuardian(networkId, guardianId, announcementId),
-    communication.guardianBoard(networkId, guardianId),
+    communication.announcementForGuardian(networkId, userId, announcementId),
+    communication.guardianBoard(networkId, userId),
   ]);
   if (announcement === null) throw new NotFound(DIAGNOSTICS.announcementOutsideBoard);
 
@@ -211,12 +178,11 @@ guardianRoutes.get(ROUTES.guardian.announcement.pattern, async (c) => {
 guardianRoutes.post(ROUTES.guardian.announcementRead.pattern, async (c) => {
   const { announcementId } = c.req.param();
   const networkId = currentNetwork(c);
-  const guardianId = sessionGuardian(c);
-  if (guardianId === null) throw new NotFound(DIAGNOSTICS.accountWithoutGuardian);
+  const userId = currentUser(c).id;
 
   const announcement = await communication.announcementForGuardian(
     networkId,
-    guardianId,
+    userId,
     announcementId,
   );
   if (announcement === null) throw new NotFound(DIAGNOSTICS.announcementOutsideBoard);
@@ -224,7 +190,7 @@ guardianRoutes.post(ROUTES.guardian.announcementRead.pattern, async (c) => {
   const result = await communication.markAsRead({
     networkId,
     announcementId,
-    guardianId,
+    userId,
   });
   if (!result.ok) {
     const message = result.errors[0]?.message ?? NOTICES.readNotRecorded;

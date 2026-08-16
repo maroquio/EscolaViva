@@ -19,7 +19,6 @@ import {
   createGuardian,
   createClassGroup,
   createSchool,
-  createUser,
   twoNetworks,
   linkStudentGuardian,
 } from '../support/factories';
@@ -356,129 +355,12 @@ describe('registerStudent', () => {
   });
 });
 
-describe('registerGuardian', () => {
-  test('records the guardian with the e-mail normalized', async () => {
-    const network = await createNetwork();
-
-    const result = await academics.registerGuardian({
-      networkId: network.id, name: 'Carla Dias', email: '  Carla.DIAS@Familia.BR ', phone: '27999990000',
-    });
-
-    const guardian = valueOfResult(result);
-    expect(guardian).toEqual({
-      id: guardian.id, networkId: network.id, name: 'Carla Dias', cpf: null,
-      email: 'carla.dias@familia.br', phone: '27999990000',
-    });
-  });
-
-  test('a blank phone becomes the absence of a phone', async () => {
-    const network = await createNetwork();
-
-    const result = await academics.registerGuardian({
-      networkId: network.id, name: 'Carla Dias', email: 'carla@familia.br', phone: '',
-    });
-
-    expect(valueOfResult(result).phone).toBeNull();
-  });
-
-  test('refuses an e-mail already on record in the network', async () => {
-    const network = await createNetwork();
-    await createGuardian({ networkId: network.id, email: 'carla@familia.br' });
-
-    const result = await academics.registerGuardian({
-      networkId: network.id, name: 'Outra Carla', email: 'carla@familia.br',
-    });
-
-    expect(errorsOf(result)).toEqual([
-      {
-        field: 'email',
-        code: 'duplicate_email',
-        message: 'Esta rede já tem um responsável com este e-mail.',
-      },
-    ]);
-    expect(await academics.listGuardians(network.id)).toHaveLength(1);
-  });
-
-  test('accepts the same guardian e-mail in another network', async () => {
-    const first = await createNetwork();
-    const second = await createNetwork();
-    await createGuardian({ networkId: first.id, email: 'carla@familia.br' });
-
-    const result = await academics.registerGuardian({
-      networkId: second.id, name: 'Carla Dias', email: 'carla@familia.br',
-    });
-
-    expect(result.ok).toBe(true);
-    expect(await academics.listGuardians(first.id)).toHaveLength(1);
-    expect(await academics.listGuardians(second.id)).toHaveLength(1);
-  });
-
-  test('refuses an invalid e-mail', async () => {
-    const network = await createNetwork();
-
-    const result = await academics.registerGuardian({
-      networkId: network.id, name: 'Carla Dias', email: 'carla-arroba-nada',
-    });
-
-    expect(errorsOf(result)[0]?.field).toBe('email');
-  });
-
-  test('records a guardian with no CPF — a foreigner exists as a contact', async () => {
-    const network = await createNetwork({});
-
-    const created = await academics.registerGuardian({
-      networkId: network.id,
-      name: 'Aiko Tanaka',
-      email: 'aiko@escolaviva.test',
-      cpf: '',
-    });
-
-    expect(created.ok).toBe(true);
-    if (created.ok) expect(created.value.cpf).toBeNull();
-  });
-
-  test('accepts an explicit null CPF on the record', async () => {
-    const network = await createNetwork({});
-
-    const created = await academics.registerGuardian({
-      networkId: network.id,
-      name: 'Maria Santos',
-      email: 'maria@escolaviva.test',
-      cpf: null,
-    });
-
-    expect(created.ok).toBe(true);
-    if (created.ok) expect(created.value.cpf).toBeNull();
-  });
-
-  test('refuses a CPF whose check digit is wrong', async () => {
-    const network = await createNetwork({});
-
-    const created = await academics.registerGuardian({
-      networkId: network.id,
-      name: 'Marcos Vinícius Pires',
-      email: 'marcos@escolaviva.test',
-      cpf: '52998224724',
-    });
-
-    expect(created.ok).toBe(false);
-    if (!created.ok) expect(created.errors[0]?.field).toBe('cpf');
-  });
-
-  test('stores the CPF as digits alone, even when typed with punctuation', async () => {
-    const network = await createNetwork({});
-
-    const created = await academics.registerGuardian({
-      networkId: network.id,
-      name: 'Heloísa Braga Sampaio',
-      email: 'heloisa@escolaviva.test',
-      cpf: '529.982.247-25',
-    });
-
-    expect(created.ok).toBe(true);
-    if (created.ok) expect(created.value.cpf).toBe('52998224725');
-  });
-});
+/*
+ * `registerGuardian` was deleted by ADR 0006: a guardian is an `app_user`, and registering one is
+ * `identity.inviteUser`. The rules that lived here — e-mail normalized, invalid e-mail refused,
+ * CPF stored as digits alone — moved to `tests/identity/users.test.ts`, together with the
+ * consequence that reverses one of them: a guardian without a CPF is no longer registrable.
+ */
 
 describe('linkGuardian', () => {
   test('ties the guardian to the student under the relationship given', async () => {
@@ -489,16 +371,13 @@ describe('linkGuardian', () => {
     });
 
     const result = await academics.linkGuardian({
-      networkId: network.id, studentId: student.id, guardianId: guardian.id,
+      networkId: network.id, studentId: student.id, userId: guardian.id,
       relationship: 'mãe', financiallyResponsible: true,
     });
 
     expect(result.ok).toBe(true);
     expect(await academics.studentGuardians(network.id, student.id)).toEqual([
-      {
-        guardianId: guardian.id, name: 'Carla Dias',
-        email: 'carla@familia.br', relationship: 'mãe', financiallyResponsible: true,
-      },
+      { userId: guardian.id, relationship: 'mãe', financiallyResponsible: true },
     ]);
   });
 
@@ -507,17 +386,17 @@ describe('linkGuardian', () => {
     const student = await createStudent({ networkId: network.id });
     const guardian = await createGuardian({ networkId: network.id });
     await linkStudentGuardian({
-      networkId: network.id, studentId: student.id, guardianId: guardian.id,
+      networkId: network.id, studentId: student.id, userId: guardian.id,
     });
 
     const result = await academics.linkGuardian({
-      networkId: network.id, studentId: student.id, guardianId: guardian.id,
+      networkId: network.id, studentId: student.id, userId: guardian.id,
       relationship: 'pai', financiallyResponsible: false,
     });
 
     expect(errorsOf(result)).toEqual([
       {
-        field: 'guardianId',
+        field: 'userId',
         code: 'duplicate_link',
         message: 'Este responsável já está vinculado a este aluno.',
       },
@@ -532,7 +411,7 @@ describe('linkGuardian', () => {
     const guardian = await createGuardian({ networkId: ours.id });
 
     const result = await academics.linkGuardian({
-      networkId: ours.id, studentId: foreignStudent.id, guardianId: guardian.id,
+      networkId: ours.id, studentId: foreignStudent.id, userId: guardian.id,
       relationship: 'mãe', financiallyResponsible: true,
     });
 
@@ -546,7 +425,7 @@ describe('linkGuardian', () => {
     const foreignGuardian = await createGuardian({ networkId: foreign.id });
 
     const result = await academics.linkGuardian({
-      networkId: ours.id, studentId: student.id, guardianId: foreignGuardian.id,
+      networkId: ours.id, studentId: student.id, userId: foreignGuardian.id,
       relationship: 'mãe', financiallyResponsible: true,
     });
 
@@ -559,7 +438,7 @@ describe('linkGuardian', () => {
     const guardian = await createGuardian({ networkId: network.id });
 
     const result = await academics.linkGuardian({
-      networkId: network.id, studentId: student.id, guardianId: guardian.id,
+      networkId: network.id, studentId: student.id, userId: guardian.id,
       relationship: ' ', financiallyResponsible: false,
     });
 

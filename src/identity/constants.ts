@@ -11,7 +11,7 @@ export const ROLE = {
 export const ACTIVE_NETWORK_STATUS = 'active' as const satisfies NetworkStatus;
 
 export const LIMITS = {
-  user: { name: 120 },
+  user: { name: 120, email: 254, phone: 30 },
   school: { name: 120, inepCode: 20 },
 } as const;
 
@@ -30,8 +30,8 @@ export const FIELDS = {
     name: 'name',
     email: 'email',
     cpf: 'cpf',
+    phone: 'phone',
     roleAssignments: 'roleAssignments',
-    guardianId: 'guardianId',
   },
   school: { name: 'name', inepCode: 'inepCode' },
   password: {
@@ -51,8 +51,6 @@ export const CODES = {
   schoolFromAnotherNetwork: 'school_from_another_network',
   emailInUse: 'email_in_use',
   cpfInUse: 'cpf_in_use',
-  guardianRequired: 'guardian_required',
-  cpfMismatch: 'cpf_mismatch',
   nameInUse: 'name_in_use',
   userNotFound: 'user_not_found',
   wrongPassword: 'wrong_password',
@@ -72,19 +70,15 @@ export const MESSAGES = {
     nameTooLong: 'nome longo demais',
     emailRequired: 'informe o e-mail',
     invalidEmail: 'e-mail inválido',
+    emailTooLong: 'e-mail longo demais',
     invalidCpf: 'Informe um CPF válido.',
+    phoneTooLong: `O telefone precisa ter até ${LIMITS.user.phone} caracteres.`,
     invalidSchool: 'unidade inválida',
     unknownRole: 'papel desconhecido',
     noRoleAssignment: 'escolha ao menos uma unidade e um papel',
-    invalidGuardian: 'responsável inválido',
     schoolFromAnotherNetwork: 'unidade não pertence a esta rede',
     emailInUse: 'já existe usuário com este e-mail na rede',
     cpfInUse: 'já existe usuário com este CPF na rede',
-    guardianRequired:
-      'quem entra como responsável precisa estar ligado a um cadastro de responsável',
-    guardianLabel: 'responsável',
-    cpfMismatch: (registeredName: string): string =>
-      `O CPF não confere com o do cadastro de ${registeredName}.`,
   },
   school: {
     invalidNetwork: 'rede inválida',

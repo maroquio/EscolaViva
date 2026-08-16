@@ -61,8 +61,8 @@ describe('the network dashboard', () => {
     expect(response.status).toBe(200);
     expect(page).toContain(`<h1 class="page__title">${scenario.network.name}</h1>`);
     expect(cardNumber(page, 'Unidades')).toBe(String(scenario.schools.length));
-    // The scenario's four accounts: network administration, registrar, teacher and guardian.
-    expect(cardNumber(page, 'Usuários')).toBe('4');
+    // ADR 0006: the accounts are the three of the staff plus one per guardian of the scenario.
+    expect(cardNumber(page, 'Usuários')).toBe(String(3 + scenario.guardians.length));
     expect(cardNumber(page, 'Turmas')).toBe(String(scenario.classGroups.length));
     expect(cardNumber(page, 'Matriculados')).toBe(String(scenario.enrollments.length));
     expect(page).toContain(`<dd class="number">${scenario.academicYear.year}</dd>`);
@@ -202,7 +202,7 @@ describe('the users of the network', () => {
     expect(page).not.toContain('<code class="code">');
   });
 
-  test('the invitation page carries the three assignment rows and both lists in full', async () => {
+  test('the invitation page carries the three assignment rows and the school list in full', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
@@ -213,13 +213,14 @@ describe('the users of the network', () => {
     expect(page).toContain('<h1 class="page__title">Convidar usuário</h1>');
     expect(page).toContain('name="schools[]"');
     expect(page).toContain('name="roles[]"');
-    expect(page).toContain('name="guardianId"');
+    // ADR 0006: there is no guardian record left to tie the account to, so the field is gone.
+    expect(page).not.toContain('name="guardianId"');
+    expect(page).not.toContain(scenario.guardians[4].name);
     // With no JavaScript on the client, the rows are fixed: three, no more and no less.
     expect(page).toContain('id="school-2"');
     expect(page).not.toContain('id="school-3"');
-    // Neither the school list nor the guardian list is sliced: choosing requires seeing everything.
+    // The school list is not sliced: choosing requires seeing everything.
     expect(page).toContain(`>${scenario.schools[1].name}</option>`);
-    expect(page).toContain(scenario.guardians[4].name);
   });
 });
 

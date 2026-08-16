@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { identity } from '../../identity';
 import { unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CODES, FIELDS, LIMITS, MESSAGES } from '../constants';
@@ -8,7 +9,7 @@ import * as guardians from '../infra/guardianRepository';
 const schema = z.object({
   networkId: z.string().uuid(),
   studentId: z.string().uuid(MESSAGES.studentRequired),
-  guardianId: z.string().uuid(MESSAGES.guardianLink.guardianRequired),
+  userId: z.string().uuid(MESSAGES.guardianLink.guardianRequired),
   relationship: z
     .string()
     .trim()
@@ -20,7 +21,7 @@ const schema = z.object({
 export async function linkGuardian(input: {
   networkId: string;
   studentId: string;
-  guardianId: string;
+  userId: string;
   relationship: string;
   financiallyResponsible: boolean;
 }): Promise<Result<void>> {
@@ -29,7 +30,17 @@ export async function linkGuardian(input: {
     return failure(...schemaErrors(parsed.error.issues));
   }
 
-  const { networkId, studentId, guardianId } = parsed.data;
+  const { networkId, studentId, userId } = parsed.data;
+
+  const known = await identity.userNames(networkId, [userId]);
+  if (!known.has(userId)) {
+    return fieldFailure(
+      FIELDS.guardianLink.userId,
+      CODES.guardianNotFound,
+      MESSAGES.guardianNotFound,
+    );
+  }
+
   return unitOfWork(async ({ sql }): Promise<Result<void>> => {
     const student = await students.byId(sql, networkId, studentId);
     if (student === null) {
@@ -39,19 +50,11 @@ export async function linkGuardian(input: {
         MESSAGES.studentNotFound,
       );
     }
-    const guardian = await guardians.byId(sql, networkId, guardianId);
-    if (guardian === null) {
-      return fieldFailure(
-        FIELDS.guardianLink.guardianId,
-        CODES.guardianNotFound,
-        MESSAGES.guardianNotFound,
-      );
-    }
 
     const linked = await guardians.link(sql, { ...parsed.data });
     if (!linked) {
       return fieldFailure(
-        FIELDS.guardianLink.guardianId,
+        FIELDS.guardianLink.userId,
         CODES.guardianLink.duplicate,
         MESSAGES.guardianLink.duplicate,
       );

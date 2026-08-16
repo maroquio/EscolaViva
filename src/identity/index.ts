@@ -8,6 +8,7 @@ import {
   schoolById,
   schoolTeachers,
   schoolsPage,
+  userContacts,
   userNames,
   usersPage,
   validSession,
@@ -20,7 +21,7 @@ import { changePassword } from './application/changePassword';
 
 export type { Role, RoleInSchool } from './domain/role';
 export type { School } from './domain/school';
-export type { AuthenticatedUser, UserSummary } from './domain/user';
+export type { AuthenticatedUser, UserContact, UserSummary } from './domain/user';
 
 export const identity = {
   authenticate,
@@ -40,6 +41,7 @@ export const identity = {
   isTeacherAtSchool,
   schoolTeachers,
   userNames,
+  userContacts,
 };
 
 export {

@@ -7,7 +7,6 @@ export const LIMITS = {
     searchRows: 50,
   },
   subject: { name: 120 },
-  guardian: { name: 120, email: 254, phone: 30 },
   classGroup: { name: 60, gradeLevel: 60 },
   relationship: { description: 40 },
   academicYear: { minYear: 2000, maxYear: 2100 },
@@ -16,7 +15,6 @@ export const LIMITS = {
 export const FIELDS = {
   student: { name: 'name', birthDate: 'birthDate' },
   subject: { name: 'name' },
-  guardian: { name: 'name', email: 'email', phone: 'phone', cpf: 'cpf' },
   classGroup: {
     name: 'name',
     gradeLevel: 'gradeLevel',
@@ -39,7 +37,7 @@ export const FIELDS = {
   transfer: { enrollmentId: 'enrollmentId', targetClassGroupId: 'targetClassGroupId', date: 'date' },
   guardianLink: {
     studentId: 'studentId',
-    guardianId: 'guardianId',
+    userId: 'userId',
     relationship: 'relationship',
     financiallyResponsible: 'financiallyResponsible',
   },
@@ -54,7 +52,6 @@ export const CODES = {
 
   student: { dateInFuture: 'date_in_future' },
   subject: { duplicate: 'duplicate_subject' },
-  guardian: { duplicateEmail: 'duplicate_email' },
   classGroup: { schoolNotFound: 'school_not_found', duplicate: 'duplicate_class_group' },
   academicYear: { incoherentPeriod: 'inconsistent_period', duplicate: 'duplicate_year' },
   teachingAssignment: {
@@ -95,15 +92,6 @@ export const MESSAGES = {
     nameRequired: 'Informe o nome da disciplina.',
     nameTooLong: `O nome precisa ter até ${LIMITS.subject.name} caracteres.`,
     duplicate: 'Esta rede já tem uma disciplina com este nome.',
-  },
-  guardian: {
-    nameRequired: 'Informe o nome do responsável.',
-    nameTooLong: `O nome precisa ter até ${LIMITS.guardian.name} caracteres.`,
-    invalidEmail: 'Informe um e-mail válido.',
-    emailTooLong: `O e-mail precisa ter até ${LIMITS.guardian.email} caracteres.`,
-    phoneTooLong: `O telefone precisa ter até ${LIMITS.guardian.phone} caracteres.`,
-    invalidCpf: 'Informe um CPF válido.',
-    duplicateEmail: 'Esta rede já tem um responsável com este e-mail.',
   },
   classGroup: {
     schoolRequired: 'Selecione a unidade.',

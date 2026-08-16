@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { describe, expect, test } from 'bun:test';
 import { LIMITS } from '../../src/academics/constants';
 
-const ENTITIES_WITH_NAME_LIMIT = ['student', 'subject', 'guardian', 'classGroup'] as const;
+const ENTITIES_WITH_NAME_LIMIT = ['student', 'subject', 'classGroup'] as const;
 
 type EntityWithNameLimit = (typeof ENTITIES_WITH_NAME_LIMIT)[number];
 
@@ -12,10 +12,10 @@ const NAME_POLICIES: Readonly<Record<EntityWithNameLimit, NamePolicy>> = LIMITS;
 
 const WHY_MERGING_IS_THE_DEFECT =
   'cada uma destas entidades tem sua própria política de tamanho de nome, e elas apenas coincidem hoje: ' +
-  'trocá-las por uma constante compartilhada faz uma decisão sobre uma entidade arrastar as outras três. ' +
+  'trocá-las por uma constante compartilhada faz uma decisão sobre uma entidade arrastar as outras duas. ' +
   'classGroup.name é a que diverge, e é a prova de que a regra não é uma só; fundido, ele subiria junto com os ' +
   'demais em nome da consistência e o formulário de turma passaria a aceitar um nome que a política da ' +
-  'turma recusa. Para mudar um limite, mude o número daquela entidade e deixe os outros três onde estão.';
+  'turma recusa. Para mudar um limite, mude o número daquela entidade e deixe os outros dois onde estão.';
 
 const CONSTANTS_RELATIVE_PATH = 'src/academics/constants.ts';
 
@@ -84,7 +84,6 @@ const LIMITE_DE_NOME = 120;
 export const LIMITS = {
   student: { name: LIMITE_DE_NOME, searchRows: 50 },
   subject: { name: LIMITE_DE_NOME },
-  guardian: { name: LIMITE_DE_NOME, email: 254, phone: 30 },
   classGroup: { name: LIMITE_DE_NOME, gradeLevel: 60 },
 } as const;
 `;
@@ -93,7 +92,6 @@ const SOURCE_WITH_THE_DRAGGED_CLASS_GROUP = `
 export const LIMITS = {
   student: { name: 120, searchRows: 50 },
   subject: { name: 120 },
-  guardian: { name: 120, email: 254, phone: 30 },
   classGroup: { name: LIMITS.student.name, gradeLevel: 60 },
 } as const;
 `;
@@ -103,12 +101,11 @@ const PADRAO = { name: 120 };
 export const LIMITS = {
   student: { ...PADRAO, searchRows: 50 },
   subject: { ...PADRAO },
-  guardian: { ...PADRAO, email: 254, phone: 30 },
   classGroup: { ...PADRAO, gradeLevel: 60 },
 } as const;
 `;
 
-describe('the four name limits in academics are four policies, not one', () => {
+describe('the three name limits in academics are three policies, not one', () => {
   test('each entity writes its own number, and none points at a shared constant', async () => {
     const merged = entitiesWithoutTheirOwnNumber(await constantsSource());
 
@@ -125,7 +122,7 @@ describe('the four name limits in academics are four policies, not one', () => {
     expect(read).toEqual(ENTITIES_WITH_NAME_LIMIT.map((e) => NAME_POLICIES[e].name));
   });
 
-  test('the exported object holds four `name` entries of its own, one per entity', () => {
+  test('the exported object holds three `name` entries of its own, one per entity', () => {
     const withoutOwnEntry = ENTITIES_WITH_NAME_LIMIT.filter(
       (entity) =>
         typeof Object.getOwnPropertyDescriptor(NAME_POLICIES[entity], 'name')?.value !==
@@ -138,7 +135,7 @@ describe('the four name limits in academics are four policies, not one', () => {
     expect(withoutOwnEntry).toEqual([]);
   });
 
-  test('no entity borrows another one\'s object: four distinct owners', () => {
+  test('no entity borrows another one\'s object: three distinct owners', () => {
     const borrowed = ENTITIES_WITH_NAME_LIMIT.flatMap((entity, index) =>
       ENTITIES_WITH_NAME_LIMIT.slice(index + 1)
         .filter((other) => NAME_POLICIES[entity] === NAME_POLICIES[other])
@@ -153,7 +150,7 @@ describe('the four name limits in academics are four policies, not one', () => {
 });
 
 describe('the merge check does fail a merged file for real', () => {
-  test('a single constant for all four is reported against all four entities', () => {
+  test('a single constant for all three is reported against all three entities', () => {
     const merged = entitiesWithoutTheirOwnNumber(SOURCE_WITH_THE_FOUR_MERGED);
 
     expect(merged.length).toBe(ENTITIES_WITH_NAME_LIMIT.length);
@@ -167,7 +164,7 @@ describe('the merge check does fail a merged file for real', () => {
     expect(merged.join('\n')).toContain('LIMITS.classGroup.name');
   });
 
-  test('spreading a shared pattern erases the entries of their own, and is reported against all four', () => {
+  test('spreading a shared pattern erases the entries of their own, and is reported against all three', () => {
     const merged = entitiesWithoutTheirOwnNumber(SOURCE_WITH_THE_NAME_SPREAD_FROM_A_PATTERN);
 
     expect(merged.length).toBe(ENTITIES_WITH_NAME_LIMIT.length);

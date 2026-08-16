@@ -196,14 +196,15 @@ export const FIELDS = {
     birthDate: ACADEMIC_FIELDS.student.birthDate,
   },
   guardian: {
-    name: ACADEMIC_FIELDS.guardian.name,
-    email: ACADEMIC_FIELDS.guardian.email,
-    phone: ACADEMIC_FIELDS.guardian.phone,
-    cpf: ACADEMIC_FIELDS.guardian.cpf,
+    name: IDENTITY_FIELDS.user.name,
+    email: IDENTITY_FIELDS.user.email,
+    phone: IDENTITY_FIELDS.user.phone,
+    cpf: IDENTITY_FIELDS.user.cpf,
+    schoolId: 'schoolId',
   },
   guardianLink: {
     studentId: ACADEMIC_FIELDS.guardianLink.studentId,
-    guardianId: ACADEMIC_FIELDS.guardianLink.guardianId,
+    userId: ACADEMIC_FIELDS.guardianLink.userId,
     relationship: ACADEMIC_FIELDS.guardianLink.relationship,
     financiallyResponsible: ACADEMIC_FIELDS.guardianLink.financiallyResponsible,
   },
@@ -237,7 +238,6 @@ export const FIELDS = {
     email: IDENTITY_FIELDS.user.email,
     cpf: IDENTITY_FIELDS.user.cpf,
     roleAssignments: IDENTITY_FIELDS.user.roleAssignments,
-    guardianId: IDENTITY_FIELDS.user.guardianId,
     schools: 'schools[]',
     roles: 'roles[]',
   },
@@ -266,11 +266,11 @@ export const CHECKED_VALUE = 'sim';
 export const INITIAL_VALUES = {
   login: { networkSlug: '', cpf: '' },
   student: { name: '', birthDate: '' },
-  guardian: { name: '', email: '', phone: '', cpf: '' },
+  guardian: { name: '', email: '', phone: '', cpf: '', schoolId: '' },
   classGroup: { name: '', gradeLevel: '', shift: '', schoolId: '', academicYearId: '' },
   subject: { name: '' },
   school: { name: '', inepCode: '' },
-  user: { name: '', email: '', cpf: '', guardianId: '' },
+  user: { name: '', email: '', cpf: '' },
   academicYear: { year: '', startDate: '', endDate: '' },
 } as const;
 
@@ -430,6 +430,11 @@ export const FORM_ERRORS = {
     code: 'incomplete_role_assignment',
     message: 'Cada atribuição precisa de uma unidade e de um papel.',
   },
+  guardianSchoolRequired: {
+    field: FIELDS.guardian.schoolId,
+    code: 'guardian_school_required',
+    message: 'Selecione a unidade em que o responsável entra no portal.',
+  },
   invalidGrade: {
     field: FIELDS.grades,
     code: 'invalid_grade',
@@ -497,7 +502,6 @@ export const DIAGNOSTICS = {
   malformedRollCallDate: 'malformed roll call date',
   subjectOutsideSchedule: 'subject outside the teacher schedule',
   classGroupOutsideSchedule: 'class group outside the teacher schedule',
-  accountWithoutGuardian: 'account with no guardian linked',
   enrollmentOutsideResponsibility: 'enrollment outside the responsibility',
   enrollmentWithoutReportCard: 'enrollment with no report card',
   enrollmentWithoutAttendance: 'enrollment with no attendance tally',

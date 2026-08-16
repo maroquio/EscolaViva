@@ -1,13 +1,15 @@
 <%
 const guardians = it.guardians ?? [];
+const invite = it.invite ?? null;
+const invited = invite === null ? null : (guardians.find((g) => g.id === invite.userId) ?? null);
 %>
 <div class="page__header">
   <div>
     <p class="overline"><%= it.areas.registrar %></p>
     <h1 class="page__title"><%= it.title %></h1>
     <p class="page__summary">
-      Quem recebe comunicado e acompanha boletim e frequência. Depois de cadastrar, vincule o
-      responsável ao aluno pela ficha dele.
+      Quem recebe comunicado e acompanha boletim e frequência. O cadastro já cria o acesso ao
+      portal; depois, vincule o responsável ao aluno pela ficha dele.
     </p>
   </div>
   <div class="page__actions">
@@ -15,6 +17,19 @@ const guardians = it.guardians ?? [];
     <a class="button button--primary" href="<%= it.routes.registrar.guardianNew() %>"><%= it.titles.registrar.guardianNew %></a>
   </div>
 </div>
+
+<% if (invite !== null && invited !== null) { %>
+<div class="notice notice--warning" role="status">
+  <p class="notice__title">Senha provisória de <%= invited.name %></p>
+  <p><code class="code"><%= invite.password %></code></p>
+  <p>
+    Anote agora: esta senha aparece uma única vez e não pode ser recuperada depois que você sair
+    desta página. Entregue-a pessoalmente ou por um canal que vocês já usem — o envio automático
+    por e-mail entra no Estágio 04. Peça que a pessoa entre com o CPF
+    <strong><%= it.formatCpf(invited.cpf ?? '') %></strong> e troque a senha no primeiro acesso.
+  </p>
+</div>
+<% } %>
 
 <section class="section" aria-labelledby="registered">
   <div class="section__header">
@@ -29,7 +44,7 @@ const guardians = it.guardians ?? [];
   <% if (guardians.length === 0) { %>
   <%~ include(it.partials.empty, {
     title: 'Nenhum responsável cadastrado',
-    text: 'O e-mail é único na rede: é por ele que o responsável recebe comunicado — não é usado para entrar.',
+    text: 'Cadastrar um responsável cria o acesso ao portal: o CPF é como ele entra, e o e-mail é só contato.',
     action: { href: it.routes.registrar.guardianNew(), text: it.titles.registrar.guardianNew }
   }) %>
   <% } else { %>

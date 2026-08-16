@@ -1,5 +1,4 @@
 import { Hono, type Context } from 'hono';
-import { deleteCookie, getSignedCookie, setSignedCookie } from 'hono/cookie';
 import { ACADEMIC_LIMITS, academics, type ClassGroup } from '../../academics';
 import {
   IDENTITY_LIMITS,
@@ -9,11 +8,9 @@ import {
   identity,
   type Role,
 } from '../../identity';
-import { config } from '../../shared/config';
 import { CONTEXT_VARIABLES, MASKED_CPF_LENGTH } from '../../shared/constants';
 import {
   currentNetwork,
-  isUuid,
   requireRole,
   type FormBody,
   type Variables,
@@ -25,7 +22,6 @@ import {
   FOUR_DIGIT_YEAR,
   ID_SUFFIXES,
   INITIAL_VALUES,
-  INVITE_COOKIE,
   LOG_EVENTS,
   MISSING_VALUE,
   NOTICES,
@@ -38,6 +34,7 @@ import {
 } from '../constants';
 import { pageFromQuery, pagination } from '../pagination';
 import { render, type TemplateData } from '../render';
+import { storeInvite, takeInvite } from './invite';
 
 const MESSAGES: Record<string, string> = {
   [NOTICE_CODES.schoolCreated]: NOTICES.schoolCreated,
@@ -162,35 +159,6 @@ networkRoutes.post(ROUTES.network.schools.pattern, async (c) => {
   );
 });
 
-const storeInvite = (c: Context, userId: string, password: string): Promise<void> =>
-  setSignedCookie(
-    c,
-    INVITE_COOKIE.name,
-    `${userId}${INVITE_COOKIE.separator}${password}`,
-    config.sessionSecret,
-    {
-      path: ROUTES.network.users(),
-      httpOnly: true,
-      secure: config.secureCookie,
-      sameSite: INVITE_COOKIE.sameSite,
-      maxAge: INVITE_COOKIE.maxAgeInSeconds,
-    },
-  );
-
-const takeInvite = async (
-  c: Context,
-): Promise<{ userId: string; password: string } | null> => {
-  const value = await getSignedCookie(c, config.sessionSecret, INVITE_COOKIE.name);
-  if (typeof value !== 'string') return null;
-  deleteCookie(c, INVITE_COOKIE.name, {
-    path: ROUTES.network.users(),
-    secure: config.secureCookie,
-  });
-  const cut = value.indexOf(INVITE_COOKIE.separator);
-  if (cut <= 0) return null;
-  return { userId: value.slice(0, cut), password: value.slice(cut + 1) };
-};
-
 type RoleAssignmentRow = { schoolId: string; role: string };
 
 const isRole = (value: string): value is Role =>
@@ -225,16 +193,11 @@ const usersScreen = async (c: Context, data: TemplateData = {}): Promise<Respons
 };
 
 const userForm = async (c: Context, data: TemplateData = {}): Promise<Response> => {
-  const networkId = currentNetwork(c);
-  const [schools, guardians] = await Promise.all([
-    identity.listSchools(networkId),
-    academics.listGuardians(networkId),
-  ]);
+  const schools = await identity.listSchools(currentNetwork(c));
   return render(c, TEMPLATES.network.userNew, {
     ...SUFFIXES,
     title: TITLES.network.userNew,
     schools,
-    guardians,
     roles: ROLE_OPTIONS,
     values: INITIAL_VALUES.user,
     nameLimit: IDENTITY_LIMITS.user.name,
@@ -246,7 +209,7 @@ const userForm = async (c: Context, data: TemplateData = {}): Promise<Response> 
 };
 
 networkRoutes.get(ROUTES.network.users.pattern, async (c) => {
-  const invite = await takeInvite(c);
+  const invite = await takeInvite(c, ROUTES.network.users());
   return await usersScreen(c, { invite, message: queryMessage(c) });
 });
 
@@ -259,7 +222,6 @@ networkRoutes.post(ROUTES.network.users.pattern, async (c) => {
     name: text(body, FIELDS.user.name),
     email: text(body, FIELDS.user.email),
     cpf: text(body, FIELDS.user.cpf),
-    guardianId: text(body, FIELDS.user.guardianId),
   };
   const rows = formRows(body);
 
@@ -275,20 +237,12 @@ networkRoutes.post(ROUTES.network.users.pattern, async (c) => {
     });
   }
 
-  const registered =
-    values.guardianId === '' || !isUuid(values.guardianId)
-      ? null
-      : await academics.guardianById(networkId, values.guardianId);
-
   const result = await identity.inviteUser({
     networkId,
     name: values.name,
     email: values.email,
     cpf: values.cpf,
-    registeredCpf: registered?.cpf ?? null,
-    ...(registered === null ? {} : { registeredName: registered.name }),
     roleAssignments,
-    guardianId: values.guardianId === '' ? null : values.guardianId,
   });
   if (!result.ok) return await userForm(c, { values, rows, errors: result.errors });
 
@@ -300,7 +254,12 @@ networkRoutes.post(ROUTES.network.users.pattern, async (c) => {
     },
     LOG_EVENTS.userInvited,
   );
-  await storeInvite(c, result.value.userId, result.value.temporaryPassword);
+  await storeInvite(
+    c,
+    ROUTES.network.users(),
+    result.value.userId,
+    result.value.temporaryPassword,
+  );
   return c.redirect(
     `${ROUTES.network.users()}?${PARAMS.ok}=${NOTICE_CODES.userInvited}`,
     303,

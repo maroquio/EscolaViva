@@ -6,9 +6,10 @@ import {
   type AcademicYear,
   type ClassGroup,
   type Enrollment,
+  type GuardianLink,
   type Student,
 } from '../../academics';
-import { ROLE, identity } from '../../identity';
+import { IDENTITY_LIMITS, ROLE, identity } from '../../identity';
 import {
   CONTEXT_VARIABLES,
   ISO_DATE_LENGTH,
@@ -24,13 +25,14 @@ import {
   type FormBody,
   type Variables,
 } from '../../shared/http';
-import { sliceItems } from '../../shared/pagination';
+import { DEFAULT_PAGE_SIZE, sliceItems } from '../../shared/pagination';
 import { systemClock } from '../../shared/ports';
 import type { ApplicationError } from '../../shared/result';
 import {
   CHECKED_VALUE,
   ERROR_PAGES,
   FIELDS,
+  FORM_ERRORS,
   ID_SUFFIXES,
   INITIAL_VALUES,
   NOTICES,
@@ -42,6 +44,7 @@ import {
 } from '../constants';
 import { pageFromQuery, pagination } from '../pagination';
 import { render, renderError } from '../render';
+import { storeInvite, takeInvite } from './invite';
 import type { Params } from './routeMap';
 
 type WebContext = Context<{ Variables: Variables }>;
@@ -273,14 +276,36 @@ const studentInScope = async (c: WebContext, studentId: string): Promise<Student
   return hasEnrollment && history.total === 0 ? null : student;
 };
 
+type GuardianRow = GuardianLink & { name: string; email: string };
+
+const withContacts = async (
+  networkId: string,
+  links: readonly GuardianLink[],
+): Promise<GuardianRow[]> => {
+  const contacts = await identity.userContacts(
+    networkId,
+    links.map((link) => link.userId),
+  );
+  return links
+    .map((link) => {
+      const contact = contacts.get(link.userId);
+      return {
+        ...link,
+        name: contact?.name ?? MISSING_VALUE,
+        email: contact?.email ?? MISSING_VALUE,
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, LOCALE));
+};
+
 const studentRecord = async (c: WebContext, studentId: string): Promise<Data | null> => {
   if (!isUuid(studentId)) return null;
   const networkId = currentNetwork(c);
   const schoolIds = idsOf(registrarSchools(c));
 
-  const [student, guardianLinks, history, active, hasEnrollment] = await Promise.all([
+  const [student, links, history, active, hasEnrollment] = await Promise.all([
     academics.studentById(networkId, studentId),
-    academics.studentGuardiansPage(networkId, studentId, pageFromQuery(c, PARAMS.guardiansPage)),
+    academics.studentGuardians(networkId, studentId),
     academics.studentEnrollmentsPage(
       networkId,
       studentId,
@@ -292,6 +317,11 @@ const studentRecord = async (c: WebContext, studentId: string): Promise<Data | n
   ]);
   if (student === null) return null;
   if (hasEnrollment && history.total === 0) return null;
+
+  const guardianLinks = sliceItems(
+    await withContacts(networkId, links),
+    pageFromQuery(c, PARAMS.guardiansPage),
+  );
 
   return {
     ...LAYER,
@@ -318,10 +348,10 @@ const guardianLinkForm = async (
 ): Promise<Response> => {
   const networkId = currentNetwork(c);
   const [guardians, linked] = await Promise.all([
-    academics.listGuardians(networkId),
-    academics.studentGuardiansPage(networkId, student.id, 1),
+    identity.listUsers(networkId, ROLE.guardian),
+    academics.studentGuardians(networkId, student.id),
   ]);
-  const alreadyLinked = new Set(linked.items.map((link) => link.guardianId));
+  const alreadyLinked = new Set(linked.map((link) => link.userId));
 
   return render(c, TEMPLATES.registrar.studentGuardianNew, {
     ...LAYER,
@@ -347,14 +377,14 @@ registrarRoutes.post(ROUTES.registrar.studentGuardians.pattern, async (c) => {
 
   const body = c.get(CONTEXT_VARIABLES.body);
   const values = {
-    guardianId: text(body, FIELDS.guardianLink.guardianId),
+    userId: text(body, FIELDS.guardianLink.userId),
     relationship: text(body, FIELDS.guardianLink.relationship),
     financiallyResponsible: checked(body, FIELDS.guardianLink.financiallyResponsible),
   };
   const result = await academics.linkGuardian({
     networkId: currentNetwork(c),
     studentId: student.id,
-    guardianId: values.guardianId,
+    userId: values.userId,
     relationship: values.relationship,
     financiallyResponsible: values.financiallyResponsible,
   });
@@ -505,13 +535,20 @@ registrarRoutes.post(ROUTES.registrar.enrollmentTransfer.pattern, async (c) => {
   return await transferForm(c, target.enrollment, target.student, values, result.errors);
 });
 
-const guardiansScreen = async (c: WebContext): Promise<Response> => {
-  const page = await academics.guardiansPage(currentNetwork(c), pageFromQuery(c));
+const guardiansScreen = async (c: WebContext, data: Data = {}): Promise<Response> => {
+  const page = await identity.usersPage(
+    currentNetwork(c),
+    pageFromQuery(c),
+    DEFAULT_PAGE_SIZE,
+    ROLE.guardian,
+  );
   return render(c, TEMPLATES.registrar.guardians, {
     ...LAYER,
     title: TITLES.registrar.guardians,
     guardians: page.items,
     pagination: pagination(c, page),
+    invite: null,
+    ...data,
   });
 };
 
@@ -519,38 +556,55 @@ const guardianForm = (c: WebContext, values: Values, errors: Errors): Response =
   render(c, TEMPLATES.registrar.guardianNew, {
     ...LAYER,
     title: TITLES.registrar.guardianNew,
-    nameLimit: ACADEMIC_LIMITS.guardian.name,
-    emailLimit: ACADEMIC_LIMITS.guardian.email,
-    phoneLimit: ACADEMIC_LIMITS.guardian.phone,
+    nameLimit: IDENTITY_LIMITS.user.name,
+    emailLimit: IDENTITY_LIMITS.user.email,
+    phoneLimit: IDENTITY_LIMITS.user.phone,
     maskedCpfLimit: MASKED_CPF_LENGTH,
+    schools: registrarSchools(c),
     values,
     errors,
   });
 
-registrarRoutes.get(ROUTES.registrar.guardians.pattern, (c) => guardiansScreen(c));
+registrarRoutes.get(ROUTES.registrar.guardians.pattern, async (c) => {
+  const invite = await takeInvite(c, ROUTES.registrar.guardians());
+  return await guardiansScreen(c, { invite });
+});
 
 registrarRoutes.get(ROUTES.registrar.guardianNew.pattern, (c) =>
   guardianForm(c, INITIAL_VALUES.guardian, []));
 
 registrarRoutes.post(ROUTES.registrar.guardians.pattern, async (c) => {
   const body = c.get(CONTEXT_VARIABLES.body);
+  const schools = registrarSchools(c);
+  const onlySchool = schools.length === 1 ? schools[0]?.id ?? '' : '';
   const values = {
     name: text(body, FIELDS.guardian.name),
     email: text(body, FIELDS.guardian.email),
     phone: text(body, FIELDS.guardian.phone),
     cpf: text(body, FIELDS.guardian.cpf),
+    schoolId: onlySchool === '' ? text(body, FIELDS.guardian.schoolId) : onlySchool,
   };
-  const result = await academics.registerGuardian({
+  if (!schools.some(({ id }) => id === values.schoolId)) {
+    return guardianForm(c, values, [FORM_ERRORS.guardianSchoolRequired]);
+  }
+
+  const result = await identity.inviteUser({
     networkId: currentNetwork(c),
     name: values.name,
     email: values.email,
     phone: values.phone,
     cpf: values.cpf,
+    roleAssignments: [{ schoolId: values.schoolId, role: ROLE.guardian }],
   });
-  if (result.ok) {
-    return finish(c, ROUTES.registrar.guardians(), NOTICES.guardianRegistered);
-  }
-  return guardianForm(c, values, result.errors);
+  if (!result.ok) return guardianForm(c, values, result.errors);
+
+  await storeInvite(
+    c,
+    ROUTES.registrar.guardians(),
+    result.value.userId,
+    result.value.temporaryPassword,
+  );
+  return finish(c, ROUTES.registrar.guardians(), NOTICES.guardianRegistered);
 });
 
 const classGroupsScreen = async (c: WebContext): Promise<Response> => {

@@ -6,7 +6,7 @@ const values = it.values ?? {};
 const fields = it.fields.guardianLink;
 const { errorFor, describedBy } = it;
 
-const chosenGuardian = values.guardianId ?? '';
+const chosenGuardian = values.userId ?? '';
 const relationship = values.relationship ?? '';
 const financiallyResponsible = values.financiallyResponsible === true;
 %>
@@ -42,15 +42,15 @@ const financiallyResponsible = values.financiallyResponsible === true;
 
     <div class="form__row">
       <div class="field">
-        <label class="field__label" for="guardianId">
+        <label class="field__label" for="userId">
           Responsável <span class="field__required" aria-hidden="true">*</span>
         </label>
         <select
-          id="guardianId"
-          name="<%= fields.guardianId %>"
+          id="userId"
+          name="<%= fields.userId %>"
           required
-          <% if (errorFor(fields.guardianId) !== '') { %>aria-invalid="true"<% } %>
-          <% if (describedBy(fields.guardianId) !== '') { %>aria-describedby="<%= describedBy(fields.guardianId) %>"<% } %>>
+          <% if (errorFor(fields.userId) !== '') { %>aria-invalid="true"<% } %>
+          <% if (describedBy(fields.userId) !== '') { %>aria-describedby="<%= describedBy(fields.userId) %>"<% } %>>
           <option value=""><%= it.emptyOption %></option>
           <% available.forEach((guardian) => { %>
           <option value="<%= guardian.id %>" <%= chosenGuardian === guardian.id ? 'selected' : '' %>>
@@ -58,8 +58,8 @@ const financiallyResponsible = values.financiallyResponsible === true;
           </option>
           <% }) %>
         </select>
-        <% if (errorFor(fields.guardianId) !== '') { %>
-        <p class="field__error" id="<%= it.errorId(fields.guardianId) %>"><%= errorFor(fields.guardianId) %></p>
+        <% if (errorFor(fields.userId) !== '') { %>
+        <p class="field__error" id="<%= it.errorId(fields.userId) %>"><%= errorFor(fields.userId) %></p>
         <% } %>
       </div>
 

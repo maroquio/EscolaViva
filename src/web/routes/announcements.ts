@@ -2,7 +2,7 @@ import { Hono, type Context } from 'hono';
 import { academics } from '../../academics';
 import { AUDIENCE, communication, type Audience, type ReadStatistic } from '../../communication';
 import { ROLE, identity, type School } from '../../identity';
-import { CONTEXT_VARIABLES } from '../../shared/constants';
+import { CONTEXT_VARIABLES, LOCALE, MISSING_VALUE } from '../../shared/constants';
 import { emptyPage } from '../../shared/pagination';
 import {
   NotFound,
@@ -125,6 +125,18 @@ const formValues = (form: FormBody): AnnouncementValues => ({
   selected: fieldList(form, FIELDS.announcement.guardians),
 });
 
+const schoolGuardians = async (
+  networkId: string,
+  school: School | null,
+): Promise<{ id: string; name: string }[]> => {
+  if (school === null) return [];
+  const ids = await academics.schoolGuardians(networkId, school.id);
+  const names = await identity.userNames(networkId, ids);
+  return ids
+    .map((id) => ({ id, name: names.get(id) ?? MISSING_VALUE }))
+    .sort((a, b) => a.name.localeCompare(b.name, LOCALE));
+};
+
 const sendContext = async (
   user: SessionUser,
   requestedSchoolId: string,
@@ -135,9 +147,7 @@ const sendContext = async (
   if (requestedSchoolId !== '' && school === null) {
     throw new NotFound(DIAGNOSTICS.schoolOutOfScope);
   }
-  const guardians =
-    school === null ? [] : await academics.schoolGuardians(user.networkId, school.id);
-  return { schools, school, guardians };
+  return { schools, school, guardians: await schoolGuardians(user.networkId, school) };
 };
 
 const MESSAGE_ROWS = 10;
@@ -208,7 +218,7 @@ announcementRoutes.post(ROUTES.announcements.new.pattern, async (c) => {
     recipients:
       values.audience === AUDIENCE.school
         ? []
-        : values.selected.map((guardianId) => ({ guardianId })),
+        : values.selected.map((userId) => ({ userId })),
   });
   if (!result.ok) return sendPage(c, context, values, result.errors);
 

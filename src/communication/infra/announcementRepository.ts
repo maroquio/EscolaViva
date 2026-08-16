@@ -41,7 +41,7 @@ export type NewAnnouncement = {
 export type RecipientKey = {
   networkId: string;
   announcementId: string;
-  guardianId: string;
+  userId: string;
 };
 
 function toText(instant: Date): string {
@@ -89,12 +89,12 @@ export async function insertPublished(
 
 export async function insertRecipients(
   sql: Connection,
-  input: { networkId: string; announcementId: string; guardianIds: readonly string[] },
+  input: { networkId: string; announcementId: string; userIds: readonly string[] },
 ): Promise<void> {
-  const rows = input.guardianIds.map((guardianId) => ({
+  const rows = input.userIds.map((userId) => ({
     network_id: input.networkId,
     announcement_id: input.announcementId,
-    guardian_id: guardianId,
+    user_id: userId,
   }));
   await sql`INSERT INTO announcement_recipient ${sql(rows)}`;
 }
@@ -104,7 +104,7 @@ export type BoardFilter = { read?: boolean };
 export async function listForGuardian(
   sql: Connection,
   networkId: string,
-  guardianId: string,
+  userId: string,
   filter?: BoardFilter,
   range?: Range,
 ): Promise<BoardItem[]> {
@@ -115,7 +115,7 @@ export async function listForGuardian(
     FROM announcement_recipient d
     JOIN announcement c ON c.network_id = d.network_id AND c.id = d.announcement_id
     WHERE d.network_id = ${networkId}
-      AND d.guardian_id = ${guardianId}
+      AND d.user_id = ${userId}
       AND c.published_at IS NOT NULL
       AND (${read}::boolean IS NULL OR (d.read_at IS NOT NULL) = ${read}::boolean)
     ORDER BY c.published_at DESC
@@ -132,7 +132,7 @@ export async function listForGuardian(
 export async function countForGuardian(
   sql: Connection,
   networkId: string,
-  guardianId: string,
+  userId: string,
   filter?: BoardFilter,
 ): Promise<number> {
   const read = filter?.read ?? null;
@@ -141,7 +141,7 @@ export async function countForGuardian(
     FROM announcement_recipient d
     JOIN announcement c ON c.network_id = d.network_id AND c.id = d.announcement_id
     WHERE d.network_id = ${networkId}
-      AND d.guardian_id = ${guardianId}
+      AND d.user_id = ${userId}
       AND c.published_at IS NOT NULL
       AND (${read}::boolean IS NULL OR (d.read_at IS NOT NULL) = ${read}::boolean)
   `;
@@ -151,7 +151,7 @@ export async function countForGuardian(
 export async function findForGuardian(
   sql: Connection,
   networkId: string,
-  guardianId: string,
+  userId: string,
   announcementId: string,
 ): Promise<StoredAnnouncement | null> {
   const rows = await sql<AnnouncementRow[]>`
@@ -160,7 +160,7 @@ export async function findForGuardian(
     JOIN announcement_recipient d ON d.network_id = c.network_id AND d.announcement_id = c.id
     WHERE c.network_id = ${networkId}
       AND c.id = ${announcementId}
-      AND d.guardian_id = ${guardianId}
+      AND d.user_id = ${userId}
   `;
   const row = rows[0];
   return row === undefined ? null : toAnnouncement(row);
@@ -172,7 +172,7 @@ export async function markRead(sql: Connection, key: RecipientKey): Promise<void
     SET read_at = now()
     WHERE network_id = ${key.networkId}
       AND announcement_id = ${key.announcementId}
-      AND guardian_id = ${key.guardianId}
+      AND user_id = ${key.userId}
       AND read_at IS NULL
   `;
 }
@@ -188,7 +188,7 @@ export async function countReads(
     SELECT c.id AS announcement_id,
            c.title,
            c.published_at,
-           count(d.guardian_id)::int AS recipients,
+           count(d.user_id)::int AS recipients,
            count(d.read_at)::int     AS reads
     FROM announcement c
     LEFT JOIN announcement_recipient d ON d.network_id = c.network_id AND d.announcement_id = c.id
@@ -227,7 +227,7 @@ export async function sumReads(
   schoolId: string | null,
 ): Promise<{ recipients: number; reads: number }> {
   const rows = await sql<{ recipients: number; reads: number }[]>`
-    SELECT count(d.guardian_id)::int AS recipients,
+    SELECT count(d.user_id)::int AS recipients,
            count(d.read_at)::int     AS reads
     FROM announcement c
     LEFT JOIN announcement_recipient d ON d.network_id = c.network_id AND d.announcement_id = c.id

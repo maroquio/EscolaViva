@@ -19,14 +19,14 @@ import {
 
 export async function guardianBoard(
   networkId: string,
-  guardianId: string,
+  userId: string,
 ): Promise<BoardItem[]> {
-  return await listForGuardian(reader(), networkId, guardianId);
+  return await listForGuardian(reader(), networkId, userId);
 }
 
 export async function boardPage(
   networkId: string,
-  guardianId: string,
+  userId: string,
   read: boolean | undefined,
   page: number,
   size: number = DEFAULT_PAGE_SIZE,
@@ -36,29 +36,29 @@ export async function boardPage(
   return await queryPage(
     page,
     size,
-    () => countForGuardian(sql, networkId, guardianId, filter),
-    (range) => listForGuardian(sql, networkId, guardianId, filter, range),
+    () => countForGuardian(sql, networkId, userId, filter),
+    (range) => listForGuardian(sql, networkId, userId, filter, range),
   );
 }
 
 export async function boardCounts(
   networkId: string,
-  guardianId: string,
+  userId: string,
 ): Promise<{ unread: number; total: number }> {
   const sql = reader();
   const [unread, total] = await Promise.all([
-    countForGuardian(sql, networkId, guardianId, { read: false }),
-    countForGuardian(sql, networkId, guardianId),
+    countForGuardian(sql, networkId, userId, { read: false }),
+    countForGuardian(sql, networkId, userId),
   ]);
   return { unread, total };
 }
 
 export async function announcementForGuardian(
   networkId: string,
-  guardianId: string,
+  userId: string,
   announcementId: string,
 ): Promise<Announcement | null> {
-  const stored = await findForGuardian(reader(), networkId, guardianId, announcementId);
+  const stored = await findForGuardian(reader(), networkId, userId, announcementId);
   if (stored === null || !isPublished(stored)) return null;
 
   const names = await identity.userNames(networkId, [stored.authorUserId]);

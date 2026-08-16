@@ -123,7 +123,6 @@ const TABLE = {
   classGroup: 'class_group',
   classGroupSubject: 'class_group_subject',
   student: 'student',
-  guardian: 'guardian',
   studentGuardian: 'student_guardian',
   enrollment: 'enrollment',
   grade: 'grade',
@@ -143,7 +142,7 @@ const DELETE_IN_ORDER = [
   TABLE.announcementRecipient, TABLE.announcement, TABLE.attendance, TABLE.grade,
   TABLE.termClosing, TABLE.enrollment, TABLE.studentGuardian, TABLE.classGroupSubject,
   TABLE.classGroup, TABLE.subject, TABLE.academicYear, TABLE.session, TABLE.userRole,
-  TABLE.user, TABLE.guardian, TABLE.student, TABLE.school,
+  TABLE.user, TABLE.student, TABLE.school,
 ];
 
 async function deleteDemoNetwork(sql: Connection, networkId: string): Promise<void> {
@@ -217,7 +216,7 @@ async function createStaff(sql: Connection, s: Structure, hash: string): Promise
     index += 1;
     const cpf = generateCpf(index);
     users.push({
-      id, network_id: s.networkId, email, password_hash: hash, name, guardian_id: null, cpf,
+      id, network_id: s.networkId, email, password_hash: hash, name, cpf, phone: null,
     });
     for (const school of schools) {
       roles.push({ network_id: s.networkId, user_id: id, school_id: school.id, role });
@@ -267,7 +266,6 @@ const PHONE = {
 
 async function createPeople(sql: Connection, s: Structure, hash: string): Promise<Population> {
   const students: Row[] = [];
-  const guardians: Row[] = [];
   const guardianLinks: Row[] = [];
   const users: Row[] = [];
   const roles: Row[] = [];
@@ -294,7 +292,6 @@ async function createPeople(sql: Connection, s: Structure, hash: string): Promis
         ? GUARDIANS_PER_STUDENT.max
         : GUARDIANS_PER_STUDENT.min;
       for (let r = 0; r < guardianCount; r += 1) {
-        const guardianId = newId();
         const userId = newId();
         const name = personName();
         const seed = index * GUARDIAN_INDEX_STEP + r;
@@ -302,22 +299,18 @@ async function createPeople(sql: Connection, s: Structure, hash: string): Promis
         const cpf = generateCpf(seed);
         const block = (): number => between(PHONE.blockStart, PHONE.blockEnd);
         const phone = `${PHONE.prefix}${block()}${PHONE.separator}${block()}`;
-        guardians.push({
-          id: guardianId, network_id: s.networkId, name, email, phone, cpf,
-        });
         guardianLinks.push({
-          network_id: s.networkId, student_id: studentId, guardian_id: guardianId,
+          network_id: s.networkId, student_id: studentId, user_id: userId,
           relationship: oneOf(RELATIONSHIPS), financially_responsible: r === 0,
         });
         users.push({
-          id: userId, network_id: s.networkId, email, password_hash: hash, name,
-          guardian_id: guardianId, cpf,
+          id: userId, network_id: s.networkId, email, password_hash: hash, name, cpf, phone,
         });
         roles.push({
           network_id: s.networkId, user_id: userId, school_id: school.id,
           role: ROLE.guardian,
         });
-        guardiansBySchool[classGroup.schoolIndex]?.push(guardianId);
+        guardiansBySchool[classGroup.schoolIndex]?.push(userId);
         accounts.push({ email, cpf });
       }
       const enrollmentId = newId();
@@ -331,9 +324,8 @@ async function createPeople(sql: Connection, s: Structure, hash: string): Promis
     }
   });
   await insert(sql, TABLE.student, students);
-  await insert(sql, TABLE.guardian, guardians);
-  await insert(sql, TABLE.studentGuardian, guardianLinks);
   await insert(sql, TABLE.user, users);
+  await insert(sql, TABLE.studentGuardian, guardianLinks);
   await insert(sql, TABLE.userRole, roles);
   await insert(sql, TABLE.enrollment, enrollmentRows);
   return { enrollments, guardiansBySchool, accounts };
@@ -459,11 +451,11 @@ async function publishAnnouncements(
     const readerCount = Math.round(fromSchool.length * READ_RATE);
     const cumulative = (upTo: number): number =>
       Math.floor((upTo * readerCount) / fromSchool.length);
-    fromSchool.forEach((guardianId, position) => {
+    fromSchool.forEach((userId, position) => {
       const read = cumulative(position) < cumulative(position + 1);
       const when = new Date(Date.now() - between(1, announcement.days) * TIME.msPerDay);
       recipients.push({
-        network_id: s.networkId, announcement_id: id, guardian_id: guardianId,
+        network_id: s.networkId, announcement_id: id, user_id: userId,
         read_at: read ? when.toISOString() : null,
       });
     });
@@ -474,7 +466,7 @@ async function publishAnnouncements(
 
 const SUMMARY_TABLES = [
   TABLE.school, TABLE.user, TABLE.userRole, TABLE.academicYear, TABLE.subject,
-  TABLE.classGroup, TABLE.classGroupSubject, TABLE.student, TABLE.guardian,
+  TABLE.classGroup, TABLE.classGroupSubject, TABLE.student,
   TABLE.studentGuardian, TABLE.enrollment, TABLE.grade, TABLE.attendance,
   TABLE.termClosing, TABLE.announcement, TABLE.announcementRecipient,
 ];
