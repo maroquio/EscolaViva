@@ -49,9 +49,22 @@ async function migrationFiles(): Promise<string[]> {
 async function ensureControlTable(sql: SQL): Promise<void> {
   await sql`
     CREATE TABLE IF NOT EXISTS schema_migrations (
-      versao      text PRIMARY KEY,
-      aplicada_em timestamptz NOT NULL DEFAULT now()
+      version    text PRIMARY KEY,
+      applied_at timestamptz NOT NULL DEFAULT now()
     )
+  `;
+  await sql`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'schema_migrations' AND column_name = 'versao'
+      ) THEN
+        ALTER TABLE schema_migrations RENAME COLUMN versao TO version;
+        ALTER TABLE schema_migrations RENAME COLUMN aplicada_em TO applied_at;
+      END IF;
+    END
+    $$
   `;
 }
 
@@ -62,7 +75,7 @@ async function appliedVersions(sql: SQL): Promise<Map<string, Date>> {
     return new Map();
   }
   const rows: { version: string; applied_at: Date }[] =
-    await sql`SELECT versao AS version, aplicada_em AS applied_at FROM schema_migrations ORDER BY versao`;
+    await sql`SELECT version, applied_at FROM schema_migrations ORDER BY version`;
   return new Map(rows.map((row) => [row.version, row.applied_at]));
 }
 
@@ -70,7 +83,7 @@ async function apply(sql: SQL, version: string): Promise<void> {
   const content = await Bun.file(join(MIGRATIONS_DIRECTORY, version)).text();
   await sql.begin(async (tx) => {
     await tx.unsafe(content);
-    await tx`INSERT INTO schema_migrations (versao) VALUES (${version})`;
+    await tx`INSERT INTO schema_migrations (version) VALUES (${version})`;
   });
 }
 

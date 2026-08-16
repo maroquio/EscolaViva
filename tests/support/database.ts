@@ -35,7 +35,7 @@ async function migrationFiles(): Promise<string[]> {
 }
 
 async function appliedVersions(sql: Connection): Promise<Set<string>> {
-  const rows = await sql<{ version: string }[]>`SELECT versao AS version FROM schema_migrations`;
+  const rows = await sql<{ version: string }[]>`SELECT version FROM schema_migrations`;
   return new Set(rows.map((row) => row.version));
 }
 
@@ -44,7 +44,7 @@ async function apply(sql: Connection, version: string): Promise<void> {
   const content = await Bun.file(join(MIGRATIONS_DIR, version)).text();
   await sql.begin(async (tx) => {
     await tx.unsafe(content);
-    await tx`INSERT INTO schema_migrations (versao) VALUES (${version})`;
+    await tx`INSERT INTO schema_migrations (version) VALUES (${version})`;
   });
 }
 
@@ -59,9 +59,22 @@ async function applyMigrations(): Promise<void> {
     try {
       await sql`
         CREATE TABLE IF NOT EXISTS schema_migrations (
-          versao      text PRIMARY KEY,
-          aplicada_em timestamptz NOT NULL DEFAULT now()
+          version    text PRIMARY KEY,
+          applied_at timestamptz NOT NULL DEFAULT now()
         )
+      `;
+      await sql`
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'schema_migrations' AND column_name = 'versao'
+          ) THEN
+            ALTER TABLE schema_migrations RENAME COLUMN versao TO version;
+            ALTER TABLE schema_migrations RENAME COLUMN aplicada_em TO applied_at;
+          END IF;
+        END
+        $$
       `;
       const applied = await appliedVersions(sql);
       for (const version of await migrationFiles()) {
