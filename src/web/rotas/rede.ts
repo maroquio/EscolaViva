@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { deleteCookie, getSignedCookie, setSignedCookie } from 'hono/cookie';
-import { LIMITES_DO_ACADEMICO, academico, type Turma } from '../../academics';
+import { ACADEMIC_LIMITS, academics, type AcademicYear, type ClassGroup } from '../../academics';
 import {
   IDENTITY_LIMITS,
   IDENTITY_VOCABULARY,
@@ -73,15 +73,22 @@ const mensagemDaQuery = (c: Context): string | undefined =>
 
 type ContagensDaRede = { unidades: number; usuarios: number; turmas: number; matriculados: number };
 
+const anoParaTela = (anoLetivo: AcademicYear) => ({
+  id: anoLetivo.id,
+  ano: anoLetivo.year,
+  dataInicio: anoLetivo.startDate,
+  dataFim: anoLetivo.endDate,
+});
+
 const contarRede = async (redeId: string, anoLetivoId: string | null): Promise<ContagensDaRede> => {
   const [{ schools, users }, turmas] = await Promise.all([
     identity.countSchoolsAndUsers(redeId),
     anoLetivoId === null
-      ? Promise.resolve<Turma[]>([])
-      : academico.listarTurmas(redeId, { anoLetivoId }),
+      ? Promise.resolve<ClassGroup[]>([])
+      : academics.listClassGroups(redeId, { academicYearId: anoLetivoId }),
   ]);
   const matriculas = await Promise.all(
-    turmas.map((turma) => academico.matriculasAtivasDaTurma(redeId, turma.id)),
+    turmas.map((turma) => academics.activeEnrollmentsOfClassGroup(redeId, turma.id)),
   );
   return {
     unidades: schools,
@@ -93,7 +100,7 @@ const contarRede = async (redeId: string, anoLetivoId: string | null): Promise<C
 
 rotasRede.get(ROTAS.rede.painel.padrao, async (c) => {
   const redeId = currentNetwork(c);
-  const anos = await academico.listarAnosLetivos(redeId);
+  const anos = (await academics.listAcademicYears(redeId)).map(anoParaTela);
   const anoLetivo = anos[0] ?? null;
   const contagens = await contarRede(redeId, anoLetivo === null ? null : anoLetivo.id);
   return renderizar(c, TEMPLATES.rede.painel, {
@@ -223,13 +230,17 @@ const formDeUsuario = async (c: Context, dados: DadosDeTemplate = {}): Promise<R
   const redeId = currentNetwork(c);
   const [unidades, responsaveis] = await Promise.all([
     identity.listSchools(redeId),
-    academico.listarResponsaveis(redeId),
+    academics.listGuardians(redeId),
   ]);
   return renderizar(c, TEMPLATES.rede.usuarioNovo, {
     ...SUFIXOS,
     titulo: TITULOS.rede.usuarioNovo,
     unidades,
-    responsaveis,
+    responsaveis: responsaveis.map((responsavel) => ({
+      id: responsavel.id,
+      nome: responsavel.name,
+      email: responsavel.email,
+    })),
     papeis: PAPEIS_DA_TELA,
     valores: VALORES_INICIAIS.usuario,
     limiteDoNome: IDENTITY_LIMITS.user.name,
@@ -275,7 +286,7 @@ rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
   const cadastro =
     valores.responsavelId === '' || !isUuid(valores.responsavelId)
       ? null
-      : await academico.responsavelPorId(redeId, valores.responsavelId);
+      : await academics.guardianById(redeId, valores.responsavelId);
 
   const resultado = await identity.inviteUser({
     networkId: redeId,
@@ -283,7 +294,7 @@ rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
     email: valores.email,
     cpf: valores.cpf,
     registeredCpf: cadastro?.cpf ?? null,
-    ...(cadastro === null ? {} : { registeredName: cadastro.nome }),
+    ...(cadastro === null ? {} : { registeredName: cadastro.name }),
     roleAssignments: atribuicoes,
     guardianId: valores.responsavelId === '' ? null : valores.responsavelId,
   });
@@ -301,11 +312,11 @@ rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
 });
 
 const telaDeAnos = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const pagina = await academico.paginaDeAnosLetivos(currentNetwork(c), paginaDaQuery(c));
+  const pagina = await academics.academicYearsPage(currentNetwork(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATES.rede.anos, {
     ...PARCIAIS,
     titulo: TITULOS.rede.anos,
-    anos: pagina.items,
+    anos: pagina.items.map(anoParaTela),
     navegacao: navegacao(c, pagina),
     ...dados,
   });
@@ -316,8 +327,8 @@ const formDeAno = (c: Context, dados: DadosDeTemplate = {}): Response =>
     ...SUFIXOS,
     titulo: TITULOS.rede.anoNovo,
     valores: VALORES_INICIAIS.anoLetivo,
-    anoMinimo: LIMITES_DO_ACADEMICO.anoLetivo.anoMinimo,
-    anoMaximo: LIMITES_DO_ACADEMICO.anoLetivo.anoMaximo,
+    anoMinimo: ACADEMIC_LIMITS.academicYear.minYear,
+    anoMaximo: ACADEMIC_LIMITS.academicYear.maxYear,
     erros: [],
     ...dados,
   });
@@ -341,11 +352,11 @@ rotasRede.post(ROTAS.rede.anosLetivos.padrao, async (c) => {
     return formDeAno(c, { valores, erros: [ERROS_DE_FORMULARIO.anoInvalido] });
   }
 
-  const resultado = await academico.definirAnoLetivo({
-    redeId,
-    ano: Number(valores.ano),
-    dataInicio: valores.dataInicio,
-    dataFim: valores.dataFim,
+  const resultado = await academics.defineAcademicYear({
+    networkId: redeId,
+    year: Number(valores.ano),
+    startDate: valores.dataInicio,
+    endDate: valores.dataFim,
   });
   if (!resultado.ok) return formDeAno(c, { valores, erros: resultado.erros });
 

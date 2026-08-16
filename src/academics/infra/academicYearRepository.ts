@@ -1,8 +1,8 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import type { AnoLetivo } from '../domain/academicYear';
+import type { AcademicYear } from '../domain/academicYear';
 
-type LinhaDeAnoLetivo = {
+type AcademicYearRow = {
   id: string;
   network_id: string;
   year: number;
@@ -10,54 +10,58 @@ type LinhaDeAnoLetivo = {
   end_date: string;
 };
 
-const paraAnoLetivo = (linha: LinhaDeAnoLetivo): AnoLetivo => ({
-  id: linha.id,
-  redeId: linha.network_id,
-  ano: linha.year,
-  dataInicio: linha.start_date,
-  dataFim: linha.end_date,
+const toAcademicYear = (row: AcademicYearRow): AcademicYear => ({
+  id: row.id,
+  networkId: row.network_id,
+  year: row.year,
+  startDate: row.start_date,
+  endDate: row.end_date,
 });
 
-export async function inserir(sql: Connection, anoLetivo: AnoLetivo): Promise<boolean> {
-  const criados: { id: string }[] = await sql`
+export async function insert(sql: Connection, academicYear: AcademicYear): Promise<boolean> {
+  const created: { id: string }[] = await sql`
     INSERT INTO academic_year (id, network_id, year, start_date, end_date)
-    VALUES (${anoLetivo.id}, ${anoLetivo.redeId}, ${anoLetivo.ano},
-            ${anoLetivo.dataInicio}, ${anoLetivo.dataFim})
+    VALUES (${academicYear.id}, ${academicYear.networkId}, ${academicYear.year},
+            ${academicYear.startDate}, ${academicYear.endDate})
     ON CONFLICT ON CONSTRAINT year_unique_in_network DO NOTHING
     RETURNING id`;
-  return criados.length === 1;
+  return created.length === 1;
 }
 
-export async function porId(sql: Connection, redeId: string, id: string): Promise<AnoLetivo | null> {
-  const linhas: LinhaDeAnoLetivo[] = await sql`
-    SELECT id, network_id, year,
-           to_char(start_date, 'YYYY-MM-DD') AS start_date,
-           to_char(end_date, 'YYYY-MM-DD') AS end_date
-      FROM academic_year
-     WHERE network_id = ${redeId} AND id = ${id}`;
-  const linha = linhas[0];
-  return linha === undefined ? null : paraAnoLetivo(linha);
-}
-
-export async function listar(
+export async function byId(
   sql: Connection,
-  redeId: string,
-  faixa?: Range,
-): Promise<AnoLetivo[]> {
-  const { limit, offset } = rangeParams(faixa);
-  const linhas: LinhaDeAnoLetivo[] = await sql`
+  networkId: string,
+  id: string,
+): Promise<AcademicYear | null> {
+  const rows: AcademicYearRow[] = await sql`
     SELECT id, network_id, year,
            to_char(start_date, 'YYYY-MM-DD') AS start_date,
            to_char(end_date, 'YYYY-MM-DD') AS end_date
       FROM academic_year
-     WHERE network_id = ${redeId}
+     WHERE network_id = ${networkId} AND id = ${id}`;
+  const row = rows[0];
+  return row === undefined ? null : toAcademicYear(row);
+}
+
+export async function list(
+  sql: Connection,
+  networkId: string,
+  range?: Range,
+): Promise<AcademicYear[]> {
+  const { limit, offset } = rangeParams(range);
+  const rows: AcademicYearRow[] = await sql`
+    SELECT id, network_id, year,
+           to_char(start_date, 'YYYY-MM-DD') AS start_date,
+           to_char(end_date, 'YYYY-MM-DD') AS end_date
+      FROM academic_year
+     WHERE network_id = ${networkId}
      ORDER BY year DESC
      LIMIT ${limit}::int OFFSET ${offset}::int`;
-  return linhas.map(paraAnoLetivo);
+  return rows.map(toAcademicYear);
 }
 
-export async function contar(sql: Connection, redeId: string): Promise<number> {
-  const linhas: { total: number }[] = await sql`
-    SELECT count(*)::int AS total FROM academic_year WHERE network_id = ${redeId}`;
-  return linhas[0]?.total ?? 0;
+export async function count(sql: Connection, networkId: string): Promise<number> {
+  const rows: { total: number }[] = await sql`
+    SELECT count(*)::int AS total FROM academic_year WHERE network_id = ${networkId}`;
+  return rows[0]?.total ?? 0;
 }

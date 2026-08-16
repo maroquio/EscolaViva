@@ -3,74 +3,76 @@ import { identity } from '../../identity/index';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, MENSAGENS } from '../constants';
-import type { TurmaDisciplina } from '../domain/classGroup';
-import * as disciplinas from '../infra/subjectRepository';
-import * as turmas from '../infra/classGroupRepository';
+import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import type { ClassGroupSubject } from '../domain/classGroup';
+import * as subjects from '../infra/subjectRepository';
+import * as classGroups from '../infra/classGroupRepository';
 
-const entrada = z.object({
-  redeId: z.string().uuid(),
-  turmaId: z.string().uuid(MENSAGENS.alocacao.turmaObrigatoria),
-  disciplinaId: z.string().uuid(MENSAGENS.alocacao.disciplinaObrigatoria),
-  professorUsuarioId: z.string().uuid(MENSAGENS.alocacao.professorObrigatorio),
+const schema = z.object({
+  networkId: z.string().uuid(),
+  classGroupId: z.string().uuid(MESSAGES.teachingAssignment.classGroupRequired),
+  subjectId: z.string().uuid(MESSAGES.teachingAssignment.subjectRequired),
+  teacherUserId: z.string().uuid(MESSAGES.teachingAssignment.teacherRequired),
 });
 
-export async function alocarProfessor(e: {
-  redeId: string;
-  turmaId: string;
-  disciplinaId: string;
-  professorUsuarioId: string;
-}): Promise<Result<TurmaDisciplina>> {
-  const validada = entrada.safeParse(e);
-  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
+export async function assignTeacher(input: {
+  networkId: string;
+  classGroupId: string;
+  subjectId: string;
+  teacherUserId: string;
+}): Promise<Result<ClassGroupSubject>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.teachingAssignment));
+  }
 
-  const { redeId, turmaId, disciplinaId, professorUsuarioId } = validada.data;
-  return unitOfWork(async ({ sql }): Promise<Result<TurmaDisciplina>> => {
-    const turma = await turmas.porId(sql, redeId, turmaId);
-    if (turma === null) {
+  const { networkId, classGroupId, subjectId, teacherUserId } = parsed.data;
+  return unitOfWork(async ({ sql }): Promise<Result<ClassGroupSubject>> => {
+    const classGroup = await classGroups.byId(sql, networkId, classGroupId);
+    if (classGroup === null) {
       return fieldFailure(
-        CAMPOS.alocacao.turmaId,
-        CODIGOS.turmaNaoEncontrada,
-        MENSAGENS.turmaNaoEncontrada,
+        FIELDS.teachingAssignment.classGroupId,
+        CODES.classGroupNotFound,
+        MESSAGES.classGroupNotFound,
       );
     }
-    const disciplina = await disciplinas.porId(sql, redeId, disciplinaId);
-    if (disciplina === null) {
+    const subject = await subjects.byId(sql, networkId, subjectId);
+    if (subject === null) {
       return fieldFailure(
-        CAMPOS.alocacao.disciplinaId,
-        CODIGOS.disciplinaNaoEncontrada,
-        MENSAGENS.disciplinaNaoEncontrada,
+        FIELDS.teachingAssignment.subjectId,
+        CODES.subjectNotFound,
+        MESSAGES.subjectNotFound,
       );
     }
-    const ehProfessor = await identity.isTeacherAtSchool(
-      redeId,
-      professorUsuarioId,
-      turma.unidadeId,
+    const isTeacher = await identity.isTeacherAtSchool(
+      networkId,
+      teacherUserId,
+      classGroup.schoolId,
     );
-    if (!ehProfessor) {
+    if (!isTeacher) {
       return fieldFailure(
-        CAMPOS.alocacao.professorUsuarioId,
-        CODIGOS.alocacao.semPapelDeProfessor,
-        MENSAGENS.alocacao.semPapelDeProfessor,
+        FIELDS.teachingAssignment.teacherUserId,
+        CODES.teachingAssignment.withoutTeacherRole,
+        MESSAGES.teachingAssignment.withoutTeacherRole,
       );
     }
 
-    const alocacao: TurmaDisciplina = {
+    const assignment: ClassGroupSubject = {
       id: uuidIdGenerator.next(),
-      redeId,
-      turmaId,
-      disciplinaId,
-      disciplinaNome: disciplina.nome,
-      professorUsuarioId,
+      networkId,
+      classGroupId,
+      subjectId,
+      subjectName: subject.name,
+      teacherUserId,
     };
-    const criada = await turmas.inserirDisciplina(sql, alocacao);
-    if (!criada) {
+    const created = await classGroups.insertSubject(sql, assignment);
+    if (!created) {
       return fieldFailure(
-        CAMPOS.alocacao.disciplinaId,
-        CODIGOS.alocacao.disciplinaJaAlocada,
-        MENSAGENS.alocacao.disciplinaJaAlocada,
+        FIELDS.teachingAssignment.subjectId,
+        CODES.teachingAssignment.subjectAlreadyAssigned,
+        MESSAGES.teachingAssignment.subjectAlreadyAssigned,
       );
     }
-    return success(alocacao);
+    return success(assignment);
   });
 }

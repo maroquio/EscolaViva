@@ -1,318 +1,331 @@
 import { reader } from '../../shared/db';
 import { DEFAULT_PAGE_SIZE, queryPage, type Page } from '../../shared/pagination';
-import type { Aluno } from '../domain/student';
-import type { AnoLetivo } from '../domain/academicYear';
-import type { Disciplina } from '../domain/subject';
-import type { Matricula } from '../domain/enrollment';
-import type { Responsavel, VinculoResponsavel } from '../domain/guardian';
-import type { Turma, TurmaDisciplina, TurmaDisciplinaDoProfessor } from '../domain/classGroup';
-import type { FiltroDeTurma } from '../infra/classGroupRepository';
-import * as alunos from '../infra/studentRepository';
-import * as anosLetivos from '../infra/academicYearRepository';
-import * as disciplinas from '../infra/subjectRepository';
-import * as matriculas from '../infra/enrollmentRepository';
-import * as responsaveis from '../infra/guardianRepository';
-import * as turmas from '../infra/classGroupRepository';
+import type { Student } from '../domain/student';
+import type { AcademicYear } from '../domain/academicYear';
+import type { Subject } from '../domain/subject';
+import type { Enrollment } from '../domain/enrollment';
+import type { Guardian, GuardianLink } from '../domain/guardian';
+import type {
+  ClassGroup,
+  ClassGroupSubject,
+  TeacherClassGroupSubject,
+} from '../domain/classGroup';
+import type { ClassGroupFilter } from '../infra/classGroupRepository';
+import * as students from '../infra/studentRepository';
+import * as academicYears from '../infra/academicYearRepository';
+import * as subjects from '../infra/subjectRepository';
+import * as enrollments from '../infra/enrollmentRepository';
+import * as guardians from '../infra/guardianRepository';
+import * as classGroups from '../infra/classGroupRepository';
 
-export type { FiltroDeTurma } from '../infra/classGroupRepository';
+export type { ClassGroupFilter } from '../infra/classGroupRepository';
 
-export type ContagemDaUnidade = {
-  readonly turmas: number;
-  readonly matriculas: number;
-  readonly responsaveis: number;
+export type SchoolCounts = {
+  readonly classGroups: number;
+  readonly enrollments: number;
+  readonly guardians: number;
 };
 
-export function listarAnosLetivos(redeId: string): Promise<AnoLetivo[]> {
-  return anosLetivos.listar(reader(), redeId);
+export function listAcademicYears(networkId: string): Promise<AcademicYear[]> {
+  return academicYears.list(reader(), networkId);
 }
 
-export function paginaDeAnosLetivos(
-  redeId: string,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<AnoLetivo>> {
+export function academicYearsPage(
+  networkId: string,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<AcademicYear>> {
   const sql = reader();
   return queryPage(
-    pagina,
-    tamanho,
-    () => anosLetivos.contar(sql, redeId),
-    (faixa) => anosLetivos.listar(sql, redeId, faixa),
+    page,
+    size,
+    () => academicYears.count(sql, networkId),
+    (range) => academicYears.list(sql, networkId, range),
   );
 }
 
-export function listarDisciplinas(redeId: string): Promise<Disciplina[]> {
-  return disciplinas.listar(reader(), redeId);
+export function listSubjects(networkId: string): Promise<Subject[]> {
+  return subjects.list(reader(), networkId);
 }
 
-export function paginaDeDisciplinas(
-  redeId: string,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<Disciplina>> {
+export function subjectsPage(
+  networkId: string,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Subject>> {
   const sql = reader();
   return queryPage(
-    pagina,
-    tamanho,
-    () => disciplinas.contar(sql, redeId),
-    (faixa) => disciplinas.listar(sql, redeId, faixa),
+    page,
+    size,
+    () => subjects.count(sql, networkId),
+    (range) => subjects.list(sql, networkId, range),
   );
 }
 
-export function listarTurmas(redeId: string, filtro?: FiltroDeTurma): Promise<Turma[]> {
-  return turmas.listar(reader(), redeId, filtro);
+export function listClassGroups(
+  networkId: string,
+  filter?: ClassGroupFilter,
+): Promise<ClassGroup[]> {
+  return classGroups.list(reader(), networkId, filter);
 }
 
-export function paginaDeTurmas(
-  redeId: string,
-  filtro: FiltroDeTurma,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<Turma>> {
+export function classGroupsPage(
+  networkId: string,
+  filter: ClassGroupFilter,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<ClassGroup>> {
   const sql = reader();
   return queryPage(
-    pagina,
-    tamanho,
-    () => turmas.contar(sql, redeId, filtro),
-    (faixa) => turmas.listar(sql, redeId, filtro, faixa),
+    page,
+    size,
+    () => classGroups.count(sql, networkId, filter),
+    (range) => classGroups.list(sql, networkId, filter, range),
   );
 }
 
-export async function totaisDoAlcance(
-  redeId: string,
-  unidadeIds: readonly string[],
-): Promise<{ turmas: number; matriculas: number; responsaveis: number; disciplinas: number }> {
+export async function scopeTotals(
+  networkId: string,
+  schoolIds: readonly string[],
+): Promise<{ classGroups: number; enrollments: number; guardians: number; subjects: number }> {
   const sql = reader();
-  const [porTurma, porMatricula, quantosResponsaveis, quantasDisciplinas] = await Promise.all([
-    turmas.contarPorUnidade(sql, redeId, unidadeIds),
-    matriculas.contarAtivasPorUnidade(sql, redeId, unidadeIds),
-    responsaveis.contarNasUnidades(sql, redeId, unidadeIds),
-    disciplinas.contar(sql, redeId),
+  const [byClassGroup, byEnrollment, howManyGuardians, howManySubjects] = await Promise.all([
+    classGroups.countBySchool(sql, networkId, schoolIds),
+    enrollments.countActiveBySchool(sql, networkId, schoolIds),
+    guardians.countInSchools(sql, networkId, schoolIds),
+    subjects.count(sql, networkId),
   ]);
-  const somar = (contagens: ReadonlyMap<string, number>): number =>
-    unidadeIds.reduce((total, id) => total + (contagens.get(id) ?? 0), 0);
+  const sum = (counts: ReadonlyMap<string, number>): number =>
+    schoolIds.reduce((total, id) => total + (counts.get(id) ?? 0), 0);
   return {
-    turmas: somar(porTurma),
-    matriculas: somar(porMatricula),
-    responsaveis: quantosResponsaveis,
-    disciplinas: quantasDisciplinas,
+    classGroups: sum(byClassGroup),
+    enrollments: sum(byEnrollment),
+    guardians: howManyGuardians,
+    subjects: howManySubjects,
   };
 }
 
-export async function contagensPorUnidade(
-  redeId: string,
-  unidadeIds: readonly string[],
-): Promise<Map<string, ContagemDaUnidade>> {
+export async function countsBySchool(
+  networkId: string,
+  schoolIds: readonly string[],
+): Promise<Map<string, SchoolCounts>> {
   const sql = reader();
-  const [porTurma, porMatricula, porResponsavel] = await Promise.all([
-    turmas.contarPorUnidade(sql, redeId, unidadeIds),
-    matriculas.contarAtivasPorUnidade(sql, redeId, unidadeIds),
-    responsaveis.contarPorUnidade(sql, redeId, unidadeIds),
+  const [byClassGroup, byEnrollment, byGuardian] = await Promise.all([
+    classGroups.countBySchool(sql, networkId, schoolIds),
+    enrollments.countActiveBySchool(sql, networkId, schoolIds),
+    guardians.countBySchool(sql, networkId, schoolIds),
   ]);
   return new Map(
-    unidadeIds.map((unidadeId): [string, ContagemDaUnidade] => [
-      unidadeId,
+    schoolIds.map((schoolId): [string, SchoolCounts] => [
+      schoolId,
       {
-        turmas: porTurma.get(unidadeId) ?? 0,
-        matriculas: porMatricula.get(unidadeId) ?? 0,
-        responsaveis: porResponsavel.get(unidadeId) ?? 0,
+        classGroups: byClassGroup.get(schoolId) ?? 0,
+        enrollments: byEnrollment.get(schoolId) ?? 0,
+        guardians: byGuardian.get(schoolId) ?? 0,
       },
     ]),
   );
 }
 
-export function turmaPorId(redeId: string, turmaId: string): Promise<Turma | null> {
-  return turmas.porId(reader(), redeId, turmaId);
+export function classGroupById(
+  networkId: string,
+  classGroupId: string,
+): Promise<ClassGroup | null> {
+  return classGroups.byId(reader(), networkId, classGroupId);
 }
 
-export function listarTurmaDisciplinas(
-  redeId: string,
-  turmaId: string,
-): Promise<TurmaDisciplina[]> {
-  return turmas.listarDisciplinas(reader(), redeId, turmaId);
+export function listClassGroupSubjects(
+  networkId: string,
+  classGroupId: string,
+): Promise<ClassGroupSubject[]> {
+  return classGroups.listSubjects(reader(), networkId, classGroupId);
 }
 
-export function paginaDeTurmaDisciplinas(
-  redeId: string,
-  turmaId: string,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<TurmaDisciplina>> {
+export function classGroupSubjectsPage(
+  networkId: string,
+  classGroupId: string,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<ClassGroupSubject>> {
   const sql = reader();
   return queryPage(
-    pagina,
-    tamanho,
-    () => turmas.contarDisciplinas(sql, redeId, turmaId),
-    (faixa) => turmas.listarDisciplinas(sql, redeId, turmaId, faixa),
+    page,
+    size,
+    () => classGroups.countSubjects(sql, networkId, classGroupId),
+    (range) => classGroups.listSubjects(sql, networkId, classGroupId, range),
   );
 }
 
-export function turmaDisciplinaPorId(
-  redeId: string,
+export function classGroupSubjectById(
+  networkId: string,
   id: string,
-): Promise<TurmaDisciplina | null> {
-  return turmas.disciplinaPorId(reader(), redeId, id);
+): Promise<ClassGroupSubject | null> {
+  return classGroups.subjectById(reader(), networkId, id);
 }
 
-export function turmaDisciplinasDoProfessor(
-  redeId: string,
-  professorUsuarioId: string,
-): Promise<TurmaDisciplinaDoProfessor[]> {
-  return turmas.disciplinasDoProfessor(reader(), redeId, professorUsuarioId);
+export function teacherClassGroupSubjects(
+  networkId: string,
+  teacherUserId: string,
+): Promise<TeacherClassGroupSubject[]> {
+  return classGroups.teacherSubjects(reader(), networkId, teacherUserId);
 }
 
-export function turmasDoProfessor(
-  redeId: string,
-  professorUsuarioId: string,
-): Promise<Turma[]> {
-  return turmas.doProfessor(reader(), redeId, professorUsuarioId);
+export function teacherClassGroups(
+  networkId: string,
+  teacherUserId: string,
+): Promise<ClassGroup[]> {
+  return classGroups.ofTeacher(reader(), networkId, teacherUserId);
 }
 
-export function buscarAlunos(redeId: string, termo: string): Promise<Aluno[]> {
-  return alunos.buscar(reader(), redeId, termo);
+export function searchStudents(networkId: string, term: string): Promise<Student[]> {
+  return students.search(reader(), networkId, term);
 }
 
-export function paginaDeAlunos(
-  redeId: string,
-  termo: string,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<Aluno>> {
+export function studentsPage(
+  networkId: string,
+  term: string,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Student>> {
   const sql = reader();
   return queryPage(
-    pagina,
-    tamanho,
-    () => alunos.contarBusca(sql, redeId, termo),
-    (faixa) => alunos.buscar(sql, redeId, termo, faixa),
+    page,
+    size,
+    () => students.countSearch(sql, networkId, term),
+    (range) => students.search(sql, networkId, term, range),
   );
 }
 
-export function matriculasAtivasDosAlunos(
-  redeId: string,
-  alunoIds: readonly string[],
-  unidadeIds: readonly string[],
-): Promise<Matricula[]> {
-  return matriculas.ativasDosAlunos(reader(), redeId, alunoIds, unidadeIds);
+export function activeEnrollmentsOfStudents(
+  networkId: string,
+  studentIds: readonly string[],
+  schoolIds: readonly string[],
+): Promise<Enrollment[]> {
+  return enrollments.activeOfStudents(reader(), networkId, studentIds, schoolIds);
 }
 
-export function alunoPorId(redeId: string, alunoId: string): Promise<Aluno | null> {
-  return alunos.porId(reader(), redeId, alunoId);
+export function studentById(networkId: string, studentId: string): Promise<Student | null> {
+  return students.byId(reader(), networkId, studentId);
 }
 
-export function listarResponsaveis(redeId: string): Promise<Responsavel[]> {
-  return responsaveis.listar(reader(), redeId);
+export function listGuardians(networkId: string): Promise<Guardian[]> {
+  return guardians.list(reader(), networkId);
 }
 
-export function paginaDeResponsaveis(
-  redeId: string,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<Responsavel>> {
+export function guardiansPage(
+  networkId: string,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Guardian>> {
   const sql = reader();
   return queryPage(
-    pagina,
-    tamanho,
-    () => responsaveis.contar(sql, redeId),
-    (faixa) => responsaveis.listar(sql, redeId, faixa),
+    page,
+    size,
+    () => guardians.count(sql, networkId),
+    (range) => guardians.list(sql, networkId, range),
   );
 }
 
-export function responsavelPorId(
-  redeId: string,
-  responsavelId: string,
-): Promise<Responsavel | null> {
-  return responsaveis.porId(reader(), redeId, responsavelId);
+export function guardianById(networkId: string, guardianId: string): Promise<Guardian | null> {
+  return guardians.byId(reader(), networkId, guardianId);
 }
 
-export function responsaveisDoAluno(
-  redeId: string,
-  alunoId: string,
-): Promise<VinculoResponsavel[]> {
-  return responsaveis.doAluno(reader(), redeId, alunoId);
+export function studentGuardians(
+  networkId: string,
+  studentId: string,
+): Promise<GuardianLink[]> {
+  return guardians.ofStudent(reader(), networkId, studentId);
 }
 
-export function paginaDeResponsaveisDoAluno(
-  redeId: string,
-  alunoId: string,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<VinculoResponsavel>> {
+export function studentGuardiansPage(
+  networkId: string,
+  studentId: string,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<GuardianLink>> {
   const sql = reader();
   return queryPage(
-    pagina,
-    tamanho,
-    () => responsaveis.contarDoAluno(sql, redeId, alunoId),
-    (faixa) => responsaveis.doAluno(sql, redeId, alunoId, faixa),
+    page,
+    size,
+    () => guardians.countOfStudent(sql, networkId, studentId),
+    (range) => guardians.ofStudent(sql, networkId, studentId, range),
   );
 }
 
-export function responsaveisDaUnidade(
-  redeId: string,
-  unidadeId: string,
-): Promise<{ id: string; nome: string }[]> {
-  return responsaveis.daUnidade(reader(), redeId, unidadeId);
+export function schoolGuardians(
+  networkId: string,
+  schoolId: string,
+): Promise<{ id: string; name: string }[]> {
+  return guardians.ofSchool(reader(), networkId, schoolId);
 }
 
-export function matriculaPorId(redeId: string, matriculaId: string): Promise<Matricula | null> {
-  return matriculas.porId(reader(), redeId, matriculaId);
+export function enrollmentById(
+  networkId: string,
+  enrollmentId: string,
+): Promise<Enrollment | null> {
+  return enrollments.byId(reader(), networkId, enrollmentId);
 }
 
-export function matriculasAtivasDaTurma(redeId: string, turmaId: string): Promise<Matricula[]> {
-  return matriculas.ativasDaTurma(reader(), redeId, turmaId);
+export function activeEnrollmentsOfClassGroup(
+  networkId: string,
+  classGroupId: string,
+): Promise<Enrollment[]> {
+  return enrollments.activeOfClassGroup(reader(), networkId, classGroupId);
 }
 
-export function paginaDeMatriculasAtivasDaTurma(
-  redeId: string,
-  turmaId: string,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<Matricula>> {
+export function activeEnrollmentsOfClassGroupPage(
+  networkId: string,
+  classGroupId: string,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Enrollment>> {
   const sql = reader();
   return queryPage(
-    pagina,
-    tamanho,
-    () => matriculas.contarAtivasDaTurma(sql, redeId, turmaId),
-    (faixa) => matriculas.ativasDaTurma(sql, redeId, turmaId, faixa),
+    page,
+    size,
+    () => enrollments.countActiveOfClassGroup(sql, networkId, classGroupId),
+    (range) => enrollments.activeOfClassGroup(sql, networkId, classGroupId, range),
   );
 }
 
-export function matriculasDoResponsavel(
-  redeId: string,
-  responsavelId: string,
-): Promise<Matricula[]> {
-  return matriculas.doResponsavel(reader(), redeId, responsavelId);
+export function guardianEnrollments(
+  networkId: string,
+  guardianId: string,
+): Promise<Enrollment[]> {
+  return enrollments.ofGuardian(reader(), networkId, guardianId);
 }
 
-export function paginaDeMatriculasDoResponsavel(
-  redeId: string,
-  responsavelId: string,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<Matricula>> {
+export function guardianEnrollmentsPage(
+  networkId: string,
+  guardianId: string,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Enrollment>> {
   const sql = reader();
   return queryPage(
-    pagina,
-    tamanho,
-    () => matriculas.contarDoResponsavel(sql, redeId, responsavelId),
-    (faixa) => matriculas.doResponsavel(sql, redeId, responsavelId, faixa),
+    page,
+    size,
+    () => enrollments.countOfGuardian(sql, networkId, guardianId),
+    (range) => enrollments.ofGuardian(sql, networkId, guardianId, range),
   );
 }
 
-export function paginaDeMatriculasDoAluno(
-  redeId: string,
-  alunoId: string,
-  unidadeIds: readonly string[],
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<Matricula>> {
+export function studentEnrollmentsPage(
+  networkId: string,
+  studentId: string,
+  schoolIds: readonly string[],
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Enrollment>> {
   const sql = reader();
   return queryPage(
-    pagina,
-    tamanho,
-    () => matriculas.contarDoAlunoNasUnidades(sql, redeId, alunoId, unidadeIds),
-    (faixa) => matriculas.doAlunoNasUnidades(sql, redeId, alunoId, unidadeIds, faixa),
+    page,
+    size,
+    () => enrollments.countOfStudentInSchools(sql, networkId, studentId, schoolIds),
+    (range) => enrollments.ofStudentInSchools(sql, networkId, studentId, schoolIds, range),
   );
 }
 
-export function alunoTemMatricula(redeId: string, alunoId: string): Promise<boolean> {
-  return matriculas.temAlgumaMatricula(reader(), redeId, alunoId);
+export function studentHasEnrollment(networkId: string, studentId: string): Promise<boolean> {
+  return enrollments.hasAnyEnrollment(reader(), networkId, studentId);
 }

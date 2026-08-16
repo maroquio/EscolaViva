@@ -7,7 +7,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { comunicacao, type Comunicado } from '../../src/communication';
+import { communication, type Announcement } from '../../src/communication';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
   cenarioCompleto,
@@ -32,18 +32,18 @@ beforeEach(async () => {
 
 /** Publica e estreita o `Result`: quando isto falha, o erro do arranjo aparece por inteiro. */
 async function publicar(entrada: {
-  unidadeId?: string;
-  titulo?: string;
-  corpo?: string;
-  destinatarios?: { responsavelId: string }[];
-}): Promise<Comunicado> {
-  const resultado = await comunicacao.publicarComunicado({
-    redeId: cenario.rede.id,
-    unidadeId: entrada.unidadeId ?? cenario.unidades[0].id,
-    titulo: entrada.titulo ?? 'Reunião de pais',
-    corpo: entrada.corpo ?? 'A reunião começa às 19h no auditório.',
-    autorUsuarioId: cenario.secretaria.id,
-    destinatarios: entrada.destinatarios ?? [],
+  schoolId?: string;
+  title?: string;
+  body?: string;
+  recipients?: { guardianId: string }[];
+}): Promise<Announcement> {
+  const resultado = await communication.publishAnnouncement({
+    networkId: cenario.rede.id,
+    schoolId: entrada.schoolId ?? cenario.unidades[0].id,
+    title: entrada.title ?? 'Reunião de pais',
+    body: entrada.body ?? 'A reunião começa às 19h no auditório.',
+    authorUserId: cenario.secretaria.id,
+    recipients: entrada.recipients ?? [],
   });
   if (!resultado.ok) {
     throw new Error(`publicação recusada no arranjo: ${JSON.stringify(resultado.erros)}`);
@@ -88,24 +88,24 @@ async function responsavelNaUnidade(unidadeId: string): Promise<string> {
   return responsavel.id;
 }
 
-describe('publicarComunicado', () => {
+describe('publishAnnouncement', () => {
   test('publica com o nome do autor e a data de publicação preenchida', async () => {
     const comunicado = await publicar({
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
-    expect(comunicado.titulo).toBe('Reunião de pais');
-    expect(comunicado.corpo).toBe('A reunião começa às 19h no auditório.');
-    expect(comunicado.autorNome).toBe(cenario.secretaria.name);
-    expect(comunicado.unidadeId).toBe(cenario.unidades[0].id);
-    expect(comunicado.publicadoEm).toMatch(INSTANTE_ISO);
+    expect(comunicado.title).toBe('Reunião de pais');
+    expect(comunicado.body).toBe('A reunião começa às 19h no auditório.');
+    expect(comunicado.authorName).toBe(cenario.secretaria.name);
+    expect(comunicado.schoolId).toBe(cenario.unidades[0].id);
+    expect(comunicado.publishedAt).toMatch(INSTANTE_ISO);
   });
 
   test('grava um destinatário para cada responsável da lista', async () => {
     const escolhidos = [cenario.responsaveis[0].id, cenario.responsaveis[2].id];
 
     const comunicado = await publicar({
-      destinatarios: escolhidos.map((responsavelId) => ({ responsavelId })),
+      recipients: escolhidos.map((guardianId) => ({ guardianId })),
     });
 
     expect(await destinatariosDe(comunicado.id)).toEqual([...escolhidos].sort());
@@ -113,9 +113,9 @@ describe('publicarComunicado', () => {
 
   test('o mesmo responsável repetido na lista vira um destinatário só', async () => {
     const comunicado = await publicar({
-      destinatarios: [
-        { responsavelId: cenario.responsaveis[0].id },
-        { responsavelId: cenario.responsaveis[0].id },
+      recipients: [
+        { guardianId: cenario.responsaveis[0].id },
+        { guardianId: cenario.responsaveis[0].id },
       ],
     });
 
@@ -123,7 +123,7 @@ describe('publicarComunicado', () => {
   });
 
   test('a lista vazia alcança todo responsável com aluno matriculado ativo na unidade', async () => {
-    const comunicado = await publicar({ destinatarios: [] });
+    const comunicado = await publicar({ recipients: [] });
 
     expect(await destinatariosDe(comunicado.id)).toEqual(
       cenario.responsaveis.map((responsavel) => responsavel.id).sort(),
@@ -133,7 +133,7 @@ describe('publicarComunicado', () => {
   test('a lista vazia não alcança responsável de outra unidade da mesma rede', async () => {
     const deOutraUnidade = await responsavelNaUnidade(cenario.unidades[1].id);
 
-    const comunicado = await publicar({ destinatarios: [] });
+    const comunicado = await publicar({ recipients: [] });
 
     expect(await destinatariosDe(comunicado.id)).not.toContain(deOutraUnidade);
   });
@@ -141,7 +141,7 @@ describe('publicarComunicado', () => {
   test('a lista vazia não alcança responsável de outra rede', async () => {
     const outra = await cenarioCompleto();
 
-    const comunicado = await publicar({ destinatarios: [] });
+    const comunicado = await publicar({ recipients: [] });
 
     const alcancados = await destinatariosDe(comunicado.id);
     for (const responsavel of outra.responsaveis) {
@@ -155,19 +155,19 @@ describe('publicarComunicado', () => {
       UPDATE enrollment SET status = 'cancelled'
        WHERE student_id IN (SELECT student_id FROM student_guardian WHERE guardian_id = ${desligado})`;
 
-    const comunicado = await publicar({ destinatarios: [] });
+    const comunicado = await publicar({ recipients: [] });
 
     expect(await destinatariosDe(comunicado.id)).not.toContain(desligado);
   });
 
   test('recusa quando não há responsável nenhum para receber', async () => {
-    const resultado = await comunicacao.publicarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[1].id,
-      titulo: 'Aviso',
-      corpo: 'Corpo do aviso.',
-      autorUsuarioId: cenario.secretaria.id,
-      destinatarios: [],
+    const resultado = await communication.publishAnnouncement({
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[1].id,
+      title: 'Aviso',
+      body: 'Corpo do aviso.',
+      authorUserId: cenario.secretaria.id,
+      recipients: [],
     });
 
     expect(resultado).toEqual({
@@ -177,21 +177,21 @@ describe('publicarComunicado', () => {
   });
 
   test('recusa título vazio e título longo demais', async () => {
-    const vazio = comunicacao.publicarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      titulo: '   ',
-      corpo: 'Corpo do aviso.',
-      autorUsuarioId: cenario.secretaria.id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+    const vazio = communication.publishAnnouncement({
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      title: '   ',
+      body: 'Corpo do aviso.',
+      authorUserId: cenario.secretaria.id,
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
-    const longo = comunicacao.publicarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      titulo: 't'.repeat(161),
-      corpo: 'Corpo do aviso.',
-      autorUsuarioId: cenario.secretaria.id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+    const longo = communication.publishAnnouncement({
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      title: 't'.repeat(161),
+      body: 'Corpo do aviso.',
+      authorUserId: cenario.secretaria.id,
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
     const [semTitulo, tituloLongo] = await Promise.all([vazio, longo]);
@@ -207,13 +207,13 @@ describe('publicarComunicado', () => {
   });
 
   test('recusa corpo vazio', async () => {
-    const resultado = await comunicacao.publicarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      titulo: 'Aviso',
-      corpo: '  ',
-      autorUsuarioId: cenario.secretaria.id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+    const resultado = await communication.publishAnnouncement({
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      title: 'Aviso',
+      body: '  ',
+      authorUserId: cenario.secretaria.id,
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
     expect(resultado).toEqual({
@@ -225,13 +225,13 @@ describe('publicarComunicado', () => {
   test('recusa unidade que não é desta rede', async () => {
     const outra = await cenarioCompleto();
 
-    const resultado = await comunicacao.publicarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: outra.unidades[0].id,
-      titulo: 'Aviso',
-      corpo: 'Corpo do aviso.',
-      autorUsuarioId: cenario.secretaria.id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+    const resultado = await communication.publishAnnouncement({
+      networkId: cenario.rede.id,
+      schoolId: outra.unidades[0].id,
+      title: 'Aviso',
+      body: 'Corpo do aviso.',
+      authorUserId: cenario.secretaria.id,
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
     expect(resultado).toEqual({
@@ -243,13 +243,13 @@ describe('publicarComunicado', () => {
   test('recusa autor que não é desta rede', async () => {
     const outra = await cenarioCompleto();
 
-    const resultado = await comunicacao.publicarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      titulo: 'Aviso',
-      corpo: 'Corpo do aviso.',
-      autorUsuarioId: outra.secretaria.id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+    const resultado = await communication.publishAnnouncement({
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      title: 'Aviso',
+      body: 'Corpo do aviso.',
+      authorUserId: outra.secretaria.id,
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
     expect(resultado).toEqual({
@@ -259,16 +259,16 @@ describe('publicarComunicado', () => {
   });
 });
 
-describe('marcarComoLido', () => {
+describe('markAsRead', () => {
   test('registra a leitura do destinatário', async () => {
     const comunicado = await publicar({
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
-    const resultado = await comunicacao.marcarComoLido({
-      redeId: cenario.rede.id,
-      comunicadoId: comunicado.id,
-      responsavelId: cenario.responsaveis[0].id,
+    const resultado = await communication.markAsRead({
+      networkId: cenario.rede.id,
+      announcementId: comunicado.id,
+      guardianId: cenario.responsaveis[0].id,
     });
 
     expect(resultado).toEqual({ ok: true, valor: undefined });
@@ -283,10 +283,10 @@ describe('marcarComoLido', () => {
       destinatarios: [{ guardianId: cenario.responsaveis[0].id, readAt: LEITURA_ANTIGA }],
     });
 
-    await comunicacao.marcarComoLido({
-      redeId: cenario.rede.id,
-      comunicadoId: comunicado.id,
-      responsavelId: cenario.responsaveis[0].id,
+    await communication.markAsRead({
+      networkId: cenario.rede.id,
+      announcementId: comunicado.id,
+      guardianId: cenario.responsaveis[0].id,
     });
 
     expect(await leiturasDe(comunicado.id, cenario.responsaveis[0].id)).toEqual([LEITURA_ANTIGA]);
@@ -294,13 +294,13 @@ describe('marcarComoLido', () => {
 
   test('não cria leitura para quem não é destinatário', async () => {
     const comunicado = await publicar({
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
-    const resultado = await comunicacao.marcarComoLido({
-      redeId: cenario.rede.id,
-      comunicadoId: comunicado.id,
-      responsavelId: cenario.responsaveis[1].id,
+    const resultado = await communication.markAsRead({
+      networkId: cenario.rede.id,
+      announcementId: comunicado.id,
+      guardianId: cenario.responsaveis[1].id,
     });
 
     expect(resultado).toEqual({ ok: true, valor: undefined });
@@ -309,33 +309,33 @@ describe('marcarComoLido', () => {
 
   test('não marca a leitura a partir de outra rede', async () => {
     const comunicado = await publicar({
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
-    await comunicacao.marcarComoLido({
-      redeId: crypto.randomUUID(),
-      comunicadoId: comunicado.id,
-      responsavelId: cenario.responsaveis[0].id,
+    await communication.markAsRead({
+      networkId: crypto.randomUUID(),
+      announcementId: comunicado.id,
+      guardianId: cenario.responsaveis[0].id,
     });
 
     expect(await leiturasDe(comunicado.id, cenario.responsaveis[0].id)).toEqual([null]);
   });
 
   test('recusa identificador que não é uuid', async () => {
-    const resultado = await comunicacao.marcarComoLido({
-      redeId: cenario.rede.id,
-      comunicadoId: 'nao-e-uuid',
-      responsavelId: cenario.responsaveis[0].id,
+    const resultado = await communication.markAsRead({
+      networkId: cenario.rede.id,
+      announcementId: 'nao-e-uuid',
+      guardianId: cenario.responsaveis[0].id,
     });
 
     expect(resultado).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'comunicadoId' })],
+      erros: [expect.objectContaining({ campo: 'announcementId' })],
     });
   });
 });
 
-describe('muralDoResponsavel', () => {
+describe('guardianBoard', () => {
   test('traz os comunicados do responsável do mais recente para o mais antigo', async () => {
     const base = {
       networkId: cenario.rede.id,
@@ -354,31 +354,31 @@ describe('muralDoResponsavel', () => {
       publishedAt: new Date('2026-05-01T12:00:00.000Z'),
     });
 
-    const mural = await comunicacao.muralDoResponsavel(
+    const mural = await communication.guardianBoard(
       cenario.rede.id,
       cenario.responsaveis[0].id,
     );
 
     expect(mural).toEqual([
       {
-        comunicadoId: recente.id,
-        titulo: 'Aviso de maio',
-        publicadoEm: '2026-05-01T12:00:00.000Z',
-        lidoEm: null,
+        announcementId: recente.id,
+        title: 'Aviso de maio',
+        publishedAt: '2026-05-01T12:00:00.000Z',
+        readAt: null,
       },
       {
-        comunicadoId: antigo.id,
-        titulo: 'Aviso de março',
-        publicadoEm: '2026-03-01T12:00:00.000Z',
-        lidoEm: null,
+        announcementId: antigo.id,
+        title: 'Aviso de março',
+        publishedAt: '2026-03-01T12:00:00.000Z',
+        readAt: null,
       },
     ]);
   });
 
   test('não traz comunicado de que o responsável não é destinatário', async () => {
-    await publicar({ destinatarios: [{ responsavelId: cenario.responsaveis[0].id }] });
+    await publicar({ recipients: [{ guardianId: cenario.responsaveis[0].id }] });
 
-    const mural = await comunicacao.muralDoResponsavel(
+    const mural = await communication.guardianBoard(
       cenario.rede.id,
       cenario.responsaveis[1].id,
     );
@@ -395,7 +395,7 @@ describe('muralDoResponsavel', () => {
       destinatarios: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
-    const mural = await comunicacao.muralDoResponsavel(
+    const mural = await communication.guardianBoard(
       cenario.rede.id,
       cenario.responsaveis[0].id,
     );
@@ -412,12 +412,12 @@ describe('muralDoResponsavel', () => {
       destinatarios: [{ guardianId: cenario.responsaveis[0].id, readAt: LEITURA_ANTIGA }],
     });
 
-    const mural = await comunicacao.muralDoResponsavel(
+    const mural = await communication.guardianBoard(
       cenario.rede.id,
       cenario.responsaveis[0].id,
     );
 
-    expect(mural[0]?.lidoEm).toBe(LEITURA_ANTIGA.toISOString());
+    expect(mural[0]?.readAt).toBe(LEITURA_ANTIGA.toISOString());
   });
 
   test('não traz comunicado de outra rede', async () => {
@@ -429,7 +429,7 @@ describe('muralDoResponsavel', () => {
       destinatarios: [{ guardianId: outra.responsaveis[0].id }],
     });
 
-    const mural = await comunicacao.muralDoResponsavel(
+    const mural = await communication.guardianBoard(
       cenario.rede.id,
       outra.responsaveis[0].id,
     );
@@ -438,13 +438,13 @@ describe('muralDoResponsavel', () => {
   });
 });
 
-describe('comunicadoParaResponsavel', () => {
+describe('announcementForGuardian', () => {
   test('devolve o comunicado inteiro para quem é destinatário', async () => {
     const publicado = await publicar({
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
-    const comunicado = await comunicacao.comunicadoParaResponsavel(
+    const comunicado = await communication.announcementForGuardian(
       cenario.rede.id,
       cenario.responsaveis[0].id,
       publicado.id,
@@ -455,10 +455,10 @@ describe('comunicadoParaResponsavel', () => {
 
   test('devolve null para quem não é destinatário', async () => {
     const publicado = await publicar({
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
-    const comunicado = await comunicacao.comunicadoParaResponsavel(
+    const comunicado = await communication.announcementForGuardian(
       cenario.rede.id,
       cenario.responsaveis[1].id,
       publicado.id,
@@ -476,7 +476,7 @@ describe('comunicadoParaResponsavel', () => {
       destinatarios: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
-    const comunicado = await comunicacao.comunicadoParaResponsavel(
+    const comunicado = await communication.announcementForGuardian(
       cenario.rede.id,
       cenario.responsaveis[0].id,
       rascunho.id,
@@ -487,10 +487,10 @@ describe('comunicadoParaResponsavel', () => {
 
   test('devolve null quando o comunicado é de outra rede', async () => {
     const publicado = await publicar({
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
-    const comunicado = await comunicacao.comunicadoParaResponsavel(
+    const comunicado = await communication.announcementForGuardian(
       crypto.randomUUID(),
       cenario.responsaveis[0].id,
       publicado.id,
@@ -500,32 +500,32 @@ describe('comunicadoParaResponsavel', () => {
   });
 });
 
-describe('listarComunicados', () => {
+describe('listAnnouncements', () => {
   test('três leituras entre dez destinatários dão taxa de 0,3', async () => {
     const dez = await Promise.all(
       Array.from({ length: 10 }, () => criarResponsavel({ networkId: cenario.rede.id })),
     );
     const comunicado = await publicar({
-      destinatarios: dez.map((responsavel) => ({ responsavelId: responsavel.id })),
+      recipients: dez.map((responsavel) => ({ guardianId: responsavel.id })),
     });
     for (const responsavel of dez.slice(0, 3)) {
-      await comunicacao.marcarComoLido({
-        redeId: cenario.rede.id,
-        comunicadoId: comunicado.id,
-        responsavelId: responsavel.id,
+      await communication.markAsRead({
+        networkId: cenario.rede.id,
+        announcementId: comunicado.id,
+        guardianId: responsavel.id,
       });
     }
 
-    const estatisticas = await comunicacao.listarComunicados(cenario.rede.id);
+    const estatisticas = await communication.listAnnouncements(cenario.rede.id);
 
     expect(estatisticas).toEqual([
       {
-        comunicadoId: comunicado.id,
-        titulo: 'Reunião de pais',
-        publicadoEm: expect.stringMatching(INSTANTE_ISO),
-        destinatarios: 10,
-        leituras: 3,
-        taxa: 0.3,
+        announcementId: comunicado.id,
+        title: 'Reunião de pais',
+        publishedAt: expect.stringMatching(INSTANTE_ISO),
+        recipients: 10,
+        reads: 3,
+        rate: 0.3,
       },
     ]);
   });
@@ -544,20 +544,20 @@ describe('listarComunicados', () => {
           readAt: posicao < lidos ? LEITURA_ANTIGA : null,
         })),
       });
-      esperados.push({ comunicadoId: comunicado.id, leituras: lidos, taxa: lidos / 5 });
+      esperados.push({ announcementId: comunicado.id, reads: lidos, rate: lidos / 5 });
     }
 
-    const estatisticas = await comunicacao.listarComunicados(cenario.rede.id);
+    const estatisticas = await communication.listAnnouncements(cenario.rede.id);
 
     expect(estatisticas).toHaveLength(6);
     expect(
       estatisticas.map((linha) => ({
-        comunicadoId: linha.comunicadoId,
-        leituras: linha.leituras,
-        taxa: linha.taxa,
+        announcementId: linha.announcementId,
+        reads: linha.reads,
+        rate: linha.rate,
       })),
     ).toEqual([...esperados].reverse());
-    expect(estatisticas.every((linha) => linha.destinatarios === 5)).toBe(true);
+    expect(estatisticas.every((linha) => linha.recipients === 5)).toBe(true);
   });
 
   test('o comunicado sem destinatário aparece com taxa 0', async () => {
@@ -567,44 +567,44 @@ describe('listarComunicados', () => {
       authorUserId: cenario.secretaria.id,
     });
 
-    const estatisticas = await comunicacao.listarComunicados(cenario.rede.id);
+    const estatisticas = await communication.listAnnouncements(cenario.rede.id);
 
     expect(estatisticas).toEqual([
       expect.objectContaining({
-        comunicadoId: semNinguem.id,
-        destinatarios: 0,
-        leituras: 0,
-        taxa: 0,
+        announcementId: semNinguem.id,
+        recipients: 0,
+        reads: 0,
+        rate: 0,
       }),
     ]);
   });
 
   test('filtra por unidade quando a unidade é informada', async () => {
     const daPrimeira = await publicar({
-      unidadeId: cenario.unidades[0].id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      schoolId: cenario.unidades[0].id,
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
     await publicar({
-      unidadeId: cenario.unidades[1].id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[1].id }],
+      schoolId: cenario.unidades[1].id,
+      recipients: [{ guardianId: cenario.responsaveis[1].id }],
     });
 
-    const estatisticas = await comunicacao.listarComunicados(
+    const estatisticas = await communication.listAnnouncements(
       cenario.rede.id,
       cenario.unidades[0].id,
     );
 
-    expect(estatisticas.map((linha) => linha.comunicadoId)).toEqual([daPrimeira.id]);
+    expect(estatisticas.map((linha) => linha.announcementId)).toEqual([daPrimeira.id]);
   });
 
   test('sem filtro traz as duas unidades da rede e nenhuma de outra', async () => {
     await publicar({
-      unidadeId: cenario.unidades[0].id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      schoolId: cenario.unidades[0].id,
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
     await publicar({
-      unidadeId: cenario.unidades[1].id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[1].id }],
+      schoolId: cenario.unidades[1].id,
+      recipients: [{ guardianId: cenario.responsaveis[1].id }],
     });
     const outra = await cenarioCompleto();
     await criarComunicado({
@@ -613,7 +613,7 @@ describe('listarComunicados', () => {
       authorUserId: outra.secretaria.id,
     });
 
-    const estatisticas = await comunicacao.listarComunicados(cenario.rede.id);
+    const estatisticas = await communication.listAnnouncements(cenario.rede.id);
 
     expect(estatisticas).toHaveLength(2);
   });
@@ -626,12 +626,12 @@ describe('listarComunicados', () => {
       publishedAt: null,
     });
     const publicado = await publicar({
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      recipients: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
-    const estatisticas = await comunicacao.listarComunicados(cenario.rede.id);
+    const estatisticas = await communication.listAnnouncements(cenario.rede.id);
 
-    expect(estatisticas.map((linha) => linha.comunicadoId)).toEqual([publicado.id, rascunho.id]);
-    expect(estatisticas[1]?.publicadoEm).toBeNull();
+    expect(estatisticas.map((linha) => linha.announcementId)).toEqual([publicado.id, rascunho.id]);
+    expect(estatisticas[1]?.publishedAt).toBeNull();
   });
 });

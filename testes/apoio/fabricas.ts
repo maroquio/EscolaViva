@@ -4,7 +4,7 @@
  * caso de uso é deliberado: o teste de `matricular` não pode depender de `matricular`.
  */
 
-import type { SituacaoMatricula } from '../../src/academics';
+import type { EnrollmentStatus } from '../../src/academics';
 import type { Role } from '../../src/identity';
 import { generateCpf } from '../../src/shared/document';
 import { sqlDeTeste } from './banco';
@@ -221,12 +221,12 @@ export async function vincularAlunoResponsavel(opcoes: {
 
 export type MatriculaDeTeste = {
   id: string; networkId: string; studentId: string; classGroupId: string; academicYearId: string;
-  enrollmentDate: string; status: SituacaoMatricula;
+  enrollmentDate: string; status: EnrollmentStatus;
 };
 
 export async function criarMatricula(opcoes: {
   networkId: string; studentId: string; classGroupId: string; academicYearId: string;
-  enrollmentDate?: string | undefined; status?: SituacaoMatricula | undefined;
+  enrollmentDate?: string | undefined; status?: EnrollmentStatus | undefined;
 }): Promise<MatriculaDeTeste> {
   return await gravar('enrollment', {
     id: novoId(), networkId: opcoes.networkId, studentId: opcoes.studentId,

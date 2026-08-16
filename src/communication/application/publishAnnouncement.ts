@@ -1,128 +1,110 @@
 import { z } from 'zod';
 
-import { academico } from '../../academics';
+import { academics } from '../../academics';
 import { identity } from '../../identity';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, MENSAGENS } from '../constants';
+import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
 import {
-  CORPO_TAMANHO_MAXIMO,
-  TITULO_TAMANHO_MAXIMO,
-  comAutor,
-  corpoValido,
-  tituloValido,
-  type Comunicado,
-  type ComunicadoArmazenado,
+  MAX_BODY_LENGTH,
+  MAX_TITLE_LENGTH,
+  isValidBody,
+  isValidTitle,
+  withAuthor,
+  type Announcement,
+  type StoredAnnouncement,
 } from '../domain/announcement';
-import { inserirDestinatarios, inserirPublicado } from '../infra/announcementRepository';
+import { insertPublished, insertRecipients } from '../infra/announcementRepository';
 
-export type EntradaDeComunicado = {
-  redeId: string;
-  unidadeId: string;
-  titulo: string;
-  corpo: string;
-  autorUsuarioId: string;
-  destinatarios: { responsavelId: string }[];
+export type AnnouncementInput = {
+  networkId: string;
+  schoolId: string;
+  title: string;
+  body: string;
+  authorUserId: string;
+  recipients: { guardianId: string }[];
 };
 
-const esquema = z.object({
-  redeId: z.string().uuid(),
-  unidadeId: z.string().uuid(),
-  titulo: z.string().trim(),
-  corpo: z.string().trim(),
-  autorUsuarioId: z.string().uuid(),
-  destinatarios: z.array(z.object({ responsavelId: z.string().uuid() })),
+const schema = z.object({
+  networkId: z.string().uuid(),
+  schoolId: z.string().uuid(),
+  title: z.string().trim(),
+  body: z.string().trim(),
+  authorUserId: z.string().uuid(),
+  recipients: z.array(z.object({ guardianId: z.string().uuid() })),
 });
 
-type DadosValidados = z.infer<typeof esquema>;
+type ValidatedData = z.infer<typeof schema>;
 
-function conferirTexto(dados: DadosValidados): Result<void> {
-  if (!tituloValido(dados.titulo)) {
-    return fieldFailure(
-      CAMPOS.titulo,
-      CODIGOS.tituloInvalido,
-      MENSAGENS.tituloInvalido(TITULO_TAMANHO_MAXIMO),
-    );
+function checkText(data: ValidatedData): Result<void> {
+  if (!isValidTitle(data.title)) {
+    return fieldFailure(FIELDS.title, CODES.invalidTitle, MESSAGES.invalidTitle(MAX_TITLE_LENGTH));
   }
-  if (!corpoValido(dados.corpo)) {
-    return fieldFailure(
-      CAMPOS.corpo,
-      CODIGOS.corpoInvalido,
-      MENSAGENS.corpoInvalido(CORPO_TAMANHO_MAXIMO),
-    );
+  if (!isValidBody(data.body)) {
+    return fieldFailure(FIELDS.body, CODES.invalidBody, MESSAGES.invalidBody(MAX_BODY_LENGTH));
   }
   return success<void>(undefined);
 }
 
-async function responsaveisAlvo(dados: DadosValidados): Promise<string[]> {
-  if (dados.destinatarios.length > 0) {
-    return [...new Set(dados.destinatarios.map((destinatario) => destinatario.responsavelId))];
+async function targetGuardians(data: ValidatedData): Promise<string[]> {
+  if (data.recipients.length > 0) {
+    return [...new Set(data.recipients.map((recipient) => recipient.guardianId))];
   }
-  const daUnidade = await academico.responsaveisDaUnidade(dados.redeId, dados.unidadeId);
-  return daUnidade.map((responsavel) => responsavel.id);
+  const ofSchool = await academics.schoolGuardians(data.networkId, data.schoolId);
+  return ofSchool.map((guardian) => guardian.id);
 }
 
-async function gravar(
-  dados: DadosValidados,
-  responsaveisIds: readonly string[],
-): Promise<ComunicadoArmazenado> {
+async function save(
+  data: ValidatedData,
+  guardianIds: readonly string[],
+): Promise<StoredAnnouncement> {
   return await unitOfWork(async ({ sql }) => {
-    const comunicado = await inserirPublicado(sql, {
+    const announcement = await insertPublished(sql, {
       id: uuidIdGenerator.next(),
-      redeId: dados.redeId,
-      unidadeId: dados.unidadeId,
-      titulo: dados.titulo,
-      corpo: dados.corpo,
-      autorUsuarioId: dados.autorUsuarioId,
+      networkId: data.networkId,
+      schoolId: data.schoolId,
+      title: data.title,
+      body: data.body,
+      authorUserId: data.authorUserId,
     });
-    await inserirDestinatarios(sql, {
-      redeId: dados.redeId,
-      comunicadoId: comunicado.id,
-      responsaveisIds,
+    await insertRecipients(sql, {
+      networkId: data.networkId,
+      announcementId: announcement.id,
+      guardianIds,
     });
-    return comunicado;
+    return announcement;
   });
 }
 
-export async function publicarComunicado(
-  entrada: EntradaDeComunicado,
-): Promise<Result<Comunicado>> {
-  const validado = esquema.safeParse(entrada);
-  if (!validado.success) return failure(...schemaErrors(validado.error.issues));
+export async function publishAnnouncement(
+  input: AnnouncementInput,
+): Promise<Result<Announcement>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.announcement));
+  }
 
-  const dados = validado.data;
-  const texto = conferirTexto(dados);
-  if (!texto.ok) return failure(...texto.erros);
+  const data = parsed.data;
+  const text = checkText(data);
+  if (!text.ok) return failure(...text.erros);
 
-  const [unidade, nomes] = await Promise.all([
-    identity.schoolById(dados.redeId, dados.unidadeId),
-    identity.userNames(dados.redeId, [dados.autorUsuarioId]),
+  const [school, names] = await Promise.all([
+    identity.schoolById(data.networkId, data.schoolId),
+    identity.userNames(data.networkId, [data.authorUserId]),
   ]);
-  if (unidade === null) {
-    return fieldFailure(
-      CAMPOS.unidadeId,
-      CODIGOS.unidadeDesconhecida,
-      MENSAGENS.unidadeDesconhecida,
-    );
+  if (school === null) {
+    return fieldFailure(FIELDS.schoolId, CODES.unknownSchool, MESSAGES.unknownSchool);
   }
-  const autorNome = nomes.get(dados.autorUsuarioId);
-  if (autorNome === undefined) {
-    return fieldFailure(
-      CAMPOS.autorUsuarioId,
-      CODIGOS.autorDesconhecido,
-      MENSAGENS.autorDesconhecido,
-    );
+  const authorName = names.get(data.authorUserId);
+  if (authorName === undefined) {
+    return fieldFailure(FIELDS.authorUserId, CODES.unknownAuthor, MESSAGES.unknownAuthor);
   }
 
-  const responsaveisIds = await responsaveisAlvo(dados);
-  if (responsaveisIds.length === 0) {
-    return fieldFailure(
-      CAMPOS.destinatarios,
-      CODIGOS.semDestinatarios,
-      MENSAGENS.semDestinatarios,
-    );
+  const guardianIds = await targetGuardians(data);
+  if (guardianIds.length === 0) {
+    return fieldFailure(FIELDS.recipients, CODES.noRecipients, MESSAGES.noRecipients);
   }
 
-  return success(comAutor(await gravar(dados, responsaveisIds), autorNome));
+  return success(withAuthor(await save(data, guardianIds), authorName));
 }

@@ -1,54 +1,54 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import type { Disciplina } from '../domain/subject';
+import type { Subject } from '../domain/subject';
 
-type LinhaDeDisciplina = {
+type SubjectRow = {
   id: string;
   network_id: string;
   name: string;
 };
 
-const paraDisciplina = (linha: LinhaDeDisciplina): Disciplina => ({
-  id: linha.id,
-  redeId: linha.network_id,
-  nome: linha.name,
+const toSubject = (row: SubjectRow): Subject => ({
+  id: row.id,
+  networkId: row.network_id,
+  name: row.name,
 });
 
-export async function inserir(sql: Connection, disciplina: Disciplina): Promise<boolean> {
-  const criadas: { id: string }[] = await sql`
+export async function insert(sql: Connection, subject: Subject): Promise<boolean> {
+  const created: { id: string }[] = await sql`
     INSERT INTO subject (id, network_id, name)
-    VALUES (${disciplina.id}, ${disciplina.redeId}, ${disciplina.nome})
+    VALUES (${subject.id}, ${subject.networkId}, ${subject.name})
     ON CONFLICT ON CONSTRAINT subject_unique_in_network DO NOTHING
     RETURNING id`;
-  return criadas.length === 1;
+  return created.length === 1;
 }
 
-export async function porId(sql: Connection, redeId: string, id: string): Promise<Disciplina | null> {
-  const linhas: LinhaDeDisciplina[] = await sql`
-    SELECT id, network_id, name
-      FROM subject
-     WHERE network_id = ${redeId} AND id = ${id}`;
-  const linha = linhas[0];
-  return linha === undefined ? null : paraDisciplina(linha);
-}
-
-export async function listar(
+export async function byId(
   sql: Connection,
-  redeId: string,
-  faixa?: Range,
-): Promise<Disciplina[]> {
-  const { limit, offset } = rangeParams(faixa);
-  const linhas: LinhaDeDisciplina[] = await sql`
+  networkId: string,
+  id: string,
+): Promise<Subject | null> {
+  const rows: SubjectRow[] = await sql`
     SELECT id, network_id, name
       FROM subject
-     WHERE network_id = ${redeId}
+     WHERE network_id = ${networkId} AND id = ${id}`;
+  const row = rows[0];
+  return row === undefined ? null : toSubject(row);
+}
+
+export async function list(sql: Connection, networkId: string, range?: Range): Promise<Subject[]> {
+  const { limit, offset } = rangeParams(range);
+  const rows: SubjectRow[] = await sql`
+    SELECT id, network_id, name
+      FROM subject
+     WHERE network_id = ${networkId}
      ORDER BY name
      LIMIT ${limit}::int OFFSET ${offset}::int`;
-  return linhas.map(paraDisciplina);
+  return rows.map(toSubject);
 }
 
-export async function contar(sql: Connection, redeId: string): Promise<number> {
-  const linhas: { total: number }[] = await sql`
-    SELECT count(*)::int AS total FROM subject WHERE network_id = ${redeId}`;
-  return linhas[0]?.total ?? 0;
+export async function count(sql: Connection, networkId: string): Promise<number> {
+  const rows: { total: number }[] = await sql`
+    SELECT count(*)::int AS total FROM subject WHERE network_id = ${networkId}`;
+  return rows[0]?.total ?? 0;
 }

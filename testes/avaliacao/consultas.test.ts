@@ -1,11 +1,11 @@
 /*
- * As consultas de `avaliacao` contra o banco real, com o boletim no centro: média, percentual de
+ * As consultas de `assessment` contra o banco real, com o boletim no centro: média, percentual de
  * frequência e situação são calculados a cada leitura (I5) e precisam bater, ponta a ponta, com o
- * que as funções puras de `dominio/boletim.ts` decidem.
+ * que as funções puras de `domain/reportCard.ts` decidem.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { avaliacao } from '../../src/assessment';
+import { assessment } from '../../src/assessment';
 import { limparBanco } from '../apoio/banco';
 import {
   ANO_PADRAO,
@@ -83,18 +83,18 @@ async function cursarBimestres(
   bimestres: number[] = BIMESTRES,
 ): Promise<void> {
   for (const bimestre of bimestres) {
-    await avaliacao.lancarNotas({
-      redeId: minimo.redeId,
-      turmaDisciplinaId: minimo.turmaDisciplinaId,
-      bimestre,
-      lancadaPor: minimo.professorId,
-      notas: [{ matriculaId: minimo.matriculaId, valor }],
+    await assessment.postGrades({
+      networkId: minimo.redeId,
+      classGroupSubjectId: minimo.turmaDisciplinaId,
+      term: bimestre,
+      postedBy: minimo.professorId,
+      grades: [{ enrollmentId: minimo.matriculaId, value: valor }],
     });
-    await avaliacao.fecharBimestre({
-      redeId: minimo.redeId,
-      turmaId: minimo.turmaId,
-      bimestre,
-      fechadoPor: minimo.professorId,
+    await assessment.closeTerm({
+      networkId: minimo.redeId,
+      classGroupId: minimo.turmaId,
+      term: bimestre,
+      closedBy: minimo.professorId,
     });
   }
 }
@@ -107,30 +107,30 @@ async function registrarDias(
 ): Promise<void> {
   const total = presencas + faltas;
   for (let dia = 1; dia <= total; dia += 1) {
-    await avaliacao.registrarChamada({
-      redeId: minimo.redeId,
-      turmaId: minimo.turmaId,
-      data: `${ANO_PADRAO}-03-${String(dia).padStart(2, '0')}`,
-      linhas: [{ matriculaId: minimo.matriculaId, presente: dia <= presencas }],
+    await assessment.recordRollCall({
+      networkId: minimo.redeId,
+      classGroupId: minimo.turmaId,
+      date: `${ANO_PADRAO}-03-${String(dia).padStart(2, '0')}`,
+      rows: [{ enrollmentId: minimo.matriculaId, present: dia <= presencas }],
     });
   }
 }
 
-describe('notasDaTurmaDisciplina', () => {
+describe('classGroupSubjectGrades', () => {
   test('devolve as notas do bimestre indexadas por matrícula', async () => {
     const cenario = await cenarioCompleto();
-    await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [
-        { matriculaId: cenario.matriculas[0].id, valor: 6.5 },
-        { matriculaId: cenario.matriculas[1].id, valor: 9 },
+    await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [
+        { enrollmentId: cenario.matriculas[0].id, value: 6.5 },
+        { enrollmentId: cenario.matriculas[1].id, value: 9 },
       ],
     });
 
-    const notas = await avaliacao.notasDaTurmaDisciplina(
+    const notas = await assessment.classGroupSubjectGrades(
       cenario.rede.id,
       cenario.turmaDisciplinas[0].id,
       1,
@@ -143,15 +143,15 @@ describe('notasDaTurmaDisciplina', () => {
 
   test('não mistura a nota de outro bimestre', async () => {
     const cenario = await cenarioCompleto();
-    await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 6 }],
+    await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 6 }],
     });
 
-    const segundo = await avaliacao.notasDaTurmaDisciplina(
+    const segundo = await assessment.classGroupSubjectGrades(
       cenario.rede.id,
       cenario.turmaDisciplinas[0].id,
       2,
@@ -163,15 +163,15 @@ describe('notasDaTurmaDisciplina', () => {
   test('não devolve nota de outra rede', async () => {
     const cenario = await cenarioCompleto();
     const outra = await cenarioCompleto();
-    await avaliacao.lancarNotas({
-      redeId: outra.rede.id,
-      turmaDisciplinaId: outra.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: outra.professor.id,
-      notas: [{ matriculaId: outra.matriculas[0].id, valor: 8 }],
+    await assessment.postGrades({
+      networkId: outra.rede.id,
+      classGroupSubjectId: outra.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: outra.professor.id,
+      grades: [{ enrollmentId: outra.matriculas[0].id, value: 8 }],
     });
 
-    const vistaDaOutraRede = await avaliacao.notasDaTurmaDisciplina(
+    const vistaDaOutraRede = await assessment.classGroupSubjectGrades(
       cenario.rede.id,
       outra.turmaDisciplinas[0].id,
       1,
@@ -181,40 +181,40 @@ describe('notasDaTurmaDisciplina', () => {
   });
 });
 
-describe('chamadaDoDia', () => {
+describe('rollCallForDate', () => {
   test('devolve o que já foi registrado naquele dia', async () => {
     const minimo = await cenarioMinimo();
-    await avaliacao.registrarChamada({
-      redeId: minimo.redeId,
-      turmaId: minimo.turmaId,
-      data: `${ANO_PADRAO}-03-02`,
-      linhas: [
-        { matriculaId: minimo.matriculaId, presente: false, justificativa: 'Viagem em família' },
+    await assessment.recordRollCall({
+      networkId: minimo.redeId,
+      classGroupId: minimo.turmaId,
+      date: `${ANO_PADRAO}-03-02`,
+      rows: [
+        { enrollmentId: minimo.matriculaId, present: false, excuse: 'Viagem em família' },
       ],
     });
 
-    const chamada = await avaliacao.chamadaDoDia(
+    const chamada = await assessment.rollCallForDate(
       minimo.redeId,
       minimo.turmaId,
       `${ANO_PADRAO}-03-02`,
     );
 
     expect(chamada.get(minimo.matriculaId)).toEqual({
-      presente: false,
-      justificativa: 'Viagem em família',
+      present: false,
+      excuse: 'Viagem em família',
     });
   });
 
   test('não mistura o registro de outro dia', async () => {
     const minimo = await cenarioMinimo();
-    await avaliacao.registrarChamada({
-      redeId: minimo.redeId,
-      turmaId: minimo.turmaId,
-      data: `${ANO_PADRAO}-03-02`,
-      linhas: [{ matriculaId: minimo.matriculaId, presente: true }],
+    await assessment.recordRollCall({
+      networkId: minimo.redeId,
+      classGroupId: minimo.turmaId,
+      date: `${ANO_PADRAO}-03-02`,
+      rows: [{ enrollmentId: minimo.matriculaId, present: true }],
     });
 
-    const outroDia = await avaliacao.chamadaDoDia(
+    const outroDia = await assessment.rollCallForDate(
       minimo.redeId,
       minimo.turmaId,
       `${ANO_PADRAO}-03-03`,
@@ -226,7 +226,7 @@ describe('chamadaDoDia', () => {
   test('devolve mapa vazio para turma sem matrícula ativa', async () => {
     const cenario = await cenarioCompleto();
 
-    const chamada = await avaliacao.chamadaDoDia(
+    const chamada = await assessment.rollCallForDate(
       cenario.rede.id,
       cenario.turmas[1].id,
       `${ANO_PADRAO}-03-02`,
@@ -236,17 +236,17 @@ describe('chamadaDoDia', () => {
   });
 });
 
-describe('estadoDeFechamento', () => {
+describe('closingState', () => {
   test('devolve os quatro bimestres abertos para turma que ainda não fechou nada', async () => {
     const minimo = await cenarioMinimo();
 
-    const estados = await avaliacao.estadoDeFechamento(minimo.redeId, minimo.turmaId);
+    const estados = await assessment.closingState(minimo.redeId, minimo.turmaId);
 
     expect(estados).toEqual([
-      { bimestre: 1, fechado: false, fechadoEm: null },
-      { bimestre: 2, fechado: false, fechadoEm: null },
-      { bimestre: 3, fechado: false, fechadoEm: null },
-      { bimestre: 4, fechado: false, fechadoEm: null },
+      { term: 1, closed: false, closedAt: null },
+      { term: 2, closed: false, closedAt: null },
+      { term: 3, closed: false, closedAt: null },
+      { term: 4, closed: false, closedAt: null },
     ]);
   });
 
@@ -254,36 +254,36 @@ describe('estadoDeFechamento', () => {
     const minimo = await cenarioMinimo();
     await cursarBimestres(minimo, 7, [1]);
 
-    const vistaDeOutraRede = await avaliacao.estadoDeFechamento(
+    const vistaDeOutraRede = await assessment.closingState(
       crypto.randomUUID(),
       minimo.turmaId,
     );
 
-    expect(vistaDeOutraRede.every((estado) => !estado.fechado)).toBe(true);
+    expect(vistaDeOutraRede.every((estado) => !estado.closed)).toBe(true);
   });
 });
 
-describe('frequenciaDaMatricula', () => {
+describe('enrollmentAttendance', () => {
   test('devolve o histórico do dia mais recente para o mais antigo', async () => {
     const minimo = await cenarioMinimo();
-    await avaliacao.registrarChamada({
-      redeId: minimo.redeId,
-      turmaId: minimo.turmaId,
-      data: `${ANO_PADRAO}-03-01`,
-      linhas: [{ matriculaId: minimo.matriculaId, presente: true }],
+    await assessment.recordRollCall({
+      networkId: minimo.redeId,
+      classGroupId: minimo.turmaId,
+      date: `${ANO_PADRAO}-03-01`,
+      rows: [{ enrollmentId: minimo.matriculaId, present: true }],
     });
-    await avaliacao.registrarChamada({
-      redeId: minimo.redeId,
-      turmaId: minimo.turmaId,
-      data: `${ANO_PADRAO}-03-05`,
-      linhas: [{ matriculaId: minimo.matriculaId, presente: false, justificativa: 'Gripe' }],
+    await assessment.recordRollCall({
+      networkId: minimo.redeId,
+      classGroupId: minimo.turmaId,
+      date: `${ANO_PADRAO}-03-05`,
+      rows: [{ enrollmentId: minimo.matriculaId, present: false, excuse: 'Gripe' }],
     });
 
-    const historico = await avaliacao.frequenciaDaMatricula(minimo.redeId, minimo.matriculaId);
+    const historico = await assessment.enrollmentAttendance(minimo.redeId, minimo.matriculaId);
 
     expect(historico).toEqual([
-      { data: `${ANO_PADRAO}-03-05`, presente: false, justificativa: 'Gripe' },
-      { data: `${ANO_PADRAO}-03-01`, presente: true, justificativa: null },
+      { date: `${ANO_PADRAO}-03-05`, present: false, excuse: 'Gripe' },
+      { date: `${ANO_PADRAO}-03-01`, present: true, excuse: null },
     ]);
   });
 
@@ -291,7 +291,7 @@ describe('frequenciaDaMatricula', () => {
     const minimo = await cenarioMinimo();
     await registrarDias(minimo, 2, 0);
 
-    const historico = await avaliacao.frequenciaDaMatricula(
+    const historico = await assessment.enrollmentAttendance(
       crypto.randomUUID(),
       minimo.matriculaId,
     );
@@ -300,40 +300,40 @@ describe('frequenciaDaMatricula', () => {
   });
 });
 
-describe('boletim', () => {
+describe('reportCard', () => {
   test('monta uma linha por disciplina da turma, ordenada por nome', async () => {
     const cenario = await cenarioCompleto();
     for (const turmaDisciplina of cenario.turmaDisciplinas) {
-      await avaliacao.lancarNotas({
-        redeId: cenario.rede.id,
-        turmaDisciplinaId: turmaDisciplina.id,
-        bimestre: 1,
-        lancadaPor: cenario.professor.id,
-        notas: [{ matriculaId: cenario.matriculas[0].id, valor: 7 }],
+      await assessment.postGrades({
+        networkId: cenario.rede.id,
+        classGroupSubjectId: turmaDisciplina.id,
+        term: 1,
+        postedBy: cenario.professor.id,
+        grades: [{ enrollmentId: cenario.matriculas[0].id, value: 7 }],
       });
     }
 
-    const boletim = await avaliacao.boletim(cenario.rede.id, cenario.matriculas[0].id);
+    const boletim = await assessment.reportCard(cenario.rede.id, cenario.matriculas[0].id);
 
-    const nomes = boletim?.linhas.map((linha) => linha.disciplinaNome) ?? [];
+    const nomes = boletim?.rows.map((linha) => linha.subjectName) ?? [];
     expect(nomes).toHaveLength(3);
     expect(nomes).toEqual([...nomes].sort());
     expect([...nomes].sort()).toEqual(cenario.disciplinas.map((d) => d.name).sort());
-    expect(boletim?.linhas[0]).toEqual({
-      disciplinaNome: nomes[0] ?? '',
-      notas: [7, null, null, null],
-      media: null,
+    expect(boletim?.rows[0]).toEqual({
+      subjectName: nomes[0] ?? '',
+      grades: [7, null, null, null],
+      average: null,
     });
   });
 
   test('deixa o aluno em curso enquanto falta nota, nunca reprovado', async () => {
     const cenario = await cenarioCompleto();
 
-    const boletim = await avaliacao.boletim(cenario.rede.id, cenario.matriculas[0].id);
+    const boletim = await assessment.reportCard(cenario.rede.id, cenario.matriculas[0].id);
 
-    expect(boletim?.mediaGeral).toBeNull();
-    expect(boletim?.situacao).toBe('in_progress');
-    expect(boletim?.linhas.every((linha) => linha.media === null)).toBe(true);
+    expect(boletim?.overallAverage).toBeNull();
+    expect(boletim?.status).toBe('in_progress');
+    expect(boletim?.rows.every((linha) => linha.average === null)).toBe(true);
   });
 
   test('aprova o aluno de média 6,0 com 75 % de presença quando o ano fecha', async () => {
@@ -342,19 +342,19 @@ describe('boletim', () => {
 
     await registrarDias(minimo, 3, 1);
 
-    const boletim = await avaliacao.boletim(minimo.redeId, minimo.matriculaId);
+    const boletim = await assessment.reportCard(minimo.redeId, minimo.matriculaId);
     expect(boletim).toEqual({
-      matriculaId: minimo.matriculaId,
-      alunoNome: minimo.alunoNome,
-      turmaNome: minimo.turmaNome,
-      ano: ANO_PADRAO,
-      linhas: [{ disciplinaNome: minimo.disciplinaNome, notas: [6, 6, 6, 6], media: 6 }],
-      mediasPorBimestre: [6, 6, 6, 6],
-      mediaGeral: 6,
-      percentualFrequencia: 75,
-      totalDias: 4,
-      presencas: 3,
-      situacao: 'passed',
+      enrollmentId: minimo.matriculaId,
+      studentName: minimo.alunoNome,
+      classGroupName: minimo.turmaNome,
+      year: ANO_PADRAO,
+      rows: [{ subjectName: minimo.disciplinaNome, grades: [6, 6, 6, 6], average: 6 }],
+      termAverages: [6, 6, 6, 6],
+      overallAverage: 6,
+      attendanceRate: 75,
+      totalDays: 4,
+      presentDays: 3,
+      status: 'passed',
     });
   });
 
@@ -364,10 +364,10 @@ describe('boletim', () => {
 
     await registrarDias(minimo, 2, 2);
 
-    const boletim = await avaliacao.boletim(minimo.redeId, minimo.matriculaId);
-    expect(boletim?.mediaGeral).toBe(8);
-    expect(boletim?.percentualFrequencia).toBe(50);
-    expect(boletim?.situacao).toBe('failed');
+    const boletim = await assessment.reportCard(minimo.redeId, minimo.matriculaId);
+    expect(boletim?.overallAverage).toBe(8);
+    expect(boletim?.attendanceRate).toBe(50);
+    expect(boletim?.status).toBe('failed');
   });
 
   test('reprova por nota o aluno de média 5,9 com presença integral', async () => {
@@ -376,44 +376,44 @@ describe('boletim', () => {
 
     await registrarDias(minimo, 4, 0);
 
-    const boletim = await avaliacao.boletim(minimo.redeId, minimo.matriculaId);
-    expect(boletim?.mediaGeral).toBe(5.9);
-    expect(boletim?.percentualFrequencia).toBe(100);
-    expect(boletim?.situacao).toBe('failed');
+    const boletim = await assessment.reportCard(minimo.redeId, minimo.matriculaId);
+    expect(boletim?.overallAverage).toBe(5.9);
+    expect(boletim?.attendanceRate).toBe(100);
+    expect(boletim?.status).toBe('failed');
   });
 
   test('mantém em curso enquanto o quarto bimestre não é fechado, mesmo com média alta', async () => {
     const minimo = await cenarioMinimo();
     await cursarBimestres(minimo, 9, [1, 2, 3]);
-    await avaliacao.lancarNotas({
-      redeId: minimo.redeId,
-      turmaDisciplinaId: minimo.turmaDisciplinaId,
-      bimestre: 4,
-      lancadaPor: minimo.professorId,
-      notas: [{ matriculaId: minimo.matriculaId, valor: 9 }],
+    await assessment.postGrades({
+      networkId: minimo.redeId,
+      classGroupSubjectId: minimo.turmaDisciplinaId,
+      term: 4,
+      postedBy: minimo.professorId,
+      grades: [{ enrollmentId: minimo.matriculaId, value: 9 }],
     });
 
-    const boletim = await avaliacao.boletim(minimo.redeId, minimo.matriculaId);
+    const boletim = await assessment.reportCard(minimo.redeId, minimo.matriculaId);
 
-    expect(boletim?.mediaGeral).toBe(9);
-    expect(boletim?.situacao).toBe('in_progress');
+    expect(boletim?.overallAverage).toBe(9);
+    expect(boletim?.status).toBe('in_progress');
   });
 
   test('devolve frequência zero, sem dia nenhum, para turma que ainda não teve chamada', async () => {
     const minimo = await cenarioMinimo();
 
-    const boletim = await avaliacao.boletim(minimo.redeId, minimo.matriculaId);
+    const boletim = await assessment.reportCard(minimo.redeId, minimo.matriculaId);
 
-    expect(boletim?.totalDias).toBe(0);
-    expect(boletim?.presencas).toBe(0);
-    expect(boletim?.percentualFrequencia).toBe(0);
+    expect(boletim?.totalDays).toBe(0);
+    expect(boletim?.presentDays).toBe(0);
+    expect(boletim?.attendanceRate).toBe(0);
   });
 
   test('devolve null para matrícula de outra rede', async () => {
     const minimo = await cenarioMinimo();
     const outra = await cenarioMinimo();
 
-    const boletim = await avaliacao.boletim(minimo.redeId, outra.matriculaId);
+    const boletim = await assessment.reportCard(minimo.redeId, outra.matriculaId);
 
     expect(boletim).toBeNull();
   });
@@ -421,7 +421,7 @@ describe('boletim', () => {
   test('devolve null para matrícula que não existe', async () => {
     const minimo = await cenarioMinimo();
 
-    const boletim = await avaliacao.boletim(minimo.redeId, crypto.randomUUID());
+    const boletim = await assessment.reportCard(minimo.redeId, crypto.randomUUID());
 
     expect(boletim).toBeNull();
   });

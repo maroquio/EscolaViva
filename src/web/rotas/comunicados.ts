@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
-import { academico } from '../../academics';
-import { ALCANCE, comunicacao, type Alcance, type EstatisticaDeLeitura } from '../../communication';
+import { academics } from '../../academics';
+import { AUDIENCE, communication, type Audience, type ReadStatistic } from '../../communication';
 import { ROLE, identity, type School } from '../../identity';
 import { CONTEXT_VARIABLES } from '../../shared/constants';
 import { emptyPage } from '../../shared/pagination';
@@ -33,7 +33,7 @@ type ValoresDoComunicado = {
   unidadeId: string;
   titulo: string;
   corpo: string;
-  alcance: Alcance;
+  alcance: Audience;
   selecionados: string[];
 };
 
@@ -72,7 +72,15 @@ const recorteDaLista = (
   return unidades[0]?.id ?? null;
 };
 
-const SEM_RESUMO = { destinatarios: 0, leituras: 0, taxa: 0 };
+const SEM_RESUMO = { recipients: 0, reads: 0, rate: 0 };
+
+const estatisticaParaTela = (estatistica: ReadStatistic) => ({
+  titulo: estatistica.title,
+  publicadoEm: estatistica.publishedAt,
+  destinatarios: estatistica.recipients,
+  leituras: estatistica.reads,
+  taxa: estatistica.rate,
+});
 
 rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
   const usuario = currentUser(c);
@@ -87,22 +95,22 @@ rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
   const semAlcance = recorte === null && !veTodaARede;
   const [pagina, resumo] = await Promise.all([
     semAlcance
-      ? Promise.resolve(emptyPage<EstatisticaDeLeitura>())
-      : comunicacao.paginaDeComunicados(usuario.networkId, recorte ?? undefined, paginaDaQuery(c)),
+      ? Promise.resolve(emptyPage<ReadStatistic>())
+      : communication.announcementsPage(usuario.networkId, recorte ?? undefined, paginaDaQuery(c)),
     semAlcance
       ? Promise.resolve(SEM_RESUMO)
-      : comunicacao.resumoDeComunicados(usuario.networkId, recorte ?? undefined),
+      : communication.announcementsSummary(usuario.networkId, recorte ?? undefined),
   ]);
 
   return renderizar(c, TEMPLATES.comunicados.lista, {
     titulo: TITULOS.comunicados.lista,
     campoDaUnidade: PARAMETROS.unidadeId,
-    comunicados: pagina.items,
+    comunicados: pagina.items.map(estatisticaParaTela),
     navegacao: navegacao(c, pagina),
     resumo: {
-      destinatarios: resumo.destinatarios,
-      leituras: resumo.leituras,
-      taxa: resumo.taxa,
+      destinatarios: resumo.recipients,
+      leituras: resumo.reads,
+      taxa: resumo.rate,
     },
     unidades,
     unidadeAtual: recorte ?? '',
@@ -127,9 +135,9 @@ const valoresDoFormulario = (formulario: FormBody): ValoresDoComunicado => ({
   titulo: textoDoCampo(formulario, CAMPOS.comunicado.titulo),
   corpo: textoDoCampo(formulario, CAMPOS.comunicado.corpo),
   alcance:
-    textoDoCampo(formulario, CAMPOS.comunicado.alcance) === ALCANCE.selecionados
-      ? ALCANCE.selecionados
-      : ALCANCE.unidade,
+    textoDoCampo(formulario, CAMPOS.comunicado.alcance) === AUDIENCE.selected
+      ? AUDIENCE.selected
+      : AUDIENCE.school,
   selecionados: listaDoCampo(formulario, CAMPOS.comunicado.responsaveis),
 });
 
@@ -143,8 +151,12 @@ const contextoDeEnvio = async (
   if (unidadeIdPedida !== '' && unidade === null) {
     throw new NotFound(DIAGNOSTICOS.unidadeForaDoAlcance);
   }
-  const responsaveis =
-    unidade === null ? [] : await academico.responsaveisDaUnidade(usuario.networkId, unidade.id);
+  const daUnidade =
+    unidade === null ? [] : await academics.schoolGuardians(usuario.networkId, unidade.id);
+  const responsaveis = daUnidade.map((responsavel) => ({
+    id: responsavel.id,
+    nome: responsavel.name,
+  }));
   return { unidades, unidade, responsaveis };
 };
 
@@ -169,7 +181,7 @@ const valoresIniciais = (unidadeId: string): ValoresDoComunicado => ({
   unidadeId,
   titulo: '',
   corpo: '',
-  alcance: ALCANCE.unidade,
+  alcance: AUDIENCE.school,
   selecionados: [],
 });
 
@@ -182,7 +194,7 @@ const conferirDestinatarios = (
   valores: ValoresDoComunicado,
   responsaveis: readonly { id: string }[],
 ): ApplicationError | null => {
-  if (valores.alcance === ALCANCE.unidade) return null;
+  if (valores.alcance === AUDIENCE.school) return null;
   if (valores.selecionados.length === 0) return SEM_SELECAO;
   const daUnidade = new Set(responsaveis.map((responsavel) => responsavel.id));
   if (valores.selecionados.every((id) => daUnidade.has(id))) return null;
@@ -207,16 +219,16 @@ rotasComunicados.post(ROTAS.comunicados.novo.padrao, async (c) => {
   const recusa = conferirDestinatarios(valores, contexto.responsaveis);
   if (recusa !== null) return paginaDeEnvio(c, contexto, valores, [recusa]);
 
-  const resultado = await comunicacao.publicarComunicado({
-    redeId: usuario.networkId,
-    unidadeId: contexto.unidade.id,
-    titulo: valores.titulo,
-    corpo: valores.corpo,
-    autorUsuarioId: usuario.id,
-    destinatarios:
-      valores.alcance === ALCANCE.unidade
+  const resultado = await communication.publishAnnouncement({
+    networkId: usuario.networkId,
+    schoolId: contexto.unidade.id,
+    title: valores.titulo,
+    body: valores.corpo,
+    authorUserId: usuario.id,
+    recipients:
+      valores.alcance === AUDIENCE.school
         ? []
-        : valores.selecionados.map((responsavelId) => ({ responsavelId })),
+        : valores.selecionados.map((guardianId) => ({ guardianId })),
   });
   if (!resultado.ok) return paginaDeEnvio(c, contexto, valores, resultado.erros);
 

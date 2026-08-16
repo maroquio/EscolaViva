@@ -1,21 +1,21 @@
-export type ItemDoMural = {
-  comunicadoId: string;
-  titulo: string;
-  publicadoEm: string;
-  lidoEm: string | null;
+export type BoardItem = {
+  announcementId: string;
+  title: string;
+  publishedAt: string;
+  readAt: string | null;
 };
 
-export type ContagemDeLeitura = {
-  comunicadoId: string;
-  titulo: string;
-  publicadoEm: string | null;
-  destinatarios: number;
-  leituras: number;
+export type ReadCount = {
+  announcementId: string;
+  title: string;
+  publishedAt: string | null;
+  recipients: number;
+  reads: number;
 };
 
-export type EstatisticaDeLeitura = ContagemDeLeitura & { taxa: number };
+export type ReadStatistic = ReadCount & { rate: number };
 
-export function taxaDeLeitura(destinatarios: number, leituras: number): number {
-  if (destinatarios <= 0) return 0;
-  return Math.min(1, Math.max(0, leituras / destinatarios));
+export function readRate(recipients: number, reads: number): number {
+  if (recipients <= 0) return 0;
+  return Math.min(1, Math.max(0, reads / recipients));
 }

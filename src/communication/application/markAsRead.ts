@@ -2,24 +2,24 @@ import { z } from 'zod';
 
 import { unitOfWork } from '../../shared/db';
 import { failure, schemaErrors, success, type Result } from '../../shared/result';
-import { marcarLeitura } from '../infra/announcementRepository';
+import { markRead } from '../infra/announcementRepository';
 
-export type EntradaDeLeitura = {
-  redeId: string;
-  comunicadoId: string;
-  responsavelId: string;
+export type ReadInput = {
+  networkId: string;
+  announcementId: string;
+  guardianId: string;
 };
 
-const esquema = z.object({
-  redeId: z.string().uuid(),
-  comunicadoId: z.string().uuid(),
-  responsavelId: z.string().uuid(),
+const schema = z.object({
+  networkId: z.string().uuid(),
+  announcementId: z.string().uuid(),
+  guardianId: z.string().uuid(),
 });
 
-export async function marcarComoLido(entrada: EntradaDeLeitura): Promise<Result<void>> {
-  const validado = esquema.safeParse(entrada);
-  if (!validado.success) return failure(...schemaErrors(validado.error.issues));
+export async function markAsRead(input: ReadInput): Promise<Result<void>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) return failure(...schemaErrors(parsed.error.issues));
 
-  await unitOfWork(({ sql }) => marcarLeitura(sql, validado.data));
+  await unitOfWork(({ sql }) => markRead(sql, parsed.data));
   return success<void>(undefined);
 }

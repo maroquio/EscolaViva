@@ -1,12 +1,15 @@
 import { Hono, type Context } from 'hono';
 import {
-  LIMITES_DO_ACADEMICO,
-  VOCABULARIO_DO_ACADEMICO,
-  academico,
-  type Aluno,
-  type AnoLetivo,
-  type Matricula,
-  type Turma,
+  ACADEMIC_LIMITS,
+  ACADEMIC_VOCABULARY,
+  academics,
+  type AcademicYear,
+  type ClassGroup,
+  type Enrollment,
+  type Guardian,
+  type GuardianLink,
+  type Student,
+  type Subject,
 } from '../../academics';
 import { ROLE, identity } from '../../identity';
 import {
@@ -80,10 +83,43 @@ const DA_CAMADA = {
   opcaoVazia: APRESENTACAO.opcaoVazia,
 } as const;
 
-const NOME_DO_TURNO: Record<string, string> = VOCABULARIO_DO_ACADEMICO.turno;
+const NOME_DO_TURNO: Record<string, string> = ACADEMIC_VOCABULARY.shift;
 const TURNOS = Object.entries(NOME_DO_TURNO).map(([valor, nome]) => ({ valor, nome }));
 
-const NOME_DA_SITUACAO: Record<string, string> = VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula;
+const NOME_DA_SITUACAO: Record<string, string> = ACADEMIC_VOCABULARY.enrollmentStatus;
+
+type AnoEmTela = { id: string; ano: number; dataInicio: string; dataFim: string };
+
+const alunoParaTela = (aluno: Student) => ({
+  id: aluno.id,
+  nome: aluno.name,
+  dataNascimento: aluno.birthDate,
+});
+
+const anoParaTela = (anoLetivo: AcademicYear): AnoEmTela => ({
+  id: anoLetivo.id,
+  ano: anoLetivo.year,
+  dataInicio: anoLetivo.startDate,
+  dataFim: anoLetivo.endDate,
+});
+
+const responsavelParaTela = (responsavel: Guardian) => ({
+  id: responsavel.id,
+  nome: responsavel.name,
+  email: responsavel.email,
+  cpf: responsavel.cpf,
+  telefone: responsavel.phone,
+});
+
+const vinculoParaTela = (vinculo: GuardianLink) => ({
+  responsavelId: vinculo.guardianId,
+  nome: vinculo.name,
+  email: vinculo.email,
+  parentesco: vinculo.relationship,
+  financeiro: vinculo.financiallyResponsible,
+});
+
+const disciplinaParaTela = (disciplina: Subject) => ({ id: disciplina.id, nome: disciplina.name });
 
 const hoje = (): string => systemClock.now().toISOString().slice(0, ISO_DATE_LENGTH);
 const porNome = (a: Unidade, b: Unidade): number => a.nome.localeCompare(b.nome, LOCALE);
@@ -125,36 +161,44 @@ const turmasDoAlcance = (
   redeId: string,
   unidades: readonly Unidade[],
   anoLetivoId: string | null,
-): Promise<Turma[]> =>
-  academico.listarTurmas(redeId, {
-    unidadeIds: idsDe(unidades),
-    ...(anoLetivoId === null ? {} : { anoLetivoId }),
+): Promise<ClassGroup[]> =>
+  academics.listClassGroups(redeId, {
+    schoolIds: idsDe(unidades),
+    ...(anoLetivoId === null ? {} : { academicYearId: anoLetivoId }),
   });
 
-const turmaNoAlcance = async (c: Contexto, turmaId: string): Promise<Turma | null> => {
+const turmaNoAlcance = async (c: Contexto, turmaId: string): Promise<ClassGroup | null> => {
   if (!isUuid(turmaId)) return null;
-  const turma = await academico.turmaPorId(currentNetwork(c), turmaId);
+  const turma = await academics.classGroupById(currentNetwork(c), turmaId);
   if (turma === null) return null;
-  return unidadesDaSecretaria(c).some(({ id }) => id === turma.unidadeId) ? turma : null;
+  return unidadesDaSecretaria(c).some(({ id }) => id === turma.schoolId) ? turma : null;
 };
 
 const turmaEmLista = (
-  turma: Turma,
+  turma: ClassGroup,
   ano: ReadonlyMap<string, number>,
   unidade: ReadonlyMap<string, string>,
 ): TurmaEmLista => ({
   id: turma.id,
-  nome: turma.nome,
-  serie: turma.serie,
-  turno: NOME_DO_TURNO[turma.turno] ?? turma.turno,
-  anoLetivoId: turma.anoLetivoId,
-  unidadeNome: unidade.get(turma.unidadeId) ?? MISSING_VALUE,
-  ano: ano.get(turma.anoLetivoId) ?? null,
+  nome: turma.name,
+  serie: turma.gradeLevel,
+  turno: NOME_DO_TURNO[turma.shift] ?? turma.shift,
+  anoLetivoId: turma.academicYearId,
+  unidadeNome: unidade.get(turma.schoolId) ?? MISSING_VALUE,
+  ano: ano.get(turma.academicYearId) ?? null,
 });
 
-const matriculaEmLista = (matricula: Matricula): Dados => ({
-  ...matricula,
-  situacaoNome: NOME_DA_SITUACAO[matricula.situacao] ?? matricula.situacao,
+const matriculaEmLista = (matricula: Enrollment): Dados => ({
+  id: matricula.id,
+  alunoId: matricula.studentId,
+  alunoNome: matricula.studentName,
+  turmaId: matricula.classGroupId,
+  turmaNome: matricula.classGroupName,
+  anoLetivoId: matricula.academicYearId,
+  ano: matricula.year,
+  dataMatricula: matricula.enrollmentDate,
+  situacao: matricula.status,
+  situacaoNome: NOME_DA_SITUACAO[matricula.status] ?? matricula.status,
 });
 
 export const rotasSecretaria = new Hono<{ Variables: Variables }>();
@@ -167,23 +211,34 @@ rotasSecretaria.get(ROTAS.secretaria.painel.padrao, async (c) => {
   const pagina = sliceItems(unidades, paginaDaQuery(c));
 
   const [anosLetivos, totais, porUnidade] = await Promise.all([
-    academico.listarAnosLetivos(redeId),
-    academico.totaisDoAlcance(redeId, idsDe(unidades)),
-    academico.contagensPorUnidade(redeId, idsDe(pagina.items)),
+    academics.listAcademicYears(redeId),
+    academics.scopeTotals(redeId, idsDe(unidades)),
+    academics.countsBySchool(redeId, idsDe(pagina.items)),
   ]);
 
-  const contagens = pagina.items.map((unidade) => ({
-    nome: unidade.nome,
-    ...(porUnidade.get(unidade.id) ?? { turmas: 0, matriculas: 0, responsaveis: 0 }),
-  }));
+  const contagens = pagina.items.map((unidade) => {
+    const daUnidade = porUnidade.get(unidade.id);
+    return {
+      nome: unidade.nome,
+      turmas: daUnidade?.classGroups ?? 0,
+      matriculas: daUnidade?.enrollments ?? 0,
+      responsaveis: daUnidade?.guardians ?? 0,
+    };
+  });
+  const anoCorrente = anosLetivos[0];
 
   return renderizar(c, TEMPLATES.secretaria.painel, {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.painel,
     unidades: contagens,
     navegacao: navegacao(c, pagina),
-    anoCorrente: anosLetivos[0] ?? null,
-    totais,
+    anoCorrente: anoCorrente === undefined ? null : anoParaTela(anoCorrente),
+    totais: {
+      turmas: totais.classGroups,
+      matriculas: totais.enrollments,
+      responsaveis: totais.guardians,
+      disciplinas: totais.subjects,
+    },
   });
 });
 
@@ -192,27 +247,25 @@ rotasSecretaria.get(ROTAS.secretaria.alunos.padrao, async (c) => {
   const termo = (c.req.query(PARAMETROS.busca) ?? '').trim();
   const pagina =
     termo === ''
-      ? sliceItems<Aluno>([], 1)
-      : await academico.paginaDeAlunos(redeId, termo, paginaDaQuery(c));
+      ? sliceItems<Student>([], 1)
+      : await academics.studentsPage(redeId, termo, paginaDaQuery(c));
   const encontrados = pagina.items;
 
-  const ativas = await academico.matriculasAtivasDosAlunos(
+  const ativas = await academics.activeEnrollmentsOfStudents(
     redeId,
     encontrados.map((aluno) => aluno.id),
     idsDe(unidadesDaSecretaria(c)),
   );
-  const ativaPorAluno = new Map(ativas.map((matricula) => [matricula.alunoId, matricula]));
+  const ativaPorAluno = new Map(ativas.map((matricula) => [matricula.studentId, matricula]));
 
   const alunos = encontrados.map((aluno) => {
     const matricula = ativaPorAluno.get(aluno.id) ?? null;
     return {
-      id: aluno.id,
-      nome: aluno.nome,
-      dataNascimento: aluno.dataNascimento,
-      turmaNome: matricula?.turmaNome ?? null,
-      ano: matricula?.ano ?? null,
-      situacao: matricula?.situacao ?? null,
-      situacaoNome: matricula === null ? null : (NOME_DA_SITUACAO[matricula.situacao] ?? null),
+      ...alunoParaTela(aluno),
+      turmaNome: matricula?.classGroupName ?? null,
+      ano: matricula?.year ?? null,
+      situacao: matricula?.status ?? null,
+      situacaoNome: matricula === null ? null : (NOME_DA_SITUACAO[matricula.status] ?? null),
     };
   });
 
@@ -220,7 +273,7 @@ rotasSecretaria.get(ROTAS.secretaria.alunos.padrao, async (c) => {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.alunos,
     campoDaBusca: PARAMETROS.busca,
-    limiteDoNome: LIMITES_DO_ACADEMICO.aluno.nome,
+    limiteDoNome: ACADEMIC_LIMITS.student.name,
     linhasPorPagina: pagina.size,
     termo,
     buscou: termo !== '',
@@ -233,7 +286,7 @@ const formDeAluno = (c: Contexto, valores: Valores, erros: Erros): Response =>
   renderizar(c, TEMPLATES.secretaria.alunoNovo, {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.alunoNovo,
-    limiteDoNome: LIMITES_DO_ACADEMICO.aluno.nome,
+    limiteDoNome: ACADEMIC_LIMITS.student.name,
     valores,
     erros,
   });
@@ -247,7 +300,11 @@ rotasSecretaria.post(ROTAS.secretaria.alunos.padrao, async (c) => {
     nome: texto(corpo, CAMPOS.aluno.nome),
     dataNascimento: texto(corpo, CAMPOS.aluno.dataNascimento),
   };
-  const resultado = await academico.cadastrarAluno({ redeId: currentNetwork(c), ...valores });
+  const resultado = await academics.registerStudent({
+    networkId: currentNetwork(c),
+    name: valores.nome,
+    birthDate: valores.dataNascimento,
+  });
   if (resultado.ok) {
     return concluir(
       c,
@@ -258,15 +315,15 @@ rotasSecretaria.post(ROTAS.secretaria.alunos.padrao, async (c) => {
   return formDeAluno(c, valores, resultado.erros);
 });
 
-const alunoNoAlcance = async (c: Contexto, alunoId: string): Promise<Aluno | null> => {
+const alunoNoAlcance = async (c: Contexto, alunoId: string): Promise<Student | null> => {
   if (!isUuid(alunoId)) return null;
   const redeId = currentNetwork(c);
   const unidadeIds = idsDe(unidadesDaSecretaria(c));
 
   const [aluno, historico, temMatricula] = await Promise.all([
-    academico.alunoPorId(redeId, alunoId),
-    academico.paginaDeMatriculasDoAluno(redeId, alunoId, unidadeIds, 1),
-    academico.alunoTemMatricula(redeId, alunoId),
+    academics.studentById(redeId, alunoId),
+    academics.studentEnrollmentsPage(redeId, alunoId, unidadeIds, 1),
+    academics.studentHasEnrollment(redeId, alunoId),
   ]);
   if (aluno === null) return null;
   return temMatricula && historico.total === 0 ? null : aluno;
@@ -278,20 +335,20 @@ const fichaDoAluno = async (c: Contexto, alunoId: string): Promise<Dados | null>
   const unidadeIds = idsDe(unidadesDaSecretaria(c));
 
   const [aluno, vinculos, historico, ativas, temMatricula] = await Promise.all([
-    academico.alunoPorId(redeId, alunoId),
-    academico.paginaDeResponsaveisDoAluno(
+    academics.studentById(redeId, alunoId),
+    academics.studentGuardiansPage(
       redeId,
       alunoId,
       paginaDaQuery(c, PARAMETROS.paginaDeResponsaveis),
     ),
-    academico.paginaDeMatriculasDoAluno(
+    academics.studentEnrollmentsPage(
       redeId,
       alunoId,
       unidadeIds,
       paginaDaQuery(c, PARAMETROS.paginaDeMatriculas),
     ),
-    academico.matriculasAtivasDosAlunos(redeId, [alunoId], unidadeIds),
-    academico.alunoTemMatricula(redeId, alunoId),
+    academics.activeEnrollmentsOfStudents(redeId, [alunoId], unidadeIds),
+    academics.studentHasEnrollment(redeId, alunoId),
   ]);
   if (aluno === null) return null;
   if (temMatricula && historico.total === 0) return null;
@@ -301,8 +358,8 @@ const fichaDoAluno = async (c: Contexto, alunoId: string): Promise<Dados | null>
   return {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.aluno,
-    aluno,
-    vinculos: vinculos.items,
+    aluno: alunoParaTela(aluno),
+    vinculos: vinculos.items.map(vinculoParaTela),
     navegacaoVinculos: navegacao(c, vinculos, PARAMETROS.paginaDeResponsaveis),
     matriculas: historico.items.map(matriculaEmLista),
     navegacaoMatriculas: navegacao(c, historico, PARAMETROS.paginaDeMatriculas),
@@ -317,24 +374,26 @@ rotasSecretaria.get(ROTAS.secretaria.aluno.padrao, async (c) => {
 
 const formDeVinculo = async (
   c: Contexto,
-  aluno: Aluno,
+  aluno: Student,
   valores: Valores,
   erros: Erros,
 ): Promise<Response> => {
   const redeId = currentNetwork(c);
   const [responsaveis, vinculados] = await Promise.all([
-    academico.listarResponsaveis(redeId),
-    academico.paginaDeResponsaveisDoAluno(redeId, aluno.id, 1),
+    academics.listGuardians(redeId),
+    academics.studentGuardiansPage(redeId, aluno.id, 1),
   ]);
-  const jaVinculados = new Set(vinculados.items.map((vinculo) => vinculo.responsavelId));
+  const jaVinculados = new Set(vinculados.items.map((vinculo) => vinculo.guardianId));
 
   return renderizar(c, TEMPLATES.secretaria.alunoResponsavelNovo, {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.vincularResponsavel,
-    limiteDoParentesco: LIMITES_DO_ACADEMICO.parentesco.descricao,
+    limiteDoParentesco: ACADEMIC_LIMITS.relationship.description,
     marcado: MARCADO,
-    aluno,
-    disponiveis: responsaveis.filter((pessoa) => !jaVinculados.has(pessoa.id)),
+    aluno: alunoParaTela(aluno),
+    disponiveis: responsaveis
+      .filter((pessoa) => !jaVinculados.has(pessoa.id))
+      .map(responsavelParaTela),
     temResponsaveis: responsaveis.length > 0,
     valores,
     erros,
@@ -356,10 +415,12 @@ rotasSecretaria.post(ROTAS.secretaria.alunoResponsaveis.padrao, async (c) => {
     parentesco: texto(corpo, CAMPOS.vinculo.parentesco),
     financeiro: marcado(corpo, CAMPOS.vinculo.financeiro),
   };
-  const resultado = await academico.vincularResponsavel({
-    redeId: currentNetwork(c),
-    alunoId: aluno.id,
-    ...valores,
+  const resultado = await academics.linkGuardian({
+    networkId: currentNetwork(c),
+    studentId: aluno.id,
+    guardianId: valores.responsavelId,
+    relationship: valores.parentesco,
+    financiallyResponsible: valores.financeiro,
   });
   if (resultado.ok) {
     return concluir(c, ROTAS.secretaria.aluno({ id: aluno.id }), AVISOS.responsavelVinculado);
@@ -369,13 +430,14 @@ rotasSecretaria.post(ROTAS.secretaria.alunoResponsaveis.padrao, async (c) => {
 
 const opcoesDeTurma = async (
   c: Contexto,
-): Promise<{ turmas: TurmaEmLista[]; anosLetivos: AnoLetivo[] }> => {
+): Promise<{ turmas: TurmaEmLista[]; anosLetivos: AnoEmTela[] }> => {
   const redeId = currentNetwork(c);
   const unidades = unidadesDaSecretaria(c);
-  const [turmas, anosLetivos] = await Promise.all([
+  const [turmas, anosDaRede] = await Promise.all([
     turmasDoAlcance(redeId, unidades, null),
-    academico.listarAnosLetivos(redeId),
+    academics.listAcademicYears(redeId),
   ]);
+  const anosLetivos = anosDaRede.map(anoParaTela);
   const anoPorId = new Map(anosLetivos.map((anoLetivo) => [anoLetivo.id, anoLetivo.ano]));
   const nomePorUnidade = new Map(unidades.map(({ id, nome }) => [id, nome]));
   return { turmas: turmas.map((turma) => turmaEmLista(turma, anoPorId, nomePorUnidade)), anosLetivos };
@@ -383,7 +445,7 @@ const opcoesDeTurma = async (
 
 const formDeMatricula = async (
   c: Contexto,
-  aluno: Aluno,
+  aluno: Student,
   valores: Valores,
   erros: Erros,
 ): Promise<Response> => {
@@ -391,7 +453,7 @@ const formDeMatricula = async (
   return renderizar(c, TEMPLATES.secretaria.alunoMatriculaNova, {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.matricular,
-    aluno,
+    aluno: alunoParaTela(aluno),
     turmas,
     anosLetivos,
     hoje: hoje(),
@@ -419,10 +481,12 @@ rotasSecretaria.post(ROTAS.secretaria.matriculas.padrao, async (c) => {
     return naoEncontrado(c);
   }
 
-  const resultado = await academico.matricular({
-    redeId: currentNetwork(c),
-    alunoId: aluno.id,
-    ...valores,
+  const resultado = await academics.enroll({
+    networkId: currentNetwork(c),
+    studentId: aluno.id,
+    classGroupId: valores.turmaId,
+    academicYearId: valores.anoLetivoId,
+    enrollmentDate: valores.dataMatricula,
   });
   if (resultado.ok) {
     return concluir(c, ROTAS.secretaria.aluno({ id: aluno.id }), AVISOS.matriculaRegistrada);
@@ -433,19 +497,19 @@ rotasSecretaria.post(ROTAS.secretaria.matriculas.padrao, async (c) => {
 const transferenciaNoAlcance = async (
   c: Contexto,
   matriculaId: string,
-): Promise<{ matricula: Matricula; aluno: Aluno } | null> => {
+): Promise<{ matricula: Enrollment; aluno: Student } | null> => {
   if (!isUuid(matriculaId)) return null;
-  const matricula = await academico.matriculaPorId(currentNetwork(c), matriculaId);
+  const matricula = await academics.enrollmentById(currentNetwork(c), matriculaId);
   if (matricula === null) return null;
-  if (!unidadesDaSecretaria(c).some(({ id }) => id === matricula.unidadeId)) return null;
-  const aluno = await alunoNoAlcance(c, matricula.alunoId);
+  if (!unidadesDaSecretaria(c).some(({ id }) => id === matricula.schoolId)) return null;
+  const aluno = await alunoNoAlcance(c, matricula.studentId);
   return aluno === null ? null : { matricula, aluno };
 };
 
 const formDeTransferencia = async (
   c: Contexto,
-  matricula: Matricula,
-  aluno: Aluno,
+  matricula: Enrollment,
+  aluno: Student,
   valores: Valores,
   erros: Erros,
 ): Promise<Response> => {
@@ -453,9 +517,9 @@ const formDeTransferencia = async (
   return renderizar(c, TEMPLATES.secretaria.matriculaTransferencia, {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.transferir,
-    aluno,
+    aluno: alunoParaTela(aluno),
     ativa: matriculaEmLista(matricula),
-    turmas: turmas.filter((turma) => turma.id !== matricula.turmaId),
+    turmas: turmas.filter((turma) => turma.id !== matricula.classGroupId),
     hoje: hoje(),
     valores,
     erros,
@@ -482,7 +546,12 @@ rotasSecretaria.post(ROTAS.secretaria.matriculaTransferir.padrao, async (c) => {
     return naoEncontrado(c);
   }
 
-  const resultado = await academico.transferir({ redeId: currentNetwork(c), matriculaId, ...valores });
+  const resultado = await academics.transfer({
+    networkId: currentNetwork(c),
+    enrollmentId: matriculaId,
+    targetClassGroupId: valores.turmaDestinoId,
+    date: valores.data,
+  });
   if (resultado.ok) {
     return concluir(
       c,
@@ -494,11 +563,11 @@ rotasSecretaria.post(ROTAS.secretaria.matriculaTransferir.padrao, async (c) => {
 });
 
 const telaDeResponsaveis = async (c: Contexto): Promise<Response> => {
-  const pagina = await academico.paginaDeResponsaveis(currentNetwork(c), paginaDaQuery(c));
+  const pagina = await academics.guardiansPage(currentNetwork(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATES.secretaria.responsaveis, {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.responsaveis,
-    responsaveis: pagina.items,
+    responsaveis: pagina.items.map(responsavelParaTela),
     navegacao: navegacao(c, pagina),
   });
 };
@@ -507,9 +576,9 @@ const formDeResponsavel = (c: Contexto, valores: Valores, erros: Erros): Respons
   renderizar(c, TEMPLATES.secretaria.responsavelNovo, {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.responsavelNovo,
-    limiteDoNome: LIMITES_DO_ACADEMICO.responsavel.nome,
-    limiteDoEmail: LIMITES_DO_ACADEMICO.responsavel.email,
-    limiteDoTelefone: LIMITES_DO_ACADEMICO.responsavel.telefone,
+    limiteDoNome: ACADEMIC_LIMITS.guardian.name,
+    limiteDoEmail: ACADEMIC_LIMITS.guardian.email,
+    limiteDoTelefone: ACADEMIC_LIMITS.guardian.phone,
     limiteDoCpfComMascara: MASKED_CPF_LENGTH,
     valores,
     erros,
@@ -528,7 +597,13 @@ rotasSecretaria.post(ROTAS.secretaria.responsaveis.padrao, async (c) => {
     telefone: texto(corpo, CAMPOS.responsavel.telefone),
     cpf: texto(corpo, CAMPOS.responsavel.cpf),
   };
-  const resultado = await academico.cadastrarResponsavel({ redeId: currentNetwork(c), ...valores });
+  const resultado = await academics.registerGuardian({
+    networkId: currentNetwork(c),
+    name: valores.nome,
+    email: valores.email,
+    phone: valores.telefone,
+    cpf: valores.cpf,
+  });
   if (resultado.ok) {
     return concluir(c, ROTAS.secretaria.responsaveis(), AVISOS.responsavelCadastrado);
   }
@@ -538,15 +613,15 @@ rotasSecretaria.post(ROTAS.secretaria.responsaveis.padrao, async (c) => {
 const telaDeTurmas = async (c: Contexto): Promise<Response> => {
   const redeId = currentNetwork(c);
   const unidades = unidadesDaSecretaria(c);
-  const anosLetivos = await academico.listarAnosLetivos(redeId);
+  const anosLetivos = (await academics.listAcademicYears(redeId)).map(anoParaTela);
 
   const unidadeId = escolhido(c.req.query(PARAMETROS.unidade), idsDe(unidades));
   const anoLetivoId = escolhido(c.req.query(PARAMETROS.ano), anosLetivos.map(({ id }) => id));
   const alvo = unidadeId === null ? unidades : unidades.filter(({ id }) => id === unidadeId);
 
-  const pagina = await academico.paginaDeTurmas(
+  const pagina = await academics.classGroupsPage(
     redeId,
-    { unidadeIds: idsDe(alvo), ...(anoLetivoId === null ? {} : { anoLetivoId }) },
+    { schoolIds: idsDe(alvo), ...(anoLetivoId === null ? {} : { academicYearId: anoLetivoId }) },
     paginaDaQuery(c),
   );
 
@@ -570,10 +645,10 @@ const formDeTurma = async (c: Contexto, valores: Valores, erros: Erros): Promise
   renderizar(c, TEMPLATES.secretaria.turmaNova, {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.turmaNova,
-    limiteDoNome: LIMITES_DO_ACADEMICO.turma.nome,
-    limiteDaSerie: LIMITES_DO_ACADEMICO.turma.serie,
+    limiteDoNome: ACADEMIC_LIMITS.classGroup.name,
+    limiteDaSerie: ACADEMIC_LIMITS.classGroup.gradeLevel,
     unidades: unidadesDaSecretaria(c),
-    anosLetivos: await academico.listarAnosLetivos(currentNetwork(c)),
+    anosLetivos: (await academics.listAcademicYears(currentNetwork(c))).map(anoParaTela),
     turnos: TURNOS,
     valores,
     erros,
@@ -598,29 +673,36 @@ rotasSecretaria.post(ROTAS.secretaria.turmas.padrao, async (c) => {
     return naoEncontrado(c);
   }
 
-  const resultado = await academico.cadastrarTurma({ redeId: currentNetwork(c), ...valores });
+  const resultado = await academics.registerClassGroup({
+    networkId: currentNetwork(c),
+    name: valores.nome,
+    gradeLevel: valores.serie,
+    shift: valores.turno,
+    schoolId: valores.unidadeId,
+    academicYearId: valores.anoLetivoId,
+  });
   if (resultado.ok) {
     return concluir(c, ROTAS.secretaria.turma({ id: resultado.valor.id }), AVISOS.turmaCadastrada);
   }
   return formDeTurma(c, valores, resultado.erros);
 });
 
-const turmaParaTela = async (c: Contexto, turma: Turma): Promise<TurmaEmLista> => {
-  const anosLetivos = await academico.listarAnosLetivos(currentNetwork(c));
-  const anoPorId = new Map(anosLetivos.map((anoLetivo) => [anoLetivo.id, anoLetivo.ano]));
+const turmaParaTela = async (c: Contexto, turma: ClassGroup): Promise<TurmaEmLista> => {
+  const anosLetivos = await academics.listAcademicYears(currentNetwork(c));
+  const anoPorId = new Map(anosLetivos.map((anoLetivo) => [anoLetivo.id, anoLetivo.year]));
   const nomePorUnidade = new Map(unidadesDaSecretaria(c).map(({ id, nome }) => [id, nome]));
   return turmaEmLista(turma, anoPorId, nomePorUnidade);
 };
 
-const telaDaTurma = async (c: Contexto, turma: Turma): Promise<Response> => {
+const telaDaTurma = async (c: Contexto, turma: ClassGroup): Promise<Response> => {
   const redeId = currentNetwork(c);
   const [alocacoes, matriculas] = await Promise.all([
-    academico.paginaDeTurmaDisciplinas(
+    academics.classGroupSubjectsPage(
       redeId,
       turma.id,
       paginaDaQuery(c, PARAMETROS.paginaDeDisciplinas),
     ),
-    academico.paginaDeMatriculasAtivasDaTurma(
+    academics.activeEnrollmentsOfClassGroupPage(
       redeId,
       turma.id,
       paginaDaQuery(c, PARAMETROS.paginaDeMatriculas),
@@ -628,17 +710,17 @@ const telaDaTurma = async (c: Contexto, turma: Turma): Promise<Response> => {
   ]);
   const nomes = await identity.userNames(
     redeId,
-    alocacoes.items.map((a) => a.professorUsuarioId),
+    alocacoes.items.map((a) => a.teacherUserId),
   );
 
   return renderizar(c, TEMPLATES.secretaria.turma, {
     ...DA_CAMADA,
-    titulo: TITULOS.secretaria.turma(turma.nome),
+    titulo: TITULOS.secretaria.turma(turma.name),
     turma: await turmaParaTela(c, turma),
     alocacoes: alocacoes.items.map((alocacao) => ({
       id: alocacao.id,
-      disciplinaNome: alocacao.disciplinaNome,
-      professorNome: nomes.get(alocacao.professorUsuarioId) ?? MISSING_VALUE,
+      disciplinaNome: alocacao.subjectName,
+      professorNome: nomes.get(alocacao.teacherUserId) ?? MISSING_VALUE,
     })),
     navegacaoAlocacoes: navegacao(c, alocacoes, PARAMETROS.paginaDeDisciplinas),
     matriculas: matriculas.items.map(matriculaEmLista),
@@ -653,20 +735,20 @@ rotasSecretaria.get(ROTAS.secretaria.turma.padrao, async (c) => {
 
 const formDeAlocacao = async (
   c: Contexto,
-  turma: Turma,
+  turma: ClassGroup,
   valores: Valores,
   erros: Erros,
 ): Promise<Response> => {
   const redeId = currentNetwork(c);
   const [disciplinas, professores] = await Promise.all([
-    academico.listarDisciplinas(redeId),
-    identity.schoolTeachers(redeId, turma.unidadeId),
+    academics.listSubjects(redeId),
+    identity.schoolTeachers(redeId, turma.schoolId),
   ]);
   return renderizar(c, TEMPLATES.secretaria.turmaDisciplinaNova, {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.alocar,
     turma: await turmaParaTela(c, turma),
-    disciplinas,
+    disciplinas: disciplinas.map(disciplinaParaTela),
     professores,
     valores,
     erros,
@@ -689,7 +771,12 @@ rotasSecretaria.post(ROTAS.secretaria.turmaDisciplinas.padrao, async (c) => {
     disciplinaId: texto(corpo, CAMPOS.alocacao.disciplinaId),
     professorUsuarioId: texto(corpo, CAMPOS.alocacao.professorUsuarioId),
   };
-  const resultado = await academico.alocarProfessor({ redeId: currentNetwork(c), turmaId, ...valores });
+  const resultado = await academics.assignTeacher({
+    networkId: currentNetwork(c),
+    classGroupId: turmaId,
+    subjectId: valores.disciplinaId,
+    teacherUserId: valores.professorUsuarioId,
+  });
   if (resultado.ok) {
     return concluir(c, ROTAS.secretaria.turma({ id: turmaId }), AVISOS.disciplinaAlocada);
   }
@@ -697,11 +784,11 @@ rotasSecretaria.post(ROTAS.secretaria.turmaDisciplinas.padrao, async (c) => {
 });
 
 const telaDeDisciplinas = async (c: Contexto): Promise<Response> => {
-  const pagina = await academico.paginaDeDisciplinas(currentNetwork(c), paginaDaQuery(c));
+  const pagina = await academics.subjectsPage(currentNetwork(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATES.secretaria.disciplinas, {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.disciplinas,
-    disciplinas: pagina.items,
+    disciplinas: pagina.items.map(disciplinaParaTela),
     navegacao: navegacao(c, pagina),
   });
 };
@@ -710,7 +797,7 @@ const formDeDisciplina = (c: Contexto, valores: Valores, erros: Erros): Response
   renderizar(c, TEMPLATES.secretaria.disciplinaNova, {
     ...DA_CAMADA,
     titulo: TITULOS.secretaria.disciplinaNova,
-    limiteDoNome: LIMITES_DO_ACADEMICO.disciplina.nome,
+    limiteDoNome: ACADEMIC_LIMITS.subject.name,
     valores,
     erros,
   });
@@ -722,7 +809,10 @@ rotasSecretaria.get(ROTAS.secretaria.disciplinaNova.padrao, (c) =>
 
 rotasSecretaria.post(ROTAS.secretaria.disciplinas.padrao, async (c) => {
   const valores = { nome: texto(c.get(CONTEXT_VARIABLES.body), CAMPOS.disciplina.nome) };
-  const resultado = await academico.cadastrarDisciplina({ redeId: currentNetwork(c), ...valores });
+  const resultado = await academics.registerSubject({
+    networkId: currentNetwork(c),
+    name: valores.nome,
+  });
   if (resultado.ok) {
     return concluir(c, ROTAS.secretaria.disciplinas(), AVISOS.disciplinaCadastrada);
   }

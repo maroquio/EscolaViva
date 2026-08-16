@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Eta } from 'eta';
 import type { Context } from 'hono';
-import { ROTULO_DE_BIMESTRE } from '../assessment';
-import { ALCANCE } from '../communication';
+import { TERM_LABEL } from '../assessment';
+import { AUDIENCE } from '../communication';
 import { ROLE } from '../identity';
 import { config } from '../shared/config';
 import { ASSETS, DEVELOPMENT_ENV, KEY_FIELD, MISSING_VALUE } from '../shared/constants';
@@ -136,6 +136,8 @@ export const idDoErro = (campo: string): string => `${campo}${SUFIXOS_DE_ID.erro
 
 export const idDaAjuda = (campo: string): string => `${campo}${SUFIXOS_DE_ID.ajuda}`;
 
+const ALCANCES = { unidade: AUDIENCE.school, selecionados: AUDIENCE.selected } as const;
+
 export type DadosDeTemplate = Record<string, unknown>;
 
 const CHAVES_DO_CONTEXTO = {
@@ -163,7 +165,7 @@ const auxiliares = {
   apresentacao: APRESENTACAO,
   titulos: TITULOS,
   papel: ROLE,
-  alcances: ALCANCE,
+  alcances: ALCANCES,
   campos: CAMPOS,
   idDoErro,
   idDaAjuda,
@@ -173,7 +175,7 @@ const auxiliares = {
   contagem: CONTAGEM,
   acoes: ACOES,
   semAlunoMatriculado: SEM_ALUNO_MATRICULADO,
-  rotuloDeBimestre: ROTULO_DE_BIMESTRE,
+  rotuloDeBimestre: TERM_LABEL,
   formatarCpf: formatCpf,
   formatarData,
   formatarDataHora,

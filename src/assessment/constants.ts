@@ -1,93 +1,110 @@
-export const LIMITES = {
-  nota: { minimo: 0, maximo: 10 },
-  caracteresDaJustificativa: 500,
+export const LIMITS = {
+  grade: { minimum: 0, maximum: 10 },
+  excuseCharacters: 500,
 } as const;
 
-export const ARITMETICA = {
-  centesimos: 100,
-  percentual: 100,
-  toleranciaDeRepresentacao: 1e-6,
+export const ARITHMETIC = {
+  hundredths: 100,
+  percent: 100,
+  representationTolerance: 1e-6,
 } as const;
 
-export const APROVACAO = {
-  mediaMinimaEmCentesimos: 600,
-  frequenciaMinimaEmCentesimos: 7500,
+export const PASSING = {
+  minimumAverageInHundredths: 600,
+  minimumAttendanceInHundredths: 7500,
 } as const;
 
-export const MEIA_NOITE_UTC = 'T00:00:00Z';
+export const MIDNIGHT_UTC = 'T00:00:00Z';
 
-export const MEIO_DIA_UTC = 'T12:00:00Z';
+export const NOON_UTC = 'T12:00:00Z';
 
-export const CAMPOS = {
-  turmaId: 'turmaId',
-  turmaDisciplinaId: 'turmaDisciplinaId',
-  bimestre: 'bimestre',
-  data: 'data',
-  notas: 'notas',
-  linhas: 'linhas',
+export const FIELDS = {
+  classGroupId: 'turmaId',
+  classGroupSubjectId: 'turmaDisciplinaId',
+  term: 'bimestre',
+  date: 'data',
+  grades: 'notas',
+  rows: 'linhas',
 } as const;
 
-export const CODIGOS = {
-  naoEncontrada: 'nao_encontrada',
-  turmaDisciplinaNaoEncontrada: 'nao_encontrada',
-  anoLetivoAusente: 'ano_letivo_ausente',
-  dataForaDoAnoLetivo: 'data_fora_do_ano_letivo',
-  bimestreFechado: 'bimestre_fechado',
-  jaFechado: 'ja_fechado',
-  semDisciplina: 'sem_disciplina',
-  semMatriculaAtiva: 'sem_matricula_ativa',
-  fechamentoIncompleto: 'fechamento_incompleto',
-
-  notas: {
-    matriculaForaDaTurma: 'matricula_fora_da_turma',
-    matriculaRepetida: 'matricula_repetida',
+export const SCHEMA_FIELD_NAMES = {
+  grades: {
+    classGroupSubjectId: FIELDS.classGroupSubjectId,
+    term: FIELDS.term,
+    grades: FIELDS.grades,
   },
-  chamada: {
-    matriculaForaDaTurma: 'matricula_fora_da_turma',
-    matriculaRepetida: 'matricula_repetida',
+  rollCall: {
+    classGroupId: FIELDS.classGroupId,
+    date: FIELDS.date,
+    rows: FIELDS.rows,
+  },
+  closing: {
+    classGroupId: FIELDS.classGroupId,
+    term: FIELDS.term,
   },
 } as const;
 
-export const MENSAGENS = {
-  bimestreInvalido: 'O bimestre precisa ser 1, 2, 3 ou 4.',
-  notaForaDaEscala: 'A nota precisa ficar entre 0 e 10.',
-  loteDeNotasVazio: 'Nenhuma nota foi enviada.',
-  turmaNaoEncontrada: 'Turma não encontrada nesta rede.',
-  turmaDisciplinaNaoEncontrada: 'Disciplina da turma não encontrada nesta rede.',
-  bimestreFechadoParaLancamento:
+export const CODES = {
+  notFound: 'nao_encontrada',
+  classGroupSubjectNotFound: 'nao_encontrada',
+  academicYearMissing: 'ano_letivo_ausente',
+  dateOutsideAcademicYear: 'data_fora_do_ano_letivo',
+  termClosed: 'bimestre_fechado',
+  alreadyClosed: 'ja_fechado',
+  noSubject: 'sem_disciplina',
+  noActiveEnrollment: 'sem_matricula_ativa',
+  incompleteClosing: 'fechamento_incompleto',
+
+  grades: {
+    enrollmentOutsideClassGroup: 'matricula_fora_da_turma',
+    duplicateEnrollment: 'matricula_repetida',
+  },
+  rollCall: {
+    enrollmentOutsideClassGroup: 'matricula_fora_da_turma',
+    duplicateEnrollment: 'matricula_repetida',
+  },
+} as const;
+
+export const MESSAGES = {
+  invalidTerm: 'O bimestre precisa ser 1, 2, 3 ou 4.',
+  gradeOutOfScale: 'A nota precisa ficar entre 0 e 10.',
+  emptyGradeBatch: 'Nenhuma nota foi enviada.',
+  classGroupNotFound: 'Turma não encontrada nesta rede.',
+  classGroupSubjectNotFound: 'Disciplina da turma não encontrada nesta rede.',
+  termClosedForPosting:
     'O bimestre já foi fechado para esta turma; as notas não podem mais ser alteradas.',
 
-  notas: {
-    matriculaForaDaTurma: 'Há aluno sem matrícula ativa nesta turma no lançamento.',
-    matriculaRepetida: 'O mesmo aluno aparece duas vezes.',
+  grades: {
+    enrollmentOutsideClassGroup: 'Há aluno sem matrícula ativa nesta turma no lançamento.',
+    duplicateEnrollment: 'O mesmo aluno aparece duas vezes.',
   },
-  chamada: {
-    dataInvalida: 'Informe uma data válida no formato AAAA-MM-DD.',
-    justificativaLonga: 'A justificativa é longa demais.',
-    loteVazio: 'Nenhuma linha de chamada foi enviada.',
-    anoLetivoAusente: 'A turma não tem ano letivo definido.',
-    dataForaDoAnoLetivo: (inicio: string, fim: string): string =>
-      `A chamada precisa cair entre ${inicio} e ${fim}.`,
-    matriculaForaDaTurma: 'Há aluno sem matrícula ativa nesta turma na chamada.',
-    matriculaRepetida: 'O mesmo aluno aparece duas vezes.',
+  rollCall: {
+    invalidDate: 'Informe uma data válida no formato AAAA-MM-DD.',
+    excuseTooLong: 'A justificativa é longa demais.',
+    emptyBatch: 'Nenhuma linha de chamada foi enviada.',
+    academicYearMissing: 'A turma não tem ano letivo definido.',
+    dateOutsideAcademicYear: (start: string, end: string): string =>
+      `A chamada precisa cair entre ${start} e ${end}.`,
+    enrollmentOutsideClassGroup: 'Há aluno sem matrícula ativa nesta turma na chamada.',
+    duplicateEnrollment: 'O mesmo aluno aparece duas vezes.',
   },
-  fechamento: {
-    semDisciplina: 'A turma não tem disciplina alocada; não há bimestre a fechar.',
-    semMatriculaAtiva: 'A turma não tem matrícula ativa; não há bimestre a fechar.',
-    jaFechado: 'Este bimestre já está fechado para a turma.',
-    pendencia: (disciplina: string, faltando: number): string => `${disciplina} (${faltando})`,
-    separadorDePendencias: ', ',
-    pendenciaSingular: (detalhe: string): string =>
-      `Falta 1 nota para fechar o bimestre: ${detalhe}.`,
-    pendenciaPlural: (total: number, detalhe: string): string =>
-      `Faltam ${total} notas para fechar o bimestre: ${detalhe}.`,
+  closing: {
+    noSubject: 'A turma não tem disciplina alocada; não há bimestre a fechar.',
+    noActiveEnrollment: 'A turma não tem matrícula ativa; não há bimestre a fechar.',
+    alreadyClosed: 'Este bimestre já está fechado para a turma.',
+    pendingItem: (subject: string, missing: number): string => `${subject} (${missing})`,
+    pendingItemsSeparator: ', ',
+    singlePendingItem: (detail: string): string =>
+      `Falta 1 nota para fechar o bimestre: ${detail}.`,
+    manyPendingItems: (total: number, detail: string): string =>
+      `Faltam ${total} notas para fechar o bimestre: ${detail}.`,
   },
 } as const;
 
-export const VOCABULARIO = {
-  situacaoFinal: { passed: 'Aprovado', failed: 'Reprovado', in_progress: 'Em curso' },
-  presenca: { presente: 'Presente', faltaJustificada: 'Falta justificada', falta: 'Falta' },
-  fechamento: { fechado: 'Fechado', aberto: 'Aberto' },
+export const VOCABULARY = {
+  finalStatus: { passed: 'Aprovado', failed: 'Reprovado', in_progress: 'Em curso' },
+  attendance: { present: 'Presente', excusedAbsence: 'Falta justificada', absence: 'Falta' },
+  closing: { closed: 'Fechado', open: 'Aberto' },
 } as const;
 
-export const ROTULO_DE_BIMESTRE = (numero: number): string => `${numero}º bimestre`;
+export const TERM_LABEL = (term: number): string => `${term}º bimestre`;

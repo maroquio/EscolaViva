@@ -1,110 +1,110 @@
 import { identity } from '../../identity';
 import { reader } from '../../shared/db';
 import { DEFAULT_PAGE_SIZE, queryPage, type Page } from '../../shared/pagination';
-import { ERROS_INTERNOS } from '../constants';
-import { comAutor, estaPublicado, type Comunicado } from '../domain/announcement';
+import { INTERNAL_ERRORS } from '../constants';
+import { isPublished, withAuthor, type Announcement } from '../domain/announcement';
 import {
-  taxaDeLeitura,
-  type EstatisticaDeLeitura,
-  type ItemDoMural,
+  readRate,
+  type BoardItem,
+  type ReadStatistic,
 } from '../domain/recipient';
 import {
-  buscarParaResponsavel,
-  contarComunicados,
-  contarDoResponsavel,
-  contarLeituras,
-  listarDoResponsavel,
-  somarLeituras,
+  countAnnouncements,
+  countForGuardian,
+  countReads,
+  findForGuardian,
+  listForGuardian,
+  sumReads,
 } from '../infra/announcementRepository';
 
-export async function muralDoResponsavel(
-  redeId: string,
-  responsavelId: string,
-): Promise<ItemDoMural[]> {
-  return await listarDoResponsavel(reader(), redeId, responsavelId);
+export async function guardianBoard(
+  networkId: string,
+  guardianId: string,
+): Promise<BoardItem[]> {
+  return await listForGuardian(reader(), networkId, guardianId);
 }
 
-export async function paginaDoMural(
-  redeId: string,
-  responsavelId: string,
-  lido: boolean | undefined,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<ItemDoMural>> {
+export async function boardPage(
+  networkId: string,
+  guardianId: string,
+  read: boolean | undefined,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<BoardItem>> {
   const sql = reader();
-  const filtro = lido === undefined ? undefined : { lido };
+  const filter = read === undefined ? undefined : { read };
   return await queryPage(
-    pagina,
-    tamanho,
-    () => contarDoResponsavel(sql, redeId, responsavelId, filtro),
-    (faixa) => listarDoResponsavel(sql, redeId, responsavelId, filtro, faixa),
+    page,
+    size,
+    () => countForGuardian(sql, networkId, guardianId, filter),
+    (range) => listForGuardian(sql, networkId, guardianId, filter, range),
   );
 }
 
-export async function contagemDoMural(
-  redeId: string,
-  responsavelId: string,
-): Promise<{ naoLidos: number; total: number }> {
+export async function boardCounts(
+  networkId: string,
+  guardianId: string,
+): Promise<{ unread: number; total: number }> {
   const sql = reader();
-  const [naoLidos, total] = await Promise.all([
-    contarDoResponsavel(sql, redeId, responsavelId, { lido: false }),
-    contarDoResponsavel(sql, redeId, responsavelId),
+  const [unread, total] = await Promise.all([
+    countForGuardian(sql, networkId, guardianId, { read: false }),
+    countForGuardian(sql, networkId, guardianId),
   ]);
-  return { naoLidos, total };
+  return { unread, total };
 }
 
-export async function comunicadoParaResponsavel(
-  redeId: string,
-  responsavelId: string,
-  comunicadoId: string,
-): Promise<Comunicado | null> {
-  const armazenado = await buscarParaResponsavel(reader(), redeId, responsavelId, comunicadoId);
-  if (armazenado === null || !estaPublicado(armazenado)) return null;
+export async function announcementForGuardian(
+  networkId: string,
+  guardianId: string,
+  announcementId: string,
+): Promise<Announcement | null> {
+  const stored = await findForGuardian(reader(), networkId, guardianId, announcementId);
+  if (stored === null || !isPublished(stored)) return null;
 
-  const nomes = await identity.userNames(redeId, [armazenado.autorUsuarioId]);
-  const autorNome = nomes.get(armazenado.autorUsuarioId);
-  if (autorNome === undefined) throw new Error(ERROS_INTERNOS.autorForaDaRede);
-  return comAutor(armazenado, autorNome);
+  const names = await identity.userNames(networkId, [stored.authorUserId]);
+  const authorName = names.get(stored.authorUserId);
+  if (authorName === undefined) throw new Error(INTERNAL_ERRORS.authorOutsideNetwork);
+  return withAuthor(stored, authorName);
 }
 
-export async function listarComunicados(
-  redeId: string,
-  unidadeId?: string,
-): Promise<EstatisticaDeLeitura[]> {
-  const contagens = await contarLeituras(reader(), redeId, unidadeId ?? null);
-  return contagens.map((contagem) => ({
-    ...contagem,
-    taxa: taxaDeLeitura(contagem.destinatarios, contagem.leituras),
+export async function listAnnouncements(
+  networkId: string,
+  schoolId?: string,
+): Promise<ReadStatistic[]> {
+  const counts = await countReads(reader(), networkId, schoolId ?? null);
+  return counts.map((count) => ({
+    ...count,
+    rate: readRate(count.recipients, count.reads),
   }));
 }
 
-export async function paginaDeComunicados(
-  redeId: string,
-  unidadeId: string | undefined,
-  pagina: number,
-  tamanho: number = DEFAULT_PAGE_SIZE,
-): Promise<Page<EstatisticaDeLeitura>> {
+export async function announcementsPage(
+  networkId: string,
+  schoolId: string | undefined,
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<ReadStatistic>> {
   const sql = reader();
-  const unidade = unidadeId ?? null;
-  const recortada = await queryPage(
-    pagina,
-    tamanho,
-    () => contarComunicados(sql, redeId, unidade),
-    (faixa) => contarLeituras(sql, redeId, unidade, faixa),
+  const school = schoolId ?? null;
+  const paged = await queryPage(
+    page,
+    size,
+    () => countAnnouncements(sql, networkId, school),
+    (range) => countReads(sql, networkId, school, range),
   );
   return {
-    ...recortada,
-    items: recortada.items.map((contagem) => ({
-      ...contagem,
-      taxa: taxaDeLeitura(contagem.destinatarios, contagem.leituras),
+    ...paged,
+    items: paged.items.map((count) => ({
+      ...count,
+      rate: readRate(count.recipients, count.reads),
     })),
   };
 }
 
-export async function resumoDeComunicados(
-  redeId: string,
-  unidadeId?: string,
-): Promise<{ destinatarios: number; leituras: number; taxa: number }> {
-  const somado = await somarLeituras(reader(), redeId, unidadeId ?? null);
-  return { ...somado, taxa: taxaDeLeitura(somado.destinatarios, somado.leituras) };
+export async function announcementsSummary(
+  networkId: string,
+  schoolId?: string,
+): Promise<{ recipients: number; reads: number; rate: number }> {
+  const summed = await sumReads(reader(), networkId, schoolId ?? null);
+  return { ...summed, rate: readRate(summed.recipients, summed.reads) };
 }

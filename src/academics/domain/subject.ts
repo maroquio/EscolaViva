@@ -1,5 +1,5 @@
-export type Disciplina = {
+export type Subject = {
   id: string;
-  redeId: string;
-  nome: string;
+  networkId: string;
+  name: string;
 };

@@ -5,12 +5,12 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { avaliacao } from '../../src/assessment';
+import { assessment } from '../../src/assessment';
 import {
-  estadosDeFechamento,
-  mensagemDePendencias,
-  pendenciasDoFechamento,
-  todosBimestresFechados,
+  allTermsClosed,
+  closingPendingItems,
+  closingStates,
+  pendingItemsMessage,
 } from '../../src/assessment/domain/termClosing';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import { cenarioCompleto, criarTurmaDisciplina, type Cenario } from '../apoio/fabricas';
@@ -27,24 +27,24 @@ beforeEach(async () => {
 /** Lança `valor` para todas as matrículas em todas as disciplinas da turma no bimestre. */
 async function lancarTudo(bimestre: number, valor = 7): Promise<void> {
   for (const turmaDisciplina of cenario.turmaDisciplinas) {
-    await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: turmaDisciplina.id,
-      bimestre,
-      lancadaPor: cenario.professor.id,
-      notas: cenario.matriculas.map((matricula) => ({ matriculaId: matricula.id, valor })),
+    await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: turmaDisciplina.id,
+      term: bimestre,
+      postedBy: cenario.professor.id,
+      grades: cenario.matriculas.map((matricula) => ({ enrollmentId: matricula.id, value: valor })),
     });
   }
 }
 
 function fechar(bimestre: number, turmaId = cenario.turmas[0].id): ReturnType<
-  typeof avaliacao.fecharBimestre
+  typeof assessment.closeTerm
 > {
-  return avaliacao.fecharBimestre({
-    redeId: cenario.rede.id,
-    turmaId,
-    bimestre,
-    fechadoPor: cenario.professor.id,
+  return assessment.closeTerm({
+    networkId: cenario.rede.id,
+    classGroupId: turmaId,
+    term: bimestre,
+    closedBy: cenario.professor.id,
   });
 }
 
@@ -55,82 +55,82 @@ function mensagemDe(resultado: { ok: boolean } & Record<string, unknown>): strin
 
 describe('fechamentoBimestre (domínio)', () => {
   test('expande a grade dos quatro bimestres tratando a ausência como bimestre aberto', () => {
-    const gravados = [{ bimestre: 2, fechadoEm: '2026-05-10T12:00:00Z' }];
+    const gravados = [{ term: 2, closedAt: '2026-05-10T12:00:00Z' }];
 
-    const estados = estadosDeFechamento(gravados);
+    const estados = closingStates(gravados);
 
     expect(estados).toEqual([
-      { bimestre: 1, fechado: false, fechadoEm: null },
-      { bimestre: 2, fechado: true, fechadoEm: '2026-05-10T12:00:00Z' },
-      { bimestre: 3, fechado: false, fechadoEm: null },
-      { bimestre: 4, fechado: false, fechadoEm: null },
+      { term: 1, closed: false, closedAt: null },
+      { term: 2, closed: true, closedAt: '2026-05-10T12:00:00Z' },
+      { term: 3, closed: false, closedAt: null },
+      { term: 4, closed: false, closedAt: null },
     ]);
   });
 
   test('turma sem fechamento nenhum tem os quatro bimestres abertos', () => {
-    const estados = estadosDeFechamento([]);
+    const estados = closingStates([]);
 
     expect(estados).toHaveLength(4);
-    expect(estados.every((estado) => !estado.fechado)).toBe(true);
+    expect(estados.every((estado) => !estado.closed)).toBe(true);
   });
 
   test('só considera o ano encerrado quando os quatro bimestres estão fechados', () => {
-    const tresFechados = estadosDeFechamento([1, 2, 3].map((bimestre) => ({
-      bimestre,
-      fechadoEm: '2026-05-10T12:00:00Z',
+    const tresFechados = closingStates([1, 2, 3].map((bimestre) => ({
+      term: bimestre,
+      closedAt: '2026-05-10T12:00:00Z',
     })));
-    const quatroFechados = estadosDeFechamento([1, 2, 3, 4].map((bimestre) => ({
-      bimestre,
-      fechadoEm: '2026-05-10T12:00:00Z',
+    const quatroFechados = closingStates([1, 2, 3, 4].map((bimestre) => ({
+      term: bimestre,
+      closedAt: '2026-05-10T12:00:00Z',
     })));
 
-    expect(todosBimestresFechados(tresFechados)).toBe(false);
-    expect(todosBimestresFechados(quatroFechados)).toBe(true);
+    expect(allTermsClosed(tresFechados)).toBe(false);
+    expect(allTermsClosed(quatroFechados)).toBe(true);
   });
 
   test('lista só as disciplinas que ainda impedem o fechamento', () => {
     const disciplinas = [
-      { id: 'a', disciplinaNome: 'Matemática' },
-      { id: 'b', disciplinaNome: 'História' },
+      { id: 'a', subjectName: 'Matemática' },
+      { id: 'b', subjectName: 'História' },
     ];
 
-    const pendencias = pendenciasDoFechamento(disciplinas, 5, new Map([['a', 5], ['b', 2]]));
+    const pendencias = closingPendingItems(disciplinas, 5, new Map([['a', 5], ['b', 2]]));
 
-    expect(pendencias).toEqual([{ disciplinaNome: 'História', faltando: 3 }]);
+    expect(pendencias).toEqual([{ subjectName: 'História', missing: 3 }]);
   });
 
   test('a disciplina sem lançamento nenhum falta a turma inteira', () => {
-    const disciplinas = [{ id: 'a', disciplinaNome: 'Matemática' }];
+    const disciplinas = [{ id: 'a', subjectName: 'Matemática' }];
 
-    const pendencias = pendenciasDoFechamento(disciplinas, 5, new Map());
+    const pendencias = closingPendingItems(disciplinas, 5, new Map());
 
-    expect(pendencias).toEqual([{ disciplinaNome: 'Matemática', faltando: 5 }]);
+    expect(pendencias).toEqual([{ subjectName: 'Matemática', missing: 5 }]);
   });
 
   test('a mensagem de uma pendência única fica no singular', () => {
-    const mensagem = mensagemDePendencias([{ disciplinaNome: 'História', faltando: 1 }]);
+    const mensagem = pendingItemsMessage([{ subjectName: 'História', missing: 1 }]);
 
     expect(mensagem).toBe('Falta 1 nota para fechar o bimestre: História (1).');
   });
 
   test('a mensagem soma as pendências e nomeia cada disciplina', () => {
-    const mensagem = mensagemDePendencias([
-      { disciplinaNome: 'História', faltando: 3 },
-      { disciplinaNome: 'Matemática', faltando: 4 },
+    const mensagem = pendingItemsMessage([
+      { subjectName: 'História', missing: 3 },
+      { subjectName: 'Matemática', missing: 4 },
     ]);
 
     expect(mensagem).toBe('Faltam 7 notas para fechar o bimestre: História (3), Matemática (4).');
   });
 });
 
-describe('fecharBimestre', () => {
+describe('closeTerm', () => {
   test('recusa enquanto falta nota e diz quantas são e em quais disciplinas', async () => {
-    await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: cenario.matriculas.map((matricula) => ({ matriculaId: matricula.id, valor: 7 })),
+    await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: cenario.matriculas.map((matricula) => ({ enrollmentId: matricula.id, value: 7 })),
     });
 
     const resultado = await fechar(1);
@@ -147,12 +147,12 @@ describe('fecharBimestre', () => {
 
   test('a recusa por uma única nota faltando fica no singular e aponta a disciplina', async () => {
     await lancarTudo(1);
-    await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[2].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: null }],
+    await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[2].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: null }],
     });
 
     const resultado = await fechar(1);
@@ -168,13 +168,13 @@ describe('fecharBimestre', () => {
     const resultado = await fechar(1);
 
     expect(resultado).toEqual({ ok: true, valor: undefined });
-    const estados = await avaliacao.estadoDeFechamento(cenario.rede.id, cenario.turmas[0].id);
+    const estados = await assessment.closingState(cenario.rede.id, cenario.turmas[0].id);
     expect(estados[0]).toEqual({
-      bimestre: 1,
-      fechado: true,
-      fechadoEm: expect.stringMatching(INSTANTE_ISO),
+      term: 1,
+      closed: true,
+      closedAt: expect.stringMatching(INSTANTE_ISO),
     });
-    expect(estados.slice(1).every((estado) => !estado.fechado)).toBe(true);
+    expect(estados.slice(1).every((estado) => !estado.closed)).toBe(true);
   });
 
   test('recusa fechar o mesmo bimestre duas vezes', async () => {
@@ -193,19 +193,19 @@ describe('fecharBimestre', () => {
     await lancarTudo(1);
     await fechar(1);
 
-    const resultado = await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 10 }],
+    const resultado = await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 10 }],
     });
 
     expect(resultado).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'bimestre', codigo: 'bimestre_fechado' })],
     });
-    const notas = await avaliacao.notasDaTurmaDisciplina(
+    const notas = await assessment.classGroupSubjectGrades(
       cenario.rede.id,
       cenario.turmaDisciplinas[0].id,
       1,
@@ -217,12 +217,12 @@ describe('fecharBimestre', () => {
     await lancarTudo(1);
     await fechar(1);
 
-    const resultado = await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 2,
-      lancadaPor: cenario.professor.id,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 9 }],
+    const resultado = await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 2,
+      postedBy: cenario.professor.id,
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 9 }],
     });
 
     expect(resultado).toEqual({ ok: true, valor: 1 });
@@ -238,22 +238,22 @@ describe('fecharBimestre', () => {
     await lancarTudo(1);
     await fechar(1);
 
-    const estados = await avaliacao.estadoDeFechamento(cenario.rede.id, cenario.turmas[1].id);
+    const estados = await assessment.closingState(cenario.rede.id, cenario.turmas[1].id);
 
-    expect(estados.every((estado) => !estado.fechado)).toBe(true);
+    expect(estados.every((estado) => !estado.closed)).toBe(true);
   });
 
   test('nota de aluno transferido não conta como pendência', async () => {
     const transferida = cenario.matriculas[4];
     for (const turmaDisciplina of cenario.turmaDisciplinas) {
-      await avaliacao.lancarNotas({
-        redeId: cenario.rede.id,
-        turmaDisciplinaId: turmaDisciplina.id,
-        bimestre: 1,
-        lancadaPor: cenario.professor.id,
-        notas: cenario.matriculas
+      await assessment.postGrades({
+        networkId: cenario.rede.id,
+        classGroupSubjectId: turmaDisciplina.id,
+        term: 1,
+        postedBy: cenario.professor.id,
+        grades: cenario.matriculas
           .filter((matricula) => matricula.id !== transferida.id)
-          .map((matricula) => ({ matriculaId: matricula.id, valor: 7 })),
+          .map((matricula) => ({ enrollmentId: matricula.id, value: 7 })),
       });
     }
     await sqlDeTeste()`
@@ -315,8 +315,8 @@ describe('fecharBimestre', () => {
       await fechar(bimestre);
     }
 
-    const estados = await avaliacao.estadoDeFechamento(cenario.rede.id, cenario.turmas[0].id);
+    const estados = await assessment.closingState(cenario.rede.id, cenario.turmas[0].id);
 
-    expect(todosBimestresFechados(estados)).toBe(true);
+    expect(allTermsClosed(estados)).toBe(true);
   });
 });

@@ -1,77 +1,75 @@
 import { z } from 'zod';
-import { academico } from '../../academics';
+import { academics } from '../../academics';
 import { unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, MENSAGENS } from '../constants';
-import { mensagemDePendencias, pendenciasDoFechamento } from '../domain/termClosing';
-import { bimestreValido } from '../domain/grade';
-import * as fechamentoRepositorio from '../infra/closingRepository';
-import * as notaRepositorio from '../infra/gradeRepository';
+import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { closingPendingItems, pendingItemsMessage } from '../domain/termClosing';
+import { isValidTerm } from '../domain/grade';
+import * as closingRepository from '../infra/closingRepository';
+import * as gradeRepository from '../infra/gradeRepository';
 
-export type FechamentoDeBimestre = {
-  redeId: string;
-  turmaId: string;
-  bimestre: number;
-  fechadoPor: string;
+export type TermClosingInput = {
+  networkId: string;
+  classGroupId: string;
+  term: number;
+  closedBy: string;
 };
 
-const esquema = z.object({
-  redeId: z.string().uuid(),
-  turmaId: z.string().uuid(),
-  bimestre: z.number().refine(bimestreValido, MENSAGENS.bimestreInvalido),
-  fechadoPor: z.string().uuid(),
+const schema = z.object({
+  networkId: z.string().uuid(),
+  classGroupId: z.string().uuid(),
+  term: z.number().refine(isValidTerm, MESSAGES.invalidTerm),
+  closedBy: z.string().uuid(),
 });
 
-export async function fecharBimestre(entrada: FechamentoDeBimestre): Promise<Result<void>> {
-  const validada = esquema.safeParse(entrada);
-  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
-  const { redeId, turmaId, bimestre, fechadoPor } = validada.data;
+export async function closeTerm(input: TermClosingInput): Promise<Result<void>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.closing));
+  }
+  const { networkId, classGroupId, term, closedBy } = parsed.data;
 
-  const turma = await academico.turmaPorId(redeId, turmaId);
-  if (turma === null) {
-    return fieldFailure(CAMPOS.turmaId, CODIGOS.naoEncontrada, MENSAGENS.turmaNaoEncontrada);
+  const classGroup = await academics.classGroupById(networkId, classGroupId);
+  if (classGroup === null) {
+    return fieldFailure(FIELDS.classGroupId, CODES.notFound, MESSAGES.classGroupNotFound);
   }
 
-  const disciplinas = await academico.listarTurmaDisciplinas(redeId, turmaId);
-  if (disciplinas.length === 0) {
-    return fieldFailure(
-      CAMPOS.turmaId,
-      CODIGOS.semDisciplina,
-      MENSAGENS.fechamento.semDisciplina,
-    );
+  const subjects = await academics.listClassGroupSubjects(networkId, classGroupId);
+  if (subjects.length === 0) {
+    return fieldFailure(FIELDS.classGroupId, CODES.noSubject, MESSAGES.closing.noSubject);
   }
 
-  const matriculas = await academico.matriculasAtivasDaTurma(redeId, turmaId);
-  if (matriculas.length === 0) {
+  const enrollments = await academics.activeEnrollmentsOfClassGroup(networkId, classGroupId);
+  if (enrollments.length === 0) {
     return fieldFailure(
-      CAMPOS.turmaId,
-      CODIGOS.semMatriculaAtiva,
-      MENSAGENS.fechamento.semMatriculaAtiva,
+      FIELDS.classGroupId,
+      CODES.noActiveEnrollment,
+      MESSAGES.closing.noActiveEnrollment,
     );
   }
 
   return await unitOfWork<Result<void>>(async ({ sql }) => {
-    if (await fechamentoRepositorio.estaFechado(sql, redeId, turmaId, bimestre)) {
-      return fieldFailure(CAMPOS.bimestre, CODIGOS.jaFechado, MENSAGENS.fechamento.jaFechado);
+    if (await closingRepository.isClosed(sql, networkId, classGroupId, term)) {
+      return fieldFailure(FIELDS.term, CODES.alreadyClosed, MESSAGES.closing.alreadyClosed);
     }
 
-    const lancadas = await notaRepositorio.contagemPorDisciplina(
+    const posted = await gradeRepository.countBySubject(
       sql,
-      redeId,
-      disciplinas.map((disciplina) => disciplina.id),
-      bimestre,
-      matriculas.map((matricula) => matricula.id),
+      networkId,
+      subjects.map((subject) => subject.id),
+      term,
+      enrollments.map((enrollment) => enrollment.id),
     );
-    const pendencias = pendenciasDoFechamento(disciplinas, matriculas.length, lancadas);
-    if (pendencias.length > 0) {
+    const pendingItems = closingPendingItems(subjects, enrollments.length, posted);
+    if (pendingItems.length > 0) {
       return fieldFailure(
-        CAMPOS.bimestre,
-        CODIGOS.fechamentoIncompleto,
-        mensagemDePendencias(pendencias),
+        FIELDS.term,
+        CODES.incompleteClosing,
+        pendingItemsMessage(pendingItems),
       );
     }
 
-    await fechamentoRepositorio.registrar(sql, { redeId, turmaId, bimestre, fechadoPor });
+    await closingRepository.record(sql, { networkId, classGroupId, term, closedBy });
     return success<void>(undefined);
   });
 }

@@ -1,4 +1,4 @@
-import { MATRICULA_ATIVA, TURNOS } from '../src/academics';
+import { ACTIVE_ENROLLMENT_STATUS, SHIFTS } from '../src/academics';
 import { ACTIVE_NETWORK_STATUS } from '../src/identity';
 import { config } from '../src/shared/config';
 import { LOCALE, PRODUCTION_ENV, TIME, WEEK_DAYS } from '../src/shared/constants';
@@ -13,7 +13,7 @@ const DIAS_LETIVOS = 200;
 const TAXA_DE_FALTA = 0.06;
 const MATRICULAS_POR_LOTE = 1_000;
 
-const ARRANJO_DE_TURNOS = `{${TURNOS.join(',')}}`;
+const ARRANJO_DE_TURNOS = `{${SHIFTS.join(',')}}`;
 
 const CALENDARIO = {
   inicio: (ano: number): string => `${ano}-02-01`,
@@ -158,7 +158,7 @@ async function montarAnoLetivo(
     INSERT INTO class_group (id, network_id, school_id, academic_year_id, name, grade_level, shift)
     SELECT gen_random_uuid(), ${redeId}, u.id, ${anoLetivoId},
            'Turma ' || lpad(i::text, 4, '0'), ((i % 9) + 1) || 'º ano',
-           (${ARRANJO_DE_TURNOS}::text[])[(i % ${TURNOS.length}) + 1]
+           (${ARRANJO_DE_TURNOS}::text[])[(i % ${SHIFTS.length}) + 1]
       FROM generate_series(1, ${turmas}) AS i
       JOIN LATERAL (
         SELECT id FROM school WHERE network_id = ${redeId} ORDER BY name
@@ -168,7 +168,7 @@ async function montarAnoLetivo(
     INSERT INTO enrollment
            (id, network_id, student_id, class_group_id, academic_year_id, enrollment_date, status)
     SELECT gen_random_uuid(), ${redeId}, a.student_id, t.id, ${anoLetivoId},
-           ${CALENDARIO.matricula(ano)}::date, ${MATRICULA_ATIVA}
+           ${CALENDARIO.matricula(ano)}::date, ${ACTIVE_ENROLLMENT_STATUS}
       FROM (SELECT student_id, posicao FROM (
               SELECT id AS student_id, row_number() OVER (ORDER BY name) AS posicao
                 FROM student WHERE network_id = ${redeId}) AS numerados

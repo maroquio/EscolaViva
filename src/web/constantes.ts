@@ -1,6 +1,6 @@
-import { CAMPOS_DO_ACADEMICO } from '../academics';
-import { CAMPOS_DA_AVALIACAO, ROTULO_DE_BIMESTRE } from '../assessment';
-import { CAMPOS_DA_COMUNICACAO } from '../communication';
+import { ACADEMIC_FIELDS } from '../academics';
+import { ASSESSMENT_FIELDS, TERM_LABEL } from '../assessment';
+import { COMMUNICATION_FIELDS } from '../communication';
 import { IDENTITY_FIELDS, ROLE } from '../identity';
 import { ASSETS, ENTRY_PATHS, HEALTH_PATHS, MISSING_VALUE } from '../shared/constants';
 import { grupo } from './rotas/mapa';
@@ -191,14 +191,46 @@ export const CAMPOS = {
     nova: IDENTITY_FIELDS.password.new,
     confirmacao: IDENTITY_FIELDS.password.confirmation,
   },
-  aluno: CAMPOS_DO_ACADEMICO.aluno,
-  responsavel: CAMPOS_DO_ACADEMICO.responsavel,
-  vinculo: CAMPOS_DO_ACADEMICO.vinculo,
-  matricula: CAMPOS_DO_ACADEMICO.matricula,
-  transferencia: CAMPOS_DO_ACADEMICO.transferencia,
-  turma: CAMPOS_DO_ACADEMICO.turma,
-  disciplina: CAMPOS_DO_ACADEMICO.disciplina,
-  alocacao: CAMPOS_DO_ACADEMICO.alocacao,
+  aluno: {
+    nome: ACADEMIC_FIELDS.student.name,
+    dataNascimento: ACADEMIC_FIELDS.student.birthDate,
+  },
+  responsavel: {
+    nome: ACADEMIC_FIELDS.guardian.name,
+    email: ACADEMIC_FIELDS.guardian.email,
+    telefone: ACADEMIC_FIELDS.guardian.phone,
+    cpf: ACADEMIC_FIELDS.guardian.cpf,
+  },
+  vinculo: {
+    alunoId: ACADEMIC_FIELDS.guardianLink.studentId,
+    responsavelId: ACADEMIC_FIELDS.guardianLink.guardianId,
+    parentesco: ACADEMIC_FIELDS.guardianLink.relationship,
+    financeiro: ACADEMIC_FIELDS.guardianLink.financiallyResponsible,
+  },
+  matricula: {
+    alunoId: ACADEMIC_FIELDS.enrollment.studentId,
+    turmaId: ACADEMIC_FIELDS.enrollment.classGroupId,
+    anoLetivoId: ACADEMIC_FIELDS.enrollment.academicYearId,
+    dataMatricula: ACADEMIC_FIELDS.enrollment.enrollmentDate,
+  },
+  transferencia: {
+    matriculaId: ACADEMIC_FIELDS.transfer.enrollmentId,
+    turmaDestinoId: ACADEMIC_FIELDS.transfer.targetClassGroupId,
+    data: ACADEMIC_FIELDS.transfer.date,
+  },
+  turma: {
+    nome: ACADEMIC_FIELDS.classGroup.name,
+    serie: ACADEMIC_FIELDS.classGroup.gradeLevel,
+    turno: ACADEMIC_FIELDS.classGroup.shift,
+    unidadeId: ACADEMIC_FIELDS.classGroup.schoolId,
+    anoLetivoId: ACADEMIC_FIELDS.classGroup.academicYearId,
+  },
+  disciplina: { nome: ACADEMIC_FIELDS.subject.name },
+  alocacao: {
+    turmaId: ACADEMIC_FIELDS.teachingAssignment.classGroupId,
+    disciplinaId: ACADEMIC_FIELDS.teachingAssignment.subjectId,
+    professorUsuarioId: ACADEMIC_FIELDS.teachingAssignment.teacherUserId,
+  },
   unidade: { nome: IDENTITY_FIELDS.school.name, codigoInep: IDENTITY_FIELDS.school.inepCode },
   usuario: {
     nome: IDENTITY_FIELDS.user.name,
@@ -209,12 +241,24 @@ export const CAMPOS = {
     unidades: 'unidade[]',
     papeis: 'papel[]',
   },
-  anoLetivo: CAMPOS_DO_ACADEMICO.anoLetivo,
-  comunicado: { ...CAMPOS_DA_COMUNICACAO, responsaveis: 'responsaveis[]' },
+  anoLetivo: {
+    ano: ACADEMIC_FIELDS.academicYear.year,
+    dataInicio: ACADEMIC_FIELDS.academicYear.startDate,
+    dataFim: ACADEMIC_FIELDS.academicYear.endDate,
+  },
+  comunicado: {
+    titulo: COMMUNICATION_FIELDS.title,
+    corpo: COMMUNICATION_FIELDS.body,
+    unidadeId: COMMUNICATION_FIELDS.schoolId,
+    autorUsuarioId: COMMUNICATION_FIELDS.authorUserId,
+    destinatarios: COMMUNICATION_FIELDS.recipients,
+    alcance: COMMUNICATION_FIELDS.audience,
+    responsaveis: 'responsaveis[]',
+  },
   diario: { nota: 'nota_', presenca: 'presenca_', justificativa: 'justificativa_' },
-  bimestre: CAMPOS_DA_AVALIACAO.bimestre,
-  data: CAMPOS_DA_AVALIACAO.data,
-  notas: CAMPOS_DA_AVALIACAO.notas,
+  bimestre: ASSESSMENT_FIELDS.term,
+  data: ASSESSMENT_FIELDS.date,
+  notas: ASSESSMENT_FIELDS.grades,
 } as const;
 
 export const MARCADO = 'sim';
@@ -358,7 +402,7 @@ export const AVISOS = {
   notasVarias: (total: number): string => `${total} notas gravadas.`,
   chamadaRegistrada: (data: string): string => `Chamada de ${data} registrada.`,
   bimestreFechado: (bimestre: number, turma: string): string =>
-    `${ROTULO_DE_BIMESTRE(bimestre)} fechado para a turma ${turma}.`,
+    `${TERM_LABEL(bimestre)} fechado para a turma ${turma}.`,
 } as const;
 
 export const CODIGOS_DE_AVISO = {

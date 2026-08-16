@@ -1,34 +1,34 @@
 import {
-  comunicadoParaResponsavel,
-  contagemDoMural,
-  listarComunicados,
-  muralDoResponsavel,
-  paginaDeComunicados,
-  paginaDoMural,
-  resumoDeComunicados,
+  announcementForGuardian,
+  announcementsPage,
+  announcementsSummary,
+  boardCounts,
+  boardPage,
+  guardianBoard,
+  listAnnouncements,
 } from './application/queries';
-import { marcarComoLido } from './application/markAsRead';
-import { publicarComunicado } from './application/publishAnnouncement';
+import { markAsRead } from './application/markAsRead';
+import { publishAnnouncement } from './application/publishAnnouncement';
 
-export type { Comunicado } from './domain/announcement';
-export type { EstatisticaDeLeitura, ItemDoMural } from './domain/recipient';
+export type { Announcement } from './domain/announcement';
+export type { BoardItem, ReadStatistic } from './domain/recipient';
 
-export const comunicacao = {
-  publicarComunicado,
-  muralDoResponsavel,
-  paginaDoMural,
-  contagemDoMural,
-  comunicadoParaResponsavel,
-  marcarComoLido,
-  listarComunicados,
-  paginaDeComunicados,
-  resumoDeComunicados,
+export const communication = {
+  publishAnnouncement,
+  guardianBoard,
+  boardPage,
+  boardCounts,
+  announcementForGuardian,
+  markAsRead,
+  listAnnouncements,
+  announcementsPage,
+  announcementsSummary,
 };
 
 export {
-  ALCANCE,
-  CAMPOS as CAMPOS_DA_COMUNICACAO,
+  AUDIENCE,
+  FIELDS as COMMUNICATION_FIELDS,
 } from './constants';
-export type { Alcance } from './constants';
+export type { Audience } from './constants';
 
-export { CORPO_TAMANHO_MAXIMO, TITULO_TAMANHO_MAXIMO } from './domain/announcement';
+export { MAX_BODY_LENGTH, MAX_TITLE_LENGTH } from './domain/announcement';

@@ -1,88 +1,88 @@
-import { APROVACAO, ARITMETICA } from '../constants';
-import { QUANTIDADE_DE_BIMESTRES } from './grade';
+import { ARITHMETIC, PASSING } from '../constants';
+import { TERM_COUNT } from './grade';
 
-export const SITUACOES_FINAIS = {
-  emCurso: 'in_progress',
-  aprovado: 'passed',
-  reprovado: 'failed',
+export const FINAL_STATUSES = {
+  inProgress: 'in_progress',
+  passed: 'passed',
+  failed: 'failed',
 } as const;
 
-export type SituacaoFinal = (typeof SITUACOES_FINAIS)[keyof typeof SITUACOES_FINAIS];
+export type FinalStatus = (typeof FINAL_STATUSES)[keyof typeof FINAL_STATUSES];
 
-export type LinhaDeBoletim = {
-  disciplinaNome: string;
-  notas: (number | null)[];
-  media: number | null;
+export type ReportCardRow = {
+  subjectName: string;
+  grades: (number | null)[];
+  average: number | null;
 };
 
-export type Boletim = {
-  matriculaId: string;
-  alunoNome: string;
-  turmaNome: string;
-  ano: number;
-  linhas: LinhaDeBoletim[];
-  mediasPorBimestre: (number | null)[];
-  mediaGeral: number | null;
-  percentualFrequencia: number;
-  totalDias: number;
-  presencas: number;
-  situacao: SituacaoFinal;
+export type ReportCard = {
+  enrollmentId: string;
+  studentName: string;
+  classGroupName: string;
+  year: number;
+  rows: ReportCardRow[];
+  termAverages: (number | null)[];
+  overallAverage: number | null;
+  attendanceRate: number;
+  totalDays: number;
+  presentDays: number;
+  status: FinalStatus;
 };
 
-const emCentesimos = (valor: number): number => {
-  const bruto = valor * ARITMETICA.centesimos;
-  const inteiro = Math.round(bruto);
-  return Math.abs(bruto - inteiro) <= ARITMETICA.toleranciaDeRepresentacao
-    ? inteiro
-    : Math.floor(bruto);
+const inHundredths = (value: number): number => {
+  const raw = value * ARITHMETIC.hundredths;
+  const rounded = Math.round(raw);
+  return Math.abs(raw - rounded) <= ARITHMETIC.representationTolerance
+    ? rounded
+    : Math.floor(raw);
 };
 
-const truncarEmCentesimos = (centesimos: number): number =>
-  Math.floor(centesimos) / ARITMETICA.centesimos;
+const truncateHundredths = (hundredths: number): number =>
+  Math.floor(hundredths) / ARITHMETIC.hundredths;
 
-export function mediaDaDisciplina(notas: (number | null)[]): number | null {
-  if (notas.length !== QUANTIDADE_DE_BIMESTRES) return null;
-  let soma = 0;
-  for (const nota of notas) {
-    if (nota === null) return null;
-    soma += emCentesimos(nota);
+export function subjectAverage(grades: (number | null)[]): number | null {
+  if (grades.length !== TERM_COUNT) return null;
+  let sum = 0;
+  for (const grade of grades) {
+    if (grade === null) return null;
+    sum += inHundredths(grade);
   }
-  return truncarEmCentesimos(soma / QUANTIDADE_DE_BIMESTRES);
+  return truncateHundredths(sum / TERM_COUNT);
 }
 
-function mediaSimples(valores: readonly (number | null)[]): number | null {
-  if (valores.length === 0) return null;
-  let soma = 0;
-  for (const valor of valores) {
-    if (valor === null) return null;
-    soma += emCentesimos(valor);
+function simpleAverage(values: readonly (number | null)[]): number | null {
+  if (values.length === 0) return null;
+  let sum = 0;
+  for (const value of values) {
+    if (value === null) return null;
+    sum += inHundredths(value);
   }
-  return truncarEmCentesimos(soma / valores.length);
+  return truncateHundredths(sum / values.length);
 }
 
-export function mediaGeral(medias: (number | null)[]): number | null {
-  return mediaSimples(medias);
+export function overallAverage(averages: (number | null)[]): number | null {
+  return simpleAverage(averages);
 }
 
-export function mediasPorBimestre(linhas: readonly LinhaDeBoletim[]): (number | null)[] {
-  return Array.from({ length: QUANTIDADE_DE_BIMESTRES }, (_, indice) =>
-    mediaSimples(linhas.map((linha) => linha.notas[indice] ?? null)),
+export function termAverages(rows: readonly ReportCardRow[]): (number | null)[] {
+  return Array.from({ length: TERM_COUNT }, (_, index) =>
+    simpleAverage(rows.map((row) => row.grades[index] ?? null)),
   );
 }
 
-export function percentualFrequencia(presencas: number, total: number): number {
+export function attendanceRate(presentDays: number, total: number): number {
   if (total <= 0) return 0;
-  return truncarEmCentesimos((presencas * ARITMETICA.percentual * ARITMETICA.centesimos) / total);
+  return truncateHundredths((presentDays * ARITHMETIC.percent * ARITHMETIC.hundredths) / total);
 }
 
-export function situacaoFinal(
-  media: number | null,
-  frequencia: number,
-  todosFechados: boolean,
-): SituacaoFinal {
-  if (!todosFechados || media === null) return SITUACOES_FINAIS.emCurso;
-  const aprovado =
-    emCentesimos(media) >= APROVACAO.mediaMinimaEmCentesimos &&
-    emCentesimos(frequencia) >= APROVACAO.frequenciaMinimaEmCentesimos;
-  return aprovado ? SITUACOES_FINAIS.aprovado : SITUACOES_FINAIS.reprovado;
+export function finalStatus(
+  average: number | null,
+  attendance: number,
+  allClosed: boolean,
+): FinalStatus {
+  if (!allClosed || average === null) return FINAL_STATUSES.inProgress;
+  const passed =
+    inHundredths(average) >= PASSING.minimumAverageInHundredths &&
+    inHundredths(attendance) >= PASSING.minimumAttendanceInHundredths;
+  return passed ? FINAL_STATUSES.passed : FINAL_STATUSES.failed;
 }

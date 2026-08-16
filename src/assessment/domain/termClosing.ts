@@ -1,48 +1,44 @@
-import { MENSAGENS } from '../constants';
-import { BIMESTRES } from './grade';
+import { MESSAGES } from '../constants';
+import { TERMS } from './grade';
 
-export type FechamentoBimestre = { bimestre: number; fechadoEm: string };
+export type TermClosing = { term: number; closedAt: string };
 
-export type EstadoDeFechamento = { bimestre: number; fechado: boolean; fechadoEm: string | null };
+export type TermClosingState = { term: number; closed: boolean; closedAt: string | null };
 
-export type PendenciaDeFechamento = { disciplinaNome: string; faltando: number };
+export type ClosingPendingItem = { subjectName: string; missing: number };
 
-export function estadosDeFechamento(
-  fechados: readonly FechamentoBimestre[],
-): EstadoDeFechamento[] {
-  return BIMESTRES.map((bimestre) => {
-    const fechamento = fechados.find((registro) => registro.bimestre === bimestre);
-    return fechamento === undefined
-      ? { bimestre, fechado: false, fechadoEm: null }
-      : { bimestre, fechado: true, fechadoEm: fechamento.fechadoEm };
+export function closingStates(closed: readonly TermClosing[]): TermClosingState[] {
+  return TERMS.map((term) => {
+    const closing = closed.find((record) => record.term === term);
+    return closing === undefined
+      ? { term, closed: false, closedAt: null }
+      : { term, closed: true, closedAt: closing.closedAt };
   });
 }
 
-export function todosBimestresFechados(estados: readonly EstadoDeFechamento[]): boolean {
-  return estados.length === BIMESTRES.length && estados.every((estado) => estado.fechado);
+export function allTermsClosed(states: readonly TermClosingState[]): boolean {
+  return states.length === TERMS.length && states.every((state) => state.closed);
 }
 
-export function pendenciasDoFechamento(
-  disciplinas: readonly { id: string; disciplinaNome: string }[],
-  matriculasAtivas: number,
-  lancadasPorDisciplina: ReadonlyMap<string, number>,
-): PendenciaDeFechamento[] {
-  return disciplinas
-    .map((disciplina) => ({
-      disciplinaNome: disciplina.disciplinaNome,
-      faltando: matriculasAtivas - (lancadasPorDisciplina.get(disciplina.id) ?? 0),
+export function closingPendingItems(
+  subjects: readonly { id: string; subjectName: string }[],
+  activeEnrollments: number,
+  postedBySubject: ReadonlyMap<string, number>,
+): ClosingPendingItem[] {
+  return subjects
+    .map((subject) => ({
+      subjectName: subject.subjectName,
+      missing: activeEnrollments - (postedBySubject.get(subject.id) ?? 0),
     }))
-    .filter((pendencia) => pendencia.faltando > 0);
+    .filter((pendingItem) => pendingItem.missing > 0);
 }
 
-export function mensagemDePendencias(pendencias: readonly PendenciaDeFechamento[]): string {
-  const total = pendencias.reduce((soma, pendencia) => soma + pendencia.faltando, 0);
-  const detalhe = pendencias
-    .map((pendencia) =>
-      MENSAGENS.fechamento.pendencia(pendencia.disciplinaNome, pendencia.faltando),
-    )
-    .join(MENSAGENS.fechamento.separadorDePendencias);
+export function pendingItemsMessage(pendingItems: readonly ClosingPendingItem[]): string {
+  const total = pendingItems.reduce((sum, pendingItem) => sum + pendingItem.missing, 0);
+  const detail = pendingItems
+    .map((pendingItem) => MESSAGES.closing.pendingItem(pendingItem.subjectName, pendingItem.missing))
+    .join(MESSAGES.closing.pendingItemsSeparator);
   return total === 1
-    ? MENSAGENS.fechamento.pendenciaSingular(detalhe)
-    : MENSAGENS.fechamento.pendenciaPlural(total, detalhe);
+    ? MESSAGES.closing.singlePendingItem(detail)
+    : MESSAGES.closing.manyPendingItems(total, detail);
 }

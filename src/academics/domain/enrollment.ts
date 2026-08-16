@@ -1,32 +1,27 @@
-export const SITUACOES_DE_MATRICULA = [
-  'active',
-  'transferred',
-  'cancelled',
-  'completed',
-] as const;
+export const ENROLLMENT_STATUSES = ['active', 'transferred', 'cancelled', 'completed'] as const;
 
-export type SituacaoMatricula = (typeof SITUACOES_DE_MATRICULA)[number];
+export type EnrollmentStatus = (typeof ENROLLMENT_STATUSES)[number];
 
-export const MATRICULA_ATIVA: SituacaoMatricula = SITUACOES_DE_MATRICULA[0];
+export const ACTIVE_ENROLLMENT_STATUS: EnrollmentStatus = ENROLLMENT_STATUSES[0];
 
-export type Matricula = {
+export type Enrollment = {
   id: string;
-  redeId: string;
-  alunoId: string;
-  alunoNome: string;
-  turmaId: string;
-  turmaNome: string;
-  unidadeId: string;
-  anoLetivoId: string;
-  ano: number;
-  dataMatricula: string;
-  situacao: SituacaoMatricula;
+  networkId: string;
+  studentId: string;
+  studentName: string;
+  classGroupId: string;
+  classGroupName: string;
+  schoolId: string;
+  academicYearId: string;
+  year: number;
+  enrollmentDate: string;
+  status: EnrollmentStatus;
 };
 
-export function situacaoValida(valor: string): valor is SituacaoMatricula {
-  return SITUACOES_DE_MATRICULA.some((situacao) => situacao === valor);
+export function isValidEnrollmentStatus(value: string): value is EnrollmentStatus {
+  return ENROLLMENT_STATUSES.some((status) => status === value);
 }
 
-export function podeTransferir(matricula: Matricula): boolean {
-  return matricula.situacao === MATRICULA_ATIVA;
+export function canTransfer(enrollment: Enrollment): boolean {
+  return enrollment.status === ACTIVE_ENROLLMENT_STATUS;
 }

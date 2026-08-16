@@ -1,13 +1,14 @@
 import { Hono, type Context } from 'hono';
-import { VOCABULARIO_DO_ACADEMICO, academico, type Matricula } from '../../academics';
+import { ACADEMIC_VOCABULARY, academics, type Enrollment } from '../../academics';
 import {
-  APROVACAO,
-  ARITMETICA,
-  VOCABULARIO_DA_AVALIACAO,
-  avaliacao,
-  type Boletim,
+  ARITHMETIC,
+  ASSESSMENT_VOCABULARY,
+  PASSING,
+  assessment,
+  type AttendanceEntry,
+  type ReportCard,
 } from '../../assessment';
-import { comunicacao, type ItemDoMural } from '../../communication';
+import { communication, type Announcement, type BoardItem } from '../../communication';
 import { ROLE } from '../../identity';
 import {
   NotFound,
@@ -37,28 +38,43 @@ rotasResponsavel.use(requireRole(ROLE.guardian));
 const PARCIAIS = { parciais: TEMPLATES.parciais };
 
 const ROTULOS_DA_AVALIACAO = {
-  rotuloDaSituacao: VOCABULARIO_DA_AVALIACAO.situacaoFinal,
-  rotuloDaPresenca: VOCABULARIO_DA_AVALIACAO.presenca,
+  rotuloDaSituacao: ASSESSMENT_VOCABULARY.finalStatus,
+  rotuloDaPresenca: {
+    presente: ASSESSMENT_VOCABULARY.attendance.present,
+    faltaJustificada: ASSESSMENT_VOCABULARY.attendance.excusedAbsence,
+    falta: ASSESSMENT_VOCABULARY.attendance.absence,
+  },
 };
 
 const ROTULOS_DO_ACADEMICO = {
-  rotuloDaSituacao: VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula,
+  rotuloDaSituacao: ACADEMIC_VOCABULARY.enrollmentStatus,
 };
 
-const naEscalaDaTela = (emCentesimos: number): number => emCentesimos / ARITMETICA.centesimos;
+const matriculaParaTela = (matricula: Enrollment) => ({
+  id: matricula.id,
+  alunoNome: matricula.studentName,
+  turmaNome: matricula.classGroupName,
+  ano: matricula.year,
+  situacao: matricula.status,
+});
+
+const naEscalaDaTela = (emCentesimos: number): number => emCentesimos / ARITHMETIC.hundredths;
 
 const CRITERIO_DE_APROVACAO = {
-  media: formatarNota(naEscalaDaTela(APROVACAO.mediaMinimaEmCentesimos)),
-  frequencia: `${naEscalaDaTela(APROVACAO.frequenciaMinimaEmCentesimos)}${APRESENTACAO.sufixoDePercentual}`,
+  media: formatarNota(naEscalaDaTela(PASSING.minimumAverageInHundredths)),
+  frequencia: `${naEscalaDaTela(PASSING.minimumAttendanceInHundredths)}${APRESENTACAO.sufixoDePercentual}`,
 };
 
 const responsavelDaSessao = (c: Context): string | null => currentUser(c).guardianId;
 
-const matriculaSobResponsabilidade = async (c: Context, matriculaId: string): Promise<Matricula> => {
+const matriculaSobResponsabilidade = async (
+  c: Context,
+  matriculaId: string,
+): Promise<Enrollment> => {
   const responsavelId = responsavelDaSessao(c);
   if (responsavelId === null) throw new NotFound(DIAGNOSTICOS.contaSemResponsavel);
 
-  const matriculas = await academico.matriculasDoResponsavel(currentNetwork(c), responsavelId);
+  const matriculas = await academics.guardianEnrollments(currentNetwork(c), responsavelId);
   const matricula = matriculas.find((linha) => linha.id === matriculaId);
   if (matricula === undefined) {
     throw new NotFound(DIAGNOSTICOS.matriculaForaDaResponsabilidade);
@@ -66,8 +82,47 @@ const matriculaSobResponsabilidade = async (c: Context, matriculaId: string): Pr
   return matricula;
 };
 
-const bimestresDe = (boletim: Boletim): number[] =>
-  Array.from({ length: boletim.linhas[0]?.notas.length ?? 0 }, (_, indice) => indice + 1);
+const boletimParaTela = (boletim: ReportCard) => ({
+  matriculaId: boletim.enrollmentId,
+  alunoNome: boletim.studentName,
+  turmaNome: boletim.classGroupName,
+  ano: boletim.year,
+  linhas: boletim.rows.map((linha) => ({
+    disciplinaNome: linha.subjectName,
+    notas: linha.grades,
+    media: linha.average,
+  })),
+  mediasPorBimestre: boletim.termAverages,
+  mediaGeral: boletim.overallAverage,
+  percentualFrequencia: boletim.attendanceRate,
+  totalDias: boletim.totalDays,
+  presencas: boletim.presentDays,
+  situacao: boletim.status,
+});
+
+const itemDoMuralParaTela = (item: BoardItem) => ({
+  comunicadoId: item.announcementId,
+  titulo: item.title,
+  publicadoEm: item.publishedAt,
+  lidoEm: item.readAt,
+});
+
+const comunicadoParaTela = (comunicado: Announcement) => ({
+  id: comunicado.id,
+  titulo: comunicado.title,
+  corpo: comunicado.body,
+  autorNome: comunicado.authorName,
+  publicadoEm: comunicado.publishedAt,
+});
+
+const diaParaTela = (dia: AttendanceEntry) => ({
+  data: dia.date,
+  presente: dia.present,
+  justificativa: dia.excuse,
+});
+
+const bimestresDe = (boletim: ReportCard): number[] =>
+  Array.from({ length: boletim.rows[0]?.grades.length ?? 0 }, (_, indice) => indice + 1);
 
 const comMensagem = (destino: string, aviso: Record<string, string>): string =>
   `${destino}?${new URLSearchParams(aviso).toString()}`;
@@ -82,7 +137,7 @@ rotasResponsavel.get(ROTAS.responsavel.painel.padrao, async (c) => {
       ...ROTULOS_DO_ACADEMICO,
       titulo: TITULOS.responsavel.painel,
       matriculas: [],
-      navegacao: navegacao(c, emptyPage<Matricula>()),
+      navegacao: navegacao(c, emptyPage<Enrollment>()),
       naoLidos: [],
       totalNaoLidos: 0,
       totalNoMural: 0,
@@ -90,19 +145,19 @@ rotasResponsavel.get(ROTAS.responsavel.painel.padrao, async (c) => {
   }
 
   const [pagina, naoLidos, contagem] = await Promise.all([
-    academico.paginaDeMatriculasDoResponsavel(redeId, responsavelId, paginaDaQuery(c)),
-    comunicacao.paginaDoMural(redeId, responsavelId, false, 1),
-    comunicacao.contagemDoMural(redeId, responsavelId),
+    academics.guardianEnrollmentsPage(redeId, responsavelId, paginaDaQuery(c)),
+    communication.boardPage(redeId, responsavelId, false, 1),
+    communication.boardCounts(redeId, responsavelId),
   ]);
 
   return renderizar(c, TEMPLATES.responsavel.painel, {
     ...PARCIAIS,
     ...ROTULOS_DO_ACADEMICO,
     titulo: TITULOS.responsavel.painel,
-    matriculas: pagina.items,
+    matriculas: pagina.items.map(matriculaParaTela),
     navegacao: navegacao(c, pagina),
-    naoLidos: naoLidos.items,
-    totalNaoLidos: contagem.naoLidos,
+    naoLidos: naoLidos.items.map(itemDoMuralParaTela),
+    totalNaoLidos: contagem.unread,
     totalNoMural: contagem.total,
   });
 });
@@ -111,16 +166,16 @@ rotasResponsavel.get(ROTAS.responsavel.boletim.padrao, async (c) => {
   const { id: matriculaId } = c.req.param();
   await matriculaSobResponsabilidade(c, matriculaId);
 
-  const boletim = await avaliacao.boletim(currentNetwork(c), matriculaId);
+  const boletim = await assessment.reportCard(currentNetwork(c), matriculaId);
   if (boletim === null) throw new NotFound(DIAGNOSTICOS.matriculaSemBoletim);
 
   return renderizar(c, TEMPLATES.responsavel.boletim, {
     ...PARCIAIS,
     rotuloDaSituacao: ROTULOS_DA_AVALIACAO.rotuloDaSituacao,
     criterio: CRITERIO_DE_APROVACAO,
-    titulo: TITULOS.responsavel.boletim(boletim.alunoNome),
+    titulo: TITULOS.responsavel.boletim(boletim.studentName),
     matriculaId,
-    boletim,
+    boletim: boletimParaTela(boletim),
     bimestres: bimestresDe(boletim),
   });
 });
@@ -131,8 +186,8 @@ rotasResponsavel.get(ROTAS.responsavel.frequencia.padrao, async (c) => {
   const matricula = await matriculaSobResponsabilidade(c, matriculaId);
 
   const [dias, boletim] = await Promise.all([
-    avaliacao.paginaDeFrequencia(redeId, matriculaId, paginaDaQuery(c)),
-    avaliacao.boletim(redeId, matriculaId),
+    assessment.attendancePage(redeId, matriculaId, paginaDaQuery(c)),
+    assessment.reportCard(redeId, matriculaId),
   ]);
   if (boletim === null) throw new NotFound(DIAGNOSTICOS.matriculaSemFrequencia);
 
@@ -141,10 +196,10 @@ rotasResponsavel.get(ROTAS.responsavel.frequencia.padrao, async (c) => {
     rotuloDaPresenca: ROTULOS_DA_AVALIACAO.rotuloDaPresenca,
     semValor: MISSING_VALUE,
     criterio: CRITERIO_DE_APROVACAO,
-    titulo: TITULOS.responsavel.frequencia(matricula.alunoNome),
-    matricula,
-    boletim,
-    dias: dias.items,
+    titulo: TITULOS.responsavel.frequencia(matricula.studentName),
+    matricula: matriculaParaTela(matricula),
+    boletim: boletimParaTela(boletim),
+    dias: dias.items.map(diaParaTela),
     navegacao: navegacao(c, dias),
   });
 });
@@ -154,15 +209,15 @@ rotasResponsavel.get(ROTAS.responsavel.mural.padrao, async (c) => {
   const redeId = currentNetwork(c);
   const [naoLidos, lidos] =
     responsavelId === null
-      ? [emptyPage<ItemDoMural>(), emptyPage<ItemDoMural>()]
+      ? [emptyPage<BoardItem>(), emptyPage<BoardItem>()]
       : await Promise.all([
-          comunicacao.paginaDoMural(
+          communication.boardPage(
             redeId,
             responsavelId,
             false,
             paginaDaQuery(c, PARAMETROS.paginaDeNaoLidos),
           ),
-          comunicacao.paginaDoMural(
+          communication.boardPage(
             redeId,
             responsavelId,
             true,
@@ -173,10 +228,10 @@ rotasResponsavel.get(ROTAS.responsavel.mural.padrao, async (c) => {
   return renderizar(c, TEMPLATES.responsavel.mural, {
     ...PARCIAIS,
     titulo: TITULOS.responsavel.mural,
-    naoLidos: naoLidos.items,
+    naoLidos: naoLidos.items.map(itemDoMuralParaTela),
     navegacaoNaoLidos: navegacao(c, naoLidos, PARAMETROS.paginaDeNaoLidos),
     totalNaoLidos: naoLidos.total,
-    lidos: lidos.items,
+    lidos: lidos.items.map(itemDoMuralParaTela),
     navegacaoLidos: navegacao(c, lidos, PARAMETROS.paginaDeLidos),
     totalLidos: lidos.total,
   });
@@ -189,15 +244,15 @@ rotasResponsavel.get(ROTAS.responsavel.comunicado.padrao, async (c) => {
   if (responsavelId === null) throw new NotFound(DIAGNOSTICOS.contaSemResponsavel);
 
   const [comunicado, mural] = await Promise.all([
-    comunicacao.comunicadoParaResponsavel(redeId, responsavelId, comunicadoId),
-    comunicacao.muralDoResponsavel(redeId, responsavelId),
+    communication.announcementForGuardian(redeId, responsavelId, comunicadoId),
+    communication.guardianBoard(redeId, responsavelId),
   ]);
   if (comunicado === null) throw new NotFound(DIAGNOSTICOS.comunicadoForaDoMural);
 
   return renderizar(c, TEMPLATES.responsavel.comunicado, {
-    titulo: comunicado.titulo,
-    comunicado,
-    lidoEm: mural.find((item) => item.comunicadoId === comunicadoId)?.lidoEm ?? null,
+    titulo: comunicado.title,
+    comunicado: comunicadoParaTela(comunicado),
+    lidoEm: mural.find((item) => item.announcementId === comunicadoId)?.readAt ?? null,
   });
 });
 
@@ -207,10 +262,18 @@ rotasResponsavel.post(ROTAS.responsavel.comunicadoLido.padrao, async (c) => {
   const responsavelId = responsavelDaSessao(c);
   if (responsavelId === null) throw new NotFound(DIAGNOSTICOS.contaSemResponsavel);
 
-  const comunicado = await comunicacao.comunicadoParaResponsavel(redeId, responsavelId, comunicadoId);
+  const comunicado = await communication.announcementForGuardian(
+    redeId,
+    responsavelId,
+    comunicadoId,
+  );
   if (comunicado === null) throw new NotFound(DIAGNOSTICOS.comunicadoForaDoMural);
 
-  const resultado = await comunicacao.marcarComoLido({ redeId, comunicadoId, responsavelId });
+  const resultado = await communication.markAsRead({
+    networkId: redeId,
+    announcementId: comunicadoId,
+    guardianId: responsavelId,
+  });
   if (!resultado.ok) {
     const mensagem = resultado.erros[0]?.mensagem ?? AVISOS.leituraNaoRegistrada;
     return c.redirect(

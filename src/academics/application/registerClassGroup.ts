@@ -3,63 +3,69 @@ import { identity } from '../../identity/index';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
-import { turnoValido, type Turma } from '../domain/classGroup';
-import * as anosLetivos from '../infra/academicYearRepository';
-import * as turmas from '../infra/classGroupRepository';
+import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { isValidShift, type ClassGroup } from '../domain/classGroup';
+import * as academicYears from '../infra/academicYearRepository';
+import * as classGroups from '../infra/classGroupRepository';
 
-const entrada = z.object({
-  redeId: z.string().uuid(),
-  unidadeId: z.string().uuid(MENSAGENS.turma.unidadeObrigatoria),
-  anoLetivoId: z.string().uuid(MENSAGENS.anoLetivoObrigatorio),
-  nome: z
+const schema = z.object({
+  networkId: z.string().uuid(),
+  schoolId: z.string().uuid(MESSAGES.classGroup.schoolRequired),
+  academicYearId: z.string().uuid(MESSAGES.academicYearRequired),
+  name: z
     .string()
     .trim()
-    .min(1, MENSAGENS.turma.nomeObrigatorio)
-    .max(LIMITES.turma.nome, MENSAGENS.turma.nomeLongo),
-  serie: z
+    .min(1, MESSAGES.classGroup.nameRequired)
+    .max(LIMITS.classGroup.name, MESSAGES.classGroup.nameTooLong),
+  gradeLevel: z
     .string()
     .trim()
-    .min(1, MENSAGENS.turma.serieObrigatoria)
-    .max(LIMITES.turma.serie, MENSAGENS.turma.serieLonga),
-  turno: z.string().trim().refine(turnoValido, MENSAGENS.turma.turnoInvalido),
+    .min(1, MESSAGES.classGroup.gradeLevelRequired)
+    .max(LIMITS.classGroup.gradeLevel, MESSAGES.classGroup.gradeLevelTooLong),
+  shift: z.string().trim().refine(isValidShift, MESSAGES.classGroup.invalidShift),
 });
 
-export async function cadastrarTurma(e: {
-  redeId: string;
-  unidadeId: string;
-  anoLetivoId: string;
-  nome: string;
-  serie: string;
-  turno: string;
-}): Promise<Result<Turma>> {
-  const validada = entrada.safeParse(e);
-  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
+export async function registerClassGroup(input: {
+  networkId: string;
+  schoolId: string;
+  academicYearId: string;
+  name: string;
+  gradeLevel: string;
+  shift: string;
+}): Promise<Result<ClassGroup>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.classGroup));
+  }
 
-  const { redeId, unidadeId, anoLetivoId } = validada.data;
-  return unitOfWork(async ({ sql }): Promise<Result<Turma>> => {
-    const unidade = await identity.schoolById(redeId, unidadeId);
-    if (unidade === null) {
+  const { networkId, schoolId, academicYearId } = parsed.data;
+  return unitOfWork(async ({ sql }): Promise<Result<ClassGroup>> => {
+    const school = await identity.schoolById(networkId, schoolId);
+    if (school === null) {
       return fieldFailure(
-        CAMPOS.turma.unidadeId,
-        CODIGOS.turma.unidadeNaoEncontrada,
-        MENSAGENS.turma.unidadeNaoEncontrada,
+        FIELDS.classGroup.schoolId,
+        CODES.classGroup.schoolNotFound,
+        MESSAGES.classGroup.schoolNotFound,
       );
     }
-    const anoLetivo = await anosLetivos.porId(sql, redeId, anoLetivoId);
-    if (anoLetivo === null) {
+    const academicYear = await academicYears.byId(sql, networkId, academicYearId);
+    if (academicYear === null) {
       return fieldFailure(
-        CAMPOS.turma.anoLetivoId,
-        CODIGOS.anoLetivoNaoEncontrado,
-        MENSAGENS.anoLetivoNaoEncontrado,
+        FIELDS.classGroup.academicYearId,
+        CODES.academicYearNotFound,
+        MESSAGES.academicYearNotFound,
       );
     }
 
-    const turma: Turma = { id: uuidIdGenerator.next(), ...validada.data };
-    const criada = await turmas.inserir(sql, turma);
-    if (!criada) {
-      return fieldFailure(CAMPOS.turma.nome, CODIGOS.turma.duplicada, MENSAGENS.turma.duplicada);
+    const classGroup: ClassGroup = { id: uuidIdGenerator.next(), ...parsed.data };
+    const created = await classGroups.insert(sql, classGroup);
+    if (!created) {
+      return fieldFailure(
+        FIELDS.classGroup.name,
+        CODES.classGroup.duplicate,
+        MESSAGES.classGroup.duplicate,
+      );
     }
-    return success(turma);
+    return success(classGroup);
   });
 }

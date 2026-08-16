@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { academico } from '../../src/academics';
+import { academics } from '../../src/academics';
 import type { ApplicationError, Result } from '../../src/shared/result';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
@@ -32,9 +32,9 @@ function errosDe(resultado: Result<unknown>): ApplicationError[] {
   return resultado.erros;
 }
 
-async function situacoesDoAluno(alunoId: string): Promise<string[]> {
+async function situacoesDoAluno(studentId: string): Promise<string[]> {
   const linhas = await sqlDeTeste()<{ status: string }[]>`
-    SELECT status FROM enrollment WHERE student_id = ${alunoId} ORDER BY status, created_at`;
+    SELECT status FROM enrollment WHERE student_id = ${studentId} ORDER BY status, created_at`;
   return linhas.map((linha) => linha.status);
 }
 
@@ -46,29 +46,29 @@ describe('matricular', () => {
     const aluno = await criarAluno({ networkId: cenario.rede.id, name: 'Ana Souza' });
     const [, turmaVazia] = cenario.turmas;
 
-    const resultado = await academico.matricular({
-      redeId: cenario.rede.id,
-      alunoId: aluno.id,
-      turmaId: turmaVazia.id,
-      anoLetivoId: cenario.anoLetivo.id,
-      dataMatricula: DATA_DE_MATRICULA,
+    const resultado = await academics.enroll({
+      networkId: cenario.rede.id,
+      studentId: aluno.id,
+      classGroupId: turmaVazia.id,
+      academicYearId: cenario.anoLetivo.id,
+      enrollmentDate: DATA_DE_MATRICULA,
     });
 
     const matricula = valorDe(resultado);
     expect(matricula).toEqual({
       id: matricula.id,
-      redeId: cenario.rede.id,
-      alunoId: aluno.id,
-      alunoNome: 'Ana Souza',
-      turmaId: turmaVazia.id,
-      turmaNome: turmaVazia.name,
-      unidadeId: turmaVazia.schoolId,
-      anoLetivoId: cenario.anoLetivo.id,
-      ano: ANO_PADRAO,
-      dataMatricula: DATA_DE_MATRICULA,
-      situacao: 'active',
+      networkId: cenario.rede.id,
+      studentId: aluno.id,
+      studentName: 'Ana Souza',
+      classGroupId: turmaVazia.id,
+      classGroupName: turmaVazia.name,
+      schoolId: turmaVazia.schoolId,
+      academicYearId: cenario.anoLetivo.id,
+      year: ANO_PADRAO,
+      enrollmentDate: DATA_DE_MATRICULA,
+      status: 'active',
     });
-    const naTurma = await academico.matriculasAtivasDaTurma(cenario.rede.id, turmaVazia.id);
+    const naTurma = await academics.activeEnrollmentsOfClassGroup(cenario.rede.id, turmaVazia.id);
     expect(naTurma.map((linha) => linha.id)).toEqual([matricula.id]);
   });
 
@@ -78,16 +78,16 @@ describe('matricular', () => {
     const [, turmaVazia] = cenario.turmas;
 
     const criada = valorDe(
-      await academico.matricular({
-        redeId: cenario.rede.id,
-        alunoId: aluno.id,
-        turmaId: turmaVazia.id,
-        anoLetivoId: cenario.anoLetivo.id,
-        dataMatricula: DATA_DE_MATRICULA,
+      await academics.enroll({
+        networkId: cenario.rede.id,
+        studentId: aluno.id,
+        classGroupId: turmaVazia.id,
+        academicYearId: cenario.anoLetivo.id,
+        enrollmentDate: DATA_DE_MATRICULA,
       }),
     );
 
-    expect(await academico.matriculaPorId(cenario.rede.id, criada.id)).toEqual(criada);
+    expect(await academics.enrollmentById(cenario.rede.id, criada.id)).toEqual(criada);
   });
 
   test('segunda matrícula ativa do mesmo aluno no mesmo ano é recusada com erro de campo', async () => {
@@ -95,12 +95,12 @@ describe('matricular', () => {
     const [jaMatriculado] = cenario.alunos;
     const [, outraTurma] = cenario.turmas;
 
-    const resultado = await academico.matricular({
-      redeId: cenario.rede.id,
-      alunoId: jaMatriculado.id,
-      turmaId: outraTurma.id,
-      anoLetivoId: cenario.anoLetivo.id,
-      dataMatricula: DATA_DE_MATRICULA,
+    const resultado = await academics.enroll({
+      networkId: cenario.rede.id,
+      studentId: jaMatriculado.id,
+      classGroupId: outraTurma.id,
+      academicYearId: cenario.anoLetivo.id,
+      enrollmentDate: DATA_DE_MATRICULA,
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -118,12 +118,12 @@ describe('matricular', () => {
     const [jaMatriculado] = cenario.alunos;
     const [, outraTurma] = cenario.turmas;
 
-    const resultado = await academico.matricular({
-      redeId: cenario.rede.id,
-      alunoId: jaMatriculado.id,
-      turmaId: outraTurma.id,
-      anoLetivoId: cenario.anoLetivo.id,
-      dataMatricula: DATA_DE_MATRICULA,
+    const resultado = await academics.enroll({
+      networkId: cenario.rede.id,
+      studentId: jaMatriculado.id,
+      classGroupId: outraTurma.id,
+      academicYearId: cenario.anoLetivo.id,
+      enrollmentDate: DATA_DE_MATRICULA,
     });
 
     const mensagem = errosDe(resultado)[0]?.mensagem ?? '';
@@ -139,27 +139,27 @@ describe('matricular', () => {
       networkId: cenario.rede.id, schoolId: cenario.unidades[0].id, academicYearId: proximoAno.id,
     });
 
-    const resultado = await academico.matricular({
-      redeId: cenario.rede.id,
-      alunoId: jaMatriculado.id,
-      turmaId: turmaDoProximoAno.id,
-      anoLetivoId: proximoAno.id,
-      dataMatricula: `${ANO_PADRAO + 1}-02-05`,
+    const resultado = await academics.enroll({
+      networkId: cenario.rede.id,
+      studentId: jaMatriculado.id,
+      classGroupId: turmaDoProximoAno.id,
+      academicYearId: proximoAno.id,
+      enrollmentDate: `${ANO_PADRAO + 1}-02-05`,
     });
 
-    expect(valorDe(resultado).ano).toBe(ANO_PADRAO + 1);
+    expect(valorDe(resultado).year).toBe(ANO_PADRAO + 1);
     expect(await situacoesDoAluno(jaMatriculado.id)).toEqual(['active', 'active']);
   });
 
   test('aluno de outra rede é recusado', async () => {
     const { a, b } = await duasRedes();
 
-    const resultado = await academico.matricular({
-      redeId: a.rede.id,
-      alunoId: b.alunos[0].id,
-      turmaId: a.turmas[1].id,
-      anoLetivoId: a.anoLetivo.id,
-      dataMatricula: DATA_DE_MATRICULA,
+    const resultado = await academics.enroll({
+      networkId: a.rede.id,
+      studentId: b.alunos[0].id,
+      classGroupId: a.turmas[1].id,
+      academicYearId: a.anoLetivo.id,
+      enrollmentDate: DATA_DE_MATRICULA,
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -175,12 +175,12 @@ describe('matricular', () => {
     const { a, b } = await duasRedes();
     const aluno = await criarAluno({ networkId: a.rede.id });
 
-    const resultado = await academico.matricular({
-      redeId: a.rede.id,
-      alunoId: aluno.id,
-      turmaId: b.turmas[1].id,
-      anoLetivoId: a.anoLetivo.id,
-      dataMatricula: DATA_DE_MATRICULA,
+    const resultado = await academics.enroll({
+      networkId: a.rede.id,
+      studentId: aluno.id,
+      classGroupId: b.turmas[1].id,
+      academicYearId: a.anoLetivo.id,
+      enrollmentDate: DATA_DE_MATRICULA,
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -196,12 +196,12 @@ describe('matricular', () => {
     const { a, b } = await duasRedes();
     const aluno = await criarAluno({ networkId: a.rede.id });
 
-    const resultado = await academico.matricular({
-      redeId: a.rede.id,
-      alunoId: aluno.id,
-      turmaId: a.turmas[1].id,
-      anoLetivoId: b.anoLetivo.id,
-      dataMatricula: DATA_DE_MATRICULA,
+    const resultado = await academics.enroll({
+      networkId: a.rede.id,
+      studentId: aluno.id,
+      classGroupId: a.turmas[1].id,
+      academicYearId: b.anoLetivo.id,
+      enrollmentDate: DATA_DE_MATRICULA,
     });
 
     expect(errosDe(resultado)[0]?.codigo).toBe('ano_letivo_nao_encontrado');
@@ -215,12 +215,12 @@ describe('matricular', () => {
       networkId: cenario.rede.id, schoolId: cenario.unidades[0].id, academicYearId: outroAno.id,
     });
 
-    const resultado = await academico.matricular({
-      redeId: cenario.rede.id,
-      alunoId: aluno.id,
-      turmaId: turmaDoOutroAno.id,
-      anoLetivoId: cenario.anoLetivo.id,
-      dataMatricula: DATA_DE_MATRICULA,
+    const resultado = await academics.enroll({
+      networkId: cenario.rede.id,
+      studentId: aluno.id,
+      classGroupId: turmaDoOutroAno.id,
+      academicYearId: cenario.anoLetivo.id,
+      enrollmentDate: DATA_DE_MATRICULA,
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -236,12 +236,12 @@ describe('matricular', () => {
     const cenario = await cenarioCompleto();
     const aluno = await criarAluno({ networkId: cenario.rede.id });
 
-    const resultado = await academico.matricular({
-      redeId: cenario.rede.id,
-      alunoId: aluno.id,
-      turmaId: cenario.turmas[1].id,
-      anoLetivoId: cenario.anoLetivo.id,
-      dataMatricula: '10/02/2026',
+    const resultado = await academics.enroll({
+      networkId: cenario.rede.id,
+      studentId: aluno.id,
+      classGroupId: cenario.turmas[1].id,
+      academicYearId: cenario.anoLetivo.id,
+      enrollmentDate: '10/02/2026',
     });
 
     expect(errosDe(resultado)[0]?.campo).toBe('dataMatricula');
@@ -251,12 +251,12 @@ describe('matricular', () => {
   test('ids fora do formato são recusados pela validação de entrada', async () => {
     const cenario = await cenarioCompleto();
 
-    const resultado = await academico.matricular({
-      redeId: cenario.rede.id,
-      alunoId: 'nao-e-uuid',
-      turmaId: 'tambem-nao',
-      anoLetivoId: cenario.anoLetivo.id,
-      dataMatricula: DATA_DE_MATRICULA,
+    const resultado = await academics.enroll({
+      networkId: cenario.rede.id,
+      studentId: 'nao-e-uuid',
+      classGroupId: 'tambem-nao',
+      academicYearId: cenario.anoLetivo.id,
+      enrollmentDate: DATA_DE_MATRICULA,
     });
 
     expect(errosDe(resultado).map((erro) => erro.campo)).toEqual(['alunoId', 'turmaId']);
@@ -269,33 +269,33 @@ describe('transferir', () => {
     const [origem] = cenario.matriculas;
     const [turmaDeOrigem, turmaDeDestino] = cenario.turmas;
 
-    const resultado = await academico.transferir({
-      redeId: cenario.rede.id,
-      matriculaId: origem.id,
-      turmaDestinoId: turmaDeDestino.id,
-      data: DATA_DE_TRANSFERENCIA,
+    const resultado = await academics.transfer({
+      networkId: cenario.rede.id,
+      enrollmentId: origem.id,
+      targetClassGroupId: turmaDeDestino.id,
+      date: DATA_DE_TRANSFERENCIA,
     });
 
     const nova = valorDe(resultado);
-    expect(nova.turmaId).toBe(turmaDeDestino.id);
-    expect(nova.situacao).toBe('active');
-    expect(nova.alunoId).toBe(origem.studentId);
-    expect(nova.anoLetivoId).toBe(origem.academicYearId);
-    expect(nova.dataMatricula).toBe(DATA_DE_TRANSFERENCIA);
-    const antiga = await academico.matriculaPorId(cenario.rede.id, origem.id);
-    expect(antiga?.situacao).toBe('transferred');
-    expect(antiga?.turmaId).toBe(turmaDeOrigem.id);
+    expect(nova.classGroupId).toBe(turmaDeDestino.id);
+    expect(nova.status).toBe('active');
+    expect(nova.studentId).toBe(origem.studentId);
+    expect(nova.academicYearId).toBe(origem.academicYearId);
+    expect(nova.enrollmentDate).toBe(DATA_DE_TRANSFERENCIA);
+    const antiga = await academics.enrollmentById(cenario.rede.id, origem.id);
+    expect(antiga?.status).toBe('transferred');
+    expect(antiga?.classGroupId).toBe(turmaDeOrigem.id);
   });
 
   test('depois de transferir sobra exatamente uma matrícula ativa do aluno no ano', async () => {
     const cenario = await cenarioCompleto();
     const [origem] = cenario.matriculas;
 
-    await academico.transferir({
-      redeId: cenario.rede.id,
-      matriculaId: origem.id,
-      turmaDestinoId: cenario.turmas[1].id,
-      data: DATA_DE_TRANSFERENCIA,
+    await academics.transfer({
+      networkId: cenario.rede.id,
+      enrollmentId: origem.id,
+      targetClassGroupId: cenario.turmas[1].id,
+      date: DATA_DE_TRANSFERENCIA,
     });
 
     const linhas = await sqlDeTeste()<{ status: string }[]>`
@@ -310,28 +310,28 @@ describe('transferir', () => {
     const [origem] = cenario.matriculas;
     const [turmaDeOrigem, turmaDeDestino] = cenario.turmas;
 
-    await academico.transferir({
-      redeId: cenario.rede.id,
-      matriculaId: origem.id,
-      turmaDestinoId: turmaDeDestino.id,
-      data: DATA_DE_TRANSFERENCIA,
+    await academics.transfer({
+      networkId: cenario.rede.id,
+      enrollmentId: origem.id,
+      targetClassGroupId: turmaDeDestino.id,
+      date: DATA_DE_TRANSFERENCIA,
     });
 
-    const naOrigem = await academico.matriculasAtivasDaTurma(cenario.rede.id, turmaDeOrigem.id);
-    const noDestino = await academico.matriculasAtivasDaTurma(cenario.rede.id, turmaDeDestino.id);
-    expect(naOrigem.map((linha) => linha.alunoId)).not.toContain(origem.studentId);
-    expect(noDestino.map((linha) => linha.alunoId)).toEqual([origem.studentId]);
+    const naOrigem = await academics.activeEnrollmentsOfClassGroup(cenario.rede.id, turmaDeOrigem.id);
+    const noDestino = await academics.activeEnrollmentsOfClassGroup(cenario.rede.id, turmaDeDestino.id);
+    expect(naOrigem.map((linha) => linha.studentId)).not.toContain(origem.studentId);
+    expect(noDestino.map((linha) => linha.studentId)).toEqual([origem.studentId]);
   });
 
   test('transferir para a mesma turma é recusado e nada muda', async () => {
     const cenario = await cenarioCompleto();
     const [origem] = cenario.matriculas;
 
-    const resultado = await academico.transferir({
-      redeId: cenario.rede.id,
-      matriculaId: origem.id,
-      turmaDestinoId: origem.classGroupId,
-      data: DATA_DE_TRANSFERENCIA,
+    const resultado = await academics.transfer({
+      networkId: cenario.rede.id,
+      enrollmentId: origem.id,
+      targetClassGroupId: origem.classGroupId,
+      date: DATA_DE_TRANSFERENCIA,
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -348,18 +348,18 @@ describe('transferir', () => {
     const cenario = await cenarioCompleto();
     const [origem] = cenario.matriculas;
     const [, turmaDeDestino] = cenario.turmas;
-    await academico.transferir({
-      redeId: cenario.rede.id,
-      matriculaId: origem.id,
-      turmaDestinoId: turmaDeDestino.id,
-      data: DATA_DE_TRANSFERENCIA,
+    await academics.transfer({
+      networkId: cenario.rede.id,
+      enrollmentId: origem.id,
+      targetClassGroupId: turmaDeDestino.id,
+      date: DATA_DE_TRANSFERENCIA,
     });
 
-    const segundaVez = await academico.transferir({
-      redeId: cenario.rede.id,
-      matriculaId: origem.id,
-      turmaDestinoId: turmaDeDestino.id,
-      data: DATA_DE_TRANSFERENCIA,
+    const segundaVez = await academics.transfer({
+      networkId: cenario.rede.id,
+      enrollmentId: origem.id,
+      targetClassGroupId: turmaDeDestino.id,
+      date: DATA_DE_TRANSFERENCIA,
     });
 
     expect(errosDe(segundaVez)).toEqual([
@@ -377,22 +377,22 @@ describe('transferir', () => {
     const [origem] = cenario.matriculas;
     const [turmaDeOrigem, turmaDoMeio] = cenario.turmas;
     const primeira = valorDe(
-      await academico.transferir({
-        redeId: cenario.rede.id,
-        matriculaId: origem.id,
-        turmaDestinoId: turmaDoMeio.id,
-        data: DATA_DE_TRANSFERENCIA,
+      await academics.transfer({
+        networkId: cenario.rede.id,
+        enrollmentId: origem.id,
+        targetClassGroupId: turmaDoMeio.id,
+        date: DATA_DE_TRANSFERENCIA,
       }),
     );
 
-    const segunda = await academico.transferir({
-      redeId: cenario.rede.id,
-      matriculaId: primeira.id,
-      turmaDestinoId: turmaDeOrigem.id,
-      data: `${ANO_PADRAO}-08-01`,
+    const segunda = await academics.transfer({
+      networkId: cenario.rede.id,
+      enrollmentId: primeira.id,
+      targetClassGroupId: turmaDeOrigem.id,
+      date: `${ANO_PADRAO}-08-01`,
     });
 
-    expect(valorDe(segunda).turmaId).toBe(turmaDeOrigem.id);
+    expect(valorDe(segunda).classGroupId).toBe(turmaDeOrigem.id);
     const ativas = await sqlDeTeste()<{ total: number }[]>`
       SELECT count(*)::int AS total FROM enrollment
        WHERE student_id = ${origem.studentId} AND status = 'active'`;
@@ -407,11 +407,11 @@ describe('transferir', () => {
       networkId: cenario.rede.id, schoolId: cenario.unidades[0].id, academicYearId: outroAno.id,
     });
 
-    const resultado = await academico.transferir({
-      redeId: cenario.rede.id,
-      matriculaId: origem.id,
-      turmaDestinoId: turmaDoOutroAno.id,
-      data: DATA_DE_TRANSFERENCIA,
+    const resultado = await academics.transfer({
+      networkId: cenario.rede.id,
+      enrollmentId: origem.id,
+      targetClassGroupId: turmaDoOutroAno.id,
+      date: DATA_DE_TRANSFERENCIA,
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -428,11 +428,11 @@ describe('transferir', () => {
     const { a, b } = await duasRedes();
     const [origem] = a.matriculas;
 
-    const resultado = await academico.transferir({
-      redeId: a.rede.id,
-      matriculaId: origem.id,
-      turmaDestinoId: b.turmas[1].id,
-      data: DATA_DE_TRANSFERENCIA,
+    const resultado = await academics.transfer({
+      networkId: a.rede.id,
+      enrollmentId: origem.id,
+      targetClassGroupId: b.turmas[1].id,
+      date: DATA_DE_TRANSFERENCIA,
     });
 
     expect(errosDe(resultado)[0]?.codigo).toBe('turma_nao_encontrada');
@@ -442,11 +442,11 @@ describe('transferir', () => {
   test('matrícula de outra rede não é alcançável pelo id', async () => {
     const { a, b } = await duasRedes();
 
-    const resultado = await academico.transferir({
-      redeId: a.rede.id,
-      matriculaId: b.matriculas[0].id,
-      turmaDestinoId: a.turmas[1].id,
-      data: DATA_DE_TRANSFERENCIA,
+    const resultado = await academics.transfer({
+      networkId: a.rede.id,
+      enrollmentId: b.matriculas[0].id,
+      targetClassGroupId: a.turmas[1].id,
+      date: DATA_DE_TRANSFERENCIA,
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -462,11 +462,11 @@ describe('transferir', () => {
   test('matrícula inexistente é recusada', async () => {
     const cenario = await cenarioCompleto();
 
-    const resultado = await academico.transferir({
-      redeId: cenario.rede.id,
-      matriculaId: crypto.randomUUID(),
-      turmaDestinoId: cenario.turmas[1].id,
-      data: DATA_DE_TRANSFERENCIA,
+    const resultado = await academics.transfer({
+      networkId: cenario.rede.id,
+      enrollmentId: crypto.randomUUID(),
+      targetClassGroupId: cenario.turmas[1].id,
+      date: DATA_DE_TRANSFERENCIA,
     });
 
     expect(errosDe(resultado)[0]?.codigo).toBe('matricula_nao_encontrada');
@@ -476,11 +476,11 @@ describe('transferir', () => {
     const cenario = await cenarioCompleto();
     const [origem] = cenario.matriculas;
 
-    const resultado = await academico.transferir({
-      redeId: cenario.rede.id,
-      matriculaId: origem.id,
-      turmaDestinoId: cenario.turmas[1].id,
-      data: '01-06-2026',
+    const resultado = await academics.transfer({
+      networkId: cenario.rede.id,
+      enrollmentId: origem.id,
+      targetClassGroupId: cenario.turmas[1].id,
+      date: '01-06-2026',
     });
 
     expect(errosDe(resultado)[0]?.campo).toBe('data');

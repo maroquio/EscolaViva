@@ -137,7 +137,7 @@ const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoDeMatricula;
             <th scope="col"><%= it.rotulos.turma %></th>
             <th scope="col"><%= it.rotulos.ano %></th>
             <th scope="col">Data</th>
-<% // magic-values: permitido — não é rótulo de ROTULOS, nem o VOCABULARIO_DO_ACADEMICO.situacaoDeMatricula da célula abaixo %>
+<% // magic-values: permitido — não é rótulo de ROTULOS, nem o ACADEMIC_VOCABULARY.enrollmentStatus da célula abaixo %>
             <th scope="col">Situação</th>
           </tr>
         </thead>

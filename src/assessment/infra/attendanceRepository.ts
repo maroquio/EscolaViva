@@ -1,104 +1,100 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
 import { uuidIdGenerator } from '../../shared/ports';
-import type {
-  ApuracaoDeFrequencia,
-  PresencaDoDia,
-  ResumoFrequencia,
-} from '../domain/attendance';
+import type { AttendanceEntry, AttendanceTally, DayPresence } from '../domain/attendance';
 
-export type LinhaParaGravar = {
-  matriculaId: string;
-  presente: boolean;
-  justificativa: string | null;
+export type RowToSave = {
+  enrollmentId: string;
+  present: boolean;
+  excuse: string | null;
 };
 
-export async function porMatriculasEData(
+export async function byEnrollmentsAndDate(
   sql: Connection,
-  redeId: string,
-  matriculaIds: string[],
-  data: string,
-): Promise<Map<string, PresencaDoDia>> {
-  const linhas: { enrollment_id: string; present: boolean; excuse: string | null }[] = await sql`
+  networkId: string,
+  enrollmentIds: string[],
+  date: string,
+): Promise<Map<string, DayPresence>> {
+  const rows: { enrollment_id: string; present: boolean; excuse: string | null }[] = await sql`
       SELECT enrollment_id, present, excuse
         FROM attendance
-       WHERE network_id = ${redeId}
-         AND enrollment_id = ANY(${sql.array(matriculaIds, 'TEXT')}::uuid[])
-         AND attendance_date = ${data}`;
+       WHERE network_id = ${networkId}
+         AND enrollment_id = ANY(${sql.array(enrollmentIds, 'TEXT')}::uuid[])
+         AND attendance_date = ${date}`;
   return new Map(
-    linhas.map((linha): [string, PresencaDoDia] => [
-      linha.enrollment_id,
-      { presente: linha.present, justificativa: linha.excuse },
+    rows.map((row): [string, DayPresence] => [
+      row.enrollment_id,
+      { present: row.present, excuse: row.excuse },
     ]),
   );
 }
 
-export async function porMatricula(
+export async function byEnrollment(
   sql: Connection,
-  redeId: string,
-  matriculaId: string,
-  faixa?: Range,
-): Promise<ResumoFrequencia[]> {
-  const { limit, offset } = rangeParams(faixa);
-  const linhas: { attendance_date: string; present: boolean; excuse: string | null }[] = await sql`
+  networkId: string,
+  enrollmentId: string,
+  range?: Range,
+): Promise<AttendanceEntry[]> {
+  const { limit, offset } = rangeParams(range);
+  const rows: { attendance_date: string; present: boolean; excuse: string | null }[] = await sql`
     SELECT to_char(attendance_date, 'YYYY-MM-DD') AS attendance_date, present, excuse
       FROM attendance
-     WHERE network_id = ${redeId}
-       AND enrollment_id = ${matriculaId}
+     WHERE network_id = ${networkId}
+       AND enrollment_id = ${enrollmentId}
      ORDER BY attendance_date DESC
      LIMIT ${limit}::int OFFSET ${offset}::int`;
-  return linhas.map((linha) => ({
-    data: linha.attendance_date,
-    presente: linha.present,
-    justificativa: linha.excuse,
+  return rows.map((row) => ({
+    date: row.attendance_date,
+    present: row.present,
+    excuse: row.excuse,
   }));
 }
 
-export async function contarPorMatricula(
+export async function countByEnrollment(
   sql: Connection,
-  redeId: string,
-  matriculaId: string,
+  networkId: string,
+  enrollmentId: string,
 ): Promise<number> {
-  const linhas: { total: number }[] = await sql`
+  const rows: { total: number }[] = await sql`
     SELECT count(*)::int AS total
       FROM attendance
-     WHERE network_id = ${redeId} AND enrollment_id = ${matriculaId}`;
-  return linhas[0]?.total ?? 0;
+     WHERE network_id = ${networkId} AND enrollment_id = ${enrollmentId}`;
+  return rows[0]?.total ?? 0;
 }
 
-export async function apuracaoDaMatricula(
+export async function tallyByEnrollment(
   sql: Connection,
-  redeId: string,
-  matriculaId: string,
-): Promise<ApuracaoDeFrequencia> {
-  const linhas: { total_days: number; present_days: number }[] = await sql`
+  networkId: string,
+  enrollmentId: string,
+): Promise<AttendanceTally> {
+  const rows: { total_days: number; present_days: number }[] = await sql`
     SELECT count(*)::int AS total_days,
            (count(*) FILTER (WHERE present))::int AS present_days
       FROM attendance
-     WHERE network_id = ${redeId}
-       AND enrollment_id = ${matriculaId}`;
-  const apurado = linhas[0];
-  if (apurado === undefined) return { totalDias: 0, presencas: 0 };
-  return { totalDias: apurado.total_days, presencas: apurado.present_days };
+     WHERE network_id = ${networkId}
+       AND enrollment_id = ${enrollmentId}`;
+  const tallied = rows[0];
+  if (tallied === undefined) return { totalDays: 0, presentDays: 0 };
+  return { totalDays: tallied.total_days, presentDays: tallied.present_days };
 }
 
-export async function gravarEmLote(
+export async function saveBatch(
   sql: Connection,
-  chamada: { redeId: string; data: string; linhas: LinhaParaGravar[] },
+  rollCall: { networkId: string; date: string; rows: RowToSave[] },
 ): Promise<number> {
-  const registros = chamada.linhas.map((linha) => ({
+  const records = rollCall.rows.map((row) => ({
     id: uuidIdGenerator.next(),
-    network_id: chamada.redeId,
-    enrollment_id: linha.matriculaId,
-    attendance_date: chamada.data,
-    present: linha.presente,
-    excuse: linha.justificativa,
+    network_id: rollCall.networkId,
+    enrollment_id: row.enrollmentId,
+    attendance_date: rollCall.date,
+    present: row.present,
+    excuse: row.excuse,
   }));
-  const gravadas: { id: string }[] = await sql`
-    INSERT INTO attendance ${sql(registros)}
+  const saved: { id: string }[] = await sql`
+    INSERT INTO attendance ${sql(records)}
     ON CONFLICT (enrollment_id, attendance_date)
     DO UPDATE SET present = EXCLUDED.present,
                   excuse = EXCLUDED.excuse
     RETURNING id`;
-  return gravadas.length;
+  return saved.length;
 }

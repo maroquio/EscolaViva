@@ -7,7 +7,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { academico } from '../../src/academics';
+import { academics } from '../../src/academics';
 import { identity } from '../../src/identity';
 import { limparBanco } from '../apoio/banco';
 import {
@@ -34,9 +34,9 @@ describe('paginaDeResponsaveis', () => {
       await criarResponsavel({ networkId: rede.id, name: nomeNumerado(i) });
     }
 
-    const pagina = await academico.paginaDeResponsaveis(rede.id, 1, 3);
+    const pagina = await academics.guardiansPage(rede.id, 1, 3);
 
-    expect(pagina.items.map((r) => r.nome)).toEqual([
+    expect(pagina.items.map((r) => r.name)).toEqual([
       nomeNumerado(1), nomeNumerado(2), nomeNumerado(3),
     ]);
     expect(pagina).toMatchObject({ total: 7, page: 1, size: 3, pages: 3 });
@@ -49,12 +49,12 @@ describe('paginaDeResponsaveis', () => {
     }
 
     const [primeira, segunda, terceira] = await Promise.all([
-      academico.paginaDeResponsaveis(rede.id, 1, 3),
-      academico.paginaDeResponsaveis(rede.id, 2, 3),
-      academico.paginaDeResponsaveis(rede.id, 3, 3),
+      academics.guardiansPage(rede.id, 1, 3),
+      academics.guardiansPage(rede.id, 2, 3),
+      academics.guardiansPage(rede.id, 3, 3),
     ]);
 
-    const percorridas = [...primeira.items, ...segunda.items, ...terceira.items].map((r) => r.nome);
+    const percorridas = [...primeira.items, ...segunda.items, ...terceira.items].map((r) => r.name);
     expect(percorridas).toEqual(Array.from({ length: 7 }, (_, i) => nomeNumerado(i + 1)));
   });
 
@@ -64,10 +64,10 @@ describe('paginaDeResponsaveis', () => {
       await criarResponsavel({ networkId: rede.id, name: nomeNumerado(i) });
     }
 
-    const pagina = await academico.paginaDeResponsaveis(rede.id, 99, 2);
+    const pagina = await academics.guardiansPage(rede.id, 99, 2);
 
     expect(pagina.page).toBe(3);
-    expect(pagina.items.map((r) => r.nome)).toEqual([nomeNumerado(5)]);
+    expect(pagina.items.map((r) => r.name)).toEqual([nomeNumerado(5)]);
   });
 
   test('o total nunca conta responsável de outra rede', async () => {
@@ -76,7 +76,7 @@ describe('paginaDeResponsaveis', () => {
     await criarResponsavel({ networkId: nossa.id, name: nomeNumerado(1) });
     const deFora = await criarResponsavel({ networkId: alheia.id, name: nomeNumerado(2) });
 
-    const pagina = await academico.paginaDeResponsaveis(nossa.id, 1, 50);
+    const pagina = await academics.guardiansPage(nossa.id, 1, 50);
 
     expect(pagina.total).toBe(1);
     expect(pagina.items.map((r) => r.id)).not.toContain(deFora.id);
@@ -91,11 +91,11 @@ describe('paginaDeAlunos', () => {
     }
     await criarAluno({ networkId: rede.id, name: 'Outro Sobrenome' });
 
-    const pagina = await academico.paginaDeAlunos(rede.id, 'Silva', 2, 4);
+    const pagina = await academics.studentsPage(rede.id, 'Silva', 2, 4);
 
     expect(pagina.total).toBe(6);
     expect(pagina.items).toHaveLength(2);
-    expect(pagina.items.every((aluno) => aluno.nome.startsWith('Silva'))).toBe(true);
+    expect(pagina.items.every((aluno) => aluno.name.startsWith('Silva'))).toBe(true);
   });
 
   test('a busca paginada não alcança aluno de outra rede', async () => {
@@ -104,10 +104,10 @@ describe('paginaDeAlunos', () => {
     await criarAluno({ networkId: nossa.id, name: 'Ana Silva' });
     await criarAluno({ networkId: alheia.id, name: 'Ana Silva' });
 
-    const pagina = await academico.paginaDeAlunos(nossa.id, 'Ana Silva', 1, 20);
+    const pagina = await academics.studentsPage(nossa.id, 'Ana Silva', 1, 20);
 
     expect(pagina.total).toBe(1);
-    expect(pagina.items[0]?.redeId).toBe(nossa.id);
+    expect(pagina.items[0]?.networkId).toBe(nossa.id);
   });
 });
 
@@ -126,16 +126,16 @@ describe('paginaDeTurmas', () => {
       networkId: rede.id, schoolId: fora.id, academicYearId: anoLetivo.id, name: 'Da outra unidade',
     });
 
-    const pagina = await academico.paginaDeTurmas(rede.id, { unidadeIds: [alcancada.id] }, 1, 20);
+    const pagina = await academics.classGroupsPage(rede.id, { schoolIds: [alcancada.id] }, 1, 20);
 
-    expect(pagina.items.map((turma) => turma.nome)).toEqual(['Da minha unidade']);
+    expect(pagina.items.map((turma) => turma.name)).toEqual(['Da minha unidade']);
     expect(pagina.total).toBe(1);
   });
 
   test('lista de unidades vazia significa nenhuma turma, e nunca todas', async () => {
     const cenario = await cenarioCompleto();
 
-    const pagina = await academico.paginaDeTurmas(cenario.rede.id, { unidadeIds: [] }, 1, 20);
+    const pagina = await academics.classGroupsPage(cenario.rede.id, { schoolIds: [] }, 1, 20);
 
     expect(pagina.items).toEqual([]);
     expect(pagina.total).toBe(0);
@@ -149,14 +149,14 @@ describe('paginaDeTurmas', () => {
       academicYearId: outroAno.id, name: 'Turma do ano que vem',
     });
 
-    const pagina = await academico.paginaDeTurmas(
+    const pagina = await academics.classGroupsPage(
       cenario.rede.id,
-      { unidadeIds: [cenario.unidades[0].id], anoLetivoId: outroAno.id },
+      { schoolIds: [cenario.unidades[0].id], academicYearId: outroAno.id },
       1,
       20,
     );
 
-    expect(pagina.items.map((turma) => turma.nome)).toEqual(['Turma do ano que vem']);
+    expect(pagina.items.map((turma) => turma.name)).toEqual(['Turma do ano que vem']);
   });
 });
 
@@ -165,19 +165,19 @@ describe('paginaDeMatriculasDoAluno', () => {
     const cenario = await cenarioCompleto();
     const [aluno] = cenario.alunos;
 
-    const pagina = await academico.paginaDeMatriculasDoAluno(
+    const pagina = await academics.studentEnrollmentsPage(
       cenario.rede.id, aluno.id, [cenario.unidades[0].id], 1, 20,
     );
 
     expect(pagina.total).toBe(1);
-    expect(pagina.items[0]?.alunoId).toBe(aluno.id);
+    expect(pagina.items[0]?.studentId).toBe(aluno.id);
   });
 
   test('unidade fora do alcance não devolve matrícula nenhuma', async () => {
     const cenario = await cenarioCompleto();
     const [aluno] = cenario.alunos;
 
-    const pagina = await academico.paginaDeMatriculasDoAluno(
+    const pagina = await academics.studentEnrollmentsPage(
       cenario.rede.id, aluno.id, [cenario.unidades[1].id], 1, 20,
     );
 
@@ -191,23 +191,23 @@ describe('contagens que substituíram as listas', () => {
     const cenario = await cenarioCompleto();
     const recemCadastrado = await criarAluno({ networkId: cenario.rede.id });
 
-    expect(await academico.alunoTemMatricula(cenario.rede.id, cenario.alunos[0].id)).toBe(true);
-    expect(await academico.alunoTemMatricula(cenario.rede.id, recemCadastrado.id)).toBe(false);
+    expect(await academics.studentHasEnrollment(cenario.rede.id, cenario.alunos[0].id)).toBe(true);
+    expect(await academics.studentHasEnrollment(cenario.rede.id, recemCadastrado.id)).toBe(false);
   });
 
   test('contagensPorUnidade devolve turmas, matriculados e responsáveis de cada unidade', async () => {
     const cenario = await cenarioCompleto();
 
-    const porUnidade = await academico.contagensPorUnidade(
+    const porUnidade = await academics.countsBySchool(
       cenario.rede.id, cenario.unidades.map((unidade) => unidade.id),
     );
 
     // O cenário monta as duas turmas e as cinco matrículas na primeira unidade.
     expect(porUnidade.get(cenario.unidades[0].id)).toEqual({
-      turmas: 2, matriculas: 5, responsaveis: 5,
+      classGroups: 2, enrollments: 5, guardians: 5,
     });
     expect(porUnidade.get(cenario.unidades[1].id)).toEqual({
-      turmas: 0, matriculas: 0, responsaveis: 0,
+      classGroups: 0, enrollments: 0, guardians: 0,
     });
   });
 
@@ -215,14 +215,14 @@ describe('contagens que substituíram as listas', () => {
     const cenario = await cenarioCompleto();
     await criarDisciplina({ networkId: cenario.rede.id });
 
-    const totais = await academico.totaisDoAlcance(
+    const totais = await academics.scopeTotals(
       cenario.rede.id, cenario.unidades.map((unidade) => unidade.id),
     );
 
-    expect(totais.turmas).toBe(2);
-    expect(totais.matriculas).toBe(5);
-    expect(totais.responsaveis).toBe(5);
-    expect(totais.disciplinas).toBe(cenario.disciplinas.length + 1);
+    expect(totais.classGroups).toBe(2);
+    expect(totais.enrollments).toBe(5);
+    expect(totais.guardians).toBe(5);
+    expect(totais.subjects).toBe(cenario.disciplinas.length + 1);
   });
 });
 

@@ -10,7 +10,7 @@
  *     matrícula aparece na turma.
  * (b) O professor lança as notas dos quatro bimestres, registra a chamada, fecha os quatro
  *     bimestres — e só então o boletim do responsável deixa de dizer "em curso" e dá a situação
- *     final. É o caminho que amarra `academico`, `avaliacao` e a regra pedagógica.
+ *     final. É o caminho que amarra `academics`, `assessment` e a regra pedagógica.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';

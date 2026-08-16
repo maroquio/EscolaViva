@@ -1,11 +1,12 @@
 import { Hono, type Context } from 'hono';
-import { VOCABULARIO_DO_ACADEMICO, academico } from '../../academics';
+import { ACADEMIC_VOCABULARY, academics } from '../../academics';
 import {
-  BIMESTRES,
-  LIMITES_DA_AVALIACAO,
-  MEIO_DIA_UTC,
-  VOCABULARIO_DA_AVALIACAO,
-  avaliacao,
+  ASSESSMENT_LIMITS,
+  ASSESSMENT_VOCABULARY,
+  NOON_UTC,
+  TERMS,
+  assessment,
+  type TermClosingState,
 } from '../../assessment';
 import { ROLE } from '../../identity';
 import { CONTEXT_VARIABLES, FORMATS, ISO_DATE_LENGTH, LOCALE, TIME } from '../../shared/constants';
@@ -39,7 +40,7 @@ import type { Params } from './mapa';
 
 type ContextoWeb = Context<{ Variables: Variables }>;
 
-type Alocacao = Awaited<ReturnType<typeof academico.turmaDisciplinasDoProfessor>>[number];
+type Alocacao = Awaited<ReturnType<typeof academics.teacherClassGroupSubjects>>[number];
 
 type TurmaDoProfessor = {
   turmaId: string;
@@ -76,21 +77,21 @@ const SEPARADORES = {
 };
 const PREFIXOS = { prefixos: PREFIXOS_DE_ID };
 
-const NOME_DO_TURNO: Record<string, string> = VOCABULARIO_DO_ACADEMICO.turno;
+const NOME_DO_TURNO: Record<string, string> = ACADEMIC_VOCABULARY.shift;
 
 const turnoNaFrase = (turno: string): string =>
   (NOME_DO_TURNO[turno] ?? turno).toLocaleLowerCase(LOCALE);
 
 const NOTA_INVALIDA = NOTA_FORA_DA_FAIXA(
-  LIMITES_DA_AVALIACAO.nota.minimo,
-  LIMITES_DA_AVALIACAO.nota.maximo,
+  ASSESSMENT_LIMITS.grade.minimum,
+  ASSESSMENT_LIMITS.grade.maximum,
 );
 
 const RESUMO_DE_NOTAS_INVALIDAS: ApplicationError = {
   ...ERROS_DE_FORMULARIO.notaInvalida,
   mensagem: RESUMO_DE_NOTA_FORA_DA_FAIXA(
-    LIMITES_DA_AVALIACAO.nota.minimo,
-    LIMITES_DA_AVALIACAO.nota.maximo,
+    ASSESSMENT_LIMITS.grade.minimum,
+    ASSESSMENT_LIMITS.grade.maximum,
   ),
 };
 
@@ -108,7 +109,7 @@ const ouNulo = (texto: string): string | null => (texto === '' ? null : texto);
 
 const bimestreOuNulo = (bruto: string | undefined): number | null => {
   const numero = Number(bruto);
-  return BIMESTRES.includes(numero) ? numero : null;
+  return TERMS.includes(numero) ? numero : null;
 };
 
 const SEPARADOR_DECIMAL_DO_NUMBER = '.';
@@ -123,25 +124,32 @@ const hoje = (): string => {
 
 const dataOuNula = (bruto: string | undefined): string | null => {
   if (bruto === undefined || !FORMATS.isoDate.test(bruto)) return null;
-  const convertida = new Date(`${bruto}${MEIO_DIA_UTC}`);
+  const convertida = new Date(`${bruto}${NOON_UTC}`);
   if (Number.isNaN(convertida.getTime())) return null;
   return convertida.toISOString().slice(0, ISO_DATE_LENGTH) === bruto ? bruto : null;
 };
 
 const deslocarDia = (data: string, dias: number): string => {
-  const base = new Date(`${data}${MEIO_DIA_UTC}`).getTime();
+  const base = new Date(`${data}${NOON_UTC}`).getTime();
   return new Date(base + dias * TIME.msPerDay).toISOString().slice(0, ISO_DATE_LENGTH);
 };
 
 const alocacoesDoProfessor = (c: ContextoWeb): Promise<Alocacao[]> =>
-  academico.turmaDisciplinasDoProfessor(currentNetwork(c), currentUser(c).id);
+  academics.teacherClassGroupSubjects(currentNetwork(c), currentUser(c).id);
 
 function agruparPorTurma(alocacoes: readonly Alocacao[]): TurmaDoProfessor[] {
   const turmas = new Map<string, TurmaDoProfessor>();
-  for (const { id, disciplinaNome, turmaId, turmaNome, serie, turno } of alocacoes) {
+  for (const alocacao of alocacoes) {
+    const turmaId = alocacao.classGroupId;
     const anteriores = turmas.get(turmaId)?.disciplinas ?? [];
-    const disciplinas = [...anteriores, { id, disciplinaNome }];
-    turmas.set(turmaId, { turmaId, turmaNome, serie, turno: turnoNaFrase(turno), disciplinas });
+    const disciplinas = [...anteriores, { id: alocacao.id, disciplinaNome: alocacao.subjectName }];
+    turmas.set(turmaId, {
+      turmaId,
+      turmaNome: alocacao.classGroupName,
+      serie: alocacao.gradeLevel,
+      turno: turnoNaFrase(alocacao.shift),
+      disciplinas,
+    });
   }
   return [...turmas.values()];
 }
@@ -175,8 +183,8 @@ const comoNota = (digitado: string): number | null | undefined => {
   );
   if (
     !Number.isFinite(numero) ||
-    numero < LIMITES_DA_AVALIACAO.nota.minimo ||
-    numero > LIMITES_DA_AVALIACAO.nota.maximo
+    numero < ASSESSMENT_LIMITS.grade.minimum ||
+    numero > ASSESSMENT_LIMITS.grade.maximum
   ) {
     return undefined;
   }
@@ -191,7 +199,7 @@ function lerNotas(corpo: FormBody, matriculas: readonly { id: string }[]) {
     valores.set(matricula.id, digitado);
     const valor = comoNota(digitado);
     if (valor === undefined) porMatricula.set(matricula.id, NOTA_INVALIDA);
-    return { matriculaId: matricula.id, valor: valor ?? null };
+    return { enrollmentId: matricula.id, value: valor ?? null };
   });
   return { valores, porMatricula, notas };
 }
@@ -204,30 +212,35 @@ async function telaDeNotas(
 ): Promise<DadosDeTemplate> {
   const redeId = currentNetwork(c);
   const [matriculas, notas, estados] = await Promise.all([
-    academico.matriculasAtivasDaTurma(redeId, alocacao.turmaId),
-    avaliacao.notasDaTurmaDisciplina(redeId, alocacao.id, bimestre),
-    avaliacao.estadoDeFechamento(redeId, alocacao.turmaId),
+    academics.activeEnrollmentsOfClassGroup(redeId, alocacao.classGroupId),
+    assessment.classGroupSubjectGrades(redeId, alocacao.id, bimestre),
+    assessment.closingState(redeId, alocacao.classGroupId),
   ]);
 
   return {
     ...PARCIAIS,
     ...SEPARADORES,
     ...PREFIXOS,
-    titulo: TITULOS.professor.notas(alocacao.disciplinaNome, alocacao.turmaNome),
-    alocacao: { ...alocacao, turno: turnoNaFrase(alocacao.turno) },
+    titulo: TITULOS.professor.notas(alocacao.subjectName, alocacao.classGroupName),
+    alocacao: {
+      disciplinaNome: alocacao.subjectName,
+      turmaNome: alocacao.classGroupName,
+      serie: alocacao.gradeLevel,
+      turno: turnoNaFrase(alocacao.shift),
+    },
     bimestre,
-    bimestres: BIMESTRES,
-    fechado: estados.some((estado) => estado.bimestre === bimestre && estado.fechado),
+    bimestres: TERMS,
+    fechado: estados.some((estado) => estado.term === bimestre && estado.closed),
     acaoDoFormulario: ROTAS.professor.notas({ turmaDisciplinaId: alocacao.id }),
-    hrefChamada: ROTAS.professor.chamada({ turmaId: alocacao.turmaId }),
-    hrefFechamento: ROTAS.professor.fechamento({ turmaId: alocacao.turmaId }),
+    hrefChamada: ROTAS.professor.chamada({ turmaId: alocacao.classGroupId }),
+    hrefFechamento: ROTAS.professor.fechamento({ turmaId: alocacao.classGroupId }),
     campoBimestre: CAMPOS.bimestre,
     prefixoNota: CAMPOS.diario.nota,
-    notaMinima: LIMITES_DA_AVALIACAO.nota.minimo,
-    notaMaxima: LIMITES_DA_AVALIACAO.nota.maximo,
+    notaMinima: ASSESSMENT_LIMITS.grade.minimum,
+    notaMaxima: ASSESSMENT_LIMITS.grade.maximum,
     linhas: matriculas.map((matricula) => ({
       matriculaId: matricula.id,
-      alunoNome: matricula.alunoNome,
+      alunoNome: matricula.studentName,
       valor: recusado?.valores.get(matricula.id) ?? String(notas.get(matricula.id) ?? ''),
       erro: recusado?.porMatricula.get(matricula.id) ?? null,
     })),
@@ -248,8 +261,8 @@ async function telaDeChamada(
 ): Promise<DadosDeTemplate> {
   const redeId = currentNetwork(c);
   const [matriculas, registradas] = await Promise.all([
-    academico.matriculasAtivasDaTurma(redeId, turma.turmaId),
-    avaliacao.chamadaDoDia(redeId, turma.turmaId, data),
+    academics.activeEnrollmentsOfClassGroup(redeId, turma.turmaId),
+    assessment.rollCallForDate(redeId, turma.turmaId, data),
   ]);
 
   return {
@@ -264,24 +277,35 @@ async function telaDeChamada(
     campoData: CAMPOS.data,
     prefixoPresenca: CAMPOS.diario.presenca,
     prefixoJustificativa: CAMPOS.diario.justificativa,
-    limiteDaJustificativa: LIMITES_DA_AVALIACAO.caracteresDaJustificativa,
-    linhas: matriculas.map(({ id, alunoNome }) => {
+    limiteDaJustificativa: ASSESSMENT_LIMITS.excuseCharacters,
+    linhas: matriculas.map(({ id, studentName }) => {
       const informada = recusada?.informadas.get(id);
       const registrada = registradas.get(id);
       return {
         matriculaId: id,
-        alunoNome,
-        presente: informada?.presente ?? registrada?.presente ?? true,
-        justificativa: informada?.justificativa ?? registrada?.justificativa ?? '',
+        alunoNome: studentName,
+        presente: informada?.presente ?? registrada?.present ?? true,
+        justificativa: informada?.justificativa ?? registrada?.excuse ?? '',
       };
     }),
     erros: recusada?.problemas ?? [],
   };
 }
 
+const ROTULO_DO_FECHAMENTO = {
+  fechado: ASSESSMENT_VOCABULARY.closing.closed,
+  aberto: ASSESSMENT_VOCABULARY.closing.open,
+};
+
+const estadoParaTela = (estado: TermClosingState) => ({
+  bimestre: estado.term,
+  fechado: estado.closed,
+  fechadoEm: estado.closedAt,
+});
+
 const telaDeFechamento = (
   turma: TurmaDoProfessor,
-  estados: readonly { bimestre: number; fechado: boolean; fechadoEm: string | null }[],
+  estados: readonly TermClosingState[],
   problemas: readonly ApplicationError[],
   bimestreRecusado: number | null,
 ): DadosDeTemplate => ({
@@ -289,10 +313,10 @@ const telaDeFechamento = (
   ...PREFIXOS,
   titulo: TITULOS.professor.fechamento(turma.turmaNome),
   turma: comLinks(turma),
-  estados,
+  estados: estados.map(estadoParaTela),
   acaoDoFormulario: ROTAS.professor.fechamento({ turmaId: turma.turmaId }),
   campoBimestre: CAMPOS.bimestre,
-  rotuloDoFechamento: VOCABULARIO_DA_AVALIACAO.fechamento,
+  rotuloDoFechamento: ROTULO_DO_FECHAMENTO,
   bimestreRecusado,
   erros: problemas,
 });
@@ -330,7 +354,7 @@ rotasProfessor.post(ROTAS.professor.notas.padrao, async (c) => {
   if (bimestre === null) throw new BusinessRuleViolation(DIAGNOSTICOS.bimestreNoLancamento);
 
   const redeId = currentNetwork(c);
-  const matriculas = await academico.matriculasAtivasDaTurma(redeId, alocacao.turmaId);
+  const matriculas = await academics.activeEnrollmentsOfClassGroup(redeId, alocacao.classGroupId);
   const { valores, porMatricula, notas } = lerNotas(corpo, matriculas);
   const recusar = async (problemas: readonly ApplicationError[]): Promise<Response> =>
     renderizar(
@@ -341,8 +365,12 @@ rotasProfessor.post(ROTAS.professor.notas.padrao, async (c) => {
 
   if (porMatricula.size > 0) return await recusar([RESUMO_DE_NOTAS_INVALIDAS]);
 
-  const resultado = await avaliacao.lancarNotas({
-    redeId, turmaDisciplinaId: alocacao.id, bimestre, lancadaPor: currentUser(c).id, notas,
+  const resultado = await assessment.postGrades({
+    networkId: redeId,
+    classGroupSubjectId: alocacao.id,
+    term: bimestre,
+    postedBy: currentUser(c).id,
+    grades: notas,
   });
   if (!resultado.ok) return await recusar(resultado.erros);
 
@@ -369,17 +397,20 @@ rotasProfessor.post(ROTAS.professor.chamada.padrao, async (c) => {
   if (data === null) throw new BusinessRuleViolation(DIAGNOSTICOS.dataDeChamadaMalformada);
 
   const redeId = currentNetwork(c);
-  const matriculas = await academico.matriculasAtivasDaTurma(redeId, turma.turmaId);
+  const matriculas = await academics.activeEnrollmentsOfClassGroup(redeId, turma.turmaId);
   const informadas = new Map<string, { presente: boolean; justificativa: string }>();
   const linhas = matriculas.map((matricula) => {
     const presente = marcado(corpo, `${CAMPOS.diario.presenca}${matricula.id}`);
     const justificativa = campo(corpo, `${CAMPOS.diario.justificativa}${matricula.id}`);
     informadas.set(matricula.id, { presente, justificativa });
-    return { matriculaId: matricula.id, presente, justificativa: ouNulo(justificativa) };
+    return { enrollmentId: matricula.id, present: presente, excuse: ouNulo(justificativa) };
   });
 
-  const resultado = await avaliacao.registrarChamada({
-    redeId, turmaId: turma.turmaId, data, linhas,
+  const resultado = await assessment.recordRollCall({
+    networkId: redeId,
+    classGroupId: turma.turmaId,
+    date: data,
+    rows: linhas,
   });
   if (!resultado.ok) {
     const tela = await telaDeChamada(c, turma, data, { informadas, problemas: resultado.erros });
@@ -398,7 +429,7 @@ rotasProfessor.post(ROTAS.professor.chamada.padrao, async (c) => {
 
 rotasProfessor.get(ROTAS.professor.fechamento.padrao, async (c) => {
   const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param(PARAMETROS_DE_ROTA.turmaId));
-  const estados = await avaliacao.estadoDeFechamento(currentNetwork(c), turma.turmaId);
+  const estados = await assessment.closingState(currentNetwork(c), turma.turmaId);
   return renderizar(
     c,
     TEMPLATES.professor.fechamento,
@@ -412,11 +443,14 @@ rotasProfessor.post(ROTAS.professor.fechamento.padrao, async (c) => {
   if (bimestre === null) throw new BusinessRuleViolation(DIAGNOSTICOS.bimestreNoFechamento);
 
   const redeId = currentNetwork(c);
-  const resultado = await avaliacao.fecharBimestre({
-    redeId, turmaId: turma.turmaId, bimestre, fechadoPor: currentUser(c).id,
+  const resultado = await assessment.closeTerm({
+    networkId: redeId,
+    classGroupId: turma.turmaId,
+    term: bimestre,
+    closedBy: currentUser(c).id,
   });
   if (!resultado.ok) {
-    const estados = await avaliacao.estadoDeFechamento(redeId, turma.turmaId);
+    const estados = await assessment.closingState(redeId, turma.turmaId);
     return renderizar(
       c,
       TEMPLATES.professor.fechamento,

@@ -1,4 +1,4 @@
-import { MATRICULA_ATIVA, TURNOS } from '../src/academics';
+import { ACTIVE_ENROLLMENT_STATUS, SHIFTS } from '../src/academics';
 import { ACTIVE_NETWORK_STATUS, ROLE, type Role } from '../src/identity';
 import { config } from '../src/shared/config';
 import { ISO_DATE_LENGTH, PRODUCTION_ENV, TIME, WEEK_DAYS } from '../src/shared/constants';
@@ -25,7 +25,7 @@ type Turma = {
   id: string;
   unidadeIndice: number;
   nome: string;
-  turno: (typeof TURNOS)[number];
+  turno: (typeof SHIFTS)[number];
   idade: number;
 };
 
@@ -325,7 +325,7 @@ async function criarPessoas(sql: Connection, e: Estrutura, hash: string): Promis
       linhasDeMatricula.push({
         id: matriculaId, network_id: e.redeId, student_id: alunoId, class_group_id: turma.id,
         academic_year_id: e.anoLetivoId, enrollment_date: CALENDARIO.diaDaMatricula(e.ano),
-        status: MATRICULA_ATIVA,
+        status: ACTIVE_ENROLLMENT_STATUS,
       });
     }
   });

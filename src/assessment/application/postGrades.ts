@@ -1,130 +1,127 @@
 import { z } from 'zod';
-import { academico } from '../../academics';
+import { academics } from '../../academics';
 import { unitOfWork, type UnitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, MENSAGENS } from '../constants';
-import { bimestreValido, valorDeNotaValido } from '../domain/grade';
-import * as fechamentoRepositorio from '../infra/closingRepository';
-import * as notaRepositorio from '../infra/gradeRepository';
+import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { isValidGradeValue, isValidTerm } from '../domain/grade';
+import * as closingRepository from '../infra/closingRepository';
+import * as gradeRepository from '../infra/gradeRepository';
 
-export type LancamentoDeNotas = {
-  redeId: string;
-  turmaDisciplinaId: string;
-  bimestre: number;
-  lancadaPor: string;
-  notas: { matriculaId: string; valor: number | null }[];
+export type GradePosting = {
+  networkId: string;
+  classGroupSubjectId: string;
+  term: number;
+  postedBy: string;
+  grades: { enrollmentId: string; value: number | null }[];
 };
 
-type NotaEnviada = { matriculaId: string; valor: number | null };
+type SubmittedGrade = { enrollmentId: string; value: number | null };
 
-const esquema = z.object({
-  redeId: z.string().uuid(),
-  turmaDisciplinaId: z.string().uuid(),
-  bimestre: z.number().refine(bimestreValido, MENSAGENS.bimestreInvalido),
-  lancadaPor: z.string().uuid(),
-  notas: z
+const schema = z.object({
+  networkId: z.string().uuid(),
+  classGroupSubjectId: z.string().uuid(),
+  term: z.number().refine(isValidTerm, MESSAGES.invalidTerm),
+  postedBy: z.string().uuid(),
+  grades: z
     .array(
       z.object({
-        matriculaId: z.string().uuid(),
-        valor: z
+        enrollmentId: z.string().uuid(),
+        value: z
           .number()
           .nullable()
-          .refine(
-            (valor) => valor === null || valorDeNotaValido(valor),
-            MENSAGENS.notaForaDaEscala,
-          ),
+          .refine((value) => value === null || isValidGradeValue(value), MESSAGES.gradeOutOfScale),
       }),
     )
-    .min(1, MENSAGENS.loteDeNotasVazio),
+    .min(1, MESSAGES.emptyGradeBatch),
 });
 
-export async function lancarNotas(entrada: LancamentoDeNotas): Promise<Result<number>> {
-  const validada = esquema.safeParse(entrada);
-  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
-  const { redeId, turmaDisciplinaId, bimestre, lancadaPor, notas } = validada.data;
+export async function postGrades(input: GradePosting): Promise<Result<number>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.grades));
+  }
+  const { networkId, classGroupSubjectId, term, postedBy, grades } = parsed.data;
 
-  const turmaDisciplina = await academico.turmaDisciplinaPorId(redeId, turmaDisciplinaId);
-  if (turmaDisciplina === null) {
+  const classGroupSubject = await academics.classGroupSubjectById(networkId, classGroupSubjectId);
+  if (classGroupSubject === null) {
     return fieldFailure(
-      CAMPOS.turmaDisciplinaId,
-      CODIGOS.turmaDisciplinaNaoEncontrada,
-      MENSAGENS.turmaDisciplinaNaoEncontrada,
+      FIELDS.classGroupSubjectId,
+      CODES.classGroupSubjectNotFound,
+      MESSAGES.classGroupSubjectNotFound,
     );
   }
 
-  const recusa = await conferirMatriculas(redeId, turmaDisciplina.turmaId, notas);
-  if (recusa !== null) return recusa;
+  const rejection = await checkEnrollments(networkId, classGroupSubject.classGroupId, grades);
+  if (rejection !== null) return rejection;
 
   return await unitOfWork<Result<number>>(async (uow) => {
-    const fechado = await fechamentoRepositorio.estaFechado(
+    const closed = await closingRepository.isClosed(
       uow.sql,
-      redeId,
-      turmaDisciplina.turmaId,
-      bimestre,
+      networkId,
+      classGroupSubject.classGroupId,
+      term,
     );
-    if (fechado) {
-      return fieldFailure(
-        CAMPOS.bimestre,
-        CODIGOS.bimestreFechado,
-        MENSAGENS.bimestreFechadoParaLancamento,
-      );
+    if (closed) {
+      return fieldFailure(FIELDS.term, CODES.termClosed, MESSAGES.termClosedForPosting);
     }
     return success(
-      await gravarLote(uow, { redeId, turmaDisciplinaId, bimestre, lancadaPor, notas }),
+      await saveBatch(uow, { networkId, classGroupSubjectId, term, postedBy, grades }),
     );
   });
 }
 
-async function conferirMatriculas(
-  redeId: string,
-  turmaId: string,
-  notas: readonly { matriculaId: string }[],
+async function checkEnrollments(
+  networkId: string,
+  classGroupId: string,
+  grades: readonly { enrollmentId: string }[],
 ): Promise<Result<number> | null> {
-  const matriculas = await academico.matriculasAtivasDaTurma(redeId, turmaId);
-  const daTurma = new Set(matriculas.map((matricula) => matricula.id));
-  const enviadas = notas.map((nota) => nota.matriculaId);
-  if (enviadas.some((matriculaId) => !daTurma.has(matriculaId))) {
+  const enrollments = await academics.activeEnrollmentsOfClassGroup(networkId, classGroupId);
+  const inClassGroup = new Set(enrollments.map((enrollment) => enrollment.id));
+  const submitted = grades.map((grade) => grade.enrollmentId);
+  if (submitted.some((enrollmentId) => !inClassGroup.has(enrollmentId))) {
     return fieldFailure(
-      CAMPOS.notas,
-      CODIGOS.notas.matriculaForaDaTurma,
-      MENSAGENS.notas.matriculaForaDaTurma,
+      FIELDS.grades,
+      CODES.grades.enrollmentOutsideClassGroup,
+      MESSAGES.grades.enrollmentOutsideClassGroup,
     );
   }
-  if (new Set(enviadas).size !== enviadas.length) {
+  if (new Set(submitted).size !== submitted.length) {
     return fieldFailure(
-      CAMPOS.notas,
-      CODIGOS.notas.matriculaRepetida,
-      MENSAGENS.notas.matriculaRepetida,
+      FIELDS.grades,
+      CODES.grades.duplicateEnrollment,
+      MESSAGES.grades.duplicateEnrollment,
     );
   }
   return null;
 }
 
-async function gravarLote(
+async function saveBatch(
   { sql }: UnitOfWork,
-  lancamento: {
-    redeId: string;
-    turmaDisciplinaId: string;
-    bimestre: number;
-    lancadaPor: string;
-    notas: readonly NotaEnviada[];
+  posting: {
+    networkId: string;
+    classGroupSubjectId: string;
+    term: number;
+    postedBy: string;
+    grades: readonly SubmittedGrade[];
   },
 ): Promise<number> {
-  const { redeId, turmaDisciplinaId, bimestre, lancadaPor, notas } = lancamento;
-  const paraApagar = notas.filter((nota) => nota.valor === null).map((nota) => nota.matriculaId);
-  if (paraApagar.length > 0) {
-    await notaRepositorio.apagarEmLote(sql, redeId, turmaDisciplinaId, bimestre, paraApagar);
+  const { networkId, classGroupSubjectId, term, postedBy, grades } = posting;
+  const toDelete = grades
+    .filter((grade) => grade.value === null)
+    .map((grade) => grade.enrollmentId);
+  if (toDelete.length > 0) {
+    await gradeRepository.deleteBatch(sql, networkId, classGroupSubjectId, term, toDelete);
   }
 
-  const paraGravar = notas.filter(
-    (nota): nota is { matriculaId: string; valor: number } => nota.valor !== null,
+  const toSave = grades.filter(
+    (grade): grade is { enrollmentId: string; value: number } => grade.value !== null,
   );
-  if (paraGravar.length === 0) return 0;
-  return await notaRepositorio.gravarEmLote(sql, {
-    redeId,
-    turmaDisciplinaId,
-    bimestre,
-    lancadaPor,
-    notas: paraGravar,
+  if (toSave.length === 0) return 0;
+  return await gradeRepository.saveBatch(sql, {
+    networkId,
+    classGroupSubjectId,
+    term,
+    postedBy,
+    grades: toSave,
   });
 }

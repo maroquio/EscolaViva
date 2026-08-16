@@ -1,32 +1,32 @@
-export type Aluno = {
+export type Student = {
   id: string;
-  redeId: string;
-  nome: string;
-  dataNascimento: string;
+  networkId: string;
+  name: string;
+  birthDate: string;
 };
 
-type PartesDaData = { ano: number; mes: number; dia: number };
+type DateParts = { year: number; month: number; day: number };
 
-const INICIO_DO_ANO = 0;
-const FIM_DO_ANO = 4;
-const INICIO_DO_MES = 5;
-const FIM_DO_MES = 7;
-const INICIO_DO_DIA = 8;
-const FIM_DO_DIA = 10;
+const YEAR_START = 0;
+const YEAR_END = 4;
+const MONTH_START = 5;
+const MONTH_END = 7;
+const DAY_START = 8;
+const DAY_END = 10;
 
-function partesDaData(data: string): PartesDaData {
+function dateParts(date: string): DateParts {
   return {
-    ano: Number(data.slice(INICIO_DO_ANO, FIM_DO_ANO)),
-    mes: Number(data.slice(INICIO_DO_MES, FIM_DO_MES)),
-    dia: Number(data.slice(INICIO_DO_DIA, FIM_DO_DIA)),
+    year: Number(date.slice(YEAR_START, YEAR_END)),
+    month: Number(date.slice(MONTH_START, MONTH_END)),
+    day: Number(date.slice(DAY_START, DAY_END)),
   };
 }
 
-export function idadeEm(dataNascimento: string, data: string): number {
-  const nascimento = partesDaData(dataNascimento);
-  const referencia = partesDaData(data);
-  const aniversarioJaOcorreu =
-    referencia.mes > nascimento.mes ||
-    (referencia.mes === nascimento.mes && referencia.dia >= nascimento.dia);
-  return referencia.ano - nascimento.ano - (aniversarioJaOcorreu ? 0 : 1);
+export function ageOn(birthDate: string, date: string): number {
+  const birth = dateParts(birthDate);
+  const reference = dateParts(date);
+  const birthdayHasPassed =
+    reference.month > birth.month ||
+    (reference.month === birth.month && reference.day >= birth.day);
+  return reference.year - birth.year - (birthdayHasPassed ? 0 : 1);
 }

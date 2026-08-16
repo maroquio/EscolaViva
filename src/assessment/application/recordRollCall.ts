@@ -1,102 +1,104 @@
 import { z } from 'zod';
-import { academico } from '../../academics';
+import { academics } from '../../academics';
 import { unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
-import { dataDeChamadaValida, dataDentroDoAnoLetivo } from '../domain/attendance';
-import * as frequenciaRepositorio from '../infra/attendanceRepository';
+import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { isDateWithinAcademicYear, isValidRollCallDate } from '../domain/attendance';
+import * as attendanceRepository from '../infra/attendanceRepository';
 
-export type RegistroDeChamada = {
-  redeId: string;
-  turmaId: string;
-  data: string;
-  linhas: { matriculaId: string; presente: boolean; justificativa?: string | null }[];
+export type RollCallRecord = {
+  networkId: string;
+  classGroupId: string;
+  date: string;
+  rows: { enrollmentId: string; present: boolean; excuse?: string | null }[];
 };
 
-const esquema = z.object({
-  redeId: z.string().uuid(),
-  turmaId: z.string().uuid(),
-  data: z.string().refine(dataDeChamadaValida, MENSAGENS.chamada.dataInvalida),
-  linhas: z
+const schema = z.object({
+  networkId: z.string().uuid(),
+  classGroupId: z.string().uuid(),
+  date: z.string().refine(isValidRollCallDate, MESSAGES.rollCall.invalidDate),
+  rows: z
     .array(
       z.object({
-        matriculaId: z.string().uuid(),
-        presente: z.boolean(),
-        justificativa: z
+        enrollmentId: z.string().uuid(),
+        present: z.boolean(),
+        excuse: z
           .string()
-          .max(LIMITES.caracteresDaJustificativa, MENSAGENS.chamada.justificativaLonga)
+          .max(LIMITS.excuseCharacters, MESSAGES.rollCall.excuseTooLong)
           .nullable()
           .optional(),
       }),
     )
-    .min(1, MENSAGENS.chamada.loteVazio),
+    .min(1, MESSAGES.rollCall.emptyBatch),
 });
 
-export async function registrarChamada(entrada: RegistroDeChamada): Promise<Result<number>> {
-  const validada = esquema.safeParse(entrada);
-  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
-  const { redeId, turmaId, data, linhas } = validada.data;
+export async function recordRollCall(input: RollCallRecord): Promise<Result<number>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.rollCall));
+  }
+  const { networkId, classGroupId, date, rows } = parsed.data;
 
-  const turma = await academico.turmaPorId(redeId, turmaId);
-  if (turma === null) {
-    return fieldFailure(CAMPOS.turmaId, CODIGOS.naoEncontrada, MENSAGENS.turmaNaoEncontrada);
+  const classGroup = await academics.classGroupById(networkId, classGroupId);
+  if (classGroup === null) {
+    return fieldFailure(FIELDS.classGroupId, CODES.notFound, MESSAGES.classGroupNotFound);
   }
 
-  const anoLetivo = (await academico.listarAnosLetivos(redeId)).find(
-    (ano) => ano.id === turma.anoLetivoId,
+  const academicYear = (await academics.listAcademicYears(networkId)).find(
+    (year) => year.id === classGroup.academicYearId,
   );
-  if (anoLetivo === undefined) {
+  if (academicYear === undefined) {
     return fieldFailure(
-      CAMPOS.turmaId,
-      CODIGOS.anoLetivoAusente,
-      MENSAGENS.chamada.anoLetivoAusente,
+      FIELDS.classGroupId,
+      CODES.academicYearMissing,
+      MESSAGES.rollCall.academicYearMissing,
     );
   }
-  if (!dataDentroDoAnoLetivo(data, anoLetivo.dataInicio, anoLetivo.dataFim)) {
+  if (!isDateWithinAcademicYear(date, academicYear.startDate, academicYear.endDate)) {
     return fieldFailure(
-      CAMPOS.data,
-      CODIGOS.dataForaDoAnoLetivo,
-      MENSAGENS.chamada.dataForaDoAnoLetivo(anoLetivo.dataInicio, anoLetivo.dataFim),
+      FIELDS.date,
+      CODES.dateOutsideAcademicYear,
+      MESSAGES.rollCall.dateOutsideAcademicYear(academicYear.startDate, academicYear.endDate),
     );
   }
 
-  const recusa = await conferirMatriculas(redeId, turmaId, linhas);
-  if (recusa !== null) return recusa;
+  const rejection = await checkEnrollments(networkId, classGroupId, rows);
+  if (rejection !== null) return rejection;
 
   return await unitOfWork<Result<number>>(async ({ sql }) => {
-    const gravadas = await frequenciaRepositorio.gravarEmLote(sql, {
-      redeId,
-      data,
-      linhas: linhas.map((linha) => ({
-        matriculaId: linha.matriculaId,
-        presente: linha.presente,
-        justificativa: linha.justificativa ?? null,
+    const saved = await attendanceRepository.saveBatch(sql, {
+      networkId,
+      date,
+      rows: rows.map((row) => ({
+        enrollmentId: row.enrollmentId,
+        present: row.present,
+        excuse: row.excuse ?? null,
       })),
     });
-    return success(gravadas);
+    return success(saved);
   });
 }
 
-async function conferirMatriculas(
-  redeId: string,
-  turmaId: string,
-  linhas: { matriculaId: string }[],
+async function checkEnrollments(
+  networkId: string,
+  classGroupId: string,
+  rows: { enrollmentId: string }[],
 ): Promise<Result<number> | null> {
-  const matriculas = await academico.matriculasAtivasDaTurma(redeId, turmaId);
-  const daTurma = new Set(matriculas.map((matricula) => matricula.id));
-  const enviadas = linhas.map((linha) => linha.matriculaId);
-  if (enviadas.some((matriculaId) => !daTurma.has(matriculaId))) {
+  const enrollments = await academics.activeEnrollmentsOfClassGroup(networkId, classGroupId);
+  const inClassGroup = new Set(enrollments.map((enrollment) => enrollment.id));
+  const submitted = rows.map((row) => row.enrollmentId);
+  if (submitted.some((enrollmentId) => !inClassGroup.has(enrollmentId))) {
     return fieldFailure(
-      CAMPOS.linhas,
-      CODIGOS.chamada.matriculaForaDaTurma,
-      MENSAGENS.chamada.matriculaForaDaTurma,
+      FIELDS.rows,
+      CODES.rollCall.enrollmentOutsideClassGroup,
+      MESSAGES.rollCall.enrollmentOutsideClassGroup,
     );
   }
-  if (new Set(enviadas).size !== enviadas.length) {
+  if (new Set(submitted).size !== submitted.length) {
     return fieldFailure(
-      CAMPOS.linhas,
-      CODIGOS.chamada.matriculaRepetida,
-      MENSAGENS.chamada.matriculaRepetida,
+      FIELDS.rows,
+      CODES.rollCall.duplicateEnrollment,
+      MESSAGES.rollCall.duplicateEnrollment,
     );
   }
   return null;

@@ -1,26 +1,26 @@
 import { FORMATS, ISO_DATE_LENGTH } from '../../shared/constants';
-import { MEIA_NOITE_UTC } from '../constants';
+import { MIDNIGHT_UTC } from '../constants';
 
-export type LinhaDeChamada = {
-  matriculaId: string;
-  alunoNome: string;
-  presente: boolean;
-  justificativa: string | null;
+export type RollCallRow = {
+  enrollmentId: string;
+  studentName: string;
+  present: boolean;
+  excuse: string | null;
 };
 
-export type PresencaDoDia = { presente: boolean; justificativa: string | null };
+export type DayPresence = { present: boolean; excuse: string | null };
 
-export type ResumoFrequencia = { data: string; presente: boolean; justificativa: string | null };
+export type AttendanceEntry = { date: string; present: boolean; excuse: string | null };
 
-export type ApuracaoDeFrequencia = { totalDias: number; presencas: number };
+export type AttendanceTally = { totalDays: number; presentDays: number };
 
-export function dataDeChamadaValida(data: string): boolean {
-  if (!FORMATS.isoDate.test(data)) return false;
-  const convertida = new Date(`${data}${MEIA_NOITE_UTC}`);
-  if (Number.isNaN(convertida.getTime())) return false;
-  return convertida.toISOString().slice(0, ISO_DATE_LENGTH) === data;
+export function isValidRollCallDate(date: string): boolean {
+  if (!FORMATS.isoDate.test(date)) return false;
+  const parsed = new Date(`${date}${MIDNIGHT_UTC}`);
+  if (Number.isNaN(parsed.getTime())) return false;
+  return parsed.toISOString().slice(0, ISO_DATE_LENGTH) === date;
 }
 
-export function dataDentroDoAnoLetivo(data: string, inicio: string, fim: string): boolean {
-  return data >= inicio && data <= fim;
+export function isDateWithinAcademicYear(date: string, start: string, end: string): boolean {
+  return date >= start && date <= end;
 }

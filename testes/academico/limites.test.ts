@@ -1,19 +1,19 @@
 import { join } from 'node:path';
 import { describe, expect, test } from 'bun:test';
-import { LIMITES } from '../../src/academics/constants';
+import { LIMITS } from '../../src/academics/constants';
 
-const ENTIDADES_COM_LIMITE_DE_NOME = ['aluno', 'disciplina', 'responsavel', 'turma'] as const;
+const ENTIDADES_COM_LIMITE_DE_NOME = ['student', 'subject', 'guardian', 'classGroup'] as const;
 
 type EntidadeComLimiteDeNome = (typeof ENTIDADES_COM_LIMITE_DE_NOME)[number];
 
-type PoliticaDeNome = { readonly nome: number };
+type PoliticaDeNome = { readonly name: number };
 
-const POLITICAS_DE_NOME: Readonly<Record<EntidadeComLimiteDeNome, PoliticaDeNome>> = LIMITES;
+const POLITICAS_DE_NOME: Readonly<Record<EntidadeComLimiteDeNome, PoliticaDeNome>> = LIMITS;
 
 const POR_QUE_FUNDIR_E_O_DEFEITO =
   'cada uma destas entidades tem sua própria política de tamanho de nome, e elas apenas coincidem hoje: ' +
   'trocá-las por uma constante compartilhada faz uma decisão sobre uma entidade arrastar as outras três. ' +
-  'turma.nome é a que diverge, e é a prova de que a regra não é uma só; fundido, ele subiria junto com os ' +
+  'classGroup.name é a que diverge, e é a prova de que a regra não é uma só; fundido, ele subiria junto com os ' +
   'demais em nome da consistência e o formulário de turma passaria a aceitar um nome que a política da ' +
   'turma recusa. Para mudar um limite, mude o número daquela entidade e deixe os outros três onde estão.';
 
@@ -23,9 +23,9 @@ const RAIZ_DO_PROJETO = join(import.meta.dir, '..', '..');
 
 const NUMERO_ESCRITO_NA_MAO = /^\d[\d_]*$/;
 
-const DECLARACAO_DO_NOME = /(?:^|[{,])\s*nome\s*:\s*([^,}\n]+)/;
+const DECLARACAO_DO_NOME = /(?:^|[{,])\s*name\s*:\s*([^,}\n]+)/;
 
-const AUSENTE = '(nenhuma entrada `nome` própria)';
+const AUSENTE = '(nenhuma entrada `name` própria)';
 
 const fonteDasConstantes = (): Promise<string> =>
   Bun.file(join(RAIZ_DO_PROJETO, CAMINHO_RELATIVO_DAS_CONSTANTES)).text();
@@ -52,9 +52,9 @@ const blocoDeChaves = (fonte: string, apartirDe: number): string => {
 };
 
 const blocoDosLimites = (fonte: string): string => {
-  const declaracao = fonte.indexOf('export const LIMITES');
+  const declaracao = fonte.indexOf('export const LIMITS');
   if (declaracao < 0) {
-    throw new Error(`${CAMINHO_RELATIVO_DAS_CONSTANTES} não declara mais LIMITES`);
+    throw new Error(`${CAMINHO_RELATIVO_DAS_CONSTANTES} não declara mais LIMITS`);
   }
   return blocoDeChaves(fonte, declaracao);
 };
@@ -76,35 +76,35 @@ const entidadesSemNumeroProprio = (fonte: string): string[] =>
     .filter(({ escrito }) => !NUMERO_ESCRITO_NA_MAO.test(escrito))
     .map(
       ({ entidade, escrito }) =>
-        `LIMITES.${entidade}.nome está escrito como \`${escrito}\` em vez de um número só dele — ${POR_QUE_FUNDIR_E_O_DEFEITO}`,
+        `LIMITS.${entidade}.name está escrito como \`${escrito}\` em vez de um número só dele — ${POR_QUE_FUNDIR_E_O_DEFEITO}`,
     );
 
 const FONTE_COM_OS_QUATRO_FUNDIDOS = `
 const LIMITE_DE_NOME = 120;
-export const LIMITES = {
-  aluno: { nome: LIMITE_DE_NOME, linhasDaBusca: 50 },
-  disciplina: { nome: LIMITE_DE_NOME },
-  responsavel: { nome: LIMITE_DE_NOME, email: 254, telefone: 30 },
-  turma: { nome: LIMITE_DE_NOME, serie: 60 },
+export const LIMITS = {
+  student: { name: LIMITE_DE_NOME, searchRows: 50 },
+  subject: { name: LIMITE_DE_NOME },
+  guardian: { name: LIMITE_DE_NOME, email: 254, phone: 30 },
+  classGroup: { name: LIMITE_DE_NOME, gradeLevel: 60 },
 } as const;
 `;
 
 const FONTE_COM_A_TURMA_ARRASTADA = `
-export const LIMITES = {
-  aluno: { nome: 120, linhasDaBusca: 50 },
-  disciplina: { nome: 120 },
-  responsavel: { nome: 120, email: 254, telefone: 30 },
-  turma: { nome: LIMITES.aluno.nome, serie: 60 },
+export const LIMITS = {
+  student: { name: 120, searchRows: 50 },
+  subject: { name: 120 },
+  guardian: { name: 120, email: 254, phone: 30 },
+  classGroup: { name: LIMITS.student.name, gradeLevel: 60 },
 } as const;
 `;
 
 const FONTE_COM_O_NOME_ESPALHADO_DE_UM_PADRAO = `
-const PADRAO = { nome: 120 };
-export const LIMITES = {
-  aluno: { ...PADRAO, linhasDaBusca: 50 },
-  disciplina: { ...PADRAO },
-  responsavel: { ...PADRAO, email: 254, telefone: 30 },
-  turma: { ...PADRAO, serie: 60 },
+const PADRAO = { name: 120 };
+export const LIMITS = {
+  student: { ...PADRAO, searchRows: 50 },
+  subject: { ...PADRAO },
+  guardian: { ...PADRAO, email: 254, phone: 30 },
+  classGroup: { ...PADRAO, gradeLevel: 60 },
 } as const;
 `;
 
@@ -122,17 +122,17 @@ describe('os quatro limites de nome do acadêmico são quatro políticas, e não
       Number(comoOLimiteDoNomeEstaEscrito(fonte, entidade).replaceAll('_', '')),
     );
 
-    expect(lidos).toEqual(ENTIDADES_COM_LIMITE_DE_NOME.map((e) => POLITICAS_DE_NOME[e].nome));
+    expect(lidos).toEqual(ENTIDADES_COM_LIMITE_DE_NOME.map((e) => POLITICAS_DE_NOME[e].name));
   });
 
   test('o objeto exportado guarda quatro entradas `nome` próprias, uma por entidade', () => {
     const semEntradaPropria = ENTIDADES_COM_LIMITE_DE_NOME.filter(
       (entidade) =>
-        typeof Object.getOwnPropertyDescriptor(POLITICAS_DE_NOME[entidade], 'nome')?.value !==
+        typeof Object.getOwnPropertyDescriptor(POLITICAS_DE_NOME[entidade], 'name')?.value !==
         'number',
     ).map(
       (entidade) =>
-        `LIMITES.${entidade} não tem entrada \`nome\` própria — ${POR_QUE_FUNDIR_E_O_DEFEITO}`,
+        `LIMITS.${entidade} não tem entrada \`name\` própria — ${POR_QUE_FUNDIR_E_O_DEFEITO}`,
     );
 
     expect(semEntradaPropria).toEqual([]);
@@ -144,7 +144,7 @@ describe('os quatro limites de nome do acadêmico são quatro políticas, e não
         .filter((outra) => POLITICAS_DE_NOME[entidade] === POLITICAS_DE_NOME[outra])
         .map(
           (outra) =>
-            `LIMITES.${entidade} e LIMITES.${outra} são o mesmo objeto — ${POR_QUE_FUNDIR_E_O_DEFEITO}`,
+            `LIMITS.${entidade} e LIMITS.${outra} são o mesmo objeto — ${POR_QUE_FUNDIR_E_O_DEFEITO}`,
         ),
     );
 
@@ -164,7 +164,7 @@ describe('a verificação de fusão reprova de fato o arquivo fundido', () => {
     const fundidas = entidadesSemNumeroProprio(FONTE_COM_A_TURMA_ARRASTADA);
 
     expect(fundidas.length).toBe(1);
-    expect(fundidas.join('\n')).toContain('LIMITES.turma.nome');
+    expect(fundidas.join('\n')).toContain('LIMITS.classGroup.name');
   });
 
   test('espalhar um padrão comum apaga as entradas próprias e é acusado nas quatro', () => {

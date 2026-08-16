@@ -3,39 +3,41 @@ import { ISO_DATE_LENGTH } from '../../shared/constants';
 import { unitOfWork } from '../../shared/db';
 import { systemClock, uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
-import { idadeEm, type Aluno } from '../domain/student';
-import * as alunos from '../infra/studentRepository';
+import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { ageOn, type Student } from '../domain/student';
+import * as students from '../infra/studentRepository';
 
-const entrada = z.object({
-  redeId: z.string().uuid(),
-  nome: z
+const schema = z.object({
+  networkId: z.string().uuid(),
+  name: z
     .string()
     .trim()
-    .min(1, MENSAGENS.aluno.nomeObrigatorio)
-    .max(LIMITES.aluno.nome, MENSAGENS.aluno.nomeLongo),
-  dataNascimento: z.string().date(MENSAGENS.aluno.dataNascimentoFormato),
+    .min(1, MESSAGES.student.nameRequired)
+    .max(LIMITS.student.name, MESSAGES.student.nameTooLong),
+  birthDate: z.string().date(MESSAGES.student.birthDateFormat),
 });
 
-const hoje = (): string => systemClock.now().toISOString().slice(0, ISO_DATE_LENGTH);
+const today = (): string => systemClock.now().toISOString().slice(0, ISO_DATE_LENGTH);
 
-export async function cadastrarAluno(e: {
-  redeId: string;
-  nome: string;
-  dataNascimento: string;
-}): Promise<Result<Aluno>> {
-  const validada = entrada.safeParse(e);
-  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
+export async function registerStudent(input: {
+  networkId: string;
+  name: string;
+  birthDate: string;
+}): Promise<Result<Student>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.student));
+  }
 
-  if (idadeEm(validada.data.dataNascimento, hoje()) < 0) {
+  if (ageOn(parsed.data.birthDate, today()) < 0) {
     return fieldFailure(
-      CAMPOS.aluno.dataNascimento,
-      CODIGOS.aluno.dataNoFuturo,
-      MENSAGENS.aluno.dataNoFuturo,
+      FIELDS.student.birthDate,
+      CODES.student.dateInFuture,
+      MESSAGES.student.dateInFuture,
     );
   }
 
-  const aluno: Aluno = { id: uuidIdGenerator.next(), ...validada.data };
-  await unitOfWork(({ sql }) => alunos.inserir(sql, aluno));
-  return success(aluno);
+  const student: Student = { id: uuidIdGenerator.next(), ...parsed.data };
+  await unitOfWork(({ sql }) => students.insert(sql, student));
+  return success(student);
 }

@@ -9,18 +9,18 @@
 
 import { describe, expect, test } from 'bun:test';
 import {
-  mediaDaDisciplina,
-  mediaGeral,
-  mediasPorBimestre,
-  percentualFrequencia,
-  situacaoFinal,
+  subjectAverage,
+  overallAverage,
+  termAverages,
+  attendanceRate,
+  finalStatus,
 } from '../../src/assessment/domain/reportCard';
 
-describe('mediaDaDisciplina', () => {
+describe('subjectAverage', () => {
   test('calcula a média aritmética simples dos quatro bimestres', () => {
     const notas = [10, 0, 10, 0];
 
-    const media = mediaDaDisciplina(notas);
+    const media = subjectAverage(notas);
 
     expect(media).toBe(5);
   });
@@ -29,8 +29,8 @@ describe('mediaDaDisciplina', () => {
     const crescente = [0, 0, 10, 10];
     const decrescente = [10, 10, 0, 0];
 
-    const mediaCrescente = mediaDaDisciplina(crescente);
-    const mediaDecrescente = mediaDaDisciplina(decrescente);
+    const mediaCrescente = subjectAverage(crescente);
+    const mediaDecrescente = subjectAverage(decrescente);
 
     expect(mediaCrescente).toBe(5);
     expect(mediaDecrescente).toBe(5);
@@ -39,7 +39,7 @@ describe('mediaDaDisciplina', () => {
   test('trunca na segunda casa: a média que dá 5,995 vale 5,99 e não 6,00', () => {
     const notas = [5.99, 6, 5.99, 6];
 
-    const media = mediaDaDisciplina(notas);
+    const media = subjectAverage(notas);
 
     expect(media).toBe(5.99);
   });
@@ -47,7 +47,7 @@ describe('mediaDaDisciplina', () => {
   test('preserva a nota exata quando os quatro bimestres são iguais', () => {
     const notas = [7.45, 7.45, 7.45, 7.45];
 
-    const media = mediaDaDisciplina(notas);
+    const media = subjectAverage(notas);
 
     expect(media).toBe(7.45);
   });
@@ -55,7 +55,7 @@ describe('mediaDaDisciplina', () => {
   test('devolve null quando algum bimestre está sem nota', () => {
     const notas = [8, null, 7, 9];
 
-    const media = mediaDaDisciplina(notas);
+    const media = subjectAverage(notas);
 
     expect(media).toBeNull();
   });
@@ -63,7 +63,7 @@ describe('mediaDaDisciplina', () => {
   test('devolve null quando não recebe os quatro bimestres', () => {
     const incompleta = [8, 8, 8];
 
-    const media = mediaDaDisciplina(incompleta);
+    const media = subjectAverage(incompleta);
 
     expect(media).toBeNull();
   });
@@ -71,17 +71,17 @@ describe('mediaDaDisciplina', () => {
   test('devolve null para uma lista de notas vazia', () => {
     const nenhuma: (number | null)[] = [];
 
-    const media = mediaDaDisciplina(nenhuma);
+    const media = subjectAverage(nenhuma);
 
     expect(media).toBeNull();
   });
 });
 
-describe('mediaGeral', () => {
+describe('overallAverage', () => {
   test('é a média simples das médias das disciplinas', () => {
     const medias = [10, 5, 0];
 
-    const geral = mediaGeral(medias);
+    const geral = overallAverage(medias);
 
     expect(geral).toBe(5);
   });
@@ -89,7 +89,7 @@ describe('mediaGeral', () => {
   test('trunca na segunda casa em vez de arredondar para cima', () => {
     const medias = [5.99, 6];
 
-    const geral = mediaGeral(medias);
+    const geral = overallAverage(medias);
 
     expect(geral).toBe(5.99);
   });
@@ -97,7 +97,7 @@ describe('mediaGeral', () => {
   test('devolve null quando alguma disciplina ainda não tem média', () => {
     const medias = [8, null, 9];
 
-    const geral = mediaGeral(medias);
+    const geral = overallAverage(medias);
 
     expect(geral).toBeNull();
   });
@@ -105,23 +105,23 @@ describe('mediaGeral', () => {
   test('devolve null quando o aluno não cursa disciplina nenhuma', () => {
     const nenhuma: (number | null)[] = [];
 
-    const geral = mediaGeral(nenhuma);
+    const geral = overallAverage(nenhuma);
 
     expect(geral).toBeNull();
   });
 });
 
-describe('mediasPorBimestre', () => {
+describe('termAverages', () => {
   const linha = (disciplinaNome: string, notas: (number | null)[]) => ({
-    disciplinaNome,
-    notas,
-    media: mediaDaDisciplina(notas),
+    subjectName: disciplinaNome,
+    grades: notas,
+    average: subjectAverage(notas),
   });
 
   test('é a média simples das notas de todas as disciplinas em cada bimestre', () => {
     const linhas = [linha('Arte', [10, 8, 6, 4]), linha('Ciências', [0, 2, 4, 6])];
 
-    const medias = mediasPorBimestre(linhas);
+    const medias = termAverages(linhas);
 
     expect(medias).toEqual([5, 5, 5, 5]);
   });
@@ -129,7 +129,7 @@ describe('mediasPorBimestre', () => {
   test('trunca na segunda casa, como o resto da regra', () => {
     const linhas = [linha('Arte', [5.99, 10, 10, 10]), linha('Ciências', [6, 10, 10, 10])];
 
-    const medias = mediasPorBimestre(linhas);
+    const medias = termAverages(linhas);
 
     expect(medias[0]).toBe(5.99);
   });
@@ -137,7 +137,7 @@ describe('mediasPorBimestre', () => {
   test('devolve null no bimestre em que falta nota de alguma disciplina', () => {
     const linhas = [linha('Arte', [7, null, 8, 9]), linha('Ciências', [9, 9, 8, 7])];
 
-    const medias = mediasPorBimestre(linhas);
+    const medias = termAverages(linhas);
 
     expect(medias).toEqual([8, null, 8, 8]);
   });
@@ -145,90 +145,90 @@ describe('mediasPorBimestre', () => {
   test('devolve os quatro bimestres nulos quando o aluno não cursa disciplina nenhuma', () => {
     const nenhuma: ReturnType<typeof linha>[] = [];
 
-    const medias = mediasPorBimestre(nenhuma);
+    const medias = termAverages(nenhuma);
 
     expect(medias).toEqual([null, null, null, null]);
   });
 });
 
-describe('percentualFrequencia', () => {
+describe('attendanceRate', () => {
   test('devolve 0 sem dia registrado, em vez de dividir por zero', () => {
-    const semDia = percentualFrequencia(0, 0);
+    const semDia = attendanceRate(0, 0);
 
     expect(semDia).toBe(0);
     expect(Number.isNaN(semDia)).toBe(false);
   });
 
   test('converte presenças em percentual', () => {
-    const percentual = percentualFrequencia(3, 4);
+    const percentual = attendanceRate(3, 4);
 
     expect(percentual).toBe(75);
   });
 
   test('trunca da terceira casa em diante', () => {
-    const percentual = percentualFrequencia(2, 3);
+    const percentual = attendanceRate(2, 3);
 
     expect(percentual).toBe(66.66);
   });
 
   test('devolve 100 quando o aluno esteve presente em todos os dias', () => {
-    const percentual = percentualFrequencia(180, 180);
+    const percentual = attendanceRate(180, 180);
 
     expect(percentual).toBe(100);
   });
 
   test('devolve 0 quando o aluno faltou a todos os dias registrados', () => {
-    const percentual = percentualFrequencia(0, 200);
+    const percentual = attendanceRate(0, 200);
 
     expect(percentual).toBe(0);
   });
 });
 
-describe('situacaoFinal', () => {
+describe('finalStatus', () => {
   test('reprova a média 5,9 mesmo com frequência integral', () => {
-    const situacao = situacaoFinal(5.9, 100, true);
+    const situacao = finalStatus(5.9, 100, true);
 
     expect(situacao).toBe('failed');
   });
 
   test('aprova a média 6,0 exata', () => {
-    const situacao = situacaoFinal(6, 100, true);
+    const situacao = finalStatus(6, 100, true);
 
     expect(situacao).toBe('passed');
   });
 
   test('reprova a frequência de 74,9 % mesmo com média 8,0', () => {
-    const situacao = situacaoFinal(8, 74.9, true);
+    const situacao = finalStatus(8, 74.9, true);
 
     expect(situacao).toBe('failed');
   });
 
   test('aprova na fronteira inclusiva: média 6,0 e frequência 75,0 %', () => {
-    const situacao = situacaoFinal(6, 75, true);
+    const situacao = finalStatus(6, 75, true);
 
     expect(situacao).toBe('passed');
   });
 
   test('reprova a média 5,995 porque ela vale 5,99 e não 6,00', () => {
-    const situacao = situacaoFinal(5.995, 100, true);
+    const situacao = finalStatus(5.995, 100, true);
 
     expect(situacao).toBe('failed');
   });
 
   test('deixa em curso enquanto algum bimestre está aberto, mesmo com média alta', () => {
-    const situacao = situacaoFinal(9.5, 100, false);
+    const situacao = finalStatus(9.5, 100, false);
 
     expect(situacao).toBe('in_progress');
   });
 
   test('deixa em curso quando falta nota, nunca reprovado', () => {
-    const situacao = situacaoFinal(null, 100, true);
+    const situacao = finalStatus(null, 100, true);
 
     expect(situacao).toBe('in_progress');
   });
 
   test('deixa em curso quando falta nota, mesmo com frequência abaixo do mínimo', () => {
-    const situacao = situacaoFinal(null, 40, true);
+    const situacao = finalStatus(null, 40, true);
 
     expect(situacao).toBe('in_progress');
   });
@@ -238,9 +238,9 @@ describe('regra pedagógica de ponta a ponta', () => {
   test('bimestre sem nota deixa a disciplina sem média e o aluno em curso', () => {
     const notasDaDisciplina = [8, null, 9, 10];
 
-    const media = mediaDaDisciplina(notasDaDisciplina);
-    const geral = mediaGeral([media]);
-    const situacao = situacaoFinal(geral, percentualFrequencia(90, 100), true);
+    const media = subjectAverage(notasDaDisciplina);
+    const geral = overallAverage([media]);
+    const situacao = finalStatus(geral, attendanceRate(90, 100), true);
 
     expect(media).toBeNull();
     expect(geral).toBeNull();
@@ -250,9 +250,9 @@ describe('regra pedagógica de ponta a ponta', () => {
   test('aprova o aluno que fecha o ano em 6,0 com 75 % de presença', () => {
     const notasDaDisciplina = [6, 6, 6, 6];
 
-    const geral = mediaGeral([mediaDaDisciplina(notasDaDisciplina)]);
-    const frequencia = percentualFrequencia(150, 200);
-    const situacao = situacaoFinal(geral, frequencia, true);
+    const geral = overallAverage([subjectAverage(notasDaDisciplina)]);
+    const frequencia = attendanceRate(150, 200);
+    const situacao = finalStatus(geral, frequencia, true);
 
     expect(geral).toBe(6);
     expect(frequencia).toBe(75);
@@ -262,9 +262,9 @@ describe('regra pedagógica de ponta a ponta', () => {
   test('reprova por frequência o aluno de média 8,0 que faltou demais', () => {
     const notasDaDisciplina = [8, 8, 8, 8];
 
-    const geral = mediaGeral([mediaDaDisciplina(notasDaDisciplina)]);
-    const frequencia = percentualFrequencia(149, 200);
-    const situacao = situacaoFinal(geral, frequencia, true);
+    const geral = overallAverage([subjectAverage(notasDaDisciplina)]);
+    const frequencia = attendanceRate(149, 200);
+    const situacao = finalStatus(geral, frequencia, true);
 
     expect(geral).toBe(8);
     expect(frequencia).toBe(74.5);

@@ -3,102 +3,104 @@ import type { Connection } from '../../shared/db';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, ERROS_INTERNOS, MENSAGENS } from '../constants';
-import { MATRICULA_ATIVA, podeTransferir, type Matricula } from '../domain/enrollment';
-import type { Turma } from '../domain/classGroup';
-import * as matriculas from '../infra/enrollmentRepository';
-import * as turmas from '../infra/classGroupRepository';
+import { CODES, FIELDS, INTERNAL_ERRORS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { ACTIVE_ENROLLMENT_STATUS, canTransfer, type Enrollment } from '../domain/enrollment';
+import type { ClassGroup } from '../domain/classGroup';
+import * as enrollments from '../infra/enrollmentRepository';
+import * as classGroups from '../infra/classGroupRepository';
 
-const entrada = z.object({
-  redeId: z.string().uuid(),
-  matriculaId: z.string().uuid(MENSAGENS.transferencia.matriculaObrigatoria),
-  turmaDestinoId: z.string().uuid(MENSAGENS.transferencia.turmaDestinoObrigatoria),
-  data: z.string().date(MENSAGENS.transferencia.dataFormato),
+const schema = z.object({
+  networkId: z.string().uuid(),
+  enrollmentId: z.string().uuid(MESSAGES.transfer.enrollmentRequired),
+  targetClassGroupId: z.string().uuid(MESSAGES.transfer.targetClassGroupRequired),
+  date: z.string().date(MESSAGES.transfer.dateFormat),
 });
 
-async function trocarDeTurma(
+async function moveToClassGroup(
   sql: Connection,
-  origem: Matricula,
-  destino: Turma,
-  data: string,
-): Promise<Result<Matricula>> {
-  const encerrada = await matriculas.marcarComoTransferida(sql, origem.redeId, origem.id);
-  if (!encerrada) {
+  origin: Enrollment,
+  target: ClassGroup,
+  date: string,
+): Promise<Result<Enrollment>> {
+  const closed = await enrollments.markAsTransferred(sql, origin.networkId, origin.id);
+  if (!closed) {
     return fieldFailure(
-      CAMPOS.transferencia.matriculaId,
-      CODIGOS.transferencia.perdeuACorrida,
-      MENSAGENS.transferencia.perdeuACorrida,
+      FIELDS.transfer.enrollmentId,
+      CODES.transfer.lostTheRace,
+      MESSAGES.transfer.lostTheRace,
     );
   }
 
-  const nova: Matricula = {
+  const created: Enrollment = {
     id: uuidIdGenerator.next(),
-    redeId: origem.redeId,
-    alunoId: origem.alunoId,
-    alunoNome: origem.alunoNome,
-    turmaId: destino.id,
-    turmaNome: destino.nome,
-    unidadeId: destino.unidadeId,
-    anoLetivoId: origem.anoLetivoId,
-    ano: origem.ano,
-    dataMatricula: data,
-    situacao: MATRICULA_ATIVA,
+    networkId: origin.networkId,
+    studentId: origin.studentId,
+    studentName: origin.studentName,
+    classGroupId: target.id,
+    classGroupName: target.name,
+    schoolId: target.schoolId,
+    academicYearId: origin.academicYearId,
+    year: origin.year,
+    enrollmentDate: date,
+    status: ACTIVE_ENROLLMENT_STATUS,
   };
-  const criada = await matriculas.inserir(sql, nova);
-  if (!criada) throw new Error(ERROS_INTERNOS.conflitoDeMatriculaNaTransferencia);
-  return success(nova);
+  const inserted = await enrollments.insert(sql, created);
+  if (!inserted) throw new Error(INTERNAL_ERRORS.enrollmentConflictOnTransfer);
+  return success(created);
 }
 
-export async function transferir(e: {
-  redeId: string;
-  matriculaId: string;
-  turmaDestinoId: string;
-  data: string;
-}): Promise<Result<Matricula>> {
-  const validada = entrada.safeParse(e);
-  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
+export async function transfer(input: {
+  networkId: string;
+  enrollmentId: string;
+  targetClassGroupId: string;
+  date: string;
+}): Promise<Result<Enrollment>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.transfer));
+  }
 
-  const { redeId, matriculaId, turmaDestinoId, data } = validada.data;
-  return unitOfWork(async ({ sql }): Promise<Result<Matricula>> => {
-    const origem = await matriculas.porId(sql, redeId, matriculaId);
-    if (origem === null) {
+  const { networkId, enrollmentId, targetClassGroupId, date } = parsed.data;
+  return unitOfWork(async ({ sql }): Promise<Result<Enrollment>> => {
+    const origin = await enrollments.byId(sql, networkId, enrollmentId);
+    if (origin === null) {
       return fieldFailure(
-        CAMPOS.transferencia.matriculaId,
-        CODIGOS.transferencia.matriculaNaoEncontrada,
-        MENSAGENS.transferencia.matriculaNaoEncontrada,
+        FIELDS.transfer.enrollmentId,
+        CODES.transfer.enrollmentNotFound,
+        MESSAGES.transfer.enrollmentNotFound,
       );
     }
-    if (!podeTransferir(origem)) {
+    if (!canTransfer(origin)) {
       return fieldFailure(
-        CAMPOS.transferencia.matriculaId,
-        CODIGOS.transferencia.somenteAtivaTransfere,
-        MENSAGENS.transferencia.somenteAtivaTransfere,
+        FIELDS.transfer.enrollmentId,
+        CODES.transfer.onlyActiveTransfers,
+        MESSAGES.transfer.onlyActiveTransfers,
       );
     }
-    if (origem.turmaId === turmaDestinoId) {
+    if (origin.classGroupId === targetClassGroupId) {
       return fieldFailure(
-        CAMPOS.transferencia.turmaDestinoId,
-        CODIGOS.transferencia.mesmaTurma,
-        MENSAGENS.transferencia.mesmaTurma,
-      );
-    }
-
-    const destino = await turmas.porId(sql, redeId, turmaDestinoId);
-    if (destino === null) {
-      return fieldFailure(
-        CAMPOS.transferencia.turmaDestinoId,
-        CODIGOS.transferencia.turmaDestinoNaoEncontrada,
-        MENSAGENS.transferencia.turmaDestinoNaoEncontrada,
-      );
-    }
-    if (destino.anoLetivoId !== origem.anoLetivoId) {
-      return fieldFailure(
-        CAMPOS.transferencia.turmaDestinoId,
-        CODIGOS.transferencia.turmaDeOutroAno,
-        MENSAGENS.transferencia.turmaDeOutroAno,
+        FIELDS.transfer.targetClassGroupId,
+        CODES.transfer.sameClassGroup,
+        MESSAGES.transfer.sameClassGroup,
       );
     }
 
-    return trocarDeTurma(sql, origem, destino, data);
+    const target = await classGroups.byId(sql, networkId, targetClassGroupId);
+    if (target === null) {
+      return fieldFailure(
+        FIELDS.transfer.targetClassGroupId,
+        CODES.transfer.targetClassGroupNotFound,
+        MESSAGES.transfer.targetClassGroupNotFound,
+      );
+    }
+    if (target.academicYearId !== origin.academicYearId) {
+      return fieldFailure(
+        FIELDS.transfer.targetClassGroupId,
+        CODES.transfer.classGroupFromAnotherYear,
+        MESSAGES.transfer.classGroupFromAnotherYear,
+      );
+    }
+
+    return moveToClassGroup(sql, origin, target, date);
   });
 }

@@ -1,33 +1,33 @@
-export const TURNOS = ['morning', 'afternoon', 'evening', 'full_time'] as const;
+export const SHIFTS = ['morning', 'afternoon', 'evening', 'full_time'] as const;
 
-export type Turno = (typeof TURNOS)[number];
+export type Shift = (typeof SHIFTS)[number];
 
-export type Turma = {
+export type ClassGroup = {
   id: string;
-  redeId: string;
-  unidadeId: string;
-  anoLetivoId: string;
-  nome: string;
-  serie: string;
-  turno: Turno;
+  networkId: string;
+  schoolId: string;
+  academicYearId: string;
+  name: string;
+  gradeLevel: string;
+  shift: Shift;
 };
 
-export type TurmaDisciplina = {
+export type ClassGroupSubject = {
   id: string;
-  redeId: string;
-  turmaId: string;
-  disciplinaId: string;
-  disciplinaNome: string;
-  professorUsuarioId: string;
+  networkId: string;
+  classGroupId: string;
+  subjectId: string;
+  subjectName: string;
+  teacherUserId: string;
 };
 
-export type TurmaDisciplinaDoProfessor = TurmaDisciplina & {
-  turmaNome: string;
-  serie: string;
-  turno: Turno;
-  unidadeId: string;
+export type TeacherClassGroupSubject = ClassGroupSubject & {
+  classGroupName: string;
+  gradeLevel: string;
+  shift: Shift;
+  schoolId: string;
 };
 
-export function turnoValido(valor: string): valor is Turno {
-  return TURNOS.some((turno) => turno === valor);
+export function isValidShift(value: string): value is Shift {
+  return SHIFTS.some((shift) => shift === value);
 }

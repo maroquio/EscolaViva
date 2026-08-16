@@ -6,8 +6,8 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { avaliacao } from '../../src/assessment';
-import { bimestreValido, valorDeNotaValido } from '../../src/assessment/domain/grade';
+import { assessment } from '../../src/assessment';
+import { isValidGradeValue, isValidTerm } from '../../src/assessment/domain/grade';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
   ANO_PADRAO,
@@ -57,39 +57,39 @@ async function matriculaDeOutraRede(): Promise<string> {
 
 describe('nota (domínio)', () => {
   test('aceita os quatro bimestres e recusa qualquer outro número', () => {
-    const aceitos = [1, 2, 3, 4].map(bimestreValido);
-    const recusados = [0, 5, -1, 2.5, Number.NaN].map(bimestreValido);
+    const aceitos = [1, 2, 3, 4].map(isValidTerm);
+    const recusados = [0, 5, -1, 2.5, Number.NaN].map(isValidTerm);
 
     expect(aceitos).toEqual([true, true, true, true]);
     expect(recusados).toEqual([false, false, false, false, false]);
   });
 
   test('aceita nota de 0 a 10, inclusive nas pontas, e recusa fora do intervalo', () => {
-    const aceitos = [0, 5.5, 10].map(valorDeNotaValido);
-    const recusados = [-0.1, 10.1, Number.NaN, Number.POSITIVE_INFINITY].map(valorDeNotaValido);
+    const aceitos = [0, 5.5, 10].map(isValidGradeValue);
+    const recusados = [-0.1, 10.1, Number.NaN, Number.POSITIVE_INFINITY].map(isValidGradeValue);
 
     expect(aceitos).toEqual([true, true, true]);
     expect(recusados).toEqual([false, false, false, false]);
   });
 });
 
-describe('lancarNotas', () => {
+describe('postGrades', () => {
   test('grava o lote inteiro da disciplina no bimestre', async () => {
     const notas = cenario.matriculas.map((matricula, posicao) => ({
-      matriculaId: matricula.id,
-      valor: posicao + 5,
+      enrollmentId: matricula.id,
+      value: posicao + 5,
     }));
 
-    const resultado = await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas,
+    const resultado = await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: notas,
     });
 
     expect(resultado).toEqual({ ok: true, valor: 5 });
-    const gravadas = await avaliacao.notasDaTurmaDisciplina(
+    const gravadas = await assessment.classGroupSubjectGrades(
       cenario.rede.id,
       cenario.turmaDisciplinas[0].id,
       1,
@@ -101,24 +101,24 @@ describe('lancarNotas', () => {
 
   test('relançar a mesma disciplina atualiza a nota em vez de duplicar a linha', async () => {
     const lancamento = {
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
     };
-    await avaliacao.lancarNotas({
+    await assessment.postGrades({
       ...lancamento,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 8 }],
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 8 }],
     });
 
-    const resultado = await avaliacao.lancarNotas({
+    const resultado = await assessment.postGrades({
       ...lancamento,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 9.5 }],
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 9.5 }],
     });
 
     expect(resultado).toEqual({ ok: true, valor: 1 });
     expect(await contarNotas(cenario.rede.id)).toBe(1);
-    const gravadas = await avaliacao.notasDaTurmaDisciplina(
+    const gravadas = await assessment.classGroupSubjectGrades(
       cenario.rede.id,
       cenario.turmaDisciplinas[0].id,
       1,
@@ -128,29 +128,29 @@ describe('lancarNotas', () => {
 
   test('valor nulo apaga a nota daquele aluno e preserva as demais', async () => {
     const lancamento = {
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 2,
-      lancadaPor: cenario.professor.id,
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 2,
+      postedBy: cenario.professor.id,
     };
-    await avaliacao.lancarNotas({
+    await assessment.postGrades({
       ...lancamento,
-      notas: [
-        { matriculaId: cenario.matriculas[0].id, valor: 8 },
-        { matriculaId: cenario.matriculas[1].id, valor: 7 },
+      grades: [
+        { enrollmentId: cenario.matriculas[0].id, value: 8 },
+        { enrollmentId: cenario.matriculas[1].id, value: 7 },
       ],
     });
 
-    const resultado = await avaliacao.lancarNotas({
+    const resultado = await assessment.postGrades({
       ...lancamento,
-      notas: [
-        { matriculaId: cenario.matriculas[0].id, valor: null },
-        { matriculaId: cenario.matriculas[1].id, valor: 7 },
+      grades: [
+        { enrollmentId: cenario.matriculas[0].id, value: null },
+        { enrollmentId: cenario.matriculas[1].id, value: 7 },
       ],
     });
 
     expect(resultado).toEqual({ ok: true, valor: 1 });
-    const gravadas = await avaliacao.notasDaTurmaDisciplina(
+    const gravadas = await assessment.classGroupSubjectGrades(
       cenario.rede.id,
       cenario.turmaDisciplinas[0].id,
       2,
@@ -161,19 +161,19 @@ describe('lancarNotas', () => {
 
   test('um lote só de valores nulos apaga tudo e não grava nota nenhuma', async () => {
     const lancamento = {
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
     };
-    await avaliacao.lancarNotas({
+    await assessment.postGrades({
       ...lancamento,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 6 }],
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 6 }],
     });
 
-    const resultado = await avaliacao.lancarNotas({
+    const resultado = await assessment.postGrades({
       ...lancamento,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: null }],
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: null }],
     });
 
     expect(resultado).toEqual({ ok: true, valor: 0 });
@@ -181,12 +181,12 @@ describe('lancarNotas', () => {
   });
 
   test('recusa nota acima de 10', async () => {
-    const resultado = await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 10.5 }],
+    const resultado = await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 10.5 }],
     });
 
     expect(resultado).toEqual({
@@ -197,12 +197,12 @@ describe('lancarNotas', () => {
   });
 
   test('recusa nota negativa', async () => {
-    const resultado = await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: -1 }],
+    const resultado = await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: -1 }],
     });
 
     expect(resultado).toEqual({
@@ -213,14 +213,14 @@ describe('lancarNotas', () => {
 
   test('recusa bimestre fora de 1 a 4', async () => {
     const base = {
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      lancadaPor: cenario.professor.id,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 7 }],
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      postedBy: cenario.professor.id,
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 7 }],
     };
 
-    const quinto = await avaliacao.lancarNotas({ ...base, bimestre: 5 });
-    const zero = await avaliacao.lancarNotas({ ...base, bimestre: 0 });
+    const quinto = await assessment.postGrades({ ...base, term: 5 });
+    const zero = await assessment.postGrades({ ...base, term: 0 });
 
     expect(quinto).toEqual({
       ok: false,
@@ -234,12 +234,12 @@ describe('lancarNotas', () => {
   });
 
   test('recusa lote vazio', async () => {
-    const resultado = await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [],
+    const resultado = await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [],
     });
 
     expect(resultado).toEqual({
@@ -251,12 +251,12 @@ describe('lancarNotas', () => {
   test('recusa disciplina de turma que não é desta rede', async () => {
     const outra = await cenarioCompleto();
 
-    const resultado = await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: outra.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 7 }],
+    const resultado = await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: outra.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 7 }],
     });
 
     expect(resultado).toEqual({
@@ -274,14 +274,14 @@ describe('lancarNotas', () => {
       academicYearId: cenario.anoLetivo.id,
     });
 
-    const resultado = await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [
-        { matriculaId: cenario.matriculas[0].id, valor: 7 },
-        { matriculaId: forasteira.id, valor: 8 },
+    const resultado = await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [
+        { enrollmentId: cenario.matriculas[0].id, value: 7 },
+        { enrollmentId: forasteira.id, value: 8 },
       ],
     });
 
@@ -295,14 +295,14 @@ describe('lancarNotas', () => {
   test('recusa o lote com matrícula de outra rede', async () => {
     const deOutraRede = await matriculaDeOutraRede();
 
-    const resultado = await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [
-        { matriculaId: cenario.matriculas[0].id, valor: 7 },
-        { matriculaId: deOutraRede, valor: 8 },
+    const resultado = await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [
+        { enrollmentId: cenario.matriculas[0].id, value: 7 },
+        { enrollmentId: deOutraRede, value: 8 },
       ],
     });
 
@@ -314,14 +314,14 @@ describe('lancarNotas', () => {
   });
 
   test('recusa o lote com o mesmo aluno duas vezes', async () => {
-    const resultado = await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [
-        { matriculaId: cenario.matriculas[0].id, valor: 7 },
-        { matriculaId: cenario.matriculas[0].id, valor: 8 },
+    const resultado = await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [
+        { enrollmentId: cenario.matriculas[0].id, value: 7 },
+        { enrollmentId: cenario.matriculas[0].id, value: 8 },
       ],
     });
 
@@ -334,25 +334,25 @@ describe('lancarNotas', () => {
 
   test('mantém as notas de bimestres diferentes lado a lado', async () => {
     const base = {
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      lancadaPor: cenario.professor.id,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 6 }],
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      postedBy: cenario.professor.id,
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 6 }],
     };
 
-    await avaliacao.lancarNotas({ ...base, bimestre: 1 });
-    await avaliacao.lancarNotas({
+    await assessment.postGrades({ ...base, term: 1 });
+    await assessment.postGrades({
       ...base,
-      bimestre: 2,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 9 }],
+      term: 2,
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 9 }],
     });
 
-    const primeiro = await avaliacao.notasDaTurmaDisciplina(
+    const primeiro = await assessment.classGroupSubjectGrades(
       cenario.rede.id,
       cenario.turmaDisciplinas[0].id,
       1,
     );
-    const segundo = await avaliacao.notasDaTurmaDisciplina(
+    const segundo = await assessment.classGroupSubjectGrades(
       cenario.rede.id,
       cenario.turmaDisciplinas[0].id,
       2,
@@ -404,15 +404,15 @@ describe('constraints da tabela nota', () => {
   });
 
   test('a nota nasce presa ao ano letivo do cenário e à rede que a criou', async () => {
-    await avaliacao.lancarNotas({
-      redeId: cenario.rede.id,
-      turmaDisciplinaId: cenario.turmaDisciplinas[0].id,
-      bimestre: 1,
-      lancadaPor: cenario.professor.id,
-      notas: [{ matriculaId: cenario.matriculas[0].id, valor: 7 }],
+    await assessment.postGrades({
+      networkId: cenario.rede.id,
+      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      term: 1,
+      postedBy: cenario.professor.id,
+      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 7 }],
     });
 
-    const deOutraRede = await avaliacao.notasDaTurmaDisciplina(
+    const deOutraRede = await assessment.classGroupSubjectGrades(
       crypto.randomUUID(),
       cenario.turmaDisciplinas[0].id,
       1,

@@ -1,10 +1,10 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import { ERROS_INTERNOS } from '../constants';
-import type { ComunicadoArmazenado } from '../domain/announcement';
-import type { ContagemDeLeitura, ItemDoMural } from '../domain/recipient';
+import { INTERNAL_ERRORS } from '../constants';
+import type { StoredAnnouncement } from '../domain/announcement';
+import type { BoardItem, ReadCount } from '../domain/recipient';
 
-type LinhaDeComunicado = {
+type AnnouncementRow = {
   id: string;
   network_id: string;
   school_id: string;
@@ -14,227 +14,227 @@ type LinhaDeComunicado = {
   published_at: Date | null;
 };
 
-type LinhaDoMural = {
+type BoardRow = {
   announcement_id: string;
   title: string;
   published_at: Date;
   read_at: Date | null;
 };
 
-type LinhaDeContagem = {
+type CountRow = {
   announcement_id: string;
   title: string;
   published_at: Date | null;
-  destinatarios: number;
-  leituras: number;
+  recipients: number;
+  reads: number;
 };
 
-export type NovoComunicado = {
+export type NewAnnouncement = {
   id: string;
-  redeId: string;
-  unidadeId: string;
-  titulo: string;
-  corpo: string;
-  autorUsuarioId: string;
+  networkId: string;
+  schoolId: string;
+  title: string;
+  body: string;
+  authorUserId: string;
 };
 
-export type ChaveDeDestinatario = {
-  redeId: string;
-  comunicadoId: string;
-  responsavelId: string;
+export type RecipientKey = {
+  networkId: string;
+  announcementId: string;
+  guardianId: string;
 };
 
-function emTexto(instante: Date): string {
-  return instante.toISOString();
+function toText(instant: Date): string {
+  return instant.toISOString();
 }
 
-function emTextoOuNulo(instante: Date | null): string | null {
-  return instante === null ? null : instante.toISOString();
+function toTextOrNull(instant: Date | null): string | null {
+  return instant === null ? null : instant.toISOString();
 }
 
-function paraComunicado(linha: LinhaDeComunicado): ComunicadoArmazenado {
+function toAnnouncement(row: AnnouncementRow): StoredAnnouncement {
   return {
-    id: linha.id,
-    redeId: linha.network_id,
-    unidadeId: linha.school_id,
-    titulo: linha.title,
-    corpo: linha.body,
-    autorUsuarioId: linha.author_user_id,
-    publicadoEm: emTextoOuNulo(linha.published_at),
+    id: row.id,
+    networkId: row.network_id,
+    schoolId: row.school_id,
+    title: row.title,
+    body: row.body,
+    authorUserId: row.author_user_id,
+    publishedAt: toTextOrNull(row.published_at),
   };
 }
 
-export async function inserirPublicado(
+export async function insertPublished(
   sql: Connection,
-  novo: NovoComunicado,
-): Promise<ComunicadoArmazenado> {
-  const linhas = await sql<{ published_at: Date }[]>`
+  announcement: NewAnnouncement,
+): Promise<StoredAnnouncement> {
+  const rows = await sql<{ published_at: Date }[]>`
     INSERT INTO announcement (id, network_id, school_id, title, body, author_user_id, published_at)
-    VALUES (${novo.id}, ${novo.redeId}, ${novo.unidadeId}, ${novo.titulo}, ${novo.corpo},
-            ${novo.autorUsuarioId}, now())
+    VALUES (${announcement.id}, ${announcement.networkId}, ${announcement.schoolId},
+            ${announcement.title}, ${announcement.body}, ${announcement.authorUserId}, now())
     RETURNING published_at
   `;
-  const linha = linhas[0];
-  if (linha === undefined) throw new Error(ERROS_INTERNOS.insercaoSemPublicadoEm);
+  const row = rows[0];
+  if (row === undefined) throw new Error(INTERNAL_ERRORS.insertWithoutPublishedAt);
   return {
-    id: novo.id,
-    redeId: novo.redeId,
-    unidadeId: novo.unidadeId,
-    titulo: novo.titulo,
-    corpo: novo.corpo,
-    autorUsuarioId: novo.autorUsuarioId,
-    publicadoEm: emTexto(linha.published_at),
+    id: announcement.id,
+    networkId: announcement.networkId,
+    schoolId: announcement.schoolId,
+    title: announcement.title,
+    body: announcement.body,
+    authorUserId: announcement.authorUserId,
+    publishedAt: toText(row.published_at),
   };
 }
 
-export async function inserirDestinatarios(
+export async function insertRecipients(
   sql: Connection,
-  entrada: { redeId: string; comunicadoId: string; responsaveisIds: readonly string[] },
+  input: { networkId: string; announcementId: string; guardianIds: readonly string[] },
 ): Promise<void> {
-  const linhas = entrada.responsaveisIds.map((responsavelId) => ({
-    network_id: entrada.redeId,
-    announcement_id: entrada.comunicadoId,
-    guardian_id: responsavelId,
+  const rows = input.guardianIds.map((guardianId) => ({
+    network_id: input.networkId,
+    announcement_id: input.announcementId,
+    guardian_id: guardianId,
   }));
-  await sql`INSERT INTO announcement_recipient ${sql(linhas)}`;
+  await sql`INSERT INTO announcement_recipient ${sql(rows)}`;
 }
 
-export type FiltroDoMural = { lido?: boolean };
+export type BoardFilter = { read?: boolean };
 
-export async function listarDoResponsavel(
+export async function listForGuardian(
   sql: Connection,
-  redeId: string,
-  responsavelId: string,
-  filtro?: FiltroDoMural,
-  faixa?: Range,
-): Promise<ItemDoMural[]> {
-  const lido = filtro?.lido ?? null;
-  const { limit, offset } = rangeParams(faixa);
-  const linhas = await sql<LinhaDoMural[]>`
+  networkId: string,
+  guardianId: string,
+  filter?: BoardFilter,
+  range?: Range,
+): Promise<BoardItem[]> {
+  const read = filter?.read ?? null;
+  const { limit, offset } = rangeParams(range);
+  const rows = await sql<BoardRow[]>`
     SELECT c.id AS announcement_id, c.title, c.published_at, d.read_at
     FROM announcement_recipient d
     JOIN announcement c ON c.network_id = d.network_id AND c.id = d.announcement_id
-    WHERE d.network_id = ${redeId}
-      AND d.guardian_id = ${responsavelId}
+    WHERE d.network_id = ${networkId}
+      AND d.guardian_id = ${guardianId}
       AND c.published_at IS NOT NULL
-      AND (${lido}::boolean IS NULL OR (d.read_at IS NOT NULL) = ${lido}::boolean)
+      AND (${read}::boolean IS NULL OR (d.read_at IS NOT NULL) = ${read}::boolean)
     ORDER BY c.published_at DESC
     LIMIT ${limit}::int OFFSET ${offset}::int
   `;
-  return linhas.map((linha) => ({
-    comunicadoId: linha.announcement_id,
-    titulo: linha.title,
-    publicadoEm: emTexto(linha.published_at),
-    lidoEm: emTextoOuNulo(linha.read_at),
+  return rows.map((row) => ({
+    announcementId: row.announcement_id,
+    title: row.title,
+    publishedAt: toText(row.published_at),
+    readAt: toTextOrNull(row.read_at),
   }));
 }
 
-export async function contarDoResponsavel(
+export async function countForGuardian(
   sql: Connection,
-  redeId: string,
-  responsavelId: string,
-  filtro?: FiltroDoMural,
+  networkId: string,
+  guardianId: string,
+  filter?: BoardFilter,
 ): Promise<number> {
-  const lido = filtro?.lido ?? null;
-  const linhas = await sql<{ total: number }[]>`
+  const read = filter?.read ?? null;
+  const rows = await sql<{ total: number }[]>`
     SELECT count(*)::int AS total
     FROM announcement_recipient d
     JOIN announcement c ON c.network_id = d.network_id AND c.id = d.announcement_id
-    WHERE d.network_id = ${redeId}
-      AND d.guardian_id = ${responsavelId}
+    WHERE d.network_id = ${networkId}
+      AND d.guardian_id = ${guardianId}
       AND c.published_at IS NOT NULL
-      AND (${lido}::boolean IS NULL OR (d.read_at IS NOT NULL) = ${lido}::boolean)
+      AND (${read}::boolean IS NULL OR (d.read_at IS NOT NULL) = ${read}::boolean)
   `;
-  return linhas[0]?.total ?? 0;
+  return rows[0]?.total ?? 0;
 }
 
-export async function buscarParaResponsavel(
+export async function findForGuardian(
   sql: Connection,
-  redeId: string,
-  responsavelId: string,
-  comunicadoId: string,
-): Promise<ComunicadoArmazenado | null> {
-  const linhas = await sql<LinhaDeComunicado[]>`
+  networkId: string,
+  guardianId: string,
+  announcementId: string,
+): Promise<StoredAnnouncement | null> {
+  const rows = await sql<AnnouncementRow[]>`
     SELECT c.id, c.network_id, c.school_id, c.title, c.body, c.author_user_id, c.published_at
     FROM announcement c
     JOIN announcement_recipient d ON d.network_id = c.network_id AND d.announcement_id = c.id
-    WHERE c.network_id = ${redeId}
-      AND c.id = ${comunicadoId}
-      AND d.guardian_id = ${responsavelId}
+    WHERE c.network_id = ${networkId}
+      AND c.id = ${announcementId}
+      AND d.guardian_id = ${guardianId}
   `;
-  const linha = linhas[0];
-  return linha === undefined ? null : paraComunicado(linha);
+  const row = rows[0];
+  return row === undefined ? null : toAnnouncement(row);
 }
 
-export async function marcarLeitura(sql: Connection, chave: ChaveDeDestinatario): Promise<void> {
+export async function markRead(sql: Connection, key: RecipientKey): Promise<void> {
   await sql`
     UPDATE announcement_recipient
     SET read_at = now()
-    WHERE network_id = ${chave.redeId}
-      AND announcement_id = ${chave.comunicadoId}
-      AND guardian_id = ${chave.responsavelId}
+    WHERE network_id = ${key.networkId}
+      AND announcement_id = ${key.announcementId}
+      AND guardian_id = ${key.guardianId}
       AND read_at IS NULL
   `;
 }
 
-export async function contarLeituras(
+export async function countReads(
   sql: Connection,
-  redeId: string,
-  unidadeId: string | null,
-  faixa?: Range,
-): Promise<ContagemDeLeitura[]> {
-  const { limit, offset } = rangeParams(faixa);
-  const linhas = await sql<LinhaDeContagem[]>`
+  networkId: string,
+  schoolId: string | null,
+  range?: Range,
+): Promise<ReadCount[]> {
+  const { limit, offset } = rangeParams(range);
+  const rows = await sql<CountRow[]>`
     SELECT c.id AS announcement_id,
            c.title,
            c.published_at,
-           count(d.guardian_id)::int AS destinatarios,
-           count(d.read_at)::int     AS leituras
+           count(d.guardian_id)::int AS recipients,
+           count(d.read_at)::int     AS reads
     FROM announcement c
     LEFT JOIN announcement_recipient d ON d.network_id = c.network_id AND d.announcement_id = c.id
-    WHERE c.network_id = ${redeId}
-      AND (${unidadeId}::uuid IS NULL OR c.school_id = ${unidadeId})
+    WHERE c.network_id = ${networkId}
+      AND (${schoolId}::uuid IS NULL OR c.school_id = ${schoolId})
     GROUP BY c.id, c.title, c.published_at
     ORDER BY c.published_at DESC NULLS LAST
     LIMIT ${limit}::int OFFSET ${offset}::int
   `;
-  return linhas.map((linha) => ({
-    comunicadoId: linha.announcement_id,
-    titulo: linha.title,
-    publicadoEm: emTextoOuNulo(linha.published_at),
-    destinatarios: linha.destinatarios,
-    leituras: linha.leituras,
+  return rows.map((row) => ({
+    announcementId: row.announcement_id,
+    title: row.title,
+    publishedAt: toTextOrNull(row.published_at),
+    recipients: row.recipients,
+    reads: row.reads,
   }));
 }
 
-export async function contarComunicados(
+export async function countAnnouncements(
   sql: Connection,
-  redeId: string,
-  unidadeId: string | null,
+  networkId: string,
+  schoolId: string | null,
 ): Promise<number> {
-  const linhas = await sql<{ total: number }[]>`
+  const rows = await sql<{ total: number }[]>`
     SELECT count(*)::int AS total
     FROM announcement c
-    WHERE c.network_id = ${redeId}
-      AND (${unidadeId}::uuid IS NULL OR c.school_id = ${unidadeId})
+    WHERE c.network_id = ${networkId}
+      AND (${schoolId}::uuid IS NULL OR c.school_id = ${schoolId})
   `;
-  return linhas[0]?.total ?? 0;
+  return rows[0]?.total ?? 0;
 }
 
-export async function somarLeituras(
+export async function sumReads(
   sql: Connection,
-  redeId: string,
-  unidadeId: string | null,
-): Promise<{ destinatarios: number; leituras: number }> {
-  const linhas = await sql<{ destinatarios: number; leituras: number }[]>`
-    SELECT count(d.guardian_id)::int AS destinatarios,
-           count(d.read_at)::int     AS leituras
+  networkId: string,
+  schoolId: string | null,
+): Promise<{ recipients: number; reads: number }> {
+  const rows = await sql<{ recipients: number; reads: number }[]>`
+    SELECT count(d.guardian_id)::int AS recipients,
+           count(d.read_at)::int     AS reads
     FROM announcement c
     LEFT JOIN announcement_recipient d ON d.network_id = c.network_id AND d.announcement_id = c.id
-    WHERE c.network_id = ${redeId}
-      AND (${unidadeId}::uuid IS NULL OR c.school_id = ${unidadeId})
+    WHERE c.network_id = ${networkId}
+      AND (${schoolId}::uuid IS NULL OR c.school_id = ${schoolId})
   `;
-  const somado = linhas[0];
-  if (somado === undefined) return { destinatarios: 0, leituras: 0 };
-  return { destinatarios: somado.destinatarios, leituras: somado.leituras };
+  const summed = rows[0];
+  if (summed === undefined) return { recipients: 0, reads: 0 };
+  return { recipients: summed.recipients, reads: summed.reads };
 }

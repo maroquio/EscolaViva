@@ -1,57 +1,59 @@
 import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
-import * as alunos from '../infra/studentRepository';
-import * as responsaveis from '../infra/guardianRepository';
+import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import * as students from '../infra/studentRepository';
+import * as guardians from '../infra/guardianRepository';
 
-const entrada = z.object({
-  redeId: z.string().uuid(),
-  alunoId: z.string().uuid(MENSAGENS.alunoObrigatorio),
-  responsavelId: z.string().uuid(MENSAGENS.vinculo.responsavelObrigatorio),
-  parentesco: z
+const schema = z.object({
+  networkId: z.string().uuid(),
+  studentId: z.string().uuid(MESSAGES.studentRequired),
+  guardianId: z.string().uuid(MESSAGES.guardianLink.guardianRequired),
+  relationship: z
     .string()
     .trim()
-    .min(1, MENSAGENS.vinculo.parentescoObrigatorio)
-    .max(LIMITES.parentesco.descricao, MENSAGENS.vinculo.parentescoLongo),
-  financeiro: z.boolean(),
+    .min(1, MESSAGES.guardianLink.relationshipRequired)
+    .max(LIMITS.relationship.description, MESSAGES.guardianLink.relationshipTooLong),
+  financiallyResponsible: z.boolean(),
 });
 
-export async function vincularResponsavel(e: {
-  redeId: string;
-  alunoId: string;
-  responsavelId: string;
-  parentesco: string;
-  financeiro: boolean;
+export async function linkGuardian(input: {
+  networkId: string;
+  studentId: string;
+  guardianId: string;
+  relationship: string;
+  financiallyResponsible: boolean;
 }): Promise<Result<void>> {
-  const validada = entrada.safeParse(e);
-  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.guardianLink));
+  }
 
-  const { redeId, alunoId, responsavelId } = validada.data;
+  const { networkId, studentId, guardianId } = parsed.data;
   return unitOfWork(async ({ sql }): Promise<Result<void>> => {
-    const aluno = await alunos.porId(sql, redeId, alunoId);
-    if (aluno === null) {
+    const student = await students.byId(sql, networkId, studentId);
+    if (student === null) {
       return fieldFailure(
-        CAMPOS.vinculo.alunoId,
-        CODIGOS.alunoNaoEncontrado,
-        MENSAGENS.alunoNaoEncontrado,
+        FIELDS.guardianLink.studentId,
+        CODES.studentNotFound,
+        MESSAGES.studentNotFound,
       );
     }
-    const responsavel = await responsaveis.porId(sql, redeId, responsavelId);
-    if (responsavel === null) {
+    const guardian = await guardians.byId(sql, networkId, guardianId);
+    if (guardian === null) {
       return fieldFailure(
-        CAMPOS.vinculo.responsavelId,
-        CODIGOS.responsavelNaoEncontrado,
-        MENSAGENS.responsavelNaoEncontrado,
+        FIELDS.guardianLink.guardianId,
+        CODES.guardianNotFound,
+        MESSAGES.guardianNotFound,
       );
     }
 
-    const vinculado = await responsaveis.vincular(sql, { ...validada.data });
-    if (!vinculado) {
+    const linked = await guardians.link(sql, { ...parsed.data });
+    if (!linked) {
       return fieldFailure(
-        CAMPOS.vinculo.responsavelId,
-        CODIGOS.vinculo.duplicado,
-        MENSAGENS.vinculo.duplicado,
+        FIELDS.guardianLink.guardianId,
+        CODES.guardianLink.duplicate,
+        MESSAGES.guardianLink.duplicate,
       );
     }
     return success<void>(undefined);

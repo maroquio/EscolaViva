@@ -1,16 +1,16 @@
-export type Responsavel = {
+export type Guardian = {
   id: string;
-  redeId: string;
-  nome: string;
+  networkId: string;
+  name: string;
   email: string;
   cpf: string | null;
-  telefone: string | null;
+  phone: string | null;
 };
 
-export type VinculoResponsavel = {
-  responsavelId: string;
-  nome: string;
+export type GuardianLink = {
+  guardianId: string;
+  name: string;
   email: string;
-  parentesco: string;
-  financeiro: boolean;
+  relationship: string;
+  financiallyResponsible: boolean;
 };

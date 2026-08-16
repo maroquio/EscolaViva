@@ -1,11 +1,11 @@
-export type AnoLetivo = {
+export type AcademicYear = {
   id: string;
-  redeId: string;
-  ano: number;
-  dataInicio: string;
-  dataFim: string;
+  networkId: string;
+  year: number;
+  startDate: string;
+  endDate: string;
 };
 
-export function periodoCoerente(dataInicio: string, dataFim: string): boolean {
-  return dataFim > dataInicio;
+export function isCoherentPeriod(startDate: string, endDate: string): boolean {
+  return endDate > startDate;
 }

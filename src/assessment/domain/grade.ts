@@ -1,20 +1,20 @@
-import { LIMITES } from '../constants';
+import { LIMITS } from '../constants';
 
-export type Nota = {
-  matriculaId: string;
-  turmaDisciplinaId: string;
-  bimestre: number;
-  valor: number;
+export type Grade = {
+  enrollmentId: string;
+  classGroupSubjectId: string;
+  term: number;
+  value: number;
 };
 
-export const BIMESTRES: readonly number[] = [1, 2, 3, 4];
+export const TERMS: readonly number[] = [1, 2, 3, 4];
 
-export const QUANTIDADE_DE_BIMESTRES = BIMESTRES.length;
+export const TERM_COUNT = TERMS.length;
 
-export function bimestreValido(bimestre: number): boolean {
-  return Number.isInteger(bimestre) && bimestre >= 1 && bimestre <= QUANTIDADE_DE_BIMESTRES;
+export function isValidTerm(term: number): boolean {
+  return Number.isInteger(term) && term >= 1 && term <= TERM_COUNT;
 }
 
-export function valorDeNotaValido(valor: number): boolean {
-  return Number.isFinite(valor) && valor >= LIMITES.nota.minimo && valor <= LIMITES.nota.maximo;
+export function isValidGradeValue(value: number): boolean {
+  return Number.isFinite(value) && value >= LIMITS.grade.minimum && value <= LIMITS.grade.maximum;
 }

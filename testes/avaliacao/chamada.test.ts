@@ -5,10 +5,10 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { LIMITES_DA_AVALIACAO, avaliacao } from '../../src/assessment';
+import { ASSESSMENT_LIMITS, assessment } from '../../src/assessment';
 import {
-  dataDeChamadaValida,
-  dataDentroDoAnoLetivo,
+  isDateWithinAcademicYear,
+  isValidRollCallDate,
 } from '../../src/assessment/domain/attendance';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
@@ -60,51 +60,51 @@ async function matriculaDeOutraRede(): Promise<string> {
 
 describe('frequencia (domínio)', () => {
   test('aceita data ISO que existe no calendário', () => {
-    const aceitas = ['2026-03-10', '2024-02-29', '2026-12-31'].map(dataDeChamadaValida);
+    const aceitas = ['2026-03-10', '2024-02-29', '2026-12-31'].map(isValidRollCallDate);
 
     expect(aceitas).toEqual([true, true, true]);
   });
 
   test('recusa data que não existe, mesmo com o formato certo', () => {
-    const recusadas = ['2026-02-30', '2026-13-01', '2026-00-10'].map(dataDeChamadaValida);
+    const recusadas = ['2026-02-30', '2026-13-01', '2026-00-10'].map(isValidRollCallDate);
 
     expect(recusadas).toEqual([false, false, false]);
   });
 
   test('recusa qualquer coisa fora do formato AAAA-MM-DD', () => {
-    const recusadas = ['10/03/2026', '2026-3-10', '', 'ontem'].map(dataDeChamadaValida);
+    const recusadas = ['10/03/2026', '2026-3-10', '', 'ontem'].map(isValidRollCallDate);
 
     expect(recusadas).toEqual([false, false, false, false]);
   });
 
   test('trata o intervalo do ano letivo como fechado nas duas pontas', () => {
-    const inicio = dataDentroDoAnoLetivo('2026-02-01', '2026-02-01', '2026-12-15');
-    const fim = dataDentroDoAnoLetivo('2026-12-15', '2026-02-01', '2026-12-15');
-    const meio = dataDentroDoAnoLetivo('2026-07-04', '2026-02-01', '2026-12-15');
+    const inicio = isDateWithinAcademicYear('2026-02-01', '2026-02-01', '2026-12-15');
+    const fim = isDateWithinAcademicYear('2026-12-15', '2026-02-01', '2026-12-15');
+    const meio = isDateWithinAcademicYear('2026-07-04', '2026-02-01', '2026-12-15');
 
     expect([inicio, fim, meio]).toEqual([true, true, true]);
   });
 
   test('deixa de fora a data anterior ao início e a posterior ao fim', () => {
-    const antes = dataDentroDoAnoLetivo('2026-01-31', '2026-02-01', '2026-12-15');
-    const depois = dataDentroDoAnoLetivo('2026-12-16', '2026-02-01', '2026-12-15');
+    const antes = isDateWithinAcademicYear('2026-01-31', '2026-02-01', '2026-12-15');
+    const depois = isDateWithinAcademicYear('2026-12-16', '2026-02-01', '2026-12-15');
 
     expect([antes, depois]).toEqual([false, false]);
   });
 });
 
-describe('registrarChamada', () => {
+describe('recordRollCall', () => {
   test('grava a chamada do dia inteiro da turma', async () => {
     const linhas = cenario.matriculas.map((matricula) => ({
-      matriculaId: matricula.id,
-      presente: true,
+      enrollmentId: matricula.id,
+      present: true,
     }));
 
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: DIA_LETIVO,
-      linhas,
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: DIA_LETIVO,
+      rows: linhas,
     });
 
     expect(resultado).toEqual({ ok: true, valor: 5 });
@@ -113,83 +113,83 @@ describe('registrarChamada', () => {
 
   test('a segunda chamada do mesmo dia atualiza a linha em vez de criar outra', async () => {
     const chamada = {
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: DIA_LETIVO,
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: DIA_LETIVO,
     };
-    await avaliacao.registrarChamada({
+    await assessment.recordRollCall({
       ...chamada,
-      linhas: [{ matriculaId: cenario.matriculas[0].id, presente: true }],
+      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
     });
 
-    const resultado = await avaliacao.registrarChamada({
+    const resultado = await assessment.recordRollCall({
       ...chamada,
-      linhas: [
-        { matriculaId: cenario.matriculas[0].id, presente: false, justificativa: 'Consulta médica' },
+      rows: [
+        { enrollmentId: cenario.matriculas[0].id, present: false, excuse: 'Consulta médica' },
       ],
     });
 
     expect(resultado).toEqual({ ok: true, valor: 1 });
     expect(await contarFrequencias(cenario.rede.id)).toBe(1);
-    const registrada = await avaliacao.chamadaDoDia(
+    const registrada = await assessment.rollCallForDate(
       cenario.rede.id,
       cenario.turmas[0].id,
       DIA_LETIVO,
     );
     expect(registrada.get(cenario.matriculas[0].id)).toEqual({
-      presente: false,
-      justificativa: 'Consulta médica',
+      present: false,
+      excuse: 'Consulta médica',
     });
   });
 
   test('a correção que devolve a presença ao aluno apaga a justificativa', async () => {
     const chamada = {
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: DIA_LETIVO,
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: DIA_LETIVO,
     };
-    await avaliacao.registrarChamada({
+    await assessment.recordRollCall({
       ...chamada,
-      linhas: [
-        { matriculaId: cenario.matriculas[0].id, presente: false, justificativa: 'Atestado' },
+      rows: [
+        { enrollmentId: cenario.matriculas[0].id, present: false, excuse: 'Atestado' },
       ],
     });
 
-    await avaliacao.registrarChamada({
+    await assessment.recordRollCall({
       ...chamada,
-      linhas: [{ matriculaId: cenario.matriculas[0].id, presente: true }],
+      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
     });
 
-    const registrada = await avaliacao.chamadaDoDia(
+    const registrada = await assessment.rollCallForDate(
       cenario.rede.id,
       cenario.turmas[0].id,
       DIA_LETIVO,
     );
     expect(registrada.get(cenario.matriculas[0].id)).toEqual({
-      presente: true,
-      justificativa: null,
+      present: true,
+      excuse: null,
     });
   });
 
   test('dias diferentes convivem como linhas separadas', async () => {
     const chamada = {
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      linhas: [{ matriculaId: cenario.matriculas[0].id, presente: true }],
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
     };
 
-    await avaliacao.registrarChamada({ ...chamada, data: DIA_LETIVO });
-    await avaliacao.registrarChamada({ ...chamada, data: OUTRO_DIA_LETIVO });
+    await assessment.recordRollCall({ ...chamada, date: DIA_LETIVO });
+    await assessment.recordRollCall({ ...chamada, date: OUTRO_DIA_LETIVO });
 
     expect(await contarFrequencias(cenario.rede.id)).toBe(2);
   });
 
   test('recusa data anterior ao início do ano letivo', async () => {
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: `${ANO_PADRAO}-01-15`,
-      linhas: [{ matriculaId: cenario.matriculas[0].id, presente: true }],
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: `${ANO_PADRAO}-01-15`,
+      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
     });
 
     expect(resultado).toEqual({
@@ -200,11 +200,11 @@ describe('registrarChamada', () => {
   });
 
   test('recusa data posterior ao fim do ano letivo', async () => {
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: `${ANO_PADRAO}-12-20`,
-      linhas: [{ matriculaId: cenario.matriculas[0].id, presente: true }],
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: `${ANO_PADRAO}-12-20`,
+      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
     });
 
     expect(resultado).toEqual({
@@ -214,11 +214,11 @@ describe('registrarChamada', () => {
   });
 
   test('a recusa por data diz qual é o intervalo do ano letivo', async () => {
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: `${ANO_PADRAO}-01-15`,
-      linhas: [{ matriculaId: cenario.matriculas[0].id, presente: true }],
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: `${ANO_PADRAO}-01-15`,
+      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
     });
 
     const mensagem = resultado.ok ? '' : (resultado.erros[0]?.mensagem ?? '');
@@ -227,11 +227,11 @@ describe('registrarChamada', () => {
   });
 
   test('recusa data que não existe no calendário', async () => {
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: `${ANO_PADRAO}-02-30`,
-      linhas: [{ matriculaId: cenario.matriculas[0].id, presente: true }],
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: `${ANO_PADRAO}-02-30`,
+      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
     });
 
     expect(resultado).toEqual({
@@ -246,11 +246,11 @@ describe('registrarChamada', () => {
   });
 
   test('recusa data em formato diferente de AAAA-MM-DD', async () => {
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: '10/03/2026',
-      linhas: [{ matriculaId: cenario.matriculas[0].id, presente: true }],
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: '10/03/2026',
+      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
     });
 
     expect(resultado).toEqual({
@@ -262,11 +262,11 @@ describe('registrarChamada', () => {
   test('recusa turma que não é desta rede', async () => {
     const outra = await cenarioCompleto();
 
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: outra.turmas[0].id,
-      data: DIA_LETIVO,
-      linhas: [{ matriculaId: cenario.matriculas[0].id, presente: true }],
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: outra.turmas[0].id,
+      date: DIA_LETIVO,
+      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
     });
 
     expect(resultado).toEqual({
@@ -284,13 +284,13 @@ describe('registrarChamada', () => {
       academicYearId: cenario.anoLetivo.id,
     });
 
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: DIA_LETIVO,
-      linhas: [
-        { matriculaId: cenario.matriculas[0].id, presente: true },
-        { matriculaId: forasteira.id, presente: false },
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: DIA_LETIVO,
+      rows: [
+        { enrollmentId: cenario.matriculas[0].id, present: true },
+        { enrollmentId: forasteira.id, present: false },
       ],
     });
 
@@ -304,13 +304,13 @@ describe('registrarChamada', () => {
   test('recusa a chamada com matrícula de outra rede', async () => {
     const deOutraRede = await matriculaDeOutraRede();
 
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: DIA_LETIVO,
-      linhas: [
-        { matriculaId: cenario.matriculas[0].id, presente: true },
-        { matriculaId: deOutraRede, presente: true },
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: DIA_LETIVO,
+      rows: [
+        { enrollmentId: cenario.matriculas[0].id, present: true },
+        { enrollmentId: deOutraRede, present: true },
       ],
     });
 
@@ -322,13 +322,13 @@ describe('registrarChamada', () => {
   });
 
   test('recusa a chamada com o mesmo aluno duas vezes', async () => {
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: DIA_LETIVO,
-      linhas: [
-        { matriculaId: cenario.matriculas[0].id, presente: true },
-        { matriculaId: cenario.matriculas[0].id, presente: false },
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: DIA_LETIVO,
+      rows: [
+        { enrollmentId: cenario.matriculas[0].id, present: true },
+        { enrollmentId: cenario.matriculas[0].id, present: false },
       ],
     });
 
@@ -339,11 +339,11 @@ describe('registrarChamada', () => {
   });
 
   test('recusa chamada sem linha nenhuma', async () => {
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: DIA_LETIVO,
-      linhas: [],
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: DIA_LETIVO,
+      rows: [],
     });
 
     expect(resultado).toEqual({
@@ -353,36 +353,36 @@ describe('registrarChamada', () => {
   });
 
   test('aceita justificativa com exatamente o limite em caracteres', async () => {
-    const justificativa = 'x'.repeat(LIMITES_DA_AVALIACAO.caracteresDaJustificativa);
+    const justificativa = 'x'.repeat(ASSESSMENT_LIMITS.excuseCharacters);
 
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: DIA_LETIVO,
-      linhas: [{ matriculaId: cenario.matriculas[0].id, presente: false, justificativa }],
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: DIA_LETIVO,
+      rows: [{ enrollmentId: cenario.matriculas[0].id, present: false, excuse: justificativa }],
     });
 
     expect(resultado).toEqual({ ok: true, valor: 1 });
-    const registrada = await avaliacao.chamadaDoDia(
+    const registrada = await assessment.rollCallForDate(
       cenario.rede.id,
       cenario.turmas[0].id,
       DIA_LETIVO,
     );
-    expect(registrada.get(cenario.matriculas[0].id)?.justificativa?.length).toBe(
-      LIMITES_DA_AVALIACAO.caracteresDaJustificativa,
+    expect(registrada.get(cenario.matriculas[0].id)?.excuse?.length).toBe(
+      ASSESSMENT_LIMITS.excuseCharacters,
     );
   });
 
   test('recusa justificativa com um caractere além do limite', async () => {
-    const resultado = await avaliacao.registrarChamada({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[0].id,
-      data: DIA_LETIVO,
-      linhas: [
+    const resultado = await assessment.recordRollCall({
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[0].id,
+      date: DIA_LETIVO,
+      rows: [
         {
-          matriculaId: cenario.matriculas[0].id,
-          presente: false,
-          justificativa: 'x'.repeat(LIMITES_DA_AVALIACAO.caracteresDaJustificativa + 1),
+          enrollmentId: cenario.matriculas[0].id,
+          present: false,
+          excuse: 'x'.repeat(ASSESSMENT_LIMITS.excuseCharacters + 1),
         },
       ],
     });

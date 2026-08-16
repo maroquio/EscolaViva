@@ -1,48 +1,51 @@
-export const TITULO_TAMANHO_MAXIMO = 160;
-export const CORPO_TAMANHO_MAXIMO = 8000;
+export const MAX_TITLE_LENGTH = 160;
+export const MAX_BODY_LENGTH = 8000;
 
-export type Comunicado = {
+export type Announcement = {
   id: string;
-  redeId: string;
-  unidadeId: string;
-  titulo: string;
-  corpo: string;
-  autorNome: string;
-  publicadoEm: string | null;
+  networkId: string;
+  schoolId: string;
+  title: string;
+  body: string;
+  authorName: string;
+  publishedAt: string | null;
 };
 
-export type ComunicadoArmazenado = {
+export type StoredAnnouncement = {
   id: string;
-  redeId: string;
-  unidadeId: string;
-  titulo: string;
-  corpo: string;
-  autorUsuarioId: string;
-  publicadoEm: string | null;
+  networkId: string;
+  schoolId: string;
+  title: string;
+  body: string;
+  authorUserId: string;
+  publishedAt: string | null;
 };
 
-export function tituloValido(titulo: string): boolean {
-  const limpo = titulo.trim();
-  return limpo.length > 0 && limpo.length <= TITULO_TAMANHO_MAXIMO;
+export function isValidTitle(title: string): boolean {
+  const trimmed = title.trim();
+  return trimmed.length > 0 && trimmed.length <= MAX_TITLE_LENGTH;
 }
 
-export function corpoValido(corpo: string): boolean {
-  const limpo = corpo.trim();
-  return limpo.length > 0 && limpo.length <= CORPO_TAMANHO_MAXIMO;
+export function isValidBody(body: string): boolean {
+  const trimmed = body.trim();
+  return trimmed.length > 0 && trimmed.length <= MAX_BODY_LENGTH;
 }
 
-export function estaPublicado(comunicado: { publicadoEm: string | null }): boolean {
-  return comunicado.publicadoEm !== null;
+export function isPublished(announcement: { publishedAt: string | null }): boolean {
+  return announcement.publishedAt !== null;
 }
 
-export function comAutor(comunicado: ComunicadoArmazenado, autorNome: string): Comunicado {
+export function withAuthor(
+  announcement: StoredAnnouncement,
+  authorName: string,
+): Announcement {
   return {
-    id: comunicado.id,
-    redeId: comunicado.redeId,
-    unidadeId: comunicado.unidadeId,
-    titulo: comunicado.titulo,
-    corpo: comunicado.corpo,
-    autorNome,
-    publicadoEm: comunicado.publicadoEm,
+    id: announcement.id,
+    networkId: announcement.networkId,
+    schoolId: announcement.schoolId,
+    title: announcement.title,
+    body: announcement.body,
+    authorName,
+    publishedAt: announcement.publishedAt,
   };
 }

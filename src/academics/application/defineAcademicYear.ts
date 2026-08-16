@@ -2,47 +2,55 @@ import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
-import { periodoCoerente, type AnoLetivo } from '../domain/academicYear';
-import * as anosLetivos from '../infra/academicYearRepository';
+import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { isCoherentPeriod, type AcademicYear } from '../domain/academicYear';
+import * as academicYears from '../infra/academicYearRepository';
 
-const entrada = z.object({
-  redeId: z.string().uuid(),
-  ano: z
+const schema = z.object({
+  networkId: z.string().uuid(),
+  year: z
     .number()
-    .int(MENSAGENS.anoLetivo.anoNaoInteiro)
-    .min(LIMITES.anoLetivo.anoMinimo, MENSAGENS.anoLetivo.anoAbaixoDoMinimo)
-    .max(LIMITES.anoLetivo.anoMaximo, MENSAGENS.anoLetivo.anoAcimaDoMaximo),
-  dataInicio: z.string().date(MENSAGENS.anoLetivo.dataInicioFormato),
-  dataFim: z.string().date(MENSAGENS.anoLetivo.dataFimFormato),
+    .int(MESSAGES.academicYear.yearNotInteger)
+    .min(LIMITS.academicYear.minYear, MESSAGES.academicYear.yearBelowMinimum)
+    .max(LIMITS.academicYear.maxYear, MESSAGES.academicYear.yearAboveMaximum),
+  startDate: z.string().date(MESSAGES.academicYear.startDateFormat),
+  endDate: z.string().date(MESSAGES.academicYear.endDateFormat),
 });
 
-export async function definirAnoLetivo(e: {
-  redeId: string;
-  ano: number;
-  dataInicio: string;
-  dataFim: string;
-}): Promise<Result<AnoLetivo>> {
-  const validada = entrada.safeParse(e);
-  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
+export async function defineAcademicYear(input: {
+  networkId: string;
+  year: number;
+  startDate: string;
+  endDate: string;
+}): Promise<Result<AcademicYear>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.academicYear));
+  }
 
-  const { redeId, ano, dataInicio, dataFim } = validada.data;
-  if (!periodoCoerente(dataInicio, dataFim)) {
+  const { networkId, year, startDate, endDate } = parsed.data;
+  if (!isCoherentPeriod(startDate, endDate)) {
     return fieldFailure(
-      CAMPOS.anoLetivo.dataFim,
-      CODIGOS.anoLetivo.periodoIncoerente,
-      MENSAGENS.anoLetivo.periodoIncoerente,
+      FIELDS.academicYear.endDate,
+      CODES.academicYear.incoherentPeriod,
+      MESSAGES.academicYear.incoherentPeriod,
     );
   }
 
-  const anoLetivo: AnoLetivo = { id: uuidIdGenerator.next(), redeId, ano, dataInicio, dataFim };
-  const criado = await unitOfWork(({ sql }) => anosLetivos.inserir(sql, anoLetivo));
-  if (!criado) {
+  const academicYear: AcademicYear = {
+    id: uuidIdGenerator.next(),
+    networkId,
+    year,
+    startDate,
+    endDate,
+  };
+  const created = await unitOfWork(({ sql }) => academicYears.insert(sql, academicYear));
+  if (!created) {
     return fieldFailure(
-      CAMPOS.anoLetivo.ano,
-      CODIGOS.anoLetivo.duplicado,
-      MENSAGENS.anoLetivo.duplicado(ano),
+      FIELDS.academicYear.year,
+      CODES.academicYear.duplicate,
+      MESSAGES.academicYear.duplicate(year),
     );
   }
-  return success(anoLetivo);
+  return success(academicYear);
 }

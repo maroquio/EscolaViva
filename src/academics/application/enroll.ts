@@ -3,97 +3,104 @@ import type { Connection } from '../../shared/db';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, MENSAGENS } from '../constants';
-import { MATRICULA_ATIVA, type Matricula } from '../domain/enrollment';
-import type { Turma } from '../domain/classGroup';
-import * as alunos from '../infra/studentRepository';
-import * as anosLetivos from '../infra/academicYearRepository';
-import * as matriculas from '../infra/enrollmentRepository';
-import * as turmas from '../infra/classGroupRepository';
+import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { ACTIVE_ENROLLMENT_STATUS, type Enrollment } from '../domain/enrollment';
+import type { ClassGroup } from '../domain/classGroup';
+import * as students from '../infra/studentRepository';
+import * as academicYears from '../infra/academicYearRepository';
+import * as enrollments from '../infra/enrollmentRepository';
+import * as classGroups from '../infra/classGroupRepository';
 
-const entrada = z.object({
-  redeId: z.string().uuid(),
-  alunoId: z.string().uuid(MENSAGENS.alunoObrigatorio),
-  turmaId: z.string().uuid(MENSAGENS.matricula.turmaObrigatoria),
-  anoLetivoId: z.string().uuid(MENSAGENS.anoLetivoObrigatorio),
-  dataMatricula: z.string().date(MENSAGENS.matricula.dataFormato),
+const schema = z.object({
+  networkId: z.string().uuid(),
+  studentId: z.string().uuid(MESSAGES.studentRequired),
+  classGroupId: z.string().uuid(MESSAGES.enrollment.classGroupRequired),
+  academicYearId: z.string().uuid(MESSAGES.academicYearRequired),
+  enrollmentDate: z.string().date(MESSAGES.enrollment.dateFormat),
 });
 
-type Alvo = { redeId: string; alunoId: string; turmaId: string; anoLetivoId: string };
-type ContextoDaMatricula = { alunoNome: string; turma: Turma; ano: number };
+type Target = {
+  networkId: string;
+  studentId: string;
+  classGroupId: string;
+  academicYearId: string;
+};
+type EnrollmentContext = { studentName: string; classGroup: ClassGroup; year: number };
 
-async function contexto(sql: Connection, alvo: Alvo): Promise<Result<ContextoDaMatricula>> {
-  const aluno = await alunos.porId(sql, alvo.redeId, alvo.alunoId);
-  if (aluno === null) {
+async function context(sql: Connection, target: Target): Promise<Result<EnrollmentContext>> {
+  const student = await students.byId(sql, target.networkId, target.studentId);
+  if (student === null) {
     return fieldFailure(
-      CAMPOS.matricula.alunoId,
-      CODIGOS.alunoNaoEncontrado,
-      MENSAGENS.alunoNaoEncontrado,
+      FIELDS.enrollment.studentId,
+      CODES.studentNotFound,
+      MESSAGES.studentNotFound,
     );
   }
-  const turma = await turmas.porId(sql, alvo.redeId, alvo.turmaId);
-  if (turma === null) {
+  const classGroup = await classGroups.byId(sql, target.networkId, target.classGroupId);
+  if (classGroup === null) {
     return fieldFailure(
-      CAMPOS.matricula.turmaId,
-      CODIGOS.turmaNaoEncontrada,
-      MENSAGENS.turmaNaoEncontrada,
+      FIELDS.enrollment.classGroupId,
+      CODES.classGroupNotFound,
+      MESSAGES.classGroupNotFound,
     );
   }
-  const anoLetivo = await anosLetivos.porId(sql, alvo.redeId, alvo.anoLetivoId);
-  if (anoLetivo === null) {
+  const academicYear = await academicYears.byId(sql, target.networkId, target.academicYearId);
+  if (academicYear === null) {
     return fieldFailure(
-      CAMPOS.matricula.anoLetivoId,
-      CODIGOS.anoLetivoNaoEncontrado,
-      MENSAGENS.anoLetivoNaoEncontrado,
+      FIELDS.enrollment.academicYearId,
+      CODES.academicYearNotFound,
+      MESSAGES.academicYearNotFound,
     );
   }
-  if (turma.anoLetivoId !== alvo.anoLetivoId) {
+  if (classGroup.academicYearId !== target.academicYearId) {
     return fieldFailure(
-      CAMPOS.matricula.turmaId,
-      CODIGOS.matricula.turmaDeOutroAno,
-      MENSAGENS.matricula.turmaDeOutroAno,
+      FIELDS.enrollment.classGroupId,
+      CODES.enrollment.classGroupFromAnotherYear,
+      MESSAGES.enrollment.classGroupFromAnotherYear,
     );
   }
-  return success({ alunoNome: aluno.nome, turma, ano: anoLetivo.ano });
+  return success({ studentName: student.name, classGroup, year: academicYear.year });
 }
 
-export async function matricular(e: {
-  redeId: string;
-  alunoId: string;
-  turmaId: string;
-  anoLetivoId: string;
-  dataMatricula: string;
-}): Promise<Result<Matricula>> {
-  const validada = entrada.safeParse(e);
-  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
+export async function enroll(input: {
+  networkId: string;
+  studentId: string;
+  classGroupId: string;
+  academicYearId: string;
+  enrollmentDate: string;
+}): Promise<Result<Enrollment>> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.enrollment));
+  }
 
-  const { redeId, alunoId, turmaId, anoLetivoId, dataMatricula } = validada.data;
-  return unitOfWork(async ({ sql }): Promise<Result<Matricula>> => {
-    const encontrado = await contexto(sql, { redeId, alunoId, turmaId, anoLetivoId });
-    if (!encontrado.ok) return encontrado;
+  const { networkId, studentId, classGroupId, academicYearId, enrollmentDate } = parsed.data;
+  return unitOfWork(async ({ sql }): Promise<Result<Enrollment>> => {
+    const found = await context(sql, { networkId, studentId, classGroupId, academicYearId });
+    if (!found.ok) return found;
 
-    const { alunoNome, turma, ano } = encontrado.valor;
-    const matricula: Matricula = {
+    const { studentName, classGroup, year } = found.valor;
+    const enrollment: Enrollment = {
       id: uuidIdGenerator.next(),
-      redeId,
-      alunoId,
-      alunoNome,
-      turmaId,
-      turmaNome: turma.nome,
-      unidadeId: turma.unidadeId,
-      anoLetivoId,
-      ano,
-      dataMatricula,
-      situacao: MATRICULA_ATIVA,
+      networkId,
+      studentId,
+      studentName,
+      classGroupId,
+      classGroupName: classGroup.name,
+      schoolId: classGroup.schoolId,
+      academicYearId,
+      year,
+      enrollmentDate,
+      status: ACTIVE_ENROLLMENT_STATUS,
     };
-    const criada = await matriculas.inserir(sql, matricula);
-    if (!criada) {
+    const created = await enrollments.insert(sql, enrollment);
+    if (!created) {
       return fieldFailure(
-        CAMPOS.matricula.alunoId,
-        CODIGOS.matricula.ativaDuplicada,
-        MENSAGENS.matricula.ativaDuplicada,
+        FIELDS.enrollment.studentId,
+        CODES.enrollment.duplicateActive,
+        MESSAGES.enrollment.duplicateActive,
       );
     }
-    return success(matricula);
+    return success(enrollment);
   });
 }
