@@ -1,11 +1,11 @@
 /*
- * The compatibility window of ADR 0003, applied end to end against a real database.
+ * The migration compatibility window, applied end to end against a real database.
  *
  * `migration_window.test.ts` reads SQL and refuses the shapes that compress the window. This file
  * does the opposite job: it runs the window, step by step, and shows what each step buys. The
  * question it answers is not "does the checker work" — it is "why is the rule shaped like this".
  *
- * The change on trial is the one ADR 0003 names explicitly: renaming a column. The previous
+ * The change on trial is the one the rule names explicitly: renaming a column. The previous
  * version of the code reads `nome`; the new one wants `full_name`. Done in one instant, the
  * previous version falls. Done in four steps, it never notices.
  *
@@ -41,7 +41,7 @@ const run = (statement: string): Promise<unknown> => connection.unsafe(statement
 const namesFrom = (rows: unknown): string[] =>
   (rows as Record<string, string>[]).map((row) => row['nome'] ?? row['full_name'] ?? '');
 
-/** Steps 1 and 2 of ADR 0003: add — never NOT NULL without a default — and migrate the data. */
+/** Steps 1 and 2: add — never NOT NULL without a default — and migrate the data. */
 const openTheWindow = async (): Promise<void> => {
   await run(`ALTER TABLE ${TABLE} ADD COLUMN full_name text`);
   await run(`UPDATE ${TABLE} SET full_name = nome`);

@@ -29,7 +29,7 @@ beforeEach(clearDatabase);
 const numberedName = (position: number): string => `Pessoa ${String(position).padStart(3, '0')}`;
 
 /*
- * ADR 0006: the guardian listing left `academics` and became `identity.usersPage` filtered by
+ * The guardian listing left `academics` and became `identity.usersPage` filtered by
  * role — the context that owns the name is the one that sorts and paginates by it.
  */
 describe('the guardian page, now filtered by role in identity', () => {
@@ -260,7 +260,7 @@ describe('usersPage', () => {
     const page = await identity.usersPage(scenario.network.id, 1, 2);
 
     expect(page.items).toHaveLength(2);
-    // ADR 0006: the five guardians of the scenario are `app_user` rows like any other.
+    // The five guardians of the scenario are `app_user` rows like any other.
     expect(page.total).toBe(3 + scenario.guardians.length);
     const admin = page.items.find((user) => user.id === scenario.admin.id);
     if (admin !== undefined) expect(admin.roles).toHaveLength(2);

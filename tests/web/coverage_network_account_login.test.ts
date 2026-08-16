@@ -61,7 +61,7 @@ describe('the network dashboard', () => {
     expect(response.status).toBe(200);
     expect(page).toContain(`<h1 class="page__title">${scenario.network.name}</h1>`);
     expect(cardNumber(page, 'Unidades')).toBe(String(scenario.schools.length));
-    // ADR 0006: the accounts are the three of the staff plus one per guardian of the scenario.
+    // The accounts are the three of the staff plus one per guardian of the scenario.
     expect(cardNumber(page, 'Usuários')).toBe(String(3 + scenario.guardians.length));
     expect(cardNumber(page, 'Turmas')).toBe(String(scenario.classGroups.length));
     expect(cardNumber(page, 'Matriculados')).toBe(String(scenario.enrollments.length));
@@ -188,7 +188,7 @@ describe('the users of the network', () => {
     expect(page).toContain('Usuário criado. A senha provisória está logo abaixo.');
     expect(page).toContain('Senha provisória de Nova Secretária');
     expect(page).toContain('<code class="code">');
-    // ADR 0004: the CPF is what signs in. The panel used to point at the e-mail, which the
+    // The CPF is what signs in. The panel used to point at the e-mail, which the
     // login screen stopped accepting — it told whoever received the password the wrong door.
     expect(page).toContain(`entre com o CPF\n    <strong>${formatCpf(generateCpf(424_242))}</strong>`);
     // Once read, the password must not stay tucked away in the browser for the next visit.
@@ -216,7 +216,7 @@ describe('the users of the network', () => {
     expect(page).toContain('<h1 class="page__title">Convidar usuário</h1>');
     expect(page).toContain('name="schools[]"');
     expect(page).toContain('name="roles[]"');
-    // ADR 0006: there is no guardian record left to tie the account to, so the field is gone.
+    // There is no guardian record left to tie the account to, so the field is gone.
     expect(page).not.toContain('name="guardianId"');
     expect(page).not.toContain(scenario.guardians[4].name);
     // With no JavaScript on the client, the rows are fixed: three, no more and no less.

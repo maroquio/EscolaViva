@@ -1,17 +1,16 @@
 -- The whole schema of Stage 01, in one migration.
 --
--- This file is the starting point, not the story. It replaces the eight migrations that built
--- the schema one module at a time and the ninth that carried out ADR 0006 — including two
--- compatibility windows that were opened and closed again, one for the CPF (ADR 0004) and one
--- for the guardian who became a user (ADR 0006). That story belongs to the ADRs and to the git
--- history; a migration directory is not the place to keep it once the windows have closed, and
--- nine files to reach a single starting point is nine chances of reading an intermediate state
--- as if it were the current one.
+-- This file is the starting point, not the story. It replaces the nine migrations that built the
+-- schema one module at a time — including two compatibility windows that were opened and closed
+-- again, one for the CPF becoming the sign-in identifier and one for the guardian becoming a
+-- user. That story belongs to the git history; a migration directory is not the place to keep it
+-- once the windows have closed, and nine files to reach a single starting point is nine chances
+-- of reading an intermediate state as if it were the current one.
 --
 -- **This file only creates.** There is no ALTER and no DROP in it, and that is a property, not
 -- a coincidence: `tests/shared/migration_window.test.ts` reads every file in this directory and
--- refuses the ones that compress the window ADR 0003 requires — a rename, an ADD COLUMN sharing
--- a file with a DROP, a NOT NULL with no default. A consolidated baseline passes those rules by
+-- refuses the ones that compress the compatibility window — a rename, an ADD COLUMN sharing a
+-- file with a DROP, a NOT NULL with no default. A consolidated baseline passes those rules by
 -- construction, so the gate needs no exception for it, and the next migration to arrive is
 -- checked from the first line.
 --
@@ -64,13 +63,13 @@ CREATE TABLE school (
 CREATE TRIGGER school_updated_at BEFORE UPDATE ON school
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
--- `app_user` is the person, not merely the credential (ADR 0006). There is no separate record
+-- `app_user` is the person, not merely the credential. There is no separate record
 -- of a guardian: whoever answers for a student is a row here, reached through
 -- `student_guardian.user_id` — academics pointing at identity, the same direction as the
 -- teacher's `class_group_subject.teacher_user_id`. `phone` is the contact column that used to
 -- justify the second table.
 --
--- The CPF is what a person types to sign in (ADR 0004); e-mail is contact only, and is not
+-- The CPF is what a person types to sign in; e-mail is contact only, and is not
 -- unique — a mother and a father may share a family address.
 CREATE TABLE app_user (
   id             uuid PRIMARY KEY,
@@ -202,7 +201,7 @@ CREATE TRIGGER student_updated_at BEFORE UPDATE ON student
 CREATE INDEX student_by_name ON student (network_id, name);
 
 -- Who answers for a student, and under what relationship. `user_id` points at `app_user`:
--- academics keeps the academic relationship and nothing else (ADR 0006). The pair is the
+-- academics keeps the academic relationship and nothing else. The pair is the
 -- primary key, so the same person answers for a student exactly once.
 CREATE TABLE student_guardian (
   network_id              uuid NOT NULL REFERENCES network(id),

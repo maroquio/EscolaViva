@@ -70,7 +70,7 @@ export type Credentials = { networkSlug: string; cpf: string; password: string }
 
 /**
  * Signs in for real and hands back the signed cookie the application emitted. Ever since the CPF
- * compatibility window closed (ADR 0004), `/login` accepts only the `cpf` field — there is no
+ * compatibility window closed, `/login` accepts only the `cpf` field — there is no
  * translation left to do here, just passing along what the test scenario already has at hand.
  */
 export async function signIn(credentials: Credentials): Promise<string> {
@@ -166,7 +166,7 @@ export async function healthWithDatabaseDown(): Promise<HealthResponse> {
 
 export type FlowScenario = {
   networkSlug: string;
-  /** Only so the scenario can check the e-mail does not leak into the log — it no longer takes part in login (ADR 0004). */
+  /** Only so the scenario can check the e-mail does not leak into the log — it no longer takes part in login. */
   email: string;
   cpf: string;
   password: string;

@@ -177,7 +177,7 @@ describe('the user', () => {
 
   /*
    * The photographic negative of "whoever signs in as a guardian brings the guardian record
-   * along". ADR 0006 removed the record: whoever signs in as a guardian IS the guardian, and the
+   * along". The record is gone: whoever signs in as a guardian IS the guardian, and the
    * session has nothing left to translate.
    */
   test('the authenticated user carries no guardian record, because there is none', () => {

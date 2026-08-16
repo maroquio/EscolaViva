@@ -62,7 +62,7 @@ export type GoldenRole =
   | 'noRole'
   | 'admin'
   | 'registrar'
-  /* A registrar of two schools. ADR 0006 made the guardian form ask which school the person
+  /* A registrar of two schools. The guardian form asks which school the person
      enters the portal through, and the field only renders for whoever has more than one. */
   | 'registrarOfTwo'
   | 'teacher'
@@ -232,7 +232,7 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
     roles: [],
   });
 
-  // ADR 0006: the portal user IS the guardian — there is no second record to tie it to.
+  // The portal user IS the guardian — there is no second record to tie it to.
   const guardian = guardians[0];
   if (guardian === undefined) throw new Error('the golden scenario needs at least one guardian');
 

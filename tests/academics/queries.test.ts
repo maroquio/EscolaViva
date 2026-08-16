@@ -298,7 +298,7 @@ describe('the subjects of a class group and of a teacher', () => {
 
 describe('guardians', () => {
   /*
-   * `listGuardians` left academics with the guardian record (ADR 0006); the listing is now
+   * `listGuardians` left academics together with the guardian record; the listing is now
    * `identity.usersPage` filtered by role, and it is proven in `tests/academics/pagination.test.ts`.
    * What stays here is the link itself, which is all academics still owns.
    */

@@ -1,16 +1,22 @@
 /*
- * The compatibility window of ADR 0003, turned into a gate.
+ * The migration compatibility window, turned into a gate.
  *
- * The rule — never drop what the previous version still reads — used to live only as prose in
- * `docs/ADR/0003-migration-compatibility-window.md`, demonstrated by a pair of migrations that
- * two consolidations have since erased from `migrations/`. Prose is honoured by whoever
- * remembers it; a gate is honoured by everyone.
+ * The rule — never drop or rename a column the previous version still reads — is stated in the
+ * README, and it used to be demonstrated by a pair of migrations that two consolidations have
+ * since erased from `migrations/`. Prose is honoured by whoever remembers it; a gate is honoured
+ * by everyone.
+ *
+ * There is always an interval — between applying the migration and the new process being up, or
+ * between the new one starting and the old one finishing what was in flight — in which two
+ * versions of the code talk to the same database. Every schema change respects four steps, in
+ * separate migrations and separate deploys: add the new structure, migrate the data, stop writing
+ * to the old one, and only then drop it.
  *
  * Three shapes compress the window into a single instant, and each one takes down the version
  * that is still up:
  *
  *   1. A RENAME. It is steps "add" and "drop" fused: the old name stops existing the moment the
- *      new one starts. ADR 0003 forbids it by name.
+ *      new one starts. The rule forbids it by name.
  *   2. An ADD COLUMN sharing a file with a DROP COLUMN, a DROP TABLE or a SET NOT NULL. Opening
  *      and closing in one deploy leaves no interval in which both versions can read.
  *   3. An ADD COLUMN NOT NULL with no DEFAULT. The old version does not know how to fill the
@@ -61,7 +67,7 @@ const WHY = {
   rename:
     'um RENAME é os passos "adicionar" e "remover" fundidos num instante só: o nome antigo deixa ' +
     'de existir no momento em que o novo passa a existir, e a versão que ainda está no ar lendo o ' +
-    'antigo cai. A ADR 0003 proíbe pelo nome — a sequência é sempre coluna nova, backfill, parar ' +
+    'antigo cai. A regra proíbe pelo nome — a sequência é sempre coluna nova, backfill, parar ' +
     'de escrever na velha, e só então remover.',
   bothHalves:
     'abrir e fechar a janela no mesmo arquivo não deixa intervalo nenhum em que as duas versões do ' +
@@ -122,7 +128,7 @@ const readMigration = async (name: string): Promise<string> =>
 
 /* ------------------------------------------------------------------------- */
 
-describe('every migration respects the compatibility window of ADR 0003', () => {
+describe('every migration respects the compatibility window', () => {
   test('no file in migrations/ compresses the window', async () => {
     const names = await migrationFiles();
     expect(names.length).toBeGreaterThan(0);

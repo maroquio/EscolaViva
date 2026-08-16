@@ -176,7 +176,7 @@ describe('inviteUser', () => {
 
   /*
    * The photographic negative of "a guardian role with no guardian record behind it is refused"
-   * and of "a guardian role with the record tied in carries the link into the session". ADR 0006
+   * and of "a guardian role with the record tied in carries the link into the session". The change
    * deleted the record: the guardian role now needs nothing but the person, and the session has
    * no link to carry.
    */
@@ -336,7 +336,7 @@ describe('inviteUser', () => {
   /*
    * Both tests that lived here — "refuses when the CPF typed in diverges from the guardian
    * record" and "accepts when the guardian record has no CPF yet" — compared the CPF typed in
-   * against a second record. ADR 0006 deleted that record, and with it the divergence they
+   * against a second record. That record is gone, and with it the divergence they
    * guarded: there is only one CPF now, and it is the one being typed.
    */
 
@@ -362,7 +362,7 @@ describe('inviteUser', () => {
   });
 
   /*
-   * The three that follow came from `academics.registerGuardian`, which ADR 0006 deleted:
+   * The three that follow came from `academics.registerGuardian`, which no longer exists:
    * registering a guardian is inviting a user, and these are the rules that moved along with it.
    */
   test('stores the CPF as digits alone, even when typed with punctuation', async () => {
@@ -402,7 +402,7 @@ describe('inviteUser', () => {
 
   /*
    * The photographic negative of "records a guardian with no CPF — a foreigner exists as a
-   * contact". ADR 0004 kept that person as a contact without portal access; ADR 0006 revoked the
+   * contact". That person used to stay as a contact without portal access; the decision revoked the
    * consequence: with no separate record to hold them, a guardian without a CPF stops being
    * registrable at all. It is the accepted price of the decision, and this is where it is stated.
    */

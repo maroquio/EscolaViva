@@ -1,5 +1,5 @@
 /*
- * The CPF is the credential for signing in (ADR 0004), and the arithmetic of the check digits is
+ * The CPF is the credential for signing in, and the arithmetic of the check digits is
  * the only thing separating a typed number from a document.
  *
  * The generator is tested alongside the validator on purpose: they are two sides of the same

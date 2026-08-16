@@ -356,7 +356,7 @@ describe('registerStudent', () => {
 });
 
 /*
- * `registerGuardian` was deleted by ADR 0006: a guardian is an `app_user`, and registering one is
+ * `registerGuardian` is gone: a guardian is an `app_user`, and registering one is
  * `identity.inviteUser`. The rules that lived here — e-mail normalized, invalid e-mail refused,
  * CPF stored as digits alone — moved to `tests/identity/users.test.ts`, together with the
  * consequence that reverses one of them: a guardian without a CPF is no longer registrable.

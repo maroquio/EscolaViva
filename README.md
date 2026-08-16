@@ -104,7 +104,7 @@ The `escolaviva.test` domain is reserved by RFC 2606 — none of these addresses
 | `professor4@escolaviva.test` … `professor6@escolaviva.test` | teacher | Escola Bairro Novo |
 | ~200 guardians | guardian | guardian portal |
 
-Sign-in is by **CPF**, not by e-mail (ADR 0004). The seed prints the CPF next to each credential; the
+Sign-in is by **CPF**, not by e-mail. The seed prints the CPF next to each credential; the
 e-mails above identify who is who in the demo data. The seed also prints three guardian records at
 the end of its run — the names are drawn from a fixed seed, so they are always the same on any
 machine.
@@ -193,9 +193,9 @@ idea" and the extraction turns into a rewrite.
 
 Migrations are numbered `.sql` files under `migrations/`, applied by `bun run migrate` in one
 transaction per file, recorded in `schema_migrations`. Today there is exactly one: Stage 01 built the
-schema across eight migrations, and once every compatibility window they opened had been closed, they
+schema across nine migrations, and once every compatibility window they opened had been closed, they
 were folded into `0001_initial_schema.sql`. A migration directory records what still has to happen to
-a database, not how the schema came to be — that is what the git history and the ADRs are for.
+a database, not how the schema came to be — that is what the git history is for.
 
 The rule below governs every migration from the second one onward. There is always an interval —
 between applying the migration and the new process being up, or between the new one starting and the
@@ -213,8 +213,16 @@ respects this order, in separate migrations and separate deploys:
    is plausible.
 
 Renaming a column is always that sequence — never `ALTER TABLE ... RENAME COLUMN`, which compresses
-steps 1 and 4 into a single instant. The full reasoning is in
-[`docs/ADR/0003-migration-compatibility-window.md`](docs/ADR/0003-migration-compatibility-window.md).
+steps 1 and 4 into a single instant.
+
+The rule is not honoured by memory. `tests/shared/migration_window.test.ts` reads every file under
+`migrations/` and refuses the three shapes that compress the window: a `RENAME`, an `ADD COLUMN`
+sharing a file with a `DROP COLUMN`, a `DROP TABLE` or a `SET NOT NULL`, and an
+`ADD COLUMN ... NOT NULL` with no `DEFAULT` — and the second half of that file feeds the check
+sources that do break the rule, demanding it accuse each one.
+`tests/shared/migration_window_in_motion.test.ts` runs the four steps against a real database and
+states what each one buys, ending with the one-step rename taking the previous version down at that
+very instant.
 
 ---
 

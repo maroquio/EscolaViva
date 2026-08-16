@@ -33,7 +33,7 @@ beforeEach(async () => {
 
 // Outside the file's four groups — this is neither record-keeping, listing, refusal nor reach —
 // but the same family of check: the page opens and carries the field the current phase promises.
-// The CPF window has closed (ADR 0004): the field is called `cpf`, and the label no longer mentions
+// The CPF window has closed: the field is called `cpf`, and the label no longer mentions
 // e-mail — the first check alone would pass with the screen still saying "CPF ou e-mail" above a
 // field renamed underneath; the second is what makes sure the screen also stopped promising what it
 // no longer accepts.
@@ -276,7 +276,7 @@ describe('the rejected form goes back to the form, not to the list', () => {
   });
 
   /*
-   * ADR 0006 turned registering a guardian into inviting a user, and `user_role.school_id` is NOT
+   * Registering a guardian became inviting a user, and `user_role.school_id` is NOT
    * NULL: the screen has to say which school the person enters through. A registrar of a single
    * school never sees the field — the route takes the only one there is — so what needs guarding
    * is the registrar of two.
@@ -320,7 +320,7 @@ describe('the rejected form goes back to the form, not to the list', () => {
 
   /*
    * The two tests that lived here guarded the `guardianId` field of the invitation form: one for a
-   * CPF diverging from the record, one for an id outside the format. ADR 0006 deleted the record
+   * CPF diverging from the record, one for an id outside the format. The record went away
    * and the field; the negative — the form no longer carries it — is in
    * `coverage_network_account_login.test.ts`.
    */

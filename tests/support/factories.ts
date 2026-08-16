@@ -79,9 +79,9 @@ export async function createSchool(options: {
 
 export type TestUser = {
   id: string; networkId: string; name: string; email: string;
-  /** ADR 0004: every `app_user` row carries a CPF, always — never `null` here. */
+  /** Every `app_user` row carries a CPF, always — never `null` here. */
   cpf: string;
-  /** ADR 0006: the contact column that used to live on `guardian`. */
+  /** The contact column that used to live on the `guardian` table. */
   phone: string | null;
   /** The plaintext password, so the test can authenticate later on. */
   password: string;
@@ -191,7 +191,7 @@ export async function createStudent(options: {
 }
 
 /**
- * ADR 0006: a guardian is an `app_user`. This factory is `createUser` with the guardian's naming
+ * A guardian is an `app_user`. This factory is `createUser` with the guardian's naming
  * and, when a school is given, the role that lets them into the portal.
  */
 export async function createGuardian(options: {
@@ -324,7 +324,7 @@ export type Scenario = {
   guardians: [TestUser, TestUser, TestUser, TestUser, TestUser];
   enrollments: [TestEnrollment, TestEnrollment, TestEnrollment, TestEnrollment, TestEnrollment];
   admin: TestUser; registrar: TestUser; teacher: TestUser;
-  /** ADR 0006: the portal user **is** the guardian. The same object as `guardians[0]`. */
+  /** The portal user **is** the guardian. The same object as `guardians[0]`. */
   guardian: TestUser;
   password: string;
 };
