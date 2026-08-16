@@ -15,11 +15,11 @@ export const FIELDS = {
 } as const;
 
 export const CODES = {
-  invalidTitle: 'titulo_invalido',
-  invalidBody: 'corpo_invalido',
-  unknownSchool: 'unidade_desconhecida',
-  unknownAuthor: 'autor_desconhecido',
-  noRecipients: 'sem_destinatarios',
+  invalidTitle: 'invalid_title',
+  invalidBody: 'invalid_body',
+  unknownSchool: 'unknown_school',
+  unknownAuthor: 'unknown_author',
+  noRecipients: 'no_recipients',
 } as const;
 
 export const MESSAGES = {

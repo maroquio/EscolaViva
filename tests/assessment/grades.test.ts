@@ -261,7 +261,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'classGroupSubjectId', code: 'nao_encontrada' })],
+      errors: [expect.objectContaining({ field: 'classGroupSubjectId', code: 'not_found' })],
     });
   });
 
@@ -287,7 +287,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'grades', code: 'matricula_fora_da_turma' })],
+      errors: [expect.objectContaining({ field: 'grades', code: 'enrollment_outside_class_group' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });
@@ -308,7 +308,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'grades', code: 'matricula_fora_da_turma' })],
+      errors: [expect.objectContaining({ field: 'grades', code: 'enrollment_outside_class_group' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });
@@ -327,7 +327,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'grades', code: 'matricula_repetida' })],
+      errors: [expect.objectContaining({ field: 'grades', code: 'duplicate_enrollment' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });

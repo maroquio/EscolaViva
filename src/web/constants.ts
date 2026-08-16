@@ -417,35 +417,35 @@ export const FOUR_DIGIT_YEAR = /^\d{4}$/;
 export const FORM_ERRORS = {
   confirmationMismatch: {
     field: FIELDS.password.passwordConfirmation,
-    code: 'confirmacao_diferente',
+    code: 'confirmation_mismatch',
     message: 'A confirmação não confere com a senha nova.',
   },
   invalidYear: {
     field: FIELDS.academicYear.year,
-    code: 'ano_invalido',
+    code: 'invalid_year',
     message: 'Informe o ano com quatro dígitos.',
   },
   incompleteRoleAssignment: {
     field: FIELDS.user.roleAssignments,
-    code: 'atribuicao_incompleta',
+    code: 'incomplete_role_assignment',
     message: 'Cada atribuição precisa de uma unidade e de um papel.',
   },
   invalidGrade: {
     field: FIELDS.grades,
-    code: 'nota_invalida',
+    code: 'invalid_grade',
   },
   noSelection: {
     field: FIELDS.announcement.recipients,
-    code: 'sem_selecao',
+    code: 'nothing_selected',
   },
   recipientOutsideSchool: {
     field: FIELDS.announcement.recipients,
-    code: 'destinatario_fora_da_unidade',
+    code: 'recipient_outside_school',
     message: 'Um dos responsáveis marcados não pertence à unidade escolhida.',
   },
   missingSchool: {
     field: FIELDS.announcement.schoolId,
-    code: 'unidade_ausente',
+    code: 'school_missing',
     message: 'Escolha a unidade que vai enviar o comunicado.',
   },
 } as const;

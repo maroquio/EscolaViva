@@ -46,16 +46,16 @@ export const SCHEMA_FIELD_NAMES = {
 } as const;
 
 export const CODES = {
-  invalidCredentials: 'credenciais_invalidas',
-  networkUnavailable: 'rede_indisponivel',
-  schoolFromAnotherNetwork: 'unidade_de_outra_rede',
-  emailInUse: 'email_em_uso',
-  cpfInUse: 'cpf_em_uso',
-  guardianRequired: 'responsavel_obrigatorio',
-  cpfMismatch: 'cpf_diverge_do_cadastro',
-  nameInUse: 'nome_em_uso',
-  userNotFound: 'usuario_inexistente',
-  wrongPassword: 'senha_incorreta',
+  invalidCredentials: 'invalid_credentials',
+  networkUnavailable: 'network_unavailable',
+  schoolFromAnotherNetwork: 'school_from_another_network',
+  emailInUse: 'email_in_use',
+  cpfInUse: 'cpf_in_use',
+  guardianRequired: 'guardian_required',
+  cpfMismatch: 'cpf_mismatch',
+  nameInUse: 'name_in_use',
+  userNotFound: 'user_not_found',
+  wrongPassword: 'wrong_password',
 } as const;
 
 export const MESSAGES = {

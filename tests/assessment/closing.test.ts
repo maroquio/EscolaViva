@@ -137,7 +137,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'term', code: 'fechamento_incompleto' })],
+      errors: [expect.objectContaining({ field: 'term', code: 'incomplete_closing' })],
     });
     const message = messageOf(result);
     expect(message).toContain('Faltam 10 notas para fechar o bimestre');
@@ -185,7 +185,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'term', code: 'ja_fechado' })],
+      errors: [expect.objectContaining({ field: 'term', code: 'already_closed' })],
     });
   });
 
@@ -203,7 +203,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'term', code: 'bimestre_fechado' })],
+      errors: [expect.objectContaining({ field: 'term', code: 'term_closed' })],
     });
     const grades = await assessment.classGroupSubjectGrades(
       scenario.network.id,
@@ -269,7 +269,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'classGroupId', code: 'sem_disciplina' })],
+      errors: [expect.objectContaining({ field: 'classGroupId', code: 'no_subject' })],
     });
   });
 
@@ -285,7 +285,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'classGroupId', code: 'sem_matricula_ativa' })],
+      errors: [expect.objectContaining({ field: 'classGroupId', code: 'no_active_enrollment' })],
     });
   });
 
@@ -296,7 +296,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'classGroupId', code: 'nao_encontrada' })],
+      errors: [expect.objectContaining({ field: 'classGroupId', code: 'not_found' })],
     });
   });
 

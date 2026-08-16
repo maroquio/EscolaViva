@@ -130,7 +130,7 @@ describe('inviteUser', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'email',
-        code: 'email_em_uso',
+        code: 'email_in_use',
         message: 'já existe usuário com este e-mail na rede',
       },
     ]);
@@ -150,7 +150,7 @@ describe('inviteUser', () => {
       roleAssignments: [{ schoolId: school.id, role: 'teacher' }],
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('email_em_uso');
+    expect(errorsOf(result)[0]?.code).toBe('email_in_use');
   });
 
   test('accepts the same e-mail in a different network: uniqueness is per network', async () => {
@@ -189,7 +189,7 @@ describe('inviteUser', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'guardianId',
-        code: 'responsavel_obrigatorio',
+        code: 'guardian_required',
         message:
           'quem entra como responsável precisa estar ligado a um cadastro de responsável',
       },
@@ -236,7 +236,7 @@ describe('inviteUser', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'roleAssignments',
-        code: 'unidade_de_outra_rede',
+        code: 'school_from_another_network',
         message: 'unidade não pertence a esta rede',
       },
     ]);
@@ -454,7 +454,7 @@ describe('the schools of the network', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'name',
-        code: 'nome_em_uso',
+        code: 'name_in_use',
         message: 'já existe unidade com este nome na rede',
       },
     ]);

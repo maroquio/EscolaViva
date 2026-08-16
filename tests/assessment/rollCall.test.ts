@@ -195,7 +195,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'date', code: 'data_fora_do_ano_letivo' })],
+      errors: [expect.objectContaining({ field: 'date', code: 'date_outside_academic_year' })],
     });
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
@@ -210,7 +210,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'date', code: 'data_fora_do_ano_letivo' })],
+      errors: [expect.objectContaining({ field: 'date', code: 'date_outside_academic_year' })],
     });
   });
 
@@ -272,7 +272,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'classGroupId', code: 'nao_encontrada' })],
+      errors: [expect.objectContaining({ field: 'classGroupId', code: 'not_found' })],
     });
   });
 
@@ -297,7 +297,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'rows', code: 'matricula_fora_da_turma' })],
+      errors: [expect.objectContaining({ field: 'rows', code: 'enrollment_outside_class_group' })],
     });
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
@@ -317,7 +317,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'rows', code: 'matricula_fora_da_turma' })],
+      errors: [expect.objectContaining({ field: 'rows', code: 'enrollment_outside_class_group' })],
     });
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
@@ -335,7 +335,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'rows', code: 'matricula_repetida' })],
+      errors: [expect.objectContaining({ field: 'rows', code: 'duplicate_enrollment' })],
     });
   });
 

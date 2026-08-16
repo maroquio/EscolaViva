@@ -46,34 +46,34 @@ export const FIELDS = {
 } as const;
 
 export const CODES = {
-  studentNotFound: 'aluno_nao_encontrado',
-  classGroupNotFound: 'turma_nao_encontrada',
-  academicYearNotFound: 'ano_letivo_nao_encontrado',
-  subjectNotFound: 'disciplina_nao_encontrada',
-  guardianNotFound: 'responsavel_nao_encontrado',
+  studentNotFound: 'student_not_found',
+  classGroupNotFound: 'class_group_not_found',
+  academicYearNotFound: 'academic_year_not_found',
+  subjectNotFound: 'subject_not_found',
+  guardianNotFound: 'guardian_not_found',
 
-  student: { dateInFuture: 'data_no_futuro' },
-  subject: { duplicate: 'disciplina_duplicada' },
-  guardian: { duplicateEmail: 'email_duplicado' },
-  classGroup: { schoolNotFound: 'unidade_nao_encontrada', duplicate: 'turma_duplicada' },
-  academicYear: { incoherentPeriod: 'periodo_incoerente', duplicate: 'ano_duplicado' },
+  student: { dateInFuture: 'date_in_future' },
+  subject: { duplicate: 'duplicate_subject' },
+  guardian: { duplicateEmail: 'duplicate_email' },
+  classGroup: { schoolNotFound: 'school_not_found', duplicate: 'duplicate_class_group' },
+  academicYear: { incoherentPeriod: 'inconsistent_period', duplicate: 'duplicate_year' },
   teachingAssignment: {
-    withoutTeacherRole: 'sem_papel_de_professor',
-    subjectAlreadyAssigned: 'disciplina_ja_alocada',
+    withoutTeacherRole: 'without_teacher_role',
+    subjectAlreadyAssigned: 'subject_already_assigned',
   },
   enrollment: {
-    duplicateActive: 'matricula_ativa_duplicada',
-    classGroupFromAnotherYear: 'turma_de_outro_ano',
+    duplicateActive: 'duplicate_active_enrollment',
+    classGroupFromAnotherYear: 'class_group_from_another_year',
   },
   transfer: {
-    enrollmentNotFound: 'matricula_nao_encontrada',
-    onlyActiveTransfers: 'matricula_nao_ativa',
-    lostTheRace: 'matricula_nao_ativa',
-    sameClassGroup: 'mesma_turma',
-    targetClassGroupNotFound: 'turma_nao_encontrada',
-    classGroupFromAnotherYear: 'turma_de_outro_ano',
+    enrollmentNotFound: 'enrollment_not_found',
+    onlyActiveTransfers: 'enrollment_not_active',
+    lostTheRace: 'enrollment_not_active',
+    sameClassGroup: 'same_class_group',
+    targetClassGroupNotFound: 'class_group_not_found',
+    classGroupFromAnotherYear: 'class_group_from_another_year',
   },
-  guardianLink: { duplicate: 'vinculo_duplicado' },
+  guardianLink: { duplicate: 'duplicate_link' },
 } as const;
 
 export const MESSAGES = {

@@ -119,7 +119,7 @@ describe('authenticate', () => {
       }),
     ]);
 
-    const genericRejection = [{ code: 'credenciais_invalidas', message: 'CPF ou senha inválidos' }];
+    const genericRejection = [{ code: 'invalid_credentials', message: 'CPF ou senha inválidos' }];
     expect(errorsOf(wrongPassword)).toEqual(genericRejection);
     expect(errorsOf(nonexistentCpf)).toEqual(genericRejection);
     expect(errorsOf(inactiveUser)).toEqual(genericRejection);
@@ -167,7 +167,7 @@ describe('authenticate', () => {
     const networkRejection = [
       {
         field: 'networkSlug',
-        code: 'rede_indisponivel',
+        code: 'network_unavailable',
         message: 'rede não encontrada ou fora de operação',
       },
     ];
@@ -183,7 +183,7 @@ describe('authenticate', () => {
       networkSlug: 'cancelada', loginIdentifier: user.cpf, password: DEFAULT_PASSWORD, ip: '',
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('rede_indisponivel');
+    expect(errorsOf(result)[0]?.code).toBe('network_unavailable');
     expect(await countSessions(user.id)).toBe(0);
   });
 
@@ -427,7 +427,7 @@ describe('changePassword', () => {
     });
 
     expect(errorsOf(result)).toEqual([
-      { field: 'currentPassword', code: 'senha_incorreta', message: 'a senha atual não confere' },
+      { field: 'currentPassword', code: 'wrong_password', message: 'a senha atual não confere' },
     ]);
   });
 
@@ -458,7 +458,7 @@ describe('changePassword', () => {
       networkSlug: 'troca', loginIdentifier: user.cpf, password: DEFAULT_PASSWORD, ip: '',
     });
     expect(withTheNewOne.ok).toBe(true);
-    expect(errorsOf(withTheOldOne)[0]?.code).toBe('credenciais_invalidas');
+    expect(errorsOf(withTheOldOne)[0]?.code).toBe('invalid_credentials');
   });
 
   test('changing one user\'s password does not touch another user\'s in the same network', async () => {
@@ -485,7 +485,7 @@ describe('changePassword', () => {
     });
 
     expect(errorsOf(result)).toEqual([
-      { code: 'usuario_inexistente', message: 'usuário não encontrado' },
+      { code: 'user_not_found', message: 'usuário não encontrado' },
     ]);
   });
 

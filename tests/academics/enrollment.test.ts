@@ -106,7 +106,7 @@ describe('enroll', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'studentId',
-        code: 'matricula_ativa_duplicada',
+        code: 'duplicate_active_enrollment',
         message: 'Este aluno já tem matrícula ativa neste ano letivo.',
       },
     ]);
@@ -165,7 +165,7 @@ describe('enroll', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'studentId',
-        code: 'aluno_nao_encontrado',
+        code: 'student_not_found',
         message: 'Aluno não encontrado nesta rede.',
       },
     ]);
@@ -186,7 +186,7 @@ describe('enroll', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'classGroupId',
-        code: 'turma_nao_encontrada',
+        code: 'class_group_not_found',
         message: 'Turma não encontrada nesta rede.',
       },
     ]);
@@ -204,7 +204,7 @@ describe('enroll', () => {
       enrollmentDate: ENROLLMENT_DATE,
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('ano_letivo_nao_encontrado');
+    expect(errorsOf(result)[0]?.code).toBe('academic_year_not_found');
   });
 
   test('a class group from another academic year of the same network is refused', async () => {
@@ -226,7 +226,7 @@ describe('enroll', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'classGroupId',
-        code: 'turma_de_outro_ano',
+        code: 'class_group_from_another_year',
         message: 'A turma não pertence ao ano letivo informado.',
       },
     ]);
@@ -337,7 +337,7 @@ describe('transfer', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'targetClassGroupId',
-        code: 'mesma_turma',
+        code: 'same_class_group',
         message: 'A turma de destino é a mesma turma da matrícula atual.',
       },
     ]);
@@ -365,7 +365,7 @@ describe('transfer', () => {
     expect(errorsOf(secondTime)).toEqual([
       {
         field: 'enrollmentId',
-        code: 'matricula_nao_ativa',
+        code: 'enrollment_not_active',
         message: 'Apenas uma matrícula ativa pode ser transferida.',
       },
     ]);
@@ -417,7 +417,7 @@ describe('transfer', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'targetClassGroupId',
-        code: 'turma_de_outro_ano',
+        code: 'class_group_from_another_year',
         message: 'A turma de destino pertence a outro ano letivo.',
       },
     ]);
@@ -435,7 +435,7 @@ describe('transfer', () => {
       date: TRANSFER_DATE,
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('turma_nao_encontrada');
+    expect(errorsOf(result)[0]?.code).toBe('class_group_not_found');
     expect(await studentStatuses(source.studentId)).toEqual(['active']);
   });
 
@@ -452,7 +452,7 @@ describe('transfer', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'enrollmentId',
-        code: 'matricula_nao_encontrada',
+        code: 'enrollment_not_found',
         message: 'Matrícula não encontrada nesta rede.',
       },
     ]);
@@ -469,7 +469,7 @@ describe('transfer', () => {
       date: TRANSFER_DATE,
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('matricula_nao_encontrada');
+    expect(errorsOf(result)[0]?.code).toBe('enrollment_not_found');
   });
 
   test('a transfer date outside the format is refused', async () => {

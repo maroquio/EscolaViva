@@ -172,7 +172,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'recipients', code: 'sem_destinatarios' })],
+      errors: [expect.objectContaining({ field: 'recipients', code: 'no_recipients' })],
     });
   });
 
@@ -198,11 +198,11 @@ describe('publishAnnouncement', () => {
 
     expect(withoutTitle).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'title', code: 'titulo_invalido' })],
+      errors: [expect.objectContaining({ field: 'title', code: 'invalid_title' })],
     });
     expect(longTitle).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'title', code: 'titulo_invalido' })],
+      errors: [expect.objectContaining({ field: 'title', code: 'invalid_title' })],
     });
   });
 
@@ -218,7 +218,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'body', code: 'corpo_invalido' })],
+      errors: [expect.objectContaining({ field: 'body', code: 'invalid_body' })],
     });
   });
 
@@ -236,7 +236,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'schoolId', code: 'unidade_desconhecida' })],
+      errors: [expect.objectContaining({ field: 'schoolId', code: 'unknown_school' })],
     });
   });
 
@@ -254,7 +254,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: [expect.objectContaining({ field: 'authorUserId', code: 'autor_desconhecido' })],
+      errors: [expect.objectContaining({ field: 'authorUserId', code: 'unknown_author' })],
     });
   });
 });

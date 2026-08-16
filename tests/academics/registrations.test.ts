@@ -63,7 +63,7 @@ describe('defineAcademicYear', () => {
     });
 
     expect(errorsOf(result)).toEqual([
-      { field: 'year', code: 'ano_duplicado', message: 'Esta rede já tem o ano letivo 2027 definido.' },
+      { field: 'year', code: 'duplicate_year', message: 'Esta rede já tem o ano letivo 2027 definido.' },
     ]);
     expect(await academics.listAcademicYears(network.id)).toHaveLength(1);
   });
@@ -91,7 +91,7 @@ describe('defineAcademicYear', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'endDate',
-        code: 'periodo_incoerente',
+        code: 'inconsistent_period',
         message: 'A data de término precisa ser posterior à data de início.',
       },
     ]);
@@ -139,7 +139,7 @@ describe('registerSubject', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'name',
-        code: 'disciplina_duplicada',
+        code: 'duplicate_subject',
         message: 'Esta rede já tem uma disciplina com este nome.',
       },
     ]);
@@ -200,7 +200,7 @@ describe('registerClassGroup', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'name',
-        code: 'turma_duplicada',
+        code: 'duplicate_class_group',
         message: 'Esta unidade já tem uma turma com este nome neste ano letivo.',
       },
     ]);
@@ -268,7 +268,7 @@ describe('registerClassGroup', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'schoolId',
-        code: 'unidade_nao_encontrada',
+        code: 'school_not_found',
         message: 'Unidade não encontrada nesta rede.',
       },
     ]);
@@ -285,7 +285,7 @@ describe('registerClassGroup', () => {
       name: '6º A', gradeLevel: '6º ano', shift: 'morning',
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('ano_letivo_nao_encontrado');
+    expect(errorsOf(result)[0]?.code).toBe('academic_year_not_found');
   });
 });
 
@@ -314,7 +314,7 @@ describe('registerStudent', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'birthDate',
-        code: 'data_no_futuro',
+        code: 'date_in_future',
         message: 'A data de nascimento não pode estar no futuro.',
       },
     ]);
@@ -392,7 +392,7 @@ describe('registerGuardian', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'email',
-        code: 'email_duplicado',
+        code: 'duplicate_email',
         message: 'Esta rede já tem um responsável com este e-mail.',
       },
     ]);
@@ -518,7 +518,7 @@ describe('linkGuardian', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'guardianId',
-        code: 'vinculo_duplicado',
+        code: 'duplicate_link',
         message: 'Este responsável já está vinculado a este aluno.',
       },
     ]);
@@ -536,7 +536,7 @@ describe('linkGuardian', () => {
       relationship: 'mãe', financiallyResponsible: true,
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('aluno_nao_encontrado');
+    expect(errorsOf(result)[0]?.code).toBe('student_not_found');
   });
 
   test('refuses a guardian from another network', async () => {
@@ -550,7 +550,7 @@ describe('linkGuardian', () => {
       relationship: 'mãe', financiallyResponsible: true,
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('responsavel_nao_encontrado');
+    expect(errorsOf(result)[0]?.code).toBe('guardian_not_found');
   });
 
   test('refuses a link with no relationship', async () => {
@@ -600,7 +600,7 @@ describe('assignTeacher', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'teacherUserId',
-        code: 'sem_papel_de_professor',
+        code: 'without_teacher_role',
         message: 'Este usuário não tem papel de professor na unidade desta turma.',
       },
     ]);
@@ -620,7 +620,7 @@ describe('assignTeacher', () => {
       subjectId: subject.id, teacherUserId: scenario.teacher.id,
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('sem_papel_de_professor');
+    expect(errorsOf(result)[0]?.code).toBe('without_teacher_role');
   });
 
   test('refuses a teacher from another network', async () => {
@@ -633,7 +633,7 @@ describe('assignTeacher', () => {
       subjectId: subject.id, teacherUserId: b.teacher.id,
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('sem_papel_de_professor');
+    expect(errorsOf(result)[0]?.code).toBe('without_teacher_role');
   });
 
   test('refuses the same subject twice in the same class group', async () => {
@@ -649,7 +649,7 @@ describe('assignTeacher', () => {
     expect(errorsOf(result)).toEqual([
       {
         field: 'subjectId',
-        code: 'disciplina_ja_alocada',
+        code: 'subject_already_assigned',
         message: 'Esta disciplina já está alocada nesta turma.',
       },
     ]);
@@ -680,7 +680,7 @@ describe('assignTeacher', () => {
       subjectId: subject.id, teacherUserId: a.teacher.id,
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('turma_nao_encontrada');
+    expect(errorsOf(result)[0]?.code).toBe('class_group_not_found');
   });
 
   test('refuses a subject from another network', async () => {
@@ -691,7 +691,7 @@ describe('assignTeacher', () => {
       subjectId: b.subjects[0].id, teacherUserId: a.teacher.id,
     });
 
-    expect(errorsOf(result)[0]?.code).toBe('disciplina_nao_encontrada');
+    expect(errorsOf(result)[0]?.code).toBe('subject_not_found');
   });
 
   test('refuses ids outside the format before touching the database', async () => {

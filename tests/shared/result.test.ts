@@ -40,8 +40,8 @@ describe('success', () => {
 
 describe('failure', () => {
   test('marks ok as false and carries the errors in the order received', () => {
-    const first: ApplicationError = { code: 'nota_invalida', message: 'nota fora de 0 a 10' };
-    const second: ApplicationError = { code: 'bimestre_fechado', message: 'bimestre fechado' };
+    const first: ApplicationError = { code: 'invalid_grade', message: 'nota fora de 0 a 10' };
+    const second: ApplicationError = { code: 'term_closed', message: 'bimestre fechado' };
 
     const result = failure(first, second);
 
@@ -61,11 +61,11 @@ describe('fieldFailure', () => {
   test('produces a single error tied to the form field', () => {
     const field = 'email';
 
-    const result = fieldFailure(field, 'email_em_uso', 'já existe usuário com este e-mail');
+    const result = fieldFailure(field, 'email_in_use', 'já existe usuário com este e-mail');
 
     expect(result).toEqual({
       ok: false,
-      errors: [{ field: 'email', code: 'email_em_uso', message: 'já existe usuário com este e-mail' }],
+      errors: [{ field: 'email', code: 'email_in_use', message: 'já existe usuário com este e-mail' }],
     });
   });
 });

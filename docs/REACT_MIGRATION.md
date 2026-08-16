@@ -24,7 +24,7 @@ They apply to **every** task. Not repeated in the individual tasks.
 - **Stage 01.** Nothing in this plan may anticipate a later-stage component — no queue, no cache, no contracted CDN, no e-mail delivery, no external service. The three Cloudflare variables are born **empty**.
 - **No business rule changes.** `*/domain/`, `*/application/`, `*/infra/`, `migrations/` and the domain suites stay as they are, except for the Zod migration (Task 2) and the file paths (Task 1).
 - **Do not loosen scope.** A record outside the schools where the person holds the role answers **404**, never 403 — the existence of a student is already information. That holds just the same in JSON.
-- **`ApplicationError`** is `{ campo?: string; codigo: string; mensagem: string }` in `apps/api/src/shared/result.ts`. Use `fieldFailure(campo, codigo, mensagem)` for an error anchored to a field. It is this array that travels to React Hook Form — no translator between the two ends.
+- **`ApplicationError`** is `{ field?: string; code: string; message: string }` in `apps/api/src/shared/result.ts`. Use `fieldFailure(field, code, message)` for an error anchored to a field. It is this array that travels to React Hook Form — no translator between the two ends.
 - **Versions:** always install with `@latest` and let `bun.lock` record the exact version. The plan names major versions (React 19, Vite 7, Mantine 8…), never patch numbers.
 - **The front never imports the domain.** `apps/web` may only import from `apps/api/src/http/contracts/`, and nothing else. Importing `academics`, `identity` or `shared/db` from inside React is an architecture error, not a convenience.
 - **Real validation stays in `*/application/` (I22).** The HTTP edge validates **shape** and answers 400; the application validates **rules** and answers 422; React's Zod validates **comfort** and decides nothing.
@@ -147,11 +147,11 @@ registrarRoutes.get('/guardians', async (c) => {
 registrarRoutes.post('/students', async (c) => {
   // Edge: shape only. A missing field, a wrong type, a malformed id — no rules here.
   const input = parse(studentSchema, c.get('body'));
-  if (!input.ok) return c.json(errorBody(input.erros), 400);
+  if (!input.ok) return c.json(errorBody(input.errors), 400);
 
   // Rules: the use case decides, as it always did (I22).
   const result = await academics.registerStudent({ networkId: currentNetwork(c), ...input.valor });
-  if (!result.ok) return c.json(errorBody(result.erros), 422);
+  if (!result.ok) return c.json(errorBody(result.errors), 422);
 
   return created(c, `/api/v1/registrar/students/${result.valor.id}`, { id: result.valor.id });
 });
@@ -213,8 +213,8 @@ describe('student registration', () => {
     }, cookie);
 
     expect(response.status).toBe(400);
-    const { erros } = await response.json();
-    expect(erros[0].campo).toBe('name');
+    const { errors } = await response.json();
+    expect(errors[0].field).toBe('name');
   });
 
   test('a student from another network does not exist for this registrar', async () => {
@@ -231,7 +231,7 @@ Every front delivers, at a minimum:
 
 | Endpoint kind | Mandatory cases |
 |---|---|
-| write | success · edge refusal (400 with `campo`) · rule refusal (422 with `campo`) · no session (401) · wrong role (403) · target out of scope (404) |
+| write | success · edge refusal (400 with `field`) · rule refusal (422 with `field`) · no session (401) · wrong role (403) · target out of scope (404) |
 | read | success · no session (401) · wrong role (403) · target out of scope (404) · `?p=` changes the page |
 
 ### P6 — TanStack Query keys and queries
@@ -290,7 +290,7 @@ export function StudentForm() {
       const { id } = await register_.mutateAsync(values);
       navigate(`/registrar/students/${id}`);
     } catch (error) {
-      // The `campo` the API returns is the input's `name`: the error lands under the right field
+      // The `field` the API returns is the input's `name`: the error lands under the right field
       // with no translation between the two ends.
       applyErrors(error, setError, warn);
     }
@@ -354,7 +354,7 @@ test('a field error coming from the API appears under the field', async () => {
     http.post('*/api/v1/registrar/students', () =>
       HttpResponse.json(
         {
-          erros: [{ campo: 'name', codigo: 'nome_repetido', mensagem: 'Já existe um aluno com este nome.' }],
+          errors: [{ field: 'name', code: 'name_in_use', message: 'Já existe um aluno com este nome.' }],
           correlationId: 'teste',
         },
         { status: 422 },
@@ -512,8 +512,8 @@ Expected: PASS. Note the test count — it must not change in this task.
 | `z.enum(['true','false'], { errorMap: () => ({ message: 'use true ou false' }) })` | `z.enum(['true','false'], { error: 'use true ou false' })` |
 | `z.enum(ENVIRONMENTS, { errorMap: () => ({ message: 'use development, test ou production' }) })` | `z.enum(ENVIRONMENTS, { error: 'use development, test ou production' })` |
 | `z.enum(LOG_LEVELS, { errorMap: () => ({ message: 'use debug, info, warn ou error' }) })` | `z.enum(LOG_LEVELS, { error: 'use debug, info, warn ou error' })` |
-| `z.coerce.number({ invalid_type_error: 'precisa ser um número inteiro de porta' })` | `z.coerce.number({ error: 'precisa ser um número inteiro de porta' })` |
-| `z.coerce.number({ invalid_type_error: 'precisa ser um número de horas' })` | `z.coerce.number({ error: 'precisa ser um número de horas' })` |
+| `z.coerce.number({ invalid_type_error: 'must be a whole port number' })` | `z.coerce.number({ error: 'must be a whole port number' })` |
+| `z.coerce.number({ invalid_type_error: 'must be a number of hours' })` | `z.coerce.number({ error: 'must be a number of hours' })` |
 | `z.coerce.number({ invalid_type_error: 'precisa ser um número de milissegundos' })` | `z.coerce.number({ error: 'precisa ser um número de milissegundos' })` |
 | `z.string({ required_error: 'obrigatória — conexão do PostgreSQL primário' })` | `z.string({ error: 'obrigatória — conexão do PostgreSQL primário' })` |
 | `z.string({ required_error: 'obrigatória — segredo que assina o cookie de sessão' })` | `z.string({ error: 'obrigatória — segredo que assina o cookie de sessão' })` |
@@ -535,11 +535,11 @@ export const schemaErrors = (
   fieldNames: Readonly<Record<string, string>> = {},
 ): ApplicationError[] =>
   issues.map((issue) => {
-    const campo = issue.path.map(String).join('.');
-    const error: ApplicationError = { codigo: issue.code, mensagem: issue.message };
+    const field = issue.path.map(String).join('.');
+    const error: ApplicationError = { code: issue.code, message: issue.message };
     // An error at the schema root has no field; omitting the key is different from storing it as
     // undefined — the screen decides between highlighting an input and showing a general warning.
-    return campo === '' ? error : { ...error, campo };
+    return field === '' ? error : { ...error, field };
   });
 ```
 
@@ -706,7 +706,7 @@ git commit -m "feat(config): allowed origins and cookie domain, both empty"
 
 **Interfaces:**
 - Produces:
-  - `errorBody(erros: readonly ApplicationError[]): { erros: readonly ApplicationError[]; correlationId: string }`
+  - `errorBody(errors: readonly ApplicationError[]): { errors: readonly ApplicationError[]; correlationId: string }`
   - `errorStatus(error: unknown): ErrorStatus` — exported, so the routes can reuse it
   - `jsonErrorsMiddleware: MiddlewareHandler` — answers JSON on `/api/*` and delegates the rest to the HTML renderer while SSR exists
 
@@ -722,7 +722,7 @@ test('an error on an API route comes back as JSON with the correlation code', as
   expect(response.status).toBe(401);
   expect(response.headers.get('Content-Type')).toContain('application/json');
   const body = await response.json();
-  expect(body.erros).toHaveLength(1);
+  expect(body.errors).toHaveLength(1);
   expect(body.correlationId).not.toBe('');
 });
 
@@ -753,13 +753,13 @@ import { currentContext } from '../shared/http';
 import type { ApplicationError } from '../shared/result';
 
 export type ErrorBody = {
-  readonly erros: readonly ApplicationError[];
+  readonly errors: readonly ApplicationError[];
   readonly correlationId: string;
 };
 
 /** The correlation code is what support uses to find the trail in the log (I16). */
-export const errorBody = (erros: readonly ApplicationError[]): ErrorBody => ({
-  erros,
+export const errorBody = (errors: readonly ApplicationError[]): ErrorBody => ({
+  errors,
   correlationId: currentContext()?.correlationId ?? '',
 });
 
@@ -780,26 +780,26 @@ In `shared/http/errors.ts`, `errorStatus` becomes exported and the middleware ga
 ```ts
 const API_PREFIX = '/api/';
 
-const errorResponse = (c: Context, status: ErrorStatus, erros: ApplicationError[]): Response => {
+const errorResponse = (c: Context, status: ErrorStatus, errors: ApplicationError[]): Response => {
   // While SSR exists, the path decides the format. In Task 33, when the Eta screens go, the HTML
   // branch goes with them and this middleware becomes four lines.
   if (!c.req.path.startsWith(API_PREFIX)) return c.html(errorPage(status), status);
   const correlationId = currentContext()?.correlationId ?? '';
-  return c.json({ erros, correlationId }, status);
+  return c.json({ errors, correlationId }, status);
 };
 ```
 
-The `erros` of an exception is a single line, with the status code and its generic message — **never**
+The `errors` of an exception is a single line, with the status code and its generic message — **never**
 the exception's message, which is operational information and belongs in the log:
 
 ```ts
 const ERRORS_BY_STATUS: Record<ErrorStatus, ApplicationError> = {
-  400: { codigo: 'requisicao_invalida', mensagem: 'A requisição chegou incompleta ou malformada.' },
-  401: { codigo: 'sem_sessao', mensagem: 'Entre para continuar.' },
-  403: { codigo: 'sem_permissao', mensagem: 'Sua conta não tem permissão para esta operação.' },
-  404: { codigo: 'nao_encontrado', mensagem: 'O registro não existe ou não está ao seu alcance.' },
-  422: { codigo: 'regra_de_negocio', mensagem: 'A situação atual não permite concluir esta operação.' },
-  500: { codigo: 'falha_interna', mensagem: 'Algo falhou do nosso lado. A ocorrência foi registrada.' },
+  400: { code: 'invalid_request', message: 'A requisição chegou incompleta ou malformada.' },
+  401: { code: 'no_session', message: 'Entre para continuar.' },
+  403: { code: 'forbidden', message: 'Sua conta não tem permissão para esta operação.' },
+  404: { code: 'not_found', message: 'O registro não existe ou não está ao seu alcance.' },
+  422: { code: 'business_rule', message: 'A situação atual não permite concluir esta operação.' },
+  500: { code: 'falha_interna', message: 'Algo falhou do nosso lado. A ocorrência foi registrada.' },
 };
 ```
 
@@ -905,13 +905,13 @@ itself.
 export const IDEMPOTENCY_KEY_HEADER = 'Idempotency-Key';
 
 const MISSING_KEY: ApplicationError = {
-  codigo: 'sem_chave_de_idempotencia',
-  mensagem: `Toda criação precisa do cabeçalho ${IDEMPOTENCY_KEY_HEADER}.`,
+  code: 'missing_idempotency_key',
+  message: `Toda criação precisa do cabeçalho ${IDEMPOTENCY_KEY_HEADER}.`,
 };
 
 const MALFORMED_BODY: ApplicationError = {
-  codigo: 'corpo_malformado',
-  mensagem: 'O corpo da requisição não é um JSON válido.',
+  code: 'malformed_body',
+  message: 'O corpo da requisição não é um JSON válido.',
 };
 
 /**
@@ -1640,14 +1640,14 @@ sessionRoutes.post('/', async (c) => {
   }
 
   const input = parse(signInSchema, c.get('body'));
-  if (!input.ok) return c.json(errorBody(input.erros), 400);
+  if (!input.ok) return c.json(errorBody(input.errors), 400);
 
   const ip = clientIp(c.req.raw, remoteAddress(c), config.trustedProxies);
   const result = await identity.authenticate({ ...input.valor, ip });
 
   if (!result.ok) {
     logger.warn({ network_slug: input.valor.networkSlug, result: 'recusado', ip }, LOG_EVENTS.signInAttempt);
-    return c.json(errorBody(result.erros), 422);
+    return c.json(errorBody(result.errors), 422);
   }
 
   await openSession(c, result.valor.sessionId);
@@ -2049,7 +2049,7 @@ once each. No query per student.
 | another teacher's class group | `404`, never `403` |
 | `?term=9` on a read | falls back to term 1; it is navigation, not a write |
 | `term: 9` on the `PUT` | `422` — it came from a field the application wrote, not from typing |
-| a grade outside 0–10 | `422`, with `campo` pointing at the enrollment |
+| a grade outside 0–10 | `422`, with `field` pointing at the enrollment |
 | `value: null` | clears that enrollment's grade |
 | an enrollment that is not in the class group in the body | ignored; the list of who is in the class group comes from the database |
 | a term already closed | `422` |
@@ -2534,7 +2534,7 @@ git commit -m "feat(web): Mantine theme derived from the current CSS"
 **Interfaces:**
 - Produces:
   - `client: AxiosInstance` — the system's only instance
-  - `class ApiError extends Error { status: number; erros: readonly ApplicationError[]; correlationId: string; general(): string | null }`
+  - `class ApiError extends Error { status: number; errors: readonly ApplicationError[]; correlationId: string; general(): string | null }`
   - `applyErrors<T extends FieldValues>(error: unknown, setError: UseFormSetError<T>, warn: (m: string) => void): void`
   - `onSessionExpired(action: () => void): void` — registers what to do when the API answers 401
 
@@ -2573,7 +2573,7 @@ test('every write carries the internal-origin mark; a read does not need it', as
 test('an API error response becomes an ApiError with the fields preserved', async () => {
   server.use(http.post('*/api/v1/x', () =>
     HttpResponse.json(
-      { erros: [{ campo: 'name', codigo: 'obrigatorio', mensagem: 'Informe o nome.' }], correlationId: 'abc' },
+      { errors: [{ field: 'name', code: 'obrigatorio', message: 'Informe o nome.' }], correlationId: 'abc' },
       { status: 422 },
     ),
   ));
@@ -2582,7 +2582,7 @@ test('an API error response becomes an ApiError with the fields preserved', asyn
 
   expect(error).toBeInstanceOf(ApiError);
   expect((error as ApiError).status).toBe(422);
-  expect((error as ApiError).erros[0].campo).toBe('name');
+  expect((error as ApiError).errors[0].field).toBe('name');
   expect((error as ApiError).correlationId).toBe('abc');
 });
 
@@ -2598,7 +2598,7 @@ test('a network failure also becomes an ApiError, not a raw Error', async () => 
 test('a 401 fires the session-expired action once', async () => {
   let expired = 0;
   onSessionExpired(() => { expired += 1; });
-  server.use(http.get('*/api/v1/x', () => HttpResponse.json({ erros: [] }, { status: 401 })));
+  server.use(http.get('*/api/v1/x', () => HttpResponse.json({ errors: [] }, { status: 401 })));
 
   await client.get('/x').catch(() => undefined);
 
@@ -2609,8 +2609,8 @@ test('an error without a field becomes a general warning, and one with a field g
   const set: [string, string][] = [];
   const warnings: string[] = [];
   const error = new ApiError(422, [
-    { campo: 'cpf', codigo: 'x', mensagem: 'CPF inválido.' },
-    { codigo: 'y', mensagem: 'Já existe um usuário com este e-mail.' },
+    { field: 'cpf', code: 'x', message: 'CPF inválido.' },
+    { code: 'y', message: 'Já existe um usuário com este e-mail.' },
   ], 'abc');
 
   applyErrors(error, ((field, options) => set.push([field, options.message ?? ''])) as never,
@@ -2631,22 +2631,22 @@ Expected: FAIL
 ```ts
 /**
  * The API error is a class, not a loose object, so that `instanceof` works in any screen's `catch`.
- * The `erros` arrive in the format the server already used internally — `{campo, codigo, mensagem}` —
+ * The `errors` arrive in the format the server already used internally — `{field, code, message}` —
  * and that is why there is no translator between the two ends.
  */
 export class ApiError extends Error {
   constructor(
     readonly status: number,
-    readonly erros: readonly ApplicationError[],
+    readonly errors: readonly ApplicationError[],
     readonly correlationId: string,
   ) {
-    super(erros[0]?.mensagem ?? 'Não foi possível falar com o servidor.');
+    super(errors[0]?.message ?? 'Não foi possível falar com o servidor.');
     this.name = 'ApiError';
   }
 
   /** The message belonging to no field — the one that becomes a warning at the top of the form. */
   general(): string | null {
-    return this.erros.find((problem) => problem.campo === undefined)?.mensagem ?? null;
+    return this.errors.find((problem) => problem.field === undefined)?.message ?? null;
   }
 }
 
@@ -2660,10 +2660,10 @@ export function applyErrors<T extends FieldValues>(
     return;
   }
 
-  for (const problem of error.erros) {
-    if (problem.campo === undefined) continue;
-    // The `campo` the API returns is the input's `name`: the error lands under the right field.
-    setError(problem.campo as Path<T>, { type: 'server', message: problem.mensagem });
+  for (const problem of error.errors) {
+    if (problem.field === undefined) continue;
+    // The `field` the API returns is the input's `name`: the error lands under the right field.
+    setError(problem.field as Path<T>, { type: 'server', message: problem.message });
   }
 
   const general = error.general();
@@ -2717,7 +2717,7 @@ client.interceptors.response.use(
     const { status, data } = failure.response;
     const body = data as Partial<ErrorBody>;
     if (status === 401) onExpired();
-    return Promise.reject(new ApiError(status, body.erros ?? [], body.correlationId ?? ''));
+    return Promise.reject(new ApiError(status, body.errors ?? [], body.correlationId ?? ''));
   },
 );
 ```
@@ -2785,7 +2785,7 @@ test('someone without the role sees the no-permission screen, and the API is wha
 
 test('with no session, the guard leads to the login screen', async () => {
   server.use(http.get('*/api/v1/session', () =>
-    HttpResponse.json({ erros: [], correlationId: '' }, { status: 401 }),
+    HttpResponse.json({ errors: [], correlationId: '' }, { status: 401 }),
   ));
 
   renderWithProviders(<RequireLogin><span>conteúdo</span></RequireLogin>, '/registrar');
@@ -2972,7 +2972,7 @@ test('a refused credential shows the server message and keeps what was typed', a
   server.use(
     http.post('*/api/v1/session', () =>
       HttpResponse.json(
-        { erros: [{ codigo: 'credenciais_invalidas', mensagem: 'CPF ou senha inválidos' }],
+        { errors: [{ code: 'credenciais_invalidas', message: 'CPF ou senha inválidos' }],
           correlationId: 'abc' },
         { status: 422 },
       ),
@@ -3198,7 +3198,7 @@ and reports.
 | the search screen with no `?q=` | no request fired; text inviting a search |
 | typing and submitting | `?q=` in the URL and the request carrying the term |
 | the record with `?pEnrollments=2` | only the enrollments table advances |
-| a registration refused with `campo: 'name'` | a message under the field |
+| a registration refused with `field: 'name'` | a message under the field |
 | a guardian already linked | does not appear in the selector |
 | a `404` from the API on the record | a "not found" screen, not a blank one |
 
@@ -3254,7 +3254,7 @@ git commit -m "feat(web): student, guardian and enrollment screens"
 | `?school=` and `?year=` together | both go in the request |
 | an assignment in a class group whose school has no teacher | an empty selector with a message, not an error |
 | the shift shown in the table | a Portuguese label, not the raw value |
-| `422` with `campo: 'name'` on class-group registration | a message under the field |
+| `422` with `field: 'name'` on class-group registration | a message under the field |
 
 - [ ] **Step 1: `queries.ts` (P6) and the read tests**
 - [ ] **Step 2: `mutations.ts` (P7) and the write tests**
@@ -3337,7 +3337,7 @@ test('a blank field clears the grade; a value out of range lights the error', ()
 | changing the term | `?term=` changes and the grid reloads |
 | a grade of `11` typed | an error in the cell, and **no** submission |
 | a grade cleared | sends `value: null` for that enrollment |
-| a `422` from the server with an enrollment `campo` | the error in the right cell |
+| a `422` from the server with an enrollment `field` | the error in the right cell |
 | a closed term | fields disabled and the reason on the screen |
 | roll call with no record for the day | every box ticked |
 | a closing with items missing | the list of what is missing appears on the screen |
@@ -3453,7 +3453,7 @@ the right ones guarantees nothing — the list that comes back is external input
 | changing the school in the form | a new recipients request, the previous selection cleared |
 | the "whole school" audience | sends `guardians: []` |
 | the "selected" audience with nobody ticked | blocked by the comfort Zod |
-| `422` with `campo: 'recipients'` | a message next to the list |
+| `422` with `field: 'recipients'` | a message next to the list |
 | going to `?p=2` | the displayed rate does not change |
 | a rate of `0.123` | the screen shows `12,3 %` |
 

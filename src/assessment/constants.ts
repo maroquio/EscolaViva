@@ -28,23 +28,23 @@ export const FIELDS = {
 } as const;
 
 export const CODES = {
-  notFound: 'nao_encontrada',
-  classGroupSubjectNotFound: 'nao_encontrada',
-  academicYearMissing: 'ano_letivo_ausente',
-  dateOutsideAcademicYear: 'data_fora_do_ano_letivo',
-  termClosed: 'bimestre_fechado',
-  alreadyClosed: 'ja_fechado',
-  noSubject: 'sem_disciplina',
-  noActiveEnrollment: 'sem_matricula_ativa',
-  incompleteClosing: 'fechamento_incompleto',
+  notFound: 'not_found',
+  classGroupSubjectNotFound: 'not_found',
+  academicYearMissing: 'academic_year_missing',
+  dateOutsideAcademicYear: 'date_outside_academic_year',
+  termClosed: 'term_closed',
+  alreadyClosed: 'already_closed',
+  noSubject: 'no_subject',
+  noActiveEnrollment: 'no_active_enrollment',
+  incompleteClosing: 'incomplete_closing',
 
   grades: {
-    enrollmentOutsideClassGroup: 'matricula_fora_da_turma',
-    duplicateEnrollment: 'matricula_repetida',
+    enrollmentOutsideClassGroup: 'enrollment_outside_class_group',
+    duplicateEnrollment: 'duplicate_enrollment',
   },
   rollCall: {
-    enrollmentOutsideClassGroup: 'matricula_fora_da_turma',
-    duplicateEnrollment: 'matricula_repetida',
+    enrollmentOutsideClassGroup: 'enrollment_outside_class_group',
+    duplicateEnrollment: 'duplicate_enrollment',
   },
 } as const;
 
