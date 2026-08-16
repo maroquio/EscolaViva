@@ -18,7 +18,7 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
 
   <div class="aplicacao">
     <header class="cabecalho">
@@ -60,7 +60,7 @@ Vary: Cookie
   </div>
   </nav>
 
-    <main class="conteudo" id="conteudo" tabindex="-1">
+    <main class="conteudo" id="content" tabindex="-1">
       
 
       <header class="pagina__cabecalho">
@@ -79,9 +79,9 @@ Vary: Cookie
   </p>
 </header>
 
-<section class="secao" aria-labelledby="titulo-apuracao">
+<section class="secao" aria-labelledby="tally-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-apuracao">Apuração do ano</h2>
+    <h2 id="tally-title">Apuração do ano</h2>
     <p class="secao__nota">São necessários 75 % de presença para aprovação</p>
   </div>
 
@@ -108,9 +108,9 @@ Vary: Cookie
   </div>
 </section>
 
-<section class="secao" aria-labelledby="titulo-dias">
+<section class="secao" aria-labelledby="days-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-dias">Dia a dia</h2>
+    <h2 id="days-title">Dia a dia</h2>
     <p class="secao__nota">Do dia mais recente para o mais antigo</p>
   </div>
 
@@ -265,7 +265,7 @@ Vary: Cookie
     const avisos = document.querySelectorAll('.aviso');
     if (avisos.length === 0) return;
 
-    const conteudo = document.getElementById('conteudo');
+    const conteudo = document.getElementById('content');
 
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');

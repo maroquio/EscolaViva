@@ -18,7 +18,7 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
 
   <div class="aplicacao">
     <header class="cabecalho">
@@ -75,7 +75,7 @@ Vary: Cookie
   </div>
   </nav>
 
-    <main class="conteudo" id="conteudo" tabindex="-1">
+    <main class="conteudo" id="content" tabindex="-1">
       
 
       <div class="pagina__cabecalho">
@@ -95,11 +95,11 @@ Vary: Cookie
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="ano">
+        <label class="campo__rotulo" for="year">
           Ano <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="ano"
+          id="year"
           name="year"
           type="number"
           required
@@ -112,11 +112,11 @@ Vary: Cookie
               </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="dataInicio">
+        <label class="campo__rotulo" for="startDate">
           Início <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="dataInicio"
+          id="startDate"
           name="startDate"
           type="date"
           required
@@ -125,17 +125,17 @@ Vary: Cookie
               </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="dataFim">
+        <label class="campo__rotulo" for="endDate">
           Término <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="dataFim"
+          id="endDate"
           name="endDate"
           type="date"
           required
           value=""
-                    aria-describedby="endDate-ajuda">
-        <p class="campo__ajuda" id="endDate-ajuda">Precisa ser posterior à data de início.</p>
+                    aria-describedby="endDate-help">
+        <p class="campo__ajuda" id="endDate-help">Precisa ser posterior à data de início.</p>
               </div>
     </div>
 
@@ -153,7 +153,7 @@ Vary: Cookie
     const avisos = document.querySelectorAll('.aviso');
     if (avisos.length === 0) return;
 
-    const conteudo = document.getElementById('conteudo');
+    const conteudo = document.getElementById('content');
 
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');

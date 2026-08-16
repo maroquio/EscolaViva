@@ -18,7 +18,7 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
 
   <div class="aplicacao">
     <header class="cabecalho">
@@ -75,7 +75,7 @@ Vary: Cookie
   </div>
   </nav>
 
-    <main class="conteudo" id="conteudo" tabindex="-1">
+    <main class="conteudo" id="content" tabindex="-1">
       
 
       <div class="pagina__cabecalho">
@@ -94,11 +94,11 @@ Vary: Cookie
     <input type="hidden" name="_key" value="{{chave}}">
 
     <div class="campo">
-      <label class="campo__rotulo" for="senhaAtual">
+      <label class="campo__rotulo" for="currentPassword">
         Senha atual <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
       <input
-        id="senhaAtual"
+        id="currentPassword"
         name="currentPassword"
         type="password"
         required
@@ -107,28 +107,28 @@ Vary: Cookie
           </div>
 
     <div class="campo">
-      <label class="campo__rotulo" for="senhaNova">
+      <label class="campo__rotulo" for="newPassword">
         Senha nova <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
       <input
-        id="senhaNova"
+        id="newPassword"
         name="newPassword"
         type="password"
         required
         autocomplete="new-password"
-                aria-describedby="newPassword-ajuda">
-      <p class="campo__ajuda" id="newPassword-ajuda">
+                aria-describedby="newPassword-help">
+      <p class="campo__ajuda" id="newPassword-help">
         Escolha uma senha longa e que você não use em outro sistema. Se ela for curta demais, o
         servidor recusa e diz o mínimo exigido.
       </p>
           </div>
 
     <div class="campo">
-      <label class="campo__rotulo" for="senhaConfirmacao">
+      <label class="campo__rotulo" for="passwordConfirmation">
         Repita a senha nova <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
       <input
-        id="senhaConfirmacao"
+        id="passwordConfirmation"
         name="passwordConfirmation"
         type="password"
         required
@@ -149,7 +149,7 @@ Vary: Cookie
     const avisos = document.querySelectorAll('.aviso');
     if (avisos.length === 0) return;
 
-    const conteudo = document.getElementById('conteudo');
+    const conteudo = document.getElementById('content');
 
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');

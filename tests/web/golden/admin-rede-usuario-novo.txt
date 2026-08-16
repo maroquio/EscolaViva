@@ -18,7 +18,7 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
 
   <div class="aplicacao">
     <header class="cabecalho">
@@ -75,7 +75,7 @@ Vary: Cookie
   </div>
   </nav>
 
-    <main class="conteudo" id="conteudo" tabindex="-1">
+    <main class="conteudo" id="content" tabindex="-1">
       
 
       <div class="pagina__cabecalho">
@@ -95,11 +95,11 @@ Vary: Cookie
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="nome">
+        <label class="campo__rotulo" for="name">
           Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="nome"
+          id="name"
           name="name"
           type="text"
           required
@@ -121,8 +121,8 @@ Vary: Cookie
           maxlength="14"
           autocomplete="off"
           value=""
-                    aria-describedby="cpf-ajuda">
-        <p class="campo__ajuda" id="cpf-ajuda">É por ele que a pessoa entra. Com ou sem pontos.</p>
+                    aria-describedby="cpf-help">
+        <p class="campo__ajuda" id="cpf-help">É por ele que a pessoa entra. Com ou sem pontos.</p>
               </div>
 
       <div class="campo">
@@ -138,8 +138,8 @@ Vary: Cookie
           spellcheck="false"
           autocomplete="off"
           value=""
-                    aria-describedby="email-ajuda">
-        <p class="campo__ajuda" id="email-ajuda">Contato. Não é usado para entrar.</p>
+                    aria-describedby="email-help">
+        <p class="campo__ajuda" id="email-help">Contato. Não é usado para entrar.</p>
               </div>
     </div>
 
@@ -149,8 +149,8 @@ Vary: Cookie
       <div class="pilha">
                 <div class="formulario__linha">
           <div class="campo">
-            <label class="campo__rotulo" for="unidade-0">Unidade 1</label>
-            <select id="unidade-0" name="schools[]">
+            <label class="campo__rotulo" for="school-0">Unidade 1</label>
+            <select id="school-0" name="schools[]">
               <option value="">Sem atribuição</option>
                             <option value="{{unidadeA}}" >Escola Central</option>
                             <option value="{{unidadeB}}" >Escola do Bairro</option>
@@ -158,8 +158,8 @@ Vary: Cookie
           </div>
 
           <div class="campo">
-            <label class="campo__rotulo" for="papel-0">Papel 1</label>
-            <select id="papel-0" name="roles[]">
+            <label class="campo__rotulo" for="role-0">Papel 1</label>
+            <select id="role-0" name="roles[]">
               <option value="">Sem atribuição</option>
                             <option value="network_admin" >Administração da rede</option>
                             <option value="registrar" >Secretaria</option>
@@ -170,8 +170,8 @@ Vary: Cookie
         </div>
                 <div class="formulario__linha">
           <div class="campo">
-            <label class="campo__rotulo" for="unidade-1">Unidade 2</label>
-            <select id="unidade-1" name="schools[]">
+            <label class="campo__rotulo" for="school-1">Unidade 2</label>
+            <select id="school-1" name="schools[]">
               <option value="">Sem atribuição</option>
                             <option value="{{unidadeA}}" >Escola Central</option>
                             <option value="{{unidadeB}}" >Escola do Bairro</option>
@@ -179,8 +179,8 @@ Vary: Cookie
           </div>
 
           <div class="campo">
-            <label class="campo__rotulo" for="papel-1">Papel 2</label>
-            <select id="papel-1" name="roles[]">
+            <label class="campo__rotulo" for="role-1">Papel 2</label>
+            <select id="role-1" name="roles[]">
               <option value="">Sem atribuição</option>
                             <option value="network_admin" >Administração da rede</option>
                             <option value="registrar" >Secretaria</option>
@@ -191,8 +191,8 @@ Vary: Cookie
         </div>
                 <div class="formulario__linha">
           <div class="campo">
-            <label class="campo__rotulo" for="unidade-2">Unidade 3</label>
-            <select id="unidade-2" name="schools[]">
+            <label class="campo__rotulo" for="school-2">Unidade 3</label>
+            <select id="school-2" name="schools[]">
               <option value="">Sem atribuição</option>
                             <option value="{{unidadeA}}" >Escola Central</option>
                             <option value="{{unidadeB}}" >Escola do Bairro</option>
@@ -200,8 +200,8 @@ Vary: Cookie
           </div>
 
           <div class="campo">
-            <label class="campo__rotulo" for="papel-2">Papel 3</label>
-            <select id="papel-2" name="roles[]">
+            <label class="campo__rotulo" for="role-2">Papel 3</label>
+            <select id="role-2" name="roles[]">
               <option value="">Sem atribuição</option>
                             <option value="network_admin" >Administração da rede</option>
                             <option value="registrar" >Secretaria</option>
@@ -214,11 +214,11 @@ Vary: Cookie
     </fieldset>
 
     <div class="campo">
-      <label class="campo__rotulo" for="responsavelId">Cadastro de responsável</label>
+      <label class="campo__rotulo" for="guardianId">Cadastro de responsável</label>
       <select
-        id="responsavelId"
+        id="guardianId"
         name="guardianId"
-                aria-describedby="guardianId-ajuda">
+                aria-describedby="guardianId-help">
         <option value="">Nenhum</option>
                 <option value="{{responsavel01}}" >Responsável 01 da Silva — responsavel01@golden.test</option>
                 <option value="{{responsavel02}}" >Responsável 02 da Silva — responsavel02@golden.test</option>
@@ -233,7 +233,7 @@ Vary: Cookie
                 <option value="{{responsavel11}}" >Responsável 11 da Silva — responsavel11@golden.test</option>
                 <option value="{{responsavel12}}" >Responsável 12 da Silva — responsavel12@golden.test</option>
               </select>
-      <p class="campo__ajuda" id="guardianId-ajuda">
+      <p class="campo__ajuda" id="guardianId-help">
         Obrigatório quando alguma atribuição acima for Responsável: é esse cadastro que liga a
         conta aos alunos. A secretaria cria o cadastro antes do convite.
       </p>
@@ -253,7 +253,7 @@ Vary: Cookie
     const avisos = document.querySelectorAll('.aviso');
     if (avisos.length === 0) return;
 
-    const conteudo = document.getElementById('conteudo');
+    const conteudo = document.getElementById('content');
 
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');

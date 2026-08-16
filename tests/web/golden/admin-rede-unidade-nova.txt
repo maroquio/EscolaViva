@@ -18,7 +18,7 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
 
   <div class="aplicacao">
     <header class="cabecalho">
@@ -75,7 +75,7 @@ Vary: Cookie
   </div>
   </nav>
 
-    <main class="conteudo" id="conteudo" tabindex="-1">
+    <main class="conteudo" id="content" tabindex="-1">
       
 
       <div class="pagina__cabecalho">
@@ -95,33 +95,33 @@ Vary: Cookie
 
     <div class="formulario__linha">
       <div class="campo">
-        <label class="campo__rotulo" for="nome">
+        <label class="campo__rotulo" for="name">
           Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
         </label>
         <input
-          id="nome"
+          id="name"
           name="name"
           type="text"
           required
           maxlength="120"
           autocomplete="off"
           value=""
-                    aria-describedby="name-ajuda">
-        <p class="campo__ajuda" id="name-ajuda">Como a escola é chamada no dia a dia.</p>
+                    aria-describedby="name-help">
+        <p class="campo__ajuda" id="name-help">Como a escola é chamada no dia a dia.</p>
               </div>
 
       <div class="campo">
-        <label class="campo__rotulo" for="codigoInep">Código INEP</label>
+        <label class="campo__rotulo" for="inepCode">Código INEP</label>
         <input
-          id="codigoInep"
+          id="inepCode"
           name="inepCode"
           type="text"
           maxlength="20"
           inputmode="numeric"
           autocomplete="off"
           value=""
-                    aria-describedby="inepCode-ajuda">
-        <p class="campo__ajuda" id="inepCode-ajuda">Opcional. Pode ser preenchido depois.</p>
+                    aria-describedby="inepCode-help">
+        <p class="campo__ajuda" id="inepCode-help">Opcional. Pode ser preenchido depois.</p>
               </div>
     </div>
 
@@ -139,7 +139,7 @@ Vary: Cookie
     const avisos = document.querySelectorAll('.aviso');
     if (avisos.length === 0) return;
 
-    const conteudo = document.getElementById('conteudo');
+    const conteudo = document.getElementById('content');
 
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');

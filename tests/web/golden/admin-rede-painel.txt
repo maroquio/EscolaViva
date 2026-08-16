@@ -18,7 +18,7 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
 
   <div class="aplicacao">
     <header class="cabecalho">
@@ -75,7 +75,7 @@ Vary: Cookie
   </div>
   </nav>
 
-    <main class="conteudo" id="conteudo" tabindex="-1">
+    <main class="conteudo" id="content" tabindex="-1">
       
 
       <div class="pagina__cabecalho">
@@ -89,9 +89,9 @@ Vary: Cookie
   </div>
 </div>
 
-<section class="secao" aria-labelledby="numeros-titulo">
+<section class="secao" aria-labelledby="numbers-title">
   <div class="secao__cabecalho">
-    <h2 id="numeros-titulo">Onde a rede está hoje</h2>
+    <h2 id="numbers-title">Onde a rede está hoje</h2>
     <p class="secao__nota">Contagem no momento em que esta página foi aberta.</p>
   </div>
 
@@ -122,9 +122,9 @@ Vary: Cookie
   </div>
 </section>
 
-<section class="secao" aria-labelledby="ano-titulo">
+<section class="secao" aria-labelledby="year-title">
   <div class="secao__cabecalho">
-    <h2 id="ano-titulo">Ano letivo em vigor</h2>
+    <h2 id="year-title">Ano letivo em vigor</h2>
     <p class="secao__nota">
       2 ano(s) definido(s) nesta rede.
     </p>
@@ -149,7 +149,7 @@ Vary: Cookie
     const avisos = document.querySelectorAll('.aviso');
     if (avisos.length === 0) return;
 
-    const conteudo = document.getElementById('conteudo');
+    const conteudo = document.getElementById('content');
 
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');

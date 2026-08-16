@@ -17,10 +17,10 @@ Cache-Control: no-store
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
 
   <div class="publico">
-    <main class="publico__cartao" id="conteudo" tabindex="-1">
+    <main class="publico__cartao" id="content" tabindex="-1">
       <header>
         <span class="marca publico__marca">Escola<em>Viva</em></span>
         <p class="publico__titulo">Portal da rede escolar</p>
@@ -34,11 +34,11 @@ Cache-Control: no-store
   <input type="hidden" name="_key" value="{{chave}}">
 
   <div class="campo">
-    <label class="campo__rotulo" for="redeSlug">
+    <label class="campo__rotulo" for="networkSlug">
       Identificador da rede <span class="campo__obrigatorio" aria-hidden="true">*</span>
     </label>
     <input
-      id="redeSlug"
+      id="networkSlug"
       name="networkSlug"
       type="text"
       required
@@ -46,8 +46,8 @@ Cache-Control: no-store
       autocapitalize="none"
       spellcheck="false"
       value=""
-            aria-describedby="networkSlug-ajuda">
-    <p class="campo__ajuda" id="networkSlug-ajuda">
+            aria-describedby="networkSlug-help">
+    <p class="campo__ajuda" id="networkSlug-help">
       O apelido curto da rede, informado pela secretaria — tudo minúsculo, sem espaço.
     </p>
       </div>
@@ -66,18 +66,18 @@ Cache-Control: no-store
       autocapitalize="none"
       spellcheck="false"
       value=""
-            aria-describedby="cpf-ajuda">
-    <p class="campo__ajuda" id="cpf-ajuda">
+            aria-describedby="cpf-help">
+    <p class="campo__ajuda" id="cpf-help">
       O CPF pode ser digitado com ou sem pontos e traço.
     </p>
       </div>
 
   <div class="campo">
-    <label class="campo__rotulo" for="senha">
+    <label class="campo__rotulo" for="password">
       Senha <span class="campo__obrigatorio" aria-hidden="true">*</span>
     </label>
     <input
-      id="senha"
+      id="password"
       name="password"
       type="password"
       required
@@ -101,7 +101,7 @@ Cache-Control: no-store
     const avisos = document.querySelectorAll('.aviso');
     if (avisos.length === 0) return;
 
-    const conteudo = document.getElementById('conteudo');
+    const conteudo = document.getElementById('content');
 
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');

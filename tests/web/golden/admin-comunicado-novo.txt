@@ -18,7 +18,7 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
 
   <div class="aplicacao">
     <header class="cabecalho">
@@ -75,7 +75,7 @@ Vary: Cookie
   </div>
   </nav>
 
-    <main class="conteudo" id="conteudo" tabindex="-1">
+    <main class="conteudo" id="content" tabindex="-1">
       
 
       <header class="pagina__cabecalho">
@@ -92,25 +92,25 @@ Vary: Cookie
   </p>
 </header>
 
-<section class="secao" aria-labelledby="titulo-unidade">
+<section class="secao" aria-labelledby="school-title">
   <div class="secao__cabecalho">
-    <h2 id="titulo-unidade">Passo 1 · Unidade</h2>
+    <h2 id="school-title">Passo 1 · Unidade</h2>
     <p class="secao__nota">A lista de destinatários é a dos responsáveis desta unidade</p>
   </div>
 
     <form class="formulario" method="get" action="/announcements/new">
     <div class="campo">
-      <label class="campo__rotulo" for="unidadeId">
+      <label class="campo__rotulo" for="schoolId">
         Unidade <span class="campo__obrigatorio" aria-hidden="true">*</span>
       </label>
-      <select id="unidadeId" name="schoolId" required
-              aria-describedby="schoolId-ajuda"
+      <select id="schoolId" name="schoolId" required
+              aria-describedby="schoolId-help"
               >
         <option value="">Escolha a unidade</option>
                 <option value="{{unidadeA}}">Escola Central</option>
                 <option value="{{unidadeB}}">Escola do Bairro</option>
               </select>
-      <p class="campo__ajuda" id="schoolId-ajuda">
+      <p class="campo__ajuda" id="schoolId-help">
         Só aparecem as unidades ativas em que você tem papel.
       </p>
           </div>
@@ -128,7 +128,7 @@ Vary: Cookie
     const avisos = document.querySelectorAll('.aviso');
     if (avisos.length === 0) return;
 
-    const conteudo = document.getElementById('conteudo');
+    const conteudo = document.getElementById('content');
 
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
