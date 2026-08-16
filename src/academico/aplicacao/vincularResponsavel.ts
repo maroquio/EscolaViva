@@ -1,12 +1,6 @@
 import { z } from 'zod';
-import { unidadeDeTrabalho } from '../../shared/db';
-import {
-  errosDeSchema,
-  falha,
-  falhaDeCampo,
-  sucesso,
-  type Resultado,
-} from '../../shared/result';
+import { unitOfWork } from '../../shared/db';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import * as alunos from '../infra/alunoRepositorio';
 import * as responsaveis from '../infra/responsavelRepositorio';
@@ -29,15 +23,15 @@ export async function vincularResponsavel(e: {
   responsavelId: string;
   parentesco: string;
   financeiro: boolean;
-}): Promise<Resultado<void>> {
+}): Promise<Result<void>> {
   const validada = entrada.safeParse(e);
-  if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
+  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
 
   const { redeId, alunoId, responsavelId } = validada.data;
-  return unidadeDeTrabalho(async ({ sql }): Promise<Resultado<void>> => {
+  return unitOfWork(async ({ sql }): Promise<Result<void>> => {
     const aluno = await alunos.porId(sql, redeId, alunoId);
     if (aluno === null) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.vinculo.alunoId,
         CODIGOS.alunoNaoEncontrado,
         MENSAGENS.alunoNaoEncontrado,
@@ -45,7 +39,7 @@ export async function vincularResponsavel(e: {
     }
     const responsavel = await responsaveis.porId(sql, redeId, responsavelId);
     if (responsavel === null) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.vinculo.responsavelId,
         CODIGOS.responsavelNaoEncontrado,
         MENSAGENS.responsavelNaoEncontrado,
@@ -54,12 +48,12 @@ export async function vincularResponsavel(e: {
 
     const vinculado = await responsaveis.vincular(sql, { ...validada.data });
     if (!vinculado) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.vinculo.responsavelId,
         CODIGOS.vinculo.duplicado,
         MENSAGENS.vinculo.duplicado,
       );
     }
-    return sucesso<void>(undefined);
+    return success<void>(undefined);
   });
 }

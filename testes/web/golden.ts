@@ -26,7 +26,7 @@
 
 import { join } from 'node:path';
 import { app } from '../../src/web/app';
-import { gerarCpf } from '../../src/shared/document';
+import { generateCpf } from '../../src/shared/document';
 import { sqlDeTeste } from '../apoio/banco';
 import {
   SENHA_PADRAO,
@@ -38,12 +38,12 @@ import {
   criarMatricula,
   criarNota,
   criarRede,
+  criarResponsavel,
   criarTurma,
   criarTurmaDisciplina,
   criarUnidade,
   criarUsuario,
   vincularAlunoResponsavel,
-  criarResponsavel,
   type AlunoDeTeste,
   type MatriculaDeTeste,
   type ResponsavelDeTeste,
@@ -132,7 +132,7 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
     networkId: redeId,
     name: 'Alice Diretora',
     email: 'alice@golden.test',
-    cpf: gerarCpf(9_100_001),
+    cpf: generateCpf(9_100_001),
     senha: SENHA_PADRAO,
     papeis: [
       { schoolId: unidadeA.id, role: 'network_admin' },
@@ -143,7 +143,7 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
     networkId: redeId,
     name: 'Bruno Secretário',
     email: 'bruno@golden.test',
-    cpf: gerarCpf(9_100_002),
+    cpf: generateCpf(9_100_002),
     senha: SENHA_PADRAO,
     papeis: [{ schoolId: unidadeA.id, role: 'registrar' }],
   });
@@ -151,7 +151,7 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
     networkId: redeId,
     name: 'Carla Professora',
     email: 'carla@golden.test',
-    cpf: gerarCpf(9_100_003),
+    cpf: generateCpf(9_100_003),
     senha: SENHA_PADRAO,
     papeis: [{ schoolId: unidadeA.id, role: 'teacher' }],
   });
@@ -189,7 +189,7 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
       networkId: redeId,
       name: `Responsável ${rotulo} da Silva`,
       email: `responsavel${rotulo}@golden.test`,
-      cpf: gerarCpf(9_200_000 + numero),
+      cpf: generateCpf(9_200_000 + numero),
       phone: `2799000${rotulo}${rotulo}`,
     });
     await vincularAlunoResponsavel({
@@ -210,7 +210,7 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
     networkId: redeId,
     name: 'Eva Recém-Convidada',
     email: 'eva@golden.test',
-    cpf: gerarCpf(9_100_005),
+    cpf: generateCpf(9_100_005),
     senha: SENHA_PADRAO,
     papeis: [],
   });
@@ -219,7 +219,7 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
     networkId: redeId,
     name: 'Responsável 01 da Silva',
     email: 'portal01@golden.test',
-    cpf: gerarCpf(9_100_004),
+    cpf: generateCpf(9_100_004),
     senha: SENHA_PADRAO,
     guardianId: responsaveis[0]?.id ?? null,
     papeis: [{ schoolId: unidadeA.id, role: 'guardian' }],

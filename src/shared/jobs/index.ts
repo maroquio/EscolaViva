@@ -1,2 +1,2 @@
-export { iniciarAgendador, type Job } from './scheduler';
-export { comLockExclusivo } from './lock';
+export { startScheduler, type Job } from './scheduler';
+export { withExclusiveLock } from './lock';

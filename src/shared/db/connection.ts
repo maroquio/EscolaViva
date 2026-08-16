@@ -1,46 +1,46 @@
 import { SQL } from 'bun';
 import { config } from '../config';
-import { BANCO } from '../constants';
+import { DATABASE } from '../constants';
 
-export type Conexao = SQL;
+export type Connection = SQL;
 
 let pool: SQL | undefined;
 
-function primario(): Conexao {
+function primary(): Connection {
   pool ??= new SQL({
     url: config.databaseUrl,
-    max: BANCO.maxConexoes,
-    idleTimeout: BANCO.tempoOciosoSegundos,
-    connectionTimeout: BANCO.tempoDeConexaoSegundos,
+    max: DATABASE.maxConnections,
+    idleTimeout: DATABASE.idleTimeoutSeconds,
+    connectionTimeout: DATABASE.connectionTimeoutSeconds,
   });
   return pool;
 }
 
-export function leitura(): Conexao {
-  return primario();
+export function reader(): Connection {
+  return primary();
 }
 
-export function escrita(): Conexao {
-  return primario();
+export function writer(): Connection {
+  return primary();
 }
 
-export async function verificarBanco(timeoutMs: number): Promise<boolean> {
-  let prazo: ReturnType<typeof setTimeout> | undefined;
-  const expirou = new Promise<boolean>((resolver) => {
-    prazo = setTimeout(() => resolver(false), timeoutMs);
+export async function checkDatabase(timeoutMs: number): Promise<boolean> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<boolean>((resolve) => {
+    timer = setTimeout(() => resolve(false), timeoutMs);
   });
-  const respondeu = leitura()`SELECT 1`.then(
+  const responded = reader()`SELECT 1`.then(
     () => true,
     () => false,
   );
   try {
-    return await Promise.race([respondeu, expirou]);
+    return await Promise.race([responded, timedOut]);
   } finally {
-    clearTimeout(prazo);
+    clearTimeout(timer);
   }
 }
 
-export async function encerrar(): Promise<void> {
+export async function closeDatabase(): Promise<void> {
   if (pool === undefined) return;
   await pool.close();
 }

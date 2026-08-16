@@ -1,20 +1,20 @@
 import type { MiddlewareHandler } from 'hono';
-import { ATIVOS, CABECALHOS, CACHE } from '../constants';
-import { usuarioAtualOuNulo } from './session';
+import { ASSETS, CACHE, HEADERS } from '../constants';
+import { currentUserOrNull } from './session';
 
-export const middlewareCacheControl: MiddlewareHandler = async (c, next) => {
+export const cacheControlMiddleware: MiddlewareHandler = async (c, next) => {
   await next();
 
-  if (c.req.path.startsWith(ATIVOS.prefixoDeUrl)) {
-    c.header(CABECALHOS.cacheControl, CACHE.asset);
+  if (c.req.path.startsWith(ASSETS.urlPrefix)) {
+    c.header(HEADERS.cacheControl, CACHE.asset);
     return;
   }
 
-  if (usuarioAtualOuNulo(c) !== null) {
-    c.header(CABECALHOS.cacheControl, CACHE.autenticado);
-    c.header(CABECALHOS.vary, CABECALHOS.cookie);
+  if (currentUserOrNull(c) !== null) {
+    c.header(HEADERS.cacheControl, CACHE.authenticated);
+    c.header(HEADERS.vary, HEADERS.cookie);
     return;
   }
 
-  c.header(CABECALHOS.cacheControl, CACHE.anonimo);
+  c.header(HEADERS.cacheControl, CACHE.anonymous);
 };

@@ -1,2 +1,2 @@
-export { type Clock, clockDoSistema } from './clock';
-export { type IdGenerator, idGeneratorUuid } from './idGenerator';
+export { systemClock, type Clock } from './clock';
+export { uuidIdGenerator, type IdGenerator } from './idGenerator';

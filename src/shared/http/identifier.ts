@@ -1,3 +1,3 @@
-import { FORMATOS } from '../constants';
+import { FORMATS } from '../constants';
 
-export const ehIdentificador = (valor: string): boolean => FORMATOS.identificador.test(valor);
+export const isUuid = (value: string): boolean => FORMATS.identifier.test(value);

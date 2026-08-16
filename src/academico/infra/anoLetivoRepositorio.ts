@@ -1,5 +1,5 @@
-import type { Conexao } from '../../shared/db';
-import { recorte, type Faixa } from '../../shared/pagination';
+import type { Connection } from '../../shared/db';
+import { rangeParams, type Range } from '../../shared/pagination';
 import type { AnoLetivo } from '../dominio/anoLetivo';
 
 type LinhaDeAnoLetivo = {
@@ -18,7 +18,7 @@ const paraAnoLetivo = (linha: LinhaDeAnoLetivo): AnoLetivo => ({
   dataFim: linha.end_date,
 });
 
-export async function inserir(sql: Conexao, anoLetivo: AnoLetivo): Promise<boolean> {
+export async function inserir(sql: Connection, anoLetivo: AnoLetivo): Promise<boolean> {
   const criados: { id: string }[] = await sql`
     INSERT INTO academic_year (id, network_id, year, start_date, end_date)
     VALUES (${anoLetivo.id}, ${anoLetivo.redeId}, ${anoLetivo.ano},
@@ -28,7 +28,7 @@ export async function inserir(sql: Conexao, anoLetivo: AnoLetivo): Promise<boole
   return criados.length === 1;
 }
 
-export async function porId(sql: Conexao, redeId: string, id: string): Promise<AnoLetivo | null> {
+export async function porId(sql: Connection, redeId: string, id: string): Promise<AnoLetivo | null> {
   const linhas: LinhaDeAnoLetivo[] = await sql`
     SELECT id, network_id, year,
            to_char(start_date, 'YYYY-MM-DD') AS start_date,
@@ -40,11 +40,11 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<A
 }
 
 export async function listar(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<AnoLetivo[]> {
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas: LinhaDeAnoLetivo[] = await sql`
     SELECT id, network_id, year,
            to_char(start_date, 'YYYY-MM-DD') AS start_date,
@@ -52,11 +52,11 @@ export async function listar(
       FROM academic_year
      WHERE network_id = ${redeId}
      ORDER BY year DESC
-     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
+     LIMIT ${limit}::int OFFSET ${offset}::int`;
   return linhas.map(paraAnoLetivo);
 }
 
-export async function contar(sql: Conexao, redeId: string): Promise<number> {
+export async function contar(sql: Connection, redeId: string): Promise<number> {
   const linhas: { total: number }[] = await sql`
     SELECT count(*)::int AS total FROM academic_year WHERE network_id = ${redeId}`;
   return linhas[0]?.total ?? 0;

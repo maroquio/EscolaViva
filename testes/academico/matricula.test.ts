@@ -6,7 +6,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { academico } from '../../src/academico';
-import type { ErroDeAplicacao, Resultado } from '../../src/shared/result';
+import type { ApplicationError, Result } from '../../src/shared/result';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
   ANO_PADRAO,
@@ -20,14 +20,14 @@ import {
 const DATA_DE_MATRICULA = `${ANO_PADRAO}-02-10`;
 const DATA_DE_TRANSFERENCIA = `${ANO_PADRAO}-06-01`;
 
-function valorDe<T>(resultado: Resultado<T>): T {
+function valorDe<T>(resultado: Result<T>): T {
   if (!resultado.ok) {
     throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(resultado.erros)}`);
   }
   return resultado.valor;
 }
 
-function errosDe(resultado: Resultado<unknown>): ErroDeAplicacao[] {
+function errosDe(resultado: Result<unknown>): ApplicationError[] {
   if (resultado.ok) throw new Error('esperava recusa da aplicação, veio sucesso');
   return resultado.erros;
 }

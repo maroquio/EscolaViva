@@ -1,28 +1,28 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { MiddlewareHandler } from 'hono';
-import { CABECALHOS, FORMATOS, VARIAVEIS_DE_CONTEXTO } from '../constants';
-import { registrarFonteDeCorrelacao } from '../log/logger';
+import { CONTEXT_VARIABLES, FORMATS, HEADERS } from '../constants';
+import { registerCorrelationSource } from '../log/logger';
 
-export type ContextoRequisicao = { correlacaoId: string; usuarioId?: string; redeId?: string };
+export type RequestContext = { correlationId: string; userId?: string; networkId?: string };
 
-const armazenamento = new AsyncLocalStorage<ContextoRequisicao>();
+const storage = new AsyncLocalStorage<RequestContext>();
 
-export function contextoAtual(): ContextoRequisicao | undefined {
-  return armazenamento.getStore();
+export function currentContext(): RequestContext | undefined {
+  return storage.getStore();
 }
 
-export function comContexto<T>(ctx: ContextoRequisicao, fn: () => T): T {
-  return armazenamento.run(ctx, fn);
+export function withContext<T>(ctx: RequestContext, fn: () => T): T {
+  return storage.run(ctx, fn);
 }
 
-const correlacaoRecebida = (cabecalho: string | undefined): string =>
-  cabecalho !== undefined && FORMATOS.correlacao.test(cabecalho) ? cabecalho : crypto.randomUUID();
+const incomingCorrelation = (header: string | undefined): string =>
+  header !== undefined && FORMATS.correlation.test(header) ? header : crypto.randomUUID();
 
-export const middlewareCorrelacao: MiddlewareHandler = async (c, next) => {
-  const correlacaoId = correlacaoRecebida(c.req.header(CABECALHOS.correlacao));
-  c.set(VARIAVEIS_DE_CONTEXTO.correlacaoId, correlacaoId);
-  c.header(CABECALHOS.correlacao, correlacaoId);
-  await comContexto({ correlacaoId }, next);
+export const correlationMiddleware: MiddlewareHandler = async (c, next) => {
+  const correlationId = incomingCorrelation(c.req.header(HEADERS.correlation));
+  c.set(CONTEXT_VARIABLES.correlationId, correlationId);
+  c.header(HEADERS.correlation, correlationId);
+  await withContext({ correlationId }, next);
 };
 
-registrarFonteDeCorrelacao(() => contextoAtual()?.correlacaoId);
+registerCorrelationSource(() => currentContext()?.correlationId);

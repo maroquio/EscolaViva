@@ -7,9 +7,9 @@ import { describe, expect, test } from 'bun:test';
 import { idadeEm } from '../../src/academico/dominio/aluno';
 import { periodoCoerente } from '../../src/academico/dominio/anoLetivo';
 import {
+  SITUACOES_DE_MATRICULA,
   podeTransferir,
   situacaoValida,
-  SITUACOES_DE_MATRICULA,
   type Matricula,
   type SituacaoMatricula,
 } from '../../src/academico/dominio/matricula';

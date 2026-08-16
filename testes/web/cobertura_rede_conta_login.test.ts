@@ -17,14 +17,14 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { gerarCpf } from '../../src/shared/document';
+import { generateCpf } from '../../src/shared/document';
 import { limparBanco } from '../apoio/banco';
 import {
+  SENHA_PADRAO,
   cenarioCompleto,
   criarRede,
   criarUnidade,
   criarUsuario,
-  SENHA_PADRAO,
   type Cenario,
 } from '../apoio/fabricas';
 import { abrir, cookieDaResposta, entrar, enviar } from './apoio';
@@ -170,7 +170,7 @@ describe('os usuários da rede', () => {
       {
         nome: 'Nova Secretária',
         email: 'nova.secretaria@escolaviva.test',
-        cpf: gerarCpf(424_242),
+        cpf: generateCpf(424_242),
         'unidade[]': cenario.unidades[0].id,
         'papel[]': 'registrar',
       },

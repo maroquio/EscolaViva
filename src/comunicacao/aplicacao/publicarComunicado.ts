@@ -2,15 +2,9 @@ import { z } from 'zod';
 
 import { academico } from '../../academico';
 import { identidade } from '../../identidade';
-import { unidadeDeTrabalho } from '../../shared/db';
-import { idGeneratorUuid } from '../../shared/ports';
-import {
-  errosDeSchema,
-  falha,
-  falhaDeCampo,
-  sucesso,
-  type Resultado,
-} from '../../shared/result';
+import { unitOfWork } from '../../shared/db';
+import { uuidIdGenerator } from '../../shared/ports';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import {
   CORPO_TAMANHO_MAXIMO,
@@ -43,22 +37,22 @@ const esquema = z.object({
 
 type DadosValidados = z.infer<typeof esquema>;
 
-function conferirTexto(dados: DadosValidados): Resultado<void> {
+function conferirTexto(dados: DadosValidados): Result<void> {
   if (!tituloValido(dados.titulo)) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.titulo,
       CODIGOS.tituloInvalido,
       MENSAGENS.tituloInvalido(TITULO_TAMANHO_MAXIMO),
     );
   }
   if (!corpoValido(dados.corpo)) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.corpo,
       CODIGOS.corpoInvalido,
       MENSAGENS.corpoInvalido(CORPO_TAMANHO_MAXIMO),
     );
   }
-  return sucesso<void>(undefined);
+  return success<void>(undefined);
 }
 
 async function responsaveisAlvo(dados: DadosValidados): Promise<string[]> {
@@ -73,9 +67,9 @@ async function gravar(
   dados: DadosValidados,
   responsaveisIds: readonly string[],
 ): Promise<ComunicadoArmazenado> {
-  return await unidadeDeTrabalho(async ({ sql }) => {
+  return await unitOfWork(async ({ sql }) => {
     const comunicado = await inserirPublicado(sql, {
-      id: idGeneratorUuid.novo(),
+      id: uuidIdGenerator.next(),
       redeId: dados.redeId,
       unidadeId: dados.unidadeId,
       titulo: dados.titulo,
@@ -93,20 +87,20 @@ async function gravar(
 
 export async function publicarComunicado(
   entrada: EntradaDeComunicado,
-): Promise<Resultado<Comunicado>> {
+): Promise<Result<Comunicado>> {
   const validado = esquema.safeParse(entrada);
-  if (!validado.success) return falha(...errosDeSchema(validado.error.issues));
+  if (!validado.success) return failure(...schemaErrors(validado.error.issues));
 
   const dados = validado.data;
   const texto = conferirTexto(dados);
-  if (!texto.ok) return falha(...texto.erros);
+  if (!texto.ok) return failure(...texto.erros);
 
   const [unidade, nomes] = await Promise.all([
     identidade.unidadePorId(dados.redeId, dados.unidadeId),
     identidade.nomesDeUsuarios(dados.redeId, [dados.autorUsuarioId]),
   ]);
   if (unidade === null) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.unidadeId,
       CODIGOS.unidadeDesconhecida,
       MENSAGENS.unidadeDesconhecida,
@@ -114,7 +108,7 @@ export async function publicarComunicado(
   }
   const autorNome = nomes.get(dados.autorUsuarioId);
   if (autorNome === undefined) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.autorUsuarioId,
       CODIGOS.autorDesconhecido,
       MENSAGENS.autorDesconhecido,
@@ -123,12 +117,12 @@ export async function publicarComunicado(
 
   const responsaveisIds = await responsaveisAlvo(dados);
   if (responsaveisIds.length === 0) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.destinatarios,
       CODIGOS.semDestinatarios,
       MENSAGENS.semDestinatarios,
     );
   }
 
-  return sucesso(comAutor(await gravar(dados, responsaveisIds), autorNome));
+  return success(comAutor(await gravar(dados, responsaveisIds), autorNome));
 }

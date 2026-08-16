@@ -1,5 +1,5 @@
-import type { Conexao } from '../../shared/db';
-import { recorte, type Faixa } from '../../shared/pagination';
+import type { Connection } from '../../shared/db';
+import { rangeParams, type Range } from '../../shared/pagination';
 import { ERROS_INTERNOS } from '../constantes';
 import type { ComunicadoArmazenado } from '../dominio/comunicado';
 import type { ContagemDeLeitura, ItemDoMural } from '../dominio/destinatario';
@@ -65,7 +65,7 @@ function paraComunicado(linha: LinhaDeComunicado): ComunicadoArmazenado {
 }
 
 export async function inserirPublicado(
-  sql: Conexao,
+  sql: Connection,
   novo: NovoComunicado,
 ): Promise<ComunicadoArmazenado> {
   const linhas = await sql<{ published_at: Date }[]>`
@@ -88,7 +88,7 @@ export async function inserirPublicado(
 }
 
 export async function inserirDestinatarios(
-  sql: Conexao,
+  sql: Connection,
   entrada: { redeId: string; comunicadoId: string; responsaveisIds: readonly string[] },
 ): Promise<void> {
   const linhas = entrada.responsaveisIds.map((responsavelId) => ({
@@ -102,14 +102,14 @@ export async function inserirDestinatarios(
 export type FiltroDoMural = { lido?: boolean };
 
 export async function listarDoResponsavel(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   responsavelId: string,
   filtro?: FiltroDoMural,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<ItemDoMural[]> {
   const lido = filtro?.lido ?? null;
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas = await sql<LinhaDoMural[]>`
     SELECT c.id AS announcement_id, c.title, c.published_at, d.read_at
     FROM announcement_recipient d
@@ -119,7 +119,7 @@ export async function listarDoResponsavel(
       AND c.published_at IS NOT NULL
       AND (${lido}::boolean IS NULL OR (d.read_at IS NOT NULL) = ${lido}::boolean)
     ORDER BY c.published_at DESC
-    LIMIT ${limite}::int OFFSET ${deslocamento}::int
+    LIMIT ${limit}::int OFFSET ${offset}::int
   `;
   return linhas.map((linha) => ({
     comunicadoId: linha.announcement_id,
@@ -130,7 +130,7 @@ export async function listarDoResponsavel(
 }
 
 export async function contarDoResponsavel(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   responsavelId: string,
   filtro?: FiltroDoMural,
@@ -149,7 +149,7 @@ export async function contarDoResponsavel(
 }
 
 export async function buscarParaResponsavel(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   responsavelId: string,
   comunicadoId: string,
@@ -166,7 +166,7 @@ export async function buscarParaResponsavel(
   return linha === undefined ? null : paraComunicado(linha);
 }
 
-export async function marcarLeitura(sql: Conexao, chave: ChaveDeDestinatario): Promise<void> {
+export async function marcarLeitura(sql: Connection, chave: ChaveDeDestinatario): Promise<void> {
   await sql`
     UPDATE announcement_recipient
     SET read_at = now()
@@ -178,12 +178,12 @@ export async function marcarLeitura(sql: Conexao, chave: ChaveDeDestinatario): P
 }
 
 export async function contarLeituras(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   unidadeId: string | null,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<ContagemDeLeitura[]> {
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas = await sql<LinhaDeContagem[]>`
     SELECT c.id AS announcement_id,
            c.title,
@@ -196,7 +196,7 @@ export async function contarLeituras(
       AND (${unidadeId}::uuid IS NULL OR c.school_id = ${unidadeId})
     GROUP BY c.id, c.title, c.published_at
     ORDER BY c.published_at DESC NULLS LAST
-    LIMIT ${limite}::int OFFSET ${deslocamento}::int
+    LIMIT ${limit}::int OFFSET ${offset}::int
   `;
   return linhas.map((linha) => ({
     comunicadoId: linha.announcement_id,
@@ -208,7 +208,7 @@ export async function contarLeituras(
 }
 
 export async function contarComunicados(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   unidadeId: string | null,
 ): Promise<number> {
@@ -222,7 +222,7 @@ export async function contarComunicados(
 }
 
 export async function somarLeituras(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   unidadeId: string | null,
 ): Promise<{ destinatarios: number; leituras: number }> {

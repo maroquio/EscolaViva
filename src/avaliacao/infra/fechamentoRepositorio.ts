@@ -1,9 +1,9 @@
-import type { Conexao } from '../../shared/db';
-import { idGeneratorUuid } from '../../shared/ports';
+import type { Connection } from '../../shared/db';
+import { uuidIdGenerator } from '../../shared/ports';
 import type { FechamentoBimestre } from '../dominio/fechamentoBimestre';
 
 export async function porTurma(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   turmaId: string,
 ): Promise<FechamentoBimestre[]> {
@@ -18,7 +18,7 @@ export async function porTurma(
 }
 
 export async function estaFechado(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   turmaId: string,
   bimestre: number,
@@ -33,11 +33,11 @@ export async function estaFechado(
 }
 
 export async function registrar(
-  sql: Conexao,
+  sql: Connection,
   fechamento: { redeId: string; turmaId: string; bimestre: number; fechadoPor: string },
 ): Promise<void> {
   await sql`
     INSERT INTO term_closing (id, network_id, class_group_id, term, closed_by)
-    VALUES (${idGeneratorUuid.novo()}, ${fechamento.redeId}, ${fechamento.turmaId},
+    VALUES (${uuidIdGenerator.next()}, ${fechamento.redeId}, ${fechamento.turmaId},
             ${fechamento.bimestre}, ${fechamento.fechadoPor})`;
 }

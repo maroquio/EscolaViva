@@ -1,13 +1,7 @@
 import { z } from 'zod';
 import { academico } from '../../academico';
-import { unidadeDeTrabalho, type UnidadeDeTrabalho } from '../../shared/db';
-import {
-  errosDeSchema,
-  falha,
-  falhaDeCampo,
-  sucesso,
-  type Resultado,
-} from '../../shared/result';
+import { unitOfWork, type UnitOfWork } from '../../shared/db';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import { bimestreValido, valorDeNotaValido } from '../dominio/nota';
 import * as fechamentoRepositorio from '../infra/fechamentoRepositorio';
@@ -44,14 +38,14 @@ const esquema = z.object({
     .min(1, MENSAGENS.loteDeNotasVazio),
 });
 
-export async function lancarNotas(entrada: LancamentoDeNotas): Promise<Resultado<number>> {
+export async function lancarNotas(entrada: LancamentoDeNotas): Promise<Result<number>> {
   const validada = esquema.safeParse(entrada);
-  if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
+  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
   const { redeId, turmaDisciplinaId, bimestre, lancadaPor, notas } = validada.data;
 
   const turmaDisciplina = await academico.turmaDisciplinaPorId(redeId, turmaDisciplinaId);
   if (turmaDisciplina === null) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.turmaDisciplinaId,
       CODIGOS.turmaDisciplinaNaoEncontrada,
       MENSAGENS.turmaDisciplinaNaoEncontrada,
@@ -61,7 +55,7 @@ export async function lancarNotas(entrada: LancamentoDeNotas): Promise<Resultado
   const recusa = await conferirMatriculas(redeId, turmaDisciplina.turmaId, notas);
   if (recusa !== null) return recusa;
 
-  return await unidadeDeTrabalho<Resultado<number>>(async (uow) => {
+  return await unitOfWork<Result<number>>(async (uow) => {
     const fechado = await fechamentoRepositorio.estaFechado(
       uow.sql,
       redeId,
@@ -69,13 +63,13 @@ export async function lancarNotas(entrada: LancamentoDeNotas): Promise<Resultado
       bimestre,
     );
     if (fechado) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.bimestre,
         CODIGOS.bimestreFechado,
         MENSAGENS.bimestreFechadoParaLancamento,
       );
     }
-    return sucesso(
+    return success(
       await gravarLote(uow, { redeId, turmaDisciplinaId, bimestre, lancadaPor, notas }),
     );
   });
@@ -85,19 +79,19 @@ async function conferirMatriculas(
   redeId: string,
   turmaId: string,
   notas: readonly { matriculaId: string }[],
-): Promise<Resultado<number> | null> {
+): Promise<Result<number> | null> {
   const matriculas = await academico.matriculasAtivasDaTurma(redeId, turmaId);
   const daTurma = new Set(matriculas.map((matricula) => matricula.id));
   const enviadas = notas.map((nota) => nota.matriculaId);
   if (enviadas.some((matriculaId) => !daTurma.has(matriculaId))) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.notas,
       CODIGOS.notas.matriculaForaDaTurma,
       MENSAGENS.notas.matriculaForaDaTurma,
     );
   }
   if (new Set(enviadas).size !== enviadas.length) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.notas,
       CODIGOS.notas.matriculaRepetida,
       MENSAGENS.notas.matriculaRepetida,
@@ -107,7 +101,7 @@ async function conferirMatriculas(
 }
 
 async function gravarLote(
-  { sql }: UnidadeDeTrabalho,
+  { sql }: UnitOfWork,
   lancamento: {
     redeId: string;
     turmaDisciplinaId: string;

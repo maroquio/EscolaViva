@@ -1,14 +1,8 @@
 import { z } from 'zod';
 import { identidade } from '../../identidade/index';
-import { unidadeDeTrabalho } from '../../shared/db';
-import { idGeneratorUuid } from '../../shared/ports';
-import {
-  errosDeSchema,
-  falha,
-  falhaDeCampo,
-  sucesso,
-  type Resultado,
-} from '../../shared/result';
+import { unitOfWork } from '../../shared/db';
+import { uuidIdGenerator } from '../../shared/ports';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import type { TurmaDisciplina } from '../dominio/turma';
 import * as disciplinas from '../infra/disciplinaRepositorio';
@@ -26,15 +20,15 @@ export async function alocarProfessor(e: {
   turmaId: string;
   disciplinaId: string;
   professorUsuarioId: string;
-}): Promise<Resultado<TurmaDisciplina>> {
+}): Promise<Result<TurmaDisciplina>> {
   const validada = entrada.safeParse(e);
-  if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
+  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
 
   const { redeId, turmaId, disciplinaId, professorUsuarioId } = validada.data;
-  return unidadeDeTrabalho(async ({ sql }): Promise<Resultado<TurmaDisciplina>> => {
+  return unitOfWork(async ({ sql }): Promise<Result<TurmaDisciplina>> => {
     const turma = await turmas.porId(sql, redeId, turmaId);
     if (turma === null) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.alocacao.turmaId,
         CODIGOS.turmaNaoEncontrada,
         MENSAGENS.turmaNaoEncontrada,
@@ -42,7 +36,7 @@ export async function alocarProfessor(e: {
     }
     const disciplina = await disciplinas.porId(sql, redeId, disciplinaId);
     if (disciplina === null) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.alocacao.disciplinaId,
         CODIGOS.disciplinaNaoEncontrada,
         MENSAGENS.disciplinaNaoEncontrada,
@@ -54,7 +48,7 @@ export async function alocarProfessor(e: {
       turma.unidadeId,
     );
     if (!ehProfessor) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.alocacao.professorUsuarioId,
         CODIGOS.alocacao.semPapelDeProfessor,
         MENSAGENS.alocacao.semPapelDeProfessor,
@@ -62,7 +56,7 @@ export async function alocarProfessor(e: {
     }
 
     const alocacao: TurmaDisciplina = {
-      id: idGeneratorUuid.novo(),
+      id: uuidIdGenerator.next(),
       redeId,
       turmaId,
       disciplinaId,
@@ -71,12 +65,12 @@ export async function alocarProfessor(e: {
     };
     const criada = await turmas.inserirDisciplina(sql, alocacao);
     if (!criada) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.alocacao.disciplinaId,
         CODIGOS.alocacao.disciplinaJaAlocada,
         MENSAGENS.alocacao.disciplinaJaAlocada,
       );
     }
-    return sucesso(alocacao);
+    return success(alocacao);
   });
 }

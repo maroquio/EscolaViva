@@ -30,7 +30,7 @@ beforeEach(async () => {
   cenario = await cenarioCompleto();
 });
 
-/** Publica e estreita o `Resultado`: quando isto falha, o erro do arranjo aparece por inteiro. */
+/** Publica e estreita o `Result`: quando isto falha, o erro do arranjo aparece por inteiro. */
 async function publicar(entrada: {
   unidadeId?: string;
   titulo?: string;

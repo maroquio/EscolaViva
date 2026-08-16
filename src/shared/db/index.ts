@@ -1,2 +1,2 @@
-export { encerrar, escrita, leitura, verificarBanco, type Conexao } from './connection';
-export { unidadeDeTrabalho, type UnidadeDeTrabalho } from './unitOfWork';
+export { checkDatabase, closeDatabase, reader, writer, type Connection } from './connection';
+export { unitOfWork, type UnitOfWork } from './unitOfWork';

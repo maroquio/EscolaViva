@@ -1,5 +1,5 @@
 import type { Context } from 'hono';
-import { paginaPedida, type Pagina } from '../shared/pagination';
+import { requestedPage, type Page } from '../shared/pagination';
 import { PAGINACAO, PARAMETROS } from './constantes';
 
 const METADE_DA_JANELA = Math.floor(PAGINACAO.janela / 2);
@@ -20,7 +20,7 @@ export type Navegacao = {
 };
 
 export function paginaDaQuery(c: Context, parametro: string = PARAMETROS.paginaPadrao): number {
-  return paginaPedida(c.req.query(parametro));
+  return requestedPage(c.req.query(parametro));
 }
 
 const enderecoDaPagina = (c: Context, parametro: string, numero: number): string => {
@@ -39,10 +39,10 @@ const janelaDe = (atual: number, paginas: number): number[] => {
 
 export function navegacao(
   c: Context,
-  pagina: Pagina<unknown>,
+  pagina: Page<unknown>,
   parametro: string = PARAMETROS.paginaPadrao,
 ): Navegacao {
-  const { pagina: atual, paginas, total, tamanho, itens } = pagina;
+  const { page: atual, pages: paginas, total, size: tamanho, items: itens } = pagina;
   const primeiro = total === 0 ? 0 : (atual - 1) * tamanho + 1;
   return {
     parametro,

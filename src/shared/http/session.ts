@@ -1,85 +1,85 @@
 import type { Context, MiddlewareHandler } from 'hono';
 import { deleteCookie, getSignedCookie, setSignedCookie } from 'hono/cookie';
 import { config } from '../config';
-import { COOKIE, MOTIVOS_INTERNOS, TEMPO, VARIAVEIS_DE_CONTEXTO } from '../constants';
-import { comContexto, contextoAtual } from './correlation';
-import { NaoAutorizado } from './errors';
+import { CONTEXT_VARIABLES, COOKIE, INTERNAL_REASONS, TIME } from '../constants';
+import { currentContext, withContext } from './correlation';
+import { Unauthorized } from './errors';
 
-export type PapelDaSessao = 'network_admin' | 'registrar' | 'teacher' | 'guardian';
+export type SessionRole = 'network_admin' | 'registrar' | 'teacher' | 'guardian';
 
-export type UsuarioDaSessao = {
+export type SessionUser = {
   id: string;
   redeId: string;
   redeNome: string;
   redeSlug: string;
   nome: string;
   email: string;
-  papeis: { unidadeId: string; unidadeNome: string; papel: PapelDaSessao }[];
+  papeis: { unidadeId: string; unidadeNome: string; papel: SessionRole }[];
   responsavelId: string | null;
 };
 
-export const COOKIE_SESSAO = COOKIE.sessao;
+export const SESSION_COOKIE = COOKIE.session;
 
-export type CarregadorDeUsuario = (sessaoId: string) => Promise<UsuarioDaSessao | null>;
+export type UserLoader = (sessionId: string) => Promise<SessionUser | null>;
 
-const opcoesDoCookie = () => ({
-  path: COOKIE.caminho,
+const cookieOptions = () => ({
+  path: COOKIE.path,
   httpOnly: true,
-  secure: config.cookieSeguro,
+  secure: config.secureCookie,
   sameSite: COOKIE.sameSite,
-  maxAge: config.sessaoDuracaoHoras * TEMPO.segundosPorHora,
+  maxAge: config.sessionDurationHours * TIME.secondsPerHour,
 });
 
-const guardar = (c: Context, sessaoId: string | null, usuario: UsuarioDaSessao | null): void => {
-  c.set(VARIAVEIS_DE_CONTEXTO.sessaoId, sessaoId);
-  c.set(VARIAVEIS_DE_CONTEXTO.usuario, usuario);
+const store = (c: Context, sessionId: string | null, user: SessionUser | null): void => {
+  c.set(CONTEXT_VARIABLES.sessionId, sessionId);
+  c.set(CONTEXT_VARIABLES.user, user);
 };
 
-const sessaoIdDoCookie = async (c: Context): Promise<string | null> => {
-  const valor = await getSignedCookie(c, config.sessionSecret, COOKIE_SESSAO);
-  return typeof valor === 'string' && valor.length > 0 ? valor : null;
+const sessionIdFromCookie = async (c: Context): Promise<string | null> => {
+  const value = await getSignedCookie(c, config.sessionSecret, SESSION_COOKIE);
+  return typeof value === 'string' && value.length > 0 ? value : null;
 };
 
-export function criarMiddlewareSessao(carregar: CarregadorDeUsuario): MiddlewareHandler {
+export function createSessionMiddleware(load: UserLoader): MiddlewareHandler {
   return async (c, next) => {
-    const sessaoId = await sessaoIdDoCookie(c);
-    if (sessaoId === null) {
-      guardar(c, null, null);
+    const sessionId = await sessionIdFromCookie(c);
+    if (sessionId === null) {
+      store(c, null, null);
       return next();
     }
-    const usuario = await carregar(sessaoId);
-    if (usuario === null) {
-      await fecharSessao(c);
+    const user = await load(sessionId);
+    if (user === null) {
+      await closeSession(c);
       return next();
     }
-    guardar(c, sessaoId, usuario);
-    const contexto = contextoAtual();
-    if (contexto === undefined) return next();
-    return comContexto({ ...contexto, usuarioId: usuario.id, redeId: usuario.redeId }, next);
+    store(c, sessionId, user);
+    const context = currentContext();
+    if (context === undefined) return next();
+    return withContext({ ...context, userId: user.id, networkId: user.redeId }, next);
   };
 }
 
-export async function abrirSessao(c: Context, sessaoId: string): Promise<void> {
-  await setSignedCookie(c, COOKIE_SESSAO, sessaoId, config.sessionSecret, opcoesDoCookie());
+export async function openSession(c: Context, sessionId: string): Promise<void> {
+  await setSignedCookie(c, SESSION_COOKIE, sessionId, config.sessionSecret, cookieOptions());
 }
 
-export async function fecharSessao(c: Context): Promise<void> {
-  deleteCookie(c, COOKIE_SESSAO, { path: COOKIE.caminho, secure: config.cookieSeguro });
-  guardar(c, null, null);
+export async function closeSession(c: Context): Promise<void> {
+  deleteCookie(c, SESSION_COOKIE, { path: COOKIE.path, secure: config.secureCookie });
+  store(c, null, null);
 }
 
-export function sessaoIdAtual(c: Context): string | null {
-  const sessaoId: string | null | undefined = c.get(VARIAVEIS_DE_CONTEXTO.sessaoId);
-  return sessaoId ?? null;
+export function currentSessionId(c: Context): string | null {
+  const sessionId: string | null | undefined = c.get(CONTEXT_VARIABLES.sessionId);
+  return sessionId ?? null;
 }
 
-export function usuarioAtualOuNulo(c: Context): UsuarioDaSessao | null {
-  const usuario: UsuarioDaSessao | null | undefined = c.get(VARIAVEIS_DE_CONTEXTO.usuario);
-  return usuario ?? null;
+export function currentUserOrNull(c: Context): SessionUser | null {
+  const user: SessionUser | null | undefined = c.get(CONTEXT_VARIABLES.user);
+  return user ?? null;
 }
 
-export function usuarioAtual(c: Context): UsuarioDaSessao {
-  const usuario = usuarioAtualOuNulo(c);
-  if (usuario === null) throw new NaoAutorizado(MOTIVOS_INTERNOS.requisicaoSemSessao);
-  return usuario;
+export function currentUser(c: Context): SessionUser {
+  const user = currentUserOrNull(c);
+  if (user === null) throw new Unauthorized(INTERNAL_REASONS.requestWithoutSession);
+  return user;
 }

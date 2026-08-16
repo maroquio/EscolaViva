@@ -1,2 +1,2 @@
-export { logger, registrarFonteDeCorrelacao } from './logger';
-export { CHAVES_PROIBIDAS, redigir, type CamposDeLog } from './redaction';
+export { logger, registerCorrelationSource } from './logger';
+export { FORBIDDEN_LOG_KEYS, redact, type LogFields } from './redaction';

@@ -1,6 +1,6 @@
 import { academico } from '../../academico';
-import { leitura } from '../../shared/db';
-import { TAMANHO_PADRAO, consultarPagina, type Pagina } from '../../shared/pagination';
+import { reader } from '../../shared/db';
+import { DEFAULT_PAGE_SIZE, queryPage, type Page } from '../../shared/pagination';
 import {
   mediaDaDisciplina,
   mediaGeral,
@@ -27,7 +27,7 @@ export async function notasDaTurmaDisciplina(
   bimestre: number,
 ): Promise<Map<string, number>> {
   return await notaRepositorio.porTurmaDisciplinaEBimestre(
-    leitura(),
+    reader(),
     redeId,
     turmaDisciplinaId,
     bimestre,
@@ -42,7 +42,7 @@ export async function chamadaDoDia(
   const matriculas = await academico.matriculasAtivasDaTurma(redeId, turmaId);
   if (matriculas.length === 0) return new Map();
   return await frequenciaRepositorio.porMatriculasEData(
-    leitura(),
+    reader(),
     redeId,
     matriculas.map((matricula) => matricula.id),
     data,
@@ -53,24 +53,24 @@ export async function estadoDeFechamento(
   redeId: string,
   turmaId: string,
 ): Promise<EstadoDeFechamento[]> {
-  return estadosDeFechamento(await fechamentoRepositorio.porTurma(leitura(), redeId, turmaId));
+  return estadosDeFechamento(await fechamentoRepositorio.porTurma(reader(), redeId, turmaId));
 }
 
 export async function frequenciaDaMatricula(
   redeId: string,
   matriculaId: string,
 ): Promise<ResumoFrequencia[]> {
-  return await frequenciaRepositorio.porMatricula(leitura(), redeId, matriculaId);
+  return await frequenciaRepositorio.porMatricula(reader(), redeId, matriculaId);
 }
 
 export async function paginaDeFrequencia(
   redeId: string,
   matriculaId: string,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<ResumoFrequencia>> {
-  const sql = leitura();
-  return await consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<ResumoFrequencia>> {
+  const sql = reader();
+  return await queryPage(
     pagina,
     tamanho,
     () => frequenciaRepositorio.contarPorMatricula(sql, redeId, matriculaId),
@@ -82,7 +82,7 @@ export async function boletim(redeId: string, matriculaId: string): Promise<Bole
   const matricula = await academico.matriculaPorId(redeId, matriculaId);
   if (matricula === null) return null;
 
-  const sql = leitura();
+  const sql = reader();
   const [disciplinas, notas, apuracao, fechamentos] = await Promise.all([
     academico.listarTurmaDisciplinas(redeId, matricula.turmaId),
     notaRepositorio.porMatricula(sql, redeId, matriculaId),

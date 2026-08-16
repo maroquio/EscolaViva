@@ -6,13 +6,13 @@ import { ROTULO_DE_BIMESTRE } from '../avaliacao';
 import { ALCANCE } from '../comunicacao';
 import { PAPEL } from '../identidade';
 import { config } from '../shared/config';
-import { AMBIENTE_DESENVOLVIMENTO, ATIVOS, AUSENTE, CAMPO_CHAVE } from '../shared/constants';
-import { formatarCpf } from '../shared/document';
+import { ASSETS, DEVELOPMENT_ENV, KEY_FIELD, MISSING_VALUE } from '../shared/constants';
+import { formatCpf } from '../shared/document';
 import {
-  contextoAtual,
-  registrarRenderizadorDeErro,
-  usuarioAtualOuNulo,
-  type StatusDeErro,
+  currentContext,
+  currentUserOrNull,
+  registerErrorRenderer,
+  type ErrorStatus,
 } from '../shared/http';
 import {
   ACOES,
@@ -24,6 +24,7 @@ import {
   CURINGA_DE_ASSET,
   DETALHES_DE_ERRO,
   DOCUMENTO,
+  ERROR_TITLES,
   PARAMETROS,
   ROTAS,
   ROTULOS,
@@ -31,16 +32,15 @@ import {
   SUFIXOS_DE_ID,
   TEMPLATES,
   TITULOS,
-  TITULOS_DE_ERRO,
   type SubstantivoContavel,
 } from './constantes';
 
 const RAIZ = join(import.meta.dir, '..', '..');
-const CAMINHO_DO_MANIFESTO = join(RAIZ, ATIVOS.diretorio, ATIVOS.manifesto);
+const CAMINHO_DO_MANIFESTO = join(RAIZ, ASSETS.directory, ASSETS.manifest);
 
 const CODIFICACAO_DO_MANIFESTO = 'utf8';
 
-const emDesenvolvimento = config.ambiente === AMBIENTE_DESENVOLVIMENTO;
+const emDesenvolvimento = config.environment === DEVELOPMENT_ENV;
 
 const eta = new Eta({
   views: join(import.meta.dir, TEMPLATES.diretorio),
@@ -102,30 +102,30 @@ export function formatarData(valor: ValorDeData): string {
     if (ano !== undefined && mes !== undefined && dia !== undefined) return `${dia}/${mes}/${ano}`;
   }
   const data = comoData(valor);
-  if (data === null) return AUSENTE;
+  if (data === null) return MISSING_VALUE;
   return `${doisDigitos(data.getDate())}/${doisDigitos(data.getMonth() + 1)}/${data.getFullYear()}`;
 }
 
 export function formatarDataHora(valor: ValorDeData): string {
   const data = comoData(valor);
-  if (data === null) return AUSENTE;
+  if (data === null) return MISSING_VALUE;
   const hora = `${doisDigitos(data.getHours())}:${doisDigitos(data.getMinutes())}`;
   return `${doisDigitos(data.getDate())}/${doisDigitos(data.getMonth() + 1)}/${data.getFullYear()} ${hora}`;
 }
 
 export function formatarNota(valor: ValorNumerico): string {
   const numero = comoNumero(valor);
-  return numero === null ? AUSENTE : umaCasaTruncada(numero);
+  return numero === null ? MISSING_VALUE : umaCasaTruncada(numero);
 }
 
 export function formatarPercentual(valor: ValorNumerico): string {
   const numero = comoNumero(valor);
-  return numero === null ? AUSENTE : `${umaCasaTruncada(numero)}${APRESENTACAO.sufixoDePercentual}`;
+  return numero === null ? MISSING_VALUE : `${umaCasaTruncada(numero)}${APRESENTACAO.sufixoDePercentual}`;
 }
 
 export function formatarTaxa(fracao: ValorNumerico): string {
   const numero = comoNumero(fracao);
-  return numero === null ? AUSENTE : formatarPercentual(numero * APRESENTACAO.fatorPercentual);
+  return numero === null ? MISSING_VALUE : formatarPercentual(numero * APRESENTACAO.fatorPercentual);
 }
 
 export function pluralizar(quantidade: number, substantivo: SubstantivoContavel): string {
@@ -155,8 +155,8 @@ const textoDaQuery = (c: Context, nome: string): string | null => {
 const auxiliares = {
   asset,
   curingaDeAsset: CURINGA_DE_ASSET,
-  nomeLogicoDaFolha: ATIVOS.nomeLogicoDaFolha,
-  campoChave: CAMPO_CHAVE,
+  nomeLogicoDaFolha: ASSETS.stylesheetLogicalName,
+  campoChave: KEY_FIELD,
   rotas: ROTAS,
   parciais: TEMPLATES.parciais,
   documento: DOCUMENTO,
@@ -174,7 +174,7 @@ const auxiliares = {
   acoes: ACOES,
   semAlunoMatriculado: SEM_ALUNO_MATRICULADO,
   rotuloDeBimestre: ROTULO_DE_BIMESTRE,
-  formatarCpf,
+  formatarCpf: formatCpf,
   formatarData,
   formatarDataHora,
   formatarNota,
@@ -211,10 +211,10 @@ const contextoDeTemplate = (c: Context, dados: DadosDeTemplate): DadosDeTemplate
   ...dados,
   ...auxiliares,
   ...auxiliaresDeErro(dados),
-  usuario: usuarioAtualOuNulo(c),
+  usuario: currentUserOrNull(c),
   chave: crypto.randomUUID(),
   caminhoAtual: c.req.path,
-  correlacaoId: contextoAtual()?.correlacaoId ?? '',
+  correlacaoId: currentContext()?.correlationId ?? '',
   mensagem: dados[CHAVES_DO_CONTEXTO.mensagem] ?? textoDaQuery(c, PARAMETROS.ok),
   erro: dados[CHAVES_DO_CONTEXTO.erro] ?? textoDaQuery(c, PARAMETROS.erro),
 });
@@ -235,7 +235,7 @@ export function renderizar(c: Context, template: string, dados: DadosDeTemplate 
 
 export function renderizarErro(
   c: Context,
-  status: StatusDeErro,
+  status: ErrorStatus,
   titulo: string,
   detalhe: string,
 ): Response {
@@ -244,10 +244,10 @@ export function renderizarErro(
   return c.html(envolver(corpo, contexto, layoutPadrao(contexto)), status);
 }
 
-registrarRenderizadorDeErro((status, correlacaoId) => {
+registerErrorRenderer((status, correlacaoId) => {
   const dados: DadosDeTemplate = {
     ...auxiliares,
-    titulo: TITULOS_DE_ERRO[status],
+    titulo: ERROR_TITLES[status],
     detalhe: DETALHES_DE_ERRO[status],
     status,
     correlacaoId,

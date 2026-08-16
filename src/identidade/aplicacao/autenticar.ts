@@ -1,16 +1,10 @@
 import { z } from 'zod';
 import { config } from '../../shared/config';
-import { leitura, unidadeDeTrabalho } from '../../shared/db';
-import { normalizarCpf } from '../../shared/document';
+import { reader, unitOfWork } from '../../shared/db';
+import { normalizeCpf } from '../../shared/document';
 import { logger } from '../../shared/log';
-import { clockDoSistema, idGeneratorUuid } from '../../shared/ports';
-import {
-  errosDeSchema,
-  falha,
-  falhaDeCampo,
-  sucesso,
-  type Resultado,
-} from '../../shared/result';
+import { systemClock, uuidIdGenerator } from '../../shared/ports';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, EVENTOS_DE_LOG, MENSAGENS, SEGURANCA } from '../constantes';
 import { redeAtiva } from '../dominio/rede';
 import { expiracaoDaSessao, type Sessao } from '../dominio/sessao';
@@ -32,16 +26,16 @@ const CREDENCIAIS_INVALIDAS = {
 };
 
 async function criarSessao(redeId: string, usuarioId: string, ip: string): Promise<Sessao> {
-  const agora = clockDoSistema.agora();
+  const agora = systemClock.now();
   const sessao: Sessao = {
-    id: idGeneratorUuid.novo(),
+    id: uuidIdGenerator.next(),
     redeId,
     usuarioId,
     criadoEm: agora,
-    expiraEm: expiracaoDaSessao(agora, config.sessaoDuracaoHoras),
+    expiraEm: expiracaoDaSessao(agora, config.sessionDurationHours),
     ip: ip === '' ? null : ip,
   };
-  await unidadeDeTrabalho(async ({ sql }) => {
+  await unitOfWork(async ({ sql }) => {
     await sessaoRepositorio.inserir(sql, sessao);
   });
   return sessao;
@@ -52,15 +46,15 @@ export async function autenticar(entrada: {
   identificador: string;
   senha: string;
   ip: string;
-}): Promise<Resultado<{ sessaoId: string; usuario: UsuarioAutenticado }>> {
+}): Promise<Result<{ sessaoId: string; usuario: UsuarioAutenticado }>> {
   const analise = schema.safeParse(entrada);
-  if (!analise.success) return falha(...errosDeSchema(analise.error.issues));
+  if (!analise.success) return failure(...schemaErrors(analise.error.issues));
   const dados = analise.data;
 
-  const sql = leitura();
+  const sql = reader();
   const rede = await redeRepositorio.porSlug(sql, dados.redeSlug);
   if (rede === null || !redeAtiva(rede)) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.login.redeSlug,
       CODIGOS.redeIndisponivel,
       MENSAGENS.login.redeIndisponivel,
@@ -70,21 +64,21 @@ export async function autenticar(entrada: {
   const credenciais = await usuarioRepositorio.credenciaisPorCpf(
     sql,
     rede.id,
-    normalizarCpf(dados.identificador),
+    normalizeCpf(dados.identificador),
   );
   const senhaConfere = await Bun.password.verify(
     dados.senha,
     credenciais?.senhaHash ?? SEGURANCA.hashDeUsuarioInexistente,
   );
   if (credenciais === null || !senhaConfere) {
-    logger.warn({ rede_id: rede.id }, EVENTOS_DE_LOG.autenticacaoRecusada);
-    return falha(CREDENCIAIS_INVALIDAS);
+    logger.warn({ network_id: rede.id }, EVENTOS_DE_LOG.autenticacaoRecusada);
+    return failure(CREDENCIAIS_INVALIDAS);
   }
 
   const papeis = await usuarioRepositorio.papeisDoUsuario(sql, rede.id, credenciais.usuario.id);
   const sessao = await criarSessao(rede.id, credenciais.usuario.id, dados.ip);
-  logger.info({ rede_id: rede.id, usuario_id: sessao.usuarioId }, EVENTOS_DE_LOG.sessaoAberta);
-  return sucesso({
+  logger.info({ network_id: rede.id, user_id: sessao.usuarioId }, EVENTOS_DE_LOG.sessaoAberta);
+  return success({
     sessaoId: sessao.id,
     usuario: usuarioAutenticado(credenciais.usuario, rede, papeis),
   });

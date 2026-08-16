@@ -1,5 +1,5 @@
-import type { Conexao } from '../../shared/db';
-import { recorte, type Faixa } from '../../shared/pagination';
+import type { Connection } from '../../shared/db';
+import { rangeParams, type Range } from '../../shared/pagination';
 import { ERROS_INTERNOS } from '../constantes';
 import {
   turnoValido,
@@ -69,7 +69,7 @@ const paraTurmaDisciplinaDoProfessor = (
   unidadeId: linha.school_id,
 });
 
-export async function inserir(sql: Conexao, turma: Turma): Promise<boolean> {
+export async function inserir(sql: Connection, turma: Turma): Promise<boolean> {
   const criadas: { id: string }[] = await sql`
     INSERT INTO class_group (id, network_id, school_id, academic_year_id, name, grade_level, shift)
     VALUES (${turma.id}, ${turma.redeId}, ${turma.unidadeId}, ${turma.anoLetivoId},
@@ -79,7 +79,7 @@ export async function inserir(sql: Conexao, turma: Turma): Promise<boolean> {
   return criadas.length === 1;
 }
 
-export async function porId(sql: Conexao, redeId: string, id: string): Promise<Turma | null> {
+export async function porId(sql: Connection, redeId: string, id: string): Promise<Turma | null> {
   const linhas: LinhaDeTurma[] = await sql`
     SELECT id, network_id, school_id, academic_year_id, name, grade_level, shift
       FROM class_group
@@ -94,7 +94,7 @@ export type FiltroDeTurma = {
   anoLetivoId?: string;
 };
 
-const condicoesDoFiltro = (sql: Conexao, filtro?: FiltroDeTurma) => ({
+const condicoesDoFiltro = (sql: Connection, filtro?: FiltroDeTurma) => ({
   unidadeId: filtro?.unidadeId ?? null,
   unidadeIds:
     filtro?.unidadeIds === undefined ? null : sql.array([...filtro.unidadeIds], 'TEXT'),
@@ -102,13 +102,13 @@ const condicoesDoFiltro = (sql: Conexao, filtro?: FiltroDeTurma) => ({
 });
 
 export async function listar(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   filtro?: FiltroDeTurma,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<Turma[]> {
   const { unidadeId, unidadeIds, anoLetivoId } = condicoesDoFiltro(sql, filtro);
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas: LinhaDeTurma[] = await sql`
     SELECT id, network_id, school_id, academic_year_id, name, grade_level, shift
       FROM class_group
@@ -117,12 +117,12 @@ export async function listar(
        AND (${unidadeIds}::uuid[] IS NULL OR school_id = ANY(${unidadeIds}::uuid[]))
        AND (${anoLetivoId}::uuid IS NULL OR academic_year_id = ${anoLetivoId}::uuid)
      ORDER BY grade_level, name
-     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
+     LIMIT ${limit}::int OFFSET ${offset}::int`;
   return linhas.map(paraTurma);
 }
 
 export async function contar(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   filtro?: FiltroDeTurma,
 ): Promise<number> {
@@ -138,7 +138,7 @@ export async function contar(
 }
 
 export async function contarPorUnidade(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   unidadeIds: readonly string[],
 ): Promise<Map<string, number>> {
@@ -153,7 +153,7 @@ export async function contarPorUnidade(
 }
 
 export async function inserirDisciplina(
-  sql: Conexao,
+  sql: Connection,
   alocacao: TurmaDisciplina,
 ): Promise<boolean> {
   const criadas: { id: string }[] = await sql`
@@ -166,7 +166,7 @@ export async function inserirDisciplina(
 }
 
 export async function disciplinaPorId(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   id: string,
 ): Promise<TurmaDisciplina | null> {
@@ -181,12 +181,12 @@ export async function disciplinaPorId(
 }
 
 export async function listarDisciplinas(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   turmaId: string,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<TurmaDisciplina[]> {
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas: LinhaDeTurmaDisciplina[] = await sql`
     SELECT td.id, td.network_id, td.class_group_id, td.subject_id, d.name AS subject_name,
            td.teacher_user_id
@@ -194,12 +194,12 @@ export async function listarDisciplinas(
       JOIN subject d ON d.id = td.subject_id AND d.network_id = td.network_id
      WHERE td.network_id = ${redeId} AND td.class_group_id = ${turmaId}
      ORDER BY d.name
-     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
+     LIMIT ${limit}::int OFFSET ${offset}::int`;
   return linhas.map(paraTurmaDisciplina);
 }
 
 export async function contarDisciplinas(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   turmaId: string,
 ): Promise<number> {
@@ -211,7 +211,7 @@ export async function contarDisciplinas(
 }
 
 export async function disciplinasDoProfessor(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   professorUsuarioId: string,
 ): Promise<TurmaDisciplinaDoProfessor[]> {
@@ -227,7 +227,7 @@ export async function disciplinasDoProfessor(
 }
 
 export async function doProfessor(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   professorUsuarioId: string,
 ): Promise<Turma[]> {

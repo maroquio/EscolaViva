@@ -1,10 +1,10 @@
 import { SQL } from 'bun';
 import { join, resolve } from 'node:path';
 import { config } from '../src/shared/config/index';
-import { CHAVES_DE_LOCK, MIGRACOES } from '../src/shared/constants';
+import { LOCK_KEYS, MIGRATIONS } from '../src/shared/constants';
 import { ARGUMENTOS, MENSAGENS_DA_MIGRACAO as MENSAGENS } from './constantes';
 
-const DIRETORIO_DE_MIGRACOES = resolve(import.meta.dir, '..', MIGRACOES.diretorio);
+const DIRETORIO_DE_MIGRACOES = resolve(import.meta.dir, '..', MIGRATIONS.directory);
 
 type Argumentos = { readonly somenteStatus: boolean; readonly url: string };
 
@@ -40,7 +40,7 @@ function destinoLegivel(url: string): string {
 
 async function arquivosDeMigracao(): Promise<string[]> {
   const nomes: string[] = [];
-  for await (const nome of new Bun.Glob(MIGRACOES.glob).scan({ cwd: DIRETORIO_DE_MIGRACOES })) {
+  for await (const nome of new Bun.Glob(MIGRATIONS.glob).scan({ cwd: DIRETORIO_DE_MIGRACOES })) {
     nomes.push(nome);
   }
   return nomes.sort();
@@ -125,12 +125,12 @@ async function executar(): Promise<void> {
       return;
     }
 
-    await sql`SELECT pg_advisory_lock(${CHAVES_DE_LOCK.migracao})`;
+    await sql`SELECT pg_advisory_lock(${LOCK_KEYS.migration})`;
     try {
       await garantirTabelaDeControle(sql);
       await aplicarPendentes(sql, arquivos);
     } finally {
-      await sql`SELECT pg_advisory_unlock(${CHAVES_DE_LOCK.migracao})`;
+      await sql`SELECT pg_advisory_unlock(${LOCK_KEYS.migration})`;
     }
   } finally {
     await sql.close();

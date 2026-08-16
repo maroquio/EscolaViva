@@ -1,24 +1,24 @@
-import { CABECALHOS, SEPARADOR_DE_ENCAMINHAMENTO } from '../constants';
+import { FORWARDED_SEPARATOR, HEADERS } from '../constants';
 
-const cadeiaEncaminhada = (req: Request): string[] =>
-  (req.headers.get(CABECALHOS.encaminhado) ?? '')
-    .split(SEPARADOR_DE_ENCAMINHAMENTO)
-    .map((endereco) => endereco.trim())
-    .filter((endereco) => endereco.length > 0);
+const forwardedChain = (req: Request): string[] =>
+  (req.headers.get(HEADERS.forwarded) ?? '')
+    .split(FORWARDED_SEPARATOR)
+    .map((address) => address.trim())
+    .filter((address) => address.length > 0);
 
-export function ipDoCliente(
+export function clientIp(
   req: Request,
-  enderecoRemoto: string | undefined,
-  proxiesConfiaveis: string[],
+  remoteAddress: string | undefined,
+  trustedProxies: string[],
 ): string {
-  const remoto = enderecoRemoto ?? '';
-  if (proxiesConfiaveis.length === 0) return remoto;
+  const remote = remoteAddress ?? '';
+  if (trustedProxies.length === 0) return remote;
 
-  const confiaveis = new Set(proxiesConfiaveis.map((proxy) => proxy.trim()));
-  const cadeia = cadeiaEncaminhada(req);
-  for (let i = cadeia.length - 1; i >= 0; i -= 1) {
-    const candidato = cadeia[i];
-    if (candidato !== undefined && !confiaveis.has(candidato)) return candidato;
+  const trusted = new Set(trustedProxies.map((proxy) => proxy.trim()));
+  const chain = forwardedChain(req);
+  for (let i = chain.length - 1; i >= 0; i -= 1) {
+    const candidate = chain[i];
+    if (candidate !== undefined && !trusted.has(candidate)) return candidate;
   }
-  return remoto;
+  return remote;
 }

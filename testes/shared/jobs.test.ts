@@ -6,7 +6,7 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test';
-import { comLockExclusivo, iniciarAgendador, type Job } from '../../src/shared/jobs';
+import { startScheduler, withExclusiveLock, type Job } from '../../src/shared/jobs';
 import { prepararBanco } from '../apoio/banco';
 
 /** Faixa de chaves só desta suíte: uma por caso, para um teste não disputar o lock do outro. */
@@ -45,11 +45,11 @@ async function ateQue(condicao: () => boolean, prazoMs: number): Promise<void> {
 
 beforeAll(prepararBanco);
 
-describe('comLockExclusivo', () => {
+describe('withExclusiveLock', () => {
   test('executa a função e devolve o valor dela', async () => {
     const chave = CHAVE_VALOR;
 
-    const devolvido = await comLockExclusivo(chave, async () => 'expurgou 7 sessões');
+    const devolvido = await withExclusiveLock(chave, async () => 'expurgou 7 sessões');
 
     expect(devolvido).toBe('expurgou 7 sessões');
   });
@@ -58,14 +58,14 @@ describe('comLockExclusivo', () => {
     const dentro = trava();
     const solte = trava();
     let executouSegunda = false;
-    const primeira = comLockExclusivo(CHAVE_CONCORRENTE, async () => {
+    const primeira = withExclusiveLock(CHAVE_CONCORRENTE, async () => {
       dentro.liberar();
       await solte.esperar;
       return 'primeira';
     });
     await dentro.esperar;
 
-    const segunda = await comLockExclusivo(CHAVE_CONCORRENTE, async () => {
+    const segunda = await withExclusiveLock(CHAVE_CONCORRENTE, async () => {
       executouSegunda = true;
       return 'segunda';
     });
@@ -79,14 +79,14 @@ describe('comLockExclusivo', () => {
   test('chaves diferentes não disputam o mesmo lock', async () => {
     const dentro = trava();
     const solte = trava();
-    const primeira = comLockExclusivo(CHAVE_CONCORRENTE, async () => {
+    const primeira = withExclusiveLock(CHAVE_CONCORRENTE, async () => {
       dentro.liberar();
       await solte.esperar;
       return 'primeira';
     });
     await dentro.esperar;
 
-    const outra = await comLockExclusivo(CHAVE_OUTRA, async () => 'outra chave');
+    const outra = await withExclusiveLock(CHAVE_OUTRA, async () => 'outra chave');
     solte.liberar();
 
     expect(outra).toBe('outra chave');
@@ -96,8 +96,8 @@ describe('comLockExclusivo', () => {
   test('libera o lock ao terminar: a chamada seguinte com a mesma chave entra', async () => {
     const chave = CHAVE_SEQUENCIA;
 
-    const primeira = await comLockExclusivo(chave, async () => 'primeira');
-    const segunda = await comLockExclusivo(chave, async () => 'segunda');
+    const primeira = await withExclusiveLock(chave, async () => 'primeira');
+    const segunda = await withExclusiveLock(chave, async () => 'segunda');
 
     expect(primeira).toBe('primeira');
     expect(segunda).toBe('segunda');
@@ -105,12 +105,12 @@ describe('comLockExclusivo', () => {
 
   test('libera o lock mesmo quando a função lança', async () => {
     const chave = CHAVE_EXCECAO;
-    const quebrar = comLockExclusivo(chave, async () => {
+    const quebrar = withExclusiveLock(chave, async () => {
       throw new Error('expurgo falhou');
     });
     await quebrar.catch(() => undefined);
 
-    const depois = await comLockExclusivo(chave, async () => 'entrou depois da falha');
+    const depois = await withExclusiveLock(chave, async () => 'entrou depois da falha');
 
     expect(depois).toBe('entrou depois da falha');
   });
@@ -118,7 +118,7 @@ describe('comLockExclusivo', () => {
   test('propaga a exceção da função para quem chamou', async () => {
     const original = new Error('expurgo falhou no meio');
 
-    const quebrar = comLockExclusivo(CHAVE_PROPAGA, async () => {
+    const quebrar = withExclusiveLock(CHAVE_PROPAGA, async () => {
       throw original;
     });
 
@@ -126,39 +126,39 @@ describe('comLockExclusivo', () => {
   });
 });
 
-describe('iniciarAgendador', () => {
+describe('startScheduler', () => {
   test('executa o job no intervalo configurado', async () => {
     let execucoes = 0;
     const job: Job = {
-      nome: 'job-de-teste',
-      chaveDeLock: CHAVE_AGENDADOR,
-      intervaloMs: INTERVALO_MS,
-      executar: async () => {
+      name: 'job-de-teste',
+      lockKey: CHAVE_AGENDADOR,
+      intervalMs: INTERVALO_MS,
+      run: async () => {
         execucoes += 1;
       },
     };
 
-    const agendador = iniciarAgendador([job]);
+    const agendador = startScheduler([job]);
     await ateQue(() => execucoes >= 2, PRAZO_MS);
-    agendador.parar();
+    agendador.stop();
 
     expect(execucoes).toBeGreaterThanOrEqual(2);
   });
 
-  test('parar() interrompe as execuções seguintes', async () => {
+  test('stop() interrompe as execuções seguintes', async () => {
     let execucoes = 0;
     const job: Job = {
-      nome: 'job-que-para',
-      chaveDeLock: CHAVE_PARADA,
-      intervaloMs: INTERVALO_MS,
-      executar: async () => {
+      name: 'job-que-para',
+      lockKey: CHAVE_PARADA,
+      intervalMs: INTERVALO_MS,
+      run: async () => {
         execucoes += 1;
       },
     };
-    const agendador = iniciarAgendador([job]);
+    const agendador = startScheduler([job]);
     await ateQue(() => execucoes >= 1, PRAZO_MS);
 
-    agendador.parar();
+    agendador.stop();
     await Bun.sleep(FOLGA_MS);
     const aoParar = execucoes;
     await Bun.sleep(INTERVALO_MS * 6);
@@ -171,26 +171,26 @@ describe('iniciarAgendador', () => {
     let tentativasDoQuebrado = 0;
     let execucoesDoSadio = 0;
     const quebrado: Job = {
-      nome: 'job-quebrado',
-      chaveDeLock: CHAVE_JOB_QUEBRADO,
-      intervaloMs: INTERVALO_MS,
-      executar: async () => {
+      name: 'job-quebrado',
+      lockKey: CHAVE_JOB_QUEBRADO,
+      intervalMs: INTERVALO_MS,
+      run: async () => {
         tentativasDoQuebrado += 1;
         throw new Error('job quebrado de propósito');
       },
     };
     const sadio: Job = {
-      nome: 'job-sadio',
-      chaveDeLock: CHAVE_JOB_SADIO,
-      intervaloMs: INTERVALO_MS,
-      executar: async () => {
+      name: 'job-sadio',
+      lockKey: CHAVE_JOB_SADIO,
+      intervalMs: INTERVALO_MS,
+      run: async () => {
         execucoesDoSadio += 1;
       },
     };
 
-    const agendador = iniciarAgendador([quebrado, sadio]);
+    const agendador = startScheduler([quebrado, sadio]);
     await ateQue(() => tentativasDoQuebrado >= 2 && execucoesDoSadio >= 2, PRAZO_MS);
-    agendador.parar();
+    agendador.stop();
 
     expect(tentativasDoQuebrado).toBeGreaterThanOrEqual(2);
     expect(execucoesDoSadio).toBeGreaterThanOrEqual(2);
@@ -199,7 +199,7 @@ describe('iniciarAgendador', () => {
   test('sem job nenhum o agendador sobe e para sem quebrar', () => {
     const semJobs: Job[] = [];
 
-    const subirEParar = (): void => iniciarAgendador(semJobs).parar();
+    const subirEParar = (): void => startScheduler(semJobs).stop();
 
     expect(subirEParar).not.toThrow();
   });

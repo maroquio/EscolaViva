@@ -10,18 +10,17 @@ import {
   type Papel,
 } from '../../identidade';
 import { config } from '../../shared/config';
-import { TAMANHO_DO_CPF_COM_MASCARA, VARIAVEIS_DE_CONTEXTO } from '../../shared/constants';
+import { CONTEXT_VARIABLES, MASKED_CPF_LENGTH } from '../../shared/constants';
 import {
-  ehIdentificador,
-  exigirPapel,
-  redeAtual,
-  type CorpoDeFormulario,
-  type Variaveis,
+  currentNetwork,
+  isUuid,
+  requireRole,
+  type FormBody,
+  type Variables,
 } from '../../shared/http';
 import { logger } from '../../shared/log';
 import {
   ANO_EM_QUATRO_DIGITOS,
-  AUSENTE,
   AVISOS,
   CAMPOS,
   CODIGOS_DE_AVISO,
@@ -29,6 +28,7 @@ import {
   ERROS_DE_FORMULARIO,
   EVENTOS_DE_LOG,
   LINHAS_DE_ATRIBUICAO,
+  MISSING_VALUE,
   PARAMETROS,
   ROTAS,
   SUFIXOS_DE_ID,
@@ -53,16 +53,16 @@ const PAPEIS_DA_TELA: readonly { valor: Papel; rotulo: string }[] = PAPEIS.map((
 const PARCIAIS = { parciais: TEMPLATES.parciais };
 const SUFIXOS = { sufixos: SUFIXOS_DE_ID };
 
-export const rotasRede = new Hono<{ Variables: Variaveis }>();
+export const rotasRede = new Hono<{ Variables: Variables }>();
 
-rotasRede.use(exigirPapel(PAPEL.adminRede));
+rotasRede.use(requireRole(PAPEL.adminRede));
 
-const texto = (corpo: CorpoDeFormulario, campo: string): string => {
+const texto = (corpo: FormBody, campo: string): string => {
   const valor = corpo[campo];
   return typeof valor === 'string' ? valor.trim() : '';
 };
 
-const lista = (corpo: CorpoDeFormulario, campo: string): string[] => {
+const lista = (corpo: FormBody, campo: string): string[] => {
   const valor = corpo[campo];
   if (Array.isArray(valor)) return valor.map((item) => (typeof item === 'string' ? item.trim() : ''));
   return typeof valor === 'string' ? [valor.trim()] : [];
@@ -92,7 +92,7 @@ const contarRede = async (redeId: string, anoLetivoId: string | null): Promise<C
 };
 
 rotasRede.get(ROTAS.rede.painel.padrao, async (c) => {
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const anos = await academico.listarAnosLetivos(redeId);
   const anoLetivo = anos[0] ?? null;
   const contagens = await contarRede(redeId, anoLetivo === null ? null : anoLetivo.id);
@@ -106,13 +106,13 @@ rotasRede.get(ROTAS.rede.painel.padrao, async (c) => {
 });
 
 const telaDeUnidades = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const pagina = await identidade.paginaDeUnidades(redeAtual(c), paginaDaQuery(c));
+  const pagina = await identidade.paginaDeUnidades(currentNetwork(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATES.rede.unidades, {
     ...PARCIAIS,
     titulo: TITULOS.rede.unidades,
     rotuloDaSituacao: VOCABULARIO_DE_IDENTIDADE.unidadeAtiva,
-    ausente: AUSENTE,
-    unidades: pagina.itens,
+    ausente: MISSING_VALUE,
+    unidades: pagina.items,
     navegacao: navegacao(c, pagina),
     ...dados,
   });
@@ -136,8 +136,8 @@ rotasRede.get(ROTAS.rede.unidades.padrao, (c) =>
 rotasRede.get(ROTAS.rede.unidadeNova.padrao, (c) => formDeUnidade(c));
 
 rotasRede.post(ROTAS.rede.unidades.padrao, async (c) => {
-  const redeId = redeAtual(c);
-  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const redeId = currentNetwork(c);
+  const corpo = c.get(CONTEXT_VARIABLES.body);
   const valores = {
     nome: texto(corpo, CAMPOS.unidade.nome),
     codigoInep: texto(corpo, CAMPOS.unidade.codigoInep),
@@ -166,7 +166,7 @@ const guardarConvite = (c: Context, usuarioId: string, senha: string): Promise<v
     {
       path: ROTAS.rede.usuarios(),
       httpOnly: true,
-      secure: config.cookieSeguro,
+      secure: config.secureCookie,
       sameSite: COOKIE_DO_CONVITE.sameSite,
       maxAge: COOKIE_DO_CONVITE.validadeEmSegundos,
     },
@@ -179,7 +179,7 @@ const retirarConvite = async (
   if (typeof valor !== 'string') return null;
   deleteCookie(c, COOKIE_DO_CONVITE.nome, {
     path: ROTAS.rede.usuarios(),
-    secure: config.cookieSeguro,
+    secure: config.secureCookie,
   });
   const corte = valor.indexOf(COOKIE_DO_CONVITE.separador);
   if (corte <= 0) return null;
@@ -191,7 +191,7 @@ type LinhaDeAtribuicao = { unidadeId: string; papel: string };
 const ehPapel = (valor: string): valor is Papel =>
   PAPEIS_DA_TELA.some((opcao) => opcao.valor === valor);
 
-const linhasDoFormulario = (corpo: CorpoDeFormulario): LinhaDeAtribuicao[] => {
+const linhasDoFormulario = (corpo: FormBody): LinhaDeAtribuicao[] => {
   const unidades = lista(corpo, CAMPOS.usuario.unidades);
   const papeis = lista(corpo, CAMPOS.usuario.papeis);
   const total = Math.max(unidades.length, papeis.length, LINHAS_DE_ATRIBUICAO);
@@ -205,13 +205,13 @@ const linhasVazias = (): LinhaDeAtribuicao[] =>
   Array.from({ length: LINHAS_DE_ATRIBUICAO }, () => ({ unidadeId: '', papel: '' }));
 
 const telaDeUsuarios = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const pagina = await identidade.paginaDeUsuarios(redeAtual(c), paginaDaQuery(c));
+  const pagina = await identidade.paginaDeUsuarios(currentNetwork(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATES.rede.usuarios, {
     ...PARCIAIS,
     titulo: TITULOS.rede.usuarios,
     rotuloDaSituacao: VOCABULARIO_DE_IDENTIDADE.ativo,
     semPapel: VOCABULARIO_DE_IDENTIDADE.semPapel,
-    usuarios: pagina.itens,
+    usuarios: pagina.items,
     navegacao: navegacao(c, pagina),
     papeis: PAPEIS_DA_TELA,
     convite: null,
@@ -220,7 +220,7 @@ const telaDeUsuarios = async (c: Context, dados: DadosDeTemplate = {}): Promise<
 };
 
 const formDeUsuario = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const [unidades, responsaveis] = await Promise.all([
     identidade.listarUnidades(redeId),
     academico.listarResponsaveis(redeId),
@@ -233,7 +233,7 @@ const formDeUsuario = async (c: Context, dados: DadosDeTemplate = {}): Promise<R
     papeis: PAPEIS_DA_TELA,
     valores: VALORES_INICIAIS.usuario,
     limiteDoNome: LIMITES_DE_IDENTIDADE.usuario.nome,
-    tamanhoDoCpf: TAMANHO_DO_CPF_COM_MASCARA,
+    tamanhoDoCpf: MASKED_CPF_LENGTH,
     linhas: linhasVazias(),
     erros: [],
     ...dados,
@@ -248,8 +248,8 @@ rotasRede.get(ROTAS.rede.usuarios.padrao, async (c) => {
 rotasRede.get(ROTAS.rede.usuarioNovo.padrao, (c) => formDeUsuario(c));
 
 rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
-  const redeId = redeAtual(c);
-  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const redeId = currentNetwork(c);
+  const corpo = c.get(CONTEXT_VARIABLES.body);
   const valores = {
     nome: texto(corpo, CAMPOS.usuario.nome),
     email: texto(corpo, CAMPOS.usuario.email),
@@ -273,7 +273,7 @@ rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
   }
 
   const cadastro =
-    valores.responsavelId === '' || !ehIdentificador(valores.responsavelId)
+    valores.responsavelId === '' || !isUuid(valores.responsavelId)
       ? null
       : await academico.responsavelPorId(redeId, valores.responsavelId);
 
@@ -301,11 +301,11 @@ rotasRede.post(ROTAS.rede.usuarios.padrao, async (c) => {
 });
 
 const telaDeAnos = async (c: Context, dados: DadosDeTemplate = {}): Promise<Response> => {
-  const pagina = await academico.paginaDeAnosLetivos(redeAtual(c), paginaDaQuery(c));
+  const pagina = await academico.paginaDeAnosLetivos(currentNetwork(c), paginaDaQuery(c));
   return renderizar(c, TEMPLATES.rede.anos, {
     ...PARCIAIS,
     titulo: TITULOS.rede.anos,
-    anos: pagina.itens,
+    anos: pagina.items,
     navegacao: navegacao(c, pagina),
     ...dados,
   });
@@ -329,8 +329,8 @@ rotasRede.get(ROTAS.rede.anosLetivos.padrao, (c) =>
 rotasRede.get(ROTAS.rede.anoLetivoNovo.padrao, (c) => formDeAno(c));
 
 rotasRede.post(ROTAS.rede.anosLetivos.padrao, async (c) => {
-  const redeId = redeAtual(c);
-  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const redeId = currentNetwork(c);
+  const corpo = c.get(CONTEXT_VARIABLES.body);
   const valores = {
     ano: texto(corpo, CAMPOS.anoLetivo.ano),
     dataInicio: texto(corpo, CAMPOS.anoLetivo.dataInicio),

@@ -1,5 +1,5 @@
-import type { Conexao } from '../../shared/db';
-import { recorte, type Faixa } from '../../shared/pagination';
+import type { Connection } from '../../shared/db';
+import { rangeParams, type Range } from '../../shared/pagination';
 import { ERROS_INTERNOS } from '../constantes';
 import { situacaoValida, type Matricula, type SituacaoMatricula } from '../dominio/matricula';
 
@@ -36,7 +36,7 @@ const paraMatricula = (linha: LinhaDeMatricula): Matricula => ({
   situacao: paraSituacao(linha.status),
 });
 
-export async function inserir(sql: Conexao, matricula: Matricula): Promise<boolean> {
+export async function inserir(sql: Connection, matricula: Matricula): Promise<boolean> {
   const criadas: { id: string }[] = await sql`
     INSERT INTO enrollment (id, network_id, student_id, class_group_id, academic_year_id,
                             enrollment_date, status)
@@ -48,7 +48,7 @@ export async function inserir(sql: Conexao, matricula: Matricula): Promise<boole
 }
 
 export async function marcarComoTransferida(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   id: string,
 ): Promise<boolean> {
@@ -60,7 +60,7 @@ export async function marcarComoTransferida(
   return atualizadas.length === 1;
 }
 
-export async function porId(sql: Conexao, redeId: string, id: string): Promise<Matricula | null> {
+export async function porId(sql: Connection, redeId: string, id: string): Promise<Matricula | null> {
   const linhas: LinhaDeMatricula[] = await sql`
     SELECT m.id, m.network_id, m.student_id, a.name AS student_name, m.class_group_id,
            t.name AS class_group_name, t.school_id, m.academic_year_id, al.year,
@@ -75,12 +75,12 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<M
 }
 
 export async function ativasDaTurma(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   turmaId: string,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<Matricula[]> {
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas: LinhaDeMatricula[] = await sql`
     SELECT m.id, m.network_id, m.student_id, a.name AS student_name, m.class_group_id,
            t.name AS class_group_name, t.school_id, m.academic_year_id, al.year,
@@ -91,12 +91,12 @@ export async function ativasDaTurma(
       JOIN academic_year al ON al.id = m.academic_year_id AND al.network_id = m.network_id
      WHERE m.network_id = ${redeId} AND m.class_group_id = ${turmaId} AND m.status = 'active'
      ORDER BY a.name
-     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
+     LIMIT ${limit}::int OFFSET ${offset}::int`;
   return linhas.map(paraMatricula);
 }
 
 export async function contarAtivasDaTurma(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   turmaId: string,
 ): Promise<number> {
@@ -108,14 +108,14 @@ export async function contarAtivasDaTurma(
 }
 
 export async function doAlunoNasUnidades(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   alunoId: string,
   unidadeIds: readonly string[],
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<Matricula[]> {
   if (unidadeIds.length === 0) return [];
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas: LinhaDeMatricula[] = await sql`
     SELECT m.id, m.network_id, m.student_id, a.name AS student_name, m.class_group_id,
            t.name AS class_group_name, t.school_id, m.academic_year_id, al.year,
@@ -128,12 +128,12 @@ export async function doAlunoNasUnidades(
        AND m.student_id = ${alunoId}
        AND t.school_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
      ORDER BY al.year DESC, m.enrollment_date DESC
-     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
+     LIMIT ${limit}::int OFFSET ${offset}::int`;
   return linhas.map(paraMatricula);
 }
 
 export async function contarDoAlunoNasUnidades(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   alunoId: string,
   unidadeIds: readonly string[],
@@ -150,7 +150,7 @@ export async function contarDoAlunoNasUnidades(
 }
 
 export async function temAlgumaMatricula(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   alunoId: string,
 ): Promise<boolean> {
@@ -163,7 +163,7 @@ export async function temAlgumaMatricula(
 }
 
 export async function contarAtivasPorUnidade(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   unidadeIds: readonly string[],
 ): Promise<Map<string, number>> {
@@ -180,7 +180,7 @@ export async function contarAtivasPorUnidade(
 }
 
 export async function ativasDosAlunos(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   alunoIds: readonly string[],
   unidadeIds: readonly string[],
@@ -203,12 +203,12 @@ export async function ativasDosAlunos(
 }
 
 export async function doResponsavel(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   responsavelId: string,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<Matricula[]> {
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas: LinhaDeMatricula[] = await sql`
     SELECT m.id, m.network_id, m.student_id, a.name AS student_name, m.class_group_id,
            t.name AS class_group_name, t.school_id, m.academic_year_id, al.year,
@@ -220,12 +220,12 @@ export async function doResponsavel(
       JOIN student_guardian av ON av.student_id = m.student_id AND av.network_id = m.network_id
      WHERE m.network_id = ${redeId} AND av.guardian_id = ${responsavelId}
      ORDER BY al.year DESC, a.name
-     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
+     LIMIT ${limit}::int OFFSET ${offset}::int`;
   return linhas.map(paraMatricula);
 }
 
 export async function contarDoResponsavel(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   responsavelId: string,
 ): Promise<number> {

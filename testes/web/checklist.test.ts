@@ -16,10 +16,11 @@ import { join } from 'node:path';
 import { unlink } from 'node:fs/promises';
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { config } from '../../src/shared/config';
-import { gerarCpf } from '../../src/shared/document';
-import { CHAVES_PROIBIDAS } from '../../src/shared/log';
+import { generateCpf } from '../../src/shared/document';
+import { FORBIDDEN_LOG_KEYS } from '../../src/shared/log';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
+  SENHA_PADRAO,
   cenarioCompleto,
   criarAluno,
   criarAnoLetivo,
@@ -30,15 +31,14 @@ import {
   criarTurmaDisciplina,
   criarUnidade,
   criarUsuario,
-  SENHA_PADRAO,
 } from '../apoio/fabricas';
 import {
+  RAIZ_DO_PROJETO,
   abrir,
   capturarLogDeUmFluxo,
   entrar,
   enviar,
   postar,
-  RAIZ_DO_PROJETO,
   rodarProcesso,
   saudeComBancoForaDoAr,
   valoresDoLog,
@@ -78,8 +78,8 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
       regra: 'pure-domain',
       caminho: `src/${modulo}/dominio/_violacao_de_teste.ts`,
       conteudo:
-        "import { leitura } from '../../shared/db';\n" +
-        'export const conexao = (): unknown => leitura();\n',
+        "import { reader } from '../../shared/db';\n" +
+        'export const conexao = (): unknown => reader();\n',
     },
     {
       regra: 'shared-knows-no-domain',
@@ -496,7 +496,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
   const NOME_DO_PROFESSOR = 'Ludmila Vasconcelos Trindade';
   const EMAIL_DO_PROFESSOR = 'ludmila.trindade@escolaviva.test';
   /** Semente própria, e não o contador global das fábricas: aqui o valor precisa ser previsível. */
-  const CPF_DO_PROFESSOR = gerarCpf(910_827);
+  const CPF_DO_PROFESSOR = generateCpf(910_827);
   const NOME_DO_ALUNO = 'Anastácio Quintiliano Bragança';
   const SLUG = 'rede-do-teste-de-log';
   const NOTA = 7.3;
@@ -589,7 +589,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
     const capturado = await capturarLogDeUmFluxo(cenario);
     const campos = new Set(capturado.linhas.flatMap((linha) => Object.keys(linha)));
 
-    expect(campos.has('correlacao_id')).toBe(true);
+    expect(campos.has('correlation_id')).toBe(true);
     expect(capturado.bruto).toContain(SLUG);
     expect(capturado.bruto).toContain('recusado');
   }, PRAZO_DE_PROCESSO_MS);
@@ -600,7 +600,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
     const capturado = await capturarLogDeUmFluxo(cenario);
     const vazando = capturado.linhas.flatMap((linha) =>
       Object.entries(linha).filter(
-        ([chave, valor]) => CHAVES_PROIBIDAS.includes(chave) && valor !== '[redigido]',
+        ([chave, valor]) => FORBIDDEN_LOG_KEYS.includes(chave) && valor !== '[redacted]',
       ),
     );
 

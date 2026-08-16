@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { unidadeDeTrabalho } from '../../shared/db';
-import { idGeneratorUuid } from '../../shared/ports';
-import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/result';
+import { unitOfWork } from '../../shared/db';
+import { uuidIdGenerator } from '../../shared/ports';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import type { Unidade } from '../dominio/unidade';
 import * as unidadeRepositorio from '../infra/unidadeRepositorio';
@@ -25,25 +25,25 @@ export async function criarUnidade(entrada: {
   redeId: string;
   nome: string;
   codigoInep?: string | null | undefined;
-}): Promise<Resultado<Unidade>> {
+}): Promise<Result<Unidade>> {
   const analise = schema.safeParse(entrada);
-  if (!analise.success) return falha(...errosDeSchema(analise.error.issues));
+  if (!analise.success) return failure(...schemaErrors(analise.error.issues));
   const dados = analise.data;
 
   const codigoInep = dados.codigoInep === '' ? null : (dados.codigoInep ?? null);
   const unidade: Unidade = {
-    id: idGeneratorUuid.novo(),
+    id: uuidIdGenerator.next(),
     redeId: dados.redeId,
     nome: dados.nome,
     codigoInep,
     ativa: true,
   };
 
-  return await unidadeDeTrabalho(async ({ sql }) => {
+  return await unitOfWork(async ({ sql }) => {
     if (await unidadeRepositorio.existeNome(sql, unidade.redeId, unidade.nome)) {
-      return falhaDeCampo(CAMPOS.unidade.nome, CODIGOS.nomeEmUso, MENSAGENS.unidade.nomeEmUso);
+      return fieldFailure(CAMPOS.unidade.nome, CODIGOS.nomeEmUso, MENSAGENS.unidade.nomeEmUso);
     }
     await unidadeRepositorio.inserir(sql, unidade);
-    return sucesso(unidade);
+    return success(unidade);
   });
 }

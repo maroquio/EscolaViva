@@ -1,8 +1,8 @@
 import { MATRICULA_ATIVA, TURNOS } from '../src/academico';
 import { REDE_ATIVA } from '../src/identidade';
 import { config } from '../src/shared/config';
-import { AMBIENTE_PRODUCAO, DIAS_DA_SEMANA, LOCALE, TEMPO } from '../src/shared/constants';
-import { encerrar, escrita, type Conexao } from '../src/shared/db';
+import { LOCALE, PRODUCTION_ENV, TIME, WEEK_DAYS } from '../src/shared/constants';
+import { closeDatabase, writer, type Connection } from '../src/shared/db';
 
 const SLUG = 'volume';
 const REDE = 'Rede de Volume (carga sintética)';
@@ -35,7 +35,7 @@ const COLUNAS = { progresso: 7, tabela: 12, contagem: 12 } as const;
 type Argumentos = { ano: number; alunos: number; confirmado: boolean; apagar: boolean };
 
 const agora = (): number => Date.now();
-const emSegundos = (desde: number): string => ((agora() - desde) / TEMPO.msPorSegundo).toFixed(1);
+const emSegundos = (desde: number): string => ((agora() - desde) / TIME.msPerSecond).toFixed(1);
 const comSeparador = (valor: number): string => valor.toLocaleString(LOCALE);
 
 const MENSAGENS = {
@@ -108,7 +108,7 @@ function lerArgumentos(argv: readonly string[]): Argumentos {
   return { ano, alunos, confirmado, apagar };
 }
 
-async function garantirRede(sql: Conexao): Promise<string> {
+async function garantirRede(sql: Connection): Promise<string> {
   const existente: { id: string }[] = await sql`SELECT id FROM network WHERE slug = ${SLUG}`;
   const encontrada = existente[0];
   if (encontrada !== undefined) return encontrada.id;
@@ -119,7 +119,7 @@ async function garantirRede(sql: Conexao): Promise<string> {
   return id;
 }
 
-async function garantirUnidades(sql: Conexao, redeId: string): Promise<number> {
+async function garantirUnidades(sql: Connection, redeId: string): Promise<number> {
   const contagem: { total: number }[] =
     await sql`SELECT count(*)::int AS total FROM school WHERE network_id = ${redeId}`;
   const existentes = contagem[0]?.total ?? 0;
@@ -131,7 +131,7 @@ async function garantirUnidades(sql: Conexao, redeId: string): Promise<number> {
   return UNIDADES;
 }
 
-async function garantirAlunos(sql: Conexao, redeId: string, alunos: number): Promise<void> {
+async function garantirAlunos(sql: Connection, redeId: string, alunos: number): Promise<void> {
   const contagem: { total: number }[] =
     await sql`SELECT count(*)::int AS total FROM student WHERE network_id = ${redeId}`;
   const existentes = contagem[0]?.total ?? 0;
@@ -146,7 +146,7 @@ async function garantirAlunos(sql: Conexao, redeId: string, alunos: number): Pro
 type Cenario = { anoLetivoId: string; turmas: number; matriculas: number };
 
 async function montarAnoLetivo(
-  sql: Conexao, redeId: string, ano: number, alunos: number,
+  sql: Connection, redeId: string, ano: number, alunos: number,
 ): Promise<Cenario> {
   const anoLetivoId = crypto.randomUUID();
   const turmas = Math.ceil(alunos / ALUNOS_POR_TURMA);
@@ -184,7 +184,7 @@ async function montarAnoLetivo(
 }
 
 async function preencherFrequencia(
-  sql: Conexao, redeId: string, cenario: Cenario, ano: number,
+  sql: Connection, redeId: string, cenario: Cenario, ano: number,
 ): Promise<number> {
   const inicio = agora();
   let gravadas = 0;
@@ -194,7 +194,7 @@ async function preencherFrequencia(
         SELECT d::date AS attendance_date
           FROM generate_series(${CALENDARIO.inicio(ano)}::date,
                                ${CALENDARIO.fim(ano)}::date, '1 day') AS d
-         WHERE extract(isodow FROM d) < ${DIAS_DA_SEMANA.primeiroDiaDoFimDeSemanaIso}
+         WHERE extract(isodow FROM d) < ${WEEK_DAYS.firstWeekendDayIso}
          ORDER BY d
          LIMIT ${DIAS_LETIVOS}
       ), lote AS (
@@ -251,7 +251,7 @@ const APAGAR_EM_ORDEM = [
   'attendance', 'grade', 'enrollment', 'class_group', 'academic_year', 'student', 'school',
 ];
 
-async function apagarRedeDeCarga(sql: Conexao): Promise<void> {
+async function apagarRedeDeCarga(sql: Connection): Promise<void> {
   const existente: { id: string }[] = await sql`SELECT id FROM network WHERE slug = ${SLUG}`;
   const rede = existente[0];
   if (rede === undefined) {
@@ -268,7 +268,7 @@ async function apagarRedeDeCarga(sql: Conexao): Promise<void> {
 }
 
 async function carregar(): Promise<void> {
-  if (config.ambiente === AMBIENTE_PRODUCAO) {
+  if (config.environment === PRODUCTION_ENV) {
     throw new Error(MENSAGENS.producaoRecusada);
   }
   const { ano, alunos, confirmado, apagar } = lerArgumentos(Bun.argv.slice(INICIO_DOS_ARGUMENTOS));
@@ -277,7 +277,7 @@ async function carregar(): Promise<void> {
       console.log(MENSAGENS.confirmeApagar);
       return;
     }
-    await apagarRedeDeCarga(escrita());
+    await apagarRedeDeCarga(writer());
     return;
   }
 
@@ -289,7 +289,7 @@ async function carregar(): Promise<void> {
     return;
   }
 
-  const sql = escrita();
+  const sql = writer();
   const inicio = agora();
   const redeId = await garantirRede(sql);
   const jaCarregado: { total: number }[] = await sql`
@@ -320,5 +320,5 @@ try {
   console.error(MENSAGENS.falha(erro instanceof Error ? erro.message : String(erro)));
   process.exitCode = 1;
 } finally {
-  await encerrar();
+  await closeDatabase();
 }

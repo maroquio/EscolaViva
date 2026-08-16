@@ -1,7 +1,7 @@
 export interface Clock {
-  agora(): Date;
+  now(): Date;
 }
 
-export const clockDoSistema: Clock = {
-  agora: () => new Date(),
+export const systemClock: Clock = {
+  now: () => new Date(),
 };

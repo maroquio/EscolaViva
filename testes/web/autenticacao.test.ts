@@ -8,9 +8,9 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { gerarCpf } from '../../src/shared/document';
+import { generateCpf } from '../../src/shared/document';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
-import { cenarioCompleto, criarRede, criarUsuario, SENHA_PADRAO } from '../apoio/fabricas';
+import { SENHA_PADRAO, cenarioCompleto, criarRede, criarUsuario } from '../apoio/fabricas';
 import { abrir, cookieDaResposta, entrar, enviar, postar } from './apoio';
 
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
@@ -103,7 +103,7 @@ describe('autenticação', () => {
 
   test('CPF desconhecido e senha errada devolvem a mesma tela', async () => {
     const cenario = await cenarioCompleto();
-    const desconhecido = gerarCpf(888_888);
+    const desconhecido = generateCpf(888_888);
 
     const comSenhaErrada = await enviar('/login', {
       redeSlug: cenario.rede.slug,

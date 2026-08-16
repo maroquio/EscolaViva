@@ -1,4 +1,4 @@
-import type { Conexao } from '../../shared/db';
+import type { Connection } from '../../shared/db';
 import { paraStatusDeRede, type Rede } from '../dominio/rede';
 import type { Sessao } from '../dominio/sessao';
 import type { Usuario } from '../dominio/usuario';
@@ -48,7 +48,7 @@ const paraSessaoComDono = (linha: LinhaDeSessao): SessaoComDono => ({
   },
 });
 
-export async function porId(sql: Conexao, sessaoId: string): Promise<SessaoComDono | null> {
+export async function porId(sql: Connection, sessaoId: string): Promise<SessaoComDono | null> {
   const linhas = await sql<LinhaDeSessao[]>`
     SELECT s.id, s.network_id, s.user_id, s.created_at, s.expires_at, s.ip,
            n.name AS network_name, n.slug AS network_slug, n.status AS network_status,
@@ -63,7 +63,7 @@ export async function porId(sql: Conexao, sessaoId: string): Promise<SessaoComDo
   return linha === undefined ? null : paraSessaoComDono(linha);
 }
 
-export async function inserir(sql: Conexao, sessao: Sessao): Promise<void> {
+export async function inserir(sql: Connection, sessao: Sessao): Promise<void> {
   await sql`
     INSERT INTO session (id, network_id, user_id, created_at, expires_at, ip)
     VALUES (
@@ -73,11 +73,11 @@ export async function inserir(sql: Conexao, sessao: Sessao): Promise<void> {
   `;
 }
 
-export async function remover(sql: Conexao, sessaoId: string): Promise<void> {
+export async function remover(sql: Connection, sessaoId: string): Promise<void> {
   await sql`DELETE FROM session WHERE id = ${sessaoId}`;
 }
 
-export async function expurgarExpiradas(sql: Conexao): Promise<number> {
+export async function expurgarExpiradas(sql: Connection): Promise<number> {
   const linhas = await sql<{ total: number }[]>`
     WITH expiradas AS (
       DELETE FROM session WHERE expires_at < now() RETURNING 1

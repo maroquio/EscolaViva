@@ -5,29 +5,29 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { identidade } from '../../src/identidade';
-import { gerarCpf } from '../../src/shared/document';
-import type { ErroDeAplicacao, Resultado } from '../../src/shared/result';
+import { generateCpf } from '../../src/shared/document';
+import type { ApplicationError, Result } from '../../src/shared/result';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
+  SENHA_PADRAO,
   cenarioCompleto,
   criarRede,
   criarSessao,
   criarUnidade,
   criarUsuario,
-  SENHA_PADRAO,
 } from '../apoio/fabricas';
 
 const HORA_EM_MS = 3_600_000;
 const SENHA_NOVA = 'nova-senha-2026';
 
-function valorDe<T>(resultado: Resultado<T>): T {
+function valorDe<T>(resultado: Result<T>): T {
   if (!resultado.ok) {
     throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(resultado.erros)}`);
   }
   return resultado.valor;
 }
 
-function errosDe(resultado: Resultado<unknown>): ErroDeAplicacao[] {
+function errosDe(resultado: Result<unknown>): ApplicationError[] {
   if (resultado.ok) throw new Error('esperava recusa da aplicação, veio sucesso');
   return resultado.erros;
 }
@@ -111,7 +111,7 @@ describe('autenticar', () => {
         redeSlug: 'generica', identificador: ativo.cpf, senha: 'senha-errada-1', ip: '',
       }),
       identidade.autenticar({
-        redeSlug: 'generica', identificador: gerarCpf(999_998), senha: SENHA_PADRAO, ip: '',
+        redeSlug: 'generica', identificador: generateCpf(999_998), senha: SENHA_PADRAO, ip: '',
       }),
       identidade.autenticar({
         redeSlug: 'generica', identificador: inativo.cpf, senha: SENHA_PADRAO, ip: '',
@@ -200,7 +200,7 @@ describe('autenticar', () => {
   test('o mesmo CPF em redes diferentes autentica cada um na sua rede', async () => {
     const primeira = await criarRede({ slug: 'primeira' });
     const segunda = await criarRede({ slug: 'segunda' });
-    const cpfCompartilhado = gerarCpf(700_001);
+    const cpfCompartilhado = generateCpf(700_001);
     const daPrimeira = await criarUsuario({ networkId: primeira.id, cpf: cpfCompartilhado });
     const daSegunda = await criarUsuario({ networkId: segunda.id, cpf: cpfCompartilhado });
 
@@ -258,7 +258,7 @@ describe('autenticar', () => {
 
     const [inexistente, senhaErrada] = await Promise.all([
       identidade.autenticar({
-        redeSlug: cenario.rede.slug, identificador: gerarCpf(999_999), senha: cenario.senha, ip: '',
+        redeSlug: cenario.rede.slug, identificador: generateCpf(999_999), senha: cenario.senha, ip: '',
       }),
       identidade.autenticar({
         redeSlug: cenario.rede.slug, identificador: cenario.secretaria.cpf, senha: 'errada', ip: '',

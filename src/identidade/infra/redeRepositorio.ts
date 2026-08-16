@@ -1,4 +1,4 @@
-import type { Conexao } from '../../shared/db';
+import type { Connection } from '../../shared/db';
 import { paraStatusDeRede, type Rede } from '../dominio/rede';
 
 type LinhaDeRede = { id: string; name: string; slug: string; status: string };
@@ -10,7 +10,7 @@ const paraRede = (linha: LinhaDeRede): Rede => ({
   status: paraStatusDeRede(linha.status),
 });
 
-export async function porSlug(sql: Conexao, slug: string): Promise<Rede | null> {
+export async function porSlug(sql: Connection, slug: string): Promise<Rede | null> {
   const linhas = await sql<LinhaDeRede[]>`
     SELECT id, name, slug, status
     FROM network

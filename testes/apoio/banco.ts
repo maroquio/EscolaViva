@@ -8,7 +8,7 @@
 import { SQL } from 'bun';
 import { join, resolve } from 'node:path';
 import { config } from '../../src/shared/config';
-import type { Conexao } from '../../src/shared/db';
+import type { Connection } from '../../src/shared/db';
 
 /** A mesma chave de `scripts/migrate.ts`: dois processos de teste não migram ao mesmo tempo. */
 const CHAVE_DE_LOCK = 4242;
@@ -21,7 +21,7 @@ let migracoes: Promise<void> | undefined;
 let comandoDeLimpeza: Promise<string> | undefined;
 
 /** A conexão crua da suíte, para asserção direta no banco e para as fábricas escreverem. */
-export function sqlDeTeste(): Conexao {
+export function sqlDeTeste(): Connection {
   pool ??= new SQL({ url: config.databaseUrl, max: MAX_CONEXOES });
   return pool;
 }
@@ -34,13 +34,13 @@ async function arquivosDeMigracao(): Promise<string[]> {
   return nomes.sort();
 }
 
-async function versoesAplicadas(sql: Conexao): Promise<Set<string>> {
+async function versoesAplicadas(sql: Connection): Promise<Set<string>> {
   const linhas = await sql<{ versao: string }[]>`SELECT versao FROM schema_migrations`;
   return new Set(linhas.map((linha) => linha.versao));
 }
 
 /** Uma transação por arquivo: o DDL e o registro da versão sobem juntos ou não sobem. */
-async function aplicar(sql: Conexao, versao: string): Promise<void> {
+async function aplicar(sql: Connection, versao: string): Promise<void> {
   const conteudo = await Bun.file(join(DIRETORIO_DE_MIGRACOES, versao)).text();
   await sql.begin(async (tx) => {
     await tx.unsafe(conteudo);

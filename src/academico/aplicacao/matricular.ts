@@ -1,14 +1,8 @@
 import { z } from 'zod';
-import type { Conexao } from '../../shared/db';
-import { unidadeDeTrabalho } from '../../shared/db';
-import { idGeneratorUuid } from '../../shared/ports';
-import {
-  errosDeSchema,
-  falha,
-  falhaDeCampo,
-  sucesso,
-  type Resultado,
-} from '../../shared/result';
+import type { Connection } from '../../shared/db';
+import { unitOfWork } from '../../shared/db';
+import { uuidIdGenerator } from '../../shared/ports';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
 import { MATRICULA_ATIVA, type Matricula } from '../dominio/matricula';
 import type { Turma } from '../dominio/turma';
@@ -28,10 +22,10 @@ const entrada = z.object({
 type Alvo = { redeId: string; alunoId: string; turmaId: string; anoLetivoId: string };
 type ContextoDaMatricula = { alunoNome: string; turma: Turma; ano: number };
 
-async function contexto(sql: Conexao, alvo: Alvo): Promise<Resultado<ContextoDaMatricula>> {
+async function contexto(sql: Connection, alvo: Alvo): Promise<Result<ContextoDaMatricula>> {
   const aluno = await alunos.porId(sql, alvo.redeId, alvo.alunoId);
   if (aluno === null) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.matricula.alunoId,
       CODIGOS.alunoNaoEncontrado,
       MENSAGENS.alunoNaoEncontrado,
@@ -39,7 +33,7 @@ async function contexto(sql: Conexao, alvo: Alvo): Promise<Resultado<ContextoDaM
   }
   const turma = await turmas.porId(sql, alvo.redeId, alvo.turmaId);
   if (turma === null) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.matricula.turmaId,
       CODIGOS.turmaNaoEncontrada,
       MENSAGENS.turmaNaoEncontrada,
@@ -47,20 +41,20 @@ async function contexto(sql: Conexao, alvo: Alvo): Promise<Resultado<ContextoDaM
   }
   const anoLetivo = await anosLetivos.porId(sql, alvo.redeId, alvo.anoLetivoId);
   if (anoLetivo === null) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.matricula.anoLetivoId,
       CODIGOS.anoLetivoNaoEncontrado,
       MENSAGENS.anoLetivoNaoEncontrado,
     );
   }
   if (turma.anoLetivoId !== alvo.anoLetivoId) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.matricula.turmaId,
       CODIGOS.matricula.turmaDeOutroAno,
       MENSAGENS.matricula.turmaDeOutroAno,
     );
   }
-  return sucesso({ alunoNome: aluno.nome, turma, ano: anoLetivo.ano });
+  return success({ alunoNome: aluno.nome, turma, ano: anoLetivo.ano });
 }
 
 export async function matricular(e: {
@@ -69,18 +63,18 @@ export async function matricular(e: {
   turmaId: string;
   anoLetivoId: string;
   dataMatricula: string;
-}): Promise<Resultado<Matricula>> {
+}): Promise<Result<Matricula>> {
   const validada = entrada.safeParse(e);
-  if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
+  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
 
   const { redeId, alunoId, turmaId, anoLetivoId, dataMatricula } = validada.data;
-  return unidadeDeTrabalho(async ({ sql }): Promise<Resultado<Matricula>> => {
+  return unitOfWork(async ({ sql }): Promise<Result<Matricula>> => {
     const encontrado = await contexto(sql, { redeId, alunoId, turmaId, anoLetivoId });
     if (!encontrado.ok) return encontrado;
 
     const { alunoNome, turma, ano } = encontrado.valor;
     const matricula: Matricula = {
-      id: idGeneratorUuid.novo(),
+      id: uuidIdGenerator.next(),
       redeId,
       alunoId,
       alunoNome,
@@ -94,12 +88,12 @@ export async function matricular(e: {
     };
     const criada = await matriculas.inserir(sql, matricula);
     if (!criada) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.matricula.alunoId,
         CODIGOS.matricula.ativaDuplicada,
         MENSAGENS.matricula.ativaDuplicada,
       );
     }
-    return sucesso(matricula);
+    return success(matricula);
   });
 }

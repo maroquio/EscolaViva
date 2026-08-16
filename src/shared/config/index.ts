@@ -1,5 +1,5 @@
-import { carregarConfig, type Config } from './schema';
+import { loadConfig, type Config } from './schema';
 
-export { carregarConfig, type Config } from './schema';
+export { loadConfig, type Config } from './schema';
 
-export const config: Config = carregarConfig(Bun.env);
+export const config: Config = loadConfig(Bun.env);

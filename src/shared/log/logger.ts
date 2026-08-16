@@ -1,34 +1,34 @@
 import { pino } from 'pino';
 import { config } from '../config';
-import { LOG, NIVEIS_DE_LOG } from '../constants';
-import { redigir, type CamposDeLog } from './redaction';
+import { LOG, LOG_LEVELS } from '../constants';
+import { redact, type LogFields } from './redaction';
 
-type Nivel = (typeof NIVEIS_DE_LOG)[number];
+type Level = (typeof LOG_LEVELS)[number];
 
-type Emissor = (campos: CamposDeLog, msg: string) => void;
+type Emitter = (fields: LogFields, msg: string) => void;
 
-const raiz = pino({ level: config.logLevel });
+const root = pino({ level: config.logLevel });
 
-let fonteDeCorrelacao: (() => string | undefined) | undefined;
+let correlationSource: (() => string | undefined) | undefined;
 
-export function registrarFonteDeCorrelacao(f: () => string | undefined): void {
-  fonteDeCorrelacao = f;
+export function registerCorrelationSource(f: () => string | undefined): void {
+  correlationSource = f;
 }
 
-function emitir(nivel: Nivel, campos: CamposDeLog, msg: string): void {
-  const seguros = redigir(campos);
-  const correlacaoId = fonteDeCorrelacao?.();
-  raiz[nivel](
-    correlacaoId === undefined ? seguros : { ...seguros, [LOG.campoDeCorrelacao]: correlacaoId },
+function emit(level: Level, fields: LogFields, msg: string): void {
+  const safe = redact(fields);
+  const correlationId = correlationSource?.();
+  root[level](
+    correlationId === undefined ? safe : { ...safe, [LOG.correlationField]: correlationId },
     msg,
   );
 }
 
 export const logger = Object.fromEntries(
-  NIVEIS_DE_LOG.map((nivel): [Nivel, Emissor] => [
-    nivel,
-    (campos, msg) => {
-      emitir(nivel, campos, msg);
+  LOG_LEVELS.map((level): [Level, Emitter] => [
+    level,
+    (fields, msg) => {
+      emit(level, fields, msg);
     },
   ]),
-) as Record<Nivel, Emissor>;
+) as Record<Level, Emitter>;

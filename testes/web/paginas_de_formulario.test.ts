@@ -12,7 +12,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { gerarCpf } from '../../src/shared/document';
+import { generateCpf } from '../../src/shared/document';
 import { limparBanco } from '../apoio/banco';
 import { cenarioCompleto, duasRedes, type Cenario } from '../apoio/fabricas';
 import { abrir, entrar, enviar } from './apoio';
@@ -45,15 +45,15 @@ test('a tela de entrada pede CPF, e não mais e-mail', async () => {
 /* ------------------------------------------------------------------------- */
 
 describe('cada cadastro tem a sua página, e ela traz o formulário', () => {
-  type Pagina = { caminho: string; destino: string };
+  type Page = { caminho: string; destino: string };
 
-  const DA_REDE: readonly Pagina[] = [
+  const DA_REDE: readonly Page[] = [
     { caminho: '/rede/unidades/nova', destino: '/rede/unidades' },
     { caminho: '/rede/anos-letivos/novo', destino: '/rede/anos-letivos' },
     { caminho: '/rede/usuarios/novo', destino: '/rede/usuarios' },
   ];
 
-  const DA_SECRETARIA: readonly Pagina[] = [
+  const DA_SECRETARIA: readonly Page[] = [
     { caminho: '/secretaria/disciplinas/nova', destino: '/secretaria/disciplinas' },
     { caminho: '/secretaria/responsaveis/novo', destino: '/secretaria/responsaveis' },
     { caminho: '/secretaria/turmas/nova', destino: '/secretaria/turmas' },
@@ -265,7 +265,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const responsavel = cenario.responsaveis[0];
 
     const resposta = await enviar('/rede/usuarios', {
-      nome: 'Mãe do Aluno', email: 'mae@escolaviva.test', cpf: gerarCpf(987_654),
+      nome: 'Mãe do Aluno', email: 'mae@escolaviva.test', cpf: generateCpf(987_654),
       responsavelId: responsavel.id, 'unidade[]': cenario.unidades[0].id, 'papel[]': 'guardian',
     }, cookie);
     const html = await resposta.text();
@@ -295,7 +295,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const cookie = await entrarComo(cenario, 'admin');
 
     const resposta = await enviar('/rede/usuarios', {
-      nome: 'Sem Cadastro', email: 'sem.cadastro@escolaviva.test', cpf: gerarCpf(987_655),
+      nome: 'Sem Cadastro', email: 'sem.cadastro@escolaviva.test', cpf: generateCpf(987_655),
       responsavelId: 'nao-e-uuid', 'unidade[]': cenario.unidades[0].id, 'papel[]': 'registrar',
     }, cookie);
     const html = await resposta.text();

@@ -1,6 +1,6 @@
-import type { Conexao } from '../../shared/db';
-import { recorte, type Faixa } from '../../shared/pagination';
-import { idGeneratorUuid } from '../../shared/ports';
+import type { Connection } from '../../shared/db';
+import { rangeParams, type Range } from '../../shared/pagination';
+import { uuidIdGenerator } from '../../shared/ports';
 import type {
   ApuracaoDeFrequencia,
   PresencaDoDia,
@@ -14,7 +14,7 @@ export type LinhaParaGravar = {
 };
 
 export async function porMatriculasEData(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   matriculaIds: string[],
   data: string,
@@ -34,19 +34,19 @@ export async function porMatriculasEData(
 }
 
 export async function porMatricula(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   matriculaId: string,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<ResumoFrequencia[]> {
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas: { attendance_date: string; present: boolean; excuse: string | null }[] = await sql`
     SELECT to_char(attendance_date, 'YYYY-MM-DD') AS attendance_date, present, excuse
       FROM attendance
      WHERE network_id = ${redeId}
        AND enrollment_id = ${matriculaId}
      ORDER BY attendance_date DESC
-     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
+     LIMIT ${limit}::int OFFSET ${offset}::int`;
   return linhas.map((linha) => ({
     data: linha.attendance_date,
     presente: linha.present,
@@ -55,7 +55,7 @@ export async function porMatricula(
 }
 
 export async function contarPorMatricula(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   matriculaId: string,
 ): Promise<number> {
@@ -67,7 +67,7 @@ export async function contarPorMatricula(
 }
 
 export async function apuracaoDaMatricula(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   matriculaId: string,
 ): Promise<ApuracaoDeFrequencia> {
@@ -83,11 +83,11 @@ export async function apuracaoDaMatricula(
 }
 
 export async function gravarEmLote(
-  sql: Conexao,
+  sql: Connection,
   chamada: { redeId: string; data: string; linhas: LinhaParaGravar[] },
 ): Promise<number> {
   const registros = chamada.linhas.map((linha) => ({
-    id: idGeneratorUuid.novo(),
+    id: uuidIdGenerator.next(),
     network_id: chamada.redeId,
     enrollment_id: linha.matriculaId,
     attendance_date: chamada.data,

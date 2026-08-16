@@ -1,31 +1,31 @@
 import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { ATIVOS } from '../src/shared/constants';
+import { ASSETS } from '../src/shared/constants';
 
 const RAIZ = join(import.meta.dir, '..');
 
 const ORIGEM = join(RAIZ, 'src', 'web', 'publico', 'app.css');
 
-const DESTINO = join(RAIZ, ATIVOS.diretorio);
+const DESTINO = join(RAIZ, ASSETS.directory);
 
 const SEPARADOR_DE_NOME = '.';
 
-const [BASE_DA_FOLHA, EXTENSAO_DA_FOLHA] = ATIVOS.nomeLogicoDaFolha.split(SEPARADOR_DE_NOME);
+const [BASE_DA_FOLHA, EXTENSAO_DA_FOLHA] = ASSETS.stylesheetLogicalName.split(SEPARADOR_DE_NOME);
 
 const INDENTACAO_DO_MANIFESTO = 2;
 
 const ARQUIVO_COM_HASH = /^app\.[0-9a-f]{8}\.css$/;
 
 const calcularHash = (conteudo: string): string =>
-  new Bun.CryptoHasher(ATIVOS.algoritmoDeHash)
+  new Bun.CryptoHasher(ASSETS.hashAlgorithm)
     .update(conteudo)
-    .digest(ATIVOS.codificacaoDeHash)
-    .slice(0, ATIVOS.caracteresDeHash);
+    .digest(ASSETS.hashEncoding)
+    .slice(0, ASSETS.hashCharacters);
 
 const nomePublicado = (hash: string): string =>
   [BASE_DA_FOLHA, hash, EXTENSAO_DA_FOLHA].join(SEPARADOR_DE_NOME);
 
-const linhaDeSaida = (nome: string): string => `${ATIVOS.diretorio}/${nome}`;
+const linhaDeSaida = (nome: string): string => `${ASSETS.directory}/${nome}`;
 
 const removerVersoesAntigas = (manter: string): void => {
   for (const nome of readdirSync(DESTINO)) {
@@ -41,16 +41,16 @@ async function publicar(): Promise<void> {
   mkdirSync(DESTINO, { recursive: true });
   await Bun.write(join(DESTINO, nomeComHash), css);
   await Bun.write(
-    join(DESTINO, ATIVOS.manifesto),
+    join(DESTINO, ASSETS.manifest),
     `${JSON.stringify(
-      { [ATIVOS.nomeLogicoDaFolha]: nomeComHash },
+      { [ASSETS.stylesheetLogicalName]: nomeComHash },
       null,
       INDENTACAO_DO_MANIFESTO,
     )}\n`,
   );
   removerVersoesAntigas(nomeComHash);
 
-  process.stdout.write(`${linhaDeSaida(nomeComHash)}\n${linhaDeSaida(ATIVOS.manifesto)}\n`);
+  process.stdout.write(`${linhaDeSaida(nomeComHash)}\n${linhaDeSaida(ASSETS.manifest)}\n`);
 }
 
 await publicar();

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { LIMITES_DO_ACADEMICO, academico } from '../../src/academico';
-import type { Resultado } from '../../src/shared/result';
+import type { Result } from '../../src/shared/result';
 import { limparBanco } from '../apoio/banco';
 import { criarAluno, criarRede } from '../apoio/fabricas';
 
@@ -11,7 +11,7 @@ const CARACTERES_DO_NOME = LIMITES_DO_ACADEMICO.aluno.nome;
 
 const nomeNumerado = (posicao: number): string => `Pessoa ${String(posicao).padStart(3, '0')}`;
 
-const camposComErro = <T>(resultado: Resultado<T>): string[] =>
+const camposComErro = <T>(resultado: Result<T>): string[] =>
   resultado.ok ? [] : resultado.erros.map((erro) => erro.campo ?? '');
 
 describe('LIMITES.aluno.linhasDaBusca conta LINHAS devolvidas', () => {

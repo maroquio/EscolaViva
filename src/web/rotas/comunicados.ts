@@ -2,19 +2,19 @@ import { Hono, type Context } from 'hono';
 import { academico } from '../../academico';
 import { ALCANCE, comunicacao, type Alcance, type EstatisticaDeLeitura } from '../../comunicacao';
 import { PAPEL, identidade, type Unidade } from '../../identidade';
-import { VARIAVEIS_DE_CONTEXTO } from '../../shared/constants';
-import { paginaVazia } from '../../shared/pagination';
+import { CONTEXT_VARIABLES } from '../../shared/constants';
+import { emptyPage } from '../../shared/pagination';
 import {
-  NaoEncontrado,
-  exigirPapel,
-  temPapel,
-  unidadesDoPapel,
-  usuarioAtual,
-  type CorpoDeFormulario,
-  type UsuarioDaSessao,
-  type Variaveis,
+  NotFound,
+  currentUser,
+  hasRole,
+  requireRole,
+  schoolsForRole,
+  type FormBody,
+  type SessionUser,
+  type Variables,
 } from '../../shared/http';
-import type { ErroDeAplicacao } from '../../shared/result';
+import type { ApplicationError } from '../../shared/result';
 import {
   AVISOS,
   CAMPOS,
@@ -43,17 +43,17 @@ type ContextoDeEnvio = {
   responsaveis: { id: string; nome: string }[];
 };
 
-export const rotasComunicados = new Hono<{ Variables: Variaveis }>();
+export const rotasComunicados = new Hono<{ Variables: Variables }>();
 
-rotasComunicados.use(exigirPapel(PAPEL.secretaria, PAPEL.adminRede));
+rotasComunicados.use(requireRole(PAPEL.secretaria, PAPEL.adminRede));
 
 const unidadesDoUsuario = async (
-  usuario: UsuarioDaSessao,
+  usuario: SessionUser,
   veTodaARede: boolean,
 ): Promise<Unidade[]> => {
   const unidades = await identidade.listarUnidades(usuario.redeId);
   if (veTodaARede) return unidades;
-  const permitidas = new Set(unidadesDoPapel(usuario, PAPEL.secretaria));
+  const permitidas = new Set(schoolsForRole(usuario, PAPEL.secretaria));
   return unidades.filter((unidade) => permitidas.has(unidade.id));
 };
 
@@ -64,7 +64,7 @@ const recorteDaLista = (
 ): string | null => {
   if (pedida !== '') {
     if (!unidades.some((unidade) => unidade.id === pedida)) {
-      throw new NaoEncontrado(DIAGNOSTICOS.unidadeForaDoAlcance);
+      throw new NotFound(DIAGNOSTICOS.unidadeForaDoAlcance);
     }
     return pedida;
   }
@@ -75,8 +75,8 @@ const recorteDaLista = (
 const SEM_RESUMO = { destinatarios: 0, leituras: 0, taxa: 0 };
 
 rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
-  const usuario = usuarioAtual(c);
-  const veTodaARede = temPapel(usuario, PAPEL.adminRede);
+  const usuario = currentUser(c);
+  const veTodaARede = hasRole(usuario, PAPEL.adminRede);
   const unidades = await unidadesDoUsuario(usuario, veTodaARede);
   const recorte = recorteDaLista(
     unidades,
@@ -87,7 +87,7 @@ rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
   const semAlcance = recorte === null && !veTodaARede;
   const [pagina, resumo] = await Promise.all([
     semAlcance
-      ? Promise.resolve(paginaVazia<EstatisticaDeLeitura>())
+      ? Promise.resolve(emptyPage<EstatisticaDeLeitura>())
       : comunicacao.paginaDeComunicados(usuario.redeId, recorte ?? undefined, paginaDaQuery(c)),
     semAlcance
       ? Promise.resolve(SEM_RESUMO)
@@ -97,7 +97,7 @@ rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
   return renderizar(c, TEMPLATES.comunicados.lista, {
     titulo: TITULOS.comunicados.lista,
     campoDaUnidade: PARAMETROS.unidadeId,
-    comunicados: pagina.itens,
+    comunicados: pagina.items,
     navegacao: navegacao(c, pagina),
     resumo: {
       destinatarios: resumo.destinatarios,
@@ -110,19 +110,19 @@ rotasComunicados.get(ROTAS.comunicados.lista.padrao, async (c) => {
   });
 });
 
-const textoDoCampo = (formulario: CorpoDeFormulario, campo: string): string => {
+const textoDoCampo = (formulario: FormBody, campo: string): string => {
   const valor = formulario[campo];
   return typeof valor === 'string' ? valor.trim() : '';
 };
 
-const listaDoCampo = (formulario: CorpoDeFormulario, campo: string): string[] => {
+const listaDoCampo = (formulario: FormBody, campo: string): string[] => {
   const valor = formulario[campo];
   if (typeof valor === 'string') return [valor];
   if (!Array.isArray(valor)) return [];
   return valor.filter((item): item is string => typeof item === 'string');
 };
 
-const valoresDoFormulario = (formulario: CorpoDeFormulario): ValoresDoComunicado => ({
+const valoresDoFormulario = (formulario: FormBody): ValoresDoComunicado => ({
   unidadeId: textoDoCampo(formulario, CAMPOS.comunicado.unidadeId),
   titulo: textoDoCampo(formulario, CAMPOS.comunicado.titulo),
   corpo: textoDoCampo(formulario, CAMPOS.comunicado.corpo),
@@ -134,14 +134,14 @@ const valoresDoFormulario = (formulario: CorpoDeFormulario): ValoresDoComunicado
 });
 
 const contextoDeEnvio = async (
-  usuario: UsuarioDaSessao,
+  usuario: SessionUser,
   unidadeIdPedida: string,
 ): Promise<ContextoDeEnvio> => {
-  const todas = await unidadesDoUsuario(usuario, temPapel(usuario, PAPEL.adminRede));
+  const todas = await unidadesDoUsuario(usuario, hasRole(usuario, PAPEL.adminRede));
   const unidades = todas.filter((unidade) => unidade.ativa);
   const unidade = unidades.find((item) => item.id === unidadeIdPedida) ?? null;
   if (unidadeIdPedida !== '' && unidade === null) {
-    throw new NaoEncontrado(DIAGNOSTICOS.unidadeForaDoAlcance);
+    throw new NotFound(DIAGNOSTICOS.unidadeForaDoAlcance);
   }
   const responsaveis =
     unidade === null ? [] : await academico.responsaveisDaUnidade(usuario.redeId, unidade.id);
@@ -154,7 +154,7 @@ const paginaDeEnvio = (
   c: Context,
   contexto: ContextoDeEnvio,
   valores: ValoresDoComunicado,
-  erros: ErroDeAplicacao[],
+  erros: ApplicationError[],
 ): Response =>
   renderizar(c, TEMPLATES.comunicados.novo, {
     titulo: TITULOS.comunicados.novo,
@@ -173,7 +173,7 @@ const valoresIniciais = (unidadeId: string): ValoresDoComunicado => ({
   selecionados: [],
 });
 
-const SEM_SELECAO: ErroDeAplicacao = {
+const SEM_SELECAO: ApplicationError = {
   ...ERROS_DE_FORMULARIO.semSelecao,
   mensagem: SEM_SELECAO_NO_ENVIO,
 };
@@ -181,7 +181,7 @@ const SEM_SELECAO: ErroDeAplicacao = {
 const conferirDestinatarios = (
   valores: ValoresDoComunicado,
   responsaveis: readonly { id: string }[],
-): ErroDeAplicacao | null => {
+): ApplicationError | null => {
   if (valores.alcance === ALCANCE.unidade) return null;
   if (valores.selecionados.length === 0) return SEM_SELECAO;
   const daUnidade = new Set(responsaveis.map((responsavel) => responsavel.id));
@@ -190,14 +190,14 @@ const conferirDestinatarios = (
 };
 
 rotasComunicados.get(ROTAS.comunicados.novo.padrao, async (c) => {
-  const usuario = usuarioAtual(c);
+  const usuario = currentUser(c);
   const contexto = await contextoDeEnvio(usuario, c.req.query(PARAMETROS.unidadeId) ?? '');
   return paginaDeEnvio(c, contexto, valoresIniciais(contexto.unidade?.id ?? ''), []);
 });
 
 rotasComunicados.post(ROTAS.comunicados.novo.padrao, async (c) => {
-  const usuario = usuarioAtual(c);
-  const valores = valoresDoFormulario(c.get(VARIAVEIS_DE_CONTEXTO.corpo));
+  const usuario = currentUser(c);
+  const valores = valoresDoFormulario(c.get(CONTEXT_VARIABLES.body));
   const contexto = await contextoDeEnvio(usuario, valores.unidadeId);
 
   if (contexto.unidade === null) {

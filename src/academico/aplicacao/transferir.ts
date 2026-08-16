@@ -1,14 +1,8 @@
 import { z } from 'zod';
-import type { Conexao } from '../../shared/db';
-import { unidadeDeTrabalho } from '../../shared/db';
-import { idGeneratorUuid } from '../../shared/ports';
-import {
-  errosDeSchema,
-  falha,
-  falhaDeCampo,
-  sucesso,
-  type Resultado,
-} from '../../shared/result';
+import type { Connection } from '../../shared/db';
+import { unitOfWork } from '../../shared/db';
+import { uuidIdGenerator } from '../../shared/ports';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, ERROS_INTERNOS, MENSAGENS } from '../constantes';
 import { MATRICULA_ATIVA, podeTransferir, type Matricula } from '../dominio/matricula';
 import type { Turma } from '../dominio/turma';
@@ -23,14 +17,14 @@ const entrada = z.object({
 });
 
 async function trocarDeTurma(
-  sql: Conexao,
+  sql: Connection,
   origem: Matricula,
   destino: Turma,
   data: string,
-): Promise<Resultado<Matricula>> {
+): Promise<Result<Matricula>> {
   const encerrada = await matriculas.marcarComoTransferida(sql, origem.redeId, origem.id);
   if (!encerrada) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.transferencia.matriculaId,
       CODIGOS.transferencia.perdeuACorrida,
       MENSAGENS.transferencia.perdeuACorrida,
@@ -38,7 +32,7 @@ async function trocarDeTurma(
   }
 
   const nova: Matricula = {
-    id: idGeneratorUuid.novo(),
+    id: uuidIdGenerator.next(),
     redeId: origem.redeId,
     alunoId: origem.alunoId,
     alunoNome: origem.alunoNome,
@@ -52,7 +46,7 @@ async function trocarDeTurma(
   };
   const criada = await matriculas.inserir(sql, nova);
   if (!criada) throw new Error(ERROS_INTERNOS.conflitoDeMatriculaNaTransferencia);
-  return sucesso(nova);
+  return success(nova);
 }
 
 export async function transferir(e: {
@@ -60,29 +54,29 @@ export async function transferir(e: {
   matriculaId: string;
   turmaDestinoId: string;
   data: string;
-}): Promise<Resultado<Matricula>> {
+}): Promise<Result<Matricula>> {
   const validada = entrada.safeParse(e);
-  if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
+  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
 
   const { redeId, matriculaId, turmaDestinoId, data } = validada.data;
-  return unidadeDeTrabalho(async ({ sql }): Promise<Resultado<Matricula>> => {
+  return unitOfWork(async ({ sql }): Promise<Result<Matricula>> => {
     const origem = await matriculas.porId(sql, redeId, matriculaId);
     if (origem === null) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.transferencia.matriculaId,
         CODIGOS.transferencia.matriculaNaoEncontrada,
         MENSAGENS.transferencia.matriculaNaoEncontrada,
       );
     }
     if (!podeTransferir(origem)) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.transferencia.matriculaId,
         CODIGOS.transferencia.somenteAtivaTransfere,
         MENSAGENS.transferencia.somenteAtivaTransfere,
       );
     }
     if (origem.turmaId === turmaDestinoId) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.transferencia.turmaDestinoId,
         CODIGOS.transferencia.mesmaTurma,
         MENSAGENS.transferencia.mesmaTurma,
@@ -91,14 +85,14 @@ export async function transferir(e: {
 
     const destino = await turmas.porId(sql, redeId, turmaDestinoId);
     if (destino === null) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.transferencia.turmaDestinoId,
         CODIGOS.transferencia.turmaDestinoNaoEncontrada,
         MENSAGENS.transferencia.turmaDestinoNaoEncontrada,
       );
     }
     if (destino.anoLetivoId !== origem.anoLetivoId) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.transferencia.turmaDestinoId,
         CODIGOS.transferencia.turmaDeOutroAno,
         MENSAGENS.transferencia.turmaDeOutroAno,

@@ -1,5 +1,5 @@
-import type { Conexao } from '../../shared/db';
-import { recorte, type Faixa } from '../../shared/pagination';
+import type { Connection } from '../../shared/db';
+import { rangeParams, type Range } from '../../shared/pagination';
 import type { Unidade } from '../dominio/unidade';
 
 type LinhaDeUnidade = {
@@ -19,22 +19,22 @@ const paraUnidade = (linha: LinhaDeUnidade): Unidade => ({
 });
 
 export async function listarPorRede(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<Unidade[]> {
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas = await sql<LinhaDeUnidade[]>`
     SELECT id, network_id, name, inep_code, active
     FROM school
     WHERE network_id = ${redeId}
     ORDER BY name
-    LIMIT ${limite}::int OFFSET ${deslocamento}::int
+    LIMIT ${limit}::int OFFSET ${offset}::int
   `;
   return linhas.map(paraUnidade);
 }
 
-export async function contarPorRede(sql: Conexao, redeId: string): Promise<number> {
+export async function contarPorRede(sql: Connection, redeId: string): Promise<number> {
   const linhas = await sql<{ total: number }[]>`
     SELECT count(*)::int AS total
     FROM school
@@ -44,7 +44,7 @@ export async function contarPorRede(sql: Conexao, redeId: string): Promise<numbe
 }
 
 export async function porId(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   unidadeId: string,
 ): Promise<Unidade | null> {
@@ -57,7 +57,7 @@ export async function porId(
   return linha === undefined ? null : paraUnidade(linha);
 }
 
-export async function existeNome(sql: Conexao, redeId: string, nome: string): Promise<boolean> {
+export async function existeNome(sql: Connection, redeId: string, nome: string): Promise<boolean> {
   const linhas = await sql<{ existe: number }[]>`
     SELECT 1 AS existe
     FROM school
@@ -68,7 +68,7 @@ export async function existeNome(sql: Conexao, redeId: string, nome: string): Pr
 }
 
 export async function idsNaRede(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   ids: string[],
 ): Promise<Set<string>> {
@@ -81,7 +81,7 @@ export async function idsNaRede(
   return new Set(linhas.map((linha) => linha.id));
 }
 
-export async function inserir(sql: Conexao, unidade: Unidade): Promise<void> {
+export async function inserir(sql: Connection, unidade: Unidade): Promise<void> {
   await sql`
     INSERT INTO school (id, network_id, name, inep_code, active)
     VALUES (${unidade.id}, ${unidade.redeId}, ${unidade.nome}, ${unidade.codigoInep}, ${unidade.ativa})

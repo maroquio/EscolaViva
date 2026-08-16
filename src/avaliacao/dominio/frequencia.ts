@@ -1,4 +1,4 @@
-import { FORMATOS, TAMANHO_DA_DATA_ISO } from '../../shared/constants';
+import { FORMATS, ISO_DATE_LENGTH } from '../../shared/constants';
 import { MEIA_NOITE_UTC } from '../constantes';
 
 export type LinhaDeChamada = {
@@ -15,10 +15,10 @@ export type ResumoFrequencia = { data: string; presente: boolean; justificativa:
 export type ApuracaoDeFrequencia = { totalDias: number; presencas: number };
 
 export function dataDeChamadaValida(data: string): boolean {
-  if (!FORMATOS.dataIso.test(data)) return false;
+  if (!FORMATS.isoDate.test(data)) return false;
   const convertida = new Date(`${data}${MEIA_NOITE_UTC}`);
   if (Number.isNaN(convertida.getTime())) return false;
-  return convertida.toISOString().slice(0, TAMANHO_DA_DATA_ISO) === data;
+  return convertida.toISOString().slice(0, ISO_DATE_LENGTH) === data;
 }
 
 export function dataDentroDoAnoLetivo(data: string, inicio: string, fim: string): boolean {

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { unidadeDeTrabalho } from '../../shared/db';
-import { errosDeSchema, falha, sucesso, type Resultado } from '../../shared/result';
+import { unitOfWork } from '../../shared/db';
+import { failure, schemaErrors, success, type Result } from '../../shared/result';
 import { marcarLeitura } from '../infra/comunicadoRepositorio';
 
 export type EntradaDeLeitura = {
@@ -16,10 +16,10 @@ const esquema = z.object({
   responsavelId: z.string().uuid(),
 });
 
-export async function marcarComoLido(entrada: EntradaDeLeitura): Promise<Resultado<void>> {
+export async function marcarComoLido(entrada: EntradaDeLeitura): Promise<Result<void>> {
   const validado = esquema.safeParse(entrada);
-  if (!validado.success) return falha(...errosDeSchema(validado.error.issues));
+  if (!validado.success) return failure(...schemaErrors(validado.error.issues));
 
-  await unidadeDeTrabalho(({ sql }) => marcarLeitura(sql, validado.data));
-  return sucesso<void>(undefined);
+  await unitOfWork(({ sql }) => marcarLeitura(sql, validado.data));
+  return success<void>(undefined);
 }

@@ -16,7 +16,7 @@ import {
   criarResponsavel,
   type Cenario,
 } from '../apoio/fabricas';
-import { TAMANHO_PADRAO } from '../../src/shared/pagination';
+import { DEFAULT_PAGE_SIZE } from '../../src/shared/pagination';
 import { PARAMETROS } from '../../src/web/constantes';
 import { idDaAjuda } from '../../src/web/render';
 import { abrir, entrar } from './apoio';
@@ -27,7 +27,7 @@ beforeEach(limparBanco);
  * O tamanho de página do sistema, lido de onde ele é decidido. Os cenários abaixo são montados em
  * torno dele: mudar a régua muda os números esperados sem reescrever teste nenhum.
  */
-const TAMANHO = TAMANHO_PADRAO;
+const TAMANHO = DEFAULT_PAGE_SIZE;
 
 /** Os cinco registros que o cenário completo já traz: a sobra que cai na última página. */
 const SOBRA = 5;

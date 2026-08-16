@@ -1,117 +1,113 @@
 import { z } from 'zod';
 import {
-  AMBIENTES,
-  AMBIENTE_PRODUCAO,
-  BOOLEANOS_DE_AMBIENTE,
-  MENSAGENS_DE_CONFIG,
-  NIVEIS_DE_LOG,
-  PADROES_DE_CONFIG,
-  SEPARADOR_DE_LISTA_DE_AMBIENTE,
-  TAMANHO_MINIMO_DO_SEGREDO,
-  VERDADEIRO_DE_AMBIENTE,
+  CONFIG_DEFAULTS,
+  CONFIG_MESSAGES,
+  ENVIRONMENTS,
+  ENV_BOOLEANS,
+  ENV_LIST_SEPARATOR,
+  ENV_TRUE,
+  LOG_LEVELS,
+  MINIMUM_SECRET_LENGTH,
+  PRODUCTION_ENV,
 } from '../constants';
 
 export type Config = {
-  ambiente: (typeof AMBIENTES)[number];
-  porta: number;
+  environment: (typeof ENVIRONMENTS)[number];
+  port: number;
   databaseUrl: string;
   sessionSecret: string;
-  sessaoDuracaoHoras: number;
+  sessionDurationHours: number;
   httpTimeoutMs: number;
-  proxiesConfiaveis: string[];
-  logLevel: (typeof NIVEIS_DE_LOG)[number];
-  cookieSeguro: boolean;
+  trustedProxies: string[];
+  logLevel: (typeof LOG_LEVELS)[number];
+  secureCookie: boolean;
 };
 
-const SEPARADOR_DE_CAMINHO = '.';
+const PATH_SEPARATOR = '.';
 
-const QUEBRA_DE_LINHA = '\n';
+const LINE_BREAK = '\n';
 
-const booleano = z.enum(BOOLEANOS_DE_AMBIENTE, {
-  errorMap: () => ({ message: MENSAGENS_DE_CONFIG.booleanoInvalido }),
+const envBoolean = z.enum(ENV_BOOLEANS, {
+  errorMap: () => ({ message: CONFIG_MESSAGES.invalidBoolean }),
 });
 
-export const schemaDeAmbiente = z.object({
+export const environmentSchema = z.object({
   APP_ENV: z
-    .enum(AMBIENTES, { errorMap: () => ({ message: MENSAGENS_DE_CONFIG.ambienteInvalido }) })
-    .default(PADROES_DE_CONFIG.ambiente),
+    .enum(ENVIRONMENTS, { errorMap: () => ({ message: CONFIG_MESSAGES.invalidEnvironment }) })
+    .default(CONFIG_DEFAULTS.environment),
   PORT: z.coerce
-    .number({ invalid_type_error: MENSAGENS_DE_CONFIG.portaInvalida })
+    .number({ invalid_type_error: CONFIG_MESSAGES.invalidPort })
     .int()
     .positive()
-    .default(PADROES_DE_CONFIG.porta),
+    .default(CONFIG_DEFAULTS.port),
   DATABASE_URL: z
-    .string({ required_error: MENSAGENS_DE_CONFIG.databaseUrlAusente })
-    .min(1, MENSAGENS_DE_CONFIG.databaseUrlAusente),
+    .string({ required_error: CONFIG_MESSAGES.missingDatabaseUrl })
+    .min(1, CONFIG_MESSAGES.missingDatabaseUrl),
   SESSION_SECRET: z
-    .string({ required_error: MENSAGENS_DE_CONFIG.sessionSecretAusente })
-    .min(TAMANHO_MINIMO_DO_SEGREDO, MENSAGENS_DE_CONFIG.sessionSecretCurto),
+    .string({ required_error: CONFIG_MESSAGES.missingSessionSecret })
+    .min(MINIMUM_SECRET_LENGTH, CONFIG_MESSAGES.shortSessionSecret),
   SESSAO_DURACAO_HORAS: z.coerce
-    .number({ invalid_type_error: MENSAGENS_DE_CONFIG.duracaoInvalida })
+    .number({ invalid_type_error: CONFIG_MESSAGES.invalidDuration })
     .int()
     .positive()
-    .default(PADROES_DE_CONFIG.sessaoDuracaoHoras),
+    .default(CONFIG_DEFAULTS.sessionDurationHours),
   HTTP_TIMEOUT_MS: z.coerce
-    .number({ invalid_type_error: MENSAGENS_DE_CONFIG.timeoutInvalido })
+    .number({ invalid_type_error: CONFIG_MESSAGES.invalidTimeout })
     .int()
     .positive()
-    .default(PADROES_DE_CONFIG.httpTimeoutMs),
+    .default(CONFIG_DEFAULTS.httpTimeoutMs),
   PROXIES_CONFIAVEIS: z.string().default(''),
   LOG_LEVEL: z
-    .enum(NIVEIS_DE_LOG, { errorMap: () => ({ message: MENSAGENS_DE_CONFIG.logLevelInvalido }) })
-    .default(PADROES_DE_CONFIG.logLevel),
-  COOKIE_SEGURO: booleano.optional(),
+    .enum(LOG_LEVELS, { errorMap: () => ({ message: CONFIG_MESSAGES.invalidLogLevel }) })
+    .default(CONFIG_DEFAULTS.logLevel),
+  COOKIE_SEGURO: envBoolean.optional(),
 });
 
-const semValoresVazios = (
+const withoutEmptyValues = (
   env: Record<string, string | undefined>,
 ): Record<string, string | undefined> =>
   Object.fromEntries(
-    Object.entries(env).map(([chave, valor]): [string, string | undefined] => [
-      chave,
-      valor === '' ? undefined : valor,
+    Object.entries(env).map(([key, value]): [string, string | undefined] => [
+      key,
+      value === '' ? undefined : value,
     ]),
   );
 
-const listaSeparadaPorVirgula = (valor: string): string[] =>
-  valor
-    .split(SEPARADOR_DE_LISTA_DE_AMBIENTE)
+const commaSeparatedList = (value: string): string[] =>
+  value
+    .split(ENV_LIST_SEPARATOR)
     .map((item) => item.trim())
     .filter((item) => item !== '');
 
-const mensagemDeConfigInvalida = (
+const invalidConfigMessage = (
   issues: readonly { path: (string | number)[]; message: string }[],
 ): string => {
-  const linhas = issues.map((problema) => {
-    const onde = problema.path.join(SEPARADOR_DE_CAMINHO) || MENSAGENS_DE_CONFIG.rotuloDaRaiz;
-    return `  - ${onde}: ${problema.message}`;
+  const lines = issues.map((issue) => {
+    const where = issue.path.join(PATH_SEPARATOR) || CONFIG_MESSAGES.rootLabel;
+    return `  - ${where}: ${issue.message}`;
   });
-  return [
-    MENSAGENS_DE_CONFIG.cabecalhoDoRelatorio,
-    ...linhas,
-    MENSAGENS_DE_CONFIG.rodapeDoRelatorio,
-  ].join(QUEBRA_DE_LINHA);
+  return [CONFIG_MESSAGES.reportHeader, ...lines, CONFIG_MESSAGES.reportFooter].join(LINE_BREAK);
 };
 
-export function carregarConfig(env: Record<string, string | undefined>): Config {
-  const analise = schemaDeAmbiente.safeParse(semValoresVazios(env));
-  if (!analise.success) {
-    throw new Error(mensagemDeConfigInvalida(analise.error.issues));
+export function loadConfig(env: Record<string, string | undefined>): Config {
+  const parsed = environmentSchema.safeParse(withoutEmptyValues(env));
+  if (!parsed.success) {
+    throw new Error(invalidConfigMessage(parsed.error.issues));
   }
 
-  const bruto = analise.data;
+  const raw = parsed.data;
   return {
-    ambiente: bruto.APP_ENV,
-    porta: bruto.PORT,
-    databaseUrl: bruto.DATABASE_URL,
-    sessionSecret: bruto.SESSION_SECRET,
-    sessaoDuracaoHoras: bruto.SESSAO_DURACAO_HORAS,
-    httpTimeoutMs: bruto.HTTP_TIMEOUT_MS,
-    proxiesConfiaveis: listaSeparadaPorVirgula(bruto.PROXIES_CONFIAVEIS),
-    logLevel: bruto.LOG_LEVEL,
-    cookieSeguro:
-      bruto.COOKIE_SEGURO === undefined
-        ? bruto.APP_ENV === AMBIENTE_PRODUCAO
-        : bruto.COOKIE_SEGURO === VERDADEIRO_DE_AMBIENTE,
+    environment: raw.APP_ENV,
+    port: raw.PORT,
+    databaseUrl: raw.DATABASE_URL,
+    sessionSecret: raw.SESSION_SECRET,
+    sessionDurationHours: raw.SESSAO_DURACAO_HORAS,
+    httpTimeoutMs: raw.HTTP_TIMEOUT_MS,
+    trustedProxies: commaSeparatedList(raw.PROXIES_CONFIAVEIS),
+    logLevel: raw.LOG_LEVEL,
+    secureCookie:
+      raw.COOKIE_SEGURO === undefined
+        ? raw.APP_ENV === PRODUCTION_ENV
+        : raw.COOKIE_SEGURO === ENV_TRUE,
   };
 }

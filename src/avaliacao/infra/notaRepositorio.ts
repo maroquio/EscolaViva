@@ -1,12 +1,12 @@
-import type { Conexao } from '../../shared/db';
-import { idGeneratorUuid } from '../../shared/ports';
+import type { Connection } from '../../shared/db';
+import { uuidIdGenerator } from '../../shared/ports';
 
 export type NotaDaMatricula = { turmaDisciplinaId: string; bimestre: number; valor: number };
 
 export type NotaParaGravar = { matriculaId: string; valor: number };
 
 export async function porTurmaDisciplinaEBimestre(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   turmaDisciplinaId: string,
   bimestre: number,
@@ -21,7 +21,7 @@ export async function porTurmaDisciplinaEBimestre(
 }
 
 export async function porMatricula(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   matriculaId: string,
 ): Promise<NotaDaMatricula[]> {
@@ -38,7 +38,7 @@ export async function porMatricula(
 }
 
 export async function contagemPorDisciplina(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   turmaDisciplinaIds: string[],
   bimestre: number,
@@ -58,7 +58,7 @@ export async function contagemPorDisciplina(
 }
 
 export async function gravarEmLote(
-  sql: Conexao,
+  sql: Connection,
   lancamento: {
     redeId: string;
     turmaDisciplinaId: string;
@@ -68,7 +68,7 @@ export async function gravarEmLote(
   },
 ): Promise<number> {
   const linhas = lancamento.notas.map((nota) => ({
-    id: idGeneratorUuid.novo(),
+    id: uuidIdGenerator.next(),
     network_id: lancamento.redeId,
     enrollment_id: nota.matriculaId,
     class_group_subject_id: lancamento.turmaDisciplinaId,
@@ -87,7 +87,7 @@ export async function gravarEmLote(
 }
 
 export async function apagarEmLote(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   turmaDisciplinaId: string,
   bimestre: number,

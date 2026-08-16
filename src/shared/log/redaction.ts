@@ -1,48 +1,48 @@
-import { CHAVES_PROIBIDAS, LOG } from '../constants';
+import { FORBIDDEN_LOG_KEYS, LOG } from '../constants';
 
-export type CamposDeLog = Record<string, unknown>;
+export type LogFields = Record<string, unknown>;
 
-export { CHAVES_PROIBIDAS } from '../constants';
+export { FORBIDDEN_LOG_KEYS } from '../constants';
 
-const PROIBIDAS = new Set(CHAVES_PROIBIDAS.map((chave) => chave.toLowerCase()));
+const FORBIDDEN = new Set(FORBIDDEN_LOG_KEYS.map((key) => key.toLowerCase()));
 
-export function redigir(campos: CamposDeLog): CamposDeLog {
-  return redigirRamo(campos, 1, new WeakSet<object>());
+export function redact(fields: LogFields): LogFields {
+  return redactBranch(fields, 1, new WeakSet<object>());
 }
 
-function redigirRamo(
-  objeto: Record<string, unknown>,
-  profundidade: number,
-  visitados: WeakSet<object>,
-): CamposDeLog {
-  const saida: Record<string, unknown> = {};
-  for (const [chave, valor] of Object.entries(objeto)) {
-    saida[chave] = PROIBIDAS.has(chave.toLowerCase())
-      ? LOG.valorRedigido
-      : redigirValor(valor, profundidade, visitados);
+function redactBranch(
+  object: Record<string, unknown>,
+  depth: number,
+  visited: WeakSet<object>,
+): LogFields {
+  const output: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(object)) {
+    output[key] = FORBIDDEN.has(key.toLowerCase())
+      ? LOG.redactedValue
+      : redactValue(value, depth, visited);
   }
-  return saida;
+  return output;
 }
 
-function redigirValor(valor: unknown, profundidade: number, visitados: WeakSet<object>): unknown {
-  if (!ehLista(valor) && !ehObjetoSimples(valor)) return valor;
-  if (profundidade >= LOG.profundidadeMaxima) return LOG.valorRedigido;
-  if (visitados.has(valor)) return LOG.valorRedigido;
+function redactValue(value: unknown, depth: number, visited: WeakSet<object>): unknown {
+  if (!isList(value) && !isPlainObject(value)) return value;
+  if (depth >= LOG.maxDepth) return LOG.redactedValue;
+  if (visited.has(value)) return LOG.redactedValue;
 
-  visitados.add(valor);
-  const redigido = ehLista(valor)
-    ? valor.map((item) => redigirValor(item, profundidade + 1, visitados))
-    : redigirRamo(valor, profundidade + 1, visitados);
-  visitados.delete(valor);
-  return redigido;
+  visited.add(value);
+  const redacted = isList(value)
+    ? value.map((item) => redactValue(item, depth + 1, visited))
+    : redactBranch(value, depth + 1, visited);
+  visited.delete(value);
+  return redacted;
 }
 
-function ehLista(valor: unknown): valor is readonly unknown[] {
-  return Array.isArray(valor);
+function isList(value: unknown): value is readonly unknown[] {
+  return Array.isArray(value);
 }
 
-function ehObjetoSimples(valor: unknown): valor is Record<string, unknown> {
-  if (typeof valor !== 'object' || valor === null) return false;
-  const prototipo: unknown = Object.getPrototypeOf(valor);
-  return prototipo === Object.prototype || prototipo === null;
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null) return false;
+  const prototype: unknown = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }

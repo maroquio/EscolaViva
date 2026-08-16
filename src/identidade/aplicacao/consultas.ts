@@ -1,12 +1,7 @@
 import { z } from 'zod';
-import { leitura } from '../../shared/db';
-import {
-  TAMANHO_PADRAO,
-  consultarPagina,
-  paginaVazia,
-  type Pagina,
-} from '../../shared/pagination';
-import { clockDoSistema } from '../../shared/ports';
+import { reader } from '../../shared/db';
+import { DEFAULT_PAGE_SIZE, emptyPage, queryPage, type Page } from '../../shared/pagination';
+import { systemClock } from '../../shared/ports';
 import { redeAtiva } from '../dominio/rede';
 import { sessaoExpirou } from '../dominio/sessao';
 import type { Unidade } from '../dominio/unidade';
@@ -18,16 +13,16 @@ import * as usuarioRepositorio from '../infra/usuarioRepositorio';
 
 const identificador = z.string().uuid();
 
-const ehIdentificador = (valor: string): boolean => identificador.safeParse(valor).success;
+const isUuid = (valor: string): boolean => identificador.safeParse(valor).success;
 
 export async function sessaoValida(sessaoId: string): Promise<UsuarioAutenticado | null> {
-  if (!ehIdentificador(sessaoId)) return null;
-  const sql = leitura();
+  if (!isUuid(sessaoId)) return null;
+  const sql = reader();
   const encontrada = await sessaoRepositorio.porId(sql, sessaoId);
   if (encontrada === null) return null;
 
   const { sessao, rede, usuario } = encontrada;
-  if (sessaoExpirou(sessao, clockDoSistema.agora())) return null;
+  if (sessaoExpirou(sessao, systemClock.now())) return null;
   if (!redeAtiva(rede) || !usuario.ativo) return null;
 
   const papeis = await usuarioRepositorio.papeisDoUsuario(sql, rede.id, usuario.id);
@@ -35,23 +30,23 @@ export async function sessaoValida(sessaoId: string): Promise<UsuarioAutenticado
 }
 
 export async function listarUnidades(redeId: string): Promise<Unidade[]> {
-  if (!ehIdentificador(redeId)) return [];
-  return await unidadeRepositorio.listarPorRede(leitura(), redeId);
+  if (!isUuid(redeId)) return [];
+  return await unidadeRepositorio.listarPorRede(reader(), redeId);
 }
 
 export async function unidadePorId(redeId: string, unidadeId: string): Promise<Unidade | null> {
-  if (!ehIdentificador(redeId) || !ehIdentificador(unidadeId)) return null;
-  return await unidadeRepositorio.porId(leitura(), redeId, unidadeId);
+  if (!isUuid(redeId) || !isUuid(unidadeId)) return null;
+  return await unidadeRepositorio.porId(reader(), redeId, unidadeId);
 }
 
 export async function paginaDeUnidades(
   redeId: string,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<Unidade>> {
-  if (!ehIdentificador(redeId)) return paginaVazia<Unidade>(tamanho);
-  const sql = leitura();
-  return await consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Unidade>> {
+  if (!isUuid(redeId)) return emptyPage<Unidade>(tamanho);
+  const sql = reader();
+  return await queryPage(
     pagina,
     tamanho,
     () => unidadeRepositorio.contarPorRede(sql, redeId),
@@ -60,18 +55,18 @@ export async function paginaDeUnidades(
 }
 
 export async function listarUsuarios(redeId: string): Promise<UsuarioResumo[]> {
-  if (!ehIdentificador(redeId)) return [];
-  return await usuarioRepositorio.listarResumos(leitura(), redeId);
+  if (!isUuid(redeId)) return [];
+  return await usuarioRepositorio.listarResumos(reader(), redeId);
 }
 
 export async function paginaDeUsuarios(
   redeId: string,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<UsuarioResumo>> {
-  if (!ehIdentificador(redeId)) return paginaVazia<UsuarioResumo>(tamanho);
-  const sql = leitura();
-  return await consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<UsuarioResumo>> {
+  if (!isUuid(redeId)) return emptyPage<UsuarioResumo>(tamanho);
+  const sql = reader();
+  return await queryPage(
     pagina,
     tamanho,
     () => usuarioRepositorio.contarPorRede(sql, redeId),
@@ -82,8 +77,8 @@ export async function paginaDeUsuarios(
 export async function contarUnidadesEUsuarios(
   redeId: string,
 ): Promise<{ unidades: number; usuarios: number }> {
-  if (!ehIdentificador(redeId)) return { unidades: 0, usuarios: 0 };
-  const sql = leitura();
+  if (!isUuid(redeId)) return { unidades: 0, usuarios: 0 };
+  const sql = reader();
   const [unidades, usuarios] = await Promise.all([
     unidadeRepositorio.contarPorRede(sql, redeId),
     usuarioRepositorio.contarPorRede(sql, redeId),
@@ -94,7 +89,7 @@ export async function contarUnidadesEUsuarios(
 export async function redePorSlug(
   slug: string,
 ): Promise<{ id: string; nome: string; slug: string; status: string } | null> {
-  return await redeRepositorio.porSlug(leitura(), slug);
+  return await redeRepositorio.porSlug(reader(), slug);
 }
 
 export async function ehProfessorNaUnidade(
@@ -102,25 +97,25 @@ export async function ehProfessorNaUnidade(
   usuarioId: string,
   unidadeId: string,
 ): Promise<boolean> {
-  if (!ehIdentificador(redeId) || !ehIdentificador(usuarioId) || !ehIdentificador(unidadeId)) {
+  if (!isUuid(redeId) || !isUuid(usuarioId) || !isUuid(unidadeId)) {
     return false;
   }
-  return await usuarioRepositorio.ehProfessorNaUnidade(leitura(), redeId, usuarioId, unidadeId);
+  return await usuarioRepositorio.ehProfessorNaUnidade(reader(), redeId, usuarioId, unidadeId);
 }
 
 export async function professoresDaUnidade(
   redeId: string,
   unidadeId: string,
 ): Promise<{ id: string; nome: string }[]> {
-  if (!ehIdentificador(redeId) || !ehIdentificador(unidadeId)) return [];
-  return await usuarioRepositorio.professoresDaUnidade(leitura(), redeId, unidadeId);
+  if (!isUuid(redeId) || !isUuid(unidadeId)) return [];
+  return await usuarioRepositorio.professoresDaUnidade(reader(), redeId, unidadeId);
 }
 
 export async function nomesDeUsuarios(
   redeId: string,
   ids: string[],
 ): Promise<Map<string, string>> {
-  if (!ehIdentificador(redeId)) return new Map<string, string>();
-  const validos = [...new Set(ids.filter(ehIdentificador))];
-  return await usuarioRepositorio.nomesPorIds(leitura(), redeId, validos);
+  if (!isUuid(redeId)) return new Map<string, string>();
+  const validos = [...new Set(ids.filter(isUuid))];
+  return await usuarioRepositorio.nomesPorIds(reader(), redeId, validos);
 }

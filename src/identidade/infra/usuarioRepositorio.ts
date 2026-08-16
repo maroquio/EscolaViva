@@ -1,5 +1,5 @@
-import type { Conexao } from '../../shared/db';
-import { recorte, type Faixa } from '../../shared/pagination';
+import type { Connection } from '../../shared/db';
+import { rangeParams, type Range } from '../../shared/pagination';
 import { PAPEL } from '../constantes';
 import { paraPapel, type Papel, type PapelEmUnidade } from '../dominio/papel';
 import type { Usuario, UsuarioResumo } from '../dominio/usuario';
@@ -37,7 +37,7 @@ const paraPapelEmUnidade = (linha: LinhaDePapel): PapelEmUnidade => ({
 });
 
 export async function credenciaisPorCpf(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   cpf: string,
 ): Promise<Credenciais | null> {
@@ -53,7 +53,7 @@ export async function credenciaisPorCpf(
 }
 
 export async function credenciaisPorId(
-  sql: Conexao,
+  sql: Connection,
   usuarioId: string,
 ): Promise<Credenciais | null> {
   const linhas = await sql<LinhaDeCredenciais[]>`
@@ -68,7 +68,7 @@ export async function credenciaisPorId(
 }
 
 export async function papeisDoUsuario(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   usuarioId: string,
 ): Promise<PapelEmUnidade[]> {
@@ -83,17 +83,17 @@ export async function papeisDoUsuario(
 }
 
 export async function listarResumos(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<UsuarioResumo[]> {
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const usuarios = await sql<LinhaDeUsuario[]>`
     SELECT id, network_id, name, email, cpf, active, guardian_id
     FROM app_user
     WHERE network_id = ${redeId}
     ORDER BY name
-    LIMIT ${limite}::int OFFSET ${deslocamento}::int
+    LIMIT ${limit}::int OFFSET ${offset}::int
   `;
   if (usuarios.length === 0) return [];
 
@@ -122,7 +122,7 @@ export async function listarResumos(
   }));
 }
 
-export async function contarPorRede(sql: Conexao, redeId: string): Promise<number> {
+export async function contarPorRede(sql: Connection, redeId: string): Promise<number> {
   const linhas = await sql<{ total: number }[]>`
     SELECT count(*)::int AS total
     FROM app_user
@@ -131,7 +131,7 @@ export async function contarPorRede(sql: Conexao, redeId: string): Promise<numbe
   return linhas[0]?.total ?? 0;
 }
 
-export async function existeEmail(sql: Conexao, redeId: string, email: string): Promise<boolean> {
+export async function existeEmail(sql: Connection, redeId: string, email: string): Promise<boolean> {
   const linhas = await sql<{ existe: number }[]>`
     SELECT 1 AS existe
     FROM app_user
@@ -141,7 +141,7 @@ export async function existeEmail(sql: Conexao, redeId: string, email: string): 
   return linhas.length > 0;
 }
 
-export async function existeCpf(sql: Conexao, redeId: string, cpf: string): Promise<boolean> {
+export async function existeCpf(sql: Connection, redeId: string, cpf: string): Promise<boolean> {
   const linhas = await sql<{ existe: number }[]>`
     SELECT 1 AS existe
     FROM app_user
@@ -152,7 +152,7 @@ export async function existeCpf(sql: Conexao, redeId: string, cpf: string): Prom
 }
 
 export async function ehProfessorNaUnidade(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   usuarioId: string,
   unidadeId: string,
@@ -170,7 +170,7 @@ export async function ehProfessorNaUnidade(
 }
 
 export async function professoresDaUnidade(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   unidadeId: string,
 ): Promise<{ id: string; nome: string }[]> {
@@ -188,7 +188,7 @@ export async function professoresDaUnidade(
 }
 
 export async function nomesPorIds(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   ids: string[],
 ): Promise<Map<string, string>> {
@@ -201,7 +201,7 @@ export async function nomesPorIds(
   return new Map(linhas.map((linha): [string, string] => [linha.id, linha.name]));
 }
 
-export async function inserir(sql: Conexao, usuario: Usuario, senhaHash: string): Promise<void> {
+export async function inserir(sql: Connection, usuario: Usuario, senhaHash: string): Promise<void> {
   await sql`
     INSERT INTO app_user (id, network_id, email, cpf, password_hash, name, active, guardian_id)
     VALUES (
@@ -212,7 +212,7 @@ export async function inserir(sql: Conexao, usuario: Usuario, senhaHash: string)
 }
 
 export async function inserirPapeis(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   usuarioId: string,
   atribuicoes: { unidadeId: string; papel: Papel }[],
@@ -226,7 +226,7 @@ export async function inserirPapeis(
 }
 
 export async function atualizarSenha(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   usuarioId: string,
   senhaHash: string,

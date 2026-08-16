@@ -1,151 +1,151 @@
-export const TEMPO = {
-  msPorSegundo: 1000,
-  segundosPorMinuto: 60,
-  segundosPorHora: 3600,
-  msPorHora: 3_600_000,
-  msPorDia: 86_400_000,
+export const TIME = {
+  msPerSecond: 1000,
+  secondsPerMinute: 60,
+  secondsPerHour: 3600,
+  msPerHour: 3_600_000,
+  msPerDay: 86_400_000,
 } as const;
 
-export const MINUTO_MS = TEMPO.segundosPorMinuto * TEMPO.msPorSegundo;
+export const MINUTE_MS = TIME.secondsPerMinute * TIME.msPerSecond;
 
-export const DIAS_DA_SEMANA = {
-  sabadoJs: 6,
-  primeiroDiaDoFimDeSemanaIso: 6,
+export const WEEK_DAYS = {
+  saturdayJs: 6,
+  firstWeekendDayIso: 6,
 } as const;
 
-export const SERVIDOR = {
-  ociosidadeMaximaSegundos: 255,
-  margemDeDrenagemMs: 5000,
-  sinaisDeDesligamento: ['SIGTERM', 'SIGINT'],
+export const SERVER = {
+  maxIdleSeconds: 255,
+  drainGraceMs: 5000,
+  shutdownSignals: ['SIGTERM', 'SIGINT'],
 } as const;
 
-export const AMBIENTES = ['development', 'test', 'production'] as const;
-export const NIVEIS_DE_LOG = ['debug', 'info', 'warn', 'error'] as const;
+export const ENVIRONMENTS = ['development', 'test', 'production'] as const;
+export const LOG_LEVELS = ['debug', 'info', 'warn', 'error'] as const;
 
-export const AMBIENTE_PRODUCAO = 'production';
-export const AMBIENTE_DESENVOLVIMENTO = 'development';
+export const PRODUCTION_ENV = 'production';
+export const DEVELOPMENT_ENV = 'development';
 
-export const BOOLEANOS_DE_AMBIENTE = ['true', 'false'] as const;
-export const VERDADEIRO_DE_AMBIENTE = 'true';
+export const ENV_BOOLEANS = ['true', 'false'] as const;
+export const ENV_TRUE = 'true';
 
-export const PADROES_DE_CONFIG = {
-  ambiente: AMBIENTE_DESENVOLVIMENTO,
-  porta: 3000,
-  sessaoDuracaoHoras: 12,
+export const CONFIG_DEFAULTS = {
+  environment: DEVELOPMENT_ENV,
+  port: 3000,
+  sessionDurationHours: 12,
   httpTimeoutMs: 25000,
   logLevel: 'info',
 } as const;
 
-export const TAMANHO_MINIMO_DO_SEGREDO = 32;
+export const MINIMUM_SECRET_LENGTH = 32;
 
-export const SEPARADOR_DE_LISTA_DE_AMBIENTE = ',';
+export const ENV_LIST_SEPARATOR = ',';
 
-export const MENSAGENS_DE_CONFIG = {
-  booleanoInvalido: 'use true ou false',
-  ambienteInvalido: `use ${AMBIENTES.join(', ').replace(/, ([^,]*)$/, ' ou $1')}`,
-  portaInvalida: 'precisa ser um número inteiro de porta',
-  databaseUrlAusente: 'obrigatória — conexão do PostgreSQL primário',
-  sessionSecretAusente: 'obrigatória — segredo que assina o cookie de sessão',
-  sessionSecretCurto: `precisa de no mínimo ${TAMANHO_MINIMO_DO_SEGREDO} caracteres`,
-  duracaoInvalida: 'precisa ser um número de horas',
-  timeoutInvalido: 'precisa ser um número de milissegundos',
-  logLevelInvalido: `use ${NIVEIS_DE_LOG.join(', ').replace(/, ([^,]*)$/, ' ou $1')}`,
-  rotuloDaRaiz: 'ambiente',
-  cabecalhoDoRelatorio: 'Configuração de ambiente inválida — o processo não sobe (I18).',
-  rodapeDoRelatorio: 'Consulte .env.example.',
+export const CONFIG_MESSAGES = {
+  invalidBoolean: 'use true ou false',
+  invalidEnvironment: `use ${ENVIRONMENTS.join(', ').replace(/, ([^,]*)$/, ' ou $1')}`,
+  invalidPort: 'precisa ser um número inteiro de porta',
+  missingDatabaseUrl: 'obrigatória — conexão do PostgreSQL primário',
+  missingSessionSecret: 'obrigatória — segredo que assina o cookie de sessão',
+  shortSessionSecret: `precisa de no mínimo ${MINIMUM_SECRET_LENGTH} caracteres`,
+  invalidDuration: 'precisa ser um número de horas',
+  invalidTimeout: 'precisa ser um número de milissegundos',
+  invalidLogLevel: `use ${LOG_LEVELS.join(', ').replace(/, ([^,]*)$/, ' ou $1')}`,
+  rootLabel: 'ambiente',
+  reportHeader: 'Configuração de ambiente inválida — o processo não sobe (I18).',
+  reportFooter: 'Consulte .env.example.',
 } as const;
 
-export const BANCO = {
-  maxConexoes: 10,
-  tempoOciosoSegundos: 30,
-  tempoDeConexaoSegundos: 10,
+export const DATABASE = {
+  maxConnections: 10,
+  idleTimeoutSeconds: 30,
+  connectionTimeoutSeconds: 10,
 } as const;
 
-export const CHAVES_DE_LOCK = {
-  expurgoDeSessoes: 1001,
-  migracao: 4242,
+export const LOCK_KEYS = {
+  sessionPurge: 1001,
+  migration: 4242,
 } as const;
 
-export const TAMANHO_PADRAO = 10;
+export const DEFAULT_PAGE_SIZE = 10;
 
-export const CABECALHOS = {
+export const HEADERS = {
   cacheControl: 'Cache-Control',
   vary: 'Vary',
   cookie: 'Cookie',
   location: 'Location',
-  correlacao: 'X-Correlation-Id',
-  encaminhado: 'X-Forwarded-For',
+  correlation: 'X-Correlation-Id',
+  forwarded: 'X-Forwarded-For',
 } as const;
 
-export const METODOS = { get: 'GET', post: 'POST' } as const;
+export const METHODS = { get: 'GET', post: 'POST' } as const;
 
 export const CACHE = {
   asset: 'public, max-age=31536000, immutable',
-  autenticado: 'private, no-store',
-  anonimo: 'no-store',
+  authenticated: 'private, no-store',
+  anonymous: 'no-store',
 } as const;
 
-export const SEPARADOR_DE_ENCAMINHAMENTO = ',';
+export const FORWARDED_SEPARATOR = ',';
 
-export const FORMATOS = {
-  chaveDeIdempotencia: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-  identificador: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-  correlacao: /^[A-Za-z0-9._:-]{8,128}$/,
-  dataIso: /^\d{4}-\d{2}-\d{2}$/,
+export const FORMATS = {
+  idempotencyKey: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  identifier: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  correlation: /^[A-Za-z0-9._:-]{8,128}$/,
+  isoDate: /^\d{4}-\d{2}-\d{2}$/,
 } as const;
 
-export const TAMANHO_DA_DATA_ISO = 10;
+export const ISO_DATE_LENGTH = 10;
 
-export const ENTIDADES_HTML = {
-  ecomercial: '&amp;',
-  menorQue: '&lt;',
-  maiorQue: '&gt;',
-  aspasDuplas: '&quot;',
+export const HTML_ENTITIES = {
+  ampersand: '&amp;',
+  lessThan: '&lt;',
+  greaterThan: '&gt;',
+  doubleQuote: '&quot;',
 } as const;
 
-export const CAMPO_CHAVE = '_chave';
+export const KEY_FIELD = '_chave';
 
-export const VARIAVEIS_DE_CONTEXTO = {
-  usuario: 'usuario',
-  sessaoId: 'sessaoId',
-  corpo: 'corpo',
-  correlacaoId: 'correlacaoId',
+export const CONTEXT_VARIABLES = {
+  user: 'user',
+  sessionId: 'sessionId',
+  body: 'body',
+  correlationId: 'correlationId',
 } as const;
 
 export const COOKIE = {
-  sessao: 'ev_sessao',
-  caminho: '/',
+  session: 'ev_sessao',
+  path: '/',
   sameSite: 'Lax',
 } as const;
 
-export const HASH_DE_RESPOSTA = { algoritmo: 'sha256', codificacao: 'hex' } as const;
+export const RESPONSE_HASH = { algorithm: 'sha256', encoding: 'hex' } as const;
 
-export const MOTIVOS_INTERNOS = {
-  requisicaoSemSessao: 'requisição sem sessão',
-  redeIndisponivelSemSessao: 'rede indisponível sem sessão',
-  acessoNegadoPorPapel: 'acesso negado por papel',
-  escritaSemChave: 'escrita sem chave de idempotência',
+export const INTERNAL_REASONS = {
+  requestWithoutSession: 'requisição sem sessão',
+  networkUnavailableWithoutSession: 'rede indisponível sem sessão',
+  accessDeniedByRole: 'acesso negado por papel',
+  writeWithoutKey: 'escrita sem chave de idempotência',
 } as const;
 
-export const ATIVOS = {
-  diretorio: 'publico',
-  prefixoDeUrl: '/publico/',
-  nomeLogicoDaFolha: 'app.css',
-  manifesto: 'manifest.json',
-  caracteresDeHash: 8,
-  algoritmoDeHash: 'sha256',
-  codificacaoDeHash: 'hex',
+export const ASSETS = {
+  directory: 'publico',
+  urlPrefix: '/publico/',
+  stylesheetLogicalName: 'app.css',
+  manifest: 'manifest.json',
+  hashCharacters: 8,
+  hashAlgorithm: 'sha256',
+  hashEncoding: 'hex',
 } as const;
 
-export const MIGRACOES = { diretorio: 'migrations', glob: '*.sql' } as const;
+export const MIGRATIONS = { directory: 'migrations', glob: '*.sql' } as const;
 
 export const LOG = {
-  campoDeCorrelacao: 'correlacao_id',
-  valorRedigido: '[redigido]',
-  profundidadeMaxima: 6,
+  correlationField: 'correlation_id',
+  redactedValue: '[redacted]',
+  maxDepth: 6,
 } as const;
 
-export const CHAVES_PROIBIDAS: readonly string[] = [
+export const FORBIDDEN_LOG_KEYS: readonly string[] = [
   'nome',
   'name',
   'nome_completo',
@@ -183,27 +183,27 @@ export const CHAVES_PROIBIDAS: readonly string[] = [
   'database_url',
 ];
 
-export const EVENTOS_DE_LOG_HTTP = {
-  falhaAoAtender: 'falha ao atender requisição',
-  requisicaoRecusada: 'requisição recusada',
+export const HTTP_LOG_EVENTS = {
+  requestFailed: 'falha ao atender requisição',
+  requestRejected: 'requisição recusada',
 } as const;
 
-export const MENSAGENS_DE_PROCESSO = {
-  noAr: 'escolaviva no ar',
-  desligamentoIniciado: 'desligamento iniciado',
-  desligamentoConcluido: 'desligamento concluído',
-  drenagemEsgotada: 'prazo de drenagem esgotado: encerrando conexões em curso',
-  jobIgnorado: 'job ignorado: lock em outra instancia',
-  jobFalhou: 'job falhou',
+export const PROCESS_MESSAGES = {
+  up: 'escolaviva no ar',
+  shutdownStarted: 'desligamento iniciado',
+  shutdownCompleted: 'desligamento concluído',
+  drainTimedOut: 'prazo de drenagem esgotado: encerrando conexões em curso',
+  jobSkipped: 'job ignorado: lock em outra instancia',
+  jobFailed: 'job falhou',
 } as const;
 
-export const AUSENTE = '—';
+export const MISSING_VALUE = '—';
 
-export const TAMANHO_DO_CPF_COM_MASCARA = 14;
+export const MASKED_CPF_LENGTH = 14;
 
-export const CAMINHOS_DE_ENTRADA = { login: '/login', painel: '/painel' } as const;
+export const ENTRY_PATHS = { login: '/login', dashboard: '/painel' } as const;
 
-export const TITULOS_DE_ERRO = {
+export const ERROR_TITLES = {
   400: 'Requisição inválida',
   401: 'Entre para continuar',
   403: 'Acesso não permitido',
@@ -212,8 +212,8 @@ export const TITULOS_DE_ERRO = {
   500: 'Erro inesperado',
 } as const;
 
-export const CAMINHOS_DE_SAUDE = { prontidao: '/health', vivacidade: '/health/live' } as const;
+export const HEALTH_PATHS = { readiness: '/health', liveness: '/health/live' } as const;
 
-export const PRAZO_DA_SONDA_MS = 2000;
+export const PROBE_TIMEOUT_MS = 2000;
 
 export const LOCALE = 'pt-BR';

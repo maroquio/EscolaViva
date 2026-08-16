@@ -7,7 +7,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { academico } from '../../src/academico';
-import type { ErroDeAplicacao, Resultado } from '../../src/shared/result';
+import type { ApplicationError, Result } from '../../src/shared/result';
 import { limparBanco } from '../apoio/banco';
 import {
   ANO_PADRAO,
@@ -24,14 +24,14 @@ import {
   vincularAlunoResponsavel,
 } from '../apoio/fabricas';
 
-function valorDe<T>(resultado: Resultado<T>): T {
+function valorDe<T>(resultado: Result<T>): T {
   if (!resultado.ok) {
     throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(resultado.erros)}`);
   }
   return resultado.valor;
 }
 
-function errosDe(resultado: Resultado<unknown>): ErroDeAplicacao[] {
+function errosDe(resultado: Result<unknown>): ApplicationError[] {
   if (resultado.ok) throw new Error('esperava recusa da aplicação, veio sucesso');
   return resultado.erros;
 }

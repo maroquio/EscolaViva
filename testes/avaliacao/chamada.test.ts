@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { avaliacao, LIMITES_DA_AVALIACAO } from '../../src/avaliacao';
+import { LIMITES_DA_AVALIACAO, avaliacao } from '../../src/avaliacao';
 import {
   dataDeChamadaValida,
   dataDentroDoAnoLetivo,

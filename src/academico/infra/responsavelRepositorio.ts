@@ -1,5 +1,5 @@
-import type { Conexao } from '../../shared/db';
-import { recorte, type Faixa } from '../../shared/pagination';
+import type { Connection } from '../../shared/db';
+import { rangeParams, type Range } from '../../shared/pagination';
 import type { Responsavel, VinculoResponsavel } from '../dominio/responsavel';
 
 type LinhaDeResponsavel = {
@@ -36,7 +36,7 @@ const paraVinculo = (linha: LinhaDeVinculo): VinculoResponsavel => ({
   financeiro: linha.financially_responsible,
 });
 
-export async function inserir(sql: Conexao, responsavel: Responsavel): Promise<boolean> {
+export async function inserir(sql: Connection, responsavel: Responsavel): Promise<boolean> {
   const criados: { id: string }[] = await sql`
     INSERT INTO guardian (id, network_id, name, email, cpf, phone)
     VALUES (${responsavel.id}, ${responsavel.redeId}, ${responsavel.nome},
@@ -47,7 +47,7 @@ export async function inserir(sql: Conexao, responsavel: Responsavel): Promise<b
 }
 
 export async function porId(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   id: string,
 ): Promise<Responsavel | null> {
@@ -60,28 +60,28 @@ export async function porId(
 }
 
 export async function listar(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<Responsavel[]> {
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas: LinhaDeResponsavel[] = await sql`
     SELECT id, network_id, name, email, cpf, phone
       FROM guardian
      WHERE network_id = ${redeId}
      ORDER BY name
-     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
+     LIMIT ${limit}::int OFFSET ${offset}::int`;
   return linhas.map(paraResponsavel);
 }
 
-export async function contar(sql: Conexao, redeId: string): Promise<number> {
+export async function contar(sql: Connection, redeId: string): Promise<number> {
   const linhas: { total: number }[] = await sql`
     SELECT count(*)::int AS total FROM guardian WHERE network_id = ${redeId}`;
   return linhas[0]?.total ?? 0;
 }
 
 export async function vincular(
-  sql: Conexao,
+  sql: Connection,
   vinculo: {
     redeId: string;
     alunoId: string;
@@ -101,24 +101,24 @@ export async function vincular(
 }
 
 export async function doAluno(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   alunoId: string,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<VinculoResponsavel[]> {
-  const { limite, deslocamento } = recorte(faixa);
+  const { limit, offset } = rangeParams(faixa);
   const linhas: LinhaDeVinculo[] = await sql`
     SELECT av.guardian_id, r.name, r.email, av.relationship, av.financially_responsible
       FROM student_guardian av
       JOIN guardian r ON r.id = av.guardian_id AND r.network_id = av.network_id
      WHERE av.network_id = ${redeId} AND av.student_id = ${alunoId}
      ORDER BY r.name
-     LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
+     LIMIT ${limit}::int OFFSET ${offset}::int`;
   return linhas.map(paraVinculo);
 }
 
 export async function contarDoAluno(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   alunoId: string,
 ): Promise<number> {
@@ -130,7 +130,7 @@ export async function contarDoAluno(
 }
 
 export async function contarNasUnidades(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   unidadeIds: readonly string[],
 ): Promise<number> {
@@ -148,7 +148,7 @@ export async function contarNasUnidades(
 }
 
 export async function contarPorUnidade(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   unidadeIds: readonly string[],
 ): Promise<Map<string, number>> {
@@ -167,7 +167,7 @@ export async function contarPorUnidade(
 }
 
 export async function daUnidade(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   unidadeId: string,
 ): Promise<{ id: string; nome: string }[]> {

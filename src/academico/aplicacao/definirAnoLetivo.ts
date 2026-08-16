@@ -1,13 +1,7 @@
 import { z } from 'zod';
-import { unidadeDeTrabalho } from '../../shared/db';
-import { idGeneratorUuid } from '../../shared/ports';
-import {
-  errosDeSchema,
-  falha,
-  falhaDeCampo,
-  sucesso,
-  type Resultado,
-} from '../../shared/result';
+import { unitOfWork } from '../../shared/db';
+import { uuidIdGenerator } from '../../shared/ports';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import { periodoCoerente, type AnoLetivo } from '../dominio/anoLetivo';
 import * as anosLetivos from '../infra/anoLetivoRepositorio';
@@ -28,27 +22,27 @@ export async function definirAnoLetivo(e: {
   ano: number;
   dataInicio: string;
   dataFim: string;
-}): Promise<Resultado<AnoLetivo>> {
+}): Promise<Result<AnoLetivo>> {
   const validada = entrada.safeParse(e);
-  if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
+  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
 
   const { redeId, ano, dataInicio, dataFim } = validada.data;
   if (!periodoCoerente(dataInicio, dataFim)) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.anoLetivo.dataFim,
       CODIGOS.anoLetivo.periodoIncoerente,
       MENSAGENS.anoLetivo.periodoIncoerente,
     );
   }
 
-  const anoLetivo: AnoLetivo = { id: idGeneratorUuid.novo(), redeId, ano, dataInicio, dataFim };
-  const criado = await unidadeDeTrabalho(({ sql }) => anosLetivos.inserir(sql, anoLetivo));
+  const anoLetivo: AnoLetivo = { id: uuidIdGenerator.next(), redeId, ano, dataInicio, dataFim };
+  const criado = await unitOfWork(({ sql }) => anosLetivos.inserir(sql, anoLetivo));
   if (!criado) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.anoLetivo.ano,
       CODIGOS.anoLetivo.duplicado,
       MENSAGENS.anoLetivo.duplicado(ano),
     );
   }
-  return sucesso(anoLetivo);
+  return success(anoLetivo);
 }

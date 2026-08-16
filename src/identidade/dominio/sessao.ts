@@ -1,4 +1,4 @@
-import { TEMPO } from '../../shared/constants';
+import { TIME } from '../../shared/constants';
 
 export type Sessao = {
   id: string;
@@ -10,7 +10,7 @@ export type Sessao = {
 };
 
 export function expiracaoDaSessao(agora: Date, duracaoHoras: number): Date {
-  return new Date(agora.getTime() + duracaoHoras * TEMPO.msPorHora);
+  return new Date(agora.getTime() + duracaoHoras * TIME.msPerHour);
 }
 
 export function sessaoExpirou(sessao: Sessao, agora: Date): boolean {

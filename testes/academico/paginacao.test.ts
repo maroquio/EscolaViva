@@ -36,10 +36,10 @@ describe('paginaDeResponsaveis', () => {
 
     const pagina = await academico.paginaDeResponsaveis(rede.id, 1, 3);
 
-    expect(pagina.itens.map((r) => r.nome)).toEqual([
+    expect(pagina.items.map((r) => r.nome)).toEqual([
       nomeNumerado(1), nomeNumerado(2), nomeNumerado(3),
     ]);
-    expect(pagina).toMatchObject({ total: 7, pagina: 1, tamanho: 3, paginas: 3 });
+    expect(pagina).toMatchObject({ total: 7, page: 1, size: 3, pages: 3 });
   });
 
   test('a página seguinte continua de onde a anterior parou, sem repetir nem pular', async () => {
@@ -54,7 +54,7 @@ describe('paginaDeResponsaveis', () => {
       academico.paginaDeResponsaveis(rede.id, 3, 3),
     ]);
 
-    const percorridas = [...primeira.itens, ...segunda.itens, ...terceira.itens].map((r) => r.nome);
+    const percorridas = [...primeira.items, ...segunda.items, ...terceira.items].map((r) => r.nome);
     expect(percorridas).toEqual(Array.from({ length: 7 }, (_, i) => nomeNumerado(i + 1)));
   });
 
@@ -66,8 +66,8 @@ describe('paginaDeResponsaveis', () => {
 
     const pagina = await academico.paginaDeResponsaveis(rede.id, 99, 2);
 
-    expect(pagina.pagina).toBe(3);
-    expect(pagina.itens.map((r) => r.nome)).toEqual([nomeNumerado(5)]);
+    expect(pagina.page).toBe(3);
+    expect(pagina.items.map((r) => r.nome)).toEqual([nomeNumerado(5)]);
   });
 
   test('o total nunca conta responsável de outra rede', async () => {
@@ -79,7 +79,7 @@ describe('paginaDeResponsaveis', () => {
     const pagina = await academico.paginaDeResponsaveis(nossa.id, 1, 50);
 
     expect(pagina.total).toBe(1);
-    expect(pagina.itens.map((r) => r.id)).not.toContain(deFora.id);
+    expect(pagina.items.map((r) => r.id)).not.toContain(deFora.id);
   });
 });
 
@@ -94,8 +94,8 @@ describe('paginaDeAlunos', () => {
     const pagina = await academico.paginaDeAlunos(rede.id, 'Silva', 2, 4);
 
     expect(pagina.total).toBe(6);
-    expect(pagina.itens).toHaveLength(2);
-    expect(pagina.itens.every((aluno) => aluno.nome.startsWith('Silva'))).toBe(true);
+    expect(pagina.items).toHaveLength(2);
+    expect(pagina.items.every((aluno) => aluno.nome.startsWith('Silva'))).toBe(true);
   });
 
   test('a busca paginada não alcança aluno de outra rede', async () => {
@@ -107,7 +107,7 @@ describe('paginaDeAlunos', () => {
     const pagina = await academico.paginaDeAlunos(nossa.id, 'Ana Silva', 1, 20);
 
     expect(pagina.total).toBe(1);
-    expect(pagina.itens[0]?.redeId).toBe(nossa.id);
+    expect(pagina.items[0]?.redeId).toBe(nossa.id);
   });
 });
 
@@ -128,7 +128,7 @@ describe('paginaDeTurmas', () => {
 
     const pagina = await academico.paginaDeTurmas(rede.id, { unidadeIds: [alcancada.id] }, 1, 20);
 
-    expect(pagina.itens.map((turma) => turma.nome)).toEqual(['Da minha unidade']);
+    expect(pagina.items.map((turma) => turma.nome)).toEqual(['Da minha unidade']);
     expect(pagina.total).toBe(1);
   });
 
@@ -137,7 +137,7 @@ describe('paginaDeTurmas', () => {
 
     const pagina = await academico.paginaDeTurmas(cenario.rede.id, { unidadeIds: [] }, 1, 20);
 
-    expect(pagina.itens).toEqual([]);
+    expect(pagina.items).toEqual([]);
     expect(pagina.total).toBe(0);
   });
 
@@ -156,7 +156,7 @@ describe('paginaDeTurmas', () => {
       20,
     );
 
-    expect(pagina.itens.map((turma) => turma.nome)).toEqual(['Turma do ano que vem']);
+    expect(pagina.items.map((turma) => turma.nome)).toEqual(['Turma do ano que vem']);
   });
 });
 
@@ -170,7 +170,7 @@ describe('paginaDeMatriculasDoAluno', () => {
     );
 
     expect(pagina.total).toBe(1);
-    expect(pagina.itens[0]?.alunoId).toBe(aluno.id);
+    expect(pagina.items[0]?.alunoId).toBe(aluno.id);
   });
 
   test('unidade fora do alcance não devolve matrícula nenhuma', async () => {
@@ -181,7 +181,7 @@ describe('paginaDeMatriculasDoAluno', () => {
       cenario.rede.id, aluno.id, [cenario.unidades[1].id], 1, 20,
     );
 
-    expect(pagina.itens).toEqual([]);
+    expect(pagina.items).toEqual([]);
     expect(pagina.total).toBe(0);
   });
 });
@@ -232,15 +232,15 @@ describe('paginaDeUsuarios', () => {
 
     const pagina = await identidade.paginaDeUsuarios(cenario.rede.id, 1, 2);
 
-    expect(pagina.itens).toHaveLength(2);
+    expect(pagina.items).toHaveLength(2);
     expect(pagina.total).toBe(4);
-    const admin = pagina.itens.find((usuario) => usuario.id === cenario.admin.id);
+    const admin = pagina.items.find((usuario) => usuario.id === cenario.admin.id);
     if (admin !== undefined) expect(admin.papeis).toHaveLength(2);
   });
 
   test('rede com id malformado devolve página vazia em vez de estourar', async () => {
     const pagina = await identidade.paginaDeUsuarios('nao-e-uuid', 1, 20);
 
-    expect(pagina).toMatchObject({ itens: [], total: 0, pagina: 1 });
+    expect(pagina).toMatchObject({ items: [], total: 0, page: 1 });
   });
 });

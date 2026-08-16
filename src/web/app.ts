@@ -1,20 +1,21 @@
 import { join } from 'node:path';
 import { Hono } from 'hono';
 import { identidade } from '../identidade';
-import { ATIVOS } from '../shared/constants';
+import { ASSETS } from '../shared/constants';
 import {
-  criarMiddlewareSessao,
-  exigirLogin,
-  middlewareCacheControl,
-  middlewareCorrelacao,
-  middlewareErros,
-  temPapel,
-  usuarioAtual,
-  usuarioAtualOuNulo,
-  type Variaveis,
+  cacheControlMiddleware,
+  correlationMiddleware,
+  createSessionMiddleware,
+  currentUser,
+  currentUserOrNull,
+  errorsMiddleware,
+  hasRole,
+  requireLogin,
+  type Variables,
 } from '../shared/http';
 import {
   DETALHES_DE_ERRO,
+  ERROR_TITLES,
   ERRO_INESPERADO_EM_TEXTO,
   NOME_DE_ASSET,
   PAGINAS_DE_ERRO,
@@ -23,25 +24,24 @@ import {
   ROTAS,
   TIPOS_DE_ASSET,
   TIPO_DE_ASSET_PADRAO,
-  TITULOS_DE_ERRO,
 } from './constantes';
 import { rotasSaude } from './health';
 import { renderizarErro } from './render';
 import { montarRotas } from './rotas';
 
-const PASTA_PUBLICO = join(import.meta.dir, '..', '..', ATIVOS.diretorio);
+const PASTA_PUBLICO = join(import.meta.dir, '..', '..', ASSETS.directory);
 
 const SEPARADOR_DE_EXTENSAO = '.';
 
-export const app = new Hono<{ Variables: Variaveis }>();
+export const app = new Hono<{ Variables: Variables }>();
 
-app.use(middlewareErros);
-app.use(middlewareCorrelacao);
-app.use(middlewareCacheControl);
-app.use(criarMiddlewareSessao(identidade.sessaoValida));
+app.use(errorsMiddleware);
+app.use(correlationMiddleware);
+app.use(cacheControlMiddleware);
+app.use(createSessionMiddleware(identidade.sessaoValida));
 
 app.onError(async (erro, c) => {
-  const resposta = await middlewareErros(c, () => Promise.reject(erro));
+  const resposta = await errorsMiddleware(c, () => Promise.reject(erro));
   return resposta ?? c.text(ERRO_INESPERADO_EM_TEXTO, 500);
 });
 
@@ -78,14 +78,14 @@ app.route(ROTAS.publicas.prefixo, rotasSaude);
 
 app.get(ROTAS.publicas.raiz.padrao, (c) =>
   c.redirect(
-    usuarioAtualOuNulo(c) === null ? ROTAS.publicas.login() : ROTAS.publicas.painel(),
+    currentUserOrNull(c) === null ? ROTAS.publicas.login() : ROTAS.publicas.painel(),
     303,
   ),
 );
 
-app.get(ROTAS.publicas.painel.padrao, exigirLogin(), (c) => {
-  const usuario = usuarioAtual(c);
-  const painel = PAINEL_POR_PAPEL.find(({ papel }) => temPapel(usuario, papel));
+app.get(ROTAS.publicas.painel.padrao, requireLogin(), (c) => {
+  const usuario = currentUser(c);
+  const painel = PAINEL_POR_PAPEL.find(({ papel }) => hasRole(usuario, papel));
   if (painel === undefined) {
     return renderizarErro(
       c,
@@ -99,4 +99,4 @@ app.get(ROTAS.publicas.painel.padrao, exigirLogin(), (c) => {
 
 montarRotas(app);
 
-app.notFound((c) => renderizarErro(c, 404, TITULOS_DE_ERRO[404], DETALHES_DE_ERRO[404]));
+app.notFound((c) => renderizarErro(c, 404, ERROR_TITLES[404], DETALHES_DE_ERRO[404]));

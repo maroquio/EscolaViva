@@ -1,13 +1,7 @@
 import { z } from 'zod';
-import { unidadeDeTrabalho } from '../../shared/db';
-import { idGeneratorUuid } from '../../shared/ports';
-import {
-  errosDeSchema,
-  falha,
-  falhaDeCampo,
-  sucesso,
-  type Resultado,
-} from '../../shared/result';
+import { unitOfWork } from '../../shared/db';
+import { uuidIdGenerator } from '../../shared/ports';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import type { Disciplina } from '../dominio/disciplina';
 import * as disciplinas from '../infra/disciplinaRepositorio';
@@ -24,18 +18,18 @@ const entrada = z.object({
 export async function cadastrarDisciplina(e: {
   redeId: string;
   nome: string;
-}): Promise<Resultado<Disciplina>> {
+}): Promise<Result<Disciplina>> {
   const validada = entrada.safeParse(e);
-  if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
+  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
 
-  const disciplina: Disciplina = { id: idGeneratorUuid.novo(), ...validada.data };
-  const criada = await unidadeDeTrabalho(({ sql }) => disciplinas.inserir(sql, disciplina));
+  const disciplina: Disciplina = { id: uuidIdGenerator.next(), ...validada.data };
+  const criada = await unitOfWork(({ sql }) => disciplinas.inserir(sql, disciplina));
   if (!criada) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.disciplina.nome,
       CODIGOS.disciplina.duplicada,
       MENSAGENS.disciplina.duplicada,
     );
   }
-  return sucesso(disciplina);
+  return success(disciplina);
 }

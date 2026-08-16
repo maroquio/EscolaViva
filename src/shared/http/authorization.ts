@@ -1,39 +1,41 @@
 import type { Context, MiddlewareHandler } from 'hono';
-import { CAMINHOS_DE_ENTRADA, METODOS, MOTIVOS_INTERNOS } from '../constants';
-import { logger, redigir } from '../log';
-import { NaoAutorizado, paginaDeErro } from './errors';
-import type { PapelDaSessao, UsuarioDaSessao } from './session';
-import { usuarioAtualOuNulo } from './session';
+import { ENTRY_PATHS, INTERNAL_REASONS, METHODS } from '../constants';
+import { logger, redact } from '../log';
+import { Unauthorized, errorPage } from './errors';
+import type { SessionRole, SessionUser } from './session';
+import { currentUserOrNull } from './session';
 
-export function temPapel(u: UsuarioDaSessao, papel: PapelDaSessao): boolean {
-  return u.papeis.some((atribuicao) => atribuicao.papel === papel);
+export function hasRole(u: SessionUser, role: SessionRole): boolean {
+  return u.papeis.some((roleAssignment) => roleAssignment.papel === role);
 }
 
-export function unidadesDoPapel(u: UsuarioDaSessao, papel: PapelDaSessao): string[] {
-  return u.papeis.filter((atribuicao) => atribuicao.papel === papel).map((atribuicao) => atribuicao.unidadeId);
+export function schoolsForRole(u: SessionUser, role: SessionRole): string[] {
+  return u.papeis
+    .filter((roleAssignment) => roleAssignment.papel === role)
+    .map((roleAssignment) => roleAssignment.unidadeId);
 }
 
-const recusarAnonimo = (c: Context): Response => {
-  if (c.req.method === METODOS.get) return c.redirect(CAMINHOS_DE_ENTRADA.login, 303);
-  throw new NaoAutorizado(MOTIVOS_INTERNOS.requisicaoSemSessao);
+const rejectAnonymous = (c: Context): Response => {
+  if (c.req.method === METHODS.get) return c.redirect(ENTRY_PATHS.login, 303);
+  throw new Unauthorized(INTERNAL_REASONS.requestWithoutSession);
 };
 
-export function exigirLogin(): MiddlewareHandler {
+export function requireLogin(): MiddlewareHandler {
   return async (c, next) => {
-    if (usuarioAtualOuNulo(c) === null) return recusarAnonimo(c);
+    if (currentUserOrNull(c) === null) return rejectAnonymous(c);
     await next();
   };
 }
 
-export function exigirPapel(...papeis: PapelDaSessao[]): MiddlewareHandler {
+export function requireRole(...roles: SessionRole[]): MiddlewareHandler {
   return async (c, next) => {
-    const usuario = usuarioAtualOuNulo(c);
-    if (usuario === null) return recusarAnonimo(c);
+    const user = currentUserOrNull(c);
+    if (user === null) return rejectAnonymous(c);
 
-    if (!papeis.some((papel) => temPapel(usuario, papel))) {
-      const campos = { rota: c.req.path, usuario_id: usuario.id, papeis_exigidos: papeis };
-      logger.warn(redigir(campos), MOTIVOS_INTERNOS.acessoNegadoPorPapel);
-      return c.html(paginaDeErro(403), 403);
+    if (!roles.some((role) => hasRole(user, role))) {
+      const fields = { rota: c.req.path, user_id: user.id, papeis_exigidos: roles };
+      logger.warn(redact(fields), INTERNAL_REASONS.accessDeniedByRole);
+      return c.html(errorPage(403), 403);
     }
 
     await next();

@@ -1,10 +1,10 @@
 import type { Context } from 'hono';
-import { MOTIVOS_INTERNOS } from '../constants';
-import { NaoAutorizado } from './errors';
-import { usuarioAtualOuNulo } from './session';
+import { INTERNAL_REASONS } from '../constants';
+import { Unauthorized } from './errors';
+import { currentUserOrNull } from './session';
 
-export function redeAtual(c: Context): string {
-  const usuario = usuarioAtualOuNulo(c);
-  if (usuario === null) throw new NaoAutorizado(MOTIVOS_INTERNOS.redeIndisponivelSemSessao);
-  return usuario.redeId;
+export function currentNetwork(c: Context): string {
+  const user = currentUserOrNull(c);
+  if (user === null) throw new Unauthorized(INTERNAL_REASONS.networkUnavailableWithoutSession);
+  return user.redeId;
 }

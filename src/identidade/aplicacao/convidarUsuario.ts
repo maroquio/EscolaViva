@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { unidadeDeTrabalho } from '../../shared/db';
-import { cpfValido, normalizarCpf } from '../../shared/document';
-import { idGeneratorUuid } from '../../shared/ports';
-import { errosDeSchema, falha, falhaDeCampo, sucesso, type Resultado } from '../../shared/result';
+import { unitOfWork } from '../../shared/db';
+import { isValidCpf, normalizeCpf } from '../../shared/document';
+import { uuidIdGenerator } from '../../shared/ports';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import {
   CAMPOS,
   CODIGOS,
@@ -30,8 +30,8 @@ const schema = z.object({
   cpf: z
     .string()
     .trim()
-    .transform(normalizarCpf)
-    .refine(cpfValido, MENSAGENS.usuario.cpfInvalido),
+    .transform(normalizeCpf)
+    .refine(isValidCpf, MENSAGENS.usuario.cpfInvalido),
   cpfDoCadastro: z.string().nullable().optional(),
   nomeDoCadastro: z.string().optional(),
   atribuicoes: z
@@ -76,28 +76,28 @@ type Convite = {
   atribuicoes: Atribuicao[];
 };
 
-async function gravar(convite: Convite): Promise<Resultado<ConviteAceito>> {
+async function gravar(convite: Convite): Promise<Result<ConviteAceito>> {
   const { usuario, atribuicoes } = convite;
-  return await unidadeDeTrabalho(async ({ sql }) => {
+  return await unitOfWork(async ({ sql }) => {
     const unidadesPedidas = atribuicoes.map((atribuicao) => atribuicao.unidadeId);
     const unidadesDaRede = await unidadeRepositorio.idsNaRede(sql, usuario.redeId, unidadesPedidas);
     if (unidadesPedidas.some((id) => !unidadesDaRede.has(id))) {
-      return falhaDeCampo(
+      return fieldFailure(
         CAMPOS.usuario.atribuicoes,
         CODIGOS.unidadeDeOutraRede,
         MENSAGENS.usuario.unidadeDeOutraRede,
       );
     }
     if (await usuarioRepositorio.existeEmail(sql, usuario.redeId, usuario.email)) {
-      return falhaDeCampo(CAMPOS.usuario.email, CODIGOS.emailEmUso, MENSAGENS.usuario.emailEmUso);
+      return fieldFailure(CAMPOS.usuario.email, CODIGOS.emailEmUso, MENSAGENS.usuario.emailEmUso);
     }
     if (await usuarioRepositorio.existeCpf(sql, usuario.redeId, usuario.cpf)) {
-      return falhaDeCampo(CAMPOS.usuario.cpf, CODIGOS.cpfEmUso, MENSAGENS.usuario.cpfEmUso);
+      return fieldFailure(CAMPOS.usuario.cpf, CODIGOS.cpfEmUso, MENSAGENS.usuario.cpfEmUso);
     }
 
     await usuarioRepositorio.inserir(sql, usuario, convite.senhaHash);
     await usuarioRepositorio.inserirPapeis(sql, usuario.redeId, usuario.id, atribuicoes);
-    return sucesso({ usuarioId: usuario.id, senhaProvisoria: convite.senhaProvisoria });
+    return success({ usuarioId: usuario.id, senhaProvisoria: convite.senhaProvisoria });
   });
 }
 
@@ -110,16 +110,16 @@ export async function convidarUsuario(entrada: {
   nomeDoCadastro?: string;
   atribuicoes: Atribuicao[];
   responsavelId?: string | null | undefined;
-}): Promise<Resultado<ConviteAceito>> {
+}): Promise<Result<ConviteAceito>> {
   const analise = schema.safeParse(entrada);
-  if (!analise.success) return falha(...errosDeSchema(analise.error.issues));
+  if (!analise.success) return failure(...schemaErrors(analise.error.issues));
   const dados = analise.data;
 
   const atribuicoes = atribuicoesDistintas(dados.atribuicoes);
   const responsavelId = dados.responsavelId ?? null;
   const entraComoResponsavel = atribuicoes.some(({ papel }) => papel === PAPEL.responsavel);
   if (entraComoResponsavel && responsavelId === null) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.usuario.responsavelId,
       CODIGOS.responsavelObrigatorio,
       MENSAGENS.usuario.responsavelObrigatorio,
@@ -128,7 +128,7 @@ export async function convidarUsuario(entrada: {
 
   const cpfDoCadastro = dados.cpfDoCadastro ?? null;
   if (cpfDoCadastro !== null && cpfDoCadastro !== dados.cpf) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.usuario.cpf,
       CODIGOS.cpfDivergeDoCadastro,
       MENSAGENS.usuario.cpfDivergeDoCadastro(
@@ -140,7 +140,7 @@ export async function convidarUsuario(entrada: {
   const senha = senhaProvisoria();
   const senhaHash = await Bun.password.hash(senha);
   const usuario: Usuario = {
-    id: idGeneratorUuid.novo(),
+    id: uuidIdGenerator.next(),
     redeId: dados.redeId,
     nome: dados.nome,
     email: emailNormalizado(dados.email),

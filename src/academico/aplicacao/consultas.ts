@@ -1,5 +1,5 @@
-import { leitura } from '../../shared/db';
-import { TAMANHO_PADRAO, consultarPagina, type Pagina } from '../../shared/pagination';
+import { reader } from '../../shared/db';
+import { DEFAULT_PAGE_SIZE, queryPage, type Page } from '../../shared/pagination';
 import type { Aluno } from '../dominio/aluno';
 import type { AnoLetivo } from '../dominio/anoLetivo';
 import type { Disciplina } from '../dominio/disciplina';
@@ -23,16 +23,16 @@ export type ContagemDaUnidade = {
 };
 
 export function listarAnosLetivos(redeId: string): Promise<AnoLetivo[]> {
-  return anosLetivos.listar(leitura(), redeId);
+  return anosLetivos.listar(reader(), redeId);
 }
 
 export function paginaDeAnosLetivos(
   redeId: string,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<AnoLetivo>> {
-  const sql = leitura();
-  return consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<AnoLetivo>> {
+  const sql = reader();
+  return queryPage(
     pagina,
     tamanho,
     () => anosLetivos.contar(sql, redeId),
@@ -41,16 +41,16 @@ export function paginaDeAnosLetivos(
 }
 
 export function listarDisciplinas(redeId: string): Promise<Disciplina[]> {
-  return disciplinas.listar(leitura(), redeId);
+  return disciplinas.listar(reader(), redeId);
 }
 
 export function paginaDeDisciplinas(
   redeId: string,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<Disciplina>> {
-  const sql = leitura();
-  return consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Disciplina>> {
+  const sql = reader();
+  return queryPage(
     pagina,
     tamanho,
     () => disciplinas.contar(sql, redeId),
@@ -59,17 +59,17 @@ export function paginaDeDisciplinas(
 }
 
 export function listarTurmas(redeId: string, filtro?: FiltroDeTurma): Promise<Turma[]> {
-  return turmas.listar(leitura(), redeId, filtro);
+  return turmas.listar(reader(), redeId, filtro);
 }
 
 export function paginaDeTurmas(
   redeId: string,
   filtro: FiltroDeTurma,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<Turma>> {
-  const sql = leitura();
-  return consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Turma>> {
+  const sql = reader();
+  return queryPage(
     pagina,
     tamanho,
     () => turmas.contar(sql, redeId, filtro),
@@ -81,7 +81,7 @@ export async function totaisDoAlcance(
   redeId: string,
   unidadeIds: readonly string[],
 ): Promise<{ turmas: number; matriculas: number; responsaveis: number; disciplinas: number }> {
-  const sql = leitura();
+  const sql = reader();
   const [porTurma, porMatricula, quantosResponsaveis, quantasDisciplinas] = await Promise.all([
     turmas.contarPorUnidade(sql, redeId, unidadeIds),
     matriculas.contarAtivasPorUnidade(sql, redeId, unidadeIds),
@@ -102,7 +102,7 @@ export async function contagensPorUnidade(
   redeId: string,
   unidadeIds: readonly string[],
 ): Promise<Map<string, ContagemDaUnidade>> {
-  const sql = leitura();
+  const sql = reader();
   const [porTurma, porMatricula, porResponsavel] = await Promise.all([
     turmas.contarPorUnidade(sql, redeId, unidadeIds),
     matriculas.contarAtivasPorUnidade(sql, redeId, unidadeIds),
@@ -121,24 +121,24 @@ export async function contagensPorUnidade(
 }
 
 export function turmaPorId(redeId: string, turmaId: string): Promise<Turma | null> {
-  return turmas.porId(leitura(), redeId, turmaId);
+  return turmas.porId(reader(), redeId, turmaId);
 }
 
 export function listarTurmaDisciplinas(
   redeId: string,
   turmaId: string,
 ): Promise<TurmaDisciplina[]> {
-  return turmas.listarDisciplinas(leitura(), redeId, turmaId);
+  return turmas.listarDisciplinas(reader(), redeId, turmaId);
 }
 
 export function paginaDeTurmaDisciplinas(
   redeId: string,
   turmaId: string,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<TurmaDisciplina>> {
-  const sql = leitura();
-  return consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<TurmaDisciplina>> {
+  const sql = reader();
+  return queryPage(
     pagina,
     tamanho,
     () => turmas.contarDisciplinas(sql, redeId, turmaId),
@@ -150,35 +150,35 @@ export function turmaDisciplinaPorId(
   redeId: string,
   id: string,
 ): Promise<TurmaDisciplina | null> {
-  return turmas.disciplinaPorId(leitura(), redeId, id);
+  return turmas.disciplinaPorId(reader(), redeId, id);
 }
 
 export function turmaDisciplinasDoProfessor(
   redeId: string,
   professorUsuarioId: string,
 ): Promise<TurmaDisciplinaDoProfessor[]> {
-  return turmas.disciplinasDoProfessor(leitura(), redeId, professorUsuarioId);
+  return turmas.disciplinasDoProfessor(reader(), redeId, professorUsuarioId);
 }
 
 export function turmasDoProfessor(
   redeId: string,
   professorUsuarioId: string,
 ): Promise<Turma[]> {
-  return turmas.doProfessor(leitura(), redeId, professorUsuarioId);
+  return turmas.doProfessor(reader(), redeId, professorUsuarioId);
 }
 
 export function buscarAlunos(redeId: string, termo: string): Promise<Aluno[]> {
-  return alunos.buscar(leitura(), redeId, termo);
+  return alunos.buscar(reader(), redeId, termo);
 }
 
 export function paginaDeAlunos(
   redeId: string,
   termo: string,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<Aluno>> {
-  const sql = leitura();
-  return consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Aluno>> {
+  const sql = reader();
+  return queryPage(
     pagina,
     tamanho,
     () => alunos.contarBusca(sql, redeId, termo),
@@ -191,24 +191,24 @@ export function matriculasAtivasDosAlunos(
   alunoIds: readonly string[],
   unidadeIds: readonly string[],
 ): Promise<Matricula[]> {
-  return matriculas.ativasDosAlunos(leitura(), redeId, alunoIds, unidadeIds);
+  return matriculas.ativasDosAlunos(reader(), redeId, alunoIds, unidadeIds);
 }
 
 export function alunoPorId(redeId: string, alunoId: string): Promise<Aluno | null> {
-  return alunos.porId(leitura(), redeId, alunoId);
+  return alunos.porId(reader(), redeId, alunoId);
 }
 
 export function listarResponsaveis(redeId: string): Promise<Responsavel[]> {
-  return responsaveis.listar(leitura(), redeId);
+  return responsaveis.listar(reader(), redeId);
 }
 
 export function paginaDeResponsaveis(
   redeId: string,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<Responsavel>> {
-  const sql = leitura();
-  return consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Responsavel>> {
+  const sql = reader();
+  return queryPage(
     pagina,
     tamanho,
     () => responsaveis.contar(sql, redeId),
@@ -220,24 +220,24 @@ export function responsavelPorId(
   redeId: string,
   responsavelId: string,
 ): Promise<Responsavel | null> {
-  return responsaveis.porId(leitura(), redeId, responsavelId);
+  return responsaveis.porId(reader(), redeId, responsavelId);
 }
 
 export function responsaveisDoAluno(
   redeId: string,
   alunoId: string,
 ): Promise<VinculoResponsavel[]> {
-  return responsaveis.doAluno(leitura(), redeId, alunoId);
+  return responsaveis.doAluno(reader(), redeId, alunoId);
 }
 
 export function paginaDeResponsaveisDoAluno(
   redeId: string,
   alunoId: string,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<VinculoResponsavel>> {
-  const sql = leitura();
-  return consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<VinculoResponsavel>> {
+  const sql = reader();
+  return queryPage(
     pagina,
     tamanho,
     () => responsaveis.contarDoAluno(sql, redeId, alunoId),
@@ -249,25 +249,25 @@ export function responsaveisDaUnidade(
   redeId: string,
   unidadeId: string,
 ): Promise<{ id: string; nome: string }[]> {
-  return responsaveis.daUnidade(leitura(), redeId, unidadeId);
+  return responsaveis.daUnidade(reader(), redeId, unidadeId);
 }
 
 export function matriculaPorId(redeId: string, matriculaId: string): Promise<Matricula | null> {
-  return matriculas.porId(leitura(), redeId, matriculaId);
+  return matriculas.porId(reader(), redeId, matriculaId);
 }
 
 export function matriculasAtivasDaTurma(redeId: string, turmaId: string): Promise<Matricula[]> {
-  return matriculas.ativasDaTurma(leitura(), redeId, turmaId);
+  return matriculas.ativasDaTurma(reader(), redeId, turmaId);
 }
 
 export function paginaDeMatriculasAtivasDaTurma(
   redeId: string,
   turmaId: string,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<Matricula>> {
-  const sql = leitura();
-  return consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Matricula>> {
+  const sql = reader();
+  return queryPage(
     pagina,
     tamanho,
     () => matriculas.contarAtivasDaTurma(sql, redeId, turmaId),
@@ -279,17 +279,17 @@ export function matriculasDoResponsavel(
   redeId: string,
   responsavelId: string,
 ): Promise<Matricula[]> {
-  return matriculas.doResponsavel(leitura(), redeId, responsavelId);
+  return matriculas.doResponsavel(reader(), redeId, responsavelId);
 }
 
 export function paginaDeMatriculasDoResponsavel(
   redeId: string,
   responsavelId: string,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<Matricula>> {
-  const sql = leitura();
-  return consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Matricula>> {
+  const sql = reader();
+  return queryPage(
     pagina,
     tamanho,
     () => matriculas.contarDoResponsavel(sql, redeId, responsavelId),
@@ -302,10 +302,10 @@ export function paginaDeMatriculasDoAluno(
   alunoId: string,
   unidadeIds: readonly string[],
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<Matricula>> {
-  const sql = leitura();
-  return consultarPagina(
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<Matricula>> {
+  const sql = reader();
+  return queryPage(
     pagina,
     tamanho,
     () => matriculas.contarDoAlunoNasUnidades(sql, redeId, alunoId, unidadeIds),
@@ -314,5 +314,5 @@ export function paginaDeMatriculasDoAluno(
 }
 
 export function alunoTemMatricula(redeId: string, alunoId: string): Promise<boolean> {
-  return matriculas.temAlgumaMatricula(leitura(), redeId, alunoId);
+  return matriculas.temAlgumaMatricula(reader(), redeId, alunoId);
 }

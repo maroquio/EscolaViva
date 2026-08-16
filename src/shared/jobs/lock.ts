@@ -1,18 +1,18 @@
-import { escrita } from '../db';
+import { writer } from '../db';
 
-export async function comLockExclusivo<T>(chave: number, fn: () => Promise<T>): Promise<T | null> {
-  const conexao = await escrita().reserve();
+export async function withExclusiveLock<T>(key: number, fn: () => Promise<T>): Promise<T | null> {
+  const connection = await writer().reserve();
   try {
-    const [linha] = await conexao<
+    const [row] = await connection<
       { acquired: boolean }[]
-    >`SELECT pg_try_advisory_lock(${chave}::bigint) AS acquired`;
-    if (linha?.acquired !== true) return null;
+    >`SELECT pg_try_advisory_lock(${key}::bigint) AS acquired`;
+    if (row?.acquired !== true) return null;
     try {
       return await fn();
     } finally {
-      await conexao`SELECT pg_advisory_unlock(${chave}::bigint)`;
+      await connection`SELECT pg_advisory_unlock(${key}::bigint)`;
     }
   } finally {
-    conexao.release();
+    connection.release();
   }
 }

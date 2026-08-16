@@ -1,24 +1,18 @@
 import { EVENTOS_DE_LOG_DE_IDENTIDADE, EXPURGO_DE_SESSOES, identidade } from './identidade';
 import { config } from './shared/config';
-import {
-  CHAVES_DE_LOCK,
-  MENSAGENS_DE_PROCESSO,
-  MINUTO_MS,
-  SERVIDOR,
-  TEMPO,
-} from './shared/constants';
-import { encerrar } from './shared/db';
-import { iniciarAgendador, type Job } from './shared/jobs';
+import { LOCK_KEYS, MINUTE_MS, PROCESS_MESSAGES, SERVER, TIME } from './shared/constants';
+import { closeDatabase } from './shared/db';
+import { startScheduler, type Job } from './shared/jobs';
 import { logger } from './shared/log';
 import { app } from './web/app';
 
 const DESFECHO_DA_DRENAGEM = { drenou: 'drenou', expirou: 'expirou' } as const;
 
 const expurgoDeSessoes: Job = {
-  nome: EXPURGO_DE_SESSOES.nome,
-  chaveDeLock: CHAVES_DE_LOCK.expurgoDeSessoes,
-  intervaloMs: EXPURGO_DE_SESSOES.intervaloEmMinutos * MINUTO_MS,
-  async executar(): Promise<void> {
+  name: EXPURGO_DE_SESSOES.nome,
+  lockKey: LOCK_KEYS.sessionPurge,
+  intervalMs: EXPURGO_DE_SESSOES.intervaloEmMinutos * MINUTE_MS,
+  async run(): Promise<void> {
     const removidas = await identidade.expurgarSessoesExpiradas();
     logger.info(
       { job: EXPURGO_DE_SESSOES.nome, removidas },
@@ -29,30 +23,30 @@ const expurgoDeSessoes: Job = {
 
 const ociosidadeEmSegundos = (timeoutMs: number): number =>
   Math.min(
-    Math.max(1, Math.ceil(timeoutMs / TEMPO.msPorSegundo)),
-    SERVIDOR.ociosidadeMaximaSegundos,
+    Math.max(1, Math.ceil(timeoutMs / TIME.msPerSecond)),
+    SERVER.maxIdleSeconds,
   );
 
 const servidor = Bun.serve({
-  port: config.porta,
+  port: config.port,
   idleTimeout: ociosidadeEmSegundos(config.httpTimeoutMs),
   fetch: app.fetch,
 });
 
-const agendador = iniciarAgendador([expurgoDeSessoes]);
+const agendador = startScheduler([expurgoDeSessoes]);
 
 logger.info(
   {
     porta: servidor.port,
-    ambiente: config.ambiente,
+    ambiente: config.environment,
     ociosidade_s: ociosidadeEmSegundos(config.httpTimeoutMs),
-    jobs: [expurgoDeSessoes.nome],
+    jobs: [expurgoDeSessoes.name],
   },
-  MENSAGENS_DE_PROCESSO.noAr,
+  PROCESS_MESSAGES.up,
 );
 
 async function aguardarDrenagem(drenagem: Promise<void>): Promise<void> {
-  const prazo = config.httpTimeoutMs + SERVIDOR.margemDeDrenagemMs;
+  const prazo = config.httpTimeoutMs + SERVER.drainGraceMs;
   let temporizador: ReturnType<typeof setTimeout> | undefined;
   const expirou = new Promise<typeof DESFECHO_DA_DRENAGEM.expirou>((resolver) => {
     temporizador = setTimeout(() => resolver(DESFECHO_DA_DRENAGEM.expirou), prazo);
@@ -70,7 +64,7 @@ async function aguardarDrenagem(drenagem: Promise<void>): Promise<void> {
 
   logger.warn(
     { pendentes: servidor.pendingRequests, prazo_ms: prazo },
-    MENSAGENS_DE_PROCESSO.drenagemEsgotada,
+    PROCESS_MESSAGES.drainTimedOut,
   );
   await servidor.stop(true);
 }
@@ -82,19 +76,19 @@ async function desligar(sinal: string): Promise<void> {
   desligando = true;
   logger.info(
     { sinal, pendentes: servidor.pendingRequests },
-    MENSAGENS_DE_PROCESSO.desligamentoIniciado,
+    PROCESS_MESSAGES.shutdownStarted,
   );
 
   const drenagem = servidor.stop(false);
-  agendador.parar();
+  agendador.stop();
   await aguardarDrenagem(drenagem);
-  await encerrar();
+  await closeDatabase();
 
-  logger.info({ sinal }, MENSAGENS_DE_PROCESSO.desligamentoConcluido);
+  logger.info({ sinal }, PROCESS_MESSAGES.shutdownCompleted);
   process.exit(0);
 }
 
-for (const sinal of SERVIDOR.sinaisDeDesligamento) {
+for (const sinal of SERVER.shutdownSignals) {
   process.on(sinal, () => {
     void desligar(sinal);
   });

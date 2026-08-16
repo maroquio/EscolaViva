@@ -1,15 +1,10 @@
 import { MATRICULA_ATIVA, TURNOS } from '../src/academico';
 import { PAPEL, REDE_ATIVA, type Papel } from '../src/identidade';
 import { config } from '../src/shared/config';
-import {
-  AMBIENTE_PRODUCAO,
-  DIAS_DA_SEMANA,
-  TAMANHO_DA_DATA_ISO,
-  TEMPO,
-} from '../src/shared/constants';
-import { encerrar, escrita, unidadeDeTrabalho, type Conexao } from '../src/shared/db';
-import { formatarCpf, gerarCpf } from '../src/shared/document';
-import { idGeneratorUuid } from '../src/shared/ports';
+import { ISO_DATE_LENGTH, PRODUCTION_ENV, TIME, WEEK_DAYS } from '../src/shared/constants';
+import { closeDatabase, unitOfWork, writer, type Connection } from '../src/shared/db';
+import { formatCpf, generateCpf } from '../src/shared/document';
+import { uuidIdGenerator } from '../src/shared/ports';
 
 const SLUG = 'demo';
 const REDE = 'Rede Municipal de Demonstração';
@@ -34,7 +29,7 @@ type Turma = {
   idade: number;
 };
 
-const novoId = (): string => idGeneratorUuid.novo();
+const novoId = (): string => uuidIdGenerator.next();
 
 function sorteador(semente: number): () => number {
   let estado = semente >>> 0;
@@ -138,7 +133,7 @@ const TABELA = {
   comunicadoDestinatario: 'announcement_recipient',
 } as const;
 
-async function inserir(sql: Conexao, tabela: string, linhas: readonly Linha[]): Promise<void> {
+async function inserir(sql: Connection, tabela: string, linhas: readonly Linha[]): Promise<void> {
   for (let inicio = 0; inicio < linhas.length; inicio += LOTE) {
     await sql`INSERT INTO ${sql(tabela)} ${sql(linhas.slice(inicio, inicio + LOTE))}`;
   }
@@ -151,7 +146,7 @@ const APAGAR_EM_ORDEM = [
   TABELA.usuario, TABELA.responsavel, TABELA.aluno, TABELA.unidade,
 ];
 
-async function apagarRedeDeDemonstracao(sql: Conexao, redeId: string): Promise<void> {
+async function apagarRedeDeDemonstracao(sql: Connection, redeId: string): Promise<void> {
   await sql`
     DELETE FROM idempotent_request
      WHERE user_id IN (SELECT id FROM app_user WHERE network_id = ${redeId})`;
@@ -172,7 +167,7 @@ const CALENDARIO = {
   diaDaMatricula: (ano: number): string => `${ano}-02-05`,
 } as const;
 
-async function criarEstrutura(sql: Conexao, ano: number): Promise<Estrutura> {
+async function criarEstrutura(sql: Connection, ano: number): Promise<Estrutura> {
   const redeId = novoId();
   const anoLetivoId = novoId();
   const unidades = UNIDADES.map((nome) => ({ id: novoId(), nome }));
@@ -210,7 +205,7 @@ const PROFESSORES = { total: 6, porUnidade: 3, disciplinasPorProfessor: 2 } as c
 
 const SEPARADOR_DE_UNIDADES = ' + ';
 
-async function criarEquipe(sql: Conexao, e: Estrutura, hash: string): Promise<Equipe> {
+async function criarEquipe(sql: Connection, e: Estrutura, hash: string): Promise<Equipe> {
   const usuarios: Linha[] = [];
   const papeis: Linha[] = [];
   const credenciais: Equipe['credenciais'] = [];
@@ -220,7 +215,7 @@ async function criarEquipe(sql: Conexao, e: Estrutura, hash: string): Promise<Eq
   const registrar = (nome: string, email: string, papel: Papel, unidades: Registro[]): string => {
     const id = novoId();
     indice += 1;
-    const cpf = gerarCpf(indice);
+    const cpf = generateCpf(indice);
     usuarios.push({
       id, network_id: e.redeId, email, password_hash: hash, name: nome, guardian_id: null, cpf,
     });
@@ -270,7 +265,7 @@ const TELEFONE = {
   ultimoDoBloco: 9999,
 } as const;
 
-async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<Povoamento> {
+async function criarPessoas(sql: Connection, e: Estrutura, hash: string): Promise<Povoamento> {
   const alunos: Linha[] = [];
   const responsaveis: Linha[] = [];
   const vinculos: Linha[] = [];
@@ -304,7 +299,7 @@ async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<P
         const nome = nomeDePessoa();
         const semente = indice * PASSO_DO_INDICE_DE_RESPONSAVEL + r;
         const email = emailDe(nome, semente);
-        const cpf = gerarCpf(semente);
+        const cpf = generateCpf(semente);
         const bloco = (): number => entre(TELEFONE.primeiroDoBloco, TELEFONE.ultimoDoBloco);
         const telefone = `${TELEFONE.prefixo}${bloco()}${TELEFONE.separador}${bloco()}`;
         responsaveis.push({
@@ -343,7 +338,7 @@ async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<P
   return { matriculas, responsaveisPorUnidade, contas };
 }
 
-async function alocar(sql: Conexao, e: Estrutura, professores: string[]): Promise<string[][]> {
+async function alocar(sql: Connection, e: Estrutura, professores: string[]): Promise<string[][]> {
   const linhas: Linha[] = [];
   const porTurma: string[][] = e.turmas.map(() => []);
   e.turmas.forEach((turma, t) => {
@@ -370,7 +365,7 @@ const TAXA_DE_BIMESTRE_COMPLETO = 0.75;
 const NOTA = { minimoDobrado: 8, maximoDobrado: 20, divisor: 2 } as const;
 
 async function lancarNotas(
-  sql: Conexao, e: Estrutura, povoado: Povoamento, alocacoes: string[][], professores: string[],
+  sql: Connection, e: Estrutura, povoado: Povoamento, alocacoes: string[][], professores: string[],
 ): Promise<void> {
   const linhas: Linha[] = [];
   const bimestresDe = (d: number): number[] => {
@@ -403,14 +398,14 @@ function diasLetivos(quantidade: number): string[] {
   while (dias.length < quantidade) {
     cursor.setUTCDate(cursor.getUTCDate() - 1);
     const semana = cursor.getUTCDay();
-    if (semana !== 0 && semana !== DIAS_DA_SEMANA.sabadoJs) {
-      dias.push(cursor.toISOString().slice(0, TAMANHO_DA_DATA_ISO));
+    if (semana !== 0 && semana !== WEEK_DAYS.saturdayJs) {
+      dias.push(cursor.toISOString().slice(0, ISO_DATE_LENGTH));
     }
   }
   return dias.reverse();
 }
 
-async function registrarFrequencia(sql: Conexao, e: Estrutura, povoado: Povoamento): Promise<void> {
+async function registrarFrequencia(sql: Connection, e: Estrutura, povoado: Povoamento): Promise<void> {
   const dias = diasLetivos(DIAS_LETIVOS);
   const linhas: Linha[] = [];
   for (const matricula of povoado.matriculas) {
@@ -438,7 +433,7 @@ const CORPO_DO_COMUNICADO = (titulo: string, unidade: string): string =>
   `${titulo}. A equipe da ${unidade} pede a leitura atenta e a confirmação no portal.`;
 
 async function publicarComunicados(
-  sql: Conexao, e: Estrutura, povoado: Povoamento, equipe: Equipe,
+  sql: Connection, e: Estrutura, povoado: Povoamento, equipe: Equipe,
 ): Promise<void> {
   const comunicados: Linha[] = [];
   const destinatarios: Linha[] = [];
@@ -454,14 +449,14 @@ async function publicarComunicados(
       id, network_id: e.redeId, school_id: unidade.id, title: comunicado.titulo,
       body: CORPO_DO_COMUNICADO(comunicado.titulo, unidade.nome),
       author_user_id: autor,
-      published_at: new Date(Date.now() - comunicado.dias * TEMPO.msPorDia).toISOString(),
+      published_at: new Date(Date.now() - comunicado.dias * TIME.msPerDay).toISOString(),
     });
     const daUnidade = povoado.responsaveisPorUnidade[unidadeIndice] ?? [];
     const quantosLeram = Math.round(daUnidade.length * TAXA_DE_LEITURA);
     const acumulado = (ate: number): number => Math.floor((ate * quantosLeram) / daUnidade.length);
     daUnidade.forEach((responsavelId, posicao) => {
       const lido = acumulado(posicao) < acumulado(posicao + 1);
-      const quando = new Date(Date.now() - entre(1, comunicado.dias) * TEMPO.msPorDia);
+      const quando = new Date(Date.now() - entre(1, comunicado.dias) * TIME.msPerDay);
       destinatarios.push({
         network_id: e.redeId, announcement_id: id, guardian_id: responsavelId,
         read_at: lido ? quando.toISOString() : null,
@@ -498,7 +493,7 @@ const SAIDA = {
   falhaNoSeed: (detalhe: string): string => `Falha no seed: ${detalhe}`,
 } as const;
 
-async function imprimirResumo(sql: Conexao, redeId: string): Promise<void> {
+async function imprimirResumo(sql: Connection, redeId: string): Promise<void> {
   console.log(SAIDA.resumoPorTabela);
   for (const tabela of TABELAS_DO_RESUMO) {
     const linhas: { total: number }[] = await sql`
@@ -520,14 +515,14 @@ function imprimirCredenciais(equipe: Equipe, responsaveis: { email: string; cpf:
   for (const linha of equipe.credenciais) {
     console.log(
       `  ${linha.email.padEnd(COLUNAS.email)} `
-        + `${formatarCpf(linha.cpf).padEnd(COLUNAS.cpf)} `
+        + `${formatCpf(linha.cpf).padEnd(COLUNAS.cpf)} `
         + `${linha.papel.padEnd(COLUNAS.papel)} ${linha.onde}`,
     );
   }
   for (const conta of responsaveis.slice(0, AMOSTRA_DE_RESPONSAVEIS)) {
     console.log(
       `  ${conta.email.padEnd(COLUNAS.email)} `
-        + `${formatarCpf(conta.cpf).padEnd(COLUNAS.cpf)} `
+        + `${formatCpf(conta.cpf).padEnd(COLUNAS.cpf)} `
         + `${PAPEL.responsavel.padEnd(COLUNAS.papel)} ${SAIDA.portalDoResponsavel}`,
     );
   }
@@ -536,13 +531,13 @@ function imprimirCredenciais(equipe: Equipe, responsaveis: { email: string; cpf:
 }
 
 async function semear(): Promise<void> {
-  if (config.ambiente === AMBIENTE_PRODUCAO) {
+  if (config.environment === PRODUCTION_ENV) {
     throw new Error(ERROS.ambienteDeProducao);
   }
   const ano = new Date().getUTCFullYear();
   const hash = await Bun.password.hash(SENHA);
   const inicio = Date.now();
-  const { redeId, equipe, responsaveis } = await unidadeDeTrabalho(async ({ sql }) => {
+  const { redeId, equipe, responsaveis } = await unitOfWork(async ({ sql }) => {
     const existente: { id: string }[] = await sql`SELECT id FROM network WHERE slug = ${SLUG}`;
     if (existente[0] !== undefined) await apagarRedeDeDemonstracao(sql, existente[0].id);
     const estrutura = await criarEstrutura(sql, ano);
@@ -556,8 +551,8 @@ async function semear(): Promise<void> {
   });
 
   imprimirCredenciais(equipe, responsaveis);
-  await imprimirResumo(escrita(), redeId);
-  const segundos = ((Date.now() - inicio) / TEMPO.msPorSegundo).toFixed(1);
+  await imprimirResumo(writer(), redeId);
+  const segundos = ((Date.now() - inicio) / TIME.msPerSecond).toFixed(1);
   console.log(SAIDA.redeRecriada(SLUG, segundos));
   console.log(SAIDA.bimestreIncompleto);
 }
@@ -568,5 +563,5 @@ try {
   console.error(SAIDA.falhaNoSeed(erro instanceof Error ? erro.message : String(erro)));
   process.exitCode = 1;
 } finally {
-  await encerrar();
+  await closeDatabase();
 }

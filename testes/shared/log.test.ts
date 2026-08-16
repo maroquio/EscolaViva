@@ -7,11 +7,11 @@
 import { describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CHAVES_PROIBIDAS, redigir } from '../../src/shared/log';
+import { FORBIDDEN_LOG_KEYS, redact } from '../../src/shared/log';
 
-const REDIGIDO = '[redigido]';
+const REDIGIDO = '[redacted]';
 
-/** O mínimo que o contrato exige de `CHAVES_PROIBIDAS`. */
+/** O mínimo que o contrato exige de `FORBIDDEN_LOG_KEYS`. */
 const MINIMO_DO_CONTRATO = [
   'nome',
   'name',
@@ -50,7 +50,7 @@ const MINIMO_DO_CONTRATO = [
   'database_url',
 ];
 
-describe('redigir — o que sai do log', () => {
+describe('redact — o que sai do log', () => {
   test('remove nome, e-mail, senha, senha_hash, cpf e telefone', () => {
     const campos = {
       nome: 'Ana Beatriz Souza',
@@ -61,7 +61,7 @@ describe('redigir — o que sai do log', () => {
       telefone: '(27) 99999-0000',
     };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual({
       nome: REDIGIDO,
@@ -76,7 +76,7 @@ describe('redigir — o que sai do log', () => {
   test('remove valor de nota e justificativa de falta', () => {
     const campos = { nota: 9.5, valor: 7, notas: [8, 9], justificativa: 'consulta médica' };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual({
       nota: REDIGIDO,
@@ -95,13 +95,13 @@ describe('redigir — o que sai do log', () => {
       'set-cookie': 'ev_sessao=abc; HttpOnly',
     };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(Object.values(seguros)).toEqual([REDIGIDO, REDIGIDO, REDIGIDO, REDIGIDO, REDIGIDO]);
   });
 
   test('a lista de chaves proibidas cobre o mínimo do contrato', () => {
-    const declaradas = new Set(CHAVES_PROIBIDAS);
+    const declaradas = new Set(FORBIDDEN_LOG_KEYS);
 
     const faltando = MINIMO_DO_CONTRATO.filter((chave) => !declaradas.has(chave));
 
@@ -109,16 +109,16 @@ describe('redigir — o que sai do log', () => {
   });
 });
 
-describe('redigir — o que fica no log', () => {
-  test('preserva aluno_id, usuario_id, rede_id e correlacao_id', () => {
+describe('redact — o que fica no log', () => {
+  test('preserva aluno_id, usuario_id, rede_id e correlation_id', () => {
     const campos = {
       aluno_id: '3f1b',
       usuario_id: '9c2d',
       rede_id: '77aa',
-      correlacao_id: 'c-1234',
+      correlation_id: 'c-1234',
     };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual(campos);
   });
@@ -126,7 +126,7 @@ describe('redigir — o que fica no log', () => {
   test('preserva identificador ao lado de campo proibido, na mesma linha', () => {
     const campos = { aluno_id: '3f1b', nome: 'Ana Beatriz', turma_id: '55cc' };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual({ aluno_id: '3f1b', nome: REDIGIDO, turma_id: '55cc' });
   });
@@ -135,17 +135,17 @@ describe('redigir — o que fica no log', () => {
     const quando = new Date('2026-03-10T12:00:00.000Z');
     const campos = { duracao_ms: 42, ip: null, quando };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual({ duracao_ms: 42, ip: null, quando });
   });
 });
 
-describe('redigir — profundidade e formato', () => {
+describe('redact — profundidade e formato', () => {
   test('redige dentro de objeto aninhado', () => {
     const campos = { evento: 'matricula', aluno: { aluno_id: '3f1b', nome: 'Ana Beatriz' } };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual({ evento: 'matricula', aluno: { aluno_id: '3f1b', nome: REDIGIDO } });
   });
@@ -158,7 +158,7 @@ describe('redigir — profundidade e formato', () => {
       ],
     };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual({
       linhas: [
@@ -171,7 +171,7 @@ describe('redigir — profundidade e formato', () => {
   test('redige em array dentro de objeto dentro de array', () => {
     const campos = { turmas: [{ turma_id: 't1', alunos: [{ aluno_id: 'a1', nome: 'Ana' }] }] };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual({
       turmas: [{ turma_id: 't1', alunos: [{ aluno_id: 'a1', nome: REDIGIDO }] }],
@@ -182,14 +182,14 @@ describe('redigir — profundidade e formato', () => {
     const fundo = { nome: 'Ana Beatriz Souza', cpf: '123.456.789-09' };
     const campos = { n1: { n2: { n3: { n4: { n5: { n6: { n7: { n8: fundo } } } } } } } };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(JSON.stringify(seguros)).not.toContain('Ana Beatriz Souza');
     expect(JSON.stringify(seguros)).not.toContain('123.456.789-09');
   });
 });
 
-describe('redigir — robustez', () => {
+describe('redact — robustez', () => {
   test('não muta a entrada', () => {
     const campos = {
       aluno_id: '3f1b',
@@ -199,7 +199,7 @@ describe('redigir — robustez', () => {
     };
     const copia = structuredClone(campos);
 
-    redigir(campos);
+    redact(campos);
 
     expect(campos).toEqual(copia);
   });
@@ -207,7 +207,7 @@ describe('redigir — robustez', () => {
   test('devolve um objeto novo, e não a própria entrada', () => {
     const campos = { aluno_id: '3f1b' };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).not.toBe(campos);
     expect(seguros).toEqual(campos);
@@ -217,7 +217,7 @@ describe('redigir — robustez', () => {
     const ciclico: Record<string, unknown> = { aluno_id: '3f1b', nome: 'Ana Beatriz' };
     ciclico.proprio = ciclico;
 
-    const redigirCiclico = (): unknown => redigir(ciclico);
+    const redigirCiclico = (): unknown => redact(ciclico);
 
     expect(redigirCiclico).not.toThrow();
   });
@@ -226,7 +226,7 @@ describe('redigir — robustez', () => {
     const ciclico: Record<string, unknown> = { aluno_id: '3f1b', nome: 'Ana Beatriz' };
     ciclico.proprio = ciclico;
 
-    const seguros = redigir(ciclico);
+    const seguros = redact(ciclico);
 
     expect(seguros.nome).toBe(REDIGIDO);
     expect(seguros.aluno_id).toBe('3f1b');
@@ -236,7 +236,7 @@ describe('redigir — robustez', () => {
     const lista: unknown[] = [{ aluno_id: '3f1b' }];
     lista.push(lista);
 
-    const redigirLista = (): unknown => redigir({ lista });
+    const redigirLista = (): unknown => redact({ lista });
 
     expect(redigirLista).not.toThrow();
   });
@@ -244,17 +244,17 @@ describe('redigir — robustez', () => {
   test('objeto sem campo nenhum vira objeto sem campo nenhum', () => {
     const campos = {};
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual({});
   });
 });
 
-describe('redigir — comparação de chave', () => {
+describe('redact — comparação de chave', () => {
   test('é insensível a maiúsculas', () => {
     const campos = { Nome: 'Ana', EMAIL: 'ana@escola.test', SeNhA: 'teste-1234' };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual({ Nome: REDIGIDO, EMAIL: REDIGIDO, SeNhA: REDIGIDO });
   });
@@ -262,7 +262,7 @@ describe('redigir — comparação de chave', () => {
   test('é insensível a maiúsculas também em cabeçalho e em ninho', () => {
     const campos = { requisicao: { Authorization: 'Bearer abc', 'Set-Cookie': 'ev_sessao=abc' } };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual({ requisicao: { Authorization: REDIGIDO, 'Set-Cookie': REDIGIDO } });
   });
@@ -270,7 +270,7 @@ describe('redigir — comparação de chave', () => {
   test('chave parecida com proibida, mas diferente, continua passando', () => {
     const campos = { nome_da_rota: 'POST /login', total_de_notas: 12, valor_esperado_id: 'v1' };
 
-    const seguros = redigir(campos);
+    const seguros = redact(campos);
 
     expect(seguros).toEqual(campos);
   });
@@ -283,7 +283,7 @@ describe('redigir — comparação de chave', () => {
  * `nome`, a entrada fica órfã e isto reprova. É a única rede do repositório com consequência
  * de privacidade, e ela precisa doer antes do vazamento, não depois.
  */
-describe('CHAVES_PROIBIDAS — ancoragem no código real', () => {
+describe('FORBIDDEN_LOG_KEYS — ancoragem no código real', () => {
   const PADROES_DE_FONTE = ['src/**/*.ts', 'src/**/*.eta', 'migrations/*.sql'] as const;
 
   const escaparParaRegex = (texto: string): string => texto.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -308,7 +308,7 @@ describe('CHAVES_PROIBIDAS — ancoragem no código real', () => {
   test('nenhuma chave da denylist ficou órfã', async () => {
     const fontes = await lerFontes();
 
-    const orfas = CHAVES_PROIBIDAS.filter(
+    const orfas = FORBIDDEN_LOG_KEYS.filter(
       (chave) => !new RegExp(`\\b${escaparParaRegex(chave)}\\b`, 'i').test(fontes),
     );
 

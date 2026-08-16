@@ -1,11 +1,11 @@
 /*
- * I18: configuração faltando derruba o boot, não a requisição. `carregarConfig` é pura de
+ * I18: configuração faltando derruba o boot, não a requisição. `loadConfig` é pura de
  * propósito — recebe o mapa de variáveis —, então cada combinação de ambiente é exercida aqui
  * sem mexer no processo.
  */
 
 import { describe, expect, test } from 'bun:test';
-import { carregarConfig, config } from '../../src/shared/config';
+import { config, loadConfig } from '../../src/shared/config';
 
 /** O mínimo que faz a configuração passar: as duas variáveis que não têm default. */
 const OBRIGATORIAS = {
@@ -18,18 +18,18 @@ const TAMANHO_MINIMO_DO_SEGREDO = 32;
 /** Devolve a mensagem da recusa; falha o teste se o ambiente tiver sido aceito. */
 function mensagemDeRecusa(ambiente: Record<string, string | undefined>): string {
   try {
-    carregarConfig(ambiente);
+    loadConfig(ambiente);
   } catch (erro) {
     return erro instanceof Error ? erro.message : String(erro);
   }
-  throw new Error('carregarConfig aceitou um ambiente que deveria ter recusado');
+  throw new Error('loadConfig aceitou um ambiente que deveria ter recusado');
 }
 
-describe('carregarConfig — variáveis obrigatórias', () => {
+describe('loadConfig — variáveis obrigatórias', () => {
   test('recusa ambiente vazio: sem configuração o processo não sobe', () => {
     const ambienteVazio = {};
 
-    const carregar = (): unknown => carregarConfig(ambienteVazio);
+    const carregar = (): unknown => loadConfig(ambienteVazio);
 
     expect(carregar).toThrow();
   });
@@ -71,7 +71,7 @@ describe('carregarConfig — variáveis obrigatórias', () => {
   });
 });
 
-describe('carregarConfig — SESSION_SECRET', () => {
+describe('loadConfig — SESSION_SECRET', () => {
   test(`recusa segredo com menos de ${TAMANHO_MINIMO_DO_SEGREDO} caracteres`, () => {
     const curto = { ...OBRIGATORIAS, SESSION_SECRET: 'x'.repeat(TAMANHO_MINIMO_DO_SEGREDO - 1) };
 
@@ -83,38 +83,38 @@ describe('carregarConfig — SESSION_SECRET', () => {
   test(`aceita segredo com exatamente ${TAMANHO_MINIMO_DO_SEGREDO} caracteres`, () => {
     const noLimite = { ...OBRIGATORIAS, SESSION_SECRET: 'x'.repeat(TAMANHO_MINIMO_DO_SEGREDO) };
 
-    const carregada = carregarConfig(noLimite);
+    const carregada = loadConfig(noLimite);
 
     expect(carregada.sessionSecret).toHaveLength(TAMANHO_MINIMO_DO_SEGREDO);
   });
 });
 
-describe('carregarConfig — defaults', () => {
+describe('loadConfig — defaults', () => {
   test('aplica porta 3000, timeout de 25000 ms, 12 horas de sessão e nível info', () => {
     const soObrigatorias = { ...OBRIGATORIAS };
 
-    const carregada = carregarConfig(soObrigatorias);
+    const carregada = loadConfig(soObrigatorias);
 
-    expect(carregada.porta).toBe(3000);
+    expect(carregada.port).toBe(3000);
     expect(carregada.httpTimeoutMs).toBe(25000);
-    expect(carregada.sessaoDuracaoHoras).toBe(12);
+    expect(carregada.sessionDurationHours).toBe(12);
     expect(carregada.logLevel).toBe('info');
   });
 
   test('sem PROXIES_CONFIAVEIS a lista de proxies nasce vazia', () => {
     const soObrigatorias = { ...OBRIGATORIAS };
 
-    const carregada = carregarConfig(soObrigatorias);
+    const carregada = loadConfig(soObrigatorias);
 
-    expect(carregada.proxiesConfiaveis).toEqual([]);
+    expect(carregada.trustedProxies).toEqual([]);
   });
 
   test('sem APP_ENV o ambiente é development', () => {
     const soObrigatorias = { ...OBRIGATORIAS };
 
-    const carregada = carregarConfig(soObrigatorias);
+    const carregada = loadConfig(soObrigatorias);
 
-    expect(carregada.ambiente).toBe('development');
+    expect(carregada.environment).toBe('development');
   });
 
   test('converte os números vindos como texto do ambiente', () => {
@@ -125,40 +125,40 @@ describe('carregarConfig — defaults', () => {
       SESSAO_DURACAO_HORAS: '4',
     };
 
-    const carregada = carregarConfig(numerosComoTexto);
+    const carregada = loadConfig(numerosComoTexto);
 
-    expect(carregada.porta).toBe(8080);
+    expect(carregada.port).toBe(8080);
     expect(carregada.httpTimeoutMs).toBe(9000);
-    expect(carregada.sessaoDuracaoHoras).toBe(4);
+    expect(carregada.sessionDurationHours).toBe(4);
   });
 });
 
-describe('carregarConfig — cookieSeguro', () => {
-  test('deriva cookieSeguro de APP_ENV: verdadeiro em produção', () => {
+describe('loadConfig — secureCookie', () => {
+  test('deriva secureCookie de APP_ENV: verdadeiro em produção', () => {
     const producao = { ...OBRIGATORIAS, APP_ENV: 'production' };
 
-    const carregada = carregarConfig(producao);
+    const carregada = loadConfig(producao);
 
-    expect(carregada.cookieSeguro).toBe(true);
+    expect(carregada.secureCookie).toBe(true);
   });
 
-  test('deriva cookieSeguro de APP_ENV: falso em desenvolvimento e em teste', () => {
+  test('deriva secureCookie de APP_ENV: falso em desenvolvimento e em teste', () => {
     const desenvolvimento = { ...OBRIGATORIAS, APP_ENV: 'development' };
     const teste = { ...OBRIGATORIAS, APP_ENV: 'test' };
 
-    const emDesenvolvimento = carregarConfig(desenvolvimento);
-    const emTeste = carregarConfig(teste);
+    const emDesenvolvimento = loadConfig(desenvolvimento);
+    const emTeste = loadConfig(teste);
 
-    expect(emDesenvolvimento.cookieSeguro).toBe(false);
-    expect(emTeste.cookieSeguro).toBe(false);
+    expect(emDesenvolvimento.secureCookie).toBe(false);
+    expect(emTeste.secureCookie).toBe(false);
   });
 
   test('COOKIE_SEGURO explícito vence o derivado do ambiente', () => {
     const producaoSemTls = { ...OBRIGATORIAS, APP_ENV: 'production', COOKIE_SEGURO: 'false' };
 
-    const carregada = carregarConfig(producaoSemTls);
+    const carregada = loadConfig(producaoSemTls);
 
-    expect(carregada.cookieSeguro).toBe(false);
+    expect(carregada.secureCookie).toBe(false);
   });
 
   test('recusa COOKIE_SEGURO que não é true nem false', () => {
@@ -170,33 +170,33 @@ describe('carregarConfig — cookieSeguro', () => {
   });
 });
 
-describe('carregarConfig — PROXIES_CONFIAVEIS', () => {
+describe('loadConfig — PROXIES_CONFIAVEIS', () => {
   test('quebra a lista por vírgula, apara espaços e descarta itens vazios', () => {
     const comEspacos = { ...OBRIGATORIAS, PROXIES_CONFIAVEIS: ' 10.0.0.1 , 10.0.0.2 ,,10.0.0.3 ' };
 
-    const carregada = carregarConfig(comEspacos);
+    const carregada = loadConfig(comEspacos);
 
-    expect(carregada.proxiesConfiaveis).toEqual(['10.0.0.1', '10.0.0.2', '10.0.0.3']);
+    expect(carregada.trustedProxies).toEqual(['10.0.0.1', '10.0.0.2', '10.0.0.3']);
   });
 
   test('um único proxie sem vírgula vira lista de um item', () => {
     const umSo = { ...OBRIGATORIAS, PROXIES_CONFIAVEIS: '172.17.0.1' };
 
-    const carregada = carregarConfig(umSo);
+    const carregada = loadConfig(umSo);
 
-    expect(carregada.proxiesConfiaveis).toEqual(['172.17.0.1']);
+    expect(carregada.trustedProxies).toEqual(['172.17.0.1']);
   });
 
   test('lista só com vírgulas e espaços resulta em nenhum proxie confiável', () => {
     const soSeparadores = { ...OBRIGATORIAS, PROXIES_CONFIAVEIS: ' , , ' };
 
-    const carregada = carregarConfig(soSeparadores);
+    const carregada = loadConfig(soSeparadores);
 
-    expect(carregada.proxiesConfiaveis).toEqual([]);
+    expect(carregada.trustedProxies).toEqual([]);
   });
 });
 
-describe('carregarConfig — valores inválidos', () => {
+describe('loadConfig — valores inválidos', () => {
   test('recusa APP_ENV fora de development, test e production', () => {
     const ambienteInventado = { ...OBRIGATORIAS, APP_ENV: 'producao' };
 
@@ -252,7 +252,7 @@ describe('config do processo', () => {
   test('a suíte roda com o ambiente de teste já validado no import', () => {
     const carregada = config;
 
-    const ambiente = carregada.ambiente;
+    const ambiente = carregada.environment;
 
     expect(ambiente).toBe('test');
   });

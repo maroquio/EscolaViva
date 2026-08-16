@@ -1,46 +1,46 @@
-import type { CorpoDeFormulario } from './idempotency';
-import type { UsuarioDaSessao } from './session';
+import type { FormBody } from './idempotency';
+import type { SessionUser } from './session';
 
-export { comContexto, contextoAtual, middlewareCorrelacao } from './correlation';
-export type { ContextoRequisicao } from './correlation';
+export { correlationMiddleware, currentContext, withContext } from './correlation';
+export type { RequestContext } from './correlation';
 
-export { ipDoCliente } from './ip';
+export { clientIp } from './ip';
 
-export { middlewareCacheControl } from './cacheControl';
+export { cacheControlMiddleware } from './cacheControl';
 
 export {
-  COOKIE_SESSAO,
-  abrirSessao,
-  criarMiddlewareSessao,
-  fecharSessao,
-  sessaoIdAtual,
-  usuarioAtual,
-  usuarioAtualOuNulo,
+  SESSION_COOKIE,
+  closeSession,
+  createSessionMiddleware,
+  currentSessionId,
+  currentUser,
+  currentUserOrNull,
+  openSession,
 } from './session';
-export type { CarregadorDeUsuario, PapelDaSessao, UsuarioDaSessao } from './session';
+export type { SessionRole, SessionUser, UserLoader } from './session';
 
-export { exigirLogin, exigirPapel, temPapel, unidadesDoPapel } from './authorization';
+export { hasRole, requireLogin, requireRole, schoolsForRole } from './authorization';
 
-export { redeAtual } from './tenant';
+export { currentNetwork } from './tenant';
 
-export { CAMPO_CHAVE, middlewareIdempotencia } from './idempotency';
-export type { CorpoDeFormulario } from './idempotency';
+export { KEY_FIELD, idempotencyMiddleware } from './idempotency';
+export type { FormBody } from './idempotency';
 
 export {
-  NaoAutorizado,
-  NaoEncontrado,
-  Proibido,
-  RegraDeNegocio,
-  middlewareErros,
-  registrarRenderizadorDeErro,
+  BusinessRuleViolation,
+  Forbidden,
+  NotFound,
+  Unauthorized,
+  errorsMiddleware,
+  registerErrorRenderer,
 } from './errors';
-export type { RenderizadorDeErro, StatusDeErro } from './errors';
+export type { ErrorRenderer, ErrorStatus } from './errors';
 
-export { ehIdentificador } from './identifier';
+export { isUuid } from './identifier';
 
-export type Variaveis = {
-  correlacaoId: string;
-  sessaoId: string | null;
-  usuario: UsuarioDaSessao | null;
-  corpo: CorpoDeFormulario;
+export type Variables = {
+  correlationId: string;
+  sessionId: string | null;
+  user: SessionUser | null;
+  body: FormBody;
 };

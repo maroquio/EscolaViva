@@ -1,14 +1,8 @@
 import { z } from 'zod';
-import { cpfValido, normalizarCpf } from '../../shared/document';
-import { unidadeDeTrabalho } from '../../shared/db';
-import { idGeneratorUuid } from '../../shared/ports';
-import {
-  errosDeSchema,
-  falha,
-  falhaDeCampo,
-  sucesso,
-  type Resultado,
-} from '../../shared/result';
+import { isValidCpf, normalizeCpf } from '../../shared/document';
+import { unitOfWork } from '../../shared/db';
+import { uuidIdGenerator } from '../../shared/ports';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
 import type { Responsavel } from '../dominio/responsavel';
 import * as responsaveis from '../infra/responsavelRepositorio';
@@ -36,8 +30,8 @@ const entrada = z.object({
     .string()
     .trim()
     .nullish()
-    .transform((valor) => (valor ? normalizarCpf(valor) : null))
-    .refine((valor) => valor === null || cpfValido(valor), MENSAGENS.responsavel.cpfInvalido),
+    .transform((valor) => (valor ? normalizeCpf(valor) : null))
+    .refine((valor) => valor === null || isValidCpf(valor), MENSAGENS.responsavel.cpfInvalido),
 });
 
 export async function cadastrarResponsavel(e: {
@@ -46,18 +40,18 @@ export async function cadastrarResponsavel(e: {
   email: string;
   telefone?: string | null;
   cpf?: string | null;
-}): Promise<Resultado<Responsavel>> {
+}): Promise<Result<Responsavel>> {
   const validada = entrada.safeParse(e);
-  if (!validada.success) return falha(...errosDeSchema(validada.error.issues));
+  if (!validada.success) return failure(...schemaErrors(validada.error.issues));
 
-  const responsavel: Responsavel = { id: idGeneratorUuid.novo(), ...validada.data };
-  const criado = await unidadeDeTrabalho(({ sql }) => responsaveis.inserir(sql, responsavel));
+  const responsavel: Responsavel = { id: uuidIdGenerator.next(), ...validada.data };
+  const criado = await unitOfWork(({ sql }) => responsaveis.inserir(sql, responsavel));
   if (!criado) {
-    return falhaDeCampo(
+    return fieldFailure(
       CAMPOS.responsavel.email,
       CODIGOS.responsavel.emailDuplicado,
       MENSAGENS.responsavel.emailDuplicado,
     );
   }
-  return sucesso(responsavel);
+  return success(responsavel);
 }

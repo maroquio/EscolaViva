@@ -1,78 +1,78 @@
 import type { MiddlewareHandler } from 'hono';
 import {
-  CABECALHOS,
-  CAMINHOS_DE_ENTRADA,
-  CAMPO_CHAVE,
-  FORMATOS,
-  HASH_DE_RESPOSTA,
-  METODOS,
-  MOTIVOS_INTERNOS,
-  VARIAVEIS_DE_CONTEXTO,
+  CONTEXT_VARIABLES,
+  ENTRY_PATHS,
+  FORMATS,
+  HEADERS,
+  INTERNAL_REASONS,
+  KEY_FIELD,
+  METHODS,
+  RESPONSE_HASH,
 } from '../constants';
-import type { Conexao } from '../db';
-import { escrita } from '../db';
-import { logger, redigir } from '../log';
-import { paginaDeErro } from './errors';
-import { usuarioAtualOuNulo } from './session';
+import type { Connection } from '../db';
+import { writer } from '../db';
+import { logger, redact } from '../log';
+import { errorPage } from './errors';
+import { currentUserOrNull } from './session';
 
-export { CAMPO_CHAVE };
+export { KEY_FIELD };
 
-export type CorpoDeFormulario = Record<string, string | File | (string | File)[]>;
+export type FormBody = Record<string, string | File | (string | File)[]>;
 
-const liberarChave = async (sql: Conexao, chave: string): Promise<void> => {
-  await sql`DELETE FROM idempotent_request WHERE idempotency_key = ${chave}`;
+const releaseKey = async (sql: Connection, key: string): Promise<void> => {
+  await sql`DELETE FROM idempotent_request WHERE idempotency_key = ${key}`;
 };
 
-const ehRedirecionamento = (status: number): boolean => status >= 300 && status < 400;
+const isRedirect = (status: number): boolean => status >= 300 && status < 400;
 
-export const middlewareIdempotencia: MiddlewareHandler = async (c, next) => {
-  if (c.req.method !== METODOS.post) return next();
+export const idempotencyMiddleware: MiddlewareHandler = async (c, next) => {
+  if (c.req.method !== METHODS.post) return next();
 
-  const corpo = await c.req.parseBody();
-  c.set(VARIAVEIS_DE_CONTEXTO.corpo, corpo);
+  const body = await c.req.parseBody();
+  c.set(CONTEXT_VARIABLES.body, body);
 
-  const usuario = usuarioAtualOuNulo(c);
-  if (usuario === null) return next();
+  const user = currentUserOrNull(c);
+  if (user === null) return next();
 
-  const chave = corpo[CAMPO_CHAVE];
-  if (typeof chave !== 'string' || !FORMATOS.chaveDeIdempotencia.test(chave)) {
-    const campos = { rota: c.req.path, usuario_id: usuario.id };
-    logger.warn(redigir(campos), MOTIVOS_INTERNOS.escritaSemChave);
-    return c.html(paginaDeErro(400), 400);
+  const key = body[KEY_FIELD];
+  if (typeof key !== 'string' || !FORMATS.idempotencyKey.test(key)) {
+    const fields = { rota: c.req.path, user_id: user.id };
+    logger.warn(redact(fields), INTERNAL_REASONS.writeWithoutKey);
+    return c.html(errorPage(400), 400);
   }
 
-  const sql = escrita();
-  const inseridas: { idempotency_key: string }[] = await sql`
+  const sql = writer();
+  const inserted: { idempotency_key: string }[] = await sql`
     INSERT INTO idempotent_request (idempotency_key, route, user_id, response_hash, response_location)
-    VALUES (${chave}, ${c.req.path}, ${usuario.id}, '', '')
+    VALUES (${key}, ${c.req.path}, ${user.id}, '', '')
     ON CONFLICT (idempotency_key) DO NOTHING
     RETURNING idempotency_key`;
 
-  if (inseridas.length === 0) {
-    const gravadas: { response_location: string }[] = await sql`
-      SELECT response_location FROM idempotent_request WHERE idempotency_key = ${chave}`;
-    const destino = gravadas[0]?.response_location ?? '';
-    return c.redirect(destino === '' ? CAMINHOS_DE_ENTRADA.painel : destino, 303);
+  if (inserted.length === 0) {
+    const saved: { response_location: string }[] = await sql`
+      SELECT response_location FROM idempotent_request WHERE idempotency_key = ${key}`;
+    const target = saved[0]?.response_location ?? '';
+    return c.redirect(target === '' ? ENTRY_PATHS.dashboard : target, 303);
   }
 
   try {
     await next();
-  } catch (erro) {
-    await liberarChave(sql, chave);
-    throw erro;
+  } catch (error) {
+    await releaseKey(sql, key);
+    throw error;
   }
 
-  const local = c.res.headers.get(CABECALHOS.location);
-  if (local === null || !ehRedirecionamento(c.res.status)) {
-    await liberarChave(sql, chave);
+  const location = c.res.headers.get(HEADERS.location);
+  if (location === null || !isRedirect(c.res.status)) {
+    await releaseKey(sql, key);
     return;
   }
 
-  const hash = new Bun.CryptoHasher(HASH_DE_RESPOSTA.algoritmo)
-    .update(local)
-    .digest(HASH_DE_RESPOSTA.codificacao);
+  const hash = new Bun.CryptoHasher(RESPONSE_HASH.algorithm)
+    .update(location)
+    .digest(RESPONSE_HASH.encoding);
   await sql`
     UPDATE idempotent_request
-       SET response_location = ${local}, response_hash = ${hash}
-     WHERE idempotency_key = ${chave}`;
+       SET response_location = ${location}, response_hash = ${hash}
+     WHERE idempotency_key = ${key}`;
 };

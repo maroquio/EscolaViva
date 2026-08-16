@@ -1,1 +1,1 @@
-export { cpfValido, formatarCpf, gerarCpf, normalizarCpf } from './cpf';
+export { formatCpf, generateCpf, isValidCpf, normalizeCpf } from './cpf';

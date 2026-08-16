@@ -2,23 +2,23 @@ import { CAMPOS_DO_ACADEMICO } from '../academico';
 import { CAMPOS_DA_AVALIACAO, ROTULO_DE_BIMESTRE } from '../avaliacao';
 import { CAMPOS_DA_COMUNICACAO } from '../comunicacao';
 import { CAMPOS_DE_IDENTIDADE, PAPEL } from '../identidade';
-import { ATIVOS, AUSENTE, CAMINHOS_DE_ENTRADA, CAMINHOS_DE_SAUDE } from '../shared/constants';
+import { ASSETS, ENTRY_PATHS, HEALTH_PATHS, MISSING_VALUE } from '../shared/constants';
 import { grupo } from './rotas/mapa';
 
-export { ATIVOS, AUSENTE, TITULOS_DE_ERRO } from '../shared/constants';
+export { ASSETS, ERROR_TITLES, MISSING_VALUE } from '../shared/constants';
 
-export const PREFIXO_PUBLICO = ATIVOS.prefixoDeUrl;
+export const PREFIXO_PUBLICO = ASSETS.urlPrefix;
 
 export const CURINGA_DE_ASSET = '*';
 
 export const ROTAS = {
   publicas: grupo('', {
     raiz: '/',
-    login: CAMINHOS_DE_ENTRADA.login,
+    login: ENTRY_PATHS.login,
     logout: '/logout',
-    painel: CAMINHOS_DE_ENTRADA.painel,
-    saude: CAMINHOS_DE_SAUDE.prontidao,
-    saudeViva: CAMINHOS_DE_SAUDE.vivacidade,
+    painel: ENTRY_PATHS.dashboard,
+    saude: HEALTH_PATHS.readiness,
+    saudeViva: HEALTH_PATHS.liveness,
     publico: `${PREFIXO_PUBLICO}${CURINGA_DE_ASSET}`,
   }),
 

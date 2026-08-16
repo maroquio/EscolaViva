@@ -1,9 +1,9 @@
 import { Hono, type Context } from 'hono';
 import { identidade } from '../../identidade';
-import { VARIAVEIS_DE_CONTEXTO } from '../../shared/constants';
-import { exigirLogin, usuarioAtual, type CorpoDeFormulario, type Variaveis } from '../../shared/http';
+import { CONTEXT_VARIABLES } from '../../shared/constants';
+import { currentUser, requireLogin, type FormBody, type Variables } from '../../shared/http';
 import { logger } from '../../shared/log';
-import type { ErroDeAplicacao } from '../../shared/result';
+import type { ApplicationError } from '../../shared/result';
 import {
   AVISOS,
   CAMPOS,
@@ -21,16 +21,16 @@ const MENSAGENS: Record<string, string> = {
   [CODIGOS_DE_AVISO.senhaAlterada]: AVISOS.senhaAlterada,
 };
 
-export const rotasConta = new Hono<{ Variables: Variaveis }>();
+export const rotasConta = new Hono<{ Variables: Variables }>();
 
-rotasConta.use(exigirLogin());
+rotasConta.use(requireLogin());
 
-const senha = (corpo: CorpoDeFormulario, campo: string): string => {
+const senha = (corpo: FormBody, campo: string): string => {
   const valor = corpo[campo];
   return typeof valor === 'string' ? valor : '';
 };
 
-const telaDeSenha = (c: Context, erros: ErroDeAplicacao[]): Response =>
+const telaDeSenha = (c: Context, erros: ApplicationError[]): Response =>
   renderizar(c, TEMPLATES.conta.senha, { titulo: TITULOS.trocarSenha, erros });
 
 rotasConta.get(ROTAS.conta.senha.padrao, (c) =>
@@ -42,8 +42,8 @@ rotasConta.get(ROTAS.conta.senha.padrao, (c) =>
 );
 
 rotasConta.post(ROTAS.conta.senha.padrao, async (c) => {
-  const usuario = usuarioAtual(c);
-  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const usuario = currentUser(c);
+  const corpo = c.get(CONTEXT_VARIABLES.body);
   const senhaNova = senha(corpo, CAMPOS.senha.nova);
 
   if (senhaNova !== senha(corpo, CAMPOS.senha.confirmacao)) {

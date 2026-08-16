@@ -6,7 +6,7 @@
 
 import type { SituacaoMatricula } from '../../src/academico';
 import type { Papel } from '../../src/identidade';
-import { gerarCpf } from '../../src/shared/document';
+import { generateCpf } from '../../src/shared/document';
 import { sqlDeTeste } from './banco';
 
 export type StatusDeRede = 'active' | 'suspended' | 'cancelled';
@@ -95,7 +95,7 @@ export async function criarUsuario(opcoes: {
   const usuario: UsuarioDeTeste = {
     id: novoId(), networkId: opcoes.networkId, name: opcoes.name ?? `Pessoa de Teste ${numero}`,
     email: opcoes.email ?? `usuario${numero}@${DOMINIO}`,
-    cpf: opcoes.cpf === undefined ? gerarCpf(numero) : opcoes.cpf,
+    cpf: opcoes.cpf === undefined ? generateCpf(numero) : opcoes.cpf,
     senha: opcoes.senha ?? SENHA_PADRAO,
     active: opcoes.active ?? true, guardianId: opcoes.guardianId ?? null, papeis: opcoes.papeis ?? [],
   };
@@ -199,7 +199,7 @@ export async function criarResponsavel(opcoes: {
   return await gravar('guardian', {
     id: novoId(), networkId: opcoes.networkId, name: opcoes.name ?? `Responsável de Teste ${numero}`,
     email: opcoes.email ?? `responsavel${numero}@${DOMINIO}`,
-    cpf: opcoes.cpf === undefined ? gerarCpf(numero) : opcoes.cpf, phone: opcoes.phone ?? null,
+    cpf: opcoes.cpf === undefined ? generateCpf(numero) : opcoes.cpf, phone: opcoes.phone ?? null,
   });
 }
 

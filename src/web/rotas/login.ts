@@ -2,15 +2,15 @@ import { Hono, type Context } from 'hono';
 import { getConnInfo } from 'hono/bun';
 import { identidade } from '../../identidade';
 import { config } from '../../shared/config';
-import { VARIAVEIS_DE_CONTEXTO } from '../../shared/constants';
+import { CONTEXT_VARIABLES } from '../../shared/constants';
 import {
-  abrirSessao,
-  fecharSessao,
-  ipDoCliente,
-  sessaoIdAtual,
-  usuarioAtualOuNulo,
-  type CorpoDeFormulario,
-  type Variaveis,
+  clientIp,
+  closeSession,
+  currentSessionId,
+  currentUserOrNull,
+  openSession,
+  type FormBody,
+  type Variables,
 } from '../../shared/http';
 import { logger } from '../../shared/log';
 import {
@@ -29,14 +29,14 @@ const DESTINO_APOS_ENTRAR = ROTAS.publicas.painel();
 
 const DESTINO_APOS_SAIR = `${ROTAS.publicas.login()}?${PARAMETROS.ok}=${encodeURIComponent(AVISOS.sessaoEncerrada)}`;
 
-export const rotasLogin = new Hono<{ Variables: Variaveis }>();
+export const rotasLogin = new Hono<{ Variables: Variables }>();
 
-const texto = (corpo: CorpoDeFormulario, campo: string): string => {
+const texto = (corpo: FormBody, campo: string): string => {
   const valor = corpo[campo];
   return typeof valor === 'string' ? valor.trim() : '';
 };
 
-const senhaDigitada = (corpo: CorpoDeFormulario): string => {
+const senhaDigitada = (corpo: FormBody): string => {
   const valor = corpo[CAMPOS.login.senha];
   return typeof valor === 'string' ? valor : '';
 };
@@ -58,17 +58,17 @@ const telaDeEntrada = (c: Context, dados: Record<string, unknown> = {}): Respons
   });
 
 rotasLogin.get(ROTAS.publicas.login.padrao, (c) => {
-  if (usuarioAtualOuNulo(c) !== null) return c.redirect(DESTINO_APOS_ENTRAR, 303);
+  if (currentUserOrNull(c) !== null) return c.redirect(DESTINO_APOS_ENTRAR, 303);
   return telaDeEntrada(c);
 });
 
 rotasLogin.post(ROTAS.publicas.login.padrao, async (c) => {
-  if (usuarioAtualOuNulo(c) !== null) return c.redirect(DESTINO_APOS_ENTRAR, 303);
+  if (currentUserOrNull(c) !== null) return c.redirect(DESTINO_APOS_ENTRAR, 303);
 
-  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const corpo = c.get(CONTEXT_VARIABLES.body);
   const redeSlug = texto(corpo, CAMPOS.login.redeSlug);
   const cpf = texto(corpo, CAMPOS.login.cpf);
-  const ip = ipDoCliente(c.req.raw, enderecoRemoto(c), config.proxiesConfiaveis);
+  const ip = clientIp(c.req.raw, enderecoRemoto(c), config.trustedProxies);
 
   const resultado = await identidade.autenticar({
     redeSlug,
@@ -85,7 +85,7 @@ rotasLogin.post(ROTAS.publicas.login.padrao, async (c) => {
     return telaDeEntrada(c, { valores: { redeSlug, cpf }, erros: resultado.erros });
   }
 
-  await abrirSessao(c, resultado.valor.sessaoId);
+  await openSession(c, resultado.valor.sessaoId);
   logger.info(
     { rede_slug: redeSlug, resultado: EVENTOS_DE_LOG.sucesso, ip },
     EVENTOS_DE_LOG.tentativaDeEntrada,
@@ -94,8 +94,8 @@ rotasLogin.post(ROTAS.publicas.login.padrao, async (c) => {
 });
 
 rotasLogin.post(ROTAS.publicas.logout.padrao, async (c) => {
-  const sessaoId = sessaoIdAtual(c);
+  const sessaoId = currentSessionId(c);
   if (sessaoId !== null) await identidade.encerrarSessao(sessaoId);
-  await fecharSessao(c);
+  await closeSession(c);
   return c.redirect(DESTINO_APOS_SAIR, 303);
 });

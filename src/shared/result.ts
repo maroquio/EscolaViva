@@ -1,27 +1,27 @@
-const SEPARADOR_DE_CAMINHO_DE_CAMPO = '.';
+const FIELD_PATH_SEPARATOR = '.';
 
-export type ErroDeAplicacao = { campo?: string; codigo: string; mensagem: string };
+export type ApplicationError = { campo?: string; codigo: string; mensagem: string };
 
-export type Resultado<T> = { ok: true; valor: T } | { ok: false; erros: ErroDeAplicacao[] };
+export type Result<T> = { ok: true; valor: T } | { ok: false; erros: ApplicationError[] };
 
-export const sucesso = <T>(valor: T): Resultado<T> => ({ ok: true, valor });
+export const success = <T>(valor: T): Result<T> => ({ ok: true, valor });
 
-export const falha = <T = never>(...erros: ErroDeAplicacao[]): Resultado<T> => ({
+export const failure = <T = never>(...erros: ApplicationError[]): Result<T> => ({
   ok: false,
   erros,
 });
 
-export const falhaDeCampo = <T = never>(
+export const fieldFailure = <T = never>(
   campo: string,
   codigo: string,
   mensagem: string,
-): Resultado<T> => ({ ok: false, erros: [{ campo, codigo, mensagem }] });
+): Result<T> => ({ ok: false, erros: [{ campo, codigo, mensagem }] });
 
-export const errosDeSchema = (
+export const schemaErrors = (
   issues: { path: (string | number)[]; message: string; code: string }[],
-): ErroDeAplicacao[] =>
-  issues.map((problema) => {
-    const campo = problema.path.join(SEPARADOR_DE_CAMINHO_DE_CAMPO);
-    const erro: ErroDeAplicacao = { codigo: problema.code, mensagem: problema.message };
-    return campo === '' ? erro : { ...erro, campo };
+): ApplicationError[] =>
+  issues.map((issue) => {
+    const campo = issue.path.join(FIELD_PATH_SEPARATOR);
+    const error: ApplicationError = { codigo: issue.code, mensagem: issue.message };
+    return campo === '' ? error : { ...error, campo };
   });

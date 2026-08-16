@@ -9,8 +9,8 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { identidade } from '../../src/identidade';
-import { gerarCpf } from '../../src/shared/document';
-import type { ErroDeAplicacao, Resultado } from '../../src/shared/result';
+import { generateCpf } from '../../src/shared/document';
+import type { ApplicationError, Result } from '../../src/shared/result';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
   cenarioCompleto,
@@ -21,14 +21,14 @@ import {
   duasRedes,
 } from '../apoio/fabricas';
 
-function valorDe<T>(resultado: Resultado<T>): T {
+function valorDe<T>(resultado: Result<T>): T {
   if (!resultado.ok) {
     throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(resultado.erros)}`);
   }
   return resultado.valor;
 }
 
-function errosDe(resultado: Resultado<unknown>): ErroDeAplicacao[] {
+function errosDe(resultado: Result<unknown>): ApplicationError[] {
   if (resultado.ok) throw new Error('esperava recusa da aplicação, veio sucesso');
   return resultado.erros;
 }
@@ -45,7 +45,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Ana Souza',
       email: 'ana.souza@convite.br',
-      cpf: gerarCpf(3),
+      cpf: generateCpf(3),
       atribuicoes: [
         { unidadeId: centro.id, papel: 'teacher' },
         { unidadeId: praia.id, papel: 'registrar' },
@@ -60,7 +60,7 @@ describe('convidarUsuario', () => {
         id: usuarioId,
         nome: 'Ana Souza',
         email: 'ana.souza@convite.br',
-        cpf: gerarCpf(3),
+        cpf: generateCpf(3),
         ativo: true,
         papeis: [
           { unidadeId: centro.id, unidadeNome: 'Escola Centro', papel: 'teacher' },
@@ -77,13 +77,13 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Bia Nunes',
       email: 'bia@provisoria.br',
-      cpf: gerarCpf(4),
+      cpf: generateCpf(4),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'registrar' }],
     });
 
     const entrada = await identidade.autenticar({
       redeSlug: 'provisoria',
-      identificador: gerarCpf(4),
+      identificador: generateCpf(4),
       senha: valorDe(convite).senhaProvisoria,
       ip: '',
     });
@@ -99,7 +99,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Carlos Lima',
       email: '  Carlos.LIMA@Escola.BR  ',
-      cpf: gerarCpf(5),
+      cpf: generateCpf(5),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'teacher' }],
     });
 
@@ -107,7 +107,7 @@ describe('convidarUsuario', () => {
     expect(usuarios[0]?.email).toBe('carlos.lima@escola.br');
     const entrada = await identidade.autenticar({
       redeSlug: 'normalizado',
-      identificador: gerarCpf(5),
+      identificador: generateCpf(5),
       senha: valorDe(convite).senhaProvisoria,
       ip: '',
     });
@@ -123,7 +123,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Outra Pessoa',
       email: 'ocupado@escola.br',
-      cpf: gerarCpf(6),
+      cpf: generateCpf(6),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'teacher' }],
     });
 
@@ -146,7 +146,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Outra Pessoa',
       email: 'OCUPADO@Escola.BR',
-      cpf: gerarCpf(7),
+      cpf: generateCpf(7),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'teacher' }],
     });
 
@@ -164,7 +164,7 @@ describe('convidarUsuario', () => {
       redeId: colegio.id,
       nome: 'Ana Souza',
       email: 'ana.souza@escola.br',
-      cpf: gerarCpf(8),
+      cpf: generateCpf(8),
       atribuicoes: [{ unidadeId: doColegio.id, papel: 'registrar' }],
     });
 
@@ -182,7 +182,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Mãe da Ana',
       email: 'mae.da.ana@familia.br',
-      cpf: gerarCpf(9),
+      cpf: generateCpf(9),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'guardian' }],
     });
 
@@ -206,14 +206,14 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Mãe da Ana',
       email: 'mae.da.ana@familia.br',
-      cpf: gerarCpf(10),
+      cpf: generateCpf(10),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'guardian' }],
       responsavelId: responsavel.id,
     });
 
     const entrada = await identidade.autenticar({
       redeSlug: 'portal',
-      identificador: gerarCpf(10),
+      identificador: generateCpf(10),
       senha: valorDe(convite).senhaProvisoria,
       ip: '',
     });
@@ -229,7 +229,7 @@ describe('convidarUsuario', () => {
       redeId: nossa.id,
       nome: 'Intrusa',
       email: 'intrusa@escola.br',
-      cpf: gerarCpf(11),
+      cpf: generateCpf(11),
       atribuicoes: [{ unidadeId: unidadeAlheia.id, papel: 'network_admin' }],
     });
 
@@ -250,7 +250,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Sem Papel',
       email: 'sem.papel@escola.br',
-      cpf: gerarCpf(12),
+      cpf: generateCpf(12),
       atribuicoes: [],
     });
 
@@ -265,7 +265,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Ana Souza',
       email: 'ana-arroba-nada',
-      cpf: gerarCpf(13),
+      cpf: generateCpf(13),
       atribuicoes: [{ unidadeId: unidade.id, papel: 'teacher' }],
     });
 
@@ -281,7 +281,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Ana Souza',
       email: 'ana@escola.br',
-      cpf: gerarCpf(14),
+      cpf: generateCpf(14),
       atribuicoes: [
         { unidadeId: unidade.id, papel: 'teacher' },
         { unidadeId: unidade.id, papel: 'teacher' },
@@ -354,7 +354,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Mãe do Aluno',
       email: 'mae@escolaviva.test',
-      cpf: gerarCpf(1),
+      cpf: generateCpf(1),
       responsavelId: responsavel.id,
       cpfDoCadastro: responsavel.cpf,
       nomeDoCadastro: responsavel.name,
@@ -380,7 +380,7 @@ describe('convidarUsuario', () => {
       redeId: rede.id,
       nome: 'Pai do Aluno',
       email: 'pai@escolaviva.test',
-      cpf: gerarCpf(2),
+      cpf: generateCpf(2),
       responsavelId: responsavel.id,
       cpfDoCadastro: null,
       nomeDoCadastro: responsavel.name,

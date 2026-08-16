@@ -8,24 +8,18 @@ import {
   avaliacao,
 } from '../../avaliacao';
 import { PAPEL } from '../../identidade';
+import { CONTEXT_VARIABLES, FORMATS, ISO_DATE_LENGTH, LOCALE, TIME } from '../../shared/constants';
 import {
-  FORMATOS,
-  LOCALE,
-  TAMANHO_DA_DATA_ISO,
-  TEMPO,
-  VARIAVEIS_DE_CONTEXTO,
-} from '../../shared/constants';
-import {
-  NaoEncontrado,
-  RegraDeNegocio,
-  exigirPapel,
-  redeAtual,
-  usuarioAtual,
-  type CorpoDeFormulario,
-  type Variaveis,
+  BusinessRuleViolation,
+  NotFound,
+  currentNetwork,
+  currentUser,
+  requireRole,
+  type FormBody,
+  type Variables,
 } from '../../shared/http';
-import { clockDoSistema } from '../../shared/ports';
-import type { ErroDeAplicacao } from '../../shared/result';
+import { systemClock } from '../../shared/ports';
+import type { ApplicationError } from '../../shared/result';
 import {
   APRESENTACAO,
   AVISOS,
@@ -43,7 +37,7 @@ import {
 import { formatarData, renderizar, type DadosDeTemplate } from '../render';
 import type { Params } from './mapa';
 
-type ContextoWeb = Context<{ Variables: Variaveis }>;
+type ContextoWeb = Context<{ Variables: Variables }>;
 
 type Alocacao = Awaited<ReturnType<typeof academico.turmaDisciplinasDoProfessor>>[number];
 
@@ -58,12 +52,12 @@ type TurmaDoProfessor = {
 type LancamentoRecusado = {
   valores: Map<string, string>;
   porMatricula: Map<string, string>;
-  problemas: readonly ErroDeAplicacao[];
+  problemas: readonly ApplicationError[];
 };
 
 type ChamadaRecusada = {
   informadas: Map<string, { presente: boolean; justificativa: string }>;
-  problemas: readonly ErroDeAplicacao[];
+  problemas: readonly ApplicationError[];
 };
 
 const PARAMETROS_DE_ROTA = {
@@ -92,7 +86,7 @@ const NOTA_INVALIDA = NOTA_FORA_DA_FAIXA(
   LIMITES_DA_AVALIACAO.nota.maximo,
 );
 
-const RESUMO_DE_NOTAS_INVALIDAS: ErroDeAplicacao = {
+const RESUMO_DE_NOTAS_INVALIDAS: ApplicationError = {
   ...ERROS_DE_FORMULARIO.notaInvalida,
   mensagem: RESUMO_DE_NOTA_FORA_DA_FAIXA(
     LIMITES_DA_AVALIACAO.nota.minimo,
@@ -103,12 +97,12 @@ const RESUMO_DE_NOTAS_INVALIDAS: ErroDeAplicacao = {
 const comParametros = (caminho: string, parametros: Record<string, string>): string =>
   `${caminho}?${new URLSearchParams(parametros).toString()}`;
 
-const campo = (corpo: CorpoDeFormulario, nome: string): string => {
+const campo = (corpo: FormBody, nome: string): string => {
   const valor = corpo[nome];
   return typeof valor === 'string' ? valor.trim() : '';
 };
 
-const marcado = (corpo: CorpoDeFormulario, nome: string): boolean => corpo[nome] !== undefined;
+const marcado = (corpo: FormBody, nome: string): boolean => corpo[nome] !== undefined;
 
 const ouNulo = (texto: string): string | null => (texto === '' ? null : texto);
 
@@ -123,24 +117,24 @@ const doisDigitos = (valor: number): string =>
   String(valor).padStart(APRESENTACAO.colunaDeDoisDigitos, APRESENTACAO.preenchimentoDeDigito);
 
 const hoje = (): string => {
-  const d = clockDoSistema.agora();
+  const d = systemClock.now();
   return `${d.getFullYear()}-${doisDigitos(d.getMonth() + 1)}-${doisDigitos(d.getDate())}`;
 };
 
 const dataOuNula = (bruto: string | undefined): string | null => {
-  if (bruto === undefined || !FORMATOS.dataIso.test(bruto)) return null;
+  if (bruto === undefined || !FORMATS.isoDate.test(bruto)) return null;
   const convertida = new Date(`${bruto}${MEIO_DIA_UTC}`);
   if (Number.isNaN(convertida.getTime())) return null;
-  return convertida.toISOString().slice(0, TAMANHO_DA_DATA_ISO) === bruto ? bruto : null;
+  return convertida.toISOString().slice(0, ISO_DATE_LENGTH) === bruto ? bruto : null;
 };
 
 const deslocarDia = (data: string, dias: number): string => {
   const base = new Date(`${data}${MEIO_DIA_UTC}`).getTime();
-  return new Date(base + dias * TEMPO.msPorDia).toISOString().slice(0, TAMANHO_DA_DATA_ISO);
+  return new Date(base + dias * TIME.msPerDay).toISOString().slice(0, ISO_DATE_LENGTH);
 };
 
 const alocacoesDoProfessor = (c: ContextoWeb): Promise<Alocacao[]> =>
-  academico.turmaDisciplinasDoProfessor(redeAtual(c), usuarioAtual(c).id);
+  academico.turmaDisciplinasDoProfessor(currentNetwork(c), currentUser(c).id);
 
 function agruparPorTurma(alocacoes: readonly Alocacao[]): TurmaDoProfessor[] {
   const turmas = new Map<string, TurmaDoProfessor>();
@@ -164,13 +158,13 @@ const comLinks = (turma: TurmaDoProfessor) => ({
 
 function alocacaoOu404(alocacoes: readonly Alocacao[], turmaDisciplinaId: string): Alocacao {
   const alocacao = alocacoes.find((candidata) => candidata.id === turmaDisciplinaId);
-  if (alocacao === undefined) throw new NaoEncontrado(DIAGNOSTICOS.disciplinaForaDoQuadro);
+  if (alocacao === undefined) throw new NotFound(DIAGNOSTICOS.disciplinaForaDoQuadro);
   return alocacao;
 }
 
 function turmaOu404(alocacoes: readonly Alocacao[], turmaId: string): TurmaDoProfessor {
   const turma = agruparPorTurma(alocacoes).find((candidata) => candidata.turmaId === turmaId);
-  if (turma === undefined) throw new NaoEncontrado(DIAGNOSTICOS.turmaForaDoQuadro);
+  if (turma === undefined) throw new NotFound(DIAGNOSTICOS.turmaForaDoQuadro);
   return turma;
 }
 
@@ -189,7 +183,7 @@ const comoNota = (digitado: string): number | null | undefined => {
   return numero;
 };
 
-function lerNotas(corpo: CorpoDeFormulario, matriculas: readonly { id: string }[]) {
+function lerNotas(corpo: FormBody, matriculas: readonly { id: string }[]) {
   const valores = new Map<string, string>();
   const porMatricula = new Map<string, string>();
   const notas = matriculas.map((matricula) => {
@@ -208,7 +202,7 @@ async function telaDeNotas(
   bimestre: number,
   recusado: LancamentoRecusado | null,
 ): Promise<DadosDeTemplate> {
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const [matriculas, notas, estados] = await Promise.all([
     academico.matriculasAtivasDaTurma(redeId, alocacao.turmaId),
     avaliacao.notasDaTurmaDisciplina(redeId, alocacao.id, bimestre),
@@ -252,7 +246,7 @@ async function telaDeChamada(
   data: string,
   recusada: ChamadaRecusada | null,
 ): Promise<DadosDeTemplate> {
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const [matriculas, registradas] = await Promise.all([
     academico.matriculasAtivasDaTurma(redeId, turma.turmaId),
     avaliacao.chamadaDoDia(redeId, turma.turmaId, data),
@@ -288,7 +282,7 @@ async function telaDeChamada(
 const telaDeFechamento = (
   turma: TurmaDoProfessor,
   estados: readonly { bimestre: number; fechado: boolean; fechadoEm: string | null }[],
-  problemas: readonly ErroDeAplicacao[],
+  problemas: readonly ApplicationError[],
   bimestreRecusado: number | null,
 ): DadosDeTemplate => ({
   ...SEPARADORES,
@@ -303,9 +297,9 @@ const telaDeFechamento = (
   erros: problemas,
 });
 
-export const rotasProfessor = new Hono<{ Variables: Variaveis }>();
+export const rotasProfessor = new Hono<{ Variables: Variables }>();
 
-rotasProfessor.use(exigirPapel(PAPEL.professor));
+rotasProfessor.use(requireRole(PAPEL.professor));
 
 rotasProfessor.get(ROTAS.professor.painel.padrao, async (c) => {
   const turmas = agruparPorTurma(await alocacoesDoProfessor(c)).map(comLinks);
@@ -331,14 +325,14 @@ rotasProfessor.post(ROTAS.professor.notas.padrao, async (c) => {
     await alocacoesDoProfessor(c),
     c.req.param(PARAMETROS_DE_ROTA.turmaDisciplinaId),
   );
-  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const corpo = c.get(CONTEXT_VARIABLES.body);
   const bimestre = bimestreOuNulo(campo(corpo, CAMPOS.bimestre));
-  if (bimestre === null) throw new RegraDeNegocio(DIAGNOSTICOS.bimestreNoLancamento);
+  if (bimestre === null) throw new BusinessRuleViolation(DIAGNOSTICOS.bimestreNoLancamento);
 
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const matriculas = await academico.matriculasAtivasDaTurma(redeId, alocacao.turmaId);
   const { valores, porMatricula, notas } = lerNotas(corpo, matriculas);
-  const recusar = async (problemas: readonly ErroDeAplicacao[]): Promise<Response> =>
+  const recusar = async (problemas: readonly ApplicationError[]): Promise<Response> =>
     renderizar(
       c,
       TEMPLATES.professor.notas,
@@ -348,7 +342,7 @@ rotasProfessor.post(ROTAS.professor.notas.padrao, async (c) => {
   if (porMatricula.size > 0) return await recusar([RESUMO_DE_NOTAS_INVALIDAS]);
 
   const resultado = await avaliacao.lancarNotas({
-    redeId, turmaDisciplinaId: alocacao.id, bimestre, lancadaPor: usuarioAtual(c).id, notas,
+    redeId, turmaDisciplinaId: alocacao.id, bimestre, lancadaPor: currentUser(c).id, notas,
   });
   if (!resultado.ok) return await recusar(resultado.erros);
 
@@ -370,11 +364,11 @@ rotasProfessor.get(ROTAS.professor.chamada.padrao, async (c) => {
 
 rotasProfessor.post(ROTAS.professor.chamada.padrao, async (c) => {
   const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param(PARAMETROS_DE_ROTA.turmaId));
-  const corpo = c.get(VARIAVEIS_DE_CONTEXTO.corpo);
+  const corpo = c.get(CONTEXT_VARIABLES.body);
   const data = dataOuNula(campo(corpo, CAMPOS.data));
-  if (data === null) throw new RegraDeNegocio(DIAGNOSTICOS.dataDeChamadaMalformada);
+  if (data === null) throw new BusinessRuleViolation(DIAGNOSTICOS.dataDeChamadaMalformada);
 
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const matriculas = await academico.matriculasAtivasDaTurma(redeId, turma.turmaId);
   const informadas = new Map<string, { presente: boolean; justificativa: string }>();
   const linhas = matriculas.map((matricula) => {
@@ -404,7 +398,7 @@ rotasProfessor.post(ROTAS.professor.chamada.padrao, async (c) => {
 
 rotasProfessor.get(ROTAS.professor.fechamento.padrao, async (c) => {
   const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param(PARAMETROS_DE_ROTA.turmaId));
-  const estados = await avaliacao.estadoDeFechamento(redeAtual(c), turma.turmaId);
+  const estados = await avaliacao.estadoDeFechamento(currentNetwork(c), turma.turmaId);
   return renderizar(
     c,
     TEMPLATES.professor.fechamento,
@@ -414,12 +408,12 @@ rotasProfessor.get(ROTAS.professor.fechamento.padrao, async (c) => {
 
 rotasProfessor.post(ROTAS.professor.fechamento.padrao, async (c) => {
   const turma = turmaOu404(await alocacoesDoProfessor(c), c.req.param(PARAMETROS_DE_ROTA.turmaId));
-  const bimestre = bimestreOuNulo(campo(c.get(VARIAVEIS_DE_CONTEXTO.corpo), CAMPOS.bimestre));
-  if (bimestre === null) throw new RegraDeNegocio(DIAGNOSTICOS.bimestreNoFechamento);
+  const bimestre = bimestreOuNulo(campo(c.get(CONTEXT_VARIABLES.body), CAMPOS.bimestre));
+  if (bimestre === null) throw new BusinessRuleViolation(DIAGNOSTICOS.bimestreNoFechamento);
 
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const resultado = await avaliacao.fecharBimestre({
-    redeId, turmaId: turma.turmaId, bimestre, fechadoPor: usuarioAtual(c).id,
+    redeId, turmaId: turma.turmaId, bimestre, fechadoPor: currentUser(c).id,
   });
   if (!resultado.ok) {
     const estados = await avaliacao.estadoDeFechamento(redeId, turma.turmaId);

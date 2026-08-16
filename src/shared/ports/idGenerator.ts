@@ -1,7 +1,7 @@
 export interface IdGenerator {
-  novo(): string;
+  next(): string;
 }
 
-export const idGeneratorUuid: IdGenerator = {
-  novo: () => crypto.randomUUID(),
+export const uuidIdGenerator: IdGenerator = {
+  next: () => crypto.randomUUID(),
 };

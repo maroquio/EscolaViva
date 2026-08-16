@@ -4,12 +4,12 @@
  */
 
 import { describe, expect, test } from 'bun:test';
-import { gerarCpf } from '../../src/shared/document';
+import { generateCpf } from '../../src/shared/document';
 import { PAPEIS, papelValido, paraPapel } from '../../src/identidade/dominio/papel';
 import {
+  STATUS_DE_REDE,
   paraStatusDeRede,
   redeAtiva,
-  STATUS_DE_REDE,
   type Rede,
 } from '../../src/identidade/dominio/rede';
 import {
@@ -18,8 +18,8 @@ import {
   type Sessao,
 } from '../../src/identidade/dominio/sessao';
 import {
-  emailNormalizado,
   TAMANHO_MINIMO_DE_SENHA,
+  emailNormalizado,
   usuarioAutenticado,
   type Usuario,
 } from '../../src/identidade/dominio/usuario';
@@ -152,7 +152,7 @@ describe('usuário', () => {
       redeId: 'rede-1',
       nome: 'Ana Souza',
       email: 'ana.souza@escola.br',
-      cpf: gerarCpf(1),
+      cpf: generateCpf(1),
       ativo: true,
       responsavelId: null,
     };
@@ -181,7 +181,7 @@ describe('usuário', () => {
       redeId: 'rede-1',
       nome: 'Carlos Lima',
       email: 'carlos@familia.br',
-      cpf: gerarCpf(2),
+      cpf: generateCpf(2),
       ativo: true,
       responsavelId: 'responsavel-9',
     };
@@ -197,7 +197,7 @@ describe('usuário', () => {
       redeId: 'rede-1',
       nome: 'Bia Nunes',
       email: 'bia@escola.br',
-      cpf: gerarCpf(3),
+      cpf: generateCpf(3),
       ativo: true,
       responsavelId: null,
     };

@@ -1,70 +1,70 @@
-import { TAMANHO_PADRAO } from '../constants';
+import { DEFAULT_PAGE_SIZE } from '../constants';
 
-export { TAMANHO_PADRAO };
+export { DEFAULT_PAGE_SIZE };
 
-export type Faixa = {
-  readonly limite: number;
-  readonly deslocamento: number;
+export type Range = {
+  readonly limit: number;
+  readonly offset: number;
 };
 
-export type Pagina<T> = {
-  readonly itens: readonly T[];
+export type Page<T> = {
+  readonly items: readonly T[];
   readonly total: number;
-  readonly pagina: number;
-  readonly tamanho: number;
-  readonly paginas: number;
+  readonly page: number;
+  readonly size: number;
+  readonly pages: number;
 };
 
-export function paginaPedida(bruto: string | undefined | null): number {
-  const numero = Number(bruto);
-  if (!Number.isFinite(numero)) return 1;
-  return Math.max(1, Math.trunc(numero));
+export function requestedPage(raw: string | undefined | null): number {
+  const number = Number(raw);
+  if (!Number.isFinite(number)) return 1;
+  return Math.max(1, Math.trunc(number));
 }
 
-export function faixaDe(pagina: number, tamanho: number = TAMANHO_PADRAO): Faixa {
-  return { limite: tamanho, deslocamento: (Math.max(1, pagina) - 1) * tamanho };
+export function rangeFor(page: number, size: number = DEFAULT_PAGE_SIZE): Range {
+  return { limit: size, offset: (Math.max(1, page) - 1) * size };
 }
 
-export function recorte(faixa?: Faixa): { limite: number | null; deslocamento: number | null } {
-  if (faixa === undefined) return { limite: null, deslocamento: null };
-  return { limite: faixa.limite, deslocamento: faixa.deslocamento };
+export function rangeParams(range?: Range): { limit: number | null; offset: number | null } {
+  if (range === undefined) return { limit: null, offset: null };
+  return { limit: range.limit, offset: range.offset };
 }
 
-export function totalDePaginas(total: number, tamanho: number): number {
-  return Math.max(1, Math.ceil(total / tamanho));
+export function pageCount(total: number, size: number): number {
+  return Math.max(1, Math.ceil(total / size));
 }
 
-export function paginaVazia<T>(tamanho: number = TAMANHO_PADRAO): Pagina<T> {
-  return { itens: [], total: 0, pagina: 1, tamanho, paginas: 1 };
+export function emptyPage<T>(size: number = DEFAULT_PAGE_SIZE): Page<T> {
+  return { items: [], total: 0, page: 1, size, pages: 1 };
 }
 
-export async function consultarPagina<T>(
-  pagina: number,
-  tamanho: number,
-  contar: () => Promise<number>,
-  buscar: (faixa: Faixa) => Promise<T[]>,
-): Promise<Pagina<T>> {
-  const pedida = Math.max(1, Math.trunc(pagina) || 1);
-  const [total, itens] = await Promise.all([contar(), buscar(faixaDe(pedida, tamanho))]);
-  const paginas = totalDePaginas(total, tamanho);
-  if (pedida <= paginas) return { itens, total, pagina: pedida, tamanho, paginas };
+export async function queryPage<T>(
+  page: number,
+  size: number,
+  count: () => Promise<number>,
+  search: (range: Range) => Promise<T[]>,
+): Promise<Page<T>> {
+  const requested = Math.max(1, Math.trunc(page) || 1);
+  const [total, items] = await Promise.all([count(), search(rangeFor(requested, size))]);
+  const pages = pageCount(total, size);
+  if (requested <= pages) return { items, total, page: requested, size, pages };
   return {
-    itens: await buscar(faixaDe(paginas, tamanho)),
+    items: await search(rangeFor(pages, size)),
     total,
-    pagina: paginas,
-    tamanho,
-    paginas,
+    page: pages,
+    size,
+    pages,
   };
 }
 
-export function fatiar<T>(
-  itens: readonly T[],
-  pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Pagina<T> {
-  const total = itens.length;
-  const paginas = totalDePaginas(total, tamanho);
-  const atual = Math.min(Math.max(1, Math.trunc(pagina) || 1), paginas);
-  const inicio = (atual - 1) * tamanho;
-  return { itens: itens.slice(inicio, inicio + tamanho), total, pagina: atual, tamanho, paginas };
+export function sliceItems<T>(
+  items: readonly T[],
+  page: number,
+  size: number = DEFAULT_PAGE_SIZE,
+): Page<T> {
+  const total = items.length;
+  const pages = pageCount(total, size);
+  const current = Math.min(Math.max(1, Math.trunc(page) || 1), pages);
+  const start = (current - 1) * size;
+  return { items: items.slice(start, start + size), total, page: current, size, pages };
 }

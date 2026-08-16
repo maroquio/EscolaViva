@@ -1,5 +1,5 @@
 import type { Hono } from 'hono';
-import { middlewareIdempotencia, type Variaveis } from '../../shared/http';
+import { idempotencyMiddleware, type Variables } from '../../shared/http';
 import { GRUPOS_DE_ESCRITA, ROTAS, curingaDe } from '../constantes';
 import { rotasComunicados } from './comunicados';
 import { rotasConta } from './conta';
@@ -9,13 +9,13 @@ import { rotasRede } from './rede';
 import { rotasResponsavel } from './responsavel';
 import { rotasSecretaria } from './secretaria';
 
-export type AplicacaoWeb = Hono<{ Variables: Variaveis }>;
+export type AplicacaoWeb = Hono<{ Variables: Variables }>;
 
 export function montarRotas(app: AplicacaoWeb): void {
-  app.use(ROTAS.publicas.login.padrao, middlewareIdempotencia);
+  app.use(ROTAS.publicas.login.padrao, idempotencyMiddleware);
   for (const prefixo of GRUPOS_DE_ESCRITA) {
-    app.use(prefixo, middlewareIdempotencia);
-    app.use(curingaDe(prefixo), middlewareIdempotencia);
+    app.use(prefixo, idempotencyMiddleware);
+    app.use(curingaDe(prefixo), idempotencyMiddleware);
   }
 
   app.route(ROTAS.publicas.prefixo, rotasLogin);

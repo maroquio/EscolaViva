@@ -1,5 +1,5 @@
-import type { Conexao } from '../../shared/db';
-import type { Faixa } from '../../shared/pagination';
+import type { Connection } from '../../shared/db';
+import type { Range } from '../../shared/pagination';
 import { LIMITES } from '../constantes';
 import type { Aluno } from '../dominio/aluno';
 
@@ -20,13 +20,13 @@ const paraAluno = (linha: LinhaDeAluno): Aluno => ({
 const escaparCuringas = (termo: string): string =>
   termo.replace(/[\\%_]/g, (caractere) => `\\${caractere}`);
 
-export async function inserir(sql: Conexao, aluno: Aluno): Promise<void> {
+export async function inserir(sql: Connection, aluno: Aluno): Promise<void> {
   await sql`
     INSERT INTO student (id, network_id, name, birth_date)
     VALUES (${aluno.id}, ${aluno.redeId}, ${aluno.nome}, ${aluno.dataNascimento})`;
 }
 
-export async function porId(sql: Conexao, redeId: string, id: string): Promise<Aluno | null> {
+export async function porId(sql: Connection, redeId: string, id: string): Promise<Aluno | null> {
   const linhas: LinhaDeAluno[] = await sql`
     SELECT id, network_id, name, to_char(birth_date, 'YYYY-MM-DD') AS birth_date
       FROM student
@@ -36,10 +36,10 @@ export async function porId(sql: Conexao, redeId: string, id: string): Promise<A
 }
 
 export async function buscar(
-  sql: Conexao,
+  sql: Connection,
   redeId: string,
   termo: string,
-  faixa?: Faixa,
+  faixa?: Range,
 ): Promise<Aluno[]> {
   const padrao = `%${escaparCuringas(termo.trim())}%`;
   const linhas: LinhaDeAluno[] = await sql`
@@ -47,11 +47,11 @@ export async function buscar(
       FROM student
      WHERE network_id = ${redeId} AND name ILIKE ${padrao}
      ORDER BY name
-     LIMIT ${faixa?.limite ?? LIMITES.aluno.linhasDaBusca} OFFSET ${faixa?.deslocamento ?? 0}`;
+     LIMIT ${faixa?.limit ?? LIMITES.aluno.linhasDaBusca} OFFSET ${faixa?.offset ?? 0}`;
   return linhas.map(paraAluno);
 }
 
-export async function contarBusca(sql: Conexao, redeId: string, termo: string): Promise<number> {
+export async function contarBusca(sql: Connection, redeId: string, termo: string): Promise<number> {
   const padrao = `%${escaparCuringas(termo.trim())}%`;
   const linhas: { total: number }[] = await sql`
     SELECT count(*)::int AS total

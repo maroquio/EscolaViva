@@ -10,18 +10,18 @@ import {
 import { comunicacao, type ItemDoMural } from '../../comunicacao';
 import { PAPEL } from '../../identidade';
 import {
-  NaoEncontrado,
-  exigirPapel,
-  redeAtual,
-  usuarioAtual,
-  type Variaveis,
+  NotFound,
+  currentNetwork,
+  currentUser,
+  requireRole,
+  type Variables,
 } from '../../shared/http';
-import { paginaVazia } from '../../shared/pagination';
+import { emptyPage } from '../../shared/pagination';
 import {
   APRESENTACAO,
-  AUSENTE,
   AVISOS,
   DIAGNOSTICOS,
+  MISSING_VALUE,
   PARAMETROS,
   ROTAS,
   TEMPLATES,
@@ -30,9 +30,9 @@ import {
 import { navegacao, paginaDaQuery } from '../paginacao';
 import { formatarNota, renderizar } from '../render';
 
-export const rotasResponsavel = new Hono<{ Variables: Variaveis }>();
+export const rotasResponsavel = new Hono<{ Variables: Variables }>();
 
-rotasResponsavel.use(exigirPapel(PAPEL.responsavel));
+rotasResponsavel.use(requireRole(PAPEL.responsavel));
 
 const PARCIAIS = { parciais: TEMPLATES.parciais };
 
@@ -52,16 +52,16 @@ const CRITERIO_DE_APROVACAO = {
   frequencia: `${naEscalaDaTela(APROVACAO.frequenciaMinimaEmCentesimos)}${APRESENTACAO.sufixoDePercentual}`,
 };
 
-const responsavelDaSessao = (c: Context): string | null => usuarioAtual(c).responsavelId;
+const responsavelDaSessao = (c: Context): string | null => currentUser(c).responsavelId;
 
 const matriculaSobResponsabilidade = async (c: Context, matriculaId: string): Promise<Matricula> => {
   const responsavelId = responsavelDaSessao(c);
-  if (responsavelId === null) throw new NaoEncontrado(DIAGNOSTICOS.contaSemResponsavel);
+  if (responsavelId === null) throw new NotFound(DIAGNOSTICOS.contaSemResponsavel);
 
-  const matriculas = await academico.matriculasDoResponsavel(redeAtual(c), responsavelId);
+  const matriculas = await academico.matriculasDoResponsavel(currentNetwork(c), responsavelId);
   const matricula = matriculas.find((linha) => linha.id === matriculaId);
   if (matricula === undefined) {
-    throw new NaoEncontrado(DIAGNOSTICOS.matriculaForaDaResponsabilidade);
+    throw new NotFound(DIAGNOSTICOS.matriculaForaDaResponsabilidade);
   }
   return matricula;
 };
@@ -73,7 +73,7 @@ const comMensagem = (destino: string, aviso: Record<string, string>): string =>
   `${destino}?${new URLSearchParams(aviso).toString()}`;
 
 rotasResponsavel.get(ROTAS.responsavel.painel.padrao, async (c) => {
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const responsavelId = responsavelDaSessao(c);
 
   if (responsavelId === null) {
@@ -82,7 +82,7 @@ rotasResponsavel.get(ROTAS.responsavel.painel.padrao, async (c) => {
       ...ROTULOS_DO_ACADEMICO,
       titulo: TITULOS.responsavel.painel,
       matriculas: [],
-      navegacao: navegacao(c, paginaVazia<Matricula>()),
+      navegacao: navegacao(c, emptyPage<Matricula>()),
       naoLidos: [],
       totalNaoLidos: 0,
       totalNoMural: 0,
@@ -99,9 +99,9 @@ rotasResponsavel.get(ROTAS.responsavel.painel.padrao, async (c) => {
     ...PARCIAIS,
     ...ROTULOS_DO_ACADEMICO,
     titulo: TITULOS.responsavel.painel,
-    matriculas: pagina.itens,
+    matriculas: pagina.items,
     navegacao: navegacao(c, pagina),
-    naoLidos: naoLidos.itens,
+    naoLidos: naoLidos.items,
     totalNaoLidos: contagem.naoLidos,
     totalNoMural: contagem.total,
   });
@@ -111,8 +111,8 @@ rotasResponsavel.get(ROTAS.responsavel.boletim.padrao, async (c) => {
   const { id: matriculaId } = c.req.param();
   await matriculaSobResponsabilidade(c, matriculaId);
 
-  const boletim = await avaliacao.boletim(redeAtual(c), matriculaId);
-  if (boletim === null) throw new NaoEncontrado(DIAGNOSTICOS.matriculaSemBoletim);
+  const boletim = await avaliacao.boletim(currentNetwork(c), matriculaId);
+  if (boletim === null) throw new NotFound(DIAGNOSTICOS.matriculaSemBoletim);
 
   return renderizar(c, TEMPLATES.responsavel.boletim, {
     ...PARCIAIS,
@@ -127,34 +127,34 @@ rotasResponsavel.get(ROTAS.responsavel.boletim.padrao, async (c) => {
 
 rotasResponsavel.get(ROTAS.responsavel.frequencia.padrao, async (c) => {
   const { id: matriculaId } = c.req.param();
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const matricula = await matriculaSobResponsabilidade(c, matriculaId);
 
   const [dias, boletim] = await Promise.all([
     avaliacao.paginaDeFrequencia(redeId, matriculaId, paginaDaQuery(c)),
     avaliacao.boletim(redeId, matriculaId),
   ]);
-  if (boletim === null) throw new NaoEncontrado(DIAGNOSTICOS.matriculaSemFrequencia);
+  if (boletim === null) throw new NotFound(DIAGNOSTICOS.matriculaSemFrequencia);
 
   return renderizar(c, TEMPLATES.responsavel.frequencia, {
     ...PARCIAIS,
     rotuloDaPresenca: ROTULOS_DA_AVALIACAO.rotuloDaPresenca,
-    semValor: AUSENTE,
+    semValor: MISSING_VALUE,
     criterio: CRITERIO_DE_APROVACAO,
     titulo: TITULOS.responsavel.frequencia(matricula.alunoNome),
     matricula,
     boletim,
-    dias: dias.itens,
+    dias: dias.items,
     navegacao: navegacao(c, dias),
   });
 });
 
 rotasResponsavel.get(ROTAS.responsavel.mural.padrao, async (c) => {
   const responsavelId = responsavelDaSessao(c);
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const [naoLidos, lidos] =
     responsavelId === null
-      ? [paginaVazia<ItemDoMural>(), paginaVazia<ItemDoMural>()]
+      ? [emptyPage<ItemDoMural>(), emptyPage<ItemDoMural>()]
       : await Promise.all([
           comunicacao.paginaDoMural(
             redeId,
@@ -173,10 +173,10 @@ rotasResponsavel.get(ROTAS.responsavel.mural.padrao, async (c) => {
   return renderizar(c, TEMPLATES.responsavel.mural, {
     ...PARCIAIS,
     titulo: TITULOS.responsavel.mural,
-    naoLidos: naoLidos.itens,
+    naoLidos: naoLidos.items,
     navegacaoNaoLidos: navegacao(c, naoLidos, PARAMETROS.paginaDeNaoLidos),
     totalNaoLidos: naoLidos.total,
-    lidos: lidos.itens,
+    lidos: lidos.items,
     navegacaoLidos: navegacao(c, lidos, PARAMETROS.paginaDeLidos),
     totalLidos: lidos.total,
   });
@@ -184,15 +184,15 @@ rotasResponsavel.get(ROTAS.responsavel.mural.padrao, async (c) => {
 
 rotasResponsavel.get(ROTAS.responsavel.comunicado.padrao, async (c) => {
   const { comunicadoId } = c.req.param();
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const responsavelId = responsavelDaSessao(c);
-  if (responsavelId === null) throw new NaoEncontrado(DIAGNOSTICOS.contaSemResponsavel);
+  if (responsavelId === null) throw new NotFound(DIAGNOSTICOS.contaSemResponsavel);
 
   const [comunicado, mural] = await Promise.all([
     comunicacao.comunicadoParaResponsavel(redeId, responsavelId, comunicadoId),
     comunicacao.muralDoResponsavel(redeId, responsavelId),
   ]);
-  if (comunicado === null) throw new NaoEncontrado(DIAGNOSTICOS.comunicadoForaDoMural);
+  if (comunicado === null) throw new NotFound(DIAGNOSTICOS.comunicadoForaDoMural);
 
   return renderizar(c, TEMPLATES.responsavel.comunicado, {
     titulo: comunicado.titulo,
@@ -203,12 +203,12 @@ rotasResponsavel.get(ROTAS.responsavel.comunicado.padrao, async (c) => {
 
 rotasResponsavel.post(ROTAS.responsavel.comunicadoLido.padrao, async (c) => {
   const { comunicadoId } = c.req.param();
-  const redeId = redeAtual(c);
+  const redeId = currentNetwork(c);
   const responsavelId = responsavelDaSessao(c);
-  if (responsavelId === null) throw new NaoEncontrado(DIAGNOSTICOS.contaSemResponsavel);
+  if (responsavelId === null) throw new NotFound(DIAGNOSTICOS.contaSemResponsavel);
 
   const comunicado = await comunicacao.comunicadoParaResponsavel(redeId, responsavelId, comunicadoId);
-  if (comunicado === null) throw new NaoEncontrado(DIAGNOSTICOS.comunicadoForaDoMural);
+  if (comunicado === null) throw new NotFound(DIAGNOSTICOS.comunicadoForaDoMural);
 
   const resultado = await comunicacao.marcarComoLido({ redeId, comunicadoId, responsavelId });
   if (!resultado.ok) {

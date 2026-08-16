@@ -1,65 +1,65 @@
-import { AUSENTE } from '../constants';
+import { MISSING_VALUE } from '../constants';
 
-const SOMENTE_DIGITOS = /^[0-9]{11}$/;
-const TODOS_IGUAIS = /^(\d)\1{10}$/;
-const NAO_DIGITO = /\D/g;
+const ONLY_DIGITS = /^[0-9]{11}$/;
+const ALL_EQUAL = /^(\d)\1{10}$/;
+const NON_DIGIT = /\D/g;
 
-export const normalizarCpf = (bruto: string): string => bruto.replace(NAO_DIGITO, '');
+export const normalizeCpf = (raw: string): string => raw.replace(NON_DIGIT, '');
 
-const PESO_INICIAL_DO_PRIMEIRO = 10;
-const PESO_INICIAL_DO_SEGUNDO = 11;
+const FIRST_INITIAL_WEIGHT = 10;
+const SECOND_INITIAL_WEIGHT = 11;
 
-const FATOR_DA_SOMA = 10;
-const MODULO_DO_VERIFICADOR = 11;
-const RESTO_QUE_VIRA_ZERO = 10;
+const SUM_FACTOR = 10;
+const CHECK_DIGIT_MODULUS = 11;
+const REMAINDER_AS_ZERO = 10;
 
-const DIGITOS_DA_BASE = 9;
+const BASE_DIGITS = 9;
 
-const verificador = (digitos: string, pesoInicial: number): number => {
-  let soma = 0;
-  for (let indice = 0; indice < digitos.length; indice += 1) {
-    soma += Number(digitos[indice]) * (pesoInicial - indice);
+const checkDigit = (digits: string, initialWeight: number): number => {
+  let sum = 0;
+  for (let index = 0; index < digits.length; index += 1) {
+    sum += Number(digits[index]) * (initialWeight - index);
   }
-  const resto = (soma * FATOR_DA_SOMA) % MODULO_DO_VERIFICADOR;
-  return resto === RESTO_QUE_VIRA_ZERO ? 0 : resto;
+  const remainder = (sum * SUM_FACTOR) % CHECK_DIGIT_MODULUS;
+  return remainder === REMAINDER_AS_ZERO ? 0 : remainder;
 };
 
-const comVerificadores = (base: string): string => {
-  const primeiro = verificador(base, PESO_INICIAL_DO_PRIMEIRO);
-  const segundo = verificador(`${base}${primeiro}`, PESO_INICIAL_DO_SEGUNDO);
-  return `${base}${primeiro}${segundo}`;
+const withCheckDigits = (base: string): string => {
+  const first = checkDigit(base, FIRST_INITIAL_WEIGHT);
+  const second = checkDigit(`${base}${first}`, SECOND_INITIAL_WEIGHT);
+  return `${base}${first}${second}`;
 };
 
-export function cpfValido(digitos: string): boolean {
-  if (!SOMENTE_DIGITOS.test(digitos)) return false;
-  if (TODOS_IGUAIS.test(digitos)) return false;
-  return digitos === comVerificadores(digitos.slice(0, DIGITOS_DA_BASE));
+export function isValidCpf(digits: string): boolean {
+  if (!ONLY_DIGITS.test(digits)) return false;
+  if (ALL_EQUAL.test(digits)) return false;
+  return digits === withCheckDigits(digits.slice(0, BASE_DIGITS));
 }
 
-const CORTE_DO_PRIMEIRO_PONTO = 3;
-const CORTE_DO_SEGUNDO_PONTO = 6;
-const CORTE_DO_TRACO = 9;
+const FIRST_DOT_CUT = 3;
+const SECOND_DOT_CUT = 6;
+const DASH_CUT = 9;
 
-export function formatarCpf(digitos: string): string {
-  if (!SOMENTE_DIGITOS.test(digitos)) return AUSENTE;
+export function formatCpf(digits: string): string {
+  if (!ONLY_DIGITS.test(digits)) return MISSING_VALUE;
   const [a, b, c, d] = [
-    digitos.slice(0, CORTE_DO_PRIMEIRO_PONTO),
-    digitos.slice(CORTE_DO_PRIMEIRO_PONTO, CORTE_DO_SEGUNDO_PONTO),
-    digitos.slice(CORTE_DO_SEGUNDO_PONTO, CORTE_DO_TRACO),
-    digitos.slice(CORTE_DO_TRACO),
+    digits.slice(0, FIRST_DOT_CUT),
+    digits.slice(FIRST_DOT_CUT, SECOND_DOT_CUT),
+    digits.slice(SECOND_DOT_CUT, DASH_CUT),
+    digits.slice(DASH_CUT),
   ];
   return `${a}.${b}.${c}-${d}`;
 }
 
-const PREFIXO_DA_BASE = '10';
-const DIGITOS_DA_SEMENTE = 7;
-const FAIXA = 10 ** DIGITOS_DA_SEMENTE;
-const PREENCHIMENTO_DA_SEMENTE = '0';
+const BASE_PREFIX = '10';
+const SEED_DIGITS = 7;
+const SEED_RANGE = 10 ** SEED_DIGITS;
+const SEED_PADDING = '0';
 
-export function gerarCpf(semente: number): string {
-  const resto = String(Math.abs(Math.trunc(semente)) % FAIXA).padStart(
-    DIGITOS_DA_SEMENTE,
-    PREENCHIMENTO_DA_SEMENTE,
+export function generateCpf(seed: number): string {
+  const remainder = String(Math.abs(Math.trunc(seed)) % SEED_RANGE).padStart(
+    SEED_DIGITS,
+    SEED_PADDING,
   );
-  return comVerificadores(`${PREFIXO_DA_BASE}${resto}`);
+  return withCheckDigits(`${BASE_PREFIX}${remainder}`);
 }

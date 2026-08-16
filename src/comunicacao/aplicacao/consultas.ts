@@ -1,6 +1,6 @@
 import { identidade } from '../../identidade';
-import { leitura } from '../../shared/db';
-import { TAMANHO_PADRAO, consultarPagina, type Pagina } from '../../shared/pagination';
+import { reader } from '../../shared/db';
+import { DEFAULT_PAGE_SIZE, queryPage, type Page } from '../../shared/pagination';
 import { ERROS_INTERNOS } from '../constantes';
 import { comAutor, estaPublicado, type Comunicado } from '../dominio/comunicado';
 import {
@@ -21,7 +21,7 @@ export async function muralDoResponsavel(
   redeId: string,
   responsavelId: string,
 ): Promise<ItemDoMural[]> {
-  return await listarDoResponsavel(leitura(), redeId, responsavelId);
+  return await listarDoResponsavel(reader(), redeId, responsavelId);
 }
 
 export async function paginaDoMural(
@@ -29,11 +29,11 @@ export async function paginaDoMural(
   responsavelId: string,
   lido: boolean | undefined,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<ItemDoMural>> {
-  const sql = leitura();
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<ItemDoMural>> {
+  const sql = reader();
   const filtro = lido === undefined ? undefined : { lido };
-  return await consultarPagina(
+  return await queryPage(
     pagina,
     tamanho,
     () => contarDoResponsavel(sql, redeId, responsavelId, filtro),
@@ -45,7 +45,7 @@ export async function contagemDoMural(
   redeId: string,
   responsavelId: string,
 ): Promise<{ naoLidos: number; total: number }> {
-  const sql = leitura();
+  const sql = reader();
   const [naoLidos, total] = await Promise.all([
     contarDoResponsavel(sql, redeId, responsavelId, { lido: false }),
     contarDoResponsavel(sql, redeId, responsavelId),
@@ -58,7 +58,7 @@ export async function comunicadoParaResponsavel(
   responsavelId: string,
   comunicadoId: string,
 ): Promise<Comunicado | null> {
-  const armazenado = await buscarParaResponsavel(leitura(), redeId, responsavelId, comunicadoId);
+  const armazenado = await buscarParaResponsavel(reader(), redeId, responsavelId, comunicadoId);
   if (armazenado === null || !estaPublicado(armazenado)) return null;
 
   const nomes = await identidade.nomesDeUsuarios(redeId, [armazenado.autorUsuarioId]);
@@ -71,7 +71,7 @@ export async function listarComunicados(
   redeId: string,
   unidadeId?: string,
 ): Promise<EstatisticaDeLeitura[]> {
-  const contagens = await contarLeituras(leitura(), redeId, unidadeId ?? null);
+  const contagens = await contarLeituras(reader(), redeId, unidadeId ?? null);
   return contagens.map((contagem) => ({
     ...contagem,
     taxa: taxaDeLeitura(contagem.destinatarios, contagem.leituras),
@@ -82,11 +82,11 @@ export async function paginaDeComunicados(
   redeId: string,
   unidadeId: string | undefined,
   pagina: number,
-  tamanho: number = TAMANHO_PADRAO,
-): Promise<Pagina<EstatisticaDeLeitura>> {
-  const sql = leitura();
+  tamanho: number = DEFAULT_PAGE_SIZE,
+): Promise<Page<EstatisticaDeLeitura>> {
+  const sql = reader();
   const unidade = unidadeId ?? null;
-  const recortada = await consultarPagina(
+  const recortada = await queryPage(
     pagina,
     tamanho,
     () => contarComunicados(sql, redeId, unidade),
@@ -94,7 +94,7 @@ export async function paginaDeComunicados(
   );
   return {
     ...recortada,
-    itens: recortada.itens.map((contagem) => ({
+    items: recortada.items.map((contagem) => ({
       ...contagem,
       taxa: taxaDeLeitura(contagem.destinatarios, contagem.leituras),
     })),
@@ -105,6 +105,6 @@ export async function resumoDeComunicados(
   redeId: string,
   unidadeId?: string,
 ): Promise<{ destinatarios: number; leituras: number; taxa: number }> {
-  const somado = await somarLeituras(leitura(), redeId, unidadeId ?? null);
+  const somado = await somarLeituras(reader(), redeId, unidadeId ?? null);
   return { ...somado, taxa: taxaDeLeitura(somado.destinatarios, somado.leituras) };
 }

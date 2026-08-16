@@ -1,76 +1,78 @@
 import type { Context, MiddlewareHandler } from 'hono';
-import { ENTIDADES_HTML, EVENTOS_DE_LOG_HTTP, TITULOS_DE_ERRO } from '../constants';
-import { logger, redigir } from '../log';
-import { contextoAtual } from './correlation';
+import { ERROR_TITLES, HTML_ENTITIES, HTTP_LOG_EVENTS } from '../constants';
+import { logger, redact } from '../log';
+import { currentContext } from './correlation';
 
-export class NaoAutorizado extends Error {}
-export class NaoEncontrado extends Error {}
-export class Proibido extends Error {}
-export class RegraDeNegocio extends Error {}
+export class Unauthorized extends Error {}
+export class NotFound extends Error {}
+export class Forbidden extends Error {}
+export class BusinessRuleViolation extends Error {}
 
-export type StatusDeErro = 400 | 401 | 403 | 404 | 422 | 500;
+export type ErrorStatus = 400 | 401 | 403 | 404 | 422 | 500;
 
-export type RenderizadorDeErro = (status: StatusDeErro, correlacaoId: string) => string;
+export type ErrorRenderer = (status: ErrorStatus, correlationId: string) => string;
 
-let renderizador: RenderizadorDeErro | null = null;
+let renderer: ErrorRenderer | null = null;
 
-export function registrarRenderizadorDeErro(f: RenderizadorDeErro): void {
-  renderizador = f;
+export function registerErrorRenderer(f: ErrorRenderer): void {
+  renderer = f;
 }
 
-const escaparHtml = (texto: string): string =>
-  texto
-    .replace(/&/g, ENTIDADES_HTML.ecomercial)
-    .replace(/</g, ENTIDADES_HTML.menorQue)
-    .replace(/>/g, ENTIDADES_HTML.maiorQue)
-    .replace(/"/g, ENTIDADES_HTML.aspasDuplas);
+const escapeHtml = (text: string): string =>
+  text
+    .replace(/&/g, HTML_ENTITIES.ampersand)
+    .replace(/</g, HTML_ENTITIES.lessThan)
+    .replace(/>/g, HTML_ENTITIES.greaterThan)
+    .replace(/"/g, HTML_ENTITIES.doubleQuote);
 
-const PAGINA_DE_RESERVA = (titulo: string, correlacaoId: string): string =>
+const FALLBACK_PAGE = (title: string, correlationId: string): string =>
   '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-  `<title>${titulo}</title></head><body><main><h1>${titulo}</h1>` +
-  `<p>Informe este código ao pedir ajuda: <code>${correlacaoId}</code></p>` +
+  `<title>${title}</title></head><body><main><h1>${title}</h1>` +
+  `<p>Informe este código ao pedir ajuda: <code>${correlationId}</code></p>` +
   '<p><a href="/">Voltar ao início</a></p></main></body></html>';
 
-const paginaMinima = (status: StatusDeErro, correlacaoId: string): string =>
-  PAGINA_DE_RESERVA(escaparHtml(TITULOS_DE_ERRO[status]), escaparHtml(correlacaoId));
+const minimalPage = (status: ErrorStatus, correlationId: string): string =>
+  FALLBACK_PAGE(escapeHtml(ERROR_TITLES[status]), escapeHtml(correlationId));
 
-export function paginaDeErro(status: StatusDeErro): string {
-  const correlacaoId = contextoAtual()?.correlacaoId ?? '';
-  if (renderizador === null) return paginaMinima(status, correlacaoId);
-  return renderizador(status, correlacaoId);
+export function errorPage(status: ErrorStatus): string {
+  const correlationId = currentContext()?.correlationId ?? '';
+  if (renderer === null) return minimalPage(status, correlationId);
+  return renderer(status, correlationId);
 }
 
-const statusDoErro = (erro: unknown): StatusDeErro => {
-  if (erro instanceof NaoAutorizado) return 401;
-  if (erro instanceof Proibido) return 403;
-  if (erro instanceof NaoEncontrado) return 404;
-  if (erro instanceof RegraDeNegocio) return 422;
+const errorStatus = (error: unknown): ErrorStatus => {
+  if (error instanceof Unauthorized) return 401;
+  if (error instanceof Forbidden) return 403;
+  if (error instanceof NotFound) return 404;
+  if (error instanceof BusinessRuleViolation) return 422;
   return 500;
 };
 
-const registrarFalha = (c: Context, status: StatusDeErro, erro: unknown): void => {
+const logFailure = (c: Context, status: ErrorStatus, error: unknown): void => {
   const base = {
     status,
     metodo: c.req.method,
     rota: c.req.path,
-    tipo: erro instanceof Error ? erro.constructor.name : typeof erro,
-    mensagem: erro instanceof Error ? erro.message : String(erro),
+    tipo: error instanceof Error ? error.constructor.name : typeof error,
+    mensagem: error instanceof Error ? error.message : String(error),
   };
-  const campos = redigir(status === 500 && erro instanceof Error ? { ...base, pilha: erro.stack } : base);
+  const fields = redact(
+    status === 500 && error instanceof Error ? { ...base, pilha: error.stack } : base,
+  );
   if (status === 500) {
-    logger.error(campos, EVENTOS_DE_LOG_HTTP.falhaAoAtender);
+    logger.error(fields, HTTP_LOG_EVENTS.requestFailed);
     return;
   }
-  logger.warn(campos, EVENTOS_DE_LOG_HTTP.requisicaoRecusada);
+  logger.warn(fields, HTTP_LOG_EVENTS.requestRejected);
 };
 
-export const middlewareErros: MiddlewareHandler = async (c, next) => {
+export const errorsMiddleware: MiddlewareHandler = async (c, next) => {
   try {
     await next();
-  } catch (erro) {
-    const status = statusDoErro(erro);
-    registrarFalha(c, status, erro);
-    return c.html(paginaDeErro(status), status);
+  } catch (error) {
+    const status = errorStatus(error);
+    logFailure(c, status, error);
+    return c.html(errorPage(status), status);
   }
 };
