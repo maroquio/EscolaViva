@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:">
+  <title>EscolaViva — Term lifecycle</title>
+  <style>
+    :root { color-scheme: dark; --page:#0f0f1a; --panel:#0f172a; --border:#334155; --text:#e2e8f0; --muted:#94a3b8; --accent:#a855f7; }
+    html[data-theme="light"] { color-scheme:light; --page:#f8fafc; --panel:#fff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; --accent:#7c3aed; }
+    * { box-sizing:border-box; }
+    html,body { width:100%; height:100%; margin:0; overflow:hidden; background:linear-gradient(135deg,var(--page),#1a1a2e); color:var(--text); font-family:'SF Mono','Fira Code',ui-monospace,monospace; }
+    body { display:grid; grid-template-rows:auto 1fr; }
+    .toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 14px; background:color-mix(in srgb,var(--panel) 92%,transparent); border-bottom:1px solid var(--border); z-index:2; }
+    .title { margin-right:auto; font-size:13px; font-weight:700; }
+    button,select { min-height:34px; padding:6px 10px; color:var(--text); background:var(--panel); border:1px solid var(--border); border-radius:8px; font:inherit; cursor:pointer; }
+    button:hover,button:focus-visible,select:focus-visible { border-color:var(--accent); outline:2px solid color-mix(in srgb,var(--accent) 35%,transparent); outline-offset:1px; }
+    #stage { position:relative; overflow:hidden; touch-action:none; cursor:grab; }
+    #stage.dragging { cursor:grabbing; }
+    /* No `will-change:transform` and no `filter:` — both rasterise the SVG before the zoom.
+       `will-change` promotes #canvas to its own compositing layer: Chrome rasterises the layer
+       once, at whatever size it had, and the GPU then scales the bitmap instead of re-reading the
+       vector. `filter:drop-shadow()` forces the element to become a bitmap before the filter runs,
+       and on its own would already be enough to pixelate it. The shadow comes back as
+       `box-shadow`, which applies to the element's BOX rather than the painted content and so does
+       not force rasterisation. */
+    #canvas { width:100%; height:100%; display:grid; place-items:center; transform-origin:0 0; }
+    #canvas svg { max-width:calc(100vw - 40px); max-height:calc(100vh - 92px); width:auto; height:auto; box-shadow:0 22px 60px rgba(0,0,0,.28); user-select:none; }
+    #status { min-width:76px; color:var(--muted); font-size:12px; text-align:center; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
+  </style>
+</head>
+<body>
+  <header class="toolbar" aria-label="Diagram controls">
+    <span class="title">EscolaViva — Term lifecycle</span>
+    <button type="button" data-action="zoom-out" aria-label="Zoom out">−</button>
+    <button type="button" data-action="reset" aria-label="Reset view">Reset</button>
+    <button type="button" data-action="zoom-in" aria-label="Zoom in">+</button>
+    <span id="status" aria-live="polite">100%</span>
+    <button type="button" data-action="theme" aria-label="Toggle theme">Theme</button>
+    <button type="button" data-action="copy" aria-label="Copy SVG source">Copy SVG</button>
+    <select id="scale" aria-label="Raster export scale"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option><option value="4">4×</option></select>
+    <select id="format" aria-label="Export format"><option>SVG</option><option>PNG</option><option>JPEG</option><option>WebP</option></select>
+    <button type="button" data-action="download">Export</button>
+  </header>
+  <main id="stage" tabindex="0" aria-label="Interactive diagram. Drag to pan; use plus and minus to zoom.">
+    <div id="canvas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 780" width="1240" height="780" role="img" focusable="false">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569" />
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626" />
+    </marker>
+    <marker id="p-2563eb" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb" />
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a" />
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c" />
+    </marker>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed" />
+    </marker>
+    <marker id="p-9ca3af" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#9ca3af" />
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1240" height="780" fill="#ffffff" />
+  <text x="36" y="44" font-size="21" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Lifecycle of a class group's term</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">src/assessment/application/closeTerm.ts · domain/termClosing.ts · term_closing table (migrations/0003)</text>
+  <circle cx="255" cy="132" r="9" fill="#111827" />
+  <path d="M 255,141 L 255,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)" />
+  <text x="272" y="158" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">the class group comes into existence</text>
+  <rect x="140" y="195" width="250" height="105" rx="12" ry="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8" />
+  <text x="156" y="221" font-size="13.5" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">open</text>
+  <text x="156" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">there is NO row in term_closing</text>
+  <text x="156" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the state is the absence of the record</text>
+  <text x="156" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">grades and roll call are still accepted</text>
+  <path d="M 560,221 L 586,247 L 560,273 L 534,247 Z" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.6" />
+  <text x="560" y="251" font-size="9.5" fill="#92400e" font-weight="600" text-anchor="middle">close</text>
+  <path d="M 390,247 L 532,247" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)" />
+  <text x="402" y="226" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">closeTerm(classGroup, term)</text>
+  <rect x="700" y="195" width="250" height="105" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8" />
+  <text x="716" y="221" font-size="13.5" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">closed</text>
+  <text x="716" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">row written: class group + term</text>
+  <text x="716" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">closed_by, closed_at</text>
+  <text x="716" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">no DELETE exists in the repository</text>
+  <path d="M 586,247 L 698,247" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)" />
+  <text x="560" y="200" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="middle">[the five guards pass]</text>
+  <circle cx="1060" cy="247" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8" />
+  <circle cx="1060" cy="247" r="7.5" fill="#111827" />
+  <path d="M 950,247 L 1045,247" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)" />
+  <text x="962" y="288" font-size="9" fill="#16a34a" font-weight="600" text-anchor="start">no reopening</text>
+  <text x="962" y="301" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">at Stage 01</text>
+  <path d="M 560,273 L 560,340 L 265,340 L 265,302" fill="none" stroke="#dc2626" stroke-width="1.6" marker-end="url(#p-dc2626)" />
+  <text x="300" y="362" font-size="9.5" fill="#dc2626" font-weight="600" text-anchor="start">[any guard fails] / nothing is written, and the screen receives the error code</text>
+  <rect x="60" y="400" width="400" height="300" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container" />
+  <text x="74" y="424" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">The five guards, in the order they run</text>
+  <text x="74" y="444" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">OUTSIDE the transaction — reads:</text>
+  <text x="74" y="457" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  1. classGroupNotFound</text>
+  <text x="74" y="470" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  2. noSubject — the class group has no subject</text>
+  <text x="74" y="483" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     assigned, so there is nothing to close</text>
+  <text x="74" y="496" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  3. noActiveEnrollment — no active student in it</text>
+  <text x="74" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="74" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">INSIDE the unitOfWork:</text>
+  <text x="74" y="535" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  4. alreadyClosed — re-queried here, not earlier:</text>
+  <text x="74" y="548" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     another closing fits between the read and the</text>
+  <text x="74" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     write</text>
+  <text x="74" y="574" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  5. incompleteClosing — closingPendingItems()</text>
+  <text x="74" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     compares, subject by subject, how many grades</text>
+  <text x="74" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     were posted against the number of active</text>
+  <text x="74" y="613" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     enrollments. The message says what is missing, per</text>
+  <text x="74" y="626" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">     subject — not a bare "you cannot".</text>
+  <rect x="480" y="400" width="380" height="300" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container" />
+  <text x="494" y="424" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">The open state does not exist in the database</text>
+  <text x="494" y="444" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">There is no column, flag or row saying "open".</text>
+  <text x="494" y="457" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">There are rows saying "closed"; the rest is inferred:</text>
+  <text x="494" y="470" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="494" y="483" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">closingStates() takes the stored rows and expands</text>
+  <text x="494" y="496" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the FOUR terms, marking closed: false wherever it</text>
+  <text x="494" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">found no record.</text>
+  <text x="494" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="494" y="535" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">The choice has a practical consequence: closing one</text>
+  <text x="494" y="548" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">term never has to create rows for the other three,</text>
+  <text x="494" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">and a term nobody touched takes up no space and</text>
+  <text x="494" y="574" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">needs no migration to come into being.</text>
+  <text x="494" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="494" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">It is the same idea as the enrollment's partial index:</text>
+  <text x="494" y="613" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">absence is information.</text>
+  <rect x="880" y="400" width="300" height="300" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container" />
+  <text x="894" y="424" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">The second lock</text>
+  <text x="894" y="444" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Guard 4 runs inside the transaction, but it is</text>
+  <text x="894" y="457" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">still code.</text>
+  <text x="894" y="470" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="894" y="483" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">UQ (class_group_id, term) is the guarantee that does</text>
+  <text x="894" y="496" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">not depend on anyone remembering: two simultaneous</text>
+  <text x="894" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">closings of the same class group and term do not</text>
+  <text x="894" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">get through, even if both read "open" before</text>
+  <text x="894" y="535" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">writing.</text>
+  <text x="894" y="548" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="894" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">The check in code exists to give a good message;</text>
+  <text x="894" y="574" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the index exists to give a guarantee. The two do</text>
+  <text x="894" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">different jobs and neither replaces</text>
+  <text x="894" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the other.</text>
+  <text x="36" y="760" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Read from src/assessment/. State of Stage 01.</text>
+</svg></div>
+    <p class="sr-only">Keyboard shortcuts: plus and minus zoom, zero resets, T toggles theme, S exports.</p>
+  </main>
+  <script>
+  (() => {
+    'use strict';
+    const metadata = {"slug": "escolaviva-term-lifecycle"};
+    const stage = document.getElementById('stage');
+    const canvas = document.getElementById('canvas');
+    const svg = canvas.querySelector('svg');
+    const status = document.getElementById('status');
+    const scaleSelect = document.getElementById('scale');
+    const formatSelect = document.getElementById('format');
+    let view = { x:0, y:0, scale:1 };
+    let drag = null;
+    const clamp = value => Math.max(.2, Math.min(8, value));
+    const render = () => {
+      canvas.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.scale})`;
+      status.textContent = `${Math.round(view.scale * 100)}%`;
+    };
+    const zoom = (factor, originX=stage.clientWidth/2, originY=stage.clientHeight/2) => {
+      const next = clamp(view.scale * factor);
+      const ratio = next / view.scale;
+      view.x = originX - (originX - view.x) * ratio;
+      view.y = originY - (originY - view.y) * ratio;
+      view.scale = next; render();
+    };
+    const reset = () => { view = {x:0,y:0,scale:1}; render(); };
+    stage.addEventListener('wheel', event => { event.preventDefault(); const rect=stage.getBoundingClientRect(); zoom(event.deltaY < 0 ? 1.12 : .89, event.clientX-rect.left, event.clientY-rect.top); }, {passive:false});
+    stage.addEventListener('pointerdown', event => { drag={id:event.pointerId,x:event.clientX,y:event.clientY,vx:view.x,vy:view.y}; stage.setPointerCapture(event.pointerId); stage.classList.add('dragging'); });
+    stage.addEventListener('pointermove', event => { if(!drag||drag.id!==event.pointerId)return; view.x=drag.vx+event.clientX-drag.x; view.y=drag.vy+event.clientY-drag.y; render(); });
+    const endDrag = () => { drag=null; stage.classList.remove('dragging'); };
+    stage.addEventListener('pointerup', endDrag); stage.addEventListener('pointercancel', endDrag);
+    const source = () => new XMLSerializer().serializeToString(svg);
+    const saveBlob = (blob, extension) => { const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${(metadata.slug||'fireworks-tech-graph')}.${extension}`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); };
+    const copySource = async () => {
+      const value=source();
+      try { await navigator.clipboard.writeText(value); status.textContent='Copied'; return; } catch {}
+      const area=document.createElement('textarea'); area.value=value; area.setAttribute('readonly',''); area.style.position='fixed'; area.style.opacity='0'; document.body.appendChild(area); area.select();
+      status.textContent=document.execCommand('copy')?'Copied':'Copy failed'; area.remove();
+    };
+    const exportDiagram = async () => {
+      const format = formatSelect.value.toLowerCase();
+      if(format==='svg') { saveBlob(new Blob([source()],{type:'image/svg+xml;charset=utf-8'}),'svg'); return; }
+      const scale = Math.max(1,Math.min(4,Number(scaleSelect.value)||2));
+      const box = svg.viewBox.baseVal; const width=box.width||svg.clientWidth; const height=box.height||svg.clientHeight;
+      const image = new Image(); const url=URL.createObjectURL(new Blob([source()],{type:'image/svg+xml'}));
+      await new Promise((resolve,reject)=>{ image.onload=resolve; image.onerror=reject; image.src=url; });
+      const raster=document.createElement('canvas'); raster.width=Math.round(width*scale); raster.height=Math.round(height*scale);
+      const ctx=raster.getContext('2d'); if(format==='jpeg'){ctx.fillStyle='#ffffff';ctx.fillRect(0,0,raster.width,raster.height);} ctx.drawImage(image,0,0,raster.width,raster.height); URL.revokeObjectURL(url);
+      const mime=format==='jpeg'?'image/jpeg':format==='webp'?'image/webp':'image/png';
+      const blob=await new Promise(resolve=>raster.toBlob(resolve,mime,.94)); if(blob) saveBlob(blob,format==='jpeg'?'jpg':format);
+    };
+    document.querySelector('.toolbar').addEventListener('click', async event => {
+      const action=event.target.closest('[data-action]')?.dataset.action; if(!action)return;
+      if(action==='zoom-in')zoom(1.2); else if(action==='zoom-out')zoom(.83); else if(action==='reset')reset();
+      else if(action==='theme')document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';
+      else if(action==='download')await exportDiagram();
+      else if(action==='copy') await copySource();
+    });
+    document.addEventListener('keydown', event => {
+      if(event.target.matches('select'))return;
+      if(event.key==='+'||event.key==='=')zoom(1.2); else if(event.key==='-')zoom(.83); else if(event.key==='0'||event.key.toLowerCase()==='r')reset();
+      else if(event.key.toLowerCase()==='t')document.querySelector('[data-action=theme]').click(); else if(event.key.toLowerCase()==='s'){event.preventDefault();exportDiagram();}
+    });
+    render();
+  })();
+  </script>
+</body>
+</html>

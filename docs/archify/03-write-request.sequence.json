@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "A whole write: the teacher posts the class group's grades",
+    "output": "03-write-request.html",
+    "viewBox": [980, 720],
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "edge", "label": "The request edge", "focus": ["browser", "web", "shared", "database"], "note": "Correlation, session and idempotency happen before any business rule is touched." },
+      { "id": "door", "label": "The door between modules", "focus": ["assessment", "academics", "database"], "note": "assessment asks academics for the enrollments: the question crosses the boundary through index.ts." },
+      { "id": "transaction", "label": "A single commit point", "focus": ["assessment", "database", "web"], "note": "The batch write lives inside the unit of work — the place where the outbox enters at Stage 05." }
+    ]
+  },
+  "participants": [
+    { "id": "browser", "type": "external", "label": "Browser", "sublabel": "teacher" },
+    { "id": "web", "type": "frontend", "label": "Web layer", "sublabel": "route + template" },
+    { "id": "shared", "type": "security", "label": "shared", "sublabel": "middleware" },
+    { "id": "assessment", "type": "backend", "label": "assessment", "sublabel": "use case" },
+    { "id": "academics", "type": "backend", "label": "academics", "sublabel": "public door" },
+    { "id": "database", "type": "database", "label": "PostgreSQL", "sublabel": "source of truth" }
+  ],
+  "segments": [
+    { "from": 150, "to": 310, "label": "Edge and idempotency" },
+    { "from": 326, "to": 462, "label": "Reading through the public door" },
+    { "from": 478, "to": 606, "label": "Writing in one transaction" }
+  ],
+  "messages": [
+    { "id": "submit", "from": "browser", "to": "web", "y": 182, "label": "POST grades for the term", "variant": "emphasis" },
+    { "id": "edge", "from": "web", "to": "shared", "y": 220, "label": "correlation + session", "variant": "security" },
+    { "id": "key", "from": "shared", "to": "database", "y": 258, "label": "INSERT idempotent_request", "variant": "security" },
+    { "id": "fresh-key", "from": "database", "to": "shared", "y": 294, "label": "unseen key", "variant": "return" },
+    { "id": "use-case", "from": "web", "to": "assessment", "y": 340, "label": "postGrades", "variant": "emphasis" },
+    { "id": "question", "from": "assessment", "to": "academics", "y": 378, "label": "active enrollments of the class group", "variant": "default" },
+    { "id": "query", "from": "academics", "to": "database", "y": 414, "label": "read, filtered by network_id", "variant": "default" },
+    { "id": "rows", "from": "database", "to": "academics", "y": 448, "label": "rows", "variant": "return" },
+    { "id": "write", "from": "assessment", "to": "database", "y": 496, "label": "batch UPSERT inside the transaction", "variant": "emphasis" },
+    { "id": "commit", "from": "database", "to": "assessment", "y": 534, "label": "commit", "variant": "return" },
+    { "id": "response", "from": "web", "to": "browser", "y": 584, "label": "303 · private, no-store", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "web", "from": 176, "to": 590, "type": "frontend" },
+    { "participant": "shared", "from": 214, "to": 300, "type": "security" },
+    { "participant": "assessment", "from": 334, "to": 540, "type": "backend" },
+    { "participant": "academics", "from": 372, "to": 454, "type": "backend" },
+    { "participant": "database", "from": 252, "to": 540, "type": "database" }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "The edge decides before the rule",
+      "items": [
+        "The correlation identifier is born here and enters every log line",
+        "The idempotency key is recorded before processing",
+        "A resubmission with the same key returns the original target without reprocessing"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "The boundary is crossed through the door",
+      "items": [
+        "assessment never queries the enrollment table directly",
+        "The question goes to academics/index.ts and comes back typed",
+        "Without that, extracting a module at Stage 14 turns into a rewrite"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "A single commit point",
+      "items": [
+        "The whole class group is written in one transaction",
+        "Any exception undoes everything, with no half-written state",
+        "This is the point where the outbox INSERT enters at Stage 05"
+      ]
+    }
+  ]
+}

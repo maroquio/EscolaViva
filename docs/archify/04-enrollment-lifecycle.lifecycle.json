@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Enrollment lifecycle",
+    "output": "04-enrollment-lifecycle.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "main", "label": "From registration to closing", "focus": ["registered", "active", "year_end", "completed"], "note": "The status is queried, never kept in a column computed somewhere else." },
+      { "id": "movement", "label": "When the student moves", "focus": ["active", "transferred", "cancelled"], "note": "Transferring closes one row and opens another in the same transaction; cancelling closes one and opens nothing." }
+    ]
+  },
+  "lanes": [
+    { "id": "main", "label": "Enrollment status" },
+    { "id": "terminal", "label": "Exits from the academic year" }
+  ],
+  "states": [
+    { "id": "registered", "type": "start", "label": "No enrollment", "sublabel": "student already registered", "lane": "main", "col": 0, "step": "01", "tag": "entry" },
+    { "id": "active", "type": "active", "label": "Active", "sublabel": "one per academic year", "lane": "main", "col": 1, "step": "02", "tag": "unique index" },
+    { "id": "year_end", "type": "decision", "label": "Year closed", "sublabel": "4 terms closed", "lane": "main", "col": 2, "step": "03", "tag": "average and attendance" },
+    { "id": "completed", "type": "success", "label": "Completed", "sublabel": "passed or failed", "lane": "main", "col": 3, "step": "04", "tag": "terminal" },
+    { "id": "transferred", "type": "failure", "label": "Transferred", "sublabel": "changed class group", "lane": "terminal", "col": 0, "tag": "opens another active one" },
+    { "id": "cancelled", "type": "failure", "label": "Cancelled", "sublabel": "left the network", "lane": "terminal", "col": 2, "tag": "opens nothing" }
+  ],
+  "transitions": [
+    { "id": "enrol", "from": "registered", "to": "active", "variant": "emphasis", "route": "straight" },
+    { "id": "attend", "from": "active", "to": "year_end", "variant": "emphasis", "route": "straight" },
+    { "id": "complete", "from": "year_end", "to": "completed", "variant": "emphasis", "route": "straight" },
+    { "id": "transfer", "from": "active", "to": "transferred", "variant": "security", "route": "drop" },
+    { "id": "reborn", "from": "transferred", "to": "active", "variant": "emphasis" },
+    { "id": "cancel", "from": "year_end", "to": "cancelled", "variant": "security", "route": "drop" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "One active enrollment per academic year",
+      "items": [
+        "Guaranteed by a partial unique index, not by a check on the screen",
+        "The attempt to create a second one becomes a readable field error",
+        "Whoever writes straight into the database hits the same barrier"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Transferring is not two operations",
+      "items": [
+        "The source row becomes transferred and the new one is born active",
+        "Both writes live in the same unit of work",
+        "The UPDATE comes before the INSERT: it is what frees the index slot"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "The status is queried, not stored",
+      "items": [
+        "Average, attendance and outcome are computed on every read",
+        "No use case decides from a value that was computed and stored",
+        "That is what keeps the database as the single source of truth"
+      ]
+    }
+  ]
+}

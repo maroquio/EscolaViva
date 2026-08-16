@@ -1,672 +1,674 @@
-# Frontend em React e backend como API
+# React frontend and the backend as an API
 
-> Spec de projeto. O plano de implementação correspondente é
-> [`docs/MIGRACAO_REACT.md`](../../MIGRACAO_REACT.md).
+> Project spec. The matching implementation plan is
+> [`docs/REACT_MIGRATION.md`](../../REACT_MIGRATION.md).
 
-O EscolaViva troca o HTML renderizado no servidor por uma aplicação React servida como arquivo
-estático, e o Hono deixa de devolver página para devolver JSON. Nenhuma regra de negócio muda:
-os quatro módulos de domínio, as consultas, o `Resultado<T>` e as 22 invariantes continuam onde
-estão. O que muda é a camada de entrega — e a conta que ela passa a cobrar.
+EscolaViva trades server-rendered HTML for a React application served as a static file, and Hono
+stops returning pages and starts returning JSON. No business rule changes: the four domain modules,
+the queries, `Result<T>` and the 22 invariants stay where they are. What changes is the delivery
+layer — and the bill it starts charging.
 
-## Problema
+## Problem
 
-A camada web de hoje tem 2.710 linhas de TypeScript em `src/web/`, mais 45 templates Eta, servindo
-59 handlers — 54 nos routers de papel, 3 de entrada em `app.ts` e 2 de saúde. Ela funciona, é
-rápida e é a decisão que o Estágio 01 defende no material didático.
+Today's web layer has 3,423 lines of TypeScript under `src/web/`, plus 45 Eta templates, serving
+59 handlers — 54 in the role routers, 3 entry points in `app.ts` and 2 health checks. It works, it is
+fast, and it is the decision Stage 01 defends in the teaching material.
 
-O pedido é outro: o produto passa a ser uma SPA em React 19, com o front publicado no Cloudflare
-em algum momento futuro. Isso implica três coisas que hoje não existem — uma API versionada,
-um segundo artefato de build e uma origem separada para o front.
+The request is different: the product becomes a React 19 SPA, with the front published on Cloudflare
+at some future point. That implies three things that do not exist today — a versioned API, a second
+build artefact and a separate origin for the front.
 
-Aceitar isso é aceitar o custo que `docs/EVOLUCAO_SAAS.md:435` já descrevia: *"SPA separada dobra
-deploys e obriga a criar API pública versionada"*. Este documento é o registro de que o custo foi
-lido antes de ser pago, e de como ele foi mantido no menor valor possível.
+Accepting that means accepting the cost `docs/SAAS_EVOLUTION.md` already described in the Web Client
+entry: *"a separate SPA doubles deploys and forces you to create a versioned public API"*. This
+document is the record that the cost was read before it was paid, and of how it was kept as low as
+possible.
 
-## Decisão
+## Decision
 
-**Substituição total.** Eta, `src/web/templates/`, `src/web/render.ts` e `scripts/build-assets.ts`
-saem do repositório. O Hono passa a servir `/api/v1/*` em JSON e a entregar o `dist/` do Vite como
-estático. O material didático é atualizado para descrever a SPA como decisão consciente, com o
-custo declarado.
+**Total replacement.** Eta, `src/web/templates/`, `src/web/render.ts` and `scripts/build-assets.ts`
+leave the repository. Hono starts serving `/api/v1/*` in JSON and delivering Vite's `dist/` as static
+files. The teaching material is updated to describe the SPA as a deliberate decision, with the cost
+stated.
 
-Três decisões de menor porte governam o resto do documento:
+Three smaller decisions govern the rest of the document:
 
-1. **As URLs do navegador não mudam.** `/secretaria/alunos/:id` continua sendo
-   `/secretaria/alunos/:id` — agora resolvido pelo React Router em vez do Hono. Marcadores de
-   página sobrevivem, as capturas de tela do material continuam válidas e a barra de endereço
-   continua contando a mesma história. A API mora sob `/api/v1`, que nunca colidiu com nada.
-2. **A sessão continua sendo cookie assinado resolvido no banco.** Nenhum token viaja para o
-   `localStorage`. I2 fica intacta e o front não ganha o problema de guardar credencial.
-3. **A origem do front é configuração, não código.** O front é estático puro desde o primeiro
-   commit e nunca importa nada do servidor em tempo de execução. Publicar no Cloudflare Pages
-   será trocar três variáveis de ambiente.
+1. **Browser URLs do not change.** `/registrar/students/:id` stays `/registrar/students/:id` — now
+   resolved by React Router instead of Hono. Bookmarks survive, the screenshots in the material stay
+   valid and the address bar keeps telling the same story. The API lives under `/api/v1`, which has
+   never collided with anything.
+2. **The session stays a signed cookie resolved in the database.** No token travels to
+   `localStorage`. I2 stays intact and the front does not inherit the problem of storing a credential.
+3. **The front's origin is configuration, not code.** The front is pure static from the first commit
+   and never imports anything from the server at runtime. Publishing on Cloudflare Pages will be a
+   matter of changing three environment variables.
 
-## Escopo
+## Scope
 
-**Dentro**
+**In**
 
-- Reorganização em workspaces: `apps/api` e `apps/web`.
-- API JSON `/api/v1` cobrindo todas as telas dos quatro papéis.
-- SPA React 19 com as mesmas telas e as mesmas URLs.
-- Migração de Zod 3 para Zod 4 no backend.
-- Reescrita da suíte `testes/web/` para JSON, testes de unidade no front e E2E com Playwright.
-- Atualização de `ESCOLAVIVA_ESTAGIO_01.md`, `EVOLUCAO_SAAS.md`, README, dois ADRs novos e os
-  diagramas de `docs/archify/` afetados.
+- Reorganisation into workspaces: `apps/api` and `apps/web`.
+- A JSON API `/api/v1` covering every screen of the four roles.
+- A React 19 SPA with the same screens and the same URLs.
+- Migration from Zod 3 to Zod 4 on the backend.
+- Rewriting the `tests/web/` suite for JSON, unit tests on the front and E2E with Playwright.
+- Updating `ESCOLAVIVA_STAGE_01.md`, `SAAS_EVOLUTION.md`, the README, two new ADRs and the affected
+  `docs/archify/` diagrams.
 
-**Fora**
+**Out**
 
-- Qualquer componente de estágio posterior: fila, cache, CDN contratada, réplica, observabilidade,
-  esteira, envio de e-mail. A preparação para o Cloudflare é uma variável vazia, não um contrato.
-- Renderização no servidor do React (SSR/SSG). O front é estático.
-- Mudança de regra de negócio, de schema do banco ou de migração.
-- Redesenho visual. O tema Mantine espelha o `app.css` atual.
-- Aplicativo móvel e API para terceiros. `/api/v1` é interna: existe para esta SPA e é versionada
-  porque a SPA e o servidor passam a ter ciclos de vida separados, não porque alguém de fora vai
-  consumi-la.
+- Any component from a later stage: queue, cache, a contracted CDN, replica, observability, pipeline,
+  e-mail delivery. The Cloudflare groundwork is an empty variable, not a contract.
+- React server-side rendering (SSR/SSG). The front is static.
+- Changes to business rules, to the database schema or to migrations.
+- A visual redesign. The Mantine theme mirrors the current `app.css`.
+- A mobile app and a third-party API. `/api/v1` is internal: it exists for this SPA and is versioned
+  because the SPA and the server come to have separate lifecycles, not because someone outside will
+  consume it.
 
 ---
 
-## 1. Estrutura do repositório
+## 1. Repository structure
 
 ```
 escolaviva/
-├─ package.json                 workspaces: ["apps/*"]; scripts agregadores
-├─ bunfig.toml                  preload de teste, aponta para apps/api
-├─ docker-compose.yml           inalterado
-├─ Dockerfile                   passa a construir o front e copiar o dist
-├─ migrations/                  inalterado
-├─ scripts/                     migrate, seed, backup, restore-test (build-assets sai)
+├─ package.json                 workspaces: ["apps/*"]; aggregate scripts
+├─ bunfig.toml                  test preload, pointing at apps/api
+├─ docker-compose.yml           unchanged
+├─ Dockerfile                   now builds the front and copies the dist
+├─ migrations/                  unchanged
+├─ scripts/                     migrate, seed, backup, restore-test (build-assets goes away)
 ├─ docs/
-├─ e2e/                         Playwright: as 4 jornadas
+├─ e2e/                         Playwright: the 4 journeys
 ├─ apps/
 │  ├─ api/
 │  │  ├─ package.json
 │  │  ├─ .dependency-cruiser.js
 │  │  ├─ src/
-│  │  │  ├─ identidade/  academico/  avaliacao/  comunicacao/   inalterados
-│  │  │  ├─ shared/                                              quase inalterado
-│  │  │  ├─ http/            ← o que era src/web/
+│  │  │  ├─ identity/  academics/  assessment/  communication/   unchanged
+│  │  │  ├─ shared/                                              almost unchanged
+│  │  │  ├─ http/            ← what used to be src/web/
 │  │  │  │  ├─ app.ts
 │  │  │  │  ├─ health.ts
-│  │  │  │  ├─ paginacao.ts
-│  │  │  │  ├─ estatico.ts    serve o dist do Vite + fallback SPA
-│  │  │  │  ├─ contratos/     tipos de resposta e enumerações (sem dependência)
-│  │  │  │  ├─ esquemas/      Zod de corpo de requisição, por recurso
-│  │  │  │  ├─ apresentadores/  domínio → JSON de resposta
-│  │  │  │  └─ rotas/         sessao, conta, rede, secretaria, professor,
-│  │  │  │                    responsavel, comunicados, selecoes
+│  │  │  │  ├─ pagination.ts
+│  │  │  │  ├─ static.ts      serves the Vite dist + SPA fallback
+│  │  │  │  ├─ contracts/     response types and enumerations (no dependencies)
+│  │  │  │  ├─ schemas/       request-body Zod, per resource
+│  │  │  │  ├─ presenters/    domain → response JSON
+│  │  │  │  └─ routes/        session, account, network, registrar, teacher,
+│  │  │  │                    guardian, announcements, options
 │  │  │  └─ main.ts
-│  │  └─ testes/
+│  │  └─ tests/
 │  └─ web/
 │     ├─ package.json
 │     ├─ vite.config.ts
 │     ├─ index.html
 │     └─ src/
 │        ├─ main.tsx
-│        ├─ app/              rotas, provedores, layout, limites de erro
-│        ├─ funcionalidades/  sessao rede secretaria professor responsavel comunicados conta
-│        └─ compartilhado/    api/ ui/ formato/ tema/
+│        ├─ app/         routes, providers, layout, error boundaries
+│        ├─ features/    session network registrar teacher guardian announcements account
+│        └─ shared/      api/ ui/ format/ theme/
 ```
 
-### 1.1 Por que workspaces
+### 1.1 Why workspaces
 
-O front precisa de um `package.json` próprio — as dependências dele (React, Mantine, Vite) não
-podem entrar na imagem do servidor. Workspaces do Bun dão isso sem um segundo repositório: um
-`bun install` na raiz, um `bun.lock` só, e `bun run verificar` continua sendo um comando na raiz
-que roda as duas verificações.
+The front needs a `package.json` of its own — its dependencies (React, Mantine, Vite) must not enter
+the server image. Bun workspaces give that without a second repository: one `bun install` at the root,
+a single `bun.lock`, and `bun run verify` stays one command at the root that runs both sets of checks.
 
-### 1.2 A preparação para o Cloudflare
+### 1.2 The Cloudflare groundwork
 
-Três variáveis, todas **vazias por padrão**, no mesmo espírito de `PROXIES_CONFIAVEIS` (I12), que
-já nasceu vazia esperando o balanceador:
+Three variables, all **empty by default**, in the same spirit as `TRUSTED_PROXIES` (I12), which was
+already born empty waiting for the load balancer:
 
-| Variável | Onde | Vazia (hoje) | Preenchida (Cloudflare Pages) |
+| Variable | Where | Empty (today) | Filled in (Cloudflare Pages) |
 |---|---|---|---|
-| `VITE_API_URL` | build do front | `''` → mesma origem, caminho relativo | `https://api.escolaviva.com.br` |
-| `ORIGENS_PERMITIDAS` | boot da API | sem CORS, nenhum cabeçalho emitido | `https://app.escolaviva.com.br` |
-| `COOKIE_DOMINIO` | boot da API | sem atributo `Domain` → cookie host-only | `.escolaviva.com.br` |
+| `VITE_API_URL` | front build | `''` → same origin, relative path | `https://api.escolaviva.com.br` |
+| `ALLOWED_ORIGINS` | API boot | no CORS, no header emitted | `https://app.escolaviva.com.br` |
+| `COOKIE_DOMAIN` | API boot | no `Domain` attribute → host-only cookie | `.escolaviva.com.br` |
 
-`app.escolaviva.com.br` e `api.escolaviva.com.br` são **origens diferentes, mesmo site**: o
-navegador exige CORS, mas `SameSite=Lax` continua valendo e o cookie continua viajando. É por isso
-que a decisão de manter o cookie assinado não vira dívida no dia da CDN — se a sessão fosse token,
-o problema seria outro (guardar credencial no cliente), e não sumiria com configuração.
+`app.escolaviva.com.br` and `api.escolaviva.com.br` are **different origins, the same site**: the
+browser requires CORS, but `SameSite=Lax` still holds and the cookie still travels. That is why the
+decision to keep the signed cookie does not become debt on CDN day — if the session were a token, the
+problem would be a different one (storing a credential on the client) and it would not go away with
+configuration.
 
-**Regra que o front precisa obedecer para isso funcionar:** nenhuma rota React pode depender de
-comportamento do servidor. Nada de caminho absoluto montado no servidor, nada de HTML injetado, nada
-de leitura de cabeçalho na primeira carga. O `index.html` gerado pelo Vite tem de funcionar servido
-por qualquer coisa que devolva arquivo.
+**The rule the front has to obey for this to work:** no React route may depend on server behaviour.
+No absolute path assembled on the server, no injected HTML, no header read on first load. The
+`index.html` Vite produces has to work when served by anything that returns a file.
 
-Isso vira **I23 — a origem do front e a origem da API são configuração, não código**, registrada
-como invariante nova na tabela do estágio.
+That becomes **I23 — the front's origin and the API's origin are configuration, not code**, recorded
+as a new invariant in the stage's table.
 
-### 1.3 Como o servidor entrega o front hoje
+### 1.3 How the server delivers the front today
 
-`apps/api/src/http/estatico.ts` substitui o handler de `/publico/*`:
+`apps/api/src/http/static.ts` replaces the `/public/*` handler:
 
-- `GET /assets/*` → arquivo do `dist/assets/`, com `Cache-Control: public, max-age=31536000,
-  immutable`. O Vite já põe o hash do conteúdo no nome, o que **preserva I10** — a invariante
-  troca de dono, não desaparece.
-- `GET` de qualquer caminho que não comece por `/api`, `/health` ou `/assets` → `dist/index.html`
-  com `Cache-Control: no-store`. É o fallback que faz `/secretaria/alunos/xyz` funcionar quando
-  a pessoa aperta F5. O `index.html` **nunca** vai para cache: é ele que aponta para o bundle
-  novo depois de um deploy.
-- Nome de arquivo continua validado contra a mesma expressão de hoje; nada fora do `dist/` é
-  servido.
+- `GET /assets/*` → a file from `dist/assets/`, with `Cache-Control: public, max-age=31536000,
+  immutable`. Vite already puts the content hash in the name, which **preserves I10** — the invariant
+  changes owner, it does not disappear.
+- `GET` of any path not starting with `/api`, `/health` or `/assets` → `dist/index.html` with
+  `Cache-Control: no-store`. That is the fallback that makes `/registrar/students/xyz` work when
+  somebody presses F5. `index.html` **never** goes to cache: it is what points at the new bundle after
+  a deploy.
+- File names keep being validated against the same expression as today; nothing outside `dist/` is
+  served.
 
 ---
 
-## 2. Contrato HTTP
+## 2. HTTP contract
 
-### 2.1 Formato
+### 2.1 Format
 
-Prefixo `/api/v1`. Todo corpo de requisição e de resposta é `application/json; charset=utf-8`.
+Prefix `/api/v1`. Every request and response body is `application/json; charset=utf-8`.
 
-**Sucesso** devolve o recurso, sem envelope:
-
-```json
-{ "id": "01H...", "nome": "Ana Souza", "dataNascimento": "2015-03-11" }
-```
-
-**Lista paginada** devolve o `Pagina<T>` que `src/shared/paginacao/` já produz — nenhum tipo novo:
+**Success** returns the resource, with no envelope:
 
 ```json
-{ "itens": [], "pagina": 2, "paginas": 7, "total": 134, "tamanho": 20 }
+{ "id": "01H...", "name": "Ana Souza", "birthDate": "2015-03-11" }
 ```
 
-**Erro** devolve os erros da aplicação e o código de correlação:
+**A paginated list** returns the `Page<T>` that `src/shared/pagination/` already produces — no new
+type:
+
+```json
+{ "items": [], "page": 2, "pages": 7, "total": 134, "size": 20 }
+```
+
+**An error** returns the application errors and the correlation code:
 
 ```json
 { "erros": [ { "campo": "cpf", "codigo": "cpf_invalido", "mensagem": "CPF inválido." } ],
-  "correlacaoId": "01H..." }
+  "correlationId": "01H..." }
 ```
 
-`ErroDeAplicacao` já é `{ campo?, codigo, mensagem }` em `src/shared/resultado.ts`. Isso é
-deliberado e é o maior ganho de reaproveitamento do projeto: o array cai direto no `setError` do
-React Hook Form, campo por campo, **sem nenhum tradutor entre as duas pontas**. Erro sem `campo`
-vira aviso geral do formulário, exatamente como o `_mensagens.eta` faz hoje.
+`ApplicationError` is already `{ campo?, codigo, mensagem }` in `src/shared/result.ts`. That is
+deliberate and is the project's biggest reuse win: the array drops straight into React Hook Form's
+`setError`, field by field, **with no translator between the two ends**. An error without `campo`
+becomes a general form warning, exactly as `partials/_messages.eta` does today.
 
-Os status continuam vindo do mapa de `shared/http/erros.ts` — 400, 401, 403, 404, 422, 500 — com
-os mesmos significados. O que muda é só o corpo: `middlewareErros` para de chamar
-`paginaDeErro()` e passa a serializar JSON. `registrarRenderizadorDeErro` e todo o mecanismo de
-injeção de HTML em `shared/` **são removidos**; `shared/http/` fica menor do que era.
+The statuses keep coming from the map in `shared/http/errors.ts` — 400, 401, 403, 404, 422, 500 — with
+the same meanings. Only the body changes: `errorsMiddleware` stops calling `errorPage()` and starts
+serialising JSON. `registerErrorRenderer` and the whole HTML-injection mechanism in `shared/` **are
+removed**; `shared/http/` ends up smaller than it was.
 
-### 2.2 Validação de entrada — onde cada uma mora
+### 2.2 Input validation — where each one lives
 
-Duas camadas, com responsabilidades que não se sobrepõem:
+Two layers, with responsibilities that do not overlap:
 
-| Camada | Onde | Valida | Não valida |
+| Layer | Where | Validates | Does not validate |
 |---|---|---|---|
-| Borda HTTP | `apps/api/src/http/esquemas/` | **forma**: campo presente, tipo certo, id com formato de identificador | regra de negócio |
-| Aplicação | `*/aplicacao/` | **regra**: unicidade, faixa, coerência, situação | — |
+| HTTP edge | `apps/api/src/http/schemas/` | **shape**: field present, right type, id in identifier format | business rules |
+| Application | `*/application/` | **rules**: uniqueness, range, coherence, state | — |
 
-A borda existe porque JSON pode chegar com qualquer coisa; ela responde 400 e usa o
-`errosDeSchema()` que já existe para produzir `ErroDeAplicacao[]`. A verdade continua na aplicação,
-que responde 422 — **I22 sobrevive intacta**. O Zod do React é uma terceira camada, e é a única
-das três que existe apenas para conforto: ela não decide nada.
+The edge exists because JSON can arrive with anything; it answers 400 and uses the existing
+`schemaErrors()` to produce `ApplicationError[]`. The truth stays in the application, which answers
+422 — **I22 survives intact**. React's Zod is a third layer, and it is the only one of the three that
+exists purely for comfort: it decides nothing.
 
-Um efeito colateral bom: conversões que hoje moram nas rotas somem. `rede.ts` tem uma expressão
-regular de quatro dígitos e uma conversão manual de `ano` para número porque o formulário só sabe
-mandar texto; com JSON, `ano` chega número e a checagem vira uma linha de schema.
+One good side effect: conversions that live in the routes today disappear. `network.ts` has a
+four-digit regular expression and a manual conversion of `year` to a number because a form can only
+send text; with JSON, `year` arrives as a number and the check becomes one line of schema.
 
-### 2.3 Idempotência (I4)
+### 2.3 Idempotency (I4)
 
-A chave sai do corpo do formulário e vai para o cabeçalho:
+The key leaves the form body and moves to a header:
 
 ```
 Idempotency-Key: 3f2a91c0-...
 ```
 
-- Exigida em **POST**. `PUT` e `DELETE` são idempotentes pelo próprio método e não pagam esse
-  pedágio — exigir chave neles seria aluguel sem dor.
-- A tabela `requisicao_idempotente` **não muda**. `resposta_local` passa a guardar o caminho
-  canônico do recurso criado (o que hoje é o `Location` do 303) e `resposta_hash` continua sendo
-  o SHA-256 dele.
-- **Repetição** responde `200` com `{ "repetida": true, "local": "/api/v1/secretaria/alunos/01H..." }`.
-  O cliente segue para o recurso. Nenhum corpo de resposta é gravado no banco — o que impediria,
-  por exemplo, que a senha provisória de um convite ficasse em repouso numa tabela (I17).
-- Falha e recusa por validação continuam **liberando a chave**, como hoje.
-- O corpo continua sendo lido uma única vez pelo middleware e deixado em `c.get('corpo')` —
-  agora como objeto JSON, não `CorpoDeFormulario`. O tipo `CorpoDeFormulario` desaparece.
+- Required on **POST**. `PUT` and `DELETE` are idempotent by method and do not pay that toll —
+  requiring a key from them would be rent without pain.
+- The `idempotent_request` table **does not change**. `response_location` now stores the canonical
+  path of the created resource (what is the `Location` of the 303 today) and `response_hash` is still
+  its SHA-256.
+- **A repeat** answers `200` with `{ "repeated": true, "location": "/api/v1/registrar/students/01H..." }`.
+  The client follows on to the resource. No response body is stored in the database — which would
+  prevent, for instance, an invitation's temporary password from sitting at rest in a table (I17).
+- A failure or a validation refusal keeps **releasing the key**, as today.
+- The body is still read exactly once by the middleware and left in `c.get('body')` — now as a JSON
+  object, not a `FormBody`. The `FormBody` type disappears.
 
-### 2.4 CSRF — o problema que a SPA cria
+### 2.4 CSRF — the problem the SPA creates
 
-Cookie automático mais escrita por JSON abre falsificação de requisição entre sites, que o
-formulário com PRG não tinha. A defesa é a mais barata que resolve, sem tabela e sem token:
+An automatic cookie plus writes in JSON opens cross-site request forgery, which the form with PRG did
+not have. The defence is the cheapest one that solves it, with no table and no token:
 
-- Toda escrita precisa de `Content-Type: application/json`. Formulário HTML não consegue emitir
-  esse tipo.
-- Toda escrita precisa do cabeçalho `X-Requerido-Por: escolaviva`. Cabeçalho fora da lista
-  segura obriga o navegador a fazer preflight, e o preflight só passa para origem permitida.
-- Com `ORIGENS_PERMITIDAS` vazia (hoje, mesma origem), não há preflight nem CORS: a exigência do
-  cabeçalho sozinha já barra o envio cruzado, porque nenhum site externo consegue adicioná-lo.
+- Every write requires `Content-Type: application/json`. An HTML form cannot emit that type.
+- Every write requires the `X-Requested-By: escolaviva` header. A header outside the safe list forces
+  the browser into a preflight, and the preflight only passes for an allowed origin.
+- With `ALLOWED_ORIGINS` empty (today, same origin) there is no preflight and no CORS: requiring the
+  header alone already blocks the cross-site submission, because no external site can add it.
 
-Isso é registrado como o **primeiro custo concreto da decisão de SPA**: uma defesa que o desenho
-anterior não precisava ter.
+This is recorded as the **first concrete cost of the SPA decision**: a defence the previous design did
+not need.
 
 ### 2.5 Cache (I11)
 
-`middlewareCacheControl` continua, com o prefixo trocado:
+`cacheControlMiddleware` stays, with the prefix swapped:
 
-| Caminho | Cabeçalho |
+| Path | Header |
 |---|---|
 | `/assets/*` | `public, max-age=31536000, immutable` |
-| `/api/*` com sessão | `private, no-store` + `Vary: Cookie` |
-| `/api/*` sem sessão | `no-store` |
+| `/api/*` with a session | `private, no-store` + `Vary: Cookie` |
+| `/api/*` without a session | `no-store` |
 | `index.html` (fallback) | `no-store` |
 
-Com CORS ativo, `Vary: Origin` é acrescentado. O boletim de um aluno servido do cache de um proxy
-para o responsável de outro continua sendo o erro que estas linhas impedem.
+With CORS active, `Vary: Origin` is appended. A student's report card served from a proxy cache to
+another student's guardian is still the mistake these lines prevent.
 
 ### 2.6 CORS
 
-Middleware novo, `apps/api/src/http/cors.ts`, ativo **apenas** quando `ORIGENS_PERMITIDAS` não
-está vazia. Ecoa a origem quando ela está na lista (nunca `*`, que é incompatível com credenciais),
-responde ao preflight, e declara `Access-Control-Allow-Credentials: true`,
-`Access-Control-Allow-Headers: Content-Type, Idempotency-Key, X-Requerido-Por`.
+A new middleware, `apps/api/src/http/cors.ts`, active **only** when `ALLOWED_ORIGINS` is not empty. It
+echoes the origin when it is on the list (never `*`, which is incompatible with credentials), answers
+the preflight, and declares `Access-Control-Allow-Credentials: true` and
+`Access-Control-Allow-Headers: Content-Type, Idempotency-Key, X-Requested-By`.
 
 ---
 
-## 3. Mapa de endpoints
+## 3. Endpoint map
 
-Os 54 handlers dos routers viram 50 endpoints, e a conta não é a que se espera: 12 `GET` de tela de
-formulário (`/novo`, `/nova`, `/matricular`, `/transferir`) **somem** — o React já tem o
-formulário —, mas 8 nascem para servir as opções de preenchimento que hoje viajam dentro daquelas
-telas. Os 3 handlers de entrada de `app.ts` viram roteamento do cliente; os 2 de saúde ficam onde
-estão.
+The 54 router handlers become 50 endpoints, and the arithmetic is not what one expects: 12 `GET`s of
+form screens (`/new`, `/enroll`, `/transfer`) **disappear** — React already has the form — but 8 are
+born to serve the choice lists that today travel inside those screens. The 3 entry handlers of
+`app.ts` become client-side routing; the 2 health checks stay where they are.
 
-A distribuição por família: 4 de sessão e conta, 6 de seleções, 7 de rede, 17 de secretaria,
-7 de professor, 6 de responsável, 3 de comunicados.
+Distribution by family: 4 for session and account, 6 for options, 7 for network, 17 for registrar,
+7 for teacher, 6 for guardian, 3 for announcements.
 
-### 3.1 Sessão e conta
+### 3.1 Session and account
 
-| Método | Caminho | Substitui | Corpo → Resposta |
+| Method | Path | Replaces | Body → Response |
 |---|---|---|---|
-| `POST` | `/api/v1/sessao` | `POST /login` | `{redeSlug, identificador, senha}` → `201 {usuario}` + `Set-Cookie` |
-| `GET` | `/api/v1/sessao` | *novo* | → `200 {usuario}` \| `401` |
-| `DELETE` | `/api/v1/sessao` | `POST /logout` | → `204` |
-| `PUT` | `/api/v1/conta/senha` | `POST /conta/senha` | `{senhaAtual, senhaNova, senhaConfirmacao}` → `204` |
+| `POST` | `/api/v1/session` | `POST /login` | `{networkSlug, cpf, password}` → `201 {user}` + `Set-Cookie` |
+| `GET` | `/api/v1/session` | *new* | → `200 {user}` \| `401` |
+| `DELETE` | `/api/v1/session` | `POST /logout` | → `204` |
+| `PUT` | `/api/v1/account/password` | `POST /account/password` | `{currentPassword, newPassword, passwordConfirmation}` → `204` |
 
-`GET /api/v1/sessao` é o que hidrata a aplicação a cada carga e detecta expiração sem recarregar
-a página. Devolve o `UsuarioDaSessao` inteiro, `papeis` inclusive.
+`GET /api/v1/session` is what hydrates the application on every load and detects expiry without a page
+reload. It returns the whole `SessionUser`, `roles` included.
 
-`GET /painel`, que hoje redireciona pela precedência de papel, **deixa de existir no servidor**: a
-lista de precedência (`admin_rede` > `secretaria` > `professor` > `responsavel`) é do front, que
-decide para onde levar quem entrou. É apresentação, e sempre foi.
+`GET /dashboard`, which today redirects by role precedence, **stops existing on the server**: the
+precedence list (`network_admin` > `registrar` > `teacher` > `guardian`) belongs to the front, which
+decides where to take whoever signed in. It is presentation, and it always was.
 
-### 3.2 Seleções — as opções dos formulários
+### 3.2 Options — the choices in the forms
 
-Família própria, `/api/v1/selecoes/*`, para as listas **não paginadas** que alimentam campos de
-escolha. Elas existem hoje espalhadas dentro dos `GET /novo`; concentrá-las evita que cada
-formulário invente seu jeito de pedir a mesma coisa, e deixa o TanStack Query cacheá-las com
-tempo de vida longo — mudam pouco.
+A family of its own, `/api/v1/options/*`, for the **unpaginated** lists that feed choice fields. They
+exist today scattered inside the `GET /new` screens; concentrating them stops each form inventing its
+own way of asking for the same thing, and lets TanStack Query cache them with a long lifetime — they
+change rarely.
 
-| Método | Caminho | Devolve | Alcance |
+| Method | Path | Returns | Scope |
 |---|---|---|---|
-| `GET` | `/api/v1/selecoes/unidades` | unidades do alcance de quem pergunta | qualquer papel com alcance |
-| `GET` | `/api/v1/selecoes/anos-letivos` | anos letivos da rede | rede, secretaria |
-| `GET` | `/api/v1/selecoes/responsaveis` | responsáveis da rede | rede, secretaria |
-| `GET` | `/api/v1/selecoes/turmas` | turmas do alcance, com ano e unidade | secretaria |
-| `GET` | `/api/v1/selecoes/disciplinas` | disciplinas da rede | secretaria |
-| `GET` | `/api/v1/selecoes/professores?unidadeId=` | quem tem papel de professor na unidade | secretaria |
+| `GET` | `/api/v1/options/schools` | schools within the asker's scope | any role with a scope |
+| `GET` | `/api/v1/options/academic-years` | the network's academic years | network, registrar |
+| `GET` | `/api/v1/options/guardians` | the network's guardians | network, registrar |
+| `GET` | `/api/v1/options/class-groups` | class groups in scope, with year and school | registrar |
+| `GET` | `/api/v1/options/subjects` | the network's subjects | registrar |
+| `GET` | `/api/v1/options/teachers?schoolId=` | who holds the teacher role at that school | registrar |
 
-Turnos e papéis **não** viram endpoint: são listas fechadas do domínio e vivem em
-`apps/api/src/http/contratos/enumeracoes.ts`, importadas pelo front. Os rótulos de tela
-("Matutino", "Administração da rede") são do front — hoje eles moram nas rotas, e é apresentação
-que nunca deveria ter estado lá.
+Shifts and roles do **not** become endpoints: they are closed sets from the domain and live in
+`apps/api/src/http/contracts/enumerations.ts`, imported by the front. The screen labels ("Matutino",
+"Administração da rede") belong to the front — today they live in the routes, and that is presentation
+that should never have been there.
 
-### 3.3 Rede — `admin_rede`
+### 3.3 Network — `network_admin`
 
-| Método | Caminho | Substitui | Notas |
+| Method | Path | Replaces | Notes |
 |---|---|---|---|
-| `GET` | `/api/v1/rede/painel` | `GET /rede` | contagens + ano em vigor |
-| `GET` | `/api/v1/rede/unidades?p=` | `GET /rede/unidades` | `Pagina<Unidade>` |
-| `POST` | `/api/v1/rede/unidades` | `POST /rede/unidades` | `{nome, codigoInep}` → `201 {id}` |
-| `GET` | `/api/v1/rede/usuarios?p=` | `GET /rede/usuarios` | `Pagina<Usuario>` |
-| `POST` | `/api/v1/rede/usuarios` | `POST /rede/usuarios` | → `201 {usuarioId, senhaProvisoria}` |
-| `GET` | `/api/v1/rede/anos-letivos?p=` | `GET /rede/anos-letivos` | |
-| `POST` | `/api/v1/rede/anos-letivos` | `POST /rede/anos-letivos` | `{ano: number, dataInicio, dataFim}` |
+| `GET` | `/api/v1/network/dashboard` | `GET /network` | counts + the year in force |
+| `GET` | `/api/v1/network/schools?p=` | `GET /network/schools` | `Page<School>` |
+| `POST` | `/api/v1/network/schools` | `POST /network/schools` | `{name, inepCode}` → `201 {id}` |
+| `GET` | `/api/v1/network/users?p=` | `GET /network/users` | `Page<User>` |
+| `POST` | `/api/v1/network/users` | `POST /network/users` | → `201 {userId, temporaryPassword}` |
+| `GET` | `/api/v1/network/academic-years?p=` | `GET /network/academic-years` | |
+| `POST` | `/api/v1/network/academic-years` | `POST /network/academic-years` | `{year: number, startDate, endDate}` |
 
-**O cookie `ev_convite` desaparece.** Ele existe hoje só porque a senha provisória precisava
-atravessar um redirecionamento sem entrar na URL nem na tabela de idempotência. Com JSON ela volta
-no corpo do `201`, é exibida uma vez e não é guardada em lugar nenhum — nem em cookie, nem em
-banco, nem em log. `guardarConvite`, `retirarConvite`, `COOKIE_DO_CONVITE` e `VALIDADE_DO_CONVITE_S`
-saem junto. É a segunda simplificação real que a mudança traz.
+**The `ev_invite` cookie disappears.** It exists today only because the temporary password had to cross
+a redirect without entering the URL or the idempotency table. With JSON it comes back in the `201`
+body, is shown once and is stored nowhere — not in a cookie, not in the database, not in the log.
+`storeInvite`, `takeInvite` and the `INVITE_COOKIE` constant go with it. It is the second real
+simplification the change brings.
 
-### 3.4 Secretaria
+**What also disappears:** `FOUR_DIGIT_YEAR` and the manual conversion of `year` to a number. With JSON
+the field arrives as a number and the check becomes `z.number().int()` in the edge schema.
 
-| Método | Caminho | Substitui | Notas |
+**What stays exactly the same:** comparing the typed CPF against the guardian record's. Only the HTTP
+layer sees `identity` and `academics` at the same time (I1), and it is here — and only here — that this
+check can happen.
+
+### 3.4 Registrar
+
+| Method | Path | Replaces | Notes |
 |---|---|---|---|
-| `GET` | `/api/v1/secretaria/painel?p=` | `GET /secretaria` | unidades do papel + contagens |
-| `GET` | `/api/v1/secretaria/alunos?q=&p=` | `GET /secretaria/alunos` | sem `q`, página vazia |
-| `POST` | `/api/v1/secretaria/alunos` | `POST /secretaria/alunos` | `{nome, dataNascimento}` |
-| `GET` | `/api/v1/secretaria/alunos/:id?pResponsaveis=&pMatriculas=` | `GET /secretaria/alunos/:id` | ficha |
-| `GET` | `/api/v1/secretaria/alunos/:id/responsaveis-disponiveis` | dentro de `/responsaveis/novo` | responsáveis menos os já vinculados |
-| `POST` | `/api/v1/secretaria/alunos/:id/responsaveis` | idem | `{responsavelId, parentesco, financeiro}` |
-| `POST` | `/api/v1/secretaria/matriculas` | `POST /secretaria/matriculas` | `{alunoId, turmaId, anoLetivoId, dataMatricula}` |
-| `GET` | `/api/v1/secretaria/matriculas/:id` | dentro de `/transferir` | matrícula ativa + aluno |
-| `POST` | `/api/v1/secretaria/matriculas/:id/transferencia` | `POST .../transferir` | `{turmaDestinoId, data}` |
-| `GET` | `/api/v1/secretaria/responsaveis?p=` | `GET /secretaria/responsaveis` | |
-| `POST` | `/api/v1/secretaria/responsaveis` | idem | `{nome, email, telefone, cpf}` |
-| `GET` | `/api/v1/secretaria/turmas?unidade=&ano=&p=` | `GET /secretaria/turmas` | filtros continuam na query |
-| `POST` | `/api/v1/secretaria/turmas` | idem | `{nome, serie, turno, unidadeId, anoLetivoId}` |
-| `GET` | `/api/v1/secretaria/turmas/:id?pDisciplinas=&pMatriculas=` | `GET /secretaria/turmas/:id` | |
-| `POST` | `/api/v1/secretaria/turmas/:id/disciplinas` | idem | `{disciplinaId, professorUsuarioId}` |
-| `GET` | `/api/v1/secretaria/disciplinas?p=` | `GET /secretaria/disciplinas` | |
-| `POST` | `/api/v1/secretaria/disciplinas` | idem | `{nome}` |
+| `GET` | `/api/v1/registrar/dashboard?p=` | `GET /registrar` | the role's schools + counts |
+| `GET` | `/api/v1/registrar/students?q=&p=` | `GET /registrar/students` | without `q`, an empty page |
+| `POST` | `/api/v1/registrar/students` | `POST /registrar/students` | `{name, birthDate}` |
+| `GET` | `/api/v1/registrar/students/:id?pGuardians=&pEnrollments=` | `GET /registrar/students/:id` | the record |
+| `GET` | `/api/v1/registrar/students/:id/available-guardians` | inside `/guardians/new` | guardians minus the ones already linked |
+| `POST` | `/api/v1/registrar/students/:id/guardians` | same | `{guardianId, relationship, financiallyResponsible}` |
+| `POST` | `/api/v1/registrar/enrollments` | `POST /registrar/enrollments` | `{studentId, classGroupId, academicYearId, enrollmentDate}` |
+| `GET` | `/api/v1/registrar/enrollments/:id` | inside `/transfer` | the active enrollment + the student |
+| `POST` | `/api/v1/registrar/enrollments/:id/transfer` | `POST .../transfer` | `{targetClassGroupId, date}` |
+| `GET` | `/api/v1/registrar/guardians?p=` | `GET /registrar/guardians` | |
+| `POST` | `/api/v1/registrar/guardians` | same | `{name, email, phone, cpf}` |
+| `GET` | `/api/v1/registrar/class-groups?school=&year=&p=` | `GET /registrar/class-groups` | filters stay in the query |
+| `POST` | `/api/v1/registrar/class-groups` | same | `{name, gradeLevel, shift, schoolId, academicYearId}` |
+| `GET` | `/api/v1/registrar/class-groups/:id?pSubjects=&pEnrollments=` | `GET /registrar/class-groups/:id` | |
+| `POST` | `/api/v1/registrar/class-groups/:id/subjects` | same | `{subjectId, teacherUserId}` |
+| `GET` | `/api/v1/registrar/subjects?p=` | `GET /registrar/subjects` | |
+| `POST` | `/api/v1/registrar/subjects` | same | `{name}` |
 
-As regras de alcance não mudam nem afrouxam. Aluno, turma ou matrícula fora das unidades onde a
-pessoa tem o papel continuam respondendo **404**, nunca 403 — a existência de um aluno já é
-informação, e isso vale igual em JSON.
+The scope rules do not change and do not loosen. A student, class group or enrollment outside the
+schools where the person holds the role keeps answering **404**, never 403 — the existence of a student
+is already information, and that holds just the same in JSON.
 
-### 3.5 Professor
+### 3.5 Teacher
 
-| Método | Caminho | Substitui | Notas |
+| Method | Path | Replaces | Notes |
 |---|---|---|---|
-| `GET` | `/api/v1/professor/turmas` | `GET /professor` | turmas agrupadas, com disciplinas |
-| `GET` | `/api/v1/professor/disciplinas/:id/notas?bimestre=` | idem | linhas + estado de fechamento |
-| `PUT` | `/api/v1/professor/disciplinas/:id/notas` | `POST` | `{bimestre, notas:[{matriculaId, valor}]}` → `{gravadas}` |
-| `GET` | `/api/v1/professor/turmas/:id/chamada?data=` | idem | linhas do dia |
-| `PUT` | `/api/v1/professor/turmas/:id/chamada` | `POST` | `{data, linhas:[{matriculaId, presente, justificativa}]}` |
-| `GET` | `/api/v1/professor/turmas/:id/fechamento` | idem | estado dos 4 bimestres |
-| `POST` | `/api/v1/professor/turmas/:id/fechamento` | idem | `{bimestre}` |
+| `GET` | `/api/v1/teacher/class-groups` | `GET /teacher` | class groups grouped, with subjects |
+| `GET` | `/api/v1/teacher/subjects/:id/grades?term=` | same | rows + closing state |
+| `PUT` | `/api/v1/teacher/subjects/:id/grades` | `POST` | `{term, grades:[{enrollmentId, value}]}` → `{saved}` |
+| `GET` | `/api/v1/teacher/class-groups/:id/roll-call?date=` | same | the day's rows |
+| `PUT` | `/api/v1/teacher/class-groups/:id/roll-call` | `POST` | `{date, rows:[{enrollmentId, present, excuse}]}` |
+| `GET` | `/api/v1/teacher/class-groups/:id/closing` | same | the state of the 4 terms |
+| `POST` | `/api/v1/teacher/class-groups/:id/closing` | same | `{term}` |
 
-Notas e chamada viram `PUT` porque é o que elas de fato são: substituição do estado de um bimestre
-ou de um dia, não criação de recurso. Dois envios idênticos produzem o mesmo estado — o método já
-carrega a garantia que a chave de idempotência daria.
+Grades and roll call become `PUT` because that is what they actually are: replacing the state of a term
+or a day, not creating a resource. Two identical submissions produce the same state — the method
+already carries the guarantee an idempotency key would give.
 
-`nota_<uuid>` e `presenca_<uuid>` deixam de existir. O corpo passa a ser um array de objetos, o
-que elimina a montagem e a leitura de nomes de campo por concatenação — três funções em
-`professor.ts` somem.
+`grade_<uuid>` and `present_<uuid>` stop existing. The body becomes an array of objects, which removes
+the assembling and parsing of field names by concatenation — three functions in `teacher.ts` disappear.
 
-O fechamento continua **síncrono**, com o cliente esperando. É a dor plantada que justifica o
-Estágio 05, e trocá-la por indicador de progresso a esconderia. O front mostra um botão desabilitado
-com o tempo correndo, e nada mais.
+Closing stays **synchronous**, with the client waiting. That is the planted pain that justifies Stage
+05, and swapping it for a progress indicator would hide it. The front shows a disabled button with the
+clock running, and nothing else.
 
-### 3.6 Responsável
+### 3.6 Guardian
 
-| Método | Caminho | Substitui | Notas |
+| Method | Path | Replaces | Notes |
 |---|---|---|---|
-| `GET` | `/api/v1/responsavel/painel?p=` | `GET /responsavel` | matrículas + não lidos + contagens |
-| `GET` | `/api/v1/responsavel/matriculas/:id/boletim` | idem | |
-| `GET` | `/api/v1/responsavel/matriculas/:id/frequencia?p=` | idem | dias + apuração |
-| `GET` | `/api/v1/responsavel/mural?pNaoLidos=&pLidos=` | idem | duas páginas independentes |
-| `GET` | `/api/v1/responsavel/mural/:comunicadoId` | idem | **não marca leitura** |
-| `POST` | `/api/v1/responsavel/mural/:comunicadoId/leitura` | `POST .../lido` | → `204` |
+| `GET` | `/api/v1/guardian/dashboard?p=` | `GET /guardian` | enrollments + unread + counts |
+| `GET` | `/api/v1/guardian/enrollments/:id/report-card` | same | |
+| `GET` | `/api/v1/guardian/enrollments/:id/attendance?p=` | same | days + tally |
+| `GET` | `/api/v1/guardian/board?pUnread=&pRead=` | same | two independent pages |
+| `GET` | `/api/v1/guardian/board/:announcementId` | same | **does not mark a read** |
+| `POST` | `/api/v1/guardian/board/:announcementId/read` | `POST .../read` | → `204` |
 
-Abrir o comunicado continua não marcando leitura. Com SPA a tentação é maior — um `useEffect` no
-carregamento resolveria "sozinho" —, e é exatamente isso que não pode acontecer: a taxa de 12 %
-é a medição que justifica o Estágio 04, e leitura inventada por navegação a destrói. Fica registrado
-aqui e vira um teste E2E explícito.
+Opening an announcement still does not mark it read. With an SPA the temptation is greater — a
+`useEffect` on load would "solve" it on its own — and that is exactly what must not happen: the 12 %
+rate is the measurement that justifies Stage 04, and reads invented by navigation destroy it. It is
+recorded here and becomes an explicit E2E test.
 
-### 3.7 Comunicados — `secretaria` e `admin_rede`
+### 3.7 Announcements — `registrar` and `network_admin`
 
-| Método | Caminho | Substitui | Notas |
+| Method | Path | Replaces | Notes |
 |---|---|---|---|
-| `GET` | `/api/v1/comunicados?unidadeId=&p=` | `GET /comunicados` | lista + resumo com a taxa |
-| `GET` | `/api/v1/comunicados/destinatarios?unidadeId=` | dentro de `GET /comunicados/novo` | responsáveis da unidade |
-| `POST` | `/api/v1/comunicados` | `POST /comunicados/novo` | `{unidadeId, titulo, corpo, alcance, responsaveis[]}` |
+| `GET` | `/api/v1/announcements?schoolId=&p=` | `GET /announcements` | list + summary with the rate |
+| `GET` | `/api/v1/announcements/recipients?schoolId=` | inside `GET /announcements/new` | the school's guardians |
+| `POST` | `/api/v1/announcements` | `POST /announcements/new` | `{schoolId, title, body, audience, guardians[]}` |
 
-O resumo continua medindo o recorte inteiro, e não as linhas da página — uma taxa que se
-recalculasse a cada clique em "próxima" responderia outra pergunta.
+The summary keeps measuring the whole slice, not the page's rows — a rate that recalculated itself on
+every click of "next" would answer a different question.
 
-A conferência dos destinatários marcados contra os responsáveis da unidade continua no servidor.
-Que o React só ofereça os certos não é garantia de nada: a lista que volta é entrada externa.
+Checking the ticked recipients against the school's guardians stays on the server. The fact that React
+only offers the right ones guarantees nothing: the list that comes back is external input.
 
-### 3.8 Saúde
+### 3.8 Health
 
-`/health` e `/health/live` ficam como estão, fora de `/api/v1`. Eles respondem a um balanceador,
-não à SPA, e versioná-los seria dar a eles um cliente que não têm.
+`/health` and `/health/live` stay as they are, outside `/api/v1`. They answer a load balancer, not the
+SPA, and versioning them would give them a client they do not have.
 
 ---
 
-## 4. O frontend
+## 4. The frontend
 
-### 4.1 Pilha e versões
+### 4.1 Stack and versions
 
 React 19 · TypeScript 5 · Vite 7 · React Router 7 · Zod 4 · Zustand 5 · Mantine 8 ·
 React Hook Form 7 · TanStack Query 5 · Axios 1.
 
-As versões maiores acima são o alvo; a versão exata é a que `bun add <pacote>@latest` resolver no
-dia da instalação, e ela é registrada no `bun.lock`. O plano não fixa números de correção.
+The major versions above are the target; the exact version is whatever `bun add <package>@latest`
+resolves on installation day, and it is recorded in `bun.lock`. The plan does not pin patch numbers.
 
-### 4.2 Quem manda em quê
+### 4.2 Who owns what
 
-Este é o ponto onde uma pilha assim costuma virar sopa: três bibliotecas sabem guardar estado, e
-sem fronteira declarada cada tela escolhe uma diferente. A fronteira é:
+This is the point where a stack like this usually turns to soup: three libraries know how to hold
+state, and without a declared boundary each screen picks a different one. The boundary is:
 
-| Camada | Dona de | Proibida de guardar |
+| Layer | Owns | Forbidden to hold |
 |---|---|---|
-| **TanStack Query** | todo estado que veio do servidor: listas, fichas, boletins, seleções | — |
-| **Zustand** | estado de cliente que sobrevive à navegação: unidade e ano selecionados, avisos, preferências | qualquer coisa que a API devolveu |
-| **URL / React Router** | página, busca, filtros de unidade e ano | credencial, estado transitório de formulário |
-| **React Hook Form + Zod** | valores e erros do formulário aberto | dado de outra tela |
+| **TanStack Query** | all state that came from the server: lists, records, report cards, options | — |
+| **Zustand** | client state that survives navigation: selected school and year, notices, preferences | anything the API returned |
+| **URL / React Router** | page, search, school and year filters | credentials, transient form state |
+| **React Hook Form + Zod** | the values and errors of the open form | data from another screen |
 
-A regra do meio é a que importa: **nenhuma lista, ficha ou boletim entra no Zustand**. Duplicar
-resposta de servidor em store de cliente é como se produz tela desatualizada que ninguém sabe
-invalidar.
+The middle rule is the one that matters: **no list, record or report card enters Zustand**. Duplicating
+a server response into a client store is how you produce a stale screen nobody knows how to invalidate.
 
-A quarta linha preserva uma conquista do desenho atual, descrita em `src/web/paginacao.ts`: o
-estado da página mora na query, não em sessão nem em cookie. A terceira página da lista de
-responsáveis continua sendo um endereço copiável, e o botão "voltar" continua funcionando sem que
-ninguém o programe.
+The fourth row preserves an achievement of the current design, described in `src/web/pagination.ts`:
+the page state lives in the query string, not in a session and not in a cookie. The third page of the
+guardian list stays a copyable address, and the back button keeps working without anyone programming it.
 
-### 4.3 Cliente HTTP
+### 4.3 HTTP client
 
-`compartilhado/api/cliente.ts` — uma instância de Axios, e só uma:
+`shared/api/client.ts` — one Axios instance, and only one:
 
-- `baseURL` de `import.meta.env.VITE_API_URL` + `/api/v1`; vazio significa mesma origem.
+- `baseURL` from `import.meta.env.VITE_API_URL` + `/api/v1`; empty means the same origin.
 - `withCredentials: true`.
-- Interceptor de requisição: acrescenta `X-Requerido-Por` em toda escrita e
-  `Idempotency-Key: crypto.randomUUID()` em todo `POST`.
-- Interceptor de resposta: converte `{erros, correlacaoId}` em um `ErroDaApi` tipado, com
-  `porCampo(): Record<string,string>` pronto para o `setError`. `401` limpa o cache do Query e
-  leva para `/login`.
-- Nenhum outro arquivo do front chama `fetch` ou monta URL de API à mão.
+- Request interceptor: adds `X-Requested-By` to every write and
+  `Idempotency-Key: crypto.randomUUID()` to every `POST`.
+- Response interceptor: converts `{erros, correlationId}` into a typed `ApiError`, with
+  `byField(): Record<string,string>` ready for `setError`. A `401` clears the Query cache and goes to
+  `/login`.
+- No other file in the front calls `fetch` or assembles an API URL by hand.
 
-### 4.4 Estrutura por funcionalidade
+### 4.4 Structure by feature
 
-Cada pasta de `funcionalidades/` é auto-contida — consultas, mutações, esquemas, telas e
-componentes daquele assunto:
+Each folder under `features/` is self-contained — queries, mutations, schemas, screens and components
+for that subject:
 
 ```
-funcionalidades/secretaria/alunos/
-├─ consultas.ts      useAlunos, useFichaDoAluno            (TanStack Query)
-├─ mutacoes.ts       useCadastrarAluno, useVincularResponsavel
-├─ esquemas.ts       Zod dos formulários                    (conforto, não verdade)
-├─ ListaDeAlunos.tsx
-├─ FichaDoAluno.tsx
-└─ FormularioDeAluno.tsx
+features/registrar/students/
+├─ queries.ts      useStudents, useStudentRecord            (TanStack Query)
+├─ mutations.ts    useRegisterStudent, useLinkGuardian
+├─ schemas.ts      form Zod                                 (comfort, not truth)
+├─ StudentList.tsx
+├─ StudentRecord.tsx
+└─ StudentForm.tsx
 ```
 
-Arquivo com mais de 400 linhas é sinal de que a funcionalidade precisa de subpasta. O limite duro
-é 800, igual ao do resto do repositório.
+A file over 400 lines is a sign the feature needs a subfolder. The hard limit is 800, the same as the
+rest of the repository.
 
-### 4.5 Rotas e guardas
+### 4.5 Routes and guards
 
-O React Router recebe **as mesmas URLs de hoje**, incluindo `/login`. Cada grupo de papel é um
-`lazy()` próprio, o que dá um bloco por papel no bundle: quem entra como responsável não baixa a
-secretaria.
+React Router receives **the same URLs as today**, `/login` included. Each role group is its own
+`lazy()`, which gives one bundle chunk per role: whoever signs in as a guardian does not download the
+registrar.
 
-A guarda de rota lê o usuário do `GET /api/v1/sessao` e aplica a mesma regra do
-`exigirPapel` do servidor. Ela é **conveniência de navegação, não segurança** — quem forçar a URL
-recebe 404 ou 403 da API do mesmo jeito. Isso fica escrito no código, para que ninguém confunda a
-guarda do cliente com controle de acesso.
+The route guard reads the user from `GET /api/v1/session` and applies the same rule as the server's
+`requireRole`. It is **navigation convenience, not security** — anyone forcing the URL gets a 404 or a
+403 from the API all the same. That is written in the code, so that nobody confuses the client guard
+with access control.
 
-### 4.6 Formatação
+### 4.6 Formatting
 
-`formatarData`, `formatarDataHora`, `formatarNota`, `formatarPercentual`, `formatarTaxa` e
-`formatarCpf` são portados de `src/web/render.ts` para `compartilhado/formato/`, com os mesmos
-testes. Duas regras vêm junto e não podem ser perdidas na tradução:
+`formatDate`, `formatDateTime`, `formatGrade`, `formatPercent`, `formatRate` and `formatCpf` are ported
+from `src/web/render.ts` to `shared/format/`, with the same tests. Two rules come with them and must
+not be lost in translation:
 
-- Nota e média são **truncadas**, nunca arredondadas — arredondar 5,99 para 6,0 mostraria
-  "aprovado" ao lado de uma situação "reprovado".
-- Taxa sai do domínio como fração de 0 a 1 e vira percentual **num lugar só**. Espalhar a
-  multiplicação por 100 já custou uma tela mostrando "0,1 %" onde eram 12,3 %.
+- Grades and averages are **truncated**, never rounded — rounding 5.99 to 6.0 would show "aprovado"
+  next to a "reprovado" status.
+- A rate leaves the domain as a fraction from 0 to 1 and becomes a percentage **in exactly one place**.
+  Spreading the multiplication by 100 has already cost one screen showing "0,1 %" where it was 12,3 %.
 
-`formatarCpf` continua vindo de `shared/documento/` no servidor; no front é uma cópia com o mesmo
-teste, porque o front não importa código de domínio.
+`formatCpf` still comes from `shared/document/` on the server; on the front it is a copy with the same
+test, because the front does not import domain code.
 
 ---
 
-## 5. Tema
+## 5. Theme
 
-`src/web/publico/app.css` tem 1.176 linhas e 390 propriedades customizadas. Elas viram
-`compartilhado/tema/tema.ts`, um `MantineThemeOverride`:
+`src/web/public/app.css` has 1,004 lines and 44 custom properties. They become
+`shared/theme/theme.ts`, a `MantineThemeOverride`:
 
-| Origem no `app.css` | Destino no tema |
+| Origin in `app.css` | Destination in the theme |
 |---|---|
-| paleta (`--cor-*`) | `theme.colors`, com as escalas de 10 tons que o Mantine exige |
-| tipografia (`--fonte-*`, `--texto-*`) | `theme.fontFamily`, `theme.fontSizes`, `theme.headings` |
-| espaçamento (`--espaco-*`) | `theme.spacing` |
-| raio e sombra | `theme.radius`, `theme.shadows` |
-| o que sobrar | CSS Module do componente que usa |
+| palette | `theme.colors`, with the 10-shade scales Mantine requires |
+| typography | `theme.fontFamily`, `theme.fontSizes`, `theme.headings` |
+| spacing | `theme.spacing` |
+| radius and shadow | `theme.radius`, `theme.shadows` |
+| whatever is left | a CSS Module in the component that uses it |
 
-O objetivo é que as telas continuem reconhecíveis: as capturas do material didático não podem
-virar outro produto. Não é redesenho.
+The goal is for the screens to stay recognisable: the screenshots in the teaching material must not
+turn into a different product. This is not a redesign.
 
-`app.css`, `scripts/build-assets.ts` e `publico/manifest.json` são removidos ao fim.
+`app.css`, `scripts/build-assets.ts` and `public/manifest.json` are removed at the end.
 
 ---
 
-## 6. Invariantes
+## 6. Invariants
 
-### Intactas, sem mudança de código
+### Intact, with no code change
 
-I1 (fronteira entre módulos), I3, I5, I6, I7, I8, I9, I13, I14, I15, I18, I20, I21.
+I1 (module boundary), I3, I5, I6, I7, I8, I9, I13, I14, I15, I18, I20, I21.
 
-### Preservadas com mudança de mecanismo
+### Preserved with a change of mechanism
 
-| # | Como sobrevive |
+| # | How it survives |
 |---|---|
-| **I2** | Sessão continua em tabela, cookie assinado `HttpOnly`. Nenhum token no cliente. Ganha `COOKIE_DOMINIO` opcional. |
-| **I4** | Chave migra do corpo do formulário para `Idempotency-Key`. Mesma tabela, mesmo comportamento. Repetição responde 200 com o local do recurso. |
-| **I10** | O hash no nome do asset passa a ser gerado pelo Vite. `build-assets.ts` sai; a garantia fica. |
-| **I11** | Mesmo middleware, prefixo `/publico/` → `/assets/`. `index.html` explicitamente `no-store`. |
-| **I12** | `ipDoCliente` inalterado. Ganha relevância: com CDN na frente, é ela que resolve o endereço real. |
-| **I16** | Correlação inalterada na geração. Passa a **sair também na resposta de erro**, no campo `correlacaoId` — hoje ela aparece na página de erro, e o suporte não pode perdê-la. |
-| **I17** | Nenhum dado pessoal novo entra em log. A senha provisória, que hoje viaja em cookie, passa a viajar no corpo do 201 e continua fora do log e fora do banco. |
-| **I19** | Um `Dockerfile`, uma imagem. O build do front acontece dentro dela, em estágio próprio. |
-| **I22** | Validação de verdade continua em `*/aplicacao/`. A borda HTTP valida forma; o Zod do React valida conforto. |
+| **I2** | The session stays in a table, signed `HttpOnly` cookie. No token on the client. It gains an optional `COOKIE_DOMAIN`. |
+| **I4** | The key moves from the form body to `Idempotency-Key`. Same table, same behaviour. A repeat answers 200 with the resource's location. |
+| **I10** | The hash in the asset name is now produced by Vite. `build-assets.ts` goes away; the guarantee stays. |
+| **I11** | Same middleware, prefix `/public/` → `/assets/`. `index.html` explicitly `no-store`. |
+| **I12** | `clientIp` unchanged. It gains relevance: with a CDN in front, it is what resolves the real address. |
+| **I16** | Correlation unchanged at generation. It now **also leaves in the error response**, in the `correlationId` field — today it shows on the error page, and support cannot afford to lose it. |
+| **I17** | No new personal data enters the log. The temporary password, which travels in a cookie today, comes to travel in the 201 body and stays out of the log and out of the database. |
+| **I19** | One `Dockerfile`, one image. The front build happens inside it, in its own stage. |
+| **I22** | Real validation stays in `*/application/`. The HTTP edge validates shape; React's Zod validates comfort. |
 
-### Nova
+### New
 
-**I23 — A origem do front e a origem da API são configuração, não código.**
-O front é estático puro e nunca depende de comportamento do servidor na primeira carga.
-`VITE_API_URL`, `ORIGENS_PERMITIDAS` e `COOKIE_DOMINIO` nascem vazias. Custo: três variáveis e um
-middleware de CORS que não faz nada enquanto a lista estiver vazia.
+**I23 — the front's origin and the API's origin are configuration, not code.**
+The front is pure static and never depends on server behaviour on first load. `VITE_API_URL`,
+`ALLOWED_ORIGINS` and `COOKIE_DOMAIN` are born empty. Cost: three variables and a CORS middleware that
+does nothing while the list is empty.
 
 ---
 
-## 7. Testes
+## 7. Tests
 
-| Suíte | Onde | Ferramenta | Cobre |
+| Suite | Where | Tool | Covers |
 |---|---|---|---|
-| Domínio e aplicação | `apps/api/testes/{identidade,academico,avaliacao,comunicacao,shared}/` | `bun test` | **inalterada** |
-| API HTTP | `apps/api/testes/api/` | `bun test` + `app.request` | status, JSON, alcance, idempotência, cache, CORS, CSRF |
-| Unidade do front | `apps/web/src/**/*.test.ts(x)` | Vitest + Testing Library + MSW | hooks de consulta, resolvers, stores, formatação |
-| Ponta a ponta | `e2e/` | Playwright | as 4 jornadas de `docs/archify/06..09` |
+| Domain and application | `apps/api/tests/{identity,academics,assessment,communication,shared}/` | `bun test` | **unchanged** |
+| HTTP API | `apps/api/tests/api/` | `bun test` + `app.request` | status, JSON, scope, idempotency, cache, CORS, CSRF |
+| Front unit | `apps/web/src/**/*.test.ts(x)` | Vitest + Testing Library + MSW | query hooks, resolvers, stores, formatting |
+| End to end | `e2e/` | Playwright | the 4 journeys from `docs/archify/06..09` |
 
-A reescrita de `testes/web/` é mais barata do que parece: a estratégia de `apoio.ts` — entrar de
-verdade e devolver o `Set-Cookie` que a aplicação emitiu, sem porta aberta e sem cliente HTTP no
-meio — continua valendo palavra por palavra. Mudam duas funções: `enviar` passa a mandar JSON com
-`Idempotency-Key`, e `entrar` passa a chamar `POST /api/v1/sessao`.
+Rewriting `tests/web/` is cheaper than it looks: the strategy in `support.ts` — really sign in and
+return the `Set-Cookie` the application emitted, with no open port and no HTTP client in between —
+holds word for word. Two functions change: `send` starts posting JSON with an `Idempotency-Key`, and
+`signIn` starts calling `POST /api/v1/session`.
 
-Os três testes que rodam em processo separado (I13 banco fora do ar, I17 log de um fluxo, I18 boot
-com config incompleta) mudam apenas as URLs e o formato do corpo.
+The three tests that run in a separate process (I13 database down, I17 log of a flow, I18 boot with an
+incomplete config) change only the URLs and the body format.
 
-`checklist.test.ts` é o mais delicado: ele verifica invariantes estruturais — que nenhum módulo
-grava arquivo, que toda tabela de negócio tem `rede_id`, que dois envios com a mesma chave
-produzem uma linha só, que rota autenticada recusa cache. Todos continuam válidos; o que muda são
-os caminhos e o formato de envio. **Ele ganha um caso novo:** que o `index.html` responde
-`no-store` e o asset com hash responde `immutable`.
+`checklist.test.ts` is the most delicate: it checks structural invariants — that no module writes a
+file, that every business table has `network_id`, that two submissions with the same key produce one
+row, that an authenticated route refuses caching. All of them stay valid; what changes are the paths
+and the submission format. **It gains a new case:** that `index.html` answers `no-store` and a hashed
+asset answers `immutable`.
 
-Portão de cobertura de 80 % vale para as duas aplicações.
+The 80 % coverage gate applies to both applications.
 
-Casos que precisam existir e não existiam:
+Cases that need to exist and did not:
 
-- Escrita sem `Idempotency-Key` responde 400.
-- Escrita sem `X-Requerido-Por` responde 403.
-- Escrita com `Content-Type` de formulário responde 415.
-- Com `ORIGENS_PERMITIDAS` vazia, nenhum cabeçalho de CORS é emitido.
-- Com `ORIGENS_PERMITIDAS` preenchida, origem de fora não recebe eco.
-- `GET` do comunicado **não** grava `lido_em` (E2E).
-- Recarregar `/secretaria/alunos/:id` no navegador devolve o `index.html`, não 404 (E2E).
+- A write without `Idempotency-Key` answers 400.
+- A write without `X-Requested-By` answers 403.
+- A write with a form `Content-Type` answers 415.
+- With `ALLOWED_ORIGINS` empty, no CORS header is emitted.
+- With `ALLOWED_ORIGINS` filled in, an outside origin gets no echo.
+- A `GET` of an announcement does **not** write `read_at` (E2E).
+- Reloading `/registrar/students/:id` in the browser returns `index.html`, not a 404 (E2E).
 
 ---
 
-## 8. Documentação
+## 8. Documentation
 
-| Arquivo | O que muda |
+| File | What changes |
 |---|---|
-| `docs/ESCOLAVIVA_ESTAGIO_01.md` | a frase "sem SPA e sem API pública para versionar" é substituída pela decisão e pelo custo; a tabela de invariantes ganha I23 e as notas de I2, I4, I10, I11, I22 |
-| `docs/EVOLUCAO_SAAS.md` | o catálogo de canais deixa de listar "adotar SPA por padrão" como armadilha pura e passa a distinguir adotar por padrão de adotar com o custo medido |
-| `docs/ADR/0005-spa-e-api-versionada.md` | **novo** — por que a SPA entrou, o que ela cobra, o que foi recusado junto (SSR, token, envelope de resposta) |
-| `docs/ADR/0006-origem-do-front-como-configuracao.md` | **novo** — I23, as três variáveis, por que cookie sobrevive à separação de origem |
-| `README.md` | comandos novos, dois processos em desenvolvimento, variáveis novas |
-| `.env.example` | `ORIGENS_PERMITIDAS`, `COOKIE_DOMINIO`, `VITE_API_URL` |
-| `docs/archify/01-arquitetura.*` | passa a ter dois artefatos |
-| `docs/archify/03-requisicao-de-escrita.*` | PRG vira requisição JSON com idempotência por cabeçalho |
-| `docs/archify/06..09-jornada-*.*` | as quatro jornadas, com as telas do React |
+| `docs/ESCOLAVIVA_STAGE_01.md` | the sentence "no SPA and no public API to version" is replaced by the decision and its cost; the invariants table gains I23 and notes on I2, I4, I10, I11, I22 |
+| `docs/SAAS_EVOLUTION.md` | the channel catalogue stops listing "adopting an SPA by default" as a pure trap and starts distinguishing adopting by default from adopting with the cost measured |
+| `docs/ADR/0007-spa-and-versioned-api.md` | **new** — why the SPA came in, what it charges, what was rejected alongside (SSR, a token, a response envelope) |
+| `docs/ADR/0008-front-origin-as-configuration.md` | **new** — I23, the three variables, why the cookie survives the origin split |
+| `README.md` | new commands, two processes in development, new variables |
+| `.env.example` | `ALLOWED_ORIGINS`, `COOKIE_DOMAIN`, `VITE_API_URL` |
+| `docs/archify/01-architecture.*` | now has two artefacts |
+| `docs/archify/03-write-request.*` | PRG becomes a JSON request with header idempotency |
+| `docs/archify/06..09-*-journey.*` | the four journeys, with the React screens |
 
 ---
 
-## 9. Sequência de entrega
+## 9. Delivery sequence
 
-Sete fases. Cada uma termina com `bun run verificar` verde e é um ponto de parada seguro.
+Seven phases. Each ends with `bun run verify` green and is a safe stopping point.
 
-| # | Fase | Entrega | Paralelizável |
+| # | Phase | Delivers | Parallelisable |
 |---|---|---|---|
-| 0 | **Fundação** | workspaces, mudança de `src/` para `apps/api/src/`, Zod 3 → 4, dependency-cruiser reapontado | não — é pré-requisito de tudo |
-| 1 | **Borda** | erros em JSON, idempotência por cabeçalho, CORS, CSRF, cache, estático + fallback, `/api/v1/sessao`, `/conta/senha` | não — define o contrato |
-| 2 | **API por papel** | seleções, rede, secretaria, professor, responsável, comunicados | **sim** — seis frentes, arquivos disjuntos |
-| 3 | **Casca do front** | Vite, tema, provedores, cliente Axios, roteador, guardas, layout, tela de entrada | não — é pré-requisito das telas |
-| 4 | **Telas por papel** | as mesmas seis frentes da fase 2 | **sim** — seis frentes, arquivos disjuntos |
-| 5 | **Qualidade** | E2E das 4 jornadas, acessibilidade, orçamento de bundle | **sim** — quatro jornadas independentes |
-| 6 | **Remoção e documentação** | apaga Eta e o que restou; ADRs, diagramas, README, material didático | **sim** após a remoção |
+| 0 | **Foundation** | workspaces, moving `src/` to `apps/api/src/`, Zod 3 → 4, dependency-cruiser repointed | no — it is a prerequisite for everything |
+| 1 | **Edge** | errors in JSON, header idempotency, CORS, CSRF, cache, static + fallback, `/api/v1/session`, `/account/password` | no — it defines the contract |
+| 2 | **API per role** | options, network, registrar, teacher, guardian, announcements | **yes** — six fronts, disjoint files |
+| 3 | **Front shell** | Vite, theme, providers, Axios client, router, guards, layout, sign-in screen | no — it is a prerequisite for the screens |
+| 4 | **Screens per role** | the same six fronts as phase 2 | **yes** — six fronts, disjoint files |
+| 5 | **Quality** | E2E of the 4 journeys, accessibility, bundle budget | **yes** — four independent journeys |
+| 6 | **Removal and documentation** | delete Eta and whatever is left; ADRs, diagrams, README, teaching material | **yes** after the removal |
 
-As fases 2 e 4 são as que justificam execução por múltiplos agentes: seis conjuntos de arquivos
-que não se tocam, cada um com sua suíte.
+Phases 2 and 4 are the ones that justify execution by multiple agents: six sets of files that do not
+touch each other, each with its own suite.
 
 ---
 
-## 10. Riscos
+## 10. Risks
 
-**1. Zod 3 → 4.** Menor do que parece: 21 arquivos importam `zod`, mas só **dois** usam API que
-mudou de forma — `src/shared/config/schema.ts` (9 ocorrências de `errorMap`,
-`invalid_type_error` e `required_error`) e `src/identidade/aplicacao/convidarUsuario.ts:28`
-(1 `errorMap`). Os outros 19 usam apenas `z.object`, `z.string`, `.min`, `.safeParse` e `.issues`,
-que não mudaram. A versão instalada já é a `3.25.76`, que expõe o Zod 4 pelo subcaminho `zod/v4` —
-a migração pode ser verificada arquivo a arquivo antes de trocar o pacote.
+**1. Zod 3 → 4.** Smaller than it looks: 21 files import `zod`, but only **two** use API that changed
+shape — `src/shared/config/schema.ts` (9 occurrences of `errorMap`, `invalid_type_error` and
+`required_error`) and `src/identity/application/inviteUser.ts` (1 `errorMap`). The other 19 use only
+`z.object`, `z.string`, `.min`, `.safeParse` and `.issues`, which have not changed. The installed
+version is already `3.25.76`, which exposes Zod 4 through the `zod/v4` subpath — the migration can be
+verified file by file before the package is swapped.
 
-O ponto de atenção real é `errosDeSchema()` em `src/shared/resultado.ts:18`: ele tipa
-`path: (string | number)[]`, e no Zod 4 `issue.path` é `PropertyKey[]`. A assinatura precisa
-acompanhar. Ainda é a primeira coisa a fazer, com a suíte inteira verde antes de qualquer outra
-mudança — fazer isso com o front já escrito seria depurar duas coisas ao mesmo tempo.
+The real point of attention is `schemaErrors()` in `src/shared/result.ts`: it types
+`path: (string | number)[]`, and in Zod 4 `issue.path` is `PropertyKey[]`. The signature has to follow.
+It is still the first thing to do, with the whole suite green before any other change — doing it with
+the front already written would mean debugging two things at once.
 
-**2. Orçamento de bundle no portal do responsável.** É o pior caso do sistema: I4 existe porque um
-responsável com 4G ruim toca em "enviar" duas vezes. Essa mesma pessoa passa a baixar React e
-Mantine antes de ver o boletim. Mitigação: bloco por papel via `lazy()`, `@mantine/core` importado
-por componente, e um teto declarado — **150 kB comprimidos para o primeiro carregamento do
-responsável**, verificado na fase 5. Estourar o teto é motivo para trocar componente, não para
-subir o teto.
+**2. Bundle budget on the guardian portal.** It is the system's worst case: I4 exists because a
+guardian on bad 4G taps "submit" twice. That same person now downloads React and Mantine before seeing
+the report card. Mitigation: a chunk per role via `lazy()`, `@mantine/core` imported per component, and
+a declared ceiling — **150 kB compressed for the guardian's first load**, checked in phase 5. Blowing
+the ceiling is a reason to change component, not to raise the ceiling.
 
-**3. Duas verdades sobre o formato do dado.** Front e API podem divergir em silêncio. Mitigação:
-`apps/api/src/http/contratos/` exporta os tipos de resposta, o front os importa como `import type`,
-e uma regra do dependency-cruiser impede que `contratos/` importe qualquer coisa — ele precisa
-continuar sendo carregável por um bundler de navegador.
+**3. Two truths about the shape of the data.** Front and API can drift apart silently. Mitigation:
+`apps/api/src/http/contracts/` exports the response types, the front imports them as `import type`, and
+a dependency-cruiser rule stops `contracts/` from importing anything — it has to stay loadable by a
+browser bundler.
 
-**4. Perder a medição do Estágio 04.** Marcar leitura por efeito de carregamento é o erro mais
-fácil de cometer numa SPA e destrói a taxa de 12 % que justifica o estágio seguinte. Mitigação:
-teste E2E explícito de que abrir o comunicado não grava `lido_em`.
+**4. Losing the Stage 04 measurement.** Marking a read as a side effect of loading is the easiest
+mistake to make in an SPA and destroys the 12 % rate that justifies the next stage. Mitigation: an
+explicit E2E test that opening an announcement does not write `read_at`.
 
-**5. Esconder a lentidão do fechamento de bimestre.** É dor plantada de propósito para justificar o
-Estágio 05. Mitigação: nada de otimista, nada de fila falsa no cliente. O botão desabilita e a
-pessoa espera, como hoje.
+**5. Hiding the slowness of term closing.** It is pain planted on purpose to justify Stage 05.
+Mitigation: nothing optimistic, no fake queue on the client. The button disables and the person waits,
+as today.
 
-**6. A guarda de rota confundida com autorização.** Mitigação: comentário no código, e testes de
-API que provam 403/404 sem passar pelo front.
+**6. Mistaking the route guard for authorisation.** Mitigation: a comment in the code, and API tests
+proving 403/404 without going through the front.
 
-**7. Cookie e Cloudflare.** Se um dia o front for para um domínio **diferente** (não subdomínio),
-`SameSite=Lax` deixa de servir e o desenho precisa mudar. Mitigação: o ADR 0006 registra que a
-premissa é subdomínio do mesmo domínio registrável, e que sair dela é uma decisão nova, não um
-ajuste de variável.
+**7. The cookie and Cloudflare.** If one day the front moves to a **different** domain (not a
+subdomain), `SameSite=Lax` stops serving and the design has to change. Mitigation: ADR 0008 records
+that the premise is a subdomain of the same registrable domain, and that leaving that premise is a new
+decision, not a variable tweak.

@@ -1,56 +1,57 @@
-# EscolaViva — Estágio 01
+# EscolaViva — Stage 01
 
-**EscolaViva é um SaaS para redes educacionais.** A conta contratante é a **rede**, que possui uma
-ou mais **unidades** — uma escola isolada é apenas uma rede de uma unidade. O sistema faz o que a
-secretaria fazia em planilha compartilhada e caderno de chamada: matricular, transferir, montar
-turma, lançar nota, registrar frequência, fechar bimestre, mostrar boletim e publicar comunicado
-para o responsável. Quatro atores entram por sessão: admin da rede, secretaria, professor e
-responsável. Não há superfície pública sem login, API para terceiros nem aplicativo móvel.
+**EscolaViva is a SaaS for school networks.** The paying account is the **network**, which owns one
+or more **schools** — a standalone school is just a network with a single school. The system does
+what the registrar's office used to do with a shared spreadsheet and a paper roll-call book: enrol,
+transfer, build class groups, post grades, record attendance, close the term, show the report card
+and publish announcements to guardians. Four actors sign in: network admin, registrar, teacher and
+guardian. There is no public surface without a login, no third-party API and no mobile app.
 
-O **Estágio 01** é a versão que cabe em um repositório: um monólito modular com quatro domínios,
-HTML renderizado no servidor e um PostgreSQL. Ele foi escrito para uma escala concreta — 40 redes
-contratantes, ≈ 55 unidades, 18 mil alunos, duas pessoas na equipe, um servidor — e para **plantar
-de propósito quatro dores mensuráveis**, de modo que os estágios seguintes aconteçam por evidência
-e não por calendário. Por isso não existem aqui gateway de pagamento, fila, cache, CDN, réplica,
-observabilidade nem esteira: cada um deles cobraria aluguel permanente sem resolver problema que
-este sistema tenha hoje. O que existe são as **22 invariantes** — as decisões baratas agora que
-seriam projeto depois. O detalhamento completo está em
-[`docs/ESCOLAVIVA_ESTAGIO_01.md`](docs/ESCOLAVIVA_ESTAGIO_01.md).
+**Stage 01** is the version that fits in one repository: a modular monolith with four domains,
+server-rendered HTML and one PostgreSQL. It was written for a concrete scale — 40 paying networks,
+≈ 55 schools, 18 thousand students, a two-person team, one server — and to **deliberately plant four
+measurable pains**, so that the stages that follow happen because of evidence and not because of the
+calendar. That is why there is no payment gateway, queue, cache, CDN, replica, observability or
+delivery pipeline here: each of them would charge permanent rent without solving a problem this
+system has today. What there is are the **22 invariants** — the decisions that are cheap now and
+would be a project later. The full write-up is in
+[`docs/ESCOLAVIVA_STAGE_01.md`](docs/ESCOLAVIVA_STAGE_01.md).
 
 ---
 
-## Como subir
+## Getting it running
 
-Requisitos: [Bun](https://bun.sh) 1.3+ e Docker. Só isso.
+Requirements: [Bun](https://bun.sh) 1.3+ and Docker. That is all.
 
-Os scripts de backup usam `pg_dump`/`pg_restore`, que se recusam a falar com um servidor mais
-novo do que eles — e o PostgreSQL que vem no sistema costuma ser mais antigo que o 16 do
-`docker compose`. Por isso os dois scripts resolvem o cliente sozinhos: usam o do `PATH` quando
-ele serve e, quando não serve, usam o que já está dentro do container do banco, dizendo na saída
-qual escolheram. A restauração semanal de I7 não pode depender de instalar software — é
-justamente o item que o documento do estágio diz que é empurrado para o fim e nunca acontece.
+The backup scripts use `pg_dump`/`pg_restore`, which refuse to talk to a server newer than
+themselves — and the PostgreSQL that ships with the operating system is usually older than the 16 in
+`docker compose`. So both scripts resolve the client on their own: they use the one on `PATH` when it
+works and, when it does not, the one already inside the database container, printing which one they
+picked. The weekly restore drill of I7 cannot depend on installing software — it is precisely the
+item the stage document says gets pushed to the end and never happens.
 
-O `.env` vem antes do `docker compose` e a ordem não é decorativa: o compose mora em
-`infra/docker-compose.yml`, e é o `COMPOSE_FILE` declarado no `.env` que faz o Docker achar o
-arquivo a partir da raiz. Sem esse passo primeiro, o `up` responde `no configuration file
-provided: not found` — e é do `.env` que sai também o `PORTA_BANCO` com que o banco vai subir.
+The `.env` comes before `docker compose`, and the order is not decorative: the compose file lives in
+`infra/docker-compose.yml`, and it is the `COMPOSE_FILE` declared in `.env` that lets Docker find the
+file from the repository root. Without that step first, `up` answers `no configuration file
+provided: not found` — and `.env` is also where `DB_PORT` comes from, the port the database will
+listen on.
 
 ```bash
-cp .env.example .env             # ajuste PORTA_BANCO se a 5432 já estiver ocupada na sua máquina
-docker compose up -d banco       # PostgreSQL 16 com pg_stat_statements ligado
+cp .env.example .env             # adjust DB_PORT if 5432 is already taken on your machine
+docker compose up -d database    # PostgreSQL 16 with pg_stat_statements enabled
 bun install
-bun run migrate                  # aplica migrations/*.sql em ordem, uma transação por arquivo
-bun run build:assets             # gera public/app.<hash>.css e o manifest (I10)
-bun run seed                     # rede de demonstração: 2 unidades, 6 turmas, 120 alunos
+bun run migrate                  # applies migrations/*.sql in order, one transaction per file
+bun run build:assets             # generates public/app.<hash>.css and the manifest (I10)
+bun run seed                     # demo network: 2 schools, 6 class groups, 120 students
 bun run dev                      # http://localhost:3000
 ```
 
-Para rodar os testes, suba também o banco descartável: `docker compose up -d banco_teste`.
+To run the tests, bring up the throwaway database as well: `docker compose up -d test_database`.
 
-> **Se você já tinha um `.env` antes desta versão**, o `cp` acima não roda e a linha nova não
-> chega sozinha. O sintoma é o `docker compose` falhar com `no configuration file provided: not
-> found` — mensagem que não sugere a causa, porque o problema não é o Docker, é o arquivo estar
-> em `infra/`. Acrescente a linha ao seu `.env`:
+> **If you already had a `.env` from before this version**, the `cp` above does not run and the new
+> line does not arrive on its own. The symptom is `docker compose` failing with `no configuration
+> file provided: not found` — a message that does not suggest the cause, because the problem is not
+> Docker, it is the file living in `infra/`. Add the line to your `.env`:
 >
 > ```bash
 > echo 'COMPOSE_FILE=infra/docker-compose.yml' >> .env
@@ -58,232 +59,239 @@ Para rodar os testes, suba também o banco descartável: `docker compose up -d b
 
 ---
 
-## Onde mora cada coisa
+## Where everything lives
 
-A raiz guarda o que a ferramenta exige que esteja na raiz. O resto desce um nível.
+The root holds what the tooling requires to be at the root. Everything else goes one level down.
 
-| Pasta | O que tem |
+| Folder | What is in it |
 |---|---|
-| `src/` | Os quatro módulos e o `shared/`. |
-| `testes/` | A suíte. Espelha `src/`. |
-| `migrations/` | SQL numerado, aplicado em ordem por `bun run migrate`. |
-| `scripts/` | Ferramentas de linha de comando: migração, seed, build de assets, golden. |
-| `infra/` | `Dockerfile` e `docker-compose.yml`. |
+| `src/` | The four modules and `shared/`. |
+| `tests/` | The suite. Mirrors `src/`. |
+| `migrations/` | Numbered SQL, applied in order by `bun run migrate`. |
+| `scripts/` | Command-line tools: migration, seed, asset build, golden files. |
+| `infra/` | `Dockerfile` and `docker-compose.yml`. |
 | `config/` | `.dependency-cruiser.js`. |
-| `docs/` | O documento do estágio e os planos. |
+| `docs/` | The stage document and the plans. |
 
-**`.dockerignore` fica na raiz e não é descuido.** O Docker procura esse arquivo na raiz do
-*contexto de build*, nunca ao lado do Dockerfile — e o contexto aqui é a raiz do repositório,
-porque é de lá que saem `src/`, `migrations/` e `scripts/`. Movê-lo para `infra/` não produziria
-erro algum: ele simplesmente deixaria de ser lido, e a imagem passaria a carregar `node_modules`,
-`.git` e o `.env` com segredo real dentro de uma camada. É o tipo de falha que só aparece quando
-alguém abre a imagem publicada — o exemplo mais barato, neste repositório, de por que "arrumar a
-raiz" não é um critério que sobreponha o que a ferramenta impõe.
+**`.dockerignore` sits at the root and that is not an oversight.** Docker looks for that file at the
+root of the *build context*, never next to the Dockerfile — and the context here is the repository
+root, because that is where `src/`, `migrations/` and `scripts/` come from. Moving it into `infra/`
+would produce no error at all: it would simply stop being read, and the image would start carrying
+`node_modules`, `.git` and the `.env` with a real secret inside a layer. It is the kind of failure
+that only shows up when someone opens the published image — the cheapest example, in this repository,
+of why "tidy up the root" is not a criterion that overrides what the tooling imposes.
 
-Duas linhas pagam o aluguel dessa mudança, e vale saber quais:
-`COMPOSE_FILE=infra/docker-compose.yml` no `.env`, que mantém `docker compose up -d banco`
-funcionando da raiz sem `-f`; e `name: exemplo_saas` no compose, que fixa o nome do projeto.
-Sem a segunda, o nome passaria a vir da pasta `infra/`, e quem já tinha banco de desenvolvimento
-não veria erro nenhum — veria um banco vazio, com os dados antigos parados num volume órfão.
+Two lines pay the rent for that move, and it is worth knowing which:
+`COMPOSE_FILE=infra/docker-compose.yml` in `.env`, which keeps `docker compose up -d database`
+working from the root without `-f`; and `name: exemplo_saas` in the compose file, which pins the
+project name. Without the second, the name would start coming from the `infra/` folder, and anyone
+who already had a development database would see no error at all — they would see an empty database,
+with the old data sitting in an orphaned volume.
 
 ---
 
-## Credenciais de demonstração
+## Demo credentials
 
-Todas criadas por `bun run seed`. **Rede: `demo` · senha: `escolaviva` para todos.**
-O domínio `escolaviva.test` é reservado pela RFC 2606 — nenhum desses endereços existe de verdade.
+All created by `bun run seed`. **Network: `demo` · password: `escolaviva` for everyone.**
+The `escolaviva.test` domain is reserved by RFC 2606 — none of these addresses exists for real.
 
-| E-mail | Papel | Onde |
+| E-mail | Role | Where |
 |---|---|---|
-| `admin@escolaviva.test` | admin_rede | Escola Central + Escola Bairro Novo |
-| `secretaria1@escolaviva.test` | secretaria | Escola Central |
-| `secretaria2@escolaviva.test` | secretaria | Escola Bairro Novo |
-| `professor1@escolaviva.test` … `professor3@escolaviva.test` | professor | Escola Central |
-| `professor4@escolaviva.test` … `professor6@escolaviva.test` | professor | Escola Bairro Novo |
-| ~200 responsáveis | responsavel | portal do responsável |
+| `admin@escolaviva.test` | network_admin | Escola Central + Escola Bairro Novo |
+| `secretaria1@escolaviva.test` | registrar | Escola Central |
+| `secretaria2@escolaviva.test` | registrar | Escola Bairro Novo |
+| `professor1@escolaviva.test` … `professor3@escolaviva.test` | teacher | Escola Central |
+| `professor4@escolaviva.test` … `professor6@escolaviva.test` | teacher | Escola Bairro Novo |
+| ~200 guardians | guardian | guardian portal |
 
-O seed imprime três e-mails de responsável no fim da execução — os nomes são sorteados com semente
-fixa, então são sempre os mesmos em qualquer máquina.
+Sign-in is by **CPF**, not by e-mail (ADR 0004). The seed prints the CPF next to each credential; the
+e-mails above identify who is who in the demo data. The seed also prints three guardian records at
+the end of its run — the names are drawn from a fixed seed, so they are always the same on any
+machine.
 
-Dois detalhes plantados de propósito na base de demonstração:
+Two details deliberately planted in the demo database:
 
-- **Os bimestres 1 e 2 têm nota em tudo; o 3 está incompleto.** Fechar o bimestre 1 de uma turma
-  funciona; fechar o 3 é recusado com a lista de pendências ("Faltam 45 notas: Arte (20),
-  Ciências (20), Geografia (5)"). É a demonstração da regra, não um dado esquecido.
-- **A taxa de leitura do mural é de 12 %.** É o número da Seção 5 do documento, o que transforma
-  "ninguém lê o mural" de opinião de corredor em medição — e é o que justifica o Estágio 04.
+- **Terms 1 and 2 have grades everywhere; term 3 is incomplete.** Closing term 1 of a class group
+  works; closing term 3 is refused with the list of what is missing ("Faltam 45 notas para fechar o
+  bimestre: Arte (20), Ciências (20), Geografia (5)."). It is the demonstration of the rule, not
+  forgotten data.
+- **The board's read rate is 12 %.** It is the number from Section 5 of the document, the one that
+  turns "nobody reads the board" from hallway opinion into measurement — and it is what justifies
+  Stage 04.
 
 ---
 
-## Comandos
+## Commands
 
-| Comando | O que faz |
+| Command | What it does |
 |---|---|
-| `bun run dev` | Sobe o servidor com recarga automática em `http://localhost:3000`. |
-| `bun run start` | Sobe o servidor sem recarga — é o comando que o `infra/Dockerfile` executa. |
-| `bun run migrate` | Aplica as migrações pendentes, uma transação por arquivo, com advisory lock. |
-| `bun run migrate:status` | Lista o que já foi aplicado e o que está pendente, sem escrever nada. |
-| `bun run build:assets` | Gera `public/app.<hash>.css` e o `manifest.json` que o helper `asset()` lê. |
-| `bun run seed` | Apaga e recria a rede `demo`. Idempotente e bloqueado se `APP_ENV=production`. |
-| `bun run seed:volume` | Carga sintética até 3,6 milhões de linhas em `frequencia`. Exige `--sim`. |
-| `bun run check` | dependency-cruiser: as três regras de fronteira entre módulos (I1). |
-| `bun run typecheck` | `tsc --noEmit` sobre `src/`, `scripts/` e `testes/`. |
-| `bun run test` | Suíte com `bun test`; a cobertura mínima de 80 % é portão, não relatório. |
-| `bun run test:cobertura` | O mesmo, imprimindo o relatório de cobertura por arquivo. |
-| `bun run verificar` | `typecheck` + `check` + `test`. É o que rodar antes de qualquer commit. |
-| `bash scripts/backup.sh` | `pg_dump -Fc` para `backups/`, mantendo os 7 mais recentes. |
-| `bash scripts/restore-test.sh` | Restaura o dump em banco descartável e confere a contagem (I7). |
+| `bun run dev` | Starts the server with auto-reload on `http://localhost:3000`. |
+| `bun run start` | Starts the server without reload — the command `infra/Dockerfile` runs. |
+| `bun run migrate` | Applies pending migrations, one transaction per file, under an advisory lock. |
+| `bun run migrate:status` | Lists what has been applied and what is pending, writing nothing. |
+| `bun run build:assets` | Generates `public/app.<hash>.css` and the `manifest.json` the `asset()` helper reads. |
+| `bun run seed` | Wipes and recreates the `demo` network. Idempotent, and blocked when `APP_ENV=production`. |
+| `bun run seed:volume` | Synthetic load of up to 3.6 million rows in `attendance`. Requires `--sim`. |
+| `bun run golden` | Rewrites the golden HTML snapshots under `tests/web/golden/`. |
+| `bun run check` | dependency-cruiser: the three module-boundary rules (I1). |
+| `bun run magic` | Fails on literals that already have an owner in a `constants.ts`. |
+| `bun run typecheck` | `tsc --noEmit` over `src/`, `scripts/` and `tests/`. |
+| `bun run test` | The suite via `bun test`; the 80 % coverage floor is a gate, not a report. |
+| `bun run test:coverage` | The same, printing the per-file coverage report. |
+| `bun run verify` | `typecheck` + `check` + `magic` + `test`. This is what to run before any commit. |
+| `bash scripts/backup.sh` | `pg_dump -Fc` into `backups/`, keeping the 7 most recent. |
+| `bash scripts/restore-test.sh` | Restores the dump into a throwaway database and checks the counts (I7). |
 
-`bun run seed:volume` aceita `--ano <n>`, `--alunos <n>`, `--sim` (confirma a gravação) e
-`--apagar --sim` (remove a rede de carga inteira para recomeçar uma medição).
+`bun run seed:volume` accepts `--ano <n>`, `--alunos <n>`, `--sim` (confirms the write) and
+`--apagar --sim` (removes the whole load network to start a measurement over).
 
 ---
 
-## Os quatro módulos e a fronteira entre eles
+## The four modules and the boundary between them
 
 ```
 src/
-├─ identidade/    quem entra e o que pode fazer   → rede, unidade, usuário, papel, sessão
-├─ academico/     quem estuda, onde e com quem    → aluno, responsável, turma, disciplina, matrícula
-├─ avaliacao/     nota, frequência e fechamento   → nota, frequência, fechamento, boletim
-├─ comunicacao/   o que a escola diz ao responsável → comunicado, destinatário, leitura
-├─ shared/        infraestrutura sem regra de negócio
-└─ web/           rotas HTTP + templates Eta
+├─ identity/       who signs in and what they may do  → network, school, user, role, session
+├─ academics/      who studies, where and with whom   → student, guardian, class group, subject, enrollment
+├─ assessment/     grade, attendance and closing      → grade, attendance, closing, report card
+├─ communication/  what the school tells the guardian → announcement, recipient, read receipt
+├─ shared/         infrastructure with no business rule
+└─ web/            HTTP routes + Eta templates
 ```
 
-Cada módulo tem `dominio/`, `aplicacao/`, `infra/` e um **`index.ts` que é a única porta de
-entrada**. Tudo o que não está no `index.ts` é privado do módulo: nenhum arquivo de fora importa
-`academico/dominio/matricula` nem `avaliacao/infra/notaRepositorio`.
+Each module has `domain/`, `application/`, `infra/` and an **`index.ts` that is the only way in**.
+Anything not in `index.ts` is private to the module: no file from outside imports
+`academics/domain/enrollment` or `assessment/infra/gradeRepository`.
 
-O grafo permitido tem todas as setas na mesma direção, e nenhuma volta:
+The permitted graph has every arrow pointing the same way, and no arrow comes back:
 
 ```
-comunicacao ──┐
-avaliacao ────┼──▶ academico ──▶ identidade
-              └──▶ identidade
+communication ──┐
+assessment ─────┼──▶ academics ──▶ identity
+                └──▶ identity
 ```
 
-`identidade` não conhece ninguém. `academico` conhece `identidade` (professor é usuário).
-`avaliacao` conhece `academico` (nota pertence a uma matrícula). `comunicacao` conhece os dois.
+`identity` knows nobody. `academics` knows `identity` (a teacher is a user).
+`assessment` knows `academics` (a grade belongs to an enrollment). `communication` knows both.
 
-**Quem verifica isso é `bun run check`**, não um combinado verbal. O
-[`config/.dependency-cruiser.js`](config/.dependency-cruiser.js) declara três regras, todas com
-severidade de erro:
+**What checks this is `bun run check`**, not a verbal agreement. The
+[`config/.dependency-cruiser.js`](config/.dependency-cruiser.js) declares three rules, all at error
+severity:
 
-1. `no-cross-module-shortcut` — um módulo só enxerga outro pelo `index.ts`.
-2. `pure-domain` — `*/dominio/` não alcança `shared/db`, `shared/http`, `shared/log`,
-   `shared/jobs` nem `node_modules`. O domínio não sabe que existe banco, HTTP ou fornecedor.
-3. `shared-knows-no-domain` — `shared/` não importa nenhum módulo de domínio. A dependência é
-   sempre de fora para dentro.
+1. `no-cross-module-shortcut` — a module only sees another through its `index.ts`.
+2. `pure-domain` — `*/domain/` does not reach `shared/db`, `shared/http`, `shared/log`,
+   `shared/jobs` or `node_modules`. The domain does not know a database, HTTP or a vendor exists.
+3. `shared-knows-no-domain` — `shared/` imports no domain module. Dependency always points inward.
 
-O motivo é o Estágio 14: quando `cobranca/` for extraído, a pergunta "o que mais mexe nisso?" já
-tem resposta — é exatamente quem importa `cobranca/index.ts`. Sem a regra, a resposta é "não sei"
-e a extração vira reescrita.
+The reason is Stage 14: when `billing/` is extracted, the question "what else touches this?" already
+has an answer — it is exactly whoever imports `billing/index.ts`. Without the rule the answer is "no
+idea" and the extraction turns into a rewrite.
 
 ---
 
-## Janela de compatibilidade de migração (I6)
+## The migration compatibility window (I6)
 
-As migrações são arquivos `.sql` numerados em `migrations/`, aplicados por `bun run migrate` em uma
-transação por arquivo, com registro em `schema_migrations`. Sempre existe um intervalo — entre
-aplicar a migração e o processo novo estar no ar, ou entre o novo subir e o antigo terminar o que
-estava em curso — em que **duas versões do código conversam com o mesmo banco**.
+Migrations are numbered `.sql` files under `migrations/`, applied by `bun run migrate` in one
+transaction per file, recorded in `schema_migrations`. There is always an interval — between applying
+the migration and the new process being up, or between the new one starting and the old one finishing
+what was in flight — in which **two versions of the code talk to the same database**.
 
-**A regra: nunca remover ou renomear coluna que a versão anterior ainda lê.** Toda mudança de
-schema respeita esta ordem, em migrações separadas e deploys separados:
+**The rule: never drop or rename a column the previous version still reads.** Every schema change
+respects this order, in separate migrations and separate deploys:
 
-1. **Adiciona** a estrutura nova. Nunca `NOT NULL` sem default na mesma migração — a versão antiga
-   não sabe preencher o campo.
-2. **Migra** os dados. O código novo escreve nos dois lugares; o antigo continua lendo o antigo.
-3. **Para de escrever** no antigo, quando não houver mais instância da versão anterior no ar.
-4. **Remove** a estrutura antiga, só depois que o passo 3 está em produção há tempo suficiente para
-   não haver rollback plausível.
+1. **Add** the new structure. Never `NOT NULL` without a default in the same migration — the old
+   version does not know how to fill the field.
+2. **Migrate** the data. The new code writes to both places; the old one keeps reading the old one.
+3. **Stop writing** to the old one, once no instance of the previous version is still up.
+4. **Drop** the old structure, only after step 3 has been in production long enough that no rollback
+   is plausible.
 
-Renomear coluna é sempre essa sequência — nunca `ALTER TABLE ... RENAME COLUMN`, que comprime os
-passos 1 e 4 em um instante. O raciocínio completo está em
-[`docs/ADR/0003-janela-de-compatibilidade-de-migracao.md`](docs/ADR/0003-janela-de-compatibilidade-de-migracao.md).
+Renaming a column is always that sequence — never `ALTER TABLE ... RENAME COLUMN`, which compresses
+steps 1 and 4 into a single instant. The full reasoning is in
+[`docs/ADR/0003-migration-compatibility-window.md`](docs/ADR/0003-migration-compatibility-window.md).
 
 ---
 
-## Checklist antes de declarar o Estágio 01 pronto
+## Checklist before declaring Stage 01 done
 
-Onze itens da Seção 8 do documento. Nenhum deles adiciona componente.
+Eleven items from Section 8 of the document. None of them adds a component.
 
-| # | Item | Comando que comprova |
+| # | Item | Command that proves it |
 |---|---|---|
-| 1 | `check` falha se um módulo importar arquivo interno de outro | `bun run check` |
-| 2 | Nenhum arquivo é escrito em disco pela aplicação | `grep -rnE 'writeFile\|createWriteStream\|appendFile' src/` (saída vazia) |
-| 3 | Derrubar o container e subir outro não perde nada | `docker compose restart app` e recarregue a página: o login continua, porque a sessão vive na tabela `sessao` |
-| 4 | Toda tabela de negócio tem `rede_id` e FK declarada | a consulta abaixo, que precisa devolver **zero linhas** |
-| 5 | Enviar o mesmo formulário duas vezes cria **um** registro | `bun run test` (caso de idempotência) ou reenvie o formulário no navegador com F5 |
-| 6 | Rota autenticada responde `Cache-Control: private, no-store` | `bun run test`, ou abra `/dashboard` logado e veja o cabeçalho na aba Rede do navegador |
-| 7 | `/health` responde 503 com o banco parado | `docker compose stop banco && curl -si localhost:3000/health && docker compose start banco` |
-| 8 | Falta variável de ambiente → o processo **não sobe** | `SESSION_SECRET=curto bun run start` (morre no boot, com a lista do que está errado) |
-| 9 | O dump foi restaurado em outro banco e a contagem bateu | `bash scripts/backup.sh && bash scripts/restore-test.sh` |
-| 10 | Nenhum log contém nome, e-mail, CPF ou nota | `bun run dev \| grep -iE '"(nome\|email\|cpf\|nota)"'` (saída vazia) |
-| 11 | Os quatro números da Seção 5 estão anotados | a tabela da seção seguinte, preenchida |
+| 1 | `check` fails if a module imports another one's internal file | `bun run check` |
+| 2 | The application writes no file to disk | `grep -rnE 'writeFile\|createWriteStream\|appendFile' src/` (empty output) |
+| 3 | Killing the container and starting another loses nothing | `docker compose restart app` and reload the page: you are still signed in, because the session lives in the `session` table |
+| 4 | Every business table has `network_id` and a declared FK | the query below, which must return **zero rows** |
+| 5 | Submitting the same form twice creates **one** record | `bun run test` (the idempotency case) or resubmit the form in the browser with F5 |
+| 6 | An authenticated route answers `Cache-Control: private, no-store` | `bun run test`, or open `/dashboard` while signed in and check the header in the browser's Network tab |
+| 7 | `/health` answers 503 with the database stopped | `docker compose stop database && curl -si localhost:3000/health && docker compose start database` |
+| 8 | A missing environment variable → the process **does not start** | `SESSION_SECRET=short bun run start` (dies at boot, listing what is wrong) |
+| 9 | The dump was restored into another database and the counts matched | `bash scripts/backup.sh && bash scripts/restore-test.sh` |
+| 10 | No log line contains a name, e-mail, CPF or grade | `bun run dev \| grep -iE '"(name\|nome\|email\|cpf\|grade\|nota)"'` (empty output) |
+| 11 | The four numbers from Section 5 are written down | the table in the next section, filled in |
 
-Consulta do item 4 — lista as tabelas de negócio **sem** chave estrangeira em `rede_id`
-(`rede` é o próprio tenant e `requisicao_idempotente` é tabela de plataforma):
+Query for item 4 — lists the business tables **without** a foreign key on `network_id`
+(`network` is the tenant itself and `idempotent_request` is a platform table):
 
 ```sql
-SELECT t.table_name AS tabela_sem_fk_de_rede
+SELECT t.table_name AS table_without_network_fk
   FROM information_schema.tables t
  WHERE t.table_schema = 'public' AND t.table_type = 'BASE TABLE'
-   AND t.table_name NOT IN ('rede', 'schema_migrations', 'requisicao_idempotente')
+   AND t.table_name NOT IN ('network', 'schema_migrations', 'idempotent_request')
    AND NOT EXISTS (
      SELECT 1
        FROM information_schema.key_column_usage k
        JOIN information_schema.table_constraints tc
          ON tc.constraint_name = k.constraint_name AND tc.constraint_type = 'FOREIGN KEY'
       WHERE k.table_schema = t.table_schema AND k.table_name = t.table_name
-        AND k.column_name = 'rede_id');
+        AND k.column_name = 'network_id');
 ```
 
 ---
 
-## Medição semanal
+## Weekly measurement
 
-Três números anotados **à mão, uma vez por semana**. Isto **não é observabilidade** — ela entra no
-Estágio 11. É a linha de base sem a qual nenhuma dor futura é demonstrável: sem o número de hoje,
-qualquer piora vira discussão de opinião.
+Three numbers written down **by hand, once a week**. This **is not observability** — that arrives at
+Stage 11. It is the baseline without which no future pain is demonstrable: without today's number,
+any degradation turns into a matter of opinion.
 
-Alvos do Estágio 01: **p95 do lançamento de notas abaixo de 300 ms**, **CPU do banco abaixo de
-20 %**, **`frequencia` com ~3,6 milhões de linhas por ano letivo**. Para ver os três sob carga real,
-rode `bun run seed:volume --sim` e depois `ANALYZE frequencia;`.
+Stage 01 targets: **p95 of grade posting under 300 ms**, **database CPU under 20 %**, **`attendance`
+with ~3.6 million rows per academic year**. To see all three under real load, run
+`bun run seed:volume --sim` and then `ANALYZE attendance;`.
 
-Uma vez, no primeiro dia: `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;` (o
-`infra/docker-compose.yml` já sobe o banco com a biblioteca pré-carregada). Antes de cada medição, zere a
-janela com `SELECT pg_stat_statements_reset();` e use o sistema por alguns minutos.
+Once, on the first day: `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;` (the
+`infra/docker-compose.yml` already brings the database up with the library preloaded). Before each
+measurement, reset the window with `SELECT pg_stat_statements_reset();` and use the system for a few
+minutes.
 
 ```sql
--- 1. Maior tabela.
-SELECT count(*) AS linhas_de_frequencia FROM frequencia;
+-- 1. Largest table.
+SELECT count(*) AS attendance_rows FROM attendance;
 
--- 2. p95 aproximado por consulta. pg_stat_statements NÃO guarda percentil: "média + 2 desvios"
---    é a aproximação, e max_exec_time é o pior caso realmente observado.
-SELECT substring(query, 1, 70)                                     AS consulta,
-       calls                                                       AS chamadas,
-       round(mean_exec_time::numeric, 1)                           AS media_ms,
-       round((mean_exec_time + 2 * stddev_exec_time)::numeric, 1)  AS p95_aprox_ms,
-       round(max_exec_time::numeric, 1)                            AS pior_ms
+-- 2. Approximate p95 per query. pg_stat_statements does NOT keep percentiles: "mean + 2 standard
+--    deviations" is the approximation, and max_exec_time is the worst case actually observed.
+SELECT substring(query, 1, 70)                                     AS statement,
+       calls,
+       round(mean_exec_time::numeric, 1)                           AS mean_ms,
+       round((mean_exec_time + 2 * stddev_exec_time)::numeric, 1)  AS p95_approx_ms,
+       round(max_exec_time::numeric, 1)                            AS worst_ms
   FROM pg_stat_statements
- WHERE query ILIKE '%nota%' OR query ILIKE '%frequencia%'
+ WHERE query ILIKE '%grade%' OR query ILIKE '%attendance%'
  ORDER BY mean_exec_time DESC
  LIMIT 10;
 
--- 3. O que o banco está fazendo agora: conexões por estado e a consulta mais antiga em curso.
-SELECT state, count(*) AS conexoes, max(now() - query_start) AS mais_antiga
+-- 3. What the database is doing right now: connections by state and the oldest running query.
+SELECT state, count(*) AS connections, max(now() - query_start) AS oldest
   FROM pg_stat_activity
  WHERE datname = current_database()
  GROUP BY state
- ORDER BY conexoes DESC;
+ ORDER BY connections DESC;
 ```
 
-A CPU do banco sai do container, não do SQL:
-`docker stats --no-stream $(docker compose ps -q banco)`.
+Database CPU comes from the container, not from SQL:
+`docker stats --no-stream $(docker compose ps -q database)`.
 
-| Semana | p95 do lançamento de notas (ms) | CPU do banco (%) | Linhas em `frequencia` | Restauração testada (PASSOU/FALHOU) |
+| Week | p95 of grade posting (ms) | Database CPU (%) | Rows in `attendance` | Restore tested (PASS/FAIL) |
 |---|---|---|---|---|
 | | | | | |
 | | | | | |
@@ -292,52 +300,51 @@ A CPU do banco sai do container, não do SQL:
 | | | | | |
 | | | | | |
 
-### Os quatro números da Seção 5
+### The four numbers from Section 5
 
-Estas quatro decisões existem para tornar a próxima dor **mensurável**. Anote os números ao longo
-do semestre: é a diferença entre seguir um roteiro e reproduzir o método.
+These four decisions exist to make the next pain **measurable**. Write the numbers down over the
+semester: it is the difference between following a script and reproducing the method.
 
-| # | Número a anotar | Onde ele aparece | Dor que ele mede | Estágio |
+| # | Number to record | Where it shows up | Pain it measures | Stage |
 |---|---|---|---|---|
-| 1 | Horas por mês conciliando a planilha de pagamento, e quantas redes inadimplentes continuaram ativas por engano | `rede.status` é mudado à mão; a cobrança é por transferência bancária | Admin gasta 3 h/mês; 4 redes ficaram ativas por engano | 02 |
-| 2 | Quantas vezes por mês a secretaria pede anexo digital de matrícula | O documento de matrícula continua em papel na secretaria | A primeira tentativa grava em disco local e some no deploy | 03 |
-| 3 | Taxa de leitura do mural | Tela `/comunicados`, coluna de taxa (vem de `comunicado_destinatario.lido_em`) | Fica em 12 % — o e-mail deixa de ser opinião | 04 |
-| 4 | Segundos para fechar o bimestre de uma turma, e minutos para fechar as turmas da rede | Cronômetro na tela de fechamento do professor | 35 alunos levam 6 s; 40 turmas levam 4 min e o navegador desiste | 05 |
+| 1 | Hours per month reconciling the payment spreadsheet, and how many delinquent networks stayed active by mistake | `network.status` is changed by hand; billing is by bank transfer | Admin spends 3 h/month; 4 networks stayed active by mistake | 02 |
+| 2 | How many times a month the registrar asks for a digital enrollment attachment | The enrollment paperwork stays on paper at the office | The first attempt writes to the local disk and disappears on deploy | 03 |
+| 3 | The board's read rate | The `/announcements` screen, rate column (comes from `announcement_recipient.read_at`) | Sits at 12 % — e-mail stops being an opinion | 04 |
+| 4 | Seconds to close a class group's term, and minutes to close the whole network's | The stopwatch on the teacher's closing screen | 35 students take 6 s; 40 class groups take 4 min and the browser gives up | 05 |
 
-Anote também o resultado de cada `restore-test.sh`, toda sexta. **Backup não verificado não é
-backup** — é a única invariante do curso escrita como frase de efeito, provavelmente porque é o
-item que mais costuma ser empurrado para o fim do backlog e nunca acontecer.
+Also record the result of each `restore-test.sh`, every Friday. **An unverified backup is not a
+backup** — it is the only invariant in the course written as a slogan, probably because it is the
+item most often pushed to the end of the backlog and never done.
 
 ---
 
-## O que está deliberadamente de fora
+## What is deliberately left out
 
-Nada aqui foi esquecido: cada linha resolve um problema que este sistema **não tem hoje** e cobraria
-aluguel permanente — deploy, monitoramento, plantão — desde o primeiro dia. Cada um entra em um
-estágio, um de cada vez, com a dor descrita.
+Nothing here was forgotten: every line solves a problem this system **does not have today** and would
+charge permanent rent — deploy, monitoring, on-call — from day one. Each of them enters at a stage,
+one at a time, with the pain described.
 
-| Fora do Estágio 01 | Entra quando | Estágio |
+| Out of Stage 01 | Enters when | Stage |
 |---|---|---|
-| Gateway de pagamentos | a primeira rede pedir cartão | 02 |
-| Armazenamento de objetos (anexo de matrícula) | a secretaria pedir anexo digital | 03 |
-| Mailer / envio de e-mail | ficar provado que ninguém abre o mural | 04 |
-| Fila, worker e outbox de eventos | o primeiro fechamento de bimestre travar a secretaria | 05 |
-| CDN | o custo de banda e a latência do CSS aparecerem | 06 |
-| Cache | os índices já tiverem sido revisados — cache antes de índice esconde o problema | 07 |
-| Balanceador e múltiplas instâncias | uma instância não der conta e o deploy precisar ser sem queda | 08 |
-| Réplica de leitura | o relatório pesado atrapalhar a escrita | 10 |
-| Observabilidade (métricas, tracing, APM) | os três números anotados à mão não bastarem | 11 |
-| Esteira de CI/CD | o deploy manual passar a ser o gargalo | 12 |
-| Busca dedicada | `ILIKE` sobre nome não aguentar o volume | 13 |
-| Extração de serviço (`cobranca/`) | um módulo precisar de ciclo de vida próprio | 14 |
+| Payment gateway | the first network asks to pay by card | 02 |
+| Object storage (enrollment attachment) | the registrar asks for a digital attachment | 03 |
+| Mailer / e-mail delivery | it is proven that nobody opens the board | 04 |
+| Queue, worker and event outbox | the first term closing blocks the registrar | 05 |
+| CDN | bandwidth cost and CSS latency become visible | 06 |
+| Cache | the indexes have already been reviewed — cache before index hides the problem | 07 |
+| Load balancer and multiple instances | one instance is not enough and the deploy has to be zero-downtime | 08 |
+| Read replica | the heavy report gets in the way of writes | 10 |
+| Observability (metrics, tracing, APM) | the three hand-written numbers stop being enough | 11 |
+| CI/CD pipeline | the manual deploy becomes the bottleneck | 12 |
+| Dedicated search | `ILIKE` over names cannot cope with the volume | 13 |
+| Service extraction (`billing/`) | a module needs a lifecycle of its own | 14 |
 
-Também estão fora, por decisão de produto e não de arquitetura: PDF de boletim, montagem de
-horário, recuperação e conselho de classe, frequência por aula (aqui a frequência é **por dia**),
-aplicativo móvel, API pública para terceiros, SPA, WebSocket, exportação para planilha, i18n e tema
-escuro.
+Also out, by product decision rather than architectural one: PDF report cards, timetable building,
+make-up exams and class councils, per-lesson attendance (here attendance is **per day**), a mobile
+app, a public third-party API, an SPA, WebSockets, spreadsheet export, i18n and a dark theme.
 
-A regra pedagógica também é código, não configuração: **média final é a média aritmética simples
-dos quatro bimestres; aprovado com média ≥ 6,0 e frequência ≥ 75 %.** Sem peso por avaliação, sem
-arredondamento configurável, sem recuperação. Parametrizar isso trocaria quatro funções puras por
-um motor de fórmulas com tela de configuração e versão por ano letivo — e é a parte do produto que
-menos ensina sobre arquitetura.
+The pedagogical rule is code too, not configuration: **the final average is the plain arithmetic mean
+of the four terms; a student passes with an average ≥ 6.0 and attendance ≥ 75 %.** No weighting per
+assessment, no configurable rounding, no make-up exams. Parameterising that would trade four pure
+functions for a formula engine with a configuration screen and a version per academic year — and it is
+the part of the product that teaches the least about architecture.

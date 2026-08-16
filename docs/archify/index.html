@@ -1,65 +1,65 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Diagramas do Estágio 01 · EscolaViva</title>
+<title>Stage 01 Diagrams · EscolaViva</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 <style>
-  /* Mesmos tokens do app.css do EscolaViva: tema claro, zero fonte externa, zero requisição. */
+  /* Same tokens as EscolaViva app.css: light theme, zero external fonts, zero network requests. */
   :root{
-    --papel:        oklch(98.5% 0.004 95);
-    --papel-fundo:  oklch(96%   0.006 95);
-    --tinta:        oklch(24%   0.02  260);
-    --tinta-suave:  oklch(48%   0.015 260);
-    --linha:        oklch(88%   0.008 260);
-    --marca:        oklch(44%   0.13  262);
-    --marca-clara:  oklch(94%   0.03  262);
+    --paper:        oklch(98.5% 0.004 95);
+    --paper-bg:  oklch(96%   0.006 95);
+    --ink:        oklch(24%   0.02  260);
+    --ink-soft:  oklch(48%   0.015 260);
+    --rule:        oklch(88%   0.008 260);
+    --brand:        oklch(44%   0.13  262);
+    --brand-light:  oklch(94%   0.03  262);
     --serif: ui-serif, Georgia, 'Times New Roman', serif;
     --sans:  system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     --mono:  ui-monospace, 'SF Mono', Menlo, monospace;
-    --passo: 0.25rem;
-    --rapido: 140ms; --saida: cubic-bezier(.16,1,.3,1);
+    --step: 0.25rem;
+    --fast: 140ms; --ease: cubic-bezier(.16,1,.3,1);
   }
 
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body{
     margin: 0;
-    background: var(--papel-fundo);
-    color: var(--tinta);
+    background: var(--paper-bg);
+    color: var(--ink);
     font-family: var(--sans);
     font-size: 16px;
     line-height: 1.55;
-    /* Papel pautado: o mesmo fundo da tela de entrada do sistema. */
+    /* Ruled paper: the same background as the system sign-in screen. */
     background-image: repeating-linear-gradient(
-      to bottom, transparent 0, transparent calc(var(--passo) * 11), var(--linha) calc(var(--passo) * 11), var(--linha) calc(var(--passo) * 11 + 1px)
+      to bottom, transparent 0, transparent calc(var(--step) * 11), var(--rule) calc(var(--step) * 11), var(--rule) calc(var(--step) * 11 + 1px)
     );
   }
 
-  .folha{
+  .sheet{
     max-width: 68rem;
     margin: 0 auto;
     padding: clamp(2rem, 1rem + 4vw, 5rem) clamp(1rem, 0.5rem + 3vw, 3rem) 6rem;
   }
 
-  /* ── Cabeçalho ───────────────────────────────────────────────────────────── */
+  /* ── Header ──────────────────────────────────────────────────────────────── */
   header{ margin-bottom: clamp(2.5rem, 1rem + 5vw, 4.5rem); }
-  .marca{
+  .brand{
     font-family: var(--serif);
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: -0.015em;
-    margin: 0 0 calc(var(--passo) * 8);
+    margin: 0 0 calc(var(--step) * 8);
   }
-  .marca em{ font-style: normal; color: var(--marca); }
-  .sobre-titulo{
+  .brand em{ font-style: normal; color: var(--brand); }
+  .eyebrow{
     font-family: var(--mono);
     font-size: 0.72rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--tinta-suave);
-    margin: 0 0 calc(var(--passo) * 2);
+    color: var(--ink-soft);
+    margin: 0 0 calc(var(--step) * 2);
   }
   h1{
     font-family: var(--serif);
@@ -67,96 +67,96 @@
     font-weight: 700;
     line-height: 1.05;
     letter-spacing: -0.02em;
-    margin: 0 0 calc(var(--passo) * 5);
+    margin: 0 0 calc(var(--step) * 5);
   }
-  .abertura{
+  .lede{
     max-width: 46rem;
-    color: var(--tinta-suave);
+    color: var(--ink-soft);
     font-size: 1.05rem;
     margin: 0;
   }
-  .abertura + .abertura{ margin-top: calc(var(--passo) * 3); }
-  .abertura strong{ color: var(--tinta); font-weight: 600; }
+  .lede + .lede{ margin-top: calc(var(--step) * 3); }
+  .lede strong{ color: var(--ink); font-weight: 600; }
 
-  /* ── Seções ──────────────────────────────────────────────────────────────── */
+  /* ── Sections ────────────────────────────────────────────────────────────── */
   section{ margin-top: clamp(2.5rem, 1rem + 4vw, 4rem); }
   h2{
     font-family: var(--serif);
     font-size: 1.45rem;
     font-weight: 700;
     letter-spacing: -0.01em;
-    margin: 0 0 calc(var(--passo) * 2);
-    padding-bottom: calc(var(--passo) * 3);
-    border-bottom: 2px solid var(--tinta);
+    margin: 0 0 calc(var(--step) * 2);
+    padding-bottom: calc(var(--step) * 3);
+    border-bottom: 2px solid var(--ink);
   }
-  .nota-da-secao{
-    color: var(--tinta-suave);
+  .section-note{
+    color: var(--ink-soft);
     font-size: 0.92rem;
-    margin: calc(var(--passo) * 3) 0 calc(var(--passo) * 6);
+    margin: calc(var(--step) * 3) 0 calc(var(--step) * 6);
     max-width: 44rem;
   }
 
-  /* ── Lista de diagramas ──────────────────────────────────────────────────── */
-  ol{ list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; background: var(--linha); border: 1px solid var(--linha); }
+  /* ── Diagram list ────────────────────────────────────────────────────────── */
+  ol{ list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
   @media (min-width: 52rem){
     ol{ grid-template-columns: 1fr 1fr; }
-    /* Seção com número ímpar de cartões: o último ocupa a linha inteira, em vez de
-       deixar meia linha vazia mostrando o fundo da grade. */
+    /* Section with an odd number of cards: the last one spans the whole row, instead of
+       leaving half a row empty showing the grid background. */
     li:last-child:nth-child(odd){ grid-column: 1 / -1; }
   }
 
-  .cartao{
+  .card{
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 0 calc(var(--passo) * 5);
+    gap: 0 calc(var(--step) * 5);
     align-items: start;
-    background: var(--papel);
-    padding: calc(var(--passo) * 6) calc(var(--passo) * 6) calc(var(--passo) * 7);
+    background: var(--paper);
+    padding: calc(var(--step) * 6) calc(var(--step) * 6) calc(var(--step) * 7);
     text-decoration: none;
     color: inherit;
     height: 100%;
-    transition: background var(--rapido) var(--saida), transform var(--rapido) var(--saida);
+    transition: background var(--fast) var(--ease), transform var(--fast) var(--ease);
   }
-  .cartao:hover{ background: var(--marca-clara); }
-  .cartao:active{ transform: translateY(1px); }
-  .cartao:focus-visible{ outline: 2px solid var(--marca); outline-offset: -2px; }
+  .card:hover{ background: var(--brand-light); }
+  .card:active{ transform: translateY(1px); }
+  .card:focus-visible{ outline: 2px solid var(--brand); outline-offset: -2px; }
 
-  .numero{
+  .number{
     font-family: var(--mono);
     font-variant-numeric: tabular-nums;
     font-size: 1.6rem;
     font-weight: 500;
     line-height: 1;
-    color: var(--marca);
+    color: var(--brand);
     grid-row: 1 / span 3;
     padding-top: 0.1em;
   }
-  .titulo{
+  .title{
     font-family: var(--serif);
     font-size: 1.18rem;
     font-weight: 700;
     letter-spacing: -0.01em;
     margin: 0;
   }
-  .tipo{
+  .kind{
     font-family: var(--mono);
     font-size: 0.68rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--tinta-suave);
-    margin: calc(var(--passo) * 1) 0 calc(var(--passo) * 2);
+    color: var(--ink-soft);
+    margin: calc(var(--step) * 1) 0 calc(var(--step) * 2);
   }
-  .resumo{ margin: 0; color: var(--tinta-suave); font-size: 0.94rem; }
+  .summary{ margin: 0; color: var(--ink-soft); font-size: 0.94rem; }
 
-  /* ── Rodapé ──────────────────────────────────────────────────────────────── */
+  /* ── Footer ──────────────────────────────────────────────────────────────── */
   footer{
     margin-top: clamp(3rem, 2rem + 4vw, 5rem);
-    padding-top: calc(var(--passo) * 6);
-    border-top: 1px solid var(--linha);
-    color: var(--tinta-suave);
+    padding-top: calc(var(--step) * 6);
+    border-top: 1px solid var(--rule);
+    color: var(--ink-soft);
     font-size: 0.88rem;
   }
-  footer p{ margin: 0 0 calc(var(--passo) * 2); max-width: 46rem; }
+  footer p{ margin: 0 0 calc(var(--step) * 2); max-width: 46rem; }
   footer code{ font-family: var(--mono); font-size: 0.86em; }
 
   @media (prefers-reduced-motion: reduce){
@@ -165,125 +165,125 @@
 </style>
 </head>
 <body>
-<div class="folha">
+<div class="sheet">
 
 <header>
-  <p class="marca">Escola<em>Viva</em></p>
-  <p class="sobre-titulo">Estágio 01 de 14</p>
-  <h1>Os diagramas da secretaria que cabe em um repositório</h1>
-  <p class="abertura">
-    Dez visualizações do sistema como ele existe hoje: um monólito modular com quatro domínios,
-    um banco relacional e nada mais. Cada uma abre em página própria, com temas claro e escuro,
-    busca, foco por elemento e roteiros guiados.
+  <p class="brand">Escola<em>Viva</em></p>
+  <p class="eyebrow">Stage 01 of 14</p>
+  <h1>Diagrams of the registrar's office that fits in one repository</h1>
+  <p class="lede">
+    Ten views of the system as it exists today: a modular monolith with four domains,
+    one relational database and nothing else. Each opens on its own page, with light and dark
+    themes, search, per-element focus and guided walkthroughs.
   </p>
-  <p class="abertura">
-    Nenhum diagrama descreve o que o produto <strong>vai ser</strong>. Todos descrevem o que ele
-    <strong>é</strong> — inclusive as decisões que doem de propósito, para que os treze estágios
-    seguintes aconteçam por evidência e não por calendário.
+  <p class="lede">
+    No diagram describes what the product <strong>will be</strong>. They all describe what it
+    <strong>is</strong> — including the decisions that hurt on purpose, so that the thirteen stages
+    that follow happen because of evidence and not because of the calendar.
   </p>
 </header>
 
 <section>
-  <h2>Arquitetura e fronteiras</h2>
-  <p class="nota-da-secao">
-    O desenho do sistema inteiro e a regra que impede que ele apodreça: nenhum módulo enxerga o
-    interior de outro, e a ferramenta de build reprova quem tentar.
+  <h2>Architecture and boundaries</h2>
+  <p class="section-note">
+    The layout of the whole system and the rule that keeps it from rotting: no module sees the
+    inside of another, and the build tooling fails anyone who tries.
   </p>
   <ol>
-    <li><a class="cartao" href="01-arquitetura.html">
-      <span class="numero">01</span>
-      <p class="titulo">A secretaria que cabe em um repositório</p>
-      <p class="tipo">Arquitetura</p>
-      <p class="resumo">Navegador, camada web, os quatro domínios e um PostgreSQL. Mostra o aluguel permanente e a lista do que foi deixado de fora de propósito.</p>
+    <li><a class="card" href="01-architecture.html">
+      <span class="number">01</span>
+      <p class="title">The registrar's office that fits in one repository</p>
+      <p class="kind">Architecture</p>
+      <p class="summary">Browser, web layer, the four domains and one PostgreSQL. Shows the permanent rent and the list of what was deliberately left out.</p>
     </a></li>
-    <li><a class="cartao" href="02-fronteira-entre-modulos.html">
-      <span class="numero">02</span>
-      <p class="titulo">A fronteira entre os módulos</p>
-      <p class="tipo">Arquitetura</p>
-      <p class="resumo">O grafo de dependência permitido e as três regras verificadas por <code>bun run check</code>. É a decisão que torna o Estágio 14 uma extração, e não uma reescrita.</p>
+    <li><a class="card" href="02-module-boundary.html">
+      <span class="number">02</span>
+      <p class="title">The boundary between modules</p>
+      <p class="kind">Architecture</p>
+      <p class="summary">The permitted dependency graph and the three rules checked by <code>bun run check</code>. It is the decision that makes Stage 14 an extraction rather than a rewrite.</p>
     </a></li>
-    <li><a class="cartao" href="10-fluxo-do-dado.html">
-      <span class="numero">10</span>
-      <p class="titulo">Onde o dado vive — e o que sai dele</p>
-      <p class="tipo">Fluxo de dados</p>
-      <p class="resumo">Da entrada externa à fonte da verdade, e daí para boletim, mural, log e dump. Mostra o que o log nunca carrega e por que o backup só conta depois de restaurado.</p>
+    <li><a class="card" href="10-data-flow.html">
+      <span class="number">10</span>
+      <p class="title">Where the data lives — and what comes out of it</p>
+      <p class="kind">Data flow</p>
+      <p class="summary">From external input to the source of truth, and from there to report card, board, log and dump. Shows what the log never carries and why a backup only counts once restored.</p>
     </a></li>
   </ol>
 </section>
 
 <section>
-  <h2>Operações por dentro</h2>
-  <p class="nota-da-secao">
-    O que acontece entre o clique e o commit, o ciclo de vida do registro central do sistema, e a
-    operação síncrona que planta a dor do Estágio 05.
+  <h2>Operations from the inside</h2>
+  <p class="section-note">
+    What happens between the click and the commit, the lifecycle of the system's central record, and
+    the synchronous operation that plants the Stage 05 pain.
   </p>
   <ol>
-    <li><a class="cartao" href="03-requisicao-de-escrita.html">
-      <span class="numero">03</span>
-      <p class="titulo">Uma escrita inteira, ponta a ponta</p>
-      <p class="tipo">Sequência</p>
-      <p class="resumo">O professor lança as notas da turma. Correlação, sessão, idempotência, travessia de fronteira e um único ponto de commit, em uma tela só.</p>
+    <li><a class="card" href="03-write-request.html">
+      <span class="number">03</span>
+      <p class="title">A whole write, end to end</p>
+      <p class="kind">Sequence</p>
+      <p class="summary">The teacher posts the class group's grades. Correlation, session, idempotency, boundary crossing and a single commit point, on one screen.</p>
     </a></li>
-    <li><a class="cartao" href="04-ciclo-da-matricula.html">
-      <span class="numero">04</span>
-      <p class="titulo">Ciclo de vida da matrícula</p>
-      <p class="tipo">Estados</p>
-      <p class="resumo">Ativa, transferida, cancelada e concluída. Por que transferir é uma operação só, e por que o índice único parcial é quem garante a regra.</p>
+    <li><a class="card" href="04-enrollment-lifecycle.html">
+      <span class="number">04</span>
+      <p class="title">Enrollment lifecycle</p>
+      <p class="kind">States</p>
+      <p class="summary">Active, transferred, cancelled and completed. Why transferring is a single operation, and why the partial unique index is what guarantees the rule.</p>
     </a></li>
-    <li><a class="cartao" href="05-fechamento-de-bimestre.html">
-      <span class="numero">05</span>
-      <p class="titulo">Fechamento de bimestre</p>
-      <p class="tipo">Processo</p>
-      <p class="resumo">A conferência que trava o navegador de propósito. Fechar uma turma leva segundos; fechar as quarenta da rede leva minutos — e é esse número que justifica a fila.</p>
+    <li><a class="card" href="05-term-closing.html">
+      <span class="number">05</span>
+      <p class="title">Term closing</p>
+      <p class="kind">Process</p>
+      <p class="summary">The check that blocks the browser on purpose. Closing one class group takes seconds; closing the network's forty takes minutes — and that number is what justifies the queue.</p>
     </a></li>
   </ol>
 </section>
 
 <section>
-  <h2>Jornadas por perfil</h2>
-  <p class="nota-da-secao">
-    Uma jornada para cada um dos quatro papéis do sistema, do login ao efeito no banco, com o que
-    cada perfil pode e o que lhe é recusado.
+  <h2>Journeys by role</h2>
+  <p class="section-note">
+    One journey for each of the system's four roles, from sign-in to the effect in the database, with
+    what each role may do and what is refused to them.
   </p>
   <ol>
-    <li><a class="cartao" href="06-jornada-admin-rede.html">
-      <span class="numero">06</span>
-      <p class="titulo">Administrador da rede</p>
-      <p class="tipo">Jornada</p>
-      <p class="resumo">Cria unidades, define o ano letivo e convida usuários. A senha provisória aparece uma vez na tela, porque o envio por e-mail só chega no Estágio 04.</p>
+    <li><a class="card" href="06-network-admin-journey.html">
+      <span class="number">06</span>
+      <p class="title">Network administrator</p>
+      <p class="kind">Journey</p>
+      <p class="summary">Creates schools, defines the academic year and invites users. The temporary password appears once on screen, because e-mail delivery only arrives at Stage 04.</p>
     </a></li>
-    <li><a class="cartao" href="07-jornada-secretaria.html">
-      <span class="numero">07</span>
-      <p class="titulo">Secretaria</p>
-      <p class="tipo">Jornada</p>
-      <p class="resumo">Cadastra, vincula responsável, matricula e transfere. A segunda matrícula ativa no mesmo ano é recusada pelo banco, não pela tela.</p>
+    <li><a class="card" href="07-registrar-journey.html">
+      <span class="number">07</span>
+      <p class="title">Registrar</p>
+      <p class="kind">Journey</p>
+      <p class="summary">Registers, links a guardian, enrols and transfers. A second active enrollment in the same year is refused by the database, not by the screen.</p>
     </a></li>
-    <li><a class="cartao" href="08-jornada-professor.html">
-      <span class="numero">08</span>
-      <p class="titulo">Professor</p>
-      <p class="tipo">Jornada</p>
-      <p class="resumo">Lança notas em lote, registra chamada por dia e fecha o bimestre. Só enxerga as turmas em que é o professor alocado; qualquer outro identificador devolve 404.</p>
+    <li><a class="card" href="08-teacher-journey.html">
+      <span class="number">08</span>
+      <p class="title">Teacher</p>
+      <p class="kind">Journey</p>
+      <p class="summary">Posts grades in batch, records roll call by day and closes the term. Only sees the class groups where they are the assigned teacher; any other identifier answers 404.</p>
     </a></li>
-    <li><a class="cartao" href="09-jornada-responsavel.html">
-      <span class="numero">09</span>
-      <p class="titulo">Responsável</p>
-      <p class="tipo">Jornada</p>
-      <p class="resumo">Mural, boletim em tela e frequência dia a dia. Marcar como lido é um formulário, nunca efeito de abrir a página — sem isso a taxa de 12 % seria mentira.</p>
+    <li><a class="card" href="09-guardian-journey.html">
+      <span class="number">09</span>
+      <p class="title">Guardian</p>
+      <p class="kind">Journey</p>
+      <p class="summary">Board, on-screen report card and day-by-day attendance. Marking as read is a form, never a side effect of opening the page — without that, the 12 % rate would be a lie.</p>
     </a></li>
   </ol>
 </section>
 
 <footer>
   <p>
-    Cada diagrama tem ao lado a especificação que o gerou, no mesmo nome com a extensão
-    <code>.json</code>. Para reeditar um deles, altere a especificação e regenere o HTML com o
-    archify — o conteúdo do arquivo entregue é verificado antes de ser gravado.
+    Each diagram sits next to the specification that produced it, under the same name with the
+    <code>.json</code> extension. To re-edit one, change the specification and regenerate the HTML
+    with archify — the delivered file's content is verified before it is written.
   </p>
   <p>
-    Os arquivos são autocontidos: abrem por <code>file://</code>, sem servidor e sem nenhuma
-    requisição de rede. A contenção horizontal foi conferida em 1440, 1600, 1920 e 2048 pixels;
-    os diagramas com faixas ocupam mais que uma tela na vertical e pedem rolagem para ler os
-    cartões de conclusão.
+    The files are self-contained: they open over <code>file://</code>, with no server and no network
+    request at all. Horizontal containment was checked at 1440, 1600, 1920 and 2048 pixels; the
+    diagrams with lanes take more than one screen vertically and need scrolling to read the
+    conclusion cards.
   </p>
 </footer>
 

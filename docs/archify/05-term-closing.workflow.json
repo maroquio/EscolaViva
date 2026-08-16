@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Term closing — the pain Stage 05 will fix",
+    "output": "05-term-closing.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "happy-path", "label": "When everything has been posted", "focus": ["open", "check", "write", "locked"], "note": "The check and the write happen in the same transaction, with the browser waiting." },
+      { "id": "refusal", "label": "When a grade is missing", "focus": ["check", "pending", "fix"], "note": "The refusal says how many students and in which subjects: it is an actionable answer, not a generic error." },
+      { "id": "measurement", "label": "The number that matters", "focus": ["write", "locked", "record"], "note": "Closing one class group takes seconds; closing the network's forty takes minutes and the browser gives up." }
+    ]
+  },
+  "lanes": [
+    { "id": "teacher", "label": "Teacher" },
+    { "id": "application", "label": "assessment" },
+    { "id": "database", "label": "PostgreSQL" },
+    { "id": "exception", "label": "Refusal", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "request", "label": "Request", "fromCol": 0, "toCol": 0 },
+    { "id": "checking", "label": "Synchronous check", "fromCol": 1, "toCol": 3, "variant": "emphasis" },
+    { "id": "effect", "label": "Effect", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["open", "ask", "check", "write", "locked", "record"],
+  "nodes": [
+    { "id": "open", "lane": "teacher", "col": 0, "type": "frontend", "label": "Closing", "sublabel": "state of the terms" },
+    { "id": "ask", "lane": "teacher", "col": 1, "type": "external", "label": "Close", "sublabel": "one term at a time" },
+    { "id": "check", "lane": "application", "col": 1, "type": "backend", "label": "Check", "sublabel": "enrollment × subject", "tag": "no pagination" },
+    { "id": "write", "lane": "application", "col": 3, "type": "backend", "label": "Write", "sublabel": "unit of work" },
+    { "id": "locked", "lane": "database", "col": 3, "type": "database", "label": "Locked", "sublabel": "term_closing" },
+    { "id": "record", "lane": "database", "col": 5, "type": "database", "label": "Record", "sublabel": "35 students ≈ 6 s" },
+    { "id": "pending", "lane": "exception", "col": 1, "type": "security", "label": "Missing", "sublabel": "students and subjects" },
+    { "id": "fix", "lane": "exception", "col": 4, "type": "external", "label": "Fix", "sublabel": "and try again" }
+  ],
+  "edges": [
+    { "from": "open", "to": "ask", "variant": "emphasis", "route": "bottom-channel", "fromSide": "bottom", "toSide": "bottom" },
+    { "from": "ask", "to": "check", "variant": "emphasis", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "check", "to": "write", "variant": "emphasis", "route": "bottom-channel", "fromSide": "bottom", "toSide": "bottom" },
+    { "from": "write", "to": "locked", "variant": "emphasis", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "locked", "to": "record", "variant": "dashed", "route": "bottom-channel", "fromSide": "bottom", "toSide": "bottom" },
+    { "from": "check", "to": "pending", "label": "grade missing", "variant": "security", "role": "error", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "pending", "to": "fix", "variant": "dashed", "role": "branch", "route": "bottom-channel", "fromSide": "bottom", "toSide": "bottom" }
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "Synchronous on purpose",
+      "items": [
+        "There is no queue, no worker and no background execution",
+        "The browser waits for the entire check to finish",
+        "Optimising before measuring would erase the evidence"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "What closing guarantees",
+      "items": [
+        "It only closes with a grade for every active enrollment in every assigned subject",
+        "Once closed, posting a grade for that term is refused",
+        "Closing twice is refused by the uniqueness constraint"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "The number to record",
+      "items": [
+        "Closing one class group of 35 students: about 6 seconds",
+        "Closing the network's 40 class groups: about 4 minutes",
+        "That number is what justifies the queue at Stage 05"
+      ]
+    }
+  ]
+}

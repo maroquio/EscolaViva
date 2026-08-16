@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:">
+  <title>EscolaViva — Use Cases</title>
+  <style>
+    :root { color-scheme: dark; --page:#0f0f1a; --panel:#0f172a; --border:#334155; --text:#e2e8f0; --muted:#94a3b8; --accent:#a855f7; }
+    html[data-theme="light"] { color-scheme:light; --page:#f8fafc; --panel:#fff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; --accent:#7c3aed; }
+    * { box-sizing:border-box; }
+    html,body { width:100%; height:100%; margin:0; overflow:hidden; background:linear-gradient(135deg,var(--page),#1a1a2e); color:var(--text); font-family:'SF Mono','Fira Code',ui-monospace,monospace; }
+    body { display:grid; grid-template-rows:auto 1fr; }
+    .toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 14px; background:color-mix(in srgb,var(--panel) 92%,transparent); border-bottom:1px solid var(--border); z-index:2; }
+    .title { margin-right:auto; font-size:13px; font-weight:700; }
+    button,select { min-height:34px; padding:6px 10px; color:var(--text); background:var(--panel); border:1px solid var(--border); border-radius:8px; font:inherit; cursor:pointer; }
+    button:hover,button:focus-visible,select:focus-visible { border-color:var(--accent); outline:2px solid color-mix(in srgb,var(--accent) 35%,transparent); outline-offset:1px; }
+    #stage { position:relative; overflow:hidden; touch-action:none; cursor:grab; }
+    #stage.dragging { cursor:grabbing; }
+    /* No `will-change:transform` and no `filter:` — both rasterise the SVG before the zoom.
+       `will-change` promotes #canvas to its own compositing layer: Chrome rasterises the layer
+       once, at whatever size it had, and the GPU then scales the bitmap instead of re-reading the
+       vector. `filter:drop-shadow()` forces the element to become a bitmap before the filter runs,
+       and on its own would already be enough to pixelate it. The shadow comes back as
+       `box-shadow`, which applies to the element's BOX rather than the painted content and so does
+       not force rasterisation. */
+    #canvas { width:100%; height:100%; display:grid; place-items:center; transform-origin:0 0; }
+    #canvas svg { max-width:calc(100vw - 40px); max-height:calc(100vh - 92px); width:auto; height:auto; box-shadow:0 22px 60px rgba(0,0,0,.28); user-select:none; }
+    #status { min-width:76px; color:var(--muted); font-size:12px; text-align:center; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
+  </style>
+</head>
+<body>
+  <header class="toolbar" aria-label="Diagram controls">
+    <span class="title">EscolaViva — Use Cases</span>
+    <button type="button" data-action="zoom-out" aria-label="Zoom out">−</button>
+    <button type="button" data-action="reset" aria-label="Reset view">Reset</button>
+    <button type="button" data-action="zoom-in" aria-label="Zoom in">+</button>
+    <span id="status" aria-live="polite">100%</span>
+    <button type="button" data-action="theme" aria-label="Toggle theme">Theme</button>
+    <button type="button" data-action="copy" aria-label="Copy SVG source">Copy SVG</button>
+    <select id="scale" aria-label="Raster export scale"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option><option value="4">4×</option></select>
+    <select id="format" aria-label="Export format"><option>SVG</option><option>PNG</option><option>JPEG</option><option>WebP</option></select>
+    <button type="button" data-action="download">Export</button>
+  </header>
+  <main id="stage" tabindex="0" aria-label="Interactive diagram. Drag to pan; use plus and minus to zoom.">
+    <div id="canvas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1460 1836" width="1460" height="1836" role="img" focusable="false">
+  <defs>
+    <style>
+      text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', sans-serif; }
+    </style>
+    <marker id="arrow-include" markerWidth="11" markerHeight="8" refX="10" refY="4" orient="auto">
+      <path d="M 0,0 L 10,4 L 0,8" fill="none" stroke="#7c3aed" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <marker id="arrow-extend" markerWidth="11" markerHeight="8" refX="10" refY="4" orient="auto">
+      <path d="M 0,0 L 10,4 L 0,8" fill="none" stroke="#ea580c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+    </marker>
+    <marker id="triangle-general" markerWidth="14" markerHeight="12" refX="13" refY="6" orient="auto">
+      <path d="M 0,0 L 13,6 L 0,12 Z" fill="#ffffff" stroke="#111827" stroke-width="1.4" stroke-linejoin="round" />
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1460" height="1836" fill="#ffffff" />
+  <text x="30" y="46" font-size="22" font-weight="600" fill="#111827">EscolaViva — UML Use Case Diagram</text>
+  <text x="30" y="70" font-size="13" fill="#6b7280">User features derived from the HTTP routes in src/web/routes and the application use cases in src/&lt;module&gt;/application</text>
+  <rect x="250" y="96" width="1160" height="1506" rx="14" ry="14" fill="#fdfdfe" stroke="#9ca3af" stroke-width="1.6" stroke-dasharray="9,6" />
+  <text x="268" y="126" font-size="15" font-weight="600" fill="#374151">EscolaViva system — multi-tenant school SaaS platform</text>
+  <rect x="284" y="140" width="1112" height="136" rx="12" ry="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="5,4" />
+  <text x="300" y="164" font-size="13" font-weight="600" fill="#475569">Access and account — any authenticated user</text>
+  <rect x="284" y="298" width="1112" height="236" rx="12" ry="12" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.2" stroke-dasharray="5,4" />
+  <text x="300" y="322" font-size="13" font-weight="600" fill="#7c3aed">Network administration</text>
+  <rect x="284" y="556" width="1112" height="148" rx="12" ry="12" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.2" stroke-dasharray="5,4" />
+  <text x="300" y="580" font-size="13" font-weight="600" fill="#ea580c">Communication with families</text>
+  <rect x="284" y="726" width="1112" height="336" rx="12" ry="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.2" stroke-dasharray="5,4" />
+  <text x="300" y="750" font-size="13" font-weight="600" fill="#2563eb">Academic registrar</text>
+  <rect x="284" y="1084" width="1112" height="236" rx="12" ry="12" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2" stroke-dasharray="5,4" />
+  <text x="300" y="1108" font-size="13" font-weight="600" fill="#16a34a">Teacher's journal</text>
+  <rect x="284" y="1342" width="1112" height="236" rx="12" ry="12" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.2" stroke-dasharray="5,4" />
+  <text x="300" y="1366" font-size="13" font-weight="600" fill="#0d9488">Guardian's follow-up</text>
+  <g stroke="#111827" stroke-width="1.4" fill="none">
+    <path d="M 70,1484 V 232" />
+    <path d="M 140,440 H 70" />
+    <path d="M 140,918 H 70" />
+    <path d="M 140,1226 H 70" />
+    <path d="M 140,1484 H 70" />
+    <path d="M 70,232 H 136" marker-end="url(#triangle-general)" />
+  </g>
+  <text x="58" y="858" font-size="11" fill="#6b7280" transform="rotate(-90 58 858)" text-anchor="middle">actor generalisation</text>
+  <path d="M 180,232 H 268 V 232 H 295" fill="none" stroke="#475569" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,232 H 268 V 182 H 618 V 201" fill="none" stroke="#475569" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,232 H 268 V 182 H 840 V 201" fill="none" stroke="#475569" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,440 H 262 V 390 H 295" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,440 H 262 V 340 H 618 V 359" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,440 H 262 V 340 H 840 V 359" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,440 H 262 V 340 H 1062 V 359" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,440 H 262 V 648 H 295" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,440 H 262 V 598 H 618 V 617" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 690 H 395 V 679" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 690 H 618 V 679" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 818 H 295" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 768 H 618 V 787" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 768 H 840 V 787" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 768 H 1062 V 787" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 768 H 1285 V 787" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 918 H 295" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 868 H 618 V 887" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 868 H 840 V 887" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 868 H 1062 V 887" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 868 H 1285 V 887" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,918 H 270 V 1018 H 295" fill="none" stroke="#2563eb" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,1226 H 268 V 1176 H 295" fill="none" stroke="#16a34a" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,1226 H 268 V 1126 H 618 V 1145" fill="none" stroke="#16a34a" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,1226 H 268 V 1126 H 840 V 1145" fill="none" stroke="#16a34a" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,1226 H 268 V 1126 H 1062 V 1145" fill="none" stroke="#16a34a" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,1484 H 268 V 1434 H 295" fill="none" stroke="#0d9488" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,1484 H 268 V 1384 H 618 V 1403" fill="none" stroke="#0d9488" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,1484 H 268 V 1384 H 840 V 1403" fill="none" stroke="#0d9488" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,1484 H 268 V 1384 H 1062 V 1403" fill="none" stroke="#0d9488" stroke-width="1.2" opacity="0.75" />
+  <path d="M 180,1484 H 268 V 1384 H 1285 V 1403" fill="none" stroke="#0d9488" stroke-width="1.2" opacity="0.75" />
+  <path d="M 1062,421 V 459" fill="none" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#arrow-include)" />
+  <text x="1074" y="444" font-size="11.5" font-style="italic" fill="#7c3aed">«include»</text>
+  <path d="M 618,949 V 987" fill="none" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#arrow-include)" />
+  <text x="630" y="972" font-size="11.5" font-style="italic" fill="#7c3aed">«include»</text>
+  <path d="M 1062,1207 V 1245" fill="none" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#arrow-include)" />
+  <text x="1074" y="1230" font-size="11.5" font-style="italic" fill="#7c3aed">«include»</text>
+  <path d="M 1285,1503 V 1465" fill="none" stroke="#ea580c" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#arrow-extend)" />
+  <text x="1297" y="1488" font-size="11.5" font-style="italic" fill="#ea580c">«extend»</text>
+  <ellipse cx="395" cy="232" rx="100" ry="31" fill="#f1f5f9" stroke="#475569" stroke-width="1.6" />
+  <text x="395" y="237" font-size="13" fill="#111827" text-anchor="middle">Authenticate</text>
+  <ellipse cx="618" cy="232" rx="100" ry="31" fill="#f1f5f9" stroke="#475569" stroke-width="1.6" />
+  <text x="618" y="237" font-size="13" fill="#111827" text-anchor="middle">End session</text>
+  <ellipse cx="840" cy="232" rx="100" ry="31" fill="#f1f5f9" stroke="#475569" stroke-width="1.6" />
+  <text x="840" y="237" font-size="13" fill="#111827" text-anchor="middle">Change own password</text>
+  <ellipse cx="395" cy="390" rx="100" ry="31" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6" />
+  <text x="395" y="395" font-size="13" fill="#111827" text-anchor="middle">View network dashboard</text>
+  <ellipse cx="618" cy="390" rx="100" ry="31" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6" />
+  <text x="618" y="395" font-size="13" fill="#111827" text-anchor="middle">Create school</text>
+  <ellipse cx="840" cy="390" rx="100" ry="31" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6" />
+  <text x="840" y="395" font-size="13" fill="#111827" text-anchor="middle">Define academic year</text>
+  <ellipse cx="1062" cy="390" rx="100" ry="31" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6" />
+  <text x="1062" y="395" font-size="13" fill="#111827" text-anchor="middle">Invite user</text>
+  <ellipse cx="1062" cy="490" rx="100" ry="31" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="6,4" />
+  <text x="1062" y="487" font-size="13" fill="#111827" text-anchor="middle">Generate temporary</text>
+  <text x="1062" y="505" font-size="13" fill="#111827" text-anchor="middle">password</text>
+  <ellipse cx="395" cy="648" rx="100" ry="31" fill="#fff7ed" stroke="#ea580c" stroke-width="1.6" />
+  <text x="395" y="653" font-size="13" fill="#111827" text-anchor="middle">Publish announcement</text>
+  <ellipse cx="618" cy="648" rx="100" ry="31" fill="#fff7ed" stroke="#ea580c" stroke-width="1.6" />
+  <text x="618" y="645" font-size="13" fill="#111827" text-anchor="middle">Track announcement</text>
+  <text x="618" y="663" font-size="13" fill="#111827" text-anchor="middle">reads</text>
+  <ellipse cx="395" cy="818" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6" />
+  <text x="395" y="815" font-size="13" fill="#111827" text-anchor="middle">Dashboard for the</text>
+  <text x="395" y="833" font-size="13" fill="#111827" text-anchor="middle">registrar</text>
+  <ellipse cx="618" cy="818" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6" />
+  <text x="618" y="823" font-size="13" fill="#111827" text-anchor="middle">Register student</text>
+  <ellipse cx="840" cy="818" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6" />
+  <text x="840" y="815" font-size="13" fill="#111827" text-anchor="middle">View the student</text>
+  <text x="840" y="833" font-size="13" fill="#111827" text-anchor="middle">record</text>
+  <ellipse cx="1062" cy="818" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6" />
+  <text x="1062" y="823" font-size="13" fill="#111827" text-anchor="middle">Register guardian</text>
+  <ellipse cx="1285" cy="818" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6" />
+  <text x="1285" y="815" font-size="13" fill="#111827" text-anchor="middle">Link a guardian</text>
+  <text x="1285" y="833" font-size="13" fill="#111827" text-anchor="middle">to a student</text>
+  <ellipse cx="395" cy="918" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6" />
+  <text x="395" y="923" font-size="13" fill="#111827" text-anchor="middle">Enrol student</text>
+  <ellipse cx="618" cy="918" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6" />
+  <text x="618" y="923" font-size="13" fill="#111827" text-anchor="middle">Transfer enrollment</text>
+  <ellipse cx="840" cy="918" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6" />
+  <text x="840" y="923" font-size="13" fill="#111827" text-anchor="middle">Register class group</text>
+  <ellipse cx="1062" cy="918" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6" />
+  <text x="1062" y="923" font-size="13" fill="#111827" text-anchor="middle">View class group</text>
+  <ellipse cx="1285" cy="918" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6" />
+  <text x="1285" y="915" font-size="13" fill="#111827" text-anchor="middle">Assign a teacher</text>
+  <text x="1285" y="933" font-size="13" fill="#111827" text-anchor="middle">to a subject</text>
+  <ellipse cx="395" cy="1018" rx="100" ry="31" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6" />
+  <text x="395" y="1023" font-size="13" fill="#111827" text-anchor="middle">Register subject</text>
+  <ellipse cx="618" cy="1018" rx="100" ry="31" fill="#ffffff" stroke="#2563eb" stroke-width="1.6" stroke-dasharray="6,4" />
+  <text x="618" y="1015" font-size="13" fill="#111827" text-anchor="middle">Close the source</text>
+  <text x="618" y="1033" font-size="13" fill="#111827" text-anchor="middle">enrollment</text>
+  <ellipse cx="395" cy="1176" rx="100" ry="31" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6" />
+  <text x="395" y="1173" font-size="13" fill="#111827" text-anchor="middle">Dashboard for the</text>
+  <text x="395" y="1191" font-size="13" fill="#111827" text-anchor="middle">teacher</text>
+  <ellipse cx="618" cy="1176" rx="100" ry="31" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6" />
+  <text x="618" y="1181" font-size="13" fill="#111827" text-anchor="middle">Post grades</text>
+  <ellipse cx="840" cy="1176" rx="100" ry="31" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6" />
+  <text x="840" y="1181" font-size="13" fill="#111827" text-anchor="middle">Record roll call</text>
+  <ellipse cx="1062" cy="1176" rx="100" ry="31" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6" />
+  <text x="1062" y="1181" font-size="13" fill="#111827" text-anchor="middle">Close term</text>
+  <ellipse cx="1062" cy="1276" rx="100" ry="31" fill="#ffffff" stroke="#16a34a" stroke-width="1.6" stroke-dasharray="6,4" />
+  <text x="1062" y="1273" font-size="13" fill="#111827" text-anchor="middle">Check what is missing</text>
+  <text x="1062" y="1291" font-size="13" fill="#111827" text-anchor="middle">in the term</text>
+  <ellipse cx="395" cy="1434" rx="100" ry="31" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6" />
+  <text x="395" y="1431" font-size="13" fill="#111827" text-anchor="middle">Dashboard for the</text>
+  <text x="395" y="1449" font-size="13" fill="#111827" text-anchor="middle">guardian</text>
+  <ellipse cx="618" cy="1434" rx="100" ry="31" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6" />
+  <text x="618" y="1439" font-size="13" fill="#111827" text-anchor="middle">View report card</text>
+  <ellipse cx="840" cy="1434" rx="100" ry="31" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6" />
+  <text x="840" y="1439" font-size="13" fill="#111827" text-anchor="middle">View attendance</text>
+  <ellipse cx="1062" cy="1434" rx="100" ry="31" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6" />
+  <text x="1062" y="1431" font-size="13" fill="#111827" text-anchor="middle">View the announcement</text>
+  <text x="1062" y="1449" font-size="13" fill="#111827" text-anchor="middle">board</text>
+  <ellipse cx="1285" cy="1434" rx="100" ry="31" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6" />
+  <text x="1285" y="1439" font-size="13" fill="#111827" text-anchor="middle">Read announcement</text>
+  <ellipse cx="1285" cy="1534" rx="100" ry="31" fill="#ffffff" stroke="#0d9488" stroke-width="1.6" stroke-dasharray="6,4" />
+  <text x="1285" y="1531" font-size="13" fill="#111827" text-anchor="middle">Mark announcement</text>
+  <text x="1285" y="1549" font-size="13" fill="#111827" text-anchor="middle">as read</text>
+  <g stroke="#475569" stroke-width="2" fill="none" stroke-linecap="round">
+    <circle cx="160" cy="210" r="11" fill="#ffffff" />
+    <path d="M 160,221 V 246" />
+    <path d="M 144,230 H 176" />
+    <path d="M 160,246 L 147,264" />
+    <path d="M 160,246 L 173,264" />
+  </g>
+  <text x="160" y="282" font-size="13.5" font-weight="600" fill="#111827" text-anchor="middle">Authenticated</text>
+  <text x="160" y="298" font-size="11.5" fill="#6b7280" text-anchor="middle">user</text>
+  <g stroke="#7c3aed" stroke-width="2" fill="none" stroke-linecap="round">
+    <circle cx="160" cy="418" r="11" fill="#ffffff" />
+    <path d="M 160,429 V 454" />
+    <path d="M 144,438 H 176" />
+    <path d="M 160,454 L 147,472" />
+    <path d="M 160,454 L 173,472" />
+  </g>
+  <text x="160" y="490" font-size="13.5" font-weight="600" fill="#111827" text-anchor="middle">Network Admin</text>
+  <g stroke="#2563eb" stroke-width="2" fill="none" stroke-linecap="round">
+    <circle cx="160" cy="896" r="11" fill="#ffffff" />
+    <path d="M 160,907 V 932" />
+    <path d="M 144,916 H 176" />
+    <path d="M 160,932 L 147,950" />
+    <path d="M 160,932 L 173,950" />
+  </g>
+  <text x="160" y="968" font-size="13.5" font-weight="600" fill="#111827" text-anchor="middle">Registrar</text>
+  <g stroke="#16a34a" stroke-width="2" fill="none" stroke-linecap="round">
+    <circle cx="160" cy="1204" r="11" fill="#ffffff" />
+    <path d="M 160,1215 V 1240" />
+    <path d="M 144,1224 H 176" />
+    <path d="M 160,1240 L 147,1258" />
+    <path d="M 160,1240 L 173,1258" />
+  </g>
+  <text x="160" y="1276" font-size="13.5" font-weight="600" fill="#111827" text-anchor="middle">Teacher</text>
+  <g stroke="#0d9488" stroke-width="2" fill="none" stroke-linecap="round">
+    <circle cx="160" cy="1462" r="11" fill="#ffffff" />
+    <path d="M 160,1473 V 1498" />
+    <path d="M 144,1482 H 176" />
+    <path d="M 160,1498 L 147,1516" />
+    <path d="M 160,1498 L 173,1516" />
+  </g>
+  <text x="160" y="1534" font-size="13.5" font-weight="600" fill="#111827" text-anchor="middle">Guardian</text>
+  <g id="legend" class="legend">
+  <rect x="250" y="1632" width="700" height="172" rx="10" ry="10" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1.2" />
+  <text x="266" y="1656" font-size="12.5" font-weight="600" fill="#374151">Legend</text>
+  <path d="M 266,1680 H 300" stroke="#2563eb" stroke-width="1.4" fill="none" />
+  <text x="310" y="1684" font-size="12" fill="#374151">Association — the actor performs the use case</text>
+  <path d="M 266,1704 H 290" stroke="#111827" stroke-width="1.4" fill="none" marker-end="url(#triangle-general)" />
+  <text x="310" y="1708" font-size="12" fill="#374151">Generalisation — every role is an authenticated user</text>
+  <path d="M 266,1728 H 292" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="6,4" fill="none" marker-end="url(#arrow-include)" />
+  <text x="310" y="1732" font-size="12" fill="#374151">«include» — behaviour always executed by the base case</text>
+  <path d="M 266,1752 H 292" stroke="#ea580c" stroke-width="1.4" stroke-dasharray="6,4" fill="none" marker-end="url(#arrow-extend)" />
+  <text x="310" y="1756" font-size="12" fill="#374151">«extend» — optional behaviour that extends the base case</text>
+  <text x="266" y="1788" font-size="11.5" fill="#6b7280">Dashed ellipse = included/extended use case, never started directly by the actor.</text>
+  </g>
+  <path d="M 976,1632 H 1390 L 1410,1652 V 1804 H 976 Z" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.2" />
+  <path d="M 1390,1632 V 1652 H 1410" fill="none" stroke="#fcd34d" stroke-width="1.2" />
+  <text x="992" y="1658" font-size="12.5" font-weight="600" fill="#92400e">Multi-tenant scoping</text>
+  <text x="992" y="1680" font-size="11.5" fill="#78350f">Every use case happens inside a network: the network_id in</text>
+  <text x="992" y="1696" font-size="11.5" fill="#78350f">the session scopes what each role sees. Roles are assigned</text>
+  <text x="992" y="1712" font-size="11.5" fill="#78350f">per school — the same person can be a registrar at one</text>
+  <text x="992" y="1728" font-size="11.5" fill="#78350f">school and a guardian at another, and requireRole() only</text>
+  <text x="992" y="1744" font-size="11.5" fill="#78350f">checks that the role exists, not which records it covers.</text>
+  <text x="992" y="1760" font-size="11.5" fill="#78350f" />
+  <text x="992" y="1776" font-size="11.5" fill="#78350f">Publish announcement and Track reads are the only two cases</text>
+  <text x="992" y="1792" font-size="11.5" fill="#78350f">shared between two primary actors.</text>
+</svg></div>
+    <p class="sr-only">Keyboard shortcuts: plus and minus zoom, zero resets, T toggles theme, S exports.</p>
+  </main>
+  <script>
+  (() => {
+    'use strict';
+    const metadata = {"slug": "escolaviva-use-cases"};
+    const stage = document.getElementById('stage');
+    const canvas = document.getElementById('canvas');
+    const svg = canvas.querySelector('svg');
+    const status = document.getElementById('status');
+    const scaleSelect = document.getElementById('scale');
+    const formatSelect = document.getElementById('format');
+    let view = { x:0, y:0, scale:1 };
+    let drag = null;
+    const clamp = value => Math.max(.2, Math.min(8, value));
+    const render = () => {
+      canvas.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.scale})`;
+      status.textContent = `${Math.round(view.scale * 100)}%`;
+    };
+    const zoom = (factor, originX=stage.clientWidth/2, originY=stage.clientHeight/2) => {
+      const next = clamp(view.scale * factor);
+      const ratio = next / view.scale;
+      view.x = originX - (originX - view.x) * ratio;
+      view.y = originY - (originY - view.y) * ratio;
+      view.scale = next; render();
+    };
+    const reset = () => { view = {x:0,y:0,scale:1}; render(); };
+    stage.addEventListener('wheel', event => { event.preventDefault(); const rect=stage.getBoundingClientRect(); zoom(event.deltaY < 0 ? 1.12 : .89, event.clientX-rect.left, event.clientY-rect.top); }, {passive:false});
+    stage.addEventListener('pointerdown', event => { drag={id:event.pointerId,x:event.clientX,y:event.clientY,vx:view.x,vy:view.y}; stage.setPointerCapture(event.pointerId); stage.classList.add('dragging'); });
+    stage.addEventListener('pointermove', event => { if(!drag||drag.id!==event.pointerId)return; view.x=drag.vx+event.clientX-drag.x; view.y=drag.vy+event.clientY-drag.y; render(); });
+    const endDrag = () => { drag=null; stage.classList.remove('dragging'); };
+    stage.addEventListener('pointerup', endDrag); stage.addEventListener('pointercancel', endDrag);
+    const source = () => new XMLSerializer().serializeToString(svg);
+    const saveBlob = (blob, extension) => { const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${(metadata.slug||'fireworks-tech-graph')}.${extension}`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); };
+    const copySource = async () => {
+      const value=source();
+      try { await navigator.clipboard.writeText(value); status.textContent='Copied'; return; } catch {}
+      const area=document.createElement('textarea'); area.value=value; area.setAttribute('readonly',''); area.style.position='fixed'; area.style.opacity='0'; document.body.appendChild(area); area.select();
+      status.textContent=document.execCommand('copy')?'Copied':'Copy failed'; area.remove();
+    };
+    const exportDiagram = async () => {
+      const format = formatSelect.value.toLowerCase();
+      if(format==='svg') { saveBlob(new Blob([source()],{type:'image/svg+xml;charset=utf-8'}),'svg'); return; }
+      const scale = Math.max(1,Math.min(4,Number(scaleSelect.value)||2));
+      const box = svg.viewBox.baseVal; const width=box.width||svg.clientWidth; const height=box.height||svg.clientHeight;
+      const image = new Image(); const url=URL.createObjectURL(new Blob([source()],{type:'image/svg+xml'}));
+      await new Promise((resolve,reject)=>{ image.onload=resolve; image.onerror=reject; image.src=url; });
+      const raster=document.createElement('canvas'); raster.width=Math.round(width*scale); raster.height=Math.round(height*scale);
+      const ctx=raster.getContext('2d'); if(format==='jpeg'){ctx.fillStyle='#ffffff';ctx.fillRect(0,0,raster.width,raster.height);} ctx.drawImage(image,0,0,raster.width,raster.height); URL.revokeObjectURL(url);
+      const mime=format==='jpeg'?'image/jpeg':format==='webp'?'image/webp':'image/png';
+      const blob=await new Promise(resolve=>raster.toBlob(resolve,mime,.94)); if(blob) saveBlob(blob,format==='jpeg'?'jpg':format);
+    };
+    document.querySelector('.toolbar').addEventListener('click', async event => {
+      const action=event.target.closest('[data-action]')?.dataset.action; if(!action)return;
+      if(action==='zoom-in')zoom(1.2); else if(action==='zoom-out')zoom(.83); else if(action==='reset')reset();
+      else if(action==='theme')document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';
+      else if(action==='download')await exportDiagram();
+      else if(action==='copy') await copySource();
+    });
+    document.addEventListener('keydown', event => {
+      if(event.target.matches('select'))return;
+      if(event.key==='+'||event.key==='=')zoom(1.2); else if(event.key==='-')zoom(.83); else if(event.key==='0'||event.key.toLowerCase()==='r')reset();
+      else if(event.key.toLowerCase()==='t')document.querySelector('[data-action=theme]').click(); else if(event.key.toLowerCase()==='s'){event.preventDefault();exportDiagram();}
+    });
+    render();
+  })();
+  </script>
+</body>
+</html>
