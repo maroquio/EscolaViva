@@ -58,11 +58,11 @@ describe('`bun run check` fails if one module imports another module\'s internal
    * other three ('assesment', 'comunication') would leave that module with no rule at all and the
    * output would stay green. That is why each rule is planted in all four.
    *
-   * The list comes off disk rather than from literals: while the repository is converted to English
-   * each module changes name in a different phase, and a hand-written list would start planting
-   * violations in folders that do not exist — depcruise would fail for another reason and the test
-   * would stay "red for the wrong reason", or worse, green for having found nothing. The same holds
-   * for the domain folder, which is `dominio` before that module's phase and `domain` after it.
+   * The list comes off disk rather than from literals. It was written that way during the
+   * conversion to English, when each module changed name in a different phase and a hand-written
+   * list would have planted violations in folders that did not exist yet. It is kept because the
+   * reason outlives the conversion: a module added or renamed later keeps being covered without
+   * anyone remembering to add it here.
    */
   const domainModules = (): readonly string[] =>
     readdirSync(join(PROJECT_ROOT, 'src'), { withFileTypes: true })
@@ -72,17 +72,15 @@ describe('`bun run check` fails if one module imports another module\'s internal
       .filter((name) => existsSync(join(PROJECT_ROOT, 'src', name, 'index.ts')))
       .sort();
 
-  const domainFolder = (module: string): string =>
-    existsSync(join(PROJECT_ROOT, 'src', module, 'domain')) ? 'domain' : 'dominio';
+  const DOMAIN_FOLDER = 'domain';
 
   /** An internal file of ANOTHER module: the shortcut the rule forbids. */
   const internalTarget = (module: string, modules: readonly string[]): string => {
     const other = modules.find((candidate) => candidate !== module) ?? module;
-    const folder = domainFolder(other);
-    const file = readdirSync(join(PROJECT_ROOT, 'src', other, folder))
+    const file = readdirSync(join(PROJECT_ROOT, 'src', other, DOMAIN_FOLDER))
       .filter((name) => name.endsWith('.ts'))
       .sort()[0];
-    return `${other}/${folder}/${(file ?? '').replace(/\.ts$/, '')}`;
+    return `${other}/${DOMAIN_FOLDER}/${(file ?? '').replace(/\.ts$/, '')}`;
   };
 
   const MODULES = domainModules();
@@ -90,21 +88,21 @@ describe('`bun run check` fails if one module imports another module\'s internal
   const VIOLATIONS: readonly Violation[] = MODULES.flatMap((module) => [
     {
       rule: 'no-cross-module-shortcut',
-      path: `src/${module}/_violacao_de_teste.ts`,
+      path: `src/${module}/_test_violation.ts`,
       content:
         `import type * as Internal from '../${internalTarget(module, MODULES)}';\n` +
         'export type Shortcut = keyof typeof Internal;\n',
     },
     {
       rule: 'pure-domain',
-      path: `src/${module}/${domainFolder(module)}/_violacao_de_teste.ts`,
+      path: `src/${module}/${DOMAIN_FOLDER}/_test_violation.ts`,
       content:
         "import { reader } from '../../shared/db';\n" +
         'export const connection = (): unknown => reader();\n',
     },
     {
       rule: 'shared-knows-no-domain',
-      path: `src/shared/_violacao_de_teste_${module}.ts`,
+      path: `src/shared/_test_violation_${module}.ts`,
       content:
         `import * as imported from '../${module}';\n` +
         'export const port = (): unknown => imported;\n',
@@ -174,7 +172,7 @@ describe('the application writes no file to disk', () => {
       rows.forEach((row, index) => {
         for (const pattern of PATTERNS) {
           if (pattern.expression.test(row)) {
-            found.push(`src/${relative}:${index + 1} usa ${pattern.name}`);
+            found.push(`src/${relative}:${index + 1} uses ${pattern.name}`);
           }
         }
       });

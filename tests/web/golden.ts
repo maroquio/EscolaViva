@@ -15,7 +15,7 @@
  *    e-mail, CPF and date is written out, and the scenario is the same under any execution order.
  *
  * 2. Normalization by dictionary, not by broom. The scenario's identifiers become NAMED markers —
- *    `{{aluno01}}`, `{{turma1}}` — so swapping one student's `href` for another's is still a
+ *    `{{student01}}`, `{{classGroup1}}` — so swapping one student's `href` for another's is still a
  *    visible difference. Only what cannot be predicted (the idempotency key, the CSS hash, the
  *    database timestamp) becomes an anonymous marker.
  *
@@ -319,34 +319,34 @@ export async function buildGoldenScenario(): Promise<GoldenScenario> {
   };
 
   const markers = new Map<string, string>([
-    [network.id, '{{rede}}'],
-    [schoolA.id, '{{unidadeA}}'],
-    [schoolB.id, '{{unidadeB}}'],
-    [currentYear.id, '{{anoCorrente}}'],
-    [previousYear.id, '{{anoAnterior}}'],
-    [admin.id, '{{usuarioAdmin}}'],
-    [registrar.id, '{{usuarioSecretaria}}'],
-    [teacher.id, '{{usuarioProfessor}}'],
-    [guardian.id, '{{usuarioResponsavel}}'],
-    [roleless.id, '{{usuarioSemPapel}}'],
-    [classGroup1.id, '{{turma1}}'],
-    [classGroup2.id, '{{turma2}}'],
-    [portuguese.id, '{{disciplinaPortugues}}'],
-    [math.id, '{{disciplinaMatematica}}'],
-    [history.id, '{{disciplinaHistoria}}'],
-    [assignment1.id, '{{alocacao1}}'],
-    [assignment2.id, '{{alocacao2}}'],
-    [assignment3.id, '{{alocacao3}}'],
-    [announcement1.id, '{{comunicado1}}'],
-    [announcement2.id, '{{comunicado2}}'],
-    [announcement3.id, '{{comunicado3}}'],
-    [NONEXISTENT_ID, '{{idInexistente}}'],
+    [network.id, '{{network}}'],
+    [schoolA.id, '{{schoolA}}'],
+    [schoolB.id, '{{schoolB}}'],
+    [currentYear.id, '{{currentYear}}'],
+    [previousYear.id, '{{previousYear}}'],
+    [admin.id, '{{adminUser}}'],
+    [registrar.id, '{{registrarUser}}'],
+    [teacher.id, '{{teacherUser}}'],
+    [guardian.id, '{{guardianUser}}'],
+    [roleless.id, '{{rolelessUser}}'],
+    [classGroup1.id, '{{classGroup1}}'],
+    [classGroup2.id, '{{classGroup2}}'],
+    [portuguese.id, '{{subjectPortuguese}}'],
+    [math.id, '{{subjectMath}}'],
+    [history.id, '{{subjectHistory}}'],
+    [assignment1.id, '{{assignment1}}'],
+    [assignment2.id, '{{assignment2}}'],
+    [assignment3.id, '{{assignment3}}'],
+    [announcement1.id, '{{announcement1}}'],
+    [announcement2.id, '{{announcement2}}'],
+    [announcement3.id, '{{announcement3}}'],
+    [NONEXISTENT_ID, '{{nonexistentId}}'],
   ]);
   for (let index = 0; index < STUDENT_COUNT; index += 1) {
     const label = twoDigits(index + 1);
-    markers.set(students[index]?.id ?? '', `{{aluno${label}}}`);
-    markers.set(guardians[index]?.id ?? '', `{{responsavel${label}}}`);
-    markers.set(enrollments[index]?.id ?? '', `{{matricula${label}}}`);
+    markers.set(students[index]?.id ?? '', `{{student${label}}}`);
+    markers.set(guardians[index]?.id ?? '', `{{guardian${label}}}`);
+    markers.set(enrollments[index]?.id ?? '', `{{enrollment${label}}}`);
   }
 
   return {
@@ -529,23 +529,23 @@ const inBrazilianFormat = (iso: string): string => {
 export function normalize(text: string, markers: ReadonlyMap<string, string>): string {
   let output = text;
 
-  output = output.replace(IDEMPOTENCY_KEY_ATTR, '$1{{chave}}$2');
-  output = output.replace(VERSIONED_ASSET, '/public/app.{{hashDoCss}}.css');
-  output = output.replaceAll(CORRELATION, '{{correlacao}}');
+  output = output.replace(IDEMPOTENCY_KEY_ATTR, '$1{{key}}$2');
+  output = output.replace(VERSIONED_ASSET, '/public/app.{{cssHash}}.css');
+  output = output.replaceAll(CORRELATION, '{{correlation}}');
 
   for (const [raw, marker] of markers) {
     if (raw !== '') output = output.replaceAll(raw, marker);
   }
 
-  output = output.replace(JAVASCRIPT_DATE, '{{carimboDeTempo}}');
-  output = output.replace(ISO_TIMESTAMP, '{{carimboDeTempo}}');
+  output = output.replace(JAVASCRIPT_DATE, '{{timestamp}}');
+  output = output.replace(ISO_TIMESTAMP, '{{timestamp}}');
 
   for (const day of currentDays()) {
-    output = output.replaceAll(day, '{{diaCorrente}}');
-    output = output.replaceAll(inBrazilianFormat(day), '{{diaCorrente}}');
+    output = output.replaceAll(day, '{{currentDay}}');
+    output = output.replaceAll(inBrazilianFormat(day), '{{currentDay}}');
   }
 
-  output = output.replace(TIME_OF_DAY, '{{hora}}');
+  output = output.replace(TIME_OF_DAY, '{{time}}');
   output = output.replace(UUID, '{{uuid}}');
 
   return output;

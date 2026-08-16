@@ -1,7 +1,7 @@
 /*
  * I17: the log carries identifiers, never content. A student is a minor — name, date of birth,
  * grade and guardian contact must not appear in a log line, at any depth. These tests are the gate
- * on the item "nenhum log contém nome, e-mail, CPF ou nota".
+ * on the item "no log contains a name, an e-mail, a CPF or a grade".
  */
 
 import { describe, expect, test } from 'bun:test';
@@ -51,6 +51,42 @@ const CONTRACT_MINIMUM = [
 ];
 
 describe('redact — what leaves the log', () => {
+  /*
+   * The English spellings are the ones the code emits today; the Portuguese ones are what a
+   * database restored from before the translation, or a log line written by an older build,
+   * still carries. The denylist holds both, and both are exercised here — a case for one
+   * spelling alone would let the other half be deleted without a single test turning red.
+   */
+  test('strips the fields the code emits today: name, password, phone, grade', () => {
+    const fields = {
+      name: 'Ana Beatriz Souza',
+      email: 'ana@escola.test',
+      password: 'teste-1234',
+      password_hash: '$argon2id$v=19$m=65536',
+      cpf: '123.456.789-09',
+      phone: '(27) 99999-0000',
+      grade: 9.5,
+      birth_date: '2014-03-08',
+      title: 'Reunião de pais',
+      body: 'A reunião acontece no dia 20.',
+    };
+
+    const safe = redact(fields);
+
+    expect(safe).toEqual({
+      name: REDACTED,
+      email: REDACTED,
+      password: REDACTED,
+      password_hash: REDACTED,
+      cpf: REDACTED,
+      phone: REDACTED,
+      grade: REDACTED,
+      birth_date: REDACTED,
+      title: REDACTED,
+      body: REDACTED,
+    });
+  });
+
   test('strips name, e-mail, password, password hash, CPF and phone', () => {
     const fields = {
       nome: 'Ana Beatriz Souza',
@@ -110,11 +146,11 @@ describe('redact — what leaves the log', () => {
 });
 
 describe('redact — what stays in the log', () => {
-  test('keeps aluno_id, usuario_id, rede_id and correlation_id', () => {
+  test('keeps student_id, user_id, network_id and correlation_id', () => {
     const fields = {
-      aluno_id: '3f1b',
-      usuario_id: '9c2d',
-      rede_id: '77aa',
+      student_id: '3f1b',
+      user_id: '9c2d',
+      network_id: '77aa',
       correlation_id: 'c-1234',
     };
 
@@ -124,57 +160,57 @@ describe('redact — what stays in the log', () => {
   });
 
   test('keeps an identifier sitting next to a forbidden field, on the same line', () => {
-    const fields = { aluno_id: '3f1b', nome: 'Ana Beatriz', turma_id: '55cc' };
+    const fields = { student_id: '3f1b', nome: 'Ana Beatriz', class_group_id: '55cc' };
 
     const safe = redact(fields);
 
-    expect(safe).toEqual({ aluno_id: '3f1b', nome: REDACTED, turma_id: '55cc' });
+    expect(safe).toEqual({ student_id: '3f1b', nome: REDACTED, class_group_id: '55cc' });
   });
 
   test('keeps numbers, nulls and dates that are not under a forbidden key', () => {
     const when = new Date('2026-03-10T12:00:00.000Z');
-    const fields = { duracao_ms: 42, ip: null, quando: when };
+    const fields = { duration_ms: 42, ip: null, when: when };
 
     const safe = redact(fields);
 
-    expect(safe).toEqual({ duracao_ms: 42, ip: null, quando: when });
+    expect(safe).toEqual({ duration_ms: 42, ip: null, when: when });
   });
 });
 
 describe('redact — depth and shape', () => {
   test('redacts inside a nested object', () => {
-    const fields = { evento: 'matricula', aluno: { aluno_id: '3f1b', nome: 'Ana Beatriz' } };
+    const fields = { event: 'enrollment', student: { student_id: '3f1b', nome: 'Ana Beatriz' } };
 
     const safe = redact(fields);
 
-    expect(safe).toEqual({ evento: 'matricula', aluno: { aluno_id: '3f1b', nome: REDACTED } });
+    expect(safe).toEqual({ event: 'enrollment', student: { student_id: '3f1b', nome: REDACTED } });
   });
 
   test('redacts inside an array of objects', () => {
     const fields = {
-      linhas: [
-        { matricula_id: 'm1', nota: 9 },
-        { matricula_id: 'm2', nota: 4 },
+      rows: [
+        { enrollment_id: 'm1', nota: 9 },
+        { enrollment_id: 'm2', nota: 4 },
       ],
     };
 
     const safe = redact(fields);
 
     expect(safe).toEqual({
-      linhas: [
-        { matricula_id: 'm1', nota: REDACTED },
-        { matricula_id: 'm2', nota: REDACTED },
+      rows: [
+        { enrollment_id: 'm1', nota: REDACTED },
+        { enrollment_id: 'm2', nota: REDACTED },
       ],
     });
   });
 
   test('redacts in an array inside an object inside an array', () => {
-    const fields = { turmas: [{ turma_id: 't1', alunos: [{ aluno_id: 'a1', nome: 'Ana' }] }] };
+    const fields = { class_groups: [{ class_group_id: 't1', students: [{ student_id: 'a1', nome: 'Ana' }] }] };
 
     const safe = redact(fields);
 
     expect(safe).toEqual({
-      turmas: [{ turma_id: 't1', alunos: [{ aluno_id: 'a1', nome: REDACTED }] }],
+      class_groups: [{ class_group_id: 't1', students: [{ student_id: 'a1', nome: REDACTED }] }],
     });
   });
 
@@ -192,10 +228,10 @@ describe('redact — depth and shape', () => {
 describe('redact — robustness', () => {
   test('does not mutate the input', () => {
     const fields = {
-      aluno_id: '3f1b',
+      student_id: '3f1b',
       nome: 'Ana Beatriz',
-      responsavel: { email: 'mae@escola.test' },
-      linhas: [{ nota: 9 }],
+      guardian: { email: 'mae@escola.test' },
+      rows: [{ nota: 9 }],
     };
     const copy = structuredClone(fields);
 
@@ -205,7 +241,7 @@ describe('redact — robustness', () => {
   });
 
   test('gives back a fresh object, not the input itself', () => {
-    const fields = { aluno_id: '3f1b' };
+    const fields = { student_id: '3f1b' };
 
     const safe = redact(fields);
 
@@ -214,8 +250,8 @@ describe('redact — robustness', () => {
   });
 
   test('does not blow up on a cyclic object', () => {
-    const cyclic: Record<string, unknown> = { aluno_id: '3f1b', nome: 'Ana Beatriz' };
-    cyclic.proprio = cyclic;
+    const cyclic: Record<string, unknown> = { student_id: '3f1b', nome: 'Ana Beatriz' };
+    cyclic.self = cyclic;
 
     const redactCyclic = (): unknown => redact(cyclic);
 
@@ -223,17 +259,17 @@ describe('redact — robustness', () => {
   });
 
   test('a cyclic object still leaks no forbidden field', () => {
-    const cyclic: Record<string, unknown> = { aluno_id: '3f1b', nome: 'Ana Beatriz' };
-    cyclic.proprio = cyclic;
+    const cyclic: Record<string, unknown> = { student_id: '3f1b', nome: 'Ana Beatriz' };
+    cyclic.self = cyclic;
 
     const safe = redact(cyclic);
 
     expect(safe.nome).toBe(REDACTED);
-    expect(safe.aluno_id).toBe('3f1b');
+    expect(safe.student_id).toBe('3f1b');
   });
 
   test('a cyclic array does not blow up either', () => {
-    const list: unknown[] = [{ aluno_id: '3f1b' }];
+    const list: unknown[] = [{ student_id: '3f1b' }];
     list.push(list);
 
     const redactList = (): unknown => redact({ lista: list });

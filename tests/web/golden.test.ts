@@ -119,7 +119,7 @@ describe('normalization does not erase what the golden exists to catch', () => {
   test('an href swapped for another path changes the normalized text', async () => {
     const original = await capture(screenNamed('registrar-students-search'), scenario);
 
-    expect(original).toContain('href="/registrar/students/{{aluno01}}"');
+    expect(original).toContain('href="/registrar/students/{{student01}}"');
     expect(original.replaceAll('/registrar/students/', '/registrar/class-groups/')).not.toBe(original);
   });
 
@@ -134,8 +134,8 @@ describe('normalization does not erase what the golden exists to catch', () => {
     const text = await capture(screenNamed('registrar-students-search'), scenario);
 
     // Every record in the scenario has a marker of its own: swapping two `href` around changes the file.
-    expect(text).toContain('{{aluno01}}');
-    expect(text).toContain('{{aluno02}}');
+    expect(text).toContain('{{student01}}');
+    expect(text).toContain('{{student02}}');
   });
 
   test('the destination of a redirect goes into the frozen file', async () => {

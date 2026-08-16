@@ -72,49 +72,49 @@ describe('fieldFailure', () => {
 
 describe('schemaErrors', () => {
   test('converts each zod issue while preserving the field name', () => {
-    const schema = z.object({ nome: z.string().min(3, 'nome curto demais') });
+    const schema = z.object({ name: z.string().min(3, 'name too short') });
 
-    const errors = schemaErrors(issuesOf(schema, { nome: 'Jo' }));
+    const errors = schemaErrors(issuesOf(schema, { name: 'Jo' }));
 
-    expect(errors).toEqual([{ code: 'too_small', message: 'nome curto demais', field: 'nome' }]);
+    expect(errors).toEqual([{ code: 'too_small', message: 'name too short', field: 'name' }]);
   });
 
   test('preserves the full path of a nested field, array index included', () => {
     const schema = z.object({
-      notas: z.array(z.object({ valor: z.number().max(10, 'nota acima de dez') })),
+      grades: z.array(z.object({ value: z.number().max(10, 'grade above ten') })),
     });
 
-    const errors = schemaErrors(issuesOf(schema, { notas: [{ valor: 8 }, { valor: 11 }] }));
+    const errors = schemaErrors(issuesOf(schema, { grades: [{ value: 8 }, { value: 11 }] }));
 
-    expect(errors).toEqual([{ code: 'too_big', message: 'nota acima de dez', field: 'notas.1.valor' }]);
+    expect(errors).toEqual([{ code: 'too_big', message: 'grade above ten', field: 'grades.1.value' }]);
   });
 
   test('converts every issue at once, not just the first', () => {
     const schema = z.object({
-      nome: z.string().min(3, 'nome curto demais'),
-      ano: z.number().int('ano precisa ser inteiro'),
+      name: z.string().min(3, 'name too short'),
+      year: z.number().int('year must be an integer'),
     });
 
-    const errors = schemaErrors(issuesOf(schema, { nome: 'Jo', ano: 2026.5 }));
+    const errors = schemaErrors(issuesOf(schema, { name: 'Jo', year: 2026.5 }));
 
-    expect(errors.map((error) => error.field)).toEqual(['nome', 'ano']);
+    expect(errors.map((error) => error.field)).toEqual(['name', 'year']);
   });
 
   test('omits the `field` key when the error belongs to the schema root', () => {
     const schema = z
-      .object({ dataInicio: z.string(), dataFim: z.string() })
-      .refine((value) => value.dataFim > value.dataInicio, 'fim antes do início');
+      .object({ startDate: z.string(), endDate: z.string() })
+      .refine((value) => value.endDate > value.startDate, 'fim antes do início');
 
-    const errors = schemaErrors(issuesOf(schema, { dataInicio: '2026-12-15', dataFim: '2026-02-01' }));
+    const errors = schemaErrors(issuesOf(schema, { startDate: '2026-12-15', endDate: '2026-02-01' }));
 
     expect(errors).toEqual([{ code: 'custom', message: 'fim antes do início' }]);
     expect(Object.hasOwn(errors[0] ?? {}, 'field')).toBe(false);
   });
 
   test('an empty list of issues becomes an empty list of errors', () => {
-    const schema = z.object({ nome: z.string() });
+    const schema = z.object({ name: z.string() });
 
-    const errors = schemaErrors(issuesOf(schema, { nome: 'Ana' }));
+    const errors = schemaErrors(issuesOf(schema, { name: 'Ana' }));
 
     expect(errors).toEqual([]);
   });
