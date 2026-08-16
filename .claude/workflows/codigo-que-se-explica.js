@@ -44,7 +44,9 @@ REGRAS:
 1. NENHUM COMENTÁRIO NOVO. Em nenhum arquivo, em nenhuma linguagem, em nenhuma forma.
 2. COMPORTAMENTO NÃO MUDA. As 75 telas do golden saem byte a byte idênticas. JAMAIS
    \`golden --regravar\`.
-3. Teste novo vai em \`testes/\`, no idioma dos que já existem. Teste que não falharia se o
+3. Teste novo vai na pasta de testes, com identificadores em INGLÊS (o repositório está
+   sendo convertido; durante a transição o idioma dos vizinhos não é referência confiável).
+   Texto que o usuário final lê continua em português. Teste que não falharia se o
    defeito acontecesse é decoração: prove que ele falha antes de entregar.
 4. NUNCA rode comando de git.
 5. NÃO edite arquivo fora do seu escopo — outros agentes trabalham em paralelo.

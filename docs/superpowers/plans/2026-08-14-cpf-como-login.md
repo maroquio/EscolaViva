@@ -14,7 +14,7 @@
 
 Valem para **toda** tarefa. Não repetidas nas tarefas individuais.
 
-- **Idioma:** todo identificador, comentário, mensagem de erro e texto de tela em **português do Brasil**, com acentuação correta. É a língua do repositório inteiro.
+- **Idioma:** todo identificador, nome de arquivo e nome de pasta em **inglês**. Texto de tela e mensagem que o usuário final lê ficam em **português do Brasil**, com acentuação correta. Revogado em 2026-08-16 o que esta linha dizia antes ("todo identificador, comentário, mensagem de erro e texto de tela em português do Brasil"): o repositório está sendo convertido para inglês.
 - **Comentários explicam o porquê, nunca o quê.** Olhe qualquer arquivo vizinho antes de escrever: o repositório documenta decisão e trade-off, não mecânica.
 - **`bun run verificar` verde antes de qualquer commit.** Roda `tsc --noEmit`, `depcruise` e a suíte inteira com portão de cobertura de 80% do projeto.
 - **Commit:** `git add` **explícito, arquivo por arquivo**. Nunca `git add -A`, `git add .`, `git add -u`, `git commit -a` nem `-am`. Rode `git status --short` antes e confirme que só os arquivos daquela tarefa estão staged.
