@@ -1307,9 +1307,22 @@ const somenteResumo = Bun.argv.includes('--resumo');
 
 const alvos = await arquivosAlvo();
 
-for (const arquivo of alvos) {
-  if (!ARQUIVOS_INDEXADOS.test(arquivo)) continue;
+const indexados = alvos.filter((arquivo) => ARQUIVOS_INDEXADOS.test(arquivo));
+
+for (const arquivo of indexados) {
   indexarDeclaracoes(arquivo, await Bun.file(join(RAIZ, arquivo)).text());
+}
+
+const cobertura = `${alvos.length} arquivo(s) varrido(s), ${indexados.length} indexado(s)`;
+
+if (alvos.length === 0) {
+  process.stdout.write(
+    `✖ ${cobertura} — nenhum glob casou nada.\n` +
+      'Um repositório sem literais e um verificador que não varreu arquivo nenhum imprimem\n' +
+      'a mesma coisa; por isso a varredura vazia é falha, não sucesso. Confira ALVOS contra\n' +
+      'os caminhos reais.\n',
+  );
+  process.exit(1);
 }
 
 const achados: Achado[] = [];
@@ -1456,7 +1469,7 @@ for (const [, lista] of repeticoesSemDono) {
 }
 
 if (achados.length === 0) {
-  process.stdout.write('✔ nenhum literal solto fora das exceções da regra 6\n');
+  process.stdout.write(`✔ nenhum literal solto fora das exceções da regra 6 — ${cobertura}\n`);
   process.exit(0);
 }
 
@@ -1494,7 +1507,7 @@ if (repeticoesSemDono.length > 0) {
 }
 
 process.stdout.write(
-  `\n✖ ${achados.length} literal(is) solto(s) em ${porArquivo.size} arquivo(s).\n` +
+  `\n✖ ${achados.length} literal(is) solto(s) em ${porArquivo.size} arquivo(s) — ${cobertura}.\n` +
     'Mova cada um para o `constantes.ts` do módulo dono, ou justifique com\n' +
     '`// magic-values: permitido — <motivo>` na linha do literal.\n',
 );

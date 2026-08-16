@@ -51,29 +51,44 @@ const PRAZO_DE_PROCESSO_MS = 60_000;
 describe('`bun run check` falha se um módulo importar arquivo interno de outro', () => {
   type Violacao = { regra: string; caminho: string; conteudo: string };
 
-  const VIOLACOES: readonly Violacao[] = [
+  /*
+   * As três regras nomeiam os quatro módulos numa alternância de regex. Plantar a violação
+   * em um módulo só provava que a alternância casa aquele nome — um erro de digitação em
+   * qualquer um dos outros três ('assesment', 'comunication') deixaria aquele módulo sem
+   * regra nenhuma e a saída continuaria verde. Por isso cada regra é plantada nos quatro.
+   */
+  const MODULOS = ['academico', 'avaliacao', 'comunicacao', 'identidade'] as const;
+
+  const ALVO_INTERNO: Readonly<Record<(typeof MODULOS)[number], string>> = {
+    academico: 'identidade/dominio/usuario',
+    avaliacao: 'academico/dominio/aluno',
+    comunicacao: 'identidade/dominio/papel',
+    identidade: 'academico/dominio/turma',
+  };
+
+  const VIOLACOES: readonly Violacao[] = MODULOS.flatMap((modulo) => [
     {
       regra: 'sem-atalho-entre-modulos',
-      caminho: 'src/academico/_violacao_de_teste.ts',
+      caminho: `src/${modulo}/_violacao_de_teste.ts`,
       conteudo:
-        "import type { UsuarioAutenticado } from '../identidade/dominio/usuario';\n" +
-        'export type Atalho = UsuarioAutenticado;\n',
+        `import type * as Interno from '../${ALVO_INTERNO[modulo]}';\n` +
+        'export type Atalho = keyof typeof Interno;\n',
     },
     {
       regra: 'dominio-puro',
-      caminho: 'src/academico/dominio/_violacao_de_teste.ts',
+      caminho: `src/${modulo}/dominio/_violacao_de_teste.ts`,
       conteudo:
         "import { leitura } from '../../shared/db';\n" +
         'export const conexao = (): unknown => leitura();\n',
     },
     {
       regra: 'shared-nao-conhece-dominio',
-      caminho: 'src/shared/_violacao_de_teste.ts',
+      caminho: `src/shared/_violacao_de_teste_${modulo}.ts`,
       conteudo:
-        "import { identidade } from '../identidade';\n" +
-        'export const porta = (): unknown => identidade;\n',
+        `import { ${modulo} } from '../${modulo}';\n` +
+        `export const porta = (): unknown => ${modulo};\n`,
     },
-  ];
+  ]);
 
   const rodarCheck = (): Promise<{ codigo: number; saida: string; erro: string }> =>
     rodarProcesso(['x', 'depcruise', 'src', '--config', 'config/.dependency-cruiser.js'], {});
@@ -97,7 +112,7 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
   }, PRAZO_DE_PROCESSO_MS);
 
   for (const violacao of VIOLACOES) {
-    test(`a regra ${violacao.regra} derruba a verificação`, async () => {
+    test(`a regra ${violacao.regra} derruba a verificação em ${violacao.caminho}`, async () => {
       const { codigo, saida } = await checarCom(violacao);
 
       expect(codigo).not.toBe(0);
@@ -111,7 +126,7 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
       VIOLACOES.map((violacao) => Bun.file(join(RAIZ_DO_PROJETO, violacao.caminho)).exists()),
     );
 
-    expect(restos).toEqual([false, false, false]);
+    expect(restos).toEqual(VIOLACOES.map(() => false));
   });
 });
 

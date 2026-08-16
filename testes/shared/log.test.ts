@@ -5,6 +5,8 @@
  */
 
 import { describe, expect, test } from 'bun:test';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { CHAVES_PROIBIDAS, redigir } from '../../src/shared/log';
 
 const REDIGIDO = '[redigido]';
@@ -255,5 +257,45 @@ describe('redigir — comparação de chave', () => {
     const seguros = redigir(campos);
 
     expect(seguros).toEqual(campos);
+  });
+});
+
+/*
+ * `MINIMO_DO_CONTRATO` acima é uma segunda lista escrita à mão: renomear as duas juntas
+ * mantém os testes verdes enquanto a redação para de acontecer. Este caso ancora a denylist
+ * no código real — se um campo passar a se chamar `name` e a denylist continuar dizendo
+ * `nome`, a entrada fica órfã e isto reprova. É a única rede do repositório com consequência
+ * de privacidade, e ela precisa doer antes do vazamento, não depois.
+ */
+describe('CHAVES_PROIBIDAS — ancoragem no código real', () => {
+  const PADROES_DE_FONTE = ['src/**/*.ts', 'src/**/*.eta', 'migrations/*.sql'] as const;
+
+  const escaparParaRegex = (texto: string): string => texto.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  const lerFontes = async (): Promise<string> => {
+    const raiz = fileURLToPath(new URL('../..', import.meta.url));
+    const partes: string[] = [];
+    for (const padrao of PADROES_DE_FONTE) {
+      for await (const arquivo of new Bun.Glob(padrao).scan({ cwd: raiz })) {
+        partes.push(await Bun.file(join(raiz, arquivo)).text());
+      }
+    }
+    return partes.join('\n');
+  };
+
+  test('a varredura enxerga o código — cobertura vazia é falha, não sucesso', async () => {
+    const fontes = await lerFontes();
+
+    expect(fontes.length).toBeGreaterThan(10_000);
+  });
+
+  test('nenhuma chave da denylist ficou órfã', async () => {
+    const fontes = await lerFontes();
+
+    const orfas = CHAVES_PROIBIDAS.filter(
+      (chave) => !new RegExp(`\\b${escaparParaRegex(chave)}\\b`, 'i').test(fontes),
+    );
+
+    expect(orfas).toEqual([]);
   });
 });
