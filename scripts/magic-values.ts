@@ -1,9 +1,9 @@
 import { join, resolve } from 'node:path';
 import ts from 'typescript/lib/typescript.js';
 
-const RAIZ = resolve(import.meta.dir, '..');
+const ROOT = resolve(import.meta.dir, '..');
 
-const ALVOS: readonly string[] = [
+const TARGETS: readonly string[] = [
   'src/**/*.ts',
   'src/web/templates/**/*.eta',
   'scripts/migrate.ts',
@@ -12,243 +12,254 @@ const ALVOS: readonly string[] = [
   'scripts/seed-volume.ts',
 ];
 
-const ARQUIVOS_DE_CONSTANTES = /(?:^|\/)(?:constantes|constants)\.ts$/;
+const CONSTANTS_FILES = /(?:^|\/)(?:constantes|constants)\.ts$/;
 
-const ARQUIVOS_INDEXADOS =
+const INDEXED_FILES =
   /(?:^|\/)(?:constantes|constants)\.ts$|(?:^|\/)web\/(?:rotas|routes)\/(?:mapa|routeMap)\.ts$/;
 
-const ESTE_ARQUIVO = 'scripts/magic-values.ts';
+const THIS_FILE = 'scripts/magic-values.ts';
 
-const EXTENSAO_DE_TEMPLATE = '.eta';
+const TEMPLATE_EXTENSION = '.eta';
 
-const TEMPLATES_CUJO_SCRIPT_VIRA_HTML: ReadonlySet<string> = new Set([
+const TEMPLATES_WHOSE_SCRIPT_BECOMES_HTML: ReadonlySet<string> = new Set([
   'src/web/templates/parciais/_script_avisos.eta',
   'src/web/templates/partials/_notices_script.eta',
 ]);
 
-const BLOCO_DE_SCRIPT = /(<script\b[^>]*>)([\s\S]*?)(<\/script>)/gi;
+const SCRIPT_BLOCK = /(<script\b[^>]*>)([\s\S]*?)(<\/script>)/gi;
 
-const semCorpoDeScript = (fonte: string): string =>
-  fonte.replaceAll(
-    BLOCO_DE_SCRIPT,
-    (_inteiro, abertura: string, corpo: string, fechamento: string) =>
-      `${abertura}${corpo.replaceAll(/[^\n]/g, ' ')}${fechamento}`,
+const withoutScriptBody = (source: string): string =>
+  source.replaceAll(
+    SCRIPT_BLOCK,
+    (_whole, opening: string, body: string, closing: string) =>
+      `${opening}${body.replaceAll(/[^\n]/g, ' ')}${closing}`,
   );
 
-const STATUS_HTTP = new Set([
+const HTTP_STATUSES = new Set([
   200, 201, 202, 204, 300, 301, 302, 303, 304, 400, 401, 403, 404, 405, 409, 410, 422, 429, 500,
   502, 503, 504,
 ]);
 
-const NUMEROS_NEUTROS = new Set([0, 1]);
+const NEUTRAL_NUMBERS = new Set([0, 1]);
 
-const SUPRESSAO = /\/\/\s*magic-values:\s*permitido\s*[—-]\s*(\S.*)$/;
+const SUPPRESSION = /\/\/\s*magic-values:\s*permitido\s*[—-]\s*(\S.*)$/;
 
-const MARCADOR_DE_SUPRESSAO = /magic-values:\s*permitido\s*[—-]\s*\S/;
+const SUPPRESSION_MARKER = /magic-values:\s*permitido\s*[—-]\s*\S/;
 
-const LINHA_DE_COMENTARIO = /^\s*\/\//;
+const COMMENT_LINE = /^\s*\/\//;
 
-const justificativaDa = (linhas: readonly string[], linha: number): string | undefined => {
-  for (const numero of [linha, linha - 1]) {
-    const motivo = SUPRESSAO.exec(linhas[numero - 1] ?? '')?.[1];
-    if (motivo === undefined) continue;
-    const prosa: string[] = [];
-    for (let i = numero - 1; i > 0 && LINHA_DE_COMENTARIO.test(linhas[i - 1] ?? ''); i -= 1) {
-      prosa.unshift(linhas[i - 1] ?? '');
+const justificationFor = (lines: readonly string[], line: number): string | undefined => {
+  for (const candidate of [line, line - 1]) {
+    const reason = SUPPRESSION.exec(lines[candidate - 1] ?? '')?.[1];
+    if (reason === undefined) continue;
+    const prose: string[] = [];
+    for (let i = candidate - 1; i > 0 && COMMENT_LINE.test(lines[i - 1] ?? ''); i -= 1) {
+      prose.unshift(lines[i - 1] ?? '');
     }
-    return [...prosa, motivo].join('\n');
+    return [...prose, reason].join('\n');
   }
   return undefined;
 };
 
-const MAIUSCULA_COM_UNDERLINE = /^[A-Z][A-Z0-9_]*$/;
+const UPPER_SNAKE_CASE = /^[A-Z][A-Z0-9_]*$/;
 
-type Achado = {
-  readonly arquivo: string;
-  readonly linha: number;
-  readonly coluna: number;
-  readonly trecho: string;
-  readonly motivo: string;
+type Finding = {
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+  readonly snippet: string;
+  readonly reason: string;
 };
 
-async function arquivosAlvo(): Promise<string[]> {
-  const encontrados = new Set<string>();
-  for (const padrao of ALVOS) {
-    for await (const achado of new Bun.Glob(padrao).scan({ cwd: RAIZ })) {
-      encontrados.add(achado.replaceAll('\\', '/'));
+async function targetFiles(): Promise<string[]> {
+  const found = new Set<string>();
+  for (const pattern of TARGETS) {
+    for await (const match of new Bun.Glob(pattern).scan({ cwd: ROOT })) {
+      found.add(match.replaceAll('\\', '/'));
     }
   }
-  return [...encontrados].sort();
+  return [...found].sort();
 }
 
-type Dono = { readonly caminho: string; readonly arquivo: string };
+type Owner = { readonly path: string; readonly file: string };
 
-const chaveDeTexto = (texto: string): string => `texto:${texto}`;
+const textKey = (text: string): string => `text:${text}`;
 
-const donosDe = (texto: string): readonly Dono[] => indicePorValor.get(chaveDeTexto(texto)) ?? [];
+const ownersOf = (text: string): readonly Owner[] => indexByValue.get(textKey(text)) ?? [];
 
-const primeiroDono = (texto: string): Dono | undefined => donosDe(texto)[0];
+const firstOwner = (text: string): Owner | undefined => ownersOf(text)[0];
 
-const chaveDeValor = (no: ts.Node): string | undefined => {
-  if (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) return chaveDeTexto(no.text);
-  if (ts.isNumericLiteral(no)) return `numero:${Number(no.text.replaceAll('_', ''))}`;
-  if (ts.isRegularExpressionLiteral(no)) return `expressao:${no.text}`;
+const valueKey = (node: ts.Node): string | undefined => {
+  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+    return textKey(node.text);
+  }
+  if (ts.isNumericLiteral(node)) return `number:${Number(node.text.replaceAll('_', ''))}`;
+  if (ts.isRegularExpressionLiteral(node)) return `expression:${node.text}`;
   return undefined;
 };
 
-const nomeDaPropriedade = (nome: ts.PropertyName): string | undefined => {
-  if (ts.isIdentifier(nome) || ts.isStringLiteral(nome) || ts.isNumericLiteral(nome)) {
-    return nome.text;
+const propertyName = (name: ts.PropertyName): string | undefined => {
+  if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) {
+    return name.text;
   }
   return undefined;
 };
 
-const indicePorValor = new Map<string, Dono[]>();
-const valoresNumericosComDono = new Map<number, Dono>();
+const indexByValue = new Map<string, Owner[]>();
+const ownedNumericValues = new Map<number, Owner>();
 
-type Declarado = Dono & { readonly valor: string };
+type DeclaredValue = Owner & { readonly value: string };
 
-const declarados: Declarado[] = [];
+const declaredValues: DeclaredValue[] = [];
 
-const textoDoLiteral = (no: ts.Node): string | undefined => {
-  if (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) return no.text;
-  if (ts.isNumericLiteral(no)) return String(Number(no.text.replaceAll('_', '')));
+const literalText = (node: ts.Node): string | undefined => {
+  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text;
+  if (ts.isNumericLiteral(node)) return String(Number(node.text.replaceAll('_', '')));
   return undefined;
 };
 
-function indexarDeclaracoes(arquivo: string, fonte: string): void {
-  const origem = ts.createSourceFile(arquivo, fonte, ts.ScriptTarget.ESNext, true);
+function indexDeclarations(file: string, source: string): void {
+  const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.ESNext, true);
 
-  const registrar = (no: ts.Node, caminho: string): void => {
-    const chave = chaveDeValor(no);
-    if (chave === undefined) return;
-    const dono: Dono = { caminho, arquivo };
-    indicePorValor.set(chave, [...(indicePorValor.get(chave) ?? []), dono]);
-    const valor = textoDoLiteral(no);
-    if (valor !== undefined) declarados.push({ ...dono, valor });
-    if (ts.isNumericLiteral(no)) {
-      const numero = Number(no.text.replaceAll('_', ''));
-      if (!valoresNumericosComDono.has(numero)) valoresNumericosComDono.set(numero, dono);
+  const record = (node: ts.Node, path: string): void => {
+    const key = valueKey(node);
+    if (key === undefined) return;
+    const owner: Owner = { path, file };
+    indexByValue.set(key, [...(indexByValue.get(key) ?? []), owner]);
+    const value = literalText(node);
+    if (value !== undefined) declaredValues.push({ ...owner, value });
+    if (ts.isNumericLiteral(node)) {
+      const num = Number(node.text.replaceAll('_', ''));
+      if (!ownedNumericValues.has(num)) ownedNumericValues.set(num, owner);
     }
   };
 
-  const visitar = (no: ts.Node, caminho: string): void => {
-    if (ts.isTypeNode(no)) return;
-    if (ts.isImportDeclaration(no) || ts.isExportDeclaration(no)) return;
+  const visit = (node: ts.Node, path: string): void => {
+    if (ts.isTypeNode(node)) return;
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) return;
 
-    if (ts.isVariableDeclaration(no) && ts.isIdentifier(no.name)) {
-      if (no.initializer !== undefined) visitar(no.initializer, no.name.text);
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name)) {
+      if (node.initializer !== undefined) visit(node.initializer, node.name.text);
       return;
     }
 
-    if (ts.isPropertyAssignment(no)) {
-      const chave = nomeDaPropriedade(no.name);
-      const adiante = chave === undefined ? caminho : `${caminho}.${chave}`;
-      visitar(no.initializer, adiante);
+    if (ts.isPropertyAssignment(node)) {
+      const key = propertyName(node.name);
+      const ahead = key === undefined ? path : `${path}.${key}`;
+      visit(node.initializer, ahead);
       return;
     }
 
-    if (caminho !== '') registrar(no, caminho);
-    ts.forEachChild(no, (filho) => {
-      visitar(filho, caminho);
+    if (path !== '') record(node, path);
+    ts.forEachChild(node, (child) => {
+      visit(child, path);
     });
   };
 
-  ts.forEachChild(origem, (no) => {
-    visitar(no, '');
+  ts.forEachChild(sourceFile, (node) => {
+    visit(node, '');
   });
 }
 
-const declaracaoNomeada = (no: ts.Node): boolean => {
-  if (!ts.isVariableDeclaration(no)) return false;
-  if (!ts.isIdentifier(no.name)) return false;
-  const lista = no.parent;
-  const ehConst =
-    ts.isVariableDeclarationList(lista) && (lista.flags & ts.NodeFlags.Const) !== 0;
-  return ehConst && MAIUSCULA_COM_UNDERLINE.test(no.name.text);
+const isNamedDeclaration = (node: ts.Node): boolean => {
+  if (!ts.isVariableDeclaration(node)) return false;
+  if (!ts.isIdentifier(node.name)) return false;
+  const list = node.parent;
+  const isConst = ts.isVariableDeclarationList(list) && (list.flags & ts.NodeFlags.Const) !== 0;
+  return isConst && UPPER_SNAKE_CASE.test(node.name.text);
 };
 
-const semEnvelope = (no: ts.Node): ts.Node => {
-  let atual = no;
+const withoutWrapper = (node: ts.Node): ts.Node => {
+  let current = node;
   while (
-    atual.parent !== undefined &&
-    (ts.isAsExpression(atual.parent) ||
-      ts.isSatisfiesExpression(atual.parent) ||
-      ts.isParenthesizedExpression(atual.parent))
+    current.parent !== undefined &&
+    (ts.isAsExpression(current.parent) ||
+      ts.isSatisfiesExpression(current.parent) ||
+      ts.isParenthesizedExpression(current.parent))
   ) {
-    atual = atual.parent;
+    current = current.parent;
   }
-  return atual;
+  return current;
 };
 
-const abreConteudoNovo = (no: ts.Node): boolean =>
-  ts.isObjectLiteralExpression(no) || ts.isArrayLiteralExpression(no) || ts.isFunctionLike(no);
+const opensNewContent = (node: ts.Node): boolean =>
+  ts.isObjectLiteralExpression(node) ||
+  ts.isArrayLiteralExpression(node) ||
+  ts.isFunctionLike(node);
 
-const ehSoTexto = (no: ts.Node): boolean => {
-  if (ts.isParenthesizedExpression(no)) return ehSoTexto(no.expression);
-  if (ts.isBinaryExpression(no)) {
+const isTextOnly = (node: ts.Node): boolean => {
+  if (ts.isParenthesizedExpression(node)) return isTextOnly(node.expression);
+  if (ts.isBinaryExpression(node)) {
     return (
-      no.operatorToken.kind === ts.SyntaxKind.PlusToken &&
-      ehSoTexto(no.left) &&
-      ehSoTexto(no.right)
+      node.operatorToken.kind === ts.SyntaxKind.PlusToken &&
+      isTextOnly(node.left) &&
+      isTextOnly(node.right)
     );
   }
   return (
-    ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no) || ts.isTemplateExpression(no)
+    ts.isStringLiteral(node) ||
+    ts.isNoSubstitutionTemplateLiteral(node) ||
+    ts.isTemplateExpression(node)
   );
 };
 
-const corpoDeExpressao = (no: ts.Node): ts.Node | undefined =>
-  ts.isArrowFunction(no) || ts.isFunctionExpression(no) || ts.isFunctionDeclaration(no)
-    ? no.body
+const expressionBody = (node: ts.Node): ts.Node | undefined =>
+  ts.isArrowFunction(node) || ts.isFunctionExpression(node) || ts.isFunctionDeclaration(node)
+    ? node.body
     : undefined;
 
-const ehValorBatizado = (no: ts.Node): boolean => {
-  let soTexto = ehSoTexto(no);
-  for (let atual = semEnvelope(no); atual.parent !== undefined; atual = semEnvelope(atual.parent)) {
-    const pai = atual.parent;
-    if (ts.isVariableDeclaration(pai)) return pai.initializer === atual && declaracaoNomeada(pai);
-    if (ts.isFunctionLike(pai)) {
-      const corpo = corpoDeExpressao(pai);
-      if (!soTexto || corpo === undefined || !ehSoTexto(corpo)) return false;
-    } else if (abreConteudoNovo(pai)) {
+const isNamedValue = (node: ts.Node): boolean => {
+  let textOnly = isTextOnly(node);
+  for (
+    let current = withoutWrapper(node);
+    current.parent !== undefined;
+    current = withoutWrapper(current.parent)
+  ) {
+    const parent = current.parent;
+    if (ts.isVariableDeclaration(parent)) {
+      return parent.initializer === current && isNamedDeclaration(parent);
+    }
+    if (ts.isFunctionLike(parent)) {
+      const body = expressionBody(parent);
+      if (!textOnly || body === undefined || !isTextOnly(body)) return false;
+    } else if (opensNewContent(parent)) {
       return false;
     }
-    soTexto = soTexto && ehSoTexto(pai);
+    textOnly = textOnly && isTextOnly(parent);
   }
   return false;
 };
 
-const nomesQueGeramTipo = (origem: ts.SourceFile): ReadonlySet<string> => {
-  const nomes = new Set<string>();
-  const visitar = (no: ts.Node): void => {
-    if (ts.isTypeQueryNode(no) && ts.isIdentifier(no.exprName)) nomes.add(no.exprName.text);
-    ts.forEachChild(no, visitar);
+const namesThatBecomeTypes = (sourceFile: ts.SourceFile): ReadonlySet<string> => {
+  const names = new Set<string>();
+  const visit = (node: ts.Node): void => {
+    if (ts.isTypeQueryNode(node) && ts.isIdentifier(node.exprName)) names.add(node.exprName.text);
+    ts.forEachChild(node, visit);
   };
-  ts.forEachChild(origem, visitar);
-  return nomes;
+  ts.forEachChild(sourceFile, visit);
+  return names;
 };
 
-const ehTabelaDeDados = (no: ts.Node, arquivo: string, caminho: string): boolean =>
-  arquivo.startsWith('scripts/seed') &&
-  (ts.isArrayLiteralExpression(no) || (caminho !== '' && ts.isObjectLiteralExpression(no)));
+const isDataTable = (node: ts.Node, file: string, path: string): boolean =>
+  file.startsWith('scripts/seed') &&
+  (ts.isArrayLiteralExpression(node) || (path !== '' && ts.isObjectLiteralExpression(node)));
 
-const ehLiteralSimples = (no: ts.Node): boolean =>
-  ts.isStringLiteral(no) ||
-  ts.isNoSubstitutionTemplateLiteral(no) ||
-  ts.isNumericLiteral(no) ||
-  (ts.isPrefixUnaryExpression(no) && ts.isNumericLiteral(no.operand));
+const isSimpleLiteral = (node: ts.Node): boolean =>
+  ts.isStringLiteral(node) ||
+  ts.isNoSubstitutionTemplateLiteral(node) ||
+  ts.isNumericLiteral(node) ||
+  (ts.isPrefixUnaryExpression(node) && ts.isNumericLiteral(node.operand));
 
-const ehEnumeracao = (no: ts.Node, caminho: string): boolean =>
-  caminho !== '' && ts.isArrayLiteralExpression(no) && no.elements.every(ehLiteralSimples);
+const isEnumeration = (node: ts.Node, path: string): boolean =>
+  path !== '' && ts.isArrayLiteralExpression(node) && node.elements.every(isSimpleLiteral);
 
-const nomeChamado = (alvo: ts.Expression): string | undefined => {
-  if (ts.isIdentifier(alvo)) return alvo.text;
-  if (ts.isPropertyAccessExpression(alvo)) return alvo.name.text;
+const calleeName = (target: ts.Expression): string | undefined => {
+  if (ts.isIdentifier(target)) return target.text;
+  if (ts.isPropertyAccessExpression(target)) return target.name.text;
   return undefined;
 };
 
-const CONSTRUTORES_DE_RESPOSTA: ReadonlySet<string> = new Set([
+const RESPONSE_BUILDERS: ReadonlySet<string> = new Set([
   'redirect',
   'json',
   'text',
@@ -257,90 +268,90 @@ const CONSTRUTORES_DE_RESPOSTA: ReadonlySet<string> = new Set([
   'newResponse',
 ]);
 
-const RENDERIZADORES_DE_ERRO: ReadonlySet<string> = new Set([
+const ERROR_RENDERERS: ReadonlySet<string> = new Set([
   'renderizarErro',
   'paginaDeErro',
   'renderError',
   'errorPage',
 ]);
 
-const POSICAO_DO_STATUS_NA_RESPOSTA = 1;
+const STATUS_POSITION_IN_RESPONSE = 1;
 
-const FALA_EM_STATUS = /status/i;
+const MENTIONS_STATUS = /status/i;
 
-const COMPARACOES = new Set<ts.SyntaxKind>([
+const COMPARISONS = new Set<ts.SyntaxKind>([
   ts.SyntaxKind.EqualsEqualsEqualsToken,
   ts.SyntaxKind.ExclamationEqualsEqualsToken,
   ts.SyntaxKind.EqualsEqualsToken,
   ts.SyntaxKind.ExclamationEqualsToken,
 ]);
 
-const COMPARACOES_DE_ORDEM = new Set<ts.SyntaxKind>([
+const ORDER_COMPARISONS = new Set<ts.SyntaxKind>([
   ts.SyntaxKind.GreaterThanToken,
   ts.SyntaxKind.GreaterThanEqualsToken,
   ts.SyntaxKind.LessThanToken,
   ts.SyntaxKind.LessThanEqualsToken,
 ]);
 
-const ehComparacao = (operador: ts.SyntaxKind): boolean =>
-  COMPARACOES.has(operador) || COMPARACOES_DE_ORDEM.has(operador);
+const isComparison = (operator: ts.SyntaxKind): boolean =>
+  COMPARISONS.has(operator) || ORDER_COMPARISONS.has(operator);
 
-const funcaoQueEnvolve = (no: ts.Node): ts.SignatureDeclaration | undefined => {
-  for (let atual = no.parent; atual !== undefined; atual = atual.parent) {
-    if (ts.isFunctionLike(atual)) return atual;
+const enclosingFunction = (node: ts.Node): ts.SignatureDeclaration | undefined => {
+  for (let current = node.parent; current !== undefined; current = current.parent) {
+    if (ts.isFunctionLike(current)) return current;
   }
   return undefined;
 };
 
-const assinaturaFalaEmStatus = (funcao: ts.SignatureDeclaration): boolean => {
-  const tipo = funcao.type;
-  if (tipo !== undefined && FALA_EM_STATUS.test(tipo.getText())) return true;
-  const declaracao = funcao.parent;
-  if (ts.isVariableDeclaration(declaracao) && ts.isIdentifier(declaracao.name)) {
-    return FALA_EM_STATUS.test(declaracao.name.text);
+const signatureMentionsStatus = (fn: ts.SignatureDeclaration): boolean => {
+  const returnType = fn.type;
+  if (returnType !== undefined && MENTIONS_STATUS.test(returnType.getText())) return true;
+  const declaration = fn.parent;
+  if (ts.isVariableDeclaration(declaration) && ts.isIdentifier(declaration.name)) {
+    return MENTIONS_STATUS.test(declaration.name.text);
   }
-  return funcao.name !== undefined && FALA_EM_STATUS.test(funcao.name.getText());
+  return fn.name !== undefined && MENTIONS_STATUS.test(fn.name.getText());
 };
 
-const ehPosicaoDeStatus = (no: ts.NumericLiteral): boolean => {
-  const pai = no.parent;
+const isStatusPosition = (node: ts.NumericLiteral): boolean => {
+  const parent = node.parent;
 
-  if (ts.isElementAccessExpression(pai) && pai.argumentExpression === no) return true;
+  if (ts.isElementAccessExpression(parent) && parent.argumentExpression === node) return true;
 
-  if (ts.isReturnStatement(pai)) {
-    const funcao = funcaoQueEnvolve(pai);
-    return funcao !== undefined && assinaturaFalaEmStatus(funcao);
+  if (ts.isReturnStatement(parent)) {
+    const fn = enclosingFunction(parent);
+    return fn !== undefined && signatureMentionsStatus(fn);
   }
 
-  if (ts.isBinaryExpression(pai) && ehComparacao(pai.operatorToken.kind)) {
-    const outro = pai.left === no ? pai.right : pai.left;
-    return FALA_EM_STATUS.test(outro.getText());
+  if (ts.isBinaryExpression(parent) && isComparison(parent.operatorToken.kind)) {
+    const other = parent.left === node ? parent.right : parent.left;
+    return MENTIONS_STATUS.test(other.getText());
   }
 
-  if (!ts.isCallExpression(pai)) return false;
-  const posicao = pai.arguments.indexOf(no);
-  if (posicao < 0) return false;
+  if (!ts.isCallExpression(parent)) return false;
+  const position = parent.arguments.indexOf(node);
+  if (position < 0) return false;
 
-  const chamado = nomeChamado(pai.expression);
-  if (chamado === undefined) return false;
-  if (RENDERIZADORES_DE_ERRO.has(chamado)) return true;
-  if (chamado === 'status') return posicao === 0;
-  return CONSTRUTORES_DE_RESPOSTA.has(chamado) && posicao === POSICAO_DO_STATUS_NA_RESPOSTA;
+  const callee = calleeName(parent.expression);
+  if (callee === undefined) return false;
+  if (ERROR_RENDERERS.has(callee)) return true;
+  if (callee === 'status') return position === 0;
+  return RESPONSE_BUILDERS.has(callee) && position === STATUS_POSITION_IN_RESPONSE;
 };
 
-const numeroIsento = (no: ts.NumericLiteral): boolean => {
-  const valor = Number(no.text.replaceAll('_', ''));
-  if (NUMEROS_NEUTROS.has(valor)) return true;
-  return STATUS_HTTP.has(valor) && ehPosicaoDeStatus(no);
+const isExemptNumber = (node: ts.NumericLiteral): boolean => {
+  const value = Number(node.text.replaceAll('_', ''));
+  if (NEUTRAL_NUMBERS.has(value)) return true;
+  return HTTP_STATUSES.has(value) && isStatusPosition(node);
 };
 
-const TEXTO_COM_CONTEUDO = /[A-Za-zÀ-ÿ]{3,}|\d/;
+const TEXT_WITH_CONTENT = /[A-Za-zÀ-ÿ]{3,}|\d/;
 
-const templateComProsa = (no: ts.TemplateExpression): boolean =>
-  TEXTO_COM_CONTEUDO.test(no.head.text) ||
-  no.templateSpans.some((trecho) => TEXTO_COM_CONTEUDO.test(trecho.literal.text));
+const templateWithProse = (node: ts.TemplateExpression): boolean =>
+  TEXT_WITH_CONTENT.test(node.head.text) ||
+  node.templateSpans.some((snippet) => TEXT_WITH_CONTENT.test(snippet.literal.text));
 
-const RESULTADOS_DE_TYPEOF: ReadonlySet<string> = new Set([
+const TYPEOF_RESULTS: ReadonlySet<string> = new Set([
   'undefined',
   'object',
   'boolean',
@@ -351,48 +362,48 @@ const RESULTADOS_DE_TYPEOF: ReadonlySet<string> = new Set([
   'function',
 ]);
 
-const ehOperandoDeTypeof = (no: ts.StringLiteralLike): boolean => {
-  if (!RESULTADOS_DE_TYPEOF.has(no.text)) return false;
-  const pai = no.parent;
-  if (!ts.isBinaryExpression(pai) || !COMPARACOES.has(pai.operatorToken.kind)) return false;
-  const outro = pai.left === no ? pai.right : pai.left;
-  return ts.isTypeOfExpression(outro);
+const isTypeofOperand = (node: ts.StringLiteralLike): boolean => {
+  if (!TYPEOF_RESULTS.has(node.text)) return false;
+  const parent = node.parent;
+  if (!ts.isBinaryExpression(parent) || !COMPARISONS.has(parent.operatorToken.kind)) return false;
+  const other = parent.left === node ? parent.right : parent.left;
+  return ts.isTypeOfExpression(other);
 };
 
-const ehTipoDeArrayNoPostgres = (no: ts.Node): boolean => {
-  const pai = no.parent;
-  if (!ts.isCallExpression(pai)) return false;
-  const alvo = pai.expression;
-  if (!ts.isPropertyAccessExpression(alvo) || alvo.name.text !== 'array') return false;
-  if (!ts.isIdentifier(alvo.expression) || alvo.expression.text !== 'sql') return false;
-  return pai.arguments.indexOf(no as ts.Expression) === 1;
+const isPostgresArrayType = (node: ts.Node): boolean => {
+  const parent = node.parent;
+  if (!ts.isCallExpression(parent)) return false;
+  const target = parent.expression;
+  if (!ts.isPropertyAccessExpression(target) || target.name.text !== 'array') return false;
+  if (!ts.isIdentifier(target.expression) || target.expression.text !== 'sql') return false;
+  return parent.arguments.indexOf(node as ts.Expression) === 1;
 };
 
-const textoIsento = (no: ts.StringLiteralLike): boolean =>
-  ehOperandoDeTypeof(no) || ehTipoDeArrayNoPostgres(no);
+const isExemptText = (node: ts.StringLiteralLike): boolean =>
+  isTypeofOperand(node) || isPostgresArrayType(node);
 
-const ehEspelhoDaChave = (no: ts.StringLiteralLike): boolean => {
-  const pai = no.parent;
+const mirrorsItsKey = (node: ts.StringLiteralLike): boolean => {
+  const parent = node.parent;
   return (
-    ts.isPropertyAssignment(pai) &&
-    pai.initializer === no &&
-    nomeDaPropriedade(pai.name) === no.text
+    ts.isPropertyAssignment(parent) &&
+    parent.initializer === node &&
+    propertyName(parent.name) === node.text
   );
 };
 
-const ehExpressaoRegular = (no: ts.Node): boolean => ts.isRegularExpressionLiteral(no);
+const isRegularExpression = (node: ts.Node): boolean => ts.isRegularExpressionLiteral(node);
 
-const PALAVRA_COM_CONTEUDO = '[A-Za-zÀ-ÿ]{3,}';
+const WORD_WITH_CONTENT = '[A-Za-zÀ-ÿ]{3,}';
 
-const UMA_PALAVRA = new RegExp(PALAVRA_COM_CONTEUDO);
+const ONE_WORD = new RegExp(WORD_WITH_CONTENT);
 
-const DUAS_PALAVRAS_SEGUIDAS = new RegExp(`${PALAVRA_COM_CONTEUDO}\\s+${PALAVRA_COM_CONTEUDO}`);
+const TWO_WORDS_IN_A_ROW = new RegExp(`${WORD_WITH_CONTENT}\\s+${WORD_WITH_CONTENT}`);
 
-const ehFrase = (no: ts.Node): boolean =>
-  (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) &&
-  DUAS_PALAVRAS_SEGUIDAS.test(no.text);
+const isSentence = (node: ts.Node): boolean =>
+  (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) &&
+  TWO_WORDS_IN_A_ROW.test(node.text);
 
-const PALAVRAS_VAZIAS: ReadonlySet<string> = new Set([
+const STOP_WORDS: ReadonlySet<string> = new Set([
   'de',
   'do',
   'da',
@@ -422,64 +433,64 @@ const PALAVRAS_VAZIAS: ReadonlySet<string> = new Set([
   'from',
 ]);
 
-const SEPARADOR_DE_CAIXA = /([a-z0-9])([A-Z])/g;
-const NAO_ALFANUMERICO = /[^A-Za-z0-9]+/;
-const TAMANHO_MINIMO_PARA_SINGULAR = 4;
+const CASE_BOUNDARY = /([a-z0-9])([A-Z])/g;
+const NON_ALPHANUMERIC = /[^A-Za-z0-9]+/;
+const MINIMUM_LENGTH_FOR_SINGULAR = 4;
 
-const singular = (palavra: string): string =>
-  palavra.length >= TAMANHO_MINIMO_PARA_SINGULAR && palavra.endsWith('s')
-    ? palavra.slice(0, -1)
-    : palavra;
+const singular = (word: string): string =>
+  word.length >= MINIMUM_LENGTH_FOR_SINGULAR && word.endsWith('s')
+    ? word.slice(0, -1)
+    : word;
 
-const palavrasDoCaminho = (caminho: string): string[] =>
-  caminho
+const pathWords = (path: string): string[] =>
+  path
     .split('.')
-    .flatMap((parte) => parte.replaceAll(SEPARADOR_DE_CAIXA, '$1 $2').split(NAO_ALFANUMERICO))
-    .map((palavra) => palavra.toLowerCase())
-    .filter((palavra) => palavra !== '' && !PALAVRAS_VAZIAS.has(palavra))
+    .flatMap((part) => part.replaceAll(CASE_BOUNDARY, '$1 $2').split(NON_ALPHANUMERIC))
+    .map((word) => word.toLowerCase())
+    .filter((word) => word !== '' && !STOP_WORDS.has(word))
     .map(singular);
 
-const PALAVRAS_DE_LIMITE: ReadonlySet<string> = new Set(['limite', 'limit']);
+const LIMIT_WORDS: ReadonlySet<string> = new Set(['limite', 'limit']);
 
-const ehNomeDeLimite = (caminho: string): boolean =>
-  palavrasDoCaminho(caminho).some((palavra) => PALAVRAS_DE_LIMITE.has(palavra));
+const isLimitName = (path: string): boolean =>
+  pathWords(path).some((word) => LIMIT_WORDS.has(word));
 
-const contemTodas = (conjunto: ReadonlySet<string>, palavras: readonly string[]): boolean =>
-  palavras.length > 0 && palavras.every((palavra) => conjunto.has(palavra));
+const containsAll = (set: ReadonlySet<string>, words: readonly string[]): boolean =>
+  words.length > 0 && words.every((word) => set.has(word));
 
-const mesmoNome = (aqui: string, dono: string): boolean => {
-  const daqui = palavrasDoCaminho(aqui);
-  const doDono = palavrasDoCaminho(dono);
-  return contemTodas(new Set(daqui), doDono) || contemTodas(new Set(doDono), daqui);
+const sameName = (here: string, owner: string): boolean => {
+  const fromHere = pathWords(here);
+  const fromOwner = pathWords(owner);
+  return containsAll(new Set(fromHere), fromOwner) || containsAll(new Set(fromOwner), fromHere);
 };
 
-const PREFIXO_DO_TEMPLATE = /^it\./;
+const TEMPLATE_PREFIX = /^it\./;
 
-const CAMINHO_PONTILHADO = /[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+/g;
+const DOTTED_PATH = /[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+/g;
 
-const PALAVRAS_MINIMAS_DO_CAMINHO = 2;
+const MINIMUM_PATH_WORDS = 2;
 
-const terminaEm = (palavras: readonly string[], fim: readonly string[]): boolean =>
-  fim.length <= palavras.length &&
-  fim.every((palavra, i) => palavras[palavras.length - fim.length + i] === palavra);
+const endsWithWords = (words: readonly string[], end: readonly string[]): boolean =>
+  end.length <= words.length &&
+  end.every((word, i) => words[words.length - end.length + i] === word);
 
-const SO_ALFANUMERICO = /[^A-Za-z0-9]+/g;
+const ONLY_ALPHANUMERIC = /[^A-Za-z0-9]+/g;
 
-const folhaDe = (caminho: string): string =>
-  (caminho.split('.').at(-1) ?? '').replaceAll(SO_ALFANUMERICO, '').toLowerCase();
+const leafOf = (path: string): string =>
+  (path.split('.').at(-1) ?? '').replaceAll(ONLY_ALPHANUMERIC, '').toLowerCase();
 
-const declaracoesNomeadas = (caminho: string): readonly Declarado[] => {
-  const escrito = palavrasDoCaminho(caminho.replace(PREFIXO_DO_TEMPLATE, ''));
-  if (escrito.length < PALAVRAS_MINIMAS_DO_CAMINHO) return [];
-  const folha = folhaDe(caminho);
-  return declarados.filter(
-    (declarado) =>
-      folhaDe(declarado.caminho) === folha &&
-      terminaEm(palavrasDoCaminho(declarado.caminho), escrito),
+const namedDeclarations = (path: string): readonly DeclaredValue[] => {
+  const written = pathWords(path.replace(TEMPLATE_PREFIX, ''));
+  if (written.length < MINIMUM_PATH_WORDS) return [];
+  const leaf = leafOf(path);
+  return declaredValues.filter(
+    (declaredValue) =>
+      leafOf(declaredValue.path) === leaf &&
+      endsWithWords(pathWords(declaredValue.path), written),
   );
 };
 
-const NEGACOES: ReadonlySet<string> = new Set([
+const NEGATIONS: ReadonlySet<string> = new Set([
   'não',
   'nao',
   'nem',
@@ -496,135 +507,135 @@ const NEGACOES: ReadonlySet<string> = new Set([
   'nor',
 ]);
 
-const FIM_DE_ORACAO = /[,;:()\n—]/;
+const CLAUSE_END = /[,;:()\n—]/;
 
-const PALAVRAS = /[\wÀ-ÿ]+/g;
+const WORDS = /[\wÀ-ÿ]+/g;
 
-const negada = (texto: string, ateA: number): boolean => {
-  const oracao = texto.slice(0, ateA).split(FIM_DE_ORACAO).at(-1) ?? '';
-  return [...oracao.matchAll(PALAVRAS)].some((palavra) =>
-    NEGACOES.has(palavra[0].toLowerCase()),
+const isNegated = (text: string, upTo: number): boolean => {
+  const clause = text.slice(0, upTo).split(CLAUSE_END).at(-1) ?? '';
+  return [...clause.matchAll(WORDS)].some((word) =>
+    NEGATIONS.has(word[0].toLowerCase()),
   );
 };
 
-const constantesCitadas = (
-  texto: string,
-): readonly { citacao: string; alvo: Declarado; negada: boolean }[] =>
-  [...texto.matchAll(CAMINHO_PONTILHADO)].flatMap((citacao) =>
-    declaracoesNomeadas(citacao[0]).map((alvo) => ({
-      citacao: citacao[0],
-      alvo,
-      negada: negada(texto, citacao.index),
+const citedConstants = (
+  text: string,
+): readonly { citation: string; target: DeclaredValue; isNegated: boolean }[] =>
+  [...text.matchAll(DOTTED_PATH)].flatMap((citation) =>
+    namedDeclarations(citation[0]).map((target) => ({
+      citation: citation[0],
+      target,
+      isNegated: isNegated(text, citation.index),
     })),
   );
 
-const donoDuplicado = (no: ts.Node, caminho: string, arquivo: string): Dono | undefined => {
-  const chave = chaveDeValor(no);
-  if (chave === undefined) return undefined;
-  const donos = (indicePorValor.get(chave) ?? []).filter((dono) => dono.arquivo !== arquivo);
-  return escolherDono(donos, caminho, ehExpressaoRegular(no) || ehFrase(no));
+const duplicateOwner = (node: ts.Node, path: string, file: string): Owner | undefined => {
+  const key = valueKey(node);
+  if (key === undefined) return undefined;
+  const owners = (indexByValue.get(key) ?? []).filter((owner) => owner.file !== file);
+  return pickOwner(owners, path, isRegularExpression(node) || isSentence(node));
 };
 
-const escolherDono = (
-  donos: readonly Dono[],
-  caminho: string,
-  ehRedacao: boolean,
-): Dono | undefined => {
-  if (donos.length === 0) return undefined;
-  if (caminho !== '') {
-    const porNome = donos.find((dono) => mesmoNome(caminho, dono.caminho));
-    if (porNome !== undefined) return porNome;
+const pickOwner = (
+  owners: readonly Owner[],
+  path: string,
+  isProse: boolean,
+): Owner | undefined => {
+  if (owners.length === 0) return undefined;
+  if (path !== '') {
+    const byName = owners.find((owner) => sameName(path, owner.path));
+    if (byName !== undefined) return byName;
   }
-  return ehRedacao ? donos[0] : undefined;
+  return isProse ? owners[0] : undefined;
 };
 
-type Ocorrencia = {
-  readonly texto: string;
-  readonly arquivo: string;
-  readonly linha: number;
-  readonly coluna: number;
-  readonly trecho: string;
+type Occurrence = {
+  readonly text: string;
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+  readonly snippet: string;
 };
 
-const ocorrencias: Ocorrencia[] = [];
+const occurrences: Occurrence[] = [];
 
-type Silenciado = {
-  readonly arquivo: string;
-  readonly linha: number;
-  readonly coluna: number;
-  readonly valor: string;
-  readonly justificativa: string;
-  readonly fechou: 'achado' | 'contagem';
+type Silenced = {
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+  readonly value: string;
+  readonly justification: string;
+  readonly closed: 'finding' | 'count';
 };
 
-const silenciados: Silenciado[] = [];
+const silenced: Silenced[] = [];
 
-type Marcador = {
-  readonly arquivo: string;
-  readonly linha: number;
-  readonly coluna: number;
-  readonly trecho: string;
+type Marker = {
+  readonly file: string;
+  readonly line: number;
+  readonly column: number;
+  readonly snippet: string;
 };
 
-const marcadores: Marcador[] = [];
+const markers: Marker[] = [];
 
-const marcadoresDe = (arquivo: string, fonte: string): Marcador[] =>
-  fonte.split('\n').flatMap((linha, indice) => {
-    const encontro = MARCADOR_DE_SUPRESSAO.exec(linha);
-    if (encontro === null) return [];
+const markersOf = (file: string, source: string): Marker[] =>
+  source.split('\n').flatMap((line, index) => {
+    const match = SUPPRESSION_MARKER.exec(line);
+    if (match === null) return [];
     return [
       {
-        arquivo,
-        linha: indice + 1,
-        coluna: encontro.index + 1,
-        trecho: linha.trim().slice(0, 72),
+        file,
+        line: index + 1,
+        column: match.index + 1,
+        snippet: line.trim().slice(0, 72),
       },
     ];
   });
 
-type Consumo = {
-  readonly arquivo: string;
-  readonly linha: number;
-  readonly caminho: string;
-  readonly valor: string;
+type Consumption = {
+  readonly file: string;
+  readonly line: number;
+  readonly path: string;
+  readonly value: string;
 };
 
-const consumos: Consumo[] = [];
+const consumptions: Consumption[] = [];
 
-const RAIZ_DO_CAMINHO = /^([A-Za-z_][A-Za-z0-9_]*)\./;
+const PATH_ROOT = /^([A-Za-z_][A-Za-z0-9_]*)\./;
 
-const ehCaminhoDeConstante = (caminho: string): boolean => {
-  const raiz = RAIZ_DO_CAMINHO.exec(caminho)?.[1];
-  return raiz !== undefined && (raiz === 'it' || MAIUSCULA_COM_UNDERLINE.test(raiz));
+const isConstantPath = (path: string): boolean => {
+  const root = PATH_ROOT.exec(path)?.[1];
+  return root !== undefined && (root === 'it' || UPPER_SNAKE_CASE.test(root));
 };
 
-const colherConsumos = (
-  arquivo: string,
-  origem: ts.SourceFile,
-  linhaDe: (no: ts.Node) => number,
+const collectConsumptions = (
+  file: string,
+  sourceFile: ts.SourceFile,
+  lineOf: (node: ts.Node) => number,
 ): void => {
-  const visitar = (no: ts.Node): void => {
+  const visit = (node: ts.Node): void => {
     if (
-      ts.isPropertyAccessExpression(no) &&
-      no.parent !== undefined &&
-      !ts.isPropertyAccessExpression(no.parent)
+      ts.isPropertyAccessExpression(node) &&
+      node.parent !== undefined &&
+      !ts.isPropertyAccessExpression(node.parent)
     ) {
-      const caminho = no.getText(origem);
-      if (!ehCaminhoDeConstante(caminho)) return;
-      for (const alvo of declaracoesNomeadas(caminho)) {
-        consumos.push({ arquivo, linha: linhaDe(no), caminho, valor: alvo.valor });
+      const path = node.getText(sourceFile);
+      if (!isConstantPath(path)) return;
+      for (const target of namedDeclarations(path)) {
+        consumptions.push({ file, line: lineOf(node), path, value: target.value });
       }
     }
-    ts.forEachChild(no, visitar);
+    ts.forEachChild(node, visit);
   };
-  ts.forEachChild(origem, visitar);
+  ts.forEachChild(sourceFile, visit);
 };
 
-const OCORRENCIAS_PARA_ACUSAR = 3;
+const OCCURRENCES_TO_REPORT = 3;
 
-const MODULO_DO_PRODUTO = 'src/';
+const PRODUCT_MODULE = 'src/';
 
-const VOCABULARIO_DO_HTML: ReadonlySet<string> = new Set([
+const HTML_VOCABULARY: ReadonlySet<string> = new Set([
   'selected',
   'checked',
   'disabled',
@@ -635,713 +646,715 @@ const VOCABULARIO_DO_HTML: ReadonlySet<string> = new Set([
   'open',
 ]);
 
-const ehTextoContavel = (texto: string): boolean =>
-  UMA_PALAVRA.test(texto) && !VOCABULARIO_DO_HTML.has(texto);
+const isCountableText = (text: string): boolean =>
+  ONE_WORD.test(text) && !HTML_VOCABULARY.has(text);
 
-type Contexto = { readonly declaracao: boolean; readonly caminho: string };
+type Context = { readonly declaration: boolean; readonly path: string };
 
-const RAIZ_DA_ARVORE: Contexto = { declaracao: false, caminho: '' };
+const TREE_ROOT: Context = { declaration: false, path: '' };
 
-const MOTIVO_DE_ENDERECO = 'endereço escrito à mão — use `ROTAS` (web/constants.ts)';
+const URL_REASON = 'endereço escrito à mão — use `ROTAS` (web/constants.ts)';
 
-function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
-  const origem = ts.createSourceFile(arquivo, fonte, ts.ScriptTarget.ESNext, true);
-  const linhas = fonte.split('\n');
-  const achados: Achado[] = [];
-  const geramTipo = nomesQueGeramTipo(origem);
+function analyzeTypeScript(file: string, source: string): Finding[] {
+  const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.ESNext, true);
+  const lines = source.split('\n');
+  const findings: Finding[] = [];
+  const becomeTypes = namesThatBecomeTypes(sourceFile);
 
-  const suprimida = (
-    linha: number,
-    coluna: number,
-    valor: string,
-    fechou: Silenciado['fechou'],
+  const isSuppressed = (
+    line: number,
+    column: number,
+    value: string,
+    closed: Silenced['closed'],
   ): boolean => {
-    const justificativa = justificativaDa(linhas, linha);
-    if (justificativa === undefined) return false;
-    silenciados.push({ arquivo, linha, coluna, valor, justificativa, fechou });
+    const justification = justificationFor(lines, line);
+    if (justification === undefined) return false;
+    silenced.push({ file, line, column, value, justification, closed });
     return true;
   };
 
-  const registrar = (no: ts.Node, motivo: string): void => {
-    const { line, character } = origem.getLineAndCharacterOfPosition(no.getStart(origem));
-    if (suprimida(line + 1, character + 1, textoDoLiteral(no) ?? no.getText(origem), 'achado'))
-      return;
-    achados.push({
-      arquivo,
-      linha: line + 1,
-      coluna: character + 1,
-      trecho: no.getText(origem).replaceAll('\n', '\\n').slice(0, 72),
-      motivo,
+  const record = (node: ts.Node, reason: string): void => {
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+    const literal = literalText(node) ?? node.getText(sourceFile);
+    if (isSuppressed(line + 1, character + 1, literal, 'finding')) return;
+    findings.push({
+      file,
+      line: line + 1,
+      column: character + 1,
+      snippet: node.getText(sourceFile).replaceAll('\n', '\\n').slice(0, 72),
+      reason,
     });
   };
 
-  const contar = (no: ts.Node, texto: string): void => {
-    if (!arquivo.startsWith(MODULO_DO_PRODUTO) || !ehTextoContavel(texto)) return;
-    const { line, character } = origem.getLineAndCharacterOfPosition(no.getStart(origem));
-    if (suprimida(line + 1, character + 1, texto, 'contagem')) return;
-    ocorrencias.push({
-      texto,
-      arquivo,
-      linha: line + 1,
-      coluna: character + 1,
-      trecho: no.getText(origem).replaceAll('\n', '\\n').slice(0, 72),
+  const count = (node: ts.Node, text: string): void => {
+    if (!file.startsWith(PRODUCT_MODULE) || !isCountableText(text)) return;
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+    if (isSuppressed(line + 1, character + 1, text, 'count')) return;
+    occurrences.push({
+      text,
+      file,
+      line: line + 1,
+      column: character + 1,
+      snippet: node.getText(sourceFile).replaceAll('\n', '\\n').slice(0, 72),
     });
   };
 
-  const motivoDeCopia = (no: ts.Node, caminho: string): string | undefined => {
+  const copyReason = (node: ts.Node, path: string): string | undefined => {
     if (
-      (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) &&
-      ROTA_COM_SEGMENTO.test(no.text)
+      (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) &&
+      ROUTE_WITH_SEGMENT.test(node.text)
     ) {
-      return MOTIVO_DE_ENDERECO;
+      return URL_REASON;
     }
-    const dono = donoDuplicado(no, caminho, arquivo);
-    return dono === undefined ? undefined : `mesmo valor de ${dono.caminho} (${dono.arquivo})`;
+    const owner = duplicateOwner(node, path, file);
+    return owner === undefined ? undefined : `mesmo valor de ${owner.path} (${owner.file})`;
   };
 
-  const conferir = (no: ts.Node, contexto: Contexto): void => {
+  const check = (node: ts.Node, context: Context): void => {
     if (
-      (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) &&
-      !(ts.isPropertyAssignment(no.parent) && no.parent.name === no) &&
-      !textoIsento(no)
+      (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) &&
+      !(ts.isPropertyAssignment(node.parent) && node.parent.name === node) &&
+      !isExemptText(node)
     ) {
-      contar(no, no.text);
+      count(node, node.text);
     }
-    const copia = motivoDeCopia(no, contexto.caminho);
-    if (copia !== undefined) {
-      registrar(no, copia);
+    const copy = copyReason(node, context.path);
+    if (copy !== undefined) {
+      record(node, copy);
       return;
     }
-    if (contexto.declaracao || ehValorBatizado(no)) return;
+    if (context.declaration || isNamedValue(node)) return;
 
-    if (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) {
-      const ehChave = ts.isPropertyAssignment(no.parent) && no.parent.name === no;
-      const solto = !ehChave && no.text !== '' && !textoIsento(no) && !ehEspelhoDaChave(no);
-      if (solto) registrar(no, '');
-    } else if (ts.isTemplateExpression(no)) {
-      if (templateComProsa(no)) registrar(no, '');
-    } else if (ts.isNumericLiteral(no) && !numeroIsento(no)) {
-      registrar(no, '');
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+      const isKey = ts.isPropertyAssignment(node.parent) && node.parent.name === node;
+      const loose = !isKey && node.text !== '' && !isExemptText(node) && !mirrorsItsKey(node);
+      if (loose) record(node, '');
+    } else if (ts.isTemplateExpression(node)) {
+      if (templateWithProse(node)) record(node, '');
+    } else if (ts.isNumericLiteral(node) && !isExemptNumber(node)) {
+      record(node, '');
     }
   };
 
-  const visitar = (no: ts.Node, contexto: Contexto): void => {
-    if (ts.isTypeNode(no)) return;
-    if (ts.isImportDeclaration(no) || ts.isExportDeclaration(no)) return;
-    if (ts.isTaggedTemplateExpression(no)) return;
+  const visit = (node: ts.Node, context: Context): void => {
+    if (ts.isTypeNode(node)) return;
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) return;
+    if (ts.isTaggedTemplateExpression(node)) return;
 
-    let atual = ts.isFunctionLike(no) ? { declaracao: contexto.declaracao, caminho: '' } : contexto;
-    if (declaracaoNomeada(no)) {
-      const nome = (no as ts.VariableDeclaration).name.getText(origem);
-      atual = { declaracao: geramTipo.has(nome), caminho: nome };
+    let current = ts.isFunctionLike(node)
+      ? { declaration: context.declaration, path: '' }
+      : context;
+    if (isNamedDeclaration(node)) {
+      const name = (node as ts.VariableDeclaration).name.getText(sourceFile);
+      current = { declaration: becomeTypes.has(name), path: name };
     }
-    if (ehTabelaDeDados(no, arquivo, atual.caminho) || ehEnumeracao(no, atual.caminho)) {
-      atual = { declaracao: true, caminho: atual.caminho };
+    if (isDataTable(node, file, current.path) || isEnumeration(node, current.path)) {
+      current = { declaration: true, path: current.path };
     }
 
-    conferir(no, atual);
+    check(node, current);
 
-    ts.forEachChild(no, (filho) => {
-      if (ts.isPropertyAssignment(no) && no.name === filho) return;
-      const adiante =
-        atual.caminho !== '' && ts.isPropertyAssignment(no)
+    ts.forEachChild(node, (child) => {
+      if (ts.isPropertyAssignment(node) && node.name === child) return;
+      const ahead =
+        current.path !== '' && ts.isPropertyAssignment(node)
           ? {
-              declaracao: atual.declaracao,
-              caminho: `${atual.caminho}.${nomeDaPropriedade(no.name) ?? ''}`,
+              declaration: current.declaration,
+              path: `${current.path}.${propertyName(node.name) ?? ''}`,
             }
-          : atual;
-      visitar(filho, adiante);
+          : current;
+      visit(child, ahead);
     });
   };
 
-  ts.forEachChild(origem, (no) => {
-    visitar(no, RAIZ_DA_ARVORE);
+  ts.forEachChild(sourceFile, (node) => {
+    visit(node, TREE_ROOT);
   });
-  colherConsumos(
-    arquivo,
-    origem,
-    (no) => origem.getLineAndCharacterOfPosition(no.getStart(origem)).line + 1,
+  collectConsumptions(
+    file,
+    sourceFile,
+    (node) => sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1,
   );
-  return achados;
+  return findings;
 }
 
-const ABERTURA_DE_BLOCO = '<%';
+const BLOCK_OPENING = '<%';
 
-const FECHAMENTO_DE_BLOCO = '%>';
+const BLOCK_CLOSING = '%>';
 
-const ASPAS_DE_CODIGO: ReadonlySet<string> = new Set(['"', "'", '`']);
+const CODE_QUOTES: ReadonlySet<string> = new Set(['"', "'", '`']);
 
-const ESCAPE_DA_STRING = '\\';
+const STRING_ESCAPE = '\\';
 
-const COMENTARIO_DE_BLOCO = { abertura: '/*', fechamento: '*/' } as const;
+const BLOCK_COMMENT = { opening: '/*', closing: '*/' } as const;
 
-const QUEBRA_DE_LINHA = '\n';
+const LINE_BREAK = '\n';
 
-const CRASE = '`';
+const BACKTICK = '`';
 
-const fimDaString = (fonte: string, inicio: number, aspa: string): number => {
-  for (let i = inicio + 1; i < fonte.length; i += 1) {
-    if (fonte[i] === ESCAPE_DA_STRING) {
+const endOfString = (source: string, start: number, quote: string): number => {
+  for (let i = start + 1; i < source.length; i += 1) {
+    if (source[i] === STRING_ESCAPE) {
       i += 1;
       continue;
     }
-    if (fonte[i] === aspa) return i + 1;
-    if (aspa !== CRASE && fonte[i] === QUEBRA_DE_LINHA) return inicio + 1;
+    if (source[i] === quote) return i + 1;
+    if (quote !== BACKTICK && source[i] === LINE_BREAK) return start + 1;
   }
-  return fonte.length;
+  return source.length;
 };
 
-const fimDoBloco = (fonte: string, desde: number): number => {
-  let i = desde;
-  while (i < fonte.length) {
-    if (fonte.startsWith(FECHAMENTO_DE_BLOCO, i)) return i;
-    if (fonte.startsWith(COMENTARIO_DE_BLOCO.abertura, i)) {
-      const desdeOMiolo = i + COMENTARIO_DE_BLOCO.abertura.length;
-      const fim = fonte.indexOf(COMENTARIO_DE_BLOCO.fechamento, desdeOMiolo);
-      i = fim < 0 ? fonte.length : fim + COMENTARIO_DE_BLOCO.fechamento.length;
-    } else if (ASPAS_DE_CODIGO.has(fonte[i] ?? '')) {
-      i = fimDaString(fonte, i, fonte[i] ?? '');
+const endOfBlock = (source: string, from: number): number => {
+  let i = from;
+  while (i < source.length) {
+    if (source.startsWith(BLOCK_CLOSING, i)) return i;
+    if (source.startsWith(BLOCK_COMMENT.opening, i)) {
+      const fromInside = i + BLOCK_COMMENT.opening.length;
+      const end = source.indexOf(BLOCK_COMMENT.closing, fromInside);
+      i = end < 0 ? source.length : end + BLOCK_COMMENT.closing.length;
+    } else if (CODE_QUOTES.has(source[i] ?? '')) {
+      i = endOfString(source, i, source[i] ?? '');
     } else {
       i += 1;
     }
   }
-  return fonte.length;
+  return source.length;
 };
 
-type BlocoDoEta = { readonly indice: number; readonly inteiro: string; readonly interno: string };
+type EtaBlock = { readonly index: number; readonly whole: string; readonly inner: string };
 
-const blocosDoEta = (fonte: string): BlocoDoEta[] => {
-  const blocos: BlocoDoEta[] = [];
-  let posicao = 0;
+const etaBlocks = (source: string): EtaBlock[] => {
+  const blocks: EtaBlock[] = [];
+  let position = 0;
   for (;;) {
-    const abertura = fonte.indexOf(ABERTURA_DE_BLOCO, posicao);
-    if (abertura < 0) return blocos;
-    const fim = fimDoBloco(fonte, abertura + ABERTURA_DE_BLOCO.length);
-    const depois = Math.min(fim + FECHAMENTO_DE_BLOCO.length, fonte.length);
-    blocos.push({
-      indice: abertura,
-      inteiro: fonte.slice(abertura, depois),
-      interno: fonte.slice(abertura + ABERTURA_DE_BLOCO.length, fim),
+    const opening = source.indexOf(BLOCK_OPENING, position);
+    if (opening < 0) return blocks;
+    const end = endOfBlock(source, opening + BLOCK_OPENING.length);
+    const after = Math.min(end + BLOCK_CLOSING.length, source.length);
+    blocks.push({
+      index: opening,
+      whole: source.slice(opening, after),
+      inner: source.slice(opening + BLOCK_OPENING.length, end),
     });
-    posicao = depois;
+    position = after;
   }
 };
 
-const MARCADOR_DE_ABERTURA = /^[=~_-]/;
-const MARCADOR_DE_FECHAMENTO = /[-_]$/;
-const COMENTARIO_DO_ETA = '#';
+const OPENING_MARKER = /^[=~_-]/;
+const CLOSING_MARKER = /[-_]$/;
+const ETA_COMMENT = '#';
 
-const ATRIBUTO_DE_ENDERECO = /\b(href|action)\s*=\s*"([^"]*)"/g;
+const URL_ATTRIBUTE = /\b(href|action)\s*=\s*"([^"]*)"/g;
 
-const ATRIBUTO_DE_LIMITE = /\b(maxlength|minlength|max|min)\s*=\s*"([0-9_]+)"/g;
+const LIMIT_ATTRIBUTE = /\b(maxlength|minlength|max|min)\s*=\s*"([0-9_]+)"/g;
 
-const NUMERO_NA_PROSA = /(?<!\d)(?<![\d][,.])\d+(?!\d)(?![,.]\d)/g;
+const NUMBER_IN_PROSE = /(?<!\d)(?<![\d][,.])\d+(?!\d)(?![,.]\d)/g;
 
-const CHAMADAS_DE_TEMPLATE: ReadonlySet<string> = new Set(['include', 'includeFile', 'layout']);
+const TEMPLATE_CALLS: ReadonlySet<string> = new Set(['include', 'includeFile', 'layout']);
 
-const BARRA = '/';
+const SLASH = '/';
 
-const ROTA_COM_SEGMENTO = /^\/[A-Za-z0-9_:-]/;
+const ROUTE_WITH_SEGMENT = /^\/[A-Za-z0-9_:-]/;
 
-const ehEnderecoNoAtributo = (texto: string): boolean =>
-  texto === BARRA || ROTA_COM_SEGMENTO.test(texto);
+const isUrlInAttribute = (text: string): boolean =>
+  text === SLASH || ROUTE_WITH_SEGMENT.test(text);
 
-const MOTIVO_DE_ENDERECO_NO_TEMPLATE =
+const TEMPLATE_URL_REASON =
   'endereço escrito à mão — use `it.rotas` (ROTAS, em web/constants.ts)';
 
-type Posicao = { readonly linha: number; readonly coluna: number };
+type Position = { readonly line: number; readonly column: number };
 
-const posicaoDe = (fonte: string, indice: number): Posicao => {
-  const antes = fonte.slice(0, indice);
-  const inicioDaLinha = antes.lastIndexOf('\n') + 1;
-  return { linha: antes.split('\n').length, coluna: indice - inicioDaLinha + 1 };
+const positionOf = (source: string, index: number): Position => {
+  const before = source.slice(0, index);
+  const lineStart = before.lastIndexOf('\n') + 1;
+  return { line: before.split('\n').length, column: index - lineStart + 1 };
 };
 
-const donoDoTexto = (texto: string): Dono | undefined =>
-  UMA_PALAVRA.test(texto) || ehMarcaTipografica(texto) ? primeiroDono(texto) : undefined;
+const textOwner = (text: string): Owner | undefined =>
+  ONE_WORD.test(text) || isTypographicMark(text) ? firstOwner(text) : undefined;
 
-const MARCA_DE_CODIGO = '\u0000';
+const CODE_MARK = '\u0000';
 
-const ELEMENTOS_QUE_NAO_SAO_TEXTO: ReadonlySet<string> = new Set(['script', 'style']);
+const NON_TEXT_ELEMENTS: ReadonlySet<string> = new Set(['script', 'style']);
 
-const ELEMENTOS_QUE_NOMEIAM: ReadonlySet<string> = new Set(['a', 'button', 'h1']);
+const NAMING_ELEMENTS: ReadonlySet<string> = new Set(['a', 'button', 'h1']);
 
-const COMENTARIO_HTML = { abertura: '<!--', fechamento: '-->' } as const;
+const HTML_COMMENT = { opening: '<!--', closing: '-->' } as const;
 
-const NOME_DA_TAG = /^<\s*(\/?)\s*([A-Za-z][A-Za-z0-9-]*)/;
+const TAG_NAME = /^<\s*(\/?)\s*([A-Za-z][A-Za-z0-9-]*)/;
 
-const ASPAS: ReadonlySet<string> = new Set(['"', "'"]);
+const QUOTES: ReadonlySet<string> = new Set(['"', "'"]);
 
-const ABRE_TAG = '<';
-const FECHA_TAG = '>';
-const FECHAMENTO_DE_TAG = '/';
+const TAG_OPEN = '<';
+const TAG_CLOSE = '>';
+const TAG_CLOSING_SLASH = '/';
 
-const TAG_QUE_SE_FECHA = '/>';
+const SELF_CLOSING_TAG = '/>';
 
-const fechamentoDe = (fonte: string, nome: string, desde: number): number => {
-  const marca = new RegExp(`${ABRE_TAG}\\s*${FECHAMENTO_DE_TAG}\\s*${nome}\\b`, 'gi');
-  marca.lastIndex = desde;
-  return marca.exec(fonte)?.index ?? -1;
+const closingTagOf = (source: string, name: string, from: number): number => {
+  const mark = new RegExp(`${TAG_OPEN}\\s*${TAG_CLOSING_SLASH}\\s*${name}\\b`, 'gi');
+  mark.lastIndex = from;
+  return mark.exec(source)?.index ?? -1;
 };
 
-const fimDaTag = (fonte: string, inicio: number): number => {
-  let aspa: string | undefined;
-  for (let i = inicio + 1; i < fonte.length; i += 1) {
-    const caractere = fonte[i] ?? '';
-    if (aspa !== undefined) {
-      if (caractere === aspa) aspa = undefined;
-    } else if (ASPAS.has(caractere)) {
-      aspa = caractere;
-    } else if (caractere === FECHA_TAG) {
+const endOfTag = (source: string, start: number): number => {
+  let quote: string | undefined;
+  for (let i = start + 1; i < source.length; i += 1) {
+    const character = source[i] ?? '';
+    if (quote !== undefined) {
+      if (character === quote) quote = undefined;
+    } else if (QUOTES.has(character)) {
+      quote = character;
+    } else if (character === TAG_CLOSE) {
       return i + 1;
     }
   }
-  return fonte.length;
+  return source.length;
 };
 
-type Recorte = {
-  readonly indice: number;
-  readonly texto: string;
-  readonly bruto: string;
-  readonly indiceDoBruto: number;
+type Slice = {
+  readonly index: number;
+  readonly text: string;
+  readonly raw: string;
+  readonly rawIndex: number;
 };
 
-type Texto = Recorte & { readonly nomeia: boolean };
+type DocumentText = Slice & { readonly naming: boolean };
 
-const comCodigoMarcado = (trecho: string): string => {
-  const pedacos: string[] = [];
-  let posicao = 0;
-  for (const bloco of blocosDoEta(trecho)) {
-    pedacos.push(
-      trecho.slice(posicao, bloco.indice),
-      bloco.inteiro.replaceAll(/[^\n]/g, MARCA_DE_CODIGO),
+const withCodeMasked = (snippet: string): string => {
+  const pieces: string[] = [];
+  let position = 0;
+  for (const block of etaBlocks(snippet)) {
+    pieces.push(
+      snippet.slice(position, block.index),
+      block.whole.replaceAll(/[^\n]/g, CODE_MARK),
     );
-    posicao = bloco.indice + bloco.inteiro.length;
+    position = block.index + block.whole.length;
   }
-  pedacos.push(trecho.slice(posicao));
-  return pedacos.join('');
+  pieces.push(snippet.slice(position));
+  return pieces.join('');
 };
 
-const recortesEscritosAMao = (marcado: string): Recorte[] => {
-  const recortes: Recorte[] = [];
-  let deslocamento = 0;
-  for (const pedaco of marcado.split(MARCA_DE_CODIGO)) {
-    const recortado = pedaco.trim();
-    if (recortado !== '') {
-      recortes.push({
-        indice: deslocamento + pedaco.indexOf(recortado),
-        texto: recortado,
-        bruto: pedaco,
-        indiceDoBruto: deslocamento,
+const handwrittenSlices = (masked: string): Slice[] => {
+  const slices: Slice[] = [];
+  let offset = 0;
+  for (const piece of masked.split(CODE_MARK)) {
+    const trimmed = piece.trim();
+    if (trimmed !== '') {
+      slices.push({
+        index: offset + piece.indexOf(trimmed),
+        text: trimmed,
+        raw: piece,
+        rawIndex: offset,
       });
     }
-    deslocamento += pedaco.length + MARCA_DE_CODIGO.length;
+    offset += piece.length + CODE_MARK.length;
   }
-  return recortes;
+  return slices;
 };
 
-const textosDoDocumento = (fonte: string): Texto[] => {
-  const marcado = comCodigoMarcado(fonte);
-  const textos: Texto[] = [];
+const documentTexts = (source: string): DocumentText[] => {
+  const masked = withCodeMasked(source);
+  const texts: DocumentText[] = [];
 
-  const recolher = (inicio: number, fim: number, nomeia: boolean): void => {
-    for (const recorte of recortesEscritosAMao(marcado.slice(inicio, fim))) {
-      textos.push({
-        ...recorte,
-        indice: inicio + recorte.indice,
-        indiceDoBruto: inicio + recorte.indiceDoBruto,
-        nomeia,
+  const collect = (start: number, end: number, naming: boolean): void => {
+    for (const slice of handwrittenSlices(masked.slice(start, end))) {
+      texts.push({
+        ...slice,
+        index: start + slice.index,
+        rawIndex: start + slice.rawIndex,
+        naming,
       });
     }
   };
 
-  let posicao = 0;
-  let aninhamento = 0;
-  while (posicao < marcado.length) {
-    const abertura = marcado.indexOf(ABRE_TAG, posicao);
-    recolher(posicao, abertura < 0 ? marcado.length : abertura, aninhamento > 0);
-    if (abertura < 0) break;
+  let position = 0;
+  let nesting = 0;
+  while (position < masked.length) {
+    const opening = masked.indexOf(TAG_OPEN, position);
+    collect(position, opening < 0 ? masked.length : opening, nesting > 0);
+    if (opening < 0) break;
 
-    if (marcado.startsWith(COMENTARIO_HTML.abertura, abertura)) {
-      const fim = marcado.indexOf(COMENTARIO_HTML.fechamento, abertura);
-      posicao = fim < 0 ? marcado.length : fim + COMENTARIO_HTML.fechamento.length;
+    if (masked.startsWith(HTML_COMMENT.opening, opening)) {
+      const end = masked.indexOf(HTML_COMMENT.closing, opening);
+      position = end < 0 ? masked.length : end + HTML_COMMENT.closing.length;
       continue;
     }
 
-    const fim = fimDaTag(marcado, abertura);
-    const textoDaTag = marcado.slice(abertura, fim);
-    const tag = NOME_DA_TAG.exec(textoDaTag);
-    const nome = (tag?.[2] ?? '').toLowerCase();
-    const ehFechamento = tag?.[1] === FECHAMENTO_DE_TAG;
-    const seFecha = ehFechamento || textoDaTag.endsWith(TAG_QUE_SE_FECHA);
+    const end = endOfTag(masked, opening);
+    const tagText = masked.slice(opening, end);
+    const tag = TAG_NAME.exec(tagText);
+    const name = (tag?.[2] ?? '').toLowerCase();
+    const isClosing = tag?.[1] === TAG_CLOSING_SLASH;
+    const selfCloses = isClosing || tagText.endsWith(SELF_CLOSING_TAG);
 
-    if (ELEMENTOS_QUE_NAO_SAO_TEXTO.has(nome) && !seFecha) {
-      const fechamento = fechamentoDe(marcado, nome, fim);
-      if (fechamento < 0) break;
-      posicao = fimDaTag(marcado, fechamento);
+    if (NON_TEXT_ELEMENTS.has(name) && !selfCloses) {
+      const closing = closingTagOf(masked, name, end);
+      if (closing < 0) break;
+      position = endOfTag(masked, closing);
       continue;
     }
 
-    if (ELEMENTOS_QUE_NOMEIAM.has(nome)) {
-      if (ehFechamento) aninhamento = Math.max(0, aninhamento - 1);
-      else if (!seFecha) aninhamento += 1;
+    if (NAMING_ELEMENTS.has(name)) {
+      if (isClosing) nesting = Math.max(0, nesting - 1);
+      else if (!selfCloses) nesting += 1;
     }
-    posicao = fim;
+    position = end;
   }
 
-  return textos;
+  return texts;
 };
 
-const IDENTIFICADOR = /^[/-]?[a-z][A-Za-z0-9_/-]*$/;
+const IDENTIFIER = /^[/-]?[a-z][A-Za-z0-9_/-]*$/;
 
-const SEM_LETRA_NEM_DIGITO = /^[^A-Za-zÀ-ÿ0-9]+$/;
+const NO_LETTER_NOR_DIGIT = /^[^A-Za-zÀ-ÿ0-9]+$/;
 
-const ULTIMO_CODIGO_ASCII = 127;
+const LAST_ASCII_CODE = 127;
 
-const foraDoAscii = (texto: string): boolean =>
-  [...texto].some((caractere) => (caractere.codePointAt(0) ?? 0) > ULTIMO_CODIGO_ASCII);
+const outsideAscii = (text: string): boolean =>
+  [...text].some((character) => (character.codePointAt(0) ?? 0) > LAST_ASCII_CODE);
 
-const ehMarcaTipografica = (texto: string): boolean =>
-  SEM_LETRA_NEM_DIGITO.test(texto) && foraDoAscii(texto);
+const isTypographicMark = (text: string): boolean =>
+  NO_LETTER_NOR_DIGIT.test(text) && outsideAscii(text);
 
-const SEQUENCIA_SEM_LETRA_NEM_DIGITO = /[^A-Za-zÀ-ÿ0-9]+/g;
+const RUN_WITHOUT_LETTER_NOR_DIGIT = /[^A-Za-zÀ-ÿ0-9]+/g;
 
-const ESPACO_EM_BRANCO = /\s+/g;
+const WHITESPACE = /\s+/g;
 
-const NAO_ESPACO = /\S/;
+const NON_SPACE = /\S/;
 
-const comoOHtmlDesenha = (texto: string): string => texto.replaceAll(ESPACO_EM_BRANCO, ' ');
+const asHtmlDraws = (text: string): string => text.replaceAll(WHITESPACE, ' ');
 
-const PEDACOS_MINIMOS_DA_COMPOSICAO = 2;
+const MINIMUM_COMPOSITION_PIECES = 2;
 
-const TAMANHO_MAXIMO_DA_COMPOSICAO = 80;
+const MAXIMUM_COMPOSITION_LENGTH = 80;
 
-type Pedaco = { readonly texto: string; readonly dono: Dono };
+type Piece = { readonly text: string; readonly owner: Owner };
 
-const pedacosDe = (texto: string): string[] | undefined => {
-  if (texto.length > TAMANHO_MAXIMO_DA_COMPOSICAO) return undefined;
-  const memoria = new Map<number, string[] | undefined>();
+const piecesOf = (text: string): string[] | undefined => {
+  if (text.length > MAXIMUM_COMPOSITION_LENGTH) return undefined;
+  const memo = new Map<number, string[] | undefined>();
 
-  const desde = (inicio: number): string[] | undefined => {
-    if (inicio === texto.length) return [];
-    if (memoria.has(inicio)) return memoria.get(inicio);
-    memoria.set(inicio, undefined);
-    for (let fim = texto.length; fim > inicio; fim -= 1) {
-      const pedaco = texto.slice(inicio, fim);
-      if (!UMA_PALAVRA.test(pedaco) && !ehMarcaTipografica(pedaco)) continue;
-      if (donosDe(pedaco).length === 0) continue;
-      const resto = desde(fim);
-      if (resto === undefined) continue;
-      const inteiro = [pedaco, ...resto];
-      memoria.set(inicio, inteiro);
-      return inteiro;
+  const from = (start: number): string[] | undefined => {
+    if (start === text.length) return [];
+    if (memo.has(start)) return memo.get(start);
+    memo.set(start, undefined);
+    for (let end = text.length; end > start; end -= 1) {
+      const piece = text.slice(start, end);
+      if (!ONE_WORD.test(piece) && !isTypographicMark(piece)) continue;
+      if (ownersOf(piece).length === 0) continue;
+      const rest = from(end);
+      if (rest === undefined) continue;
+      const whole = [piece, ...rest];
+      memo.set(start, whole);
+      return whole;
     }
     return undefined;
   };
 
-  return desde(0);
+  return from(0);
 };
 
-const arquivoDaComposicao = (pedacos: readonly string[]): string | undefined => {
-  const contagem = new Map<string, number>();
-  for (const pedaco of pedacos) {
-    const donos = donosDe(pedaco);
-    const unico = donos.length === 1 ? donos[0] : undefined;
-    if (unico === undefined) continue;
-    contagem.set(unico.arquivo, (contagem.get(unico.arquivo) ?? 0) + 1);
+const compositionFile = (pieces: readonly string[]): string | undefined => {
+  const tally = new Map<string, number>();
+  for (const piece of pieces) {
+    const owners = ownersOf(piece);
+    const onlyOwner = owners.length === 1 ? owners[0] : undefined;
+    if (onlyOwner === undefined) continue;
+    tally.set(onlyOwner.file, (tally.get(onlyOwner.file) ?? 0) + 1);
   }
-  return [...contagem].sort(([, aqui], [, ali]) => ali - aqui)[0]?.[0];
+  return [...tally].sort(([, here], [, there]) => there - here)[0]?.[0];
 };
 
-const composicaoDe = (texto: string): Pedaco[] | undefined => {
-  const pedacos = pedacosDe(texto);
-  if (pedacos === undefined) return undefined;
-  const comPalavra = pedacos.filter((pedaco) => UMA_PALAVRA.test(pedaco));
-  if (comPalavra.length < PEDACOS_MINIMOS_DA_COMPOSICAO) return undefined;
-  const camada = arquivoDaComposicao(pedacos);
-  return pedacos.flatMap((pedaco) => {
-    const donos = donosDe(pedaco);
-    const dono = donos.find((candidato) => candidato.arquivo === camada) ?? donos[0];
-    return dono === undefined ? [] : [{ texto: pedaco, dono }];
+const compositionOf = (text: string): Piece[] | undefined => {
+  const pieces = piecesOf(text);
+  if (pieces === undefined) return undefined;
+  const withWord = pieces.filter((piece) => ONE_WORD.test(piece));
+  if (withWord.length < MINIMUM_COMPOSITION_PIECES) return undefined;
+  const layer = compositionFile(pieces);
+  return pieces.flatMap((piece) => {
+    const owners = ownersOf(piece);
+    const owner = owners.find((candidate) => candidate.file === layer) ?? owners[0];
+    return owner === undefined ? [] : [{ text: piece, owner }];
   });
 };
 
-const donoNoCodigoDoTemplate = (texto: string, chave: string): Dono | undefined => {
-  if (texto === '' || VOCABULARIO_DO_HTML.has(texto)) return undefined;
-  const donos = donosDe(texto);
-  if (IDENTIFICADOR.test(texto) || ehMarcaTipografica(texto)) return donos[0];
-  return escolherDono(donos, chave, UMA_PALAVRA.test(texto));
+const ownerInTemplateCode = (text: string, key: string): Owner | undefined => {
+  if (text === '' || HTML_VOCABULARY.has(text)) return undefined;
+  const owners = ownersOf(text);
+  if (IDENTIFIER.test(text) || isTypographicMark(text)) return owners[0];
+  return pickOwner(owners, key, ONE_WORD.test(text));
 };
 
-const chaveQueCarrega = (no: ts.Node): string => {
-  const pai = no.parent;
-  return ts.isPropertyAssignment(pai) && pai.initializer === no
-    ? (nomeDaPropriedade(pai.name) ?? '')
+const carryingKey = (node: ts.Node): string => {
+  const parent = node.parent;
+  return ts.isPropertyAssignment(parent) && parent.initializer === node
+    ? (propertyName(parent.name) ?? '')
     : '';
 };
 
-const ATRIBUTOS_QUE_VOLTAM = /\b(name|value)\s*=\s*"([^"]*)"/g;
+const ROUND_TRIP_ATTRIBUTES = /\b(name|value)\s*=\s*"([^"]*)"/g;
 
-const ATRIBUTOS_DE_TEXTO = /\b(aria-label|title|alt|placeholder)\s*=\s*"([^"]*)"/g;
+const TEXT_ATTRIBUTES = /\b(aria-label|title|alt|placeholder)\s*=\s*"([^"]*)"/g;
 
-const inicioDoValor = (atributo: RegExpExecArray): number =>
-  atributo.index + atributo[0].indexOf('"') + 1;
+const valueStart = (attribute: RegExpExecArray): number =>
+  attribute.index + attribute[0].indexOf('"') + 1;
 
-function analisarTemplate(arquivo: string, fonte: string): Achado[] {
-  const linhas = fonte.split('\n');
-  const achados: Achado[] = [];
+function analyzeTemplate(file: string, source: string): Finding[] {
+  const lines = source.split('\n');
+  const findings: Finding[] = [];
 
-  const suprimida = (
-    linha: number,
-    coluna: number,
-    valor: string,
-    fechou: Silenciado['fechou'],
+  const isSuppressed = (
+    line: number,
+    column: number,
+    value: string,
+    closed: Silenced['closed'],
   ): boolean => {
-    const justificativa = justificativaDa(linhas, linha);
-    if (justificativa === undefined) return false;
-    silenciados.push({ arquivo, linha, coluna, valor, justificativa, fechou });
+    const justification = justificationFor(lines, line);
+    if (justification === undefined) return false;
+    silenced.push({ file, line, column, value, justification, closed });
     return true;
   };
 
-  const contar = (indice: number, texto: string, trecho: string): void => {
-    if (!arquivo.startsWith(MODULO_DO_PRODUTO) || !ehTextoContavel(texto)) return;
-    const { linha, coluna } = posicaoDe(fonte, indice);
-    if (suprimida(linha, coluna, texto, 'contagem')) return;
-    ocorrencias.push({
-      texto,
-      arquivo,
-      linha,
-      coluna,
-      trecho: trecho.replaceAll('\n', '\\n').slice(0, 72),
+  const count = (index: number, text: string, snippet: string): void => {
+    if (!file.startsWith(PRODUCT_MODULE) || !isCountableText(text)) return;
+    const { line, column } = positionOf(source, index);
+    if (isSuppressed(line, column, text, 'count')) return;
+    occurrences.push({
+      text,
+      file,
+      line,
+      column,
+      snippet: snippet.replaceAll('\n', '\\n').slice(0, 72),
     });
   };
 
-  const registrar = (indice: number, trecho: string, motivo: string, valor = trecho): void => {
-    const { linha, coluna } = posicaoDe(fonte, indice);
-    if (suprimida(linha, coluna, valor, 'achado')) return;
-    achados.push({
-      arquivo,
-      linha,
-      coluna,
-      trecho: trecho.replaceAll('\n', '\\n').slice(0, 72),
-      motivo,
+  const record = (index: number, snippet: string, reason: string, value = snippet): void => {
+    const { line, column } = positionOf(source, index);
+    if (isSuppressed(line, column, value, 'finding')) return;
+    findings.push({
+      file,
+      line,
+      column,
+      snippet: snippet.replaceAll('\n', '\\n').slice(0, 72),
+      reason,
     });
   };
 
-  const acusarLimite = (indice: number, texto: string, valor: number, dono: Dono): void => {
-    registrar(
-      indice,
-      texto,
-      `limite redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+  const reportLimit = (index: number, text: string, value: number, owner: Owner): void => {
+    record(
+      index,
+      text,
+      `limite redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
         'passe o valor pelo handler, via `it`',
-      String(valor),
+      String(value),
     );
   };
 
-  const conferirLimite = (indice: number, texto: string, valor: number): void => {
-    if (NUMEROS_NEUTROS.has(valor)) return;
-    const dono = valoresNumericosComDono.get(valor);
-    if (dono !== undefined) acusarLimite(indice, texto, valor, dono);
+  const checkLimit = (index: number, text: string, value: number): void => {
+    if (NEUTRAL_NUMBERS.has(value)) return;
+    const owner = ownedNumericValues.get(value);
+    if (owner !== undefined) reportLimit(index, text, value, owner);
   };
 
-  const conferirLimiteNaProsa = (indice: number, texto: string, valor: number): void => {
-    if (NUMEROS_NEUTROS.has(valor)) return;
-    const dono = valoresNumericosComDono.get(valor);
-    if (dono !== undefined && ehNomeDeLimite(dono.caminho)) acusarLimite(indice, texto, valor, dono);
+  const checkLimitInProse = (index: number, text: string, value: number): void => {
+    if (NEUTRAL_NUMBERS.has(value)) return;
+    const owner = ownedNumericValues.get(value);
+    if (owner !== undefined && isLimitName(owner.path)) reportLimit(index, text, value, owner);
   };
 
-  const conferirMarcas = (inicio: number, bruto: string): void => {
-    for (const sequencia of bruto.matchAll(SEQUENCIA_SEM_LETRA_NEM_DIGITO)) {
-      const desenhada = comoOHtmlDesenha(sequencia[0]);
-      const dono = donoDoTexto(desenhada);
-      if (dono === undefined) continue;
-      registrar(
-        inicio + sequencia.index + sequencia[0].search(NAO_ESPACO),
-        desenhada,
-        `separador redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+  const checkMarks = (start: number, raw: string): void => {
+    for (const run of raw.matchAll(RUN_WITHOUT_LETTER_NOR_DIGIT)) {
+      const drawn = asHtmlDraws(run[0]);
+      const owner = textOwner(drawn);
+      if (owner === undefined) continue;
+      record(
+        start + run.index + run[0].search(NON_SPACE),
+        drawn,
+        `separador redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
           'passe o valor pelo handler, via `it`',
       );
     }
   };
 
-  const acusarComposicao = (indice: number, trecho: string, texto: string): boolean => {
-    const pedacos = composicaoDe(texto);
-    if (pedacos === undefined) return false;
-    const donos = pedacos.map((pedaco) => `${pedaco.dono.caminho} (${pedaco.dono.arquivo})`);
-    registrar(
-      indice,
-      trecho,
-      `texto composto — ${donos.join(' + ')}; ` + 'componha no handler e passe via `it`',
-      texto,
+  const reportComposition = (index: number, snippet: string, text: string): boolean => {
+    const pieces = compositionOf(text);
+    if (pieces === undefined) return false;
+    const owners = pieces.map((piece) => `${piece.owner.path} (${piece.owner.file})`);
+    record(
+      index,
+      snippet,
+      `texto composto — ${owners.join(' + ')}; ` + 'componha no handler e passe via `it`',
+      text,
     );
     return true;
   };
 
-  const conferirTexto = (
-    indice: number,
-    texto: string,
-    trecho: string,
-    chave: string,
-    dentroDeTemplate: boolean,
+  const checkText = (
+    index: number,
+    text: string,
+    snippet: string,
+    key: string,
+    insideTemplate: boolean,
   ): void => {
-    contar(indice, texto, trecho);
-    const dono =
-      donoNoCodigoDoTemplate(texto, chave) ?? donoNoCodigoDoTemplate(texto.trim(), chave);
-    if (dono !== undefined) {
-      registrar(
-        indice,
-        trecho,
-        `texto redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+    count(index, text, snippet);
+    const owner =
+      ownerInTemplateCode(text, key) ?? ownerInTemplateCode(text.trim(), key);
+    if (owner !== undefined) {
+      record(
+        index,
+        snippet,
+        `texto redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
           'passe o valor pelo handler, via `it`',
-        texto,
+        text,
       );
       return;
     }
-    if (acusarComposicao(indice, trecho, texto)) return;
-    if (!dentroDeTemplate && ROTA_COM_SEGMENTO.test(texto)) {
-      registrar(indice, trecho, MOTIVO_DE_ENDERECO_NO_TEMPLATE, texto);
+    if (reportComposition(index, snippet, text)) return;
+    if (!insideTemplate && ROUTE_WITH_SEGMENT.test(text)) {
+      record(index, snippet, TEMPLATE_URL_REASON, text);
     }
   };
 
-  for (const atributo of fonte.matchAll(ATRIBUTO_DE_ENDERECO)) {
-    const valor = atributo[2] ?? '';
-    const escritoAMao = comCodigoMarcado(valor).replaceAll(MARCA_DE_CODIGO, '');
-    if (!ehEnderecoNoAtributo(escritoAMao)) continue;
-    registrar(atributo.index, atributo[0], MOTIVO_DE_ENDERECO_NO_TEMPLATE, escritoAMao);
+  for (const attribute of source.matchAll(URL_ATTRIBUTE)) {
+    const value = attribute[2] ?? '';
+    const handwritten = withCodeMasked(value).replaceAll(CODE_MARK, '');
+    if (!isUrlInAttribute(handwritten)) continue;
+    record(attribute.index, attribute[0], TEMPLATE_URL_REASON, handwritten);
   }
 
-  for (const { indice, texto, bruto, indiceDoBruto, nomeia } of textosDoDocumento(fonte)) {
-    contar(indice, texto, texto);
-    for (const numero of texto.matchAll(NUMERO_NA_PROSA)) {
-      conferirLimiteNaProsa(indice + numero.index, texto, Number(numero[0]));
+  for (const { index, text, raw, rawIndex, naming } of documentTexts(source)) {
+    count(index, text, text);
+    for (const num of text.matchAll(NUMBER_IN_PROSE)) {
+      checkLimitInProse(index + num.index, text, Number(num[0]));
     }
-    conferirMarcas(indiceDoBruto, bruto);
-    acusarComposicao(indice, texto, texto);
-    const dono = nomeia ? donoDoTexto(texto) : undefined;
-    if (dono === undefined) continue;
-    registrar(
-      indice,
-      texto,
-      `texto redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+    checkMarks(rawIndex, raw);
+    reportComposition(index, text, text);
+    const owner = naming ? textOwner(text) : undefined;
+    if (owner === undefined) continue;
+    record(
+      index,
+      text,
+      `texto redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
         'passe o valor pelo handler, via `it`',
     );
   }
 
-  for (const atributo of fonte.matchAll(ATRIBUTOS_QUE_VOLTAM)) {
-    const valor = atributo[2] ?? '';
-    if (valor.includes(ABERTURA_DE_BLOCO)) continue;
-    contar(atributo.index, valor, atributo[0]);
-    const dono = donoNoCodigoDoTemplate(valor, '');
-    if (dono === undefined) continue;
-    registrar(
-      atributo.index,
-      atributo[0],
-      `valor redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+  for (const attribute of source.matchAll(ROUND_TRIP_ATTRIBUTES)) {
+    const value = attribute[2] ?? '';
+    if (value.includes(BLOCK_OPENING)) continue;
+    count(attribute.index, value, attribute[0]);
+    const owner = ownerInTemplateCode(value, '');
+    if (owner === undefined) continue;
+    record(
+      attribute.index,
+      attribute[0],
+      `valor redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
         'passe o valor pelo handler, via `it`',
-      valor,
+      value,
     );
   }
 
-  for (const atributo of fonte.matchAll(ATRIBUTOS_DE_TEXTO)) {
-    const inicio = inicioDoValor(atributo);
-    for (const recorte of recortesEscritosAMao(comCodigoMarcado(atributo[2] ?? ''))) {
-      const indice = inicio + recorte.indice;
-      contar(indice, recorte.texto, atributo[0]);
-      conferirMarcas(inicio + recorte.indiceDoBruto, recorte.bruto);
-      acusarComposicao(indice, recorte.texto, recorte.texto);
-      const dono = donoDoTexto(recorte.texto);
-      if (dono === undefined) continue;
-      registrar(
-        indice,
-        atributo[0],
-        `texto redeclarado — ${dono.caminho} (${dono.arquivo}) já é o dono; ` +
+  for (const attribute of source.matchAll(TEXT_ATTRIBUTES)) {
+    const start = valueStart(attribute);
+    for (const slice of handwrittenSlices(withCodeMasked(attribute[2] ?? ''))) {
+      const index = start + slice.index;
+      count(index, slice.text, attribute[0]);
+      checkMarks(start + slice.rawIndex, slice.raw);
+      reportComposition(index, slice.text, slice.text);
+      const owner = textOwner(slice.text);
+      if (owner === undefined) continue;
+      record(
+        index,
+        attribute[0],
+        `texto redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
           'passe o valor pelo handler, via `it`',
-        recorte.texto,
+        slice.text,
       );
     }
   }
 
-  for (const atributo of fonte.matchAll(ATRIBUTO_DE_LIMITE)) {
-    conferirLimite(atributo.index, atributo[0], Number((atributo[2] ?? '').replaceAll('_', '')));
+  for (const attribute of source.matchAll(LIMIT_ATTRIBUTE)) {
+    checkLimit(attribute.index, attribute[0], Number((attribute[2] ?? '').replaceAll('_', '')));
   }
 
-  for (const bloco of blocosDoEta(fonte)) {
-    const bruto = bloco.interno;
-    if (bruto.startsWith(COMENTARIO_DO_ETA)) continue;
+  for (const block of etaBlocks(source)) {
+    const raw = block.inner;
+    if (raw.startsWith(ETA_COMMENT)) continue;
 
-    const recuo = MARCADOR_DE_ABERTURA.test(bruto) ? 1 : 0;
-    const codigo = bruto.slice(recuo).replace(MARCADOR_DE_FECHAMENTO, '');
-    const deslocamento = bloco.indice + ABERTURA_DE_BLOCO.length + recuo;
+    const indent = OPENING_MARKER.test(raw) ? 1 : 0;
+    const code = raw.slice(indent).replace(CLOSING_MARKER, '');
+    const offset = block.index + BLOCK_OPENING.length + indent;
 
-    const origem = ts.createSourceFile(arquivo, codigo, ts.ScriptTarget.ESNext, true);
+    const sourceFile = ts.createSourceFile(file, code, ts.ScriptTarget.ESNext, true);
 
-    const visitar = (no: ts.Node, dentroDeTemplate: boolean): void => {
-      if (ts.isTypeNode(no)) return;
+    const visit = (node: ts.Node, insideTemplate: boolean): void => {
+      if (ts.isTypeNode(node)) return;
 
-      if (ts.isNumericLiteral(no)) {
-        conferirLimite(
-          deslocamento + no.getStart(origem),
-          no.getText(origem),
-          Number(no.text.replaceAll('_', '')),
+      if (ts.isNumericLiteral(node)) {
+        checkLimit(
+          offset + node.getStart(sourceFile),
+          node.getText(sourceFile),
+          Number(node.text.replaceAll('_', '')),
         );
       } else if (
-        (ts.isStringLiteral(no) || ts.isNoSubstitutionTemplateLiteral(no)) &&
-        !(ts.isPropertyAssignment(no.parent) && no.parent.name === no)
+        (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) &&
+        !(ts.isPropertyAssignment(node.parent) && node.parent.name === node)
       ) {
-        conferirTexto(
-          deslocamento + no.getStart(origem),
-          no.text,
-          no.getText(origem),
-          chaveQueCarrega(no),
-          dentroDeTemplate,
+        checkText(
+          offset + node.getStart(sourceFile),
+          node.text,
+          node.getText(sourceFile),
+          carryingKey(node),
+          insideTemplate,
         );
-      } else if (ts.isTemplateExpression(no)) {
-        for (const parte of [no.head, ...no.templateSpans.map((trecho) => trecho.literal)]) {
-          conferirTexto(
-            deslocamento + parte.getStart(origem) + 1,
-            parte.text,
-            parte.getText(origem),
-            chaveQueCarrega(no),
-            dentroDeTemplate,
+      } else if (ts.isTemplateExpression(node)) {
+        for (const part of [node.head, ...node.templateSpans.map((snippet) => snippet.literal)]) {
+          checkText(
+            offset + part.getStart(sourceFile) + 1,
+            part.text,
+            part.getText(sourceFile),
+            carryingKey(node),
+            insideTemplate,
           );
         }
       }
 
-      const chamada =
-        ts.isCallExpression(no) && CHAMADAS_DE_TEMPLATE.has(nomeChamado(no.expression) ?? '');
-      ts.forEachChild(no, (filho) => {
-        visitar(filho, dentroDeTemplate || chamada);
+      const call =
+        ts.isCallExpression(node) && TEMPLATE_CALLS.has(calleeName(node.expression) ?? '');
+      ts.forEachChild(node, (child) => {
+        visit(child, insideTemplate || call);
       });
     };
 
-    ts.forEachChild(origem, (no) => {
-      visitar(no, false);
+    ts.forEachChild(sourceFile, (node) => {
+      visit(node, false);
     });
-    colherConsumos(
-      arquivo,
-      origem,
-      (no) => posicaoDe(fonte, deslocamento + no.getStart(origem)).linha,
+    collectConsumptions(
+      file,
+      sourceFile,
+      (node) => positionOf(source, offset + node.getStart(sourceFile)).line,
     );
   }
 
-  return achados;
+  return findings;
 }
 
-const somenteResumo = Bun.argv.includes('--resumo');
+const summaryOnly = Bun.argv.includes('--resumo');
 
-const alvos = await arquivosAlvo();
+const targets = await targetFiles();
 
-const indexados = alvos.filter((arquivo) => ARQUIVOS_INDEXADOS.test(arquivo));
+const indexed = targets.filter((file) => INDEXED_FILES.test(file));
 
-for (const arquivo of indexados) {
-  indexarDeclaracoes(arquivo, await Bun.file(join(RAIZ, arquivo)).text());
+for (const file of indexed) {
+  indexDeclarations(file, await Bun.file(join(ROOT, file)).text());
 }
 
-const cobertura = `${alvos.length} arquivo(s) varrido(s), ${indexados.length} indexado(s)`;
+const coverage = `${targets.length} arquivo(s) varrido(s), ${indexed.length} indexado(s)`;
 
-if (alvos.length === 0) {
+if (targets.length === 0) {
   process.stdout.write(
-    `✖ ${cobertura} — nenhum glob casou nada.\n` +
+    `✖ ${coverage} — nenhum glob casou nada.\n` +
       'Um repositório sem literais e um verificador que não varreu arquivo nenhum imprimem\n' +
       'a mesma coisa; por isso a varredura vazia é falha, não sucesso. Confira ALVOS contra\n' +
       'os caminhos reais.\n',
@@ -1349,189 +1362,195 @@ if (alvos.length === 0) {
   process.exit(1);
 }
 
-const achados: Achado[] = [];
-for (const arquivo of alvos) {
-  if (arquivo === ESTE_ARQUIVO || ARQUIVOS_DE_CONSTANTES.test(arquivo)) continue;
-  const bruto = await Bun.file(join(RAIZ, arquivo)).text();
-  const fonte = TEMPLATES_CUJO_SCRIPT_VIRA_HTML.has(arquivo) ? semCorpoDeScript(bruto) : bruto;
-  marcadores.push(...marcadoresDe(arquivo, fonte));
-  achados.push(
-    ...(arquivo.endsWith(EXTENSAO_DE_TEMPLATE)
-      ? analisarTemplate(arquivo, fonte)
-      : analisarTypeScript(arquivo, fonte)),
+const findings: Finding[] = [];
+for (const file of targets) {
+  if (file === THIS_FILE || CONSTANTS_FILES.test(file)) continue;
+  const raw = await Bun.file(join(ROOT, file)).text();
+  const source = TEMPLATES_WHOSE_SCRIPT_BECOMES_HTML.has(file) ? withoutScriptBody(raw) : raw;
+  markers.push(...markersOf(file, source));
+  findings.push(
+    ...(file.endsWith(TEMPLATE_EXTENSION)
+      ? analyzeTemplate(file, source)
+      : analyzeTypeScript(file, source)),
   );
 }
 
-const ocorrenciasPorTexto = new Map<string, number>();
-for (const ocorrencia of ocorrencias) {
-  ocorrenciasPorTexto.set(ocorrencia.texto, (ocorrenciasPorTexto.get(ocorrencia.texto) ?? 0) + 1);
+const occurrencesByText = new Map<string, number>();
+for (const occurrence of occurrences) {
+  occurrencesByText.set(occurrence.text, (occurrencesByText.get(occurrence.text) ?? 0) + 1);
 }
 
-const caladasPorTexto = new Map<string, number>();
-for (const { fechou, valor } of silenciados) {
-  if (fechou !== 'contagem') continue;
-  caladasPorTexto.set(valor, (caladasPorTexto.get(valor) ?? 0) + 1);
+const silencedByText = new Map<string, number>();
+for (const { closed, value } of silenced) {
+  if (closed !== 'count') continue;
+  silencedByText.set(value, (silencedByText.get(value) ?? 0) + 1);
 }
 
-const contagemQueSegura = (texto: string): boolean =>
-  !indicePorValor.has(chaveDeTexto(texto)) &&
-  (ocorrenciasPorTexto.get(texto) ?? 0) + (caladasPorTexto.get(texto) ?? 0) >=
-    OCORRENCIAS_PARA_ACUSAR;
+const countThatHolds = (text: string): boolean =>
+  !indexByValue.has(textKey(text)) &&
+  (occurrencesByText.get(text) ?? 0) + (silencedByText.get(text) ?? 0) >=
+    OCCURRENCES_TO_REPORT;
 
-const silenciadasVivas = silenciados.filter(
-  (silenciado) => silenciado.fechou === 'achado' || contagemQueSegura(silenciado.valor),
+const liveSilenced = silenced.filter(
+  (entry) => entry.closed === 'finding' || countThatHolds(entry.value),
 );
 
-const silenciadasPorLinha = (() => {
-  const porLinha = new Map<string, Silenciado[]>();
-  for (const silenciado of silenciadasVivas) {
-    const chave = `${silenciado.arquivo}:${silenciado.linha}`;
-    porLinha.set(chave, [...(porLinha.get(chave) ?? []), silenciado]);
+const silencedByLine = (() => {
+  const byLine = new Map<string, Silenced[]>();
+  for (const entry of liveSilenced) {
+    const key = `${entry.file}:${entry.line}`;
+    byLine.set(key, [...(byLine.get(key) ?? []), entry]);
   }
-  return porLinha;
+  return byLine;
 })();
 
-for (const [, lista] of [...silenciadasPorLinha].sort()) {
-  const primeiro = lista[0];
-  if (primeiro === undefined) continue;
-  for (const { citacao, alvo, negada } of constantesCitadas(primeiro.justificativa)) {
-    if (negada) continue;
-    const calado = lista.find((silenciado) => silenciado.valor === alvo.valor);
-    if (calado === undefined) continue;
-    achados.push({
-      arquivo: calado.arquivo,
-      linha: calado.linha,
-      coluna: calado.coluna,
-      trecho: JSON.stringify(calado.valor).slice(0, 72),
-      motivo:
-        `supressão que confessa — a justificativa cita \`${citacao}\` ` +
-        `(${alvo.caminho}, em ${alvo.arquivo}), que vale exatamente este literal; ` +
+for (const [, list] of [...silencedByLine].sort()) {
+  const first = list[0];
+  if (first === undefined) continue;
+  for (const { citation, target, isNegated } of citedConstants(first.justification)) {
+    if (isNegated) continue;
+    const muted = list.find((entry) => entry.value === target.value);
+    if (muted === undefined) continue;
+    findings.push({
+      file: muted.file,
+      line: muted.line,
+      column: muted.column,
+      snippet: JSON.stringify(muted.value).slice(0, 72),
+      reason:
+        `supressão que confessa — a justificativa cita \`${citation}\` ` +
+        `(${target.path}, em ${target.file}), que vale exatamente este literal; ` +
         'a regra 2 pede qual constante o valor NÃO é',
     });
     break;
   }
 }
 
-const prefixoComum = (aqui: string, ali: string): number => {
-  const daqui = aqui.split('/');
-  const dali = ali.split('/');
-  let comuns = 0;
-  while (comuns < daqui.length && comuns < dali.length && daqui[comuns] === dali[comuns]) {
-    comuns += 1;
+const commonPrefix = (here: string, there: string): number => {
+  const fromHere = here.split('/');
+  const fromThere = there.split('/');
+  let common = 0;
+  while (
+    common < fromHere.length &&
+    common < fromThere.length &&
+    fromHere[common] === fromThere[common]
+  ) {
+    common += 1;
   }
-  return comuns;
+  return common;
 };
 
-const contradicoes = new Set<string>();
-for (const silenciado of silenciadasVivas) {
-  const { arquivo, linha, coluna, valor } = silenciado;
-  if (!ehMarcaTipografica(valor) && !IDENTIFICADOR.test(valor)) continue;
-  const par = consumos
-    .filter((consumo) => consumo.arquivo !== arquivo && consumo.valor === valor)
-    .sort((aqui, ali) => prefixoComum(ali.arquivo, arquivo) - prefixoComum(aqui.arquivo, arquivo))
+const contradictions = new Set<string>();
+for (const entry of liveSilenced) {
+  const { file, line, column, value } = entry;
+  if (!isTypographicMark(value) && !IDENTIFIER.test(value)) continue;
+  const pair = consumptions
+    .filter((consumption) => consumption.file !== file && consumption.value === value)
+    .sort((here, there) => commonPrefix(there.file, file) - commonPrefix(here.file, file))
     .at(0);
-  if (par === undefined) continue;
-  const posicao = `${arquivo}:${linha}:${coluna}`;
-  if (contradicoes.has(posicao)) continue;
-  contradicoes.add(posicao);
-  achados.push({
-    arquivo,
-    linha,
-    coluna,
-    trecho: JSON.stringify(valor).slice(0, 72),
-    motivo:
+  if (pair === undefined) continue;
+  const position = `${file}:${line}:${column}`;
+  if (contradictions.has(position)) continue;
+  contradictions.add(position);
+  findings.push({
+    file,
+    line,
+    column,
+    snippet: JSON.stringify(value).slice(0, 72),
+    reason:
       'supressão que contradiz — este mesmo literal é CONSUMIDO da constante em ' +
-      `${par.arquivo}:${par.linha} (\`${par.caminho}\`); ` +
+      `${pair.file}:${pair.line} (\`${pair.path}\`); ` +
       'a mesma forma não pode ser cópia lá e decisão própria aqui',
   });
 }
 
-const linhasComTrabalho = new Set(
-  silenciadasVivas.map((silenciado) => `${silenciado.arquivo}:${silenciado.linha}`),
+const linesWithWork = new Set(
+  liveSilenced.map((entry) => `${entry.file}:${entry.line}`),
 );
 
-for (const { arquivo, linha, coluna, trecho } of marcadores) {
-  if (linhasComTrabalho.has(`${arquivo}:${linha}`)) continue;
-  if (linhasComTrabalho.has(`${arquivo}:${linha + 1}`)) continue;
-  achados.push({
-    arquivo,
-    linha,
-    coluna,
-    trecho,
-    motivo:
+for (const { file, line, column, snippet } of markers) {
+  if (linesWithWork.has(`${file}:${line}`)) continue;
+  if (linesWithWork.has(`${file}:${line + 1}`)) continue;
+  findings.push({
+    file,
+    line,
+    column,
+    snippet,
+    reason:
       'supressão morta — não cala nada, aqui nem na linha de baixo; apague o marcador, ' +
       'que promete uma exceção de máquina que nenhuma regra pede (a prosa pode ficar)',
   });
 }
 
-const repeticoesSemDono = (() => {
-  const porTexto = new Map<string, Ocorrencia[]>();
-  for (const ocorrencia of ocorrencias) {
-    porTexto.set(ocorrencia.texto, [...(porTexto.get(ocorrencia.texto) ?? []), ocorrencia]);
+const ownerlessRepeats = (() => {
+  const byText = new Map<string, Occurrence[]>();
+  for (const occurrence of occurrences) {
+    byText.set(occurrence.text, [...(byText.get(occurrence.text) ?? []), occurrence]);
   }
-  return [...porTexto]
+  return [...byText]
     .filter(
-      ([texto, lista]) =>
-        lista.length >= OCORRENCIAS_PARA_ACUSAR && !indicePorValor.has(chaveDeTexto(texto)),
+      ([text, list]) =>
+        list.length >= OCCURRENCES_TO_REPORT && !indexByValue.has(textKey(text)),
     )
-    .sort(([, aqui], [, ali]) => ali.length - aqui.length);
+    .sort(([, here], [, there]) => there.length - here.length);
 })();
 
-const jaAcusado = new Set(achados.map((achado) => `${achado.arquivo}:${achado.linha}:${achado.coluna}`));
+const alreadyReported = new Set(
+  findings.map((finding) => `${finding.file}:${finding.line}:${finding.column}`),
+);
 
-for (const [, lista] of repeticoesSemDono) {
-  for (const ocorrencia of lista) {
-    if (jaAcusado.has(`${ocorrencia.arquivo}:${ocorrencia.linha}:${ocorrencia.coluna}`)) continue;
-    achados.push({
-      arquivo: ocorrencia.arquivo,
-      linha: ocorrencia.linha,
-      coluna: ocorrencia.coluna,
-      trecho: ocorrencia.trecho,
-      motivo: `repetido ${lista.length}× e sem dono — nenhum \`constantes.ts\` declara este texto`,
+for (const [, list] of ownerlessRepeats) {
+  for (const occurrence of list) {
+    if (alreadyReported.has(`${occurrence.file}:${occurrence.line}:${occurrence.column}`)) continue;
+    findings.push({
+      file: occurrence.file,
+      line: occurrence.line,
+      column: occurrence.column,
+      snippet: occurrence.snippet,
+      reason: `repetido ${list.length}× e sem dono — nenhum \`constantes.ts\` declara este texto`,
     });
   }
 }
 
-if (achados.length === 0) {
-  process.stdout.write(`✔ nenhum literal solto fora das exceções da regra 6 — ${cobertura}\n`);
+if (findings.length === 0) {
+  process.stdout.write(`✔ nenhum literal solto fora das exceções da regra 6 — ${coverage}\n`);
   process.exit(0);
 }
 
-const porArquivo = new Map<string, Achado[]>();
-for (const achado of achados) {
-  const lista = porArquivo.get(achado.arquivo) ?? [];
-  lista.push(achado);
-  porArquivo.set(achado.arquivo, lista);
+const byFile = new Map<string, Finding[]>();
+for (const finding of findings) {
+  const list = byFile.get(finding.file) ?? [];
+  list.push(finding);
+  byFile.set(finding.file, list);
 }
 
-const linhasDoRelatorio: string[] = [];
-for (const [arquivo, lista] of [...porArquivo].sort((a, b) => b[1].length - a[1].length)) {
-  linhasDoRelatorio.push(`${String(lista.length).padStart(5)}  ${arquivo}`);
-  if (somenteResumo) continue;
-  for (const achado of [...lista].sort((a, b) => a.linha - b.linha || a.coluna - b.coluna)) {
-    const glosa = achado.motivo === '' ? '' : `  ← ${achado.motivo}`;
-    linhasDoRelatorio.push(`         ${achado.linha}:${achado.coluna}  ${achado.trecho}${glosa}`);
+const reportLines: string[] = [];
+for (const [file, list] of [...byFile].sort((a, b) => b[1].length - a[1].length)) {
+  reportLines.push(`${String(list.length).padStart(5)}  ${file}`);
+  if (summaryOnly) continue;
+  for (const finding of [...list].sort((a, b) => a.line - b.line || a.column - b.column)) {
+    const gloss = finding.reason === '' ? '' : `  ← ${finding.reason}`;
+    reportLines.push(`         ${finding.line}:${finding.column}  ${finding.snippet}${gloss}`);
   }
 }
 
-process.stdout.write(`${linhasDoRelatorio.join('\n')}\n`);
+process.stdout.write(`${reportLines.join('\n')}\n`);
 
-if (repeticoesSemDono.length > 0) {
-  const linhasDaRepeticao = repeticoesSemDono.flatMap(([texto, lista]) => {
-    const arquivos = [...new Set(lista.map((ocorrencia) => ocorrencia.arquivo))];
+if (ownerlessRepeats.length > 0) {
+  const repeatLines = ownerlessRepeats.flatMap(([text, list]) => {
+    const files = [...new Set(list.map((occurrence) => occurrence.file))];
     return [
-      `${String(lista.length).padStart(5)}×  ${JSON.stringify(texto)}`,
-      ...(somenteResumo ? [] : arquivos.map((arquivo) => `         ${arquivo}`)),
+      `${String(list.length).padStart(5)}×  ${JSON.stringify(text)}`,
+      ...(summaryOnly ? [] : files.map((file) => `         ${file}`)),
     ];
   });
   process.stdout.write(
-    `\nRepetição sem dono — ${repeticoesSemDono.length} texto(s) com ` +
-      `${OCORRENCIAS_PARA_ACUSAR}+ cópias e nenhuma constante:\n${linhasDaRepeticao.join('\n')}\n`,
+    `\nRepetição sem dono — ${ownerlessRepeats.length} texto(s) com ` +
+      `${OCCURRENCES_TO_REPORT}+ cópias e nenhuma constante:\n${repeatLines.join('\n')}\n`,
   );
 }
 
 process.stdout.write(
-  `\n✖ ${achados.length} literal(is) solto(s) em ${porArquivo.size} arquivo(s) — ${cobertura}.\n` +
+  `\n✖ ${findings.length} literal(is) solto(s) em ${byFile.size} arquivo(s) — ${coverage}.\n` +
     'Mova cada um para o `constantes.ts` do módulo dono, ou justifique com\n' +
     '`// magic-values: permitido — <motivo>` na linha do literal.\n',
 );

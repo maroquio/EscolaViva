@@ -9,228 +9,228 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { generateCpf } from '../../src/shared/document';
-import { limparBanco, sqlDeTeste } from '../support/database';
-import { SENHA_PADRAO, cenarioCompleto, criarRede, criarUsuario } from '../support/factories';
-import { abrir, cookieDaResposta, entrar, enviar, postar } from './support';
+import { clearDatabase, testSql } from '../support/database';
+import { DEFAULT_PASSWORD, fullScenario, createNetwork, createUser } from '../support/factories';
+import { open, cookieFromResponse, signIn, send, post } from './support';
 
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 
 /** Duas telas de login só podem diferir no que a pessoa digitou — nunca no que o banco tem. */
-const semValoresVolateis = (html: string, ...valores: string[]): string =>
-  valores
-    .reduce((texto, valor) => texto.replaceAll(valor, 'CPF_DIGITADO'), html)
+const withoutVolatileValues = (html: string, ...values: string[]): string =>
+  values
+    .reduce((text, value) => text.replaceAll(value, 'CPF_DIGITADO'), html)
     .replace(UUID, 'IDENTIFICADOR');
 
 /** Troca o primeiro caractere do id assinado: mesma forma, assinatura que não confere mais. */
-const adulterar = (cookie: string): string => {
-  const separador = cookie.indexOf('=');
-  const nome = cookie.slice(0, separador);
-  const valor = cookie.slice(separador + 1);
-  const trocado = valor.startsWith('a') ? 'b' : 'a';
-  return `${nome}=${trocado}${valor.slice(1)}`;
+const tamper = (cookie: string): string => {
+  const separator = cookie.indexOf('=');
+  const name = cookie.slice(0, separator);
+  const value = cookie.slice(separator + 1);
+  const swapped = value.startsWith('a') ? 'b' : 'a';
+  return `${name}=${swapped}${value.slice(1)}`;
 };
 
-const sessoesGravadas = async (usuarioId: string): Promise<number> => {
-  const linhas = await sqlDeTeste()<{ total: string }[]>`
-    SELECT count(*)::text AS total FROM session WHERE user_id = ${usuarioId}`;
-  return Number(linhas[0]?.total ?? '0');
+const storedSessions = async (userId: string): Promise<number> => {
+  const rows = await testSql()<{ total: string }[]>`
+    SELECT count(*)::text AS total FROM session WHERE user_id = ${userId}`;
+  return Number(rows[0]?.total ?? '0');
 };
 
 describe('autenticação', () => {
   beforeEach(async () => {
-    await limparBanco();
+    await clearDatabase();
   });
 
   test('credenciais válidas levam ao painel com 303', async () => {
-    const cenario = await cenarioCompleto();
+    const scenario = await fullScenario();
 
-    const resposta = await enviar('/login', {
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const response = await send('/login', {
+      redeSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      senha: scenario.password,
     });
 
-    expect(resposta.status).toBe(303);
-    expect(resposta.headers.get('Location')).toBe('/painel');
+    expect(response.status).toBe(303);
+    expect(response.headers.get('Location')).toBe('/painel');
   });
 
   test('o cookie de sessão é HttpOnly, SameSite=Lax e vale para todo o site', async () => {
-    const cenario = await cenarioCompleto();
+    const scenario = await fullScenario();
 
-    const resposta = await enviar('/login', {
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const response = await send('/login', {
+      redeSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      senha: scenario.password,
     });
-    const cabecalho = resposta.headers.get('Set-Cookie') ?? '';
+    const header = response.headers.get('Set-Cookie') ?? '';
 
-    expect(cabecalho).toContain('ev_sessao=');
-    expect(cabecalho).toContain('HttpOnly');
-    expect(cabecalho).toContain('SameSite=Lax');
-    expect(cabecalho).toContain('Path=/');
+    expect(header).toContain('ev_sessao=');
+    expect(header).toContain('HttpOnly');
+    expect(header).toContain('SameSite=Lax');
+    expect(header).toContain('Path=/');
   });
 
   test('o cookie carrega apenas o id da sessão gravada, e não o usuário', async () => {
-    const cenario = await cenarioCompleto();
+    const scenario = await fullScenario();
 
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
-    const linhas = await sqlDeTeste()<{ id: string }[]>`
-      SELECT id::text FROM session WHERE user_id = ${cenario.secretaria.id}`;
-    const sessaoId = linhas[0]?.id ?? '';
+    const rows = await testSql()<{ id: string }[]>`
+      SELECT id::text FROM session WHERE user_id = ${scenario.registrar.id}`;
+    const sessionId = rows[0]?.id ?? '';
 
-    expect(linhas).toHaveLength(1);
-    expect(decodeURIComponent(cookie)).toContain(sessaoId);
-    expect(cookie).not.toContain(cenario.secretaria.email);
+    expect(rows).toHaveLength(1);
+    expect(decodeURIComponent(cookie)).toContain(sessionId);
+    expect(cookie).not.toContain(scenario.registrar.email);
   });
 
   test('senha errada volta para a tela de entrada sem abrir sessão', async () => {
-    const cenario = await cenarioCompleto();
+    const scenario = await fullScenario();
 
-    const resposta = await enviar('/login', {
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
+    const response = await send('/login', {
+      redeSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
       senha: 'senha-que-nao-e-a-dele',
     });
 
-    expect(resposta.status).toBe(200);
-    expect(resposta.headers.get('Set-Cookie')).toBeNull();
-    expect(await sessoesGravadas(cenario.secretaria.id)).toBe(0);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Set-Cookie')).toBeNull();
+    expect(await storedSessions(scenario.registrar.id)).toBe(0);
   });
 
   test('CPF desconhecido e senha errada devolvem a mesma tela', async () => {
-    const cenario = await cenarioCompleto();
-    const desconhecido = generateCpf(888_888);
+    const scenario = await fullScenario();
+    const unknown = generateCpf(888_888);
 
-    const comSenhaErrada = await enviar('/login', {
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
+    const withWrongPassword = await send('/login', {
+      redeSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
       senha: 'senha-que-nao-e-a-dele',
     });
-    const comCpfInexistente = await enviar('/login', {
-      redeSlug: cenario.rede.slug,
-      cpf: desconhecido,
+    const withNonexistentCpf = await send('/login', {
+      redeSlug: scenario.network.slug,
+      cpf: unknown,
       senha: 'senha-que-nao-e-a-dele',
     });
-    const primeira = semValoresVolateis(await comSenhaErrada.text(), cenario.secretaria.cpf);
-    const segunda = semValoresVolateis(await comCpfInexistente.text(), desconhecido);
+    const first = withoutVolatileValues(await withWrongPassword.text(), scenario.registrar.cpf);
+    const second = withoutVolatileValues(await withNonexistentCpf.text(), unknown);
 
-    expect(comCpfInexistente.status).toBe(comSenhaErrada.status);
-    expect(segunda).toBe(primeira);
-    expect(primeira).toContain('CPF ou senha inválidos');
+    expect(withNonexistentCpf.status).toBe(withWrongPassword.status);
+    expect(second).toBe(first);
+    expect(first).toContain('CPF ou senha inválidos');
   });
 
   test('usuário de outra rede não entra pelo slug errado', async () => {
-    const cenario = await cenarioCompleto();
-    const outra = await criarRede({});
-    await criarUsuario({ networkId: outra.id, senha: SENHA_PADRAO });
+    const scenario = await fullScenario();
+    const other = await createNetwork({});
+    await createUser({ networkId: other.id, password: DEFAULT_PASSWORD });
 
-    const resposta = await enviar('/login', {
-      redeSlug: outra.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const response = await send('/login', {
+      redeSlug: other.slug,
+      cpf: scenario.registrar.cpf,
+      senha: scenario.password,
     });
 
-    expect(resposta.status).toBe(200);
-    expect(await sessoesGravadas(cenario.secretaria.id)).toBe(0);
+    expect(response.status).toBe(200);
+    expect(await storedSessions(scenario.registrar.id)).toBe(0);
   });
 
   test('rota autenticada sem cookie redireciona para o login', async () => {
-    const resposta = await abrir('/secretaria');
+    const response = await open('/secretaria');
 
-    expect(resposta.status).toBe(303);
-    expect(resposta.headers.get('Location')).toBe('/login');
+    expect(response.status).toBe(303);
+    expect(response.headers.get('Location')).toBe('/login');
   });
 
   test('escrita sem cookie é recusada em vez de redirecionada', async () => {
-    const resposta = await enviar('/secretaria/disciplinas', { nome: 'Filosofia' });
+    const response = await send('/secretaria/disciplinas', { nome: 'Filosofia' });
 
-    expect(resposta.status).toBe(401);
+    expect(response.status).toBe(401);
   });
 
   test('cookie com assinatura adulterada não abre rota autenticada', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
 
-    const comCookieBom = await abrir('/secretaria', cookie);
-    const comCookieAdulterado = await abrir('/secretaria', adulterar(cookie));
+    const withGoodCookie = await open('/secretaria', cookie);
+    const withTamperedCookie = await open('/secretaria', tamper(cookie));
 
-    expect(comCookieBom.status).toBe(200);
-    expect(comCookieAdulterado.status).toBe(303);
-    expect(comCookieAdulterado.headers.get('Location')).toBe('/login');
+    expect(withGoodCookie.status).toBe(200);
+    expect(withTamperedCookie.status).toBe(303);
+    expect(withTamperedCookie.headers.get('Location')).toBe('/login');
   });
 
   test('cookie inventado, sem assinatura nenhuma, não abre rota autenticada', async () => {
-    const resposta = await abrir('/secretaria', `ev_sessao=${crypto.randomUUID()}`);
+    const response = await open('/secretaria', `ev_sessao=${crypto.randomUUID()}`);
 
-    expect(resposta.status).toBe(303);
-    expect(resposta.headers.get('Location')).toBe('/login');
+    expect(response.status).toBe(303);
+    expect(response.headers.get('Location')).toBe('/login');
   });
 
   test('sair apaga a sessão do banco, e não apenas o cookie do navegador', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
 
-    const saida = await postar('/logout', {}, cookie);
-    const depois = await abrir('/secretaria', cookie);
+    const signedOut = await post('/logout', {}, cookie);
+    const after = await open('/secretaria', cookie);
 
-    expect(saida.status).toBe(303);
-    expect(await sessoesGravadas(cenario.secretaria.id)).toBe(0);
-    expect(depois.status).toBe(303);
-    expect(depois.headers.get('Location')).toBe('/login');
+    expect(signedOut.status).toBe(303);
+    expect(await storedSessions(scenario.registrar.id)).toBe(0);
+    expect(after.status).toBe(303);
+    expect(after.headers.get('Location')).toBe('/login');
   });
 
   test('sair também manda o navegador descartar o cookie', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
 
-    const saida = await postar('/logout', {}, cookie);
-    const descartado = cookieDaResposta(saida);
+    const signedOut = await post('/logout', {}, cookie);
+    const discarded = cookieFromResponse(signedOut);
 
-    expect(descartado).toBe('ev_sessao=');
+    expect(discarded).toBe('ev_sessao=');
   });
 
   test('quem já entrou não vê o formulário de entrada de novo', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
 
-    const resposta = await abrir('/login', cookie);
+    const response = await open('/login', cookie);
 
-    expect(resposta.status).toBe(303);
-    expect(resposta.headers.get('Location')).toBe('/painel');
+    expect(response.status).toBe(303);
+    expect(response.headers.get('Location')).toBe('/painel');
   });
 
   test('a raiz leva ao login sem sessão e ao painel com sessão', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
 
-    const anonima = await abrir('/');
-    const autenticada = await abrir('/', cookie);
+    const anonymousResponse = await open('/');
+    const autenticada = await open('/', cookie);
 
-    expect(anonima.headers.get('Location')).toBe('/login');
+    expect(anonymousResponse.headers.get('Location')).toBe('/login');
     expect(autenticada.headers.get('Location')).toBe('/painel');
   });
 });

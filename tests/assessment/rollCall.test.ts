@@ -10,231 +10,231 @@ import {
   isDateWithinAcademicYear,
   isValidRollCallDate,
 } from '../../src/assessment/domain/attendance';
-import { limparBanco, sqlDeTeste } from '../support/database';
+import { clearDatabase, testSql } from '../support/database';
 import {
-  ANO_PADRAO,
-  cenarioCompleto,
-  criarAluno,
-  criarAnoLetivo,
-  criarMatricula,
-  criarRede,
-  criarTurma,
-  criarUnidade,
-  type Cenario,
+  DEFAULT_YEAR,
+  fullScenario,
+  createStudent,
+  createAcademicYear,
+  createEnrollment,
+  createNetwork,
+  createClassGroup,
+  createSchool,
+  type Scenario,
 } from '../support/factories';
 
-const DIA_LETIVO = `${ANO_PADRAO}-03-10`;
-const OUTRO_DIA_LETIVO = `${ANO_PADRAO}-03-11`;
+const SCHOOL_DAY = `${DEFAULT_YEAR}-03-10`;
+const ANOTHER_SCHOOL_DAY = `${DEFAULT_YEAR}-03-11`;
 
-let cenario: Cenario;
+let scenario: Scenario;
 
 beforeEach(async () => {
-  await limparBanco();
-  cenario = await cenarioCompleto();
+  await clearDatabase();
+  scenario = await fullScenario();
 });
 
-async function contarFrequencias(redeId: string): Promise<number> {
-  const linhas = await sqlDeTeste()<{ total: number }[]>`
-    SELECT count(*)::int AS total FROM attendance WHERE network_id = ${redeId}`;
-  return linhas[0]?.total ?? 0;
+async function countAttendances(networkId: string): Promise<number> {
+  const rows = await testSql()<{ total: number }[]>`
+    SELECT count(*)::int AS total FROM attendance WHERE network_id = ${networkId}`;
+  return rows[0]?.total ?? 0;
 }
 
-async function matriculaDeOutraRede(): Promise<string> {
-  const rede = await criarRede({});
-  const unidade = await criarUnidade({ networkId: rede.id });
-  const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
-  const turma = await criarTurma({
-    networkId: rede.id,
-    schoolId: unidade.id,
-    academicYearId: anoLetivo.id,
+async function enrollmentOfAnotherNetwork(): Promise<string> {
+  const network = await createNetwork({});
+  const school = await createSchool({ networkId: network.id });
+  const academicYear = await createAcademicYear({ networkId: network.id });
+  const classGroup = await createClassGroup({
+    networkId: network.id,
+    schoolId: school.id,
+    academicYearId: academicYear.id,
   });
-  const aluno = await criarAluno({ networkId: rede.id });
-  const matricula = await criarMatricula({
-    networkId: rede.id,
-    studentId: aluno.id,
-    classGroupId: turma.id,
-    academicYearId: anoLetivo.id,
+  const student = await createStudent({ networkId: network.id });
+  const enrollment = await createEnrollment({
+    networkId: network.id,
+    studentId: student.id,
+    classGroupId: classGroup.id,
+    academicYearId: academicYear.id,
   });
-  return matricula.id;
+  return enrollment.id;
 }
 
 describe('frequencia (domínio)', () => {
   test('aceita data ISO que existe no calendário', () => {
-    const aceitas = ['2026-03-10', '2024-02-29', '2026-12-31'].map(isValidRollCallDate);
+    const accepted = ['2026-03-10', '2024-02-29', '2026-12-31'].map(isValidRollCallDate);
 
-    expect(aceitas).toEqual([true, true, true]);
+    expect(accepted).toEqual([true, true, true]);
   });
 
   test('recusa data que não existe, mesmo com o formato certo', () => {
-    const recusadas = ['2026-02-30', '2026-13-01', '2026-00-10'].map(isValidRollCallDate);
+    const rejected = ['2026-02-30', '2026-13-01', '2026-00-10'].map(isValidRollCallDate);
 
-    expect(recusadas).toEqual([false, false, false]);
+    expect(rejected).toEqual([false, false, false]);
   });
 
   test('recusa qualquer coisa fora do formato AAAA-MM-DD', () => {
-    const recusadas = ['10/03/2026', '2026-3-10', '', 'ontem'].map(isValidRollCallDate);
+    const rejected = ['10/03/2026', '2026-3-10', '', 'ontem'].map(isValidRollCallDate);
 
-    expect(recusadas).toEqual([false, false, false, false]);
+    expect(rejected).toEqual([false, false, false, false]);
   });
 
   test('trata o intervalo do ano letivo como fechado nas duas pontas', () => {
-    const inicio = isDateWithinAcademicYear('2026-02-01', '2026-02-01', '2026-12-15');
-    const fim = isDateWithinAcademicYear('2026-12-15', '2026-02-01', '2026-12-15');
-    const meio = isDateWithinAcademicYear('2026-07-04', '2026-02-01', '2026-12-15');
+    const start = isDateWithinAcademicYear('2026-02-01', '2026-02-01', '2026-12-15');
+    const end = isDateWithinAcademicYear('2026-12-15', '2026-02-01', '2026-12-15');
+    const middle = isDateWithinAcademicYear('2026-07-04', '2026-02-01', '2026-12-15');
 
-    expect([inicio, fim, meio]).toEqual([true, true, true]);
+    expect([start, end, middle]).toEqual([true, true, true]);
   });
 
   test('deixa de fora a data anterior ao início e a posterior ao fim', () => {
-    const antes = isDateWithinAcademicYear('2026-01-31', '2026-02-01', '2026-12-15');
-    const depois = isDateWithinAcademicYear('2026-12-16', '2026-02-01', '2026-12-15');
+    const before = isDateWithinAcademicYear('2026-01-31', '2026-02-01', '2026-12-15');
+    const after = isDateWithinAcademicYear('2026-12-16', '2026-02-01', '2026-12-15');
 
-    expect([antes, depois]).toEqual([false, false]);
+    expect([before, after]).toEqual([false, false]);
   });
 });
 
 describe('recordRollCall', () => {
   test('grava a chamada do dia inteiro da turma', async () => {
-    const linhas = cenario.matriculas.map((matricula) => ({
-      enrollmentId: matricula.id,
+    const rows = scenario.enrollments.map((enrollment) => ({
+      enrollmentId: enrollment.id,
       present: true,
     }));
 
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: DIA_LETIVO,
-      rows: linhas,
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: SCHOOL_DAY,
+      rows,
     });
 
-    expect(resultado).toEqual({ ok: true, valor: 5 });
-    expect(await contarFrequencias(cenario.rede.id)).toBe(5);
+    expect(result).toEqual({ ok: true, valor: 5 });
+    expect(await countAttendances(scenario.network.id)).toBe(5);
   });
 
   test('a segunda chamada do mesmo dia atualiza a linha em vez de criar outra', async () => {
-    const chamada = {
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: DIA_LETIVO,
+    const rollCall = {
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: SCHOOL_DAY,
     };
     await assessment.recordRollCall({
-      ...chamada,
-      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
+      ...rollCall,
+      rows: [{ enrollmentId: scenario.enrollments[0].id, present: true }],
     });
 
-    const resultado = await assessment.recordRollCall({
-      ...chamada,
+    const result = await assessment.recordRollCall({
+      ...rollCall,
       rows: [
-        { enrollmentId: cenario.matriculas[0].id, present: false, excuse: 'Consulta médica' },
+        { enrollmentId: scenario.enrollments[0].id, present: false, excuse: 'Consulta médica' },
       ],
     });
 
-    expect(resultado).toEqual({ ok: true, valor: 1 });
-    expect(await contarFrequencias(cenario.rede.id)).toBe(1);
-    const registrada = await assessment.rollCallForDate(
-      cenario.rede.id,
-      cenario.turmas[0].id,
-      DIA_LETIVO,
+    expect(result).toEqual({ ok: true, valor: 1 });
+    expect(await countAttendances(scenario.network.id)).toBe(1);
+    const recorded = await assessment.rollCallForDate(
+      scenario.network.id,
+      scenario.classGroups[0].id,
+      SCHOOL_DAY,
     );
-    expect(registrada.get(cenario.matriculas[0].id)).toEqual({
+    expect(recorded.get(scenario.enrollments[0].id)).toEqual({
       present: false,
       excuse: 'Consulta médica',
     });
   });
 
   test('a correção que devolve a presença ao aluno apaga a justificativa', async () => {
-    const chamada = {
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: DIA_LETIVO,
+    const rollCall = {
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: SCHOOL_DAY,
     };
     await assessment.recordRollCall({
-      ...chamada,
+      ...rollCall,
       rows: [
-        { enrollmentId: cenario.matriculas[0].id, present: false, excuse: 'Atestado' },
+        { enrollmentId: scenario.enrollments[0].id, present: false, excuse: 'Atestado' },
       ],
     });
 
     await assessment.recordRollCall({
-      ...chamada,
-      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
+      ...rollCall,
+      rows: [{ enrollmentId: scenario.enrollments[0].id, present: true }],
     });
 
-    const registrada = await assessment.rollCallForDate(
-      cenario.rede.id,
-      cenario.turmas[0].id,
-      DIA_LETIVO,
+    const recorded = await assessment.rollCallForDate(
+      scenario.network.id,
+      scenario.classGroups[0].id,
+      SCHOOL_DAY,
     );
-    expect(registrada.get(cenario.matriculas[0].id)).toEqual({
+    expect(recorded.get(scenario.enrollments[0].id)).toEqual({
       present: true,
       excuse: null,
     });
   });
 
   test('dias diferentes convivem como linhas separadas', async () => {
-    const chamada = {
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
+    const rollCall = {
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      rows: [{ enrollmentId: scenario.enrollments[0].id, present: true }],
     };
 
-    await assessment.recordRollCall({ ...chamada, date: DIA_LETIVO });
-    await assessment.recordRollCall({ ...chamada, date: OUTRO_DIA_LETIVO });
+    await assessment.recordRollCall({ ...rollCall, date: SCHOOL_DAY });
+    await assessment.recordRollCall({ ...rollCall, date: ANOTHER_SCHOOL_DAY });
 
-    expect(await contarFrequencias(cenario.rede.id)).toBe(2);
+    expect(await countAttendances(scenario.network.id)).toBe(2);
   });
 
   test('recusa data anterior ao início do ano letivo', async () => {
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: `${ANO_PADRAO}-01-15`,
-      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: `${DEFAULT_YEAR}-01-15`,
+      rows: [{ enrollmentId: scenario.enrollments[0].id, present: true }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'data', codigo: 'data_fora_do_ano_letivo' })],
     });
-    expect(await contarFrequencias(cenario.rede.id)).toBe(0);
+    expect(await countAttendances(scenario.network.id)).toBe(0);
   });
 
   test('recusa data posterior ao fim do ano letivo', async () => {
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: `${ANO_PADRAO}-12-20`,
-      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: `${DEFAULT_YEAR}-12-20`,
+      rows: [{ enrollmentId: scenario.enrollments[0].id, present: true }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'data', codigo: 'data_fora_do_ano_letivo' })],
     });
   });
 
   test('a recusa por data diz qual é o intervalo do ano letivo', async () => {
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: `${ANO_PADRAO}-01-15`,
-      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: `${DEFAULT_YEAR}-01-15`,
+      rows: [{ enrollmentId: scenario.enrollments[0].id, present: true }],
     });
 
-    const mensagem = resultado.ok ? '' : (resultado.erros[0]?.mensagem ?? '');
-    expect(mensagem).toContain(cenario.anoLetivo.startDate);
-    expect(mensagem).toContain(cenario.anoLetivo.endDate);
+    const message = result.ok ? '' : (result.erros[0]?.mensagem ?? '');
+    expect(message).toContain(scenario.academicYear.startDate);
+    expect(message).toContain(scenario.academicYear.endDate);
   });
 
   test('recusa data que não existe no calendário', async () => {
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: `${ANO_PADRAO}-02-30`,
-      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: `${DEFAULT_YEAR}-02-30`,
+      rows: [{ enrollmentId: scenario.enrollments[0].id, present: true }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [
         expect.objectContaining({
@@ -246,168 +246,168 @@ describe('recordRollCall', () => {
   });
 
   test('recusa data em formato diferente de AAAA-MM-DD', async () => {
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
       date: '10/03/2026',
-      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
+      rows: [{ enrollmentId: scenario.enrollments[0].id, present: true }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'data' })],
     });
   });
 
   test('recusa turma que não é desta rede', async () => {
-    const outra = await cenarioCompleto();
+    const other = await fullScenario();
 
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: outra.turmas[0].id,
-      date: DIA_LETIVO,
-      rows: [{ enrollmentId: cenario.matriculas[0].id, present: true }],
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: other.classGroups[0].id,
+      date: SCHOOL_DAY,
+      rows: [{ enrollmentId: scenario.enrollments[0].id, present: true }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'turmaId', codigo: 'nao_encontrada' })],
     });
   });
 
   test('recusa a chamada com matrícula de outra turma', async () => {
-    const aluno = await criarAluno({ networkId: cenario.rede.id });
-    const forasteira = await criarMatricula({
-      networkId: cenario.rede.id,
-      studentId: aluno.id,
-      classGroupId: cenario.turmas[1].id,
-      academicYearId: cenario.anoLetivo.id,
+    const student = await createStudent({ networkId: scenario.network.id });
+    const outsider = await createEnrollment({
+      networkId: scenario.network.id,
+      studentId: student.id,
+      classGroupId: scenario.classGroups[1].id,
+      academicYearId: scenario.academicYear.id,
     });
 
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: DIA_LETIVO,
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: SCHOOL_DAY,
       rows: [
-        { enrollmentId: cenario.matriculas[0].id, present: true },
-        { enrollmentId: forasteira.id, present: false },
+        { enrollmentId: scenario.enrollments[0].id, present: true },
+        { enrollmentId: outsider.id, present: false },
       ],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'linhas', codigo: 'matricula_fora_da_turma' })],
     });
-    expect(await contarFrequencias(cenario.rede.id)).toBe(0);
+    expect(await countAttendances(scenario.network.id)).toBe(0);
   });
 
   test('recusa a chamada com matrícula de outra rede', async () => {
-    const deOutraRede = await matriculaDeOutraRede();
+    const fromAnotherNetwork = await enrollmentOfAnotherNetwork();
 
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: DIA_LETIVO,
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: SCHOOL_DAY,
       rows: [
-        { enrollmentId: cenario.matriculas[0].id, present: true },
-        { enrollmentId: deOutraRede, present: true },
+        { enrollmentId: scenario.enrollments[0].id, present: true },
+        { enrollmentId: fromAnotherNetwork, present: true },
       ],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'linhas', codigo: 'matricula_fora_da_turma' })],
     });
-    expect(await contarFrequencias(cenario.rede.id)).toBe(0);
+    expect(await countAttendances(scenario.network.id)).toBe(0);
   });
 
   test('recusa a chamada com o mesmo aluno duas vezes', async () => {
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: DIA_LETIVO,
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: SCHOOL_DAY,
       rows: [
-        { enrollmentId: cenario.matriculas[0].id, present: true },
-        { enrollmentId: cenario.matriculas[0].id, present: false },
+        { enrollmentId: scenario.enrollments[0].id, present: true },
+        { enrollmentId: scenario.enrollments[0].id, present: false },
       ],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'linhas', codigo: 'matricula_repetida' })],
     });
   });
 
   test('recusa chamada sem linha nenhuma', async () => {
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: DIA_LETIVO,
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: SCHOOL_DAY,
       rows: [],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ mensagem: 'Nenhuma linha de chamada foi enviada.' })],
     });
   });
 
   test('aceita justificativa com exatamente o limite em caracteres', async () => {
-    const justificativa = 'x'.repeat(ASSESSMENT_LIMITS.excuseCharacters);
+    const excuse = 'x'.repeat(ASSESSMENT_LIMITS.excuseCharacters);
 
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: DIA_LETIVO,
-      rows: [{ enrollmentId: cenario.matriculas[0].id, present: false, excuse: justificativa }],
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: SCHOOL_DAY,
+      rows: [{ enrollmentId: scenario.enrollments[0].id, present: false, excuse }],
     });
 
-    expect(resultado).toEqual({ ok: true, valor: 1 });
-    const registrada = await assessment.rollCallForDate(
-      cenario.rede.id,
-      cenario.turmas[0].id,
-      DIA_LETIVO,
+    expect(result).toEqual({ ok: true, valor: 1 });
+    const recorded = await assessment.rollCallForDate(
+      scenario.network.id,
+      scenario.classGroups[0].id,
+      SCHOOL_DAY,
     );
-    expect(registrada.get(cenario.matriculas[0].id)?.excuse?.length).toBe(
+    expect(recorded.get(scenario.enrollments[0].id)?.excuse?.length).toBe(
       ASSESSMENT_LIMITS.excuseCharacters,
     );
   });
 
   test('recusa justificativa com um caractere além do limite', async () => {
-    const resultado = await assessment.recordRollCall({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[0].id,
-      date: DIA_LETIVO,
+    const result = await assessment.recordRollCall({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[0].id,
+      date: SCHOOL_DAY,
       rows: [
         {
-          enrollmentId: cenario.matriculas[0].id,
+          enrollmentId: scenario.enrollments[0].id,
           present: false,
           excuse: 'x'.repeat(ASSESSMENT_LIMITS.excuseCharacters + 1),
         },
       ],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ mensagem: 'A justificativa é longa demais.' })],
     });
-    expect(await contarFrequencias(cenario.rede.id)).toBe(0);
+    expect(await countAttendances(scenario.network.id)).toBe(0);
   });
 });
 
 describe('constraint frequencia_unica_por_dia', () => {
   test('o banco barra a segunda linha do mesmo aluno no mesmo dia', async () => {
-    const sql = sqlDeTeste();
-    const inserir = async (): Promise<void> => {
+    const sql = testSql();
+    const insert = async (): Promise<void> => {
       await sql`
         INSERT INTO attendance (id, network_id, enrollment_id, attendance_date, present)
-        VALUES (${crypto.randomUUID()}, ${cenario.rede.id}, ${cenario.matriculas[0].id},
-                ${DIA_LETIVO}, true)`;
+        VALUES (${crypto.randomUUID()}, ${scenario.network.id}, ${scenario.enrollments[0].id},
+                ${SCHOOL_DAY}, true)`;
     };
-    await inserir();
+    await insert();
 
-    await expect(inserir()).rejects.toThrow(/attendance_unique_per_day/);
+    await expect(insert()).rejects.toThrow(/attendance_unique_per_day/);
 
-    expect(await contarFrequencias(cenario.rede.id)).toBe(1);
+    expect(await countAttendances(scenario.network.id)).toBe(1);
   });
 });

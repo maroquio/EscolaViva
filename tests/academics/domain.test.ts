@@ -15,7 +15,7 @@ import {
 } from '../../src/academics/domain/enrollment';
 import { SHIFTS, isValidShift } from '../../src/academics/domain/classGroup';
 
-const matriculaCom = (status: EnrollmentStatus): Enrollment => ({
+const enrollmentWith = (status: EnrollmentStatus): Enrollment => ({
   id: 'matricula-1',
   networkId: 'rede-1',
   studentId: 'aluno-1',
@@ -31,147 +31,147 @@ const matriculaCom = (status: EnrollmentStatus): Enrollment => ({
 
 describe('turno da turma', () => {
   test('reconhece os quatro turnos que o esquema aceita', () => {
-    const conhecidos = [...SHIFTS];
+    const known = [...SHIFTS];
 
-    const validos = conhecidos.map(isValidShift);
+    const valid = known.map(isValidShift);
 
-    expect(validos).toEqual([true, true, true, true]);
+    expect(valid).toEqual([true, true, true, true]);
   });
 
   test('não reconhece turno inventado', () => {
-    const inventado = 'madrugada';
+    const madeUp = 'madrugada';
 
-    const valido = isValidShift(inventado);
+    const valid = isValidShift(madeUp);
 
-    expect(valido).toBe(false);
+    expect(valid).toBe(false);
   });
 
   test('a comparação é exata: turno com espaço sobrando não passa', () => {
-    const comEspaco = 'morning ';
+    const withSpace = 'morning ';
 
-    const valido = isValidShift(comEspaco);
+    const valid = isValidShift(withSpace);
 
-    expect(valido).toBe(false);
+    expect(valid).toBe(false);
   });
 });
 
 describe('situação da matrícula', () => {
   test('reconhece as quatro situações que o esquema aceita', () => {
-    const conhecidas = [...ENROLLMENT_STATUSES];
+    const known = [...ENROLLMENT_STATUSES];
 
-    const validas = conhecidas.map(isValidEnrollmentStatus);
+    const valid = known.map(isValidEnrollmentStatus);
 
-    expect(validas).toEqual([true, true, true, true]);
+    expect(valid).toEqual([true, true, true, true]);
   });
 
   test('não reconhece situação fora do conjunto', () => {
-    const forasteira = 'trancada';
+    const outsider = 'trancada';
 
-    const valida = isValidEnrollmentStatus(forasteira);
+    const valid = isValidEnrollmentStatus(outsider);
 
-    expect(valida).toBe(false);
+    expect(valid).toBe(false);
   });
 
   test('só a matrícula ativa pode ser transferida', () => {
-    const situacoes = [...ENROLLMENT_STATUSES].map(matriculaCom);
+    const statuses = [...ENROLLMENT_STATUSES].map(enrollmentWith);
 
-    const transferiveis = situacoes.map(canTransfer);
+    const transferable = statuses.map(canTransfer);
 
-    expect(transferiveis).toEqual([true, false, false, false]);
+    expect(transferable).toEqual([true, false, false, false]);
   });
 });
 
 describe('período do ano letivo', () => {
   test('término depois do início é coerente', () => {
-    const inicio = '2026-02-01';
-    const fim = '2026-12-15';
+    const start = '2026-02-01';
+    const end = '2026-12-15';
 
-    const coerente = isCoherentPeriod(inicio, fim);
+    const coherent = isCoherentPeriod(start, end);
 
-    expect(coerente).toBe(true);
+    expect(coherent).toBe(true);
   });
 
   test('término antes do início não é coerente', () => {
-    const inicio = '2026-12-15';
-    const fim = '2026-02-01';
+    const start = '2026-12-15';
+    const end = '2026-02-01';
 
-    const coerente = isCoherentPeriod(inicio, fim);
+    const coherent = isCoherentPeriod(start, end);
 
-    expect(coerente).toBe(false);
+    expect(coherent).toBe(false);
   });
 
   test('período de um dia só, com início igual ao fim, não é coerente', () => {
-    const mesmoDia = '2026-02-01';
+    const sameDay = '2026-02-01';
 
-    const coerente = isCoherentPeriod(mesmoDia, mesmoDia);
+    const coherent = isCoherentPeriod(sameDay, sameDay);
 
-    expect(coerente).toBe(false);
+    expect(coherent).toBe(false);
   });
 
   test('a comparação atravessa a virada do ano', () => {
-    const inicio = '2026-08-01';
-    const fim = '2027-06-30';
+    const start = '2026-08-01';
+    const end = '2027-06-30';
 
-    const coerente = isCoherentPeriod(inicio, fim);
+    const coherent = isCoherentPeriod(start, end);
 
-    expect(coerente).toBe(true);
+    expect(coherent).toBe(true);
   });
 });
 
 describe('idade do aluno numa data', () => {
   test('conta anos completos quando o aniversário já passou no ano', () => {
-    const nascimento = '2014-05-10';
+    const birth = '2014-05-10';
 
-    const idade = ageOn(nascimento, '2026-08-13');
+    const age = ageOn(birth, '2026-08-13');
 
-    expect(idade).toBe(12);
+    expect(age).toBe(12);
   });
 
   test('no dia do aniversário a idade já é a nova', () => {
-    const nascimento = '2014-05-10';
+    const birth = '2014-05-10';
 
-    const idade = ageOn(nascimento, '2026-05-10');
+    const age = ageOn(birth, '2026-05-10');
 
-    expect(idade).toBe(12);
+    expect(age).toBe(12);
   });
 
   test('na véspera do aniversário a idade ainda é a anterior', () => {
-    const nascimento = '2014-05-10';
+    const birth = '2014-05-10';
 
-    const idade = ageOn(nascimento, '2026-05-09');
+    const age = ageOn(birth, '2026-05-09');
 
-    expect(idade).toBe(11);
+    expect(age).toBe(11);
   });
 
   test('nascido em dezembro ainda não fez aniversário em janeiro', () => {
-    const nascimento = '2014-12-31';
+    const birth = '2014-12-31';
 
-    const idade = ageOn(nascimento, '2026-01-01');
+    const age = ageOn(birth, '2026-01-01');
 
-    expect(idade).toBe(11);
+    expect(age).toBe(11);
   });
 
   test('nascido em 29 de fevereiro completa idade em 1º de março do ano comum', () => {
-    const nascimento = '2016-02-29';
+    const birth = '2016-02-29';
 
-    const idade = ageOn(nascimento, '2026-03-01');
+    const age = ageOn(birth, '2026-03-01');
 
-    expect(idade).toBe(10);
+    expect(age).toBe(10);
   });
 
   test('data de nascimento no futuro devolve idade negativa', () => {
-    const nascimento = '2026-08-20';
+    const birth = '2026-08-20';
 
-    const idade = ageOn(nascimento, '2026-08-13');
+    const age = ageOn(birth, '2026-08-13');
 
-    expect(idade).toBe(-1);
+    expect(age).toBe(-1);
   });
 
   test('recém-nascido tem zero ano no próprio dia', () => {
-    const nascimento = '2026-08-13';
+    const birth = '2026-08-13';
 
-    const idade = ageOn(nascimento, '2026-08-13');
+    const age = ageOn(birth, '2026-08-13');
 
-    expect(idade).toBe(0);
+    expect(age).toBe(0);
   });
 });

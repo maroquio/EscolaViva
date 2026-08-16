@@ -20,70 +20,70 @@
 
 import { mkdir } from 'node:fs/promises';
 import { beforeAll, describe, expect, test } from 'bun:test';
-import { limparBanco } from '../support/database';
+import { clearDatabase } from '../support/database';
 import {
-  PASTA_GOLDEN,
-  caminhoDoGolden,
-  capturar,
-  montarCenarioGolden,
-  telasDoSistema,
-  type CenarioGolden,
-  type Tela,
+  GOLDEN_DIR,
+  goldenPath,
+  capture,
+  buildGoldenScenario,
+  systemScreens,
+  type GoldenScenario,
+  type GoldenScreen,
 } from './golden';
 
 /** Ligada por `scripts/golden.ts --regravar`: em vez de comparar, cada arquivo é reescrito. */
-const REGRAVANDO = Bun.env['GOLDEN_REGRAVAR'] === '1';
+const REWRITING = Bun.env['GOLDEN_REGRAVAR'] === '1';
 
-const SEM_ARQUIVO =
+const NO_FILE =
   '(nenhum arquivo golden gravado — rode `bun run golden --regravar` para criar a linha de base)';
 
 /** Quantas divergências são impressas por inteiro antes de a mensagem virar uma lista de nomes. */
-const DETALHES_NO_RELATORIO = 3;
+const DETAILS_IN_REPORT = 3;
 
-let cenario: CenarioGolden;
-let telas: readonly Tela[];
+let scenario: GoldenScenario;
+let screens: readonly GoldenScreen[];
 
 beforeAll(async () => {
-  await limparBanco();
-  cenario = await montarCenarioGolden();
-  telas = telasDoSistema(cenario.ids);
-  await mkdir(PASTA_GOLDEN, { recursive: true });
+  await clearDatabase();
+  scenario = await buildGoldenScenario();
+  screens = systemScreens(scenario.ids);
+  await mkdir(GOLDEN_DIR, { recursive: true });
 });
 
-const telaChamada = (nome: string): Tela => {
-  const encontrada = telas.find((candidata) => candidata.nome === nome);
-  if (encontrada === undefined) throw new Error(`tela "${nome}" não está na lista`);
-  return encontrada;
+const screenNamed = (name: string): GoldenScreen => {
+  const found = screens.find((candidate) => candidate.name === name);
+  if (found === undefined) throw new Error(`tela "${name}" não está na lista`);
+  return found;
 };
 
 /* ------------------------------------------------------------------------- */
 
 test('nenhuma tela do sistema mudou de HTML', async () => {
-  const divergentes: { tela: Tela; esperado: string; atual: string }[] = [];
-  let regravadas = 0;
+  const divergent: { screen: GoldenScreen; expected: string; actual: string }[] = [];
+  let rewritten = 0;
 
-  for (const tela of telas) {
-    const atual = await capturar(tela, cenario);
-    const arquivo = Bun.file(caminhoDoGolden(tela.nome));
+  for (const screen of screens) {
+    const actual = await capture(screen, scenario);
+    const file = Bun.file(goldenPath(screen.name));
 
-    if (REGRAVANDO) {
-      await Bun.write(arquivo, atual);
-      regravadas += 1;
+    if (REWRITING) {
+      await Bun.write(file, actual);
+      rewritten += 1;
       continue;
     }
 
-    const esperado = (await arquivo.exists()) ? await arquivo.text() : SEM_ARQUIVO;
-    if (esperado !== atual) divergentes.push({ tela, esperado, atual });
+    const expected = (await file.exists()) ? await file.text() : NO_FILE;
+    if (expected !== actual) divergent.push({ screen, expected, actual });
   }
 
-  if (REGRAVANDO) {
-    console.log(`golden: ${regravadas} telas gravadas em ${PASTA_GOLDEN}`);
-    expect(regravadas).toBe(telas.length);
+  if (REWRITING) {
+    console.log(`golden: ${rewritten} telas gravadas em ${GOLDEN_DIR}`);
+    expect(rewritten).toBe(screens.length);
     return;
   }
 
-  if (divergentes.length > 0) throw new Error(relatorio(divergentes, telas.length));
-  expect(divergentes.length).toBe(0);
+  if (divergent.length > 0) throw new Error(report(divergent, screens.length));
+  expect(divergent.length).toBe(0);
 });
 
 /* ------------------------------------------------------------------------- */
@@ -96,15 +96,15 @@ test('nenhuma tela do sistema mudou de HTML', async () => {
  * registro é UUID — então este caso é também a prova de que a normalização alcança os dois.
  */
 test('a captura é determinística: a mesma tela, duas vezes, dá o mesmo texto', async () => {
-  const instaveis: string[] = [];
+  const unstable: string[] = [];
 
-  for (const tela of telas) {
-    const primeira = await capturar(tela, cenario);
-    const segunda = await capturar(tela, cenario);
-    if (primeira !== segunda) instaveis.push(tela.nome);
+  for (const screen of screens) {
+    const first = await capture(screen, scenario);
+    const second = await capture(screen, scenario);
+    if (first !== second) unstable.push(screen.name);
   }
 
-  expect(instaveis).toEqual([]);
+  expect(unstable).toEqual([]);
 });
 
 /* ------------------------------------------------------------------------- */
@@ -116,75 +116,75 @@ test('a captura é determinística: a mesma tela, duas vezes, dá o mesmo texto'
  */
 describe('a normalização não apaga o que o golden existe para detectar', () => {
   test('um href trocado por outro caminho muda o texto normalizado', async () => {
-    const original = await capturar(telaChamada('secretaria-alunos-busca'), cenario);
+    const original = await capture(screenNamed('secretaria-alunos-busca'), scenario);
 
     expect(original).toContain('href="/secretaria/alunos/{{aluno01}}"');
     expect(original.replaceAll('/secretaria/alunos/', '/secretaria/turmas/')).not.toBe(original);
   });
 
   test('um rótulo perdido muda o texto normalizado', async () => {
-    const original = await capturar(telaChamada('admin-rede-painel'), cenario);
+    const original = await capture(screenNamed('admin-rede-painel'), scenario);
 
     expect(original).toContain('Painel da rede');
     expect(original.replaceAll('Painel da rede', '')).not.toBe(original);
   });
 
   test('o identificador de um aluno não vira o de outro', async () => {
-    const texto = await capturar(telaChamada('secretaria-alunos-busca'), cenario);
+    const text = await capture(screenNamed('secretaria-alunos-busca'), scenario);
 
     // Cada registro do cenário tem marcador próprio: trocar dois `href` de lugar muda o arquivo.
-    expect(texto).toContain('{{aluno01}}');
-    expect(texto).toContain('{{aluno02}}');
+    expect(text).toContain('{{aluno01}}');
+    expect(text).toContain('{{aluno02}}');
   });
 
   test('o destino de um redirecionamento entra no arquivo congelado', async () => {
-    const texto = await capturar(telaChamada('professor-painel-redirecionado'), cenario);
+    const text = await capture(screenNamed('professor-painel-redirecionado'), scenario);
 
-    expect(texto).toContain('status: 303');
-    expect(texto).toContain('Location: /professor');
+    expect(text).toContain('status: 303');
+    expect(text).toContain('Location: /professor');
   });
 });
 
 /* ------------------------------------------------------------------------- */
 
-type Divergencia = { tela: Tela; esperado: string; atual: string };
+type Divergence = { screen: GoldenScreen; expected: string; actual: string };
 
 /** As primeiras linhas que deixaram de bater, com o número da linha e os dois lados. */
-function diferenca(esperado: string, atual: string): string {
-  const antes = esperado.split('\n');
-  const depois = atual.split('\n');
-  const total = Math.max(antes.length, depois.length);
-  const LIMITE_DE_LINHAS = 10;
-  const saida: string[] = [];
+function difference(expected: string, actual: string): string {
+  const before = expected.split('\n');
+  const after = actual.split('\n');
+  const total = Math.max(before.length, after.length);
+  const LINE_LIMIT = 10;
+  const lines: string[] = [];
 
-  for (let indice = 0; indice < total; indice += 1) {
-    if (antes[indice] === depois[indice]) continue;
-    if (saida.length >= LIMITE_DE_LINHAS * 3) {
-      saida.push('  … (restante omitido)');
+  for (let index = 0; index < total; index += 1) {
+    if (before[index] === after[index]) continue;
+    if (lines.length >= LINE_LIMIT * 3) {
+      lines.push('  … (restante omitido)');
       break;
     }
-    saida.push(`  linha ${indice + 1}`);
-    saida.push(`  - ${antes[indice] ?? '(ausente)'}`);
-    saida.push(`  + ${depois[indice] ?? '(ausente)'}`);
+    lines.push(`  linha ${index + 1}`);
+    lines.push(`  - ${before[index] ?? '(ausente)'}`);
+    lines.push(`  + ${after[index] ?? '(ausente)'}`);
   }
 
-  return saida.join('\n');
+  return lines.join('\n');
 }
 
-function relatorio(divergentes: readonly Divergencia[], total: number): string {
-  const cabecalho =
-    `${divergentes.length} de ${total} tela(s) divergem do golden.\n` +
+function report(divergent: readonly Divergence[], total: number): string {
+  const header =
+    `${divergent.length} de ${total} tela(s) divergem do golden.\n` +
     'Se a mudança for intencional: bun run golden --regravar (e leia o diff antes de commitar).\n';
 
-  const nomes = divergentes.map(({ tela }) => `  · ${tela.nome} (${tela.caminho})`).join('\n');
+  const names = divergent.map(({ screen }) => `  · ${screen.name} (${screen.path})`).join('\n');
 
-  const detalhes = divergentes
-    .slice(0, DETALHES_NO_RELATORIO)
+  const details = divergent
+    .slice(0, DETAILS_IN_REPORT)
     .map(
-      ({ tela, esperado, atual }) =>
-        `\n--- ${tela.nome} · ${caminhoDoGolden(tela.nome)}\n${diferenca(esperado, atual)}`,
+      ({ screen, expected, actual }) =>
+        `\n--- ${screen.name} · ${goldenPath(screen.name)}\n${difference(expected, actual)}`,
     )
     .join('\n');
 
-  return `${cabecalho}\n${nomes}\n${detalhes}`;
+  return `${header}\n${names}\n${details}`;
 }

@@ -13,51 +13,51 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TEMPLATES } from '../../src/web/constants';
 
-const EXTENSAO = '.eta';
+const EXTENSION = '.eta';
 
-const RAIZ = fileURLToPath(new URL('../..', import.meta.url));
-const DIRETORIO_DE_TEMPLATES = join(RAIZ, 'src', 'web', TEMPLATES.directory);
+const ROOT = fileURLToPath(new URL('../..', import.meta.url));
+const TEMPLATES_DIR = join(ROOT, 'src', 'web', TEMPLATES.directory);
 
-const caminhosDeclarados = (no: unknown): readonly string[] => {
+const declaredPaths = (no: unknown): readonly string[] => {
   if (typeof no === 'string') return no.startsWith('/') ? [no] : [];
   if (typeof no !== 'object' || no === null) return [];
-  return Object.values(no).flatMap(caminhosDeclarados);
+  return Object.values(no).flatMap(declaredPaths);
 };
 
-const DECLARADOS = caminhosDeclarados(TEMPLATES);
+const DECLARED = declaredPaths(TEMPLATES);
 
-const arquivosNoDisco = async (): Promise<readonly string[]> => {
-  const encontrados: string[] = [];
-  for await (const arquivo of new Bun.Glob(`**/*${EXTENSAO}`).scan({ cwd: DIRETORIO_DE_TEMPLATES })) {
-    encontrados.push(`/${arquivo.replaceAll('\\', '/').slice(0, -EXTENSAO.length)}`);
+const filesOnDisk = async (): Promise<readonly string[]> => {
+  const found: string[] = [];
+  for await (const file of new Bun.Glob(`**/*${EXTENSION}`).scan({ cwd: TEMPLATES_DIR })) {
+    found.push(`/${file.replaceAll('\\', '/').slice(0, -EXTENSION.length)}`);
   }
-  return encontrados.sort();
+  return found.sort();
 };
 
 describe('TEMPLATES aponta para arquivos que existem', () => {
   test('a varredura enxerga a pasta — cobertura vazia é falha, não sucesso', async () => {
-    const noDisco = await arquivosNoDisco();
+    const onDisk = await filesOnDisk();
 
-    expect(DECLARADOS.length).toBeGreaterThan(0);
-    expect(noDisco.length).toBeGreaterThan(0);
+    expect(DECLARED.length).toBeGreaterThan(0);
+    expect(onDisk.length).toBeGreaterThan(0);
   });
 
   test('todo caminho declarado tem o arquivo correspondente', async () => {
-    const semArquivo: string[] = [];
-    for (const caminho of DECLARADOS) {
-      const arquivo = join(DIRETORIO_DE_TEMPLATES, `${caminho}${EXTENSAO}`);
-      if (!(await Bun.file(arquivo).exists())) semArquivo.push(caminho);
+    const withoutFile: string[] = [];
+    for (const path of DECLARED) {
+      const file = join(TEMPLATES_DIR, `${path}${EXTENSION}`);
+      if (!(await Bun.file(file).exists())) withoutFile.push(path);
     }
 
-    expect(semArquivo).toEqual([]);
+    expect(withoutFile).toEqual([]);
   });
 
   test('todo arquivo tem quem o declare', async () => {
-    const noDisco = await arquivosNoDisco();
-    const declarados = new Set(DECLARADOS);
+    const onDisk = await filesOnDisk();
+    const declared = new Set(DECLARED);
 
-    const orfaos = noDisco.filter((caminho) => !declarados.has(caminho));
+    const orphans = onDisk.filter((path) => !declared.has(path));
 
-    expect(orfaos).toEqual([]);
+    expect(orphans).toEqual([]);
   });
 });

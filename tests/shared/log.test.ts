@@ -9,10 +9,10 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { FORBIDDEN_LOG_KEYS, redact } from '../../src/shared/log';
 
-const REDIGIDO = '[redacted]';
+const REDACTED = '[redacted]';
 
 /** O mínimo que o contrato exige de `FORBIDDEN_LOG_KEYS`. */
-const MINIMO_DO_CONTRATO = [
+const CONTRACT_MINIMUM = [
   'nome',
   'name',
   'nome_completo',
@@ -52,7 +52,7 @@ const MINIMO_DO_CONTRATO = [
 
 describe('redact — o que sai do log', () => {
   test('remove nome, e-mail, senha, senha_hash, cpf e telefone', () => {
-    const campos = {
+    const fields = {
       nome: 'Ana Beatriz Souza',
       email: 'ana@escola.test',
       senha: 'teste-1234',
@@ -61,33 +61,33 @@ describe('redact — o que sai do log', () => {
       telefone: '(27) 99999-0000',
     };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual({
-      nome: REDIGIDO,
-      email: REDIGIDO,
-      senha: REDIGIDO,
-      senha_hash: REDIGIDO,
-      cpf: REDIGIDO,
-      telefone: REDIGIDO,
+    expect(safe).toEqual({
+      nome: REDACTED,
+      email: REDACTED,
+      senha: REDACTED,
+      senha_hash: REDACTED,
+      cpf: REDACTED,
+      telefone: REDACTED,
     });
   });
 
   test('remove valor de nota e justificativa de falta', () => {
-    const campos = { nota: 9.5, valor: 7, notas: [8, 9], justificativa: 'consulta médica' };
+    const fields = { nota: 9.5, valor: 7, notas: [8, 9], justificativa: 'consulta médica' };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual({
-      nota: REDIGIDO,
-      valor: REDIGIDO,
-      notas: REDIGIDO,
-      justificativa: REDIGIDO,
+    expect(safe).toEqual({
+      nota: REDACTED,
+      valor: REDACTED,
+      notas: REDACTED,
+      justificativa: REDACTED,
     });
   });
 
   test('remove segredo de sessão, url do banco e cabeçalhos de autenticação', () => {
-    const campos = {
+    const fields = {
       session_secret: 'segredo-de-teste-com-mais-de-32-caracteres',
       database_url: 'postgres://escolaviva:senha@localhost:5442/escolaviva',
       authorization: 'Bearer abc',
@@ -95,184 +95,184 @@ describe('redact — o que sai do log', () => {
       'set-cookie': 'ev_sessao=abc; HttpOnly',
     };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(Object.values(seguros)).toEqual([REDIGIDO, REDIGIDO, REDIGIDO, REDIGIDO, REDIGIDO]);
+    expect(Object.values(safe)).toEqual([REDACTED, REDACTED, REDACTED, REDACTED, REDACTED]);
   });
 
   test('a lista de chaves proibidas cobre o mínimo do contrato', () => {
-    const declaradas = new Set(FORBIDDEN_LOG_KEYS);
+    const declared = new Set(FORBIDDEN_LOG_KEYS);
 
-    const faltando = MINIMO_DO_CONTRATO.filter((chave) => !declaradas.has(chave));
+    const missing = CONTRACT_MINIMUM.filter((key) => !declared.has(key));
 
-    expect(faltando).toEqual([]);
+    expect(missing).toEqual([]);
   });
 });
 
 describe('redact — o que fica no log', () => {
   test('preserva aluno_id, usuario_id, rede_id e correlation_id', () => {
-    const campos = {
+    const fields = {
       aluno_id: '3f1b',
       usuario_id: '9c2d',
       rede_id: '77aa',
       correlation_id: 'c-1234',
     };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual(campos);
+    expect(safe).toEqual(fields);
   });
 
   test('preserva identificador ao lado de campo proibido, na mesma linha', () => {
-    const campos = { aluno_id: '3f1b', nome: 'Ana Beatriz', turma_id: '55cc' };
+    const fields = { aluno_id: '3f1b', nome: 'Ana Beatriz', turma_id: '55cc' };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual({ aluno_id: '3f1b', nome: REDIGIDO, turma_id: '55cc' });
+    expect(safe).toEqual({ aluno_id: '3f1b', nome: REDACTED, turma_id: '55cc' });
   });
 
   test('preserva números, nulos e datas que não estão em chave proibida', () => {
-    const quando = new Date('2026-03-10T12:00:00.000Z');
-    const campos = { duracao_ms: 42, ip: null, quando };
+    const when = new Date('2026-03-10T12:00:00.000Z');
+    const fields = { duracao_ms: 42, ip: null, quando: when };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual({ duracao_ms: 42, ip: null, quando });
+    expect(safe).toEqual({ duracao_ms: 42, ip: null, quando: when });
   });
 });
 
 describe('redact — profundidade e formato', () => {
   test('redige dentro de objeto aninhado', () => {
-    const campos = { evento: 'matricula', aluno: { aluno_id: '3f1b', nome: 'Ana Beatriz' } };
+    const fields = { evento: 'matricula', aluno: { aluno_id: '3f1b', nome: 'Ana Beatriz' } };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual({ evento: 'matricula', aluno: { aluno_id: '3f1b', nome: REDIGIDO } });
+    expect(safe).toEqual({ evento: 'matricula', aluno: { aluno_id: '3f1b', nome: REDACTED } });
   });
 
   test('redige dentro de array de objetos', () => {
-    const campos = {
+    const fields = {
       linhas: [
         { matricula_id: 'm1', nota: 9 },
         { matricula_id: 'm2', nota: 4 },
       ],
     };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual({
+    expect(safe).toEqual({
       linhas: [
-        { matricula_id: 'm1', nota: REDIGIDO },
-        { matricula_id: 'm2', nota: REDIGIDO },
+        { matricula_id: 'm1', nota: REDACTED },
+        { matricula_id: 'm2', nota: REDACTED },
       ],
     });
   });
 
   test('redige em array dentro de objeto dentro de array', () => {
-    const campos = { turmas: [{ turma_id: 't1', alunos: [{ aluno_id: 'a1', nome: 'Ana' }] }] };
+    const fields = { turmas: [{ turma_id: 't1', alunos: [{ aluno_id: 'a1', nome: 'Ana' }] }] };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual({
-      turmas: [{ turma_id: 't1', alunos: [{ aluno_id: 'a1', nome: REDIGIDO }] }],
+    expect(safe).toEqual({
+      turmas: [{ turma_id: 't1', alunos: [{ aluno_id: 'a1', nome: REDACTED }] }],
     });
   });
 
   test('nada sensível escapa nem em ninho muito mais fundo que o limite', () => {
-    const fundo = { nome: 'Ana Beatriz Souza', cpf: '123.456.789-09' };
-    const campos = { n1: { n2: { n3: { n4: { n5: { n6: { n7: { n8: fundo } } } } } } } };
+    const background = { nome: 'Ana Beatriz Souza', cpf: '123.456.789-09' };
+    const fields = { n1: { n2: { n3: { n4: { n5: { n6: { n7: { n8: background } } } } } } } };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(JSON.stringify(seguros)).not.toContain('Ana Beatriz Souza');
-    expect(JSON.stringify(seguros)).not.toContain('123.456.789-09');
+    expect(JSON.stringify(safe)).not.toContain('Ana Beatriz Souza');
+    expect(JSON.stringify(safe)).not.toContain('123.456.789-09');
   });
 });
 
 describe('redact — robustez', () => {
   test('não muta a entrada', () => {
-    const campos = {
+    const fields = {
       aluno_id: '3f1b',
       nome: 'Ana Beatriz',
       responsavel: { email: 'mae@escola.test' },
       linhas: [{ nota: 9 }],
     };
-    const copia = structuredClone(campos);
+    const copy = structuredClone(fields);
 
-    redact(campos);
+    redact(fields);
 
-    expect(campos).toEqual(copia);
+    expect(fields).toEqual(copy);
   });
 
   test('devolve um objeto novo, e não a própria entrada', () => {
-    const campos = { aluno_id: '3f1b' };
+    const fields = { aluno_id: '3f1b' };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).not.toBe(campos);
-    expect(seguros).toEqual(campos);
+    expect(safe).not.toBe(fields);
+    expect(safe).toEqual(fields);
   });
 
   test('não estoura em objeto cíclico', () => {
-    const ciclico: Record<string, unknown> = { aluno_id: '3f1b', nome: 'Ana Beatriz' };
-    ciclico.proprio = ciclico;
+    const cyclic: Record<string, unknown> = { aluno_id: '3f1b', nome: 'Ana Beatriz' };
+    cyclic.proprio = cyclic;
 
-    const redigirCiclico = (): unknown => redact(ciclico);
+    const redactCyclic = (): unknown => redact(cyclic);
 
-    expect(redigirCiclico).not.toThrow();
+    expect(redactCyclic).not.toThrow();
   });
 
   test('objeto cíclico continua sem vazar o campo proibido', () => {
-    const ciclico: Record<string, unknown> = { aluno_id: '3f1b', nome: 'Ana Beatriz' };
-    ciclico.proprio = ciclico;
+    const cyclic: Record<string, unknown> = { aluno_id: '3f1b', nome: 'Ana Beatriz' };
+    cyclic.proprio = cyclic;
 
-    const seguros = redact(ciclico);
+    const safe = redact(cyclic);
 
-    expect(seguros.nome).toBe(REDIGIDO);
-    expect(seguros.aluno_id).toBe('3f1b');
+    expect(safe.nome).toBe(REDACTED);
+    expect(safe.aluno_id).toBe('3f1b');
   });
 
   test('array cíclico também não estoura', () => {
-    const lista: unknown[] = [{ aluno_id: '3f1b' }];
-    lista.push(lista);
+    const list: unknown[] = [{ aluno_id: '3f1b' }];
+    list.push(list);
 
-    const redigirLista = (): unknown => redact({ lista });
+    const redactList = (): unknown => redact({ lista: list });
 
-    expect(redigirLista).not.toThrow();
+    expect(redactList).not.toThrow();
   });
 
   test('objeto sem campo nenhum vira objeto sem campo nenhum', () => {
-    const campos = {};
+    const fields = {};
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual({});
+    expect(safe).toEqual({});
   });
 });
 
 describe('redact — comparação de chave', () => {
   test('é insensível a maiúsculas', () => {
-    const campos = { Nome: 'Ana', EMAIL: 'ana@escola.test', SeNhA: 'teste-1234' };
+    const fields = { Nome: 'Ana', EMAIL: 'ana@escola.test', SeNhA: 'teste-1234' };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual({ Nome: REDIGIDO, EMAIL: REDIGIDO, SeNhA: REDIGIDO });
+    expect(safe).toEqual({ Nome: REDACTED, EMAIL: REDACTED, SeNhA: REDACTED });
   });
 
   test('é insensível a maiúsculas também em cabeçalho e em ninho', () => {
-    const campos = { requisicao: { Authorization: 'Bearer abc', 'Set-Cookie': 'ev_sessao=abc' } };
+    const fields = { requisicao: { Authorization: 'Bearer abc', 'Set-Cookie': 'ev_sessao=abc' } };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual({ requisicao: { Authorization: REDIGIDO, 'Set-Cookie': REDIGIDO } });
+    expect(safe).toEqual({ requisicao: { Authorization: REDACTED, 'Set-Cookie': REDACTED } });
   });
 
   test('chave parecida com proibida, mas diferente, continua passando', () => {
-    const campos = { nome_da_rota: 'POST /login', total_de_notas: 12, valor_esperado_id: 'v1' };
+    const fields = { nome_da_rota: 'POST /login', total_de_notas: 12, valor_esperado_id: 'v1' };
 
-    const seguros = redact(campos);
+    const safe = redact(fields);
 
-    expect(seguros).toEqual(campos);
+    expect(safe).toEqual(fields);
   });
 });
 
@@ -284,34 +284,34 @@ describe('redact — comparação de chave', () => {
  * de privacidade, e ela precisa doer antes do vazamento, não depois.
  */
 describe('FORBIDDEN_LOG_KEYS — ancoragem no código real', () => {
-  const PADROES_DE_FONTE = ['src/**/*.ts', 'src/**/*.eta', 'migrations/*.sql'] as const;
+  const SOURCE_PATTERNS = ['src/**/*.ts', 'src/**/*.eta', 'migrations/*.sql'] as const;
 
-  const escaparParaRegex = (texto: string): string => texto.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapeForRegex = (text: string): string => text.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-  const lerFontes = async (): Promise<string> => {
-    const raiz = fileURLToPath(new URL('../..', import.meta.url));
-    const partes: string[] = [];
-    for (const padrao of PADROES_DE_FONTE) {
-      for await (const arquivo of new Bun.Glob(padrao).scan({ cwd: raiz })) {
-        partes.push(await Bun.file(join(raiz, arquivo)).text());
+  const readSources = async (): Promise<string> => {
+    const root = fileURLToPath(new URL('../..', import.meta.url));
+    const parts: string[] = [];
+    for (const pattern of SOURCE_PATTERNS) {
+      for await (const file of new Bun.Glob(pattern).scan({ cwd: root })) {
+        parts.push(await Bun.file(join(root, file)).text());
       }
     }
-    return partes.join('\n');
+    return parts.join('\n');
   };
 
   test('a varredura enxerga o código — cobertura vazia é falha, não sucesso', async () => {
-    const fontes = await lerFontes();
+    const sources = await readSources();
 
-    expect(fontes.length).toBeGreaterThan(10_000);
+    expect(sources.length).toBeGreaterThan(10_000);
   });
 
   test('nenhuma chave da denylist ficou órfã', async () => {
-    const fontes = await lerFontes();
+    const sources = await readSources();
 
-    const orfas = FORBIDDEN_LOG_KEYS.filter(
-      (chave) => !new RegExp(`\\b${escaparParaRegex(chave)}\\b`, 'i').test(fontes),
+    const orphans = FORBIDDEN_LOG_KEYS.filter(
+      (key) => !new RegExp(`\\b${escapeForRegex(key)}\\b`, 'i').test(sources),
     );
 
-    expect(orfas).toEqual([]);
+    expect(orphans).toEqual([]);
   });
 });

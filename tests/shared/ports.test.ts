@@ -8,67 +8,67 @@ import { describe, expect, test } from 'bun:test';
 import { systemClock, uuidIdGenerator } from '../../src/shared/ports';
 
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-const CHAMADAS = 1000;
+const ROLL_CALLS = 1000;
 
 describe('systemClock', () => {
   test('now() devolve um Date', () => {
-    const relogio = systemClock;
+    const clock = systemClock;
 
-    const instante = relogio.now();
+    const instant = clock.now();
 
-    expect(instante).toBeInstanceOf(Date);
+    expect(instant).toBeInstanceOf(Date);
   });
 
   test('now() devolve o instante presente, entre o antes e o depois da chamada', () => {
-    const antes = Date.now();
+    const before = Date.now();
 
-    const instante = systemClock.now();
+    const instant = systemClock.now();
 
-    expect(instante.getTime()).toBeGreaterThanOrEqual(antes);
-    expect(instante.getTime()).toBeLessThanOrEqual(Date.now());
+    expect(instant.getTime()).toBeGreaterThanOrEqual(before);
+    expect(instant.getTime()).toBeLessThanOrEqual(Date.now());
   });
 
   test('now() nunca retrocede entre duas leituras seguidas', () => {
-    const primeira = systemClock.now();
+    const first = systemClock.now();
 
-    const segunda = systemClock.now();
+    const second = systemClock.now();
 
-    expect(segunda.getTime()).toBeGreaterThanOrEqual(primeira.getTime());
+    expect(second.getTime()).toBeGreaterThanOrEqual(first.getTime());
   });
 
   test('now() devolve um Date novo a cada chamada, e não uma instância compartilhada', () => {
-    const primeira = systemClock.now();
+    const first = systemClock.now();
 
-    const segunda = systemClock.now();
+    const second = systemClock.now();
 
-    expect(segunda).not.toBe(primeira);
+    expect(second).not.toBe(first);
   });
 });
 
 describe('uuidIdGenerator', () => {
   test('next() devolve um uuid válido', () => {
-    const gerador = uuidIdGenerator;
+    const generator = uuidIdGenerator;
 
-    const id = gerador.next();
+    const id = generator.next();
 
     expect(id).toMatch(UUID_V4);
   });
 
-  test(`next() não repete em ${CHAMADAS} chamadas`, () => {
-    const gerador = uuidIdGenerator;
+  test(`next() não repete em ${ROLL_CALLS} chamadas`, () => {
+    const generator = uuidIdGenerator;
 
-    const gerados = new Set(Array.from({ length: CHAMADAS }, () => gerador.next()));
+    const generated = new Set(Array.from({ length: ROLL_CALLS }, () => generator.next()));
 
-    expect(gerados.size).toBe(CHAMADAS);
+    expect(generated.size).toBe(ROLL_CALLS);
   });
 
-  test(`os ${CHAMADAS} identificadores gerados são todos uuid válidos`, () => {
-    const gerador = uuidIdGenerator;
+  test(`os ${ROLL_CALLS} identificadores gerados são todos uuid válidos`, () => {
+    const generator = uuidIdGenerator;
 
-    const invalidos = Array.from({ length: CHAMADAS }, () => gerador.next()).filter(
+    const invalid = Array.from({ length: ROLL_CALLS }, () => generator.next()).filter(
       (id) => !UUID_V4.test(id),
     );
 
-    expect(invalidos).toEqual([]);
+    expect(invalid).toEqual([]);
   });
 });

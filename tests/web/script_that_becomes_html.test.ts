@@ -2,144 +2,144 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { RAIZ_DO_PROJETO } from './support';
+import { PROJECT_ROOT } from './support';
 import { firstExistingPath } from '../support/paths';
-import { PASTA_GOLDEN } from './golden';
+import { GOLDEN_DIR } from './golden';
 
-const CAMINHO_DO_PARCIAL = await firstExistingPath(
+const PARTIAL_PATH = await firstExistingPath(
   'src/web/templates/parciais/_script_avisos.eta',
   'src/web/templates/partials/_notices_script.eta',
 );
 
-const CAMINHO_DO_VERIFICADOR = 'scripts/magic-values.ts';
+const CHECKER_PATH = 'scripts/magic-values.ts';
 
-const DIRETORIO_DE_PACOTES = 'node_modules';
+const PACKAGES_DIR = 'node_modules';
 
-const PREFIXO_DA_AREA_DE_SONDA = 'escolaviva-script-que-vira-html-';
+const PROBE_AREA_PREFIX = 'escolaviva-script-que-vira-html-';
 
-const CORPO_DO_SCRIPT = /<script\b[^>]*>([\s\S]*?)<\/script>/;
+const SCRIPT_BODY = /<script\b[^>]*>([\s\S]*?)<\/script>/;
 
-const FECHAMENTO_DO_SCRIPT = '</script>';
+const SCRIPT_END = '</script>';
 
-const FIM_DO_DOCUMENTO = '</html>';
+const DOCUMENT_END = '</html>';
 
-const PADRAO_DO_GOLDEN = '*.txt';
+const GOLDEN_PATTERN = '*.txt';
 
-const ENDERECO_A_MAO_QUE_O_VERIFICADOR_ACUSA =
+const HANDWRITTEN_URL_THE_CHECKER_FLAGS =
   '    fechar.dataset.destino = \'<a href="/painel"></a>\';\n';
 
-const ISENCAO_DE_PE = 'o corpo do <script> fica fora do alcance do verificador';
+const EXEMPTION_STANDS = 'o corpo do <script> fica fora do alcance do verificador';
 
-const ISENCAO_CAIU =
-  `a entrada de TEMPLATES_CUJO_SCRIPT_VIRA_HTML para ${CAMINHO_DO_PARCIAL} sumiu de ` +
-  `${CAMINHO_DO_VERIFICADOR}. O verificador voltou a ler o corpo de um <script> que viaja ` +
+const EXEMPTION_FELL =
+  `a entrada de TEMPLATES_CUJO_SCRIPT_VIRA_HTML para ${PARTIAL_PATH} sumiu de ` +
+  `${CHECKER_PATH}. O verificador voltou a ler o corpo de um <script> que viaja ` +
   'verbatim para o navegador em toda tela com documento: extrair esses literais para constantes ' +
   'acrescenta interpolação ao HTML de todas elas, e o golden muda de uma vez. Reponha a entrada.';
 
-const SONDA_VIVA = 'sem a isenção o verificador acusa o corpo do <script>';
+const LIVE_PROBE = 'sem a isenção o verificador acusa o corpo do <script>';
 
-const SONDA_MORTA =
+const DEAD_PROBE =
   'a sonda não acusou nada nem com a isenção removida — este caso deixou de provar qualquer ' +
   'coisa sobre a isenção; conserte a sonda antes de confiar no resultado acima.';
 
-const fonteDoParcial = (): Promise<string> =>
-  Bun.file(join(RAIZ_DO_PROJETO, CAMINHO_DO_PARCIAL)).text();
+const partialSource = (): Promise<string> =>
+  Bun.file(join(PROJECT_ROOT, PARTIAL_PATH)).text();
 
-const fonteDoVerificador = (): Promise<string> =>
-  Bun.file(join(RAIZ_DO_PROJETO, CAMINHO_DO_VERIFICADOR)).text();
+const checkerSource = (): Promise<string> =>
+  Bun.file(join(PROJECT_ROOT, CHECKER_PATH)).text();
 
-const corpoDoScript = (fonte: string): string => CORPO_DO_SCRIPT.exec(fonte)?.[1] ?? '';
+const scriptBody = (source: string): string => SCRIPT_BODY.exec(source)?.[1] ?? '';
 
-const semAEntradaDaIsencao = (fonte: string): string =>
-  fonte
+const withoutTheExemptionEntry = (source: string): string =>
+  source
     .split('\n')
-    .filter((linha) => !linha.includes(CAMINHO_DO_PARCIAL))
+    .filter((row) => !row.includes(PARTIAL_PATH))
     .join('\n');
 
-const acusouOParcial = (saida: string): boolean => saida.includes(CAMINHO_DO_PARCIAL);
+const flaggedThePartial = (stdout: string): boolean => stdout.includes(PARTIAL_PATH);
 
-const vereditoComAIsencao = (saida: string): string =>
-  acusouOParcial(saida) ? `${ISENCAO_CAIU}\n${saida.trim()}` : ISENCAO_DE_PE;
+const verdictWithExemption = (stdout: string): string =>
+  flaggedThePartial(stdout) ? `${EXEMPTION_FELL}\n${stdout.trim()}` : EXEMPTION_STANDS;
 
-const vereditoSemAIsencao = (saida: string): string =>
-  acusouOParcial(saida) ? SONDA_VIVA : `${SONDA_MORTA}\n${saida.trim()}`;
+const verdictWithoutExemption = (stdout: string): string =>
+  flaggedThePartial(stdout) ? LIVE_PROBE : `${DEAD_PROBE}\n${stdout.trim()}`;
 
-type Tela = { readonly nome: string; readonly conteudo: string };
+type GoldenScreen = { readonly name: string; readonly content: string };
 
-async function telasCongeladas(): Promise<Tela[]> {
-  const telas: Tela[] = [];
-  for await (const nome of new Bun.Glob(PADRAO_DO_GOLDEN).scan({ cwd: PASTA_GOLDEN })) {
-    telas.push({ nome, conteudo: await Bun.file(join(PASTA_GOLDEN, nome)).text() });
+async function frozenScreens(): Promise<GoldenScreen[]> {
+  const screens: GoldenScreen[] = [];
+  for await (const name of new Bun.Glob(GOLDEN_PATTERN).scan({ cwd: GOLDEN_DIR })) {
+    screens.push({ name, content: await Bun.file(join(GOLDEN_DIR, name)).text() });
   }
-  return telas.sort((aqui, ali) => aqui.nome.localeCompare(ali.nome));
+  return screens.sort((here, there) => here.name.localeCompare(there.name));
 }
 
-async function montarAreaDeSonda(): Promise<string> {
-  const raiz = await mkdtemp(join(tmpdir(), PREFIXO_DA_AREA_DE_SONDA));
-  await mkdir(join(raiz, dirname(CAMINHO_DO_PARCIAL)), { recursive: true });
-  await mkdir(join(raiz, dirname(CAMINHO_DO_VERIFICADOR)), { recursive: true });
-  await symlink(join(RAIZ_DO_PROJETO, DIRETORIO_DE_PACOTES), join(raiz, DIRETORIO_DE_PACOTES));
-  const parcial = await fonteDoParcial();
+async function buildProbeArea(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), PROBE_AREA_PREFIX));
+  await mkdir(join(root, dirname(PARTIAL_PATH)), { recursive: true });
+  await mkdir(join(root, dirname(CHECKER_PATH)), { recursive: true });
+  await symlink(join(PROJECT_ROOT, PACKAGES_DIR), join(root, PACKAGES_DIR));
+  const partial = await partialSource();
   await writeFile(
-    join(raiz, CAMINHO_DO_PARCIAL),
-    parcial.replace(
-      FECHAMENTO_DO_SCRIPT,
-      `${ENDERECO_A_MAO_QUE_O_VERIFICADOR_ACUSA}${FECHAMENTO_DO_SCRIPT}`,
+    join(root, PARTIAL_PATH),
+    partial.replace(
+      SCRIPT_END,
+      `${HANDWRITTEN_URL_THE_CHECKER_FLAGS}${SCRIPT_END}`,
     ),
   );
-  return raiz;
+  return root;
 }
 
-async function rodarVerificador(raiz: string, fonte: string): Promise<string> {
-  await writeFile(join(raiz, CAMINHO_DO_VERIFICADOR), fonte);
-  const processo = Bun.spawn([process.execPath, CAMINHO_DO_VERIFICADOR], {
-    cwd: raiz,
+async function runChecker(root: string, source: string): Promise<string> {
+  await writeFile(join(root, CHECKER_PATH), source);
+  const child = Bun.spawn([process.execPath, CHECKER_PATH], {
+    cwd: root,
     env: { PATH: Bun.env.PATH ?? '' },
     stdout: 'pipe',
     stderr: 'pipe',
   });
-  const [saida, erro] = await Promise.all([
-    new Response(processo.stdout).text(),
-    new Response(processo.stderr).text(),
+  const [stdout, stderr] = await Promise.all([
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
   ]);
-  await processo.exited;
-  return `${saida}${erro}`;
+  await child.exited;
+  return `${stdout}${stderr}`;
 }
 
 describe('o <script> de avisos é HTML que viaja para o navegador', () => {
-  let areaDeSonda = '';
+  let probeArea = '';
 
   beforeAll(async () => {
-    areaDeSonda = await montarAreaDeSonda();
+    probeArea = await buildProbeArea();
   });
 
   afterAll(async () => {
-    if (areaDeSonda === '') return;
-    await rm(join(areaDeSonda, DIRETORIO_DE_PACOTES), { force: true });
-    await rm(areaDeSonda, { recursive: true, force: true });
+    if (probeArea === '') return;
+    await rm(join(probeArea, PACKAGES_DIR), { force: true });
+    await rm(probeArea, { recursive: true, force: true });
   });
 
   test('o corpo do script chega verbatim a toda tela congelada que tem documento', async () => {
-    const corpo = corpoDoScript(await fonteDoParcial());
-    const telas = await telasCongeladas();
+    const body = scriptBody(await partialSource());
+    const screens = await frozenScreens();
 
-    const comDocumento = telas.filter((tela) => tela.conteudo.includes(FIM_DO_DOCUMENTO));
-    const semOCorpo = comDocumento
-      .filter((tela) => !tela.conteudo.includes(corpo))
-      .map((tela) => tela.nome);
+    const withDocument = screens.filter((screen) => screen.content.includes(DOCUMENT_END));
+    const withoutTheBody = withDocument
+      .filter((screen) => !screen.content.includes(body))
+      .map((screen) => screen.name);
 
-    expect(corpo).not.toBe('');
-    expect(comDocumento.length).toBeGreaterThan(0);
-    expect(semOCorpo).toEqual([]);
+    expect(body).not.toBe('');
+    expect(withDocument.length).toBeGreaterThan(0);
+    expect(withoutTheBody).toEqual([]);
   });
 
   test('o verificador não lê esse corpo, e é a isenção que o segura', async () => {
-    const verificador = await fonteDoVerificador();
+    const checker = await checkerSource();
 
-    const comAIsencao = await rodarVerificador(areaDeSonda, verificador);
-    const semAIsencao = await rodarVerificador(areaDeSonda, semAEntradaDaIsencao(verificador));
+    const withTheExemption = await runChecker(probeArea, checker);
+    const withoutTheExemption = await runChecker(probeArea, withoutTheExemptionEntry(checker));
 
-    expect(vereditoSemAIsencao(semAIsencao)).toBe(SONDA_VIVA);
-    expect(vereditoComAIsencao(comAIsencao)).toBe(ISENCAO_DE_PE);
+    expect(verdictWithoutExemption(withoutTheExemption)).toBe(LIVE_PROBE);
+    expect(verdictWithExemption(withTheExemption)).toBe(EXEMPTION_STANDS);
   });
 });

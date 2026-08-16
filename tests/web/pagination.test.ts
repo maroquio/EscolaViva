@@ -7,236 +7,236 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { limparBanco } from '../support/database';
+import { clearDatabase } from '../support/database';
 import {
-  cenarioCompleto,
-  criarAluno,
-  criarComunicado,
-  criarMatricula,
-  criarResponsavel,
-  type Cenario,
+  fullScenario,
+  createStudent,
+  createAnnouncement,
+  createEnrollment,
+  createGuardian,
+  type Scenario,
 } from '../support/factories';
 import { DEFAULT_PAGE_SIZE } from '../../src/shared/pagination';
 import { PARAMS } from '../../src/web/constants';
 import { helpId } from '../../src/web/render';
-import { abrir, entrar } from './support';
+import { open, signIn } from './support';
 
-beforeEach(limparBanco);
+beforeEach(clearDatabase);
 
 /**
  * O tamanho de página do sistema, lido de onde ele é decidido. Os cenários abaixo são montados em
  * torno dele: mudar a régua muda os números esperados sem reescrever teste nenhum.
  */
-const TAMANHO = DEFAULT_PAGE_SIZE;
+const PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
 /** Os cinco registros que o cenário completo já traz: a sobra que cai na última página. */
-const SOBRA = 5;
+const REMAINDER = 5;
 
-const entrarComoSecretaria = (cenario: Cenario): Promise<string> =>
-  entrar({ redeSlug: cenario.rede.slug, cpf: cenario.secretaria.cpf, senha: cenario.senha });
+const signInAsRegistrar = (scenario: Scenario): Promise<string> =>
+  signIn({ networkSlug: scenario.network.slug, cpf: scenario.registrar.cpf, password: scenario.password });
 
-const entrarComoResponsavel = (cenario: Cenario): Promise<string> =>
-  entrar({ redeSlug: cenario.rede.slug, cpf: cenario.responsavel.cpf, senha: cenario.senha });
+const signInAsGuardian = (scenario: Scenario): Promise<string> =>
+  signIn({ networkSlug: scenario.network.slug, cpf: scenario.guardian.cpf, password: scenario.password });
 
-const html = async (caminho: string, cookie: string): Promise<string> =>
-  await (await abrir(caminho, cookie)).text();
+const html = async (path: string, cookie: string): Promise<string> =>
+  await (await open(path, cookie)).text();
 
 /** Cada linha de dado tem uma célula-âncora `scope="row"`; o cabeçalho não tem. */
-const linhasDaTabela = (pagina: string): number => (pagina.match(/scope="row"/g) ?? []).length;
+const tableRows = (page: string): number => (page.match(/scope="row"/g) ?? []).length;
 
-const nomeNumerado = (posicao: number): string => `Pessoa ${String(posicao).padStart(3, '0')}`;
+const numberedName = (position: number): string => `Pessoa ${String(position).padStart(3, '0')}`;
 
 describe('recorte na tela de responsáveis', () => {
   /** Uma página cheia e uma sobra de cinco: os cinco do cenário mais uma página inteira. */
-  const umaPaginaEUmaSobra = async (): Promise<Cenario> => {
-    const cenario = await cenarioCompleto();
-    for (let i = 1; i <= TAMANHO; i += 1) {
-      await criarResponsavel({ networkId: cenario.rede.id, name: nomeNumerado(i) });
+  const onePageAndARemainder = async (): Promise<Scenario> => {
+    const scenario = await fullScenario();
+    for (let i = 1; i <= PAGE_SIZE; i += 1) {
+      await createGuardian({ networkId: scenario.network.id, name: numberedName(i) });
     }
-    return cenario;
+    return scenario;
   };
 
   test('a primeira página traz o tamanho de página, e não a lista inteira', async () => {
-    const cenario = await umaPaginaEUmaSobra();
+    const scenario = await onePageAndARemainder();
 
-    const pagina = await html('/secretaria/responsaveis', await entrarComoSecretaria(cenario));
+    const page = await html('/secretaria/responsaveis', await signInAsRegistrar(scenario));
 
-    expect(linhasDaTabela(pagina)).toBe(TAMANHO);
-    expect(pagina).toContain('class="paginacao"');
-    expect(pagina).toContain('href="/secretaria/responsaveis?p=2"');
+    expect(tableRows(page)).toBe(PAGE_SIZE);
+    expect(page).toContain('class="paginacao"');
+    expect(page).toContain('href="/secretaria/responsaveis?p=2"');
   });
 
   test('a contagem da seção mostra o total, e não o tamanho da página', async () => {
-    const cenario = await umaPaginaEUmaSobra();
+    const scenario = await onePageAndARemainder();
 
-    const pagina = await html('/secretaria/responsaveis', await entrarComoSecretaria(cenario));
+    const page = await html('/secretaria/responsaveis', await signInAsRegistrar(scenario));
 
-    expect(pagina).toContain(`>${TAMANHO + SOBRA}</span>`);
+    expect(page).toContain(`>${PAGE_SIZE + REMAINDER}</span>`);
   });
 
   test('a segunda página traz a sobra e oferece a volta', async () => {
-    const cenario = await umaPaginaEUmaSobra();
+    const scenario = await onePageAndARemainder();
 
-    const pagina = await html('/secretaria/responsaveis?p=2', await entrarComoSecretaria(cenario));
+    const page = await html('/secretaria/responsaveis?p=2', await signInAsRegistrar(scenario));
 
-    expect(linhasDaTabela(pagina)).toBe(SOBRA);
-    expect(pagina).toContain('rel="prev"');
-    expect(pagina).not.toContain('rel="next"');
+    expect(tableRows(page)).toBe(REMAINDER);
+    expect(page).toContain('rel="prev"');
+    expect(page).not.toContain('rel="next"');
   });
 
   test('página além do fim serve a última, em vez de uma tela vazia', async () => {
-    const cenario = await umaPaginaEUmaSobra();
+    const scenario = await onePageAndARemainder();
 
-    const pagina = await html('/secretaria/responsaveis?p=999', await entrarComoSecretaria(cenario));
+    const page = await html('/secretaria/responsaveis?p=999', await signInAsRegistrar(scenario));
 
-    expect(linhasDaTabela(pagina)).toBe(SOBRA);
+    expect(tableRows(page)).toBe(REMAINDER);
   });
 
   test('página que não é número cai na primeira, sem erro', async () => {
-    const cenario = await umaPaginaEUmaSobra();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await onePageAndARemainder();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir('/secretaria/responsaveis?p=abc', cookie);
+    const response = await open('/secretaria/responsaveis?p=abc', cookie);
 
-    expect(resposta.status).toBe(200);
-    expect(linhasDaTabela(await resposta.text())).toBe(TAMANHO);
+    expect(response.status).toBe(200);
+    expect(tableRows(await response.text())).toBe(PAGE_SIZE);
   });
 
   test('lista de uma página só não desenha os controles, mas continua contando', async () => {
-    const cenario = await cenarioCompleto();
+    const scenario = await fullScenario();
 
-    const pagina = await html('/secretaria/responsaveis', await entrarComoSecretaria(cenario));
+    const page = await html('/secretaria/responsaveis', await signInAsRegistrar(scenario));
 
-    expect(pagina).toContain('class="paginacao"');
-    expect(pagina).not.toContain('paginacao__lista');
+    expect(page).toContain('class="paginacao"');
+    expect(page).not.toContain('paginacao__lista');
   });
 });
 
 describe('o resto da query sobrevive à navegação', () => {
   test('o termo da busca continua nos links de página', async () => {
-    const cenario = await cenarioCompleto();
-    for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
-      await criarAluno({ networkId: cenario.rede.id, name: `Silva ${String(i).padStart(3, '0')}` });
+    const scenario = await fullScenario();
+    for (let i = 1; i <= PAGE_SIZE + REMAINDER; i += 1) {
+      await createStudent({ networkId: scenario.network.id, name: `Silva ${String(i).padStart(3, '0')}` });
     }
 
-    const pagina = await html('/secretaria/alunos?q=Silva', await entrarComoSecretaria(cenario));
+    const page = await html('/secretaria/alunos?q=Silva', await signInAsRegistrar(scenario));
 
-    expect(linhasDaTabela(pagina)).toBe(TAMANHO);
-    expect(pagina).toContain('q=Silva&amp;p=2');
+    expect(tableRows(page)).toBe(PAGE_SIZE);
+    expect(page).toContain('q=Silva&amp;p=2');
   });
 
   test('voltar à primeira página tira o parâmetro da URL em vez de escrever p=1', async () => {
-    const cenario = await cenarioCompleto();
-    for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
-      await criarResponsavel({ networkId: cenario.rede.id, name: nomeNumerado(i) });
+    const scenario = await fullScenario();
+    for (let i = 1; i <= PAGE_SIZE + REMAINDER; i += 1) {
+      await createGuardian({ networkId: scenario.network.id, name: numberedName(i) });
     }
 
-    const pagina = await html('/secretaria/responsaveis?p=2', await entrarComoSecretaria(cenario));
+    const page = await html('/secretaria/responsaveis?p=2', await signInAsRegistrar(scenario));
 
-    expect(pagina).toContain('href="/secretaria/responsaveis"');
-    expect(pagina).not.toContain('p=1"');
+    expect(page).toContain('href="/secretaria/responsaveis"');
+    expect(page).not.toContain('p=1"');
   });
 });
 
 describe('duas tabelas na mesma tela', () => {
   test('avançar as matrículas não mexe na página das disciplinas', async () => {
-    const cenario = await cenarioCompleto();
-    const [turma] = cenario.turmas;
+    const scenario = await fullScenario();
+    const [classGroup] = scenario.classGroups;
     // As matrículas do cenário mais uma página inteira: a turma passa a ter duas páginas de alunos.
-    for (let i = 1; i <= TAMANHO; i += 1) {
-      const aluno = await criarAluno({ networkId: cenario.rede.id, name: nomeNumerado(i) });
-      await criarMatricula({
-        networkId: cenario.rede.id, studentId: aluno.id, classGroupId: turma.id,
-        academicYearId: cenario.anoLetivo.id,
+    for (let i = 1; i <= PAGE_SIZE; i += 1) {
+      const student = await createStudent({ networkId: scenario.network.id, name: numberedName(i) });
+      await createEnrollment({
+        networkId: scenario.network.id, studentId: student.id, classGroupId: classGroup.id,
+        academicYearId: scenario.academicYear.id,
       });
     }
 
-    const pagina = await html(
-      `/secretaria/turmas/${turma.id}?pDisciplinas=1`,
-      await entrarComoSecretaria(cenario),
+    const page = await html(
+      `/secretaria/turmas/${classGroup.id}?pDisciplinas=1`,
+      await signInAsRegistrar(scenario),
     );
 
     // O link que avança os alunos carrega junto a página em que as disciplinas estão.
-    expect(pagina).toContain('pDisciplinas=1&amp;pMatriculas=2');
+    expect(page).toContain('pDisciplinas=1&amp;pMatriculas=2');
   });
 });
 
 describe('portal do responsável', () => {
   test('o mural pagina as duas metades com parâmetros próprios', async () => {
-    const cenario = await cenarioCompleto();
-    const [responsavel] = cenario.responsaveis;
+    const scenario = await fullScenario();
+    const [guardian] = scenario.guardians;
     // Um por ler e um já lido: cada metade do mural precisa ter o que contar.
-    await criarComunicado({
-      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id,
-      authorUserId: cenario.secretaria.id,
-      destinatarios: [{ guardianId: responsavel.id }],
+    await createAnnouncement({
+      networkId: scenario.network.id, schoolId: scenario.schools[0].id,
+      authorUserId: scenario.registrar.id,
+      recipients: [{ guardianId: guardian.id }],
     });
-    await criarComunicado({
-      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id,
-      authorUserId: cenario.secretaria.id,
-      destinatarios: [{ guardianId: responsavel.id, readAt: new Date() }],
+    await createAnnouncement({
+      networkId: scenario.network.id, schoolId: scenario.schools[0].id,
+      authorUserId: scenario.registrar.id,
+      recipients: [{ guardianId: guardian.id, readAt: new Date() }],
     });
 
-    const pagina = await html('/responsavel/mural', await entrarComoResponsavel(cenario));
+    const page = await html('/responsavel/mural', await signInAsGuardian(scenario));
 
-    expect(pagina).toContain('Paginação de comunicados não lidos');
-    expect(pagina).toContain('Paginação de comunicados lidos');
+    expect(page).toContain('Paginação de comunicados não lidos');
+    expect(page).toContain('Paginação de comunicados lidos');
   });
 
   test('a frequência do aluno abre paginada', async () => {
-    const cenario = await cenarioCompleto();
-    const [matricula] = cenario.matriculas;
+    const scenario = await fullScenario();
+    const [enrollment] = scenario.enrollments;
 
-    const resposta = await abrir(
-      `/responsavel/matriculas/${matricula.id}/frequencia`,
-      await entrarComoResponsavel(cenario),
+    const response = await open(
+      `/responsavel/matriculas/${enrollment.id}/frequencia`,
+      await signInAsGuardian(scenario),
     );
 
-    expect(resposta.status).toBe(200);
+    expect(response.status).toBe(200);
   });
 });
 
 describe('a ajuda da busca de alunos promete o recorte que a tela entrega', () => {
-  const AJUDA = new RegExp(`id="${helpId(PARAMS.search)}"[^>]*>([\\s\\S]*?)</p>`);
+  const HELP_TEXT = new RegExp(`id="${helpId(PARAMS.search)}"[^>]*>([\\s\\S]*?)</p>`);
 
-  const numerosDaAjuda = (pagina: string): number[] =>
-    ((AJUDA.exec(pagina)?.[1] ?? '').match(/\d+/g) ?? []).map(Number);
+  const numbersInHelpText = (page: string): number[] =>
+    ((HELP_TEXT.exec(page)?.[1] ?? '').match(/\d+/g) ?? []).map(Number);
 
   test('o único número da ajuda é o número de linhas que a página traz', async () => {
-    const cenario = await cenarioCompleto();
-    for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
-      await criarAluno({ networkId: cenario.rede.id, name: `Silva ${String(i).padStart(3, '0')}` });
+    const scenario = await fullScenario();
+    for (let i = 1; i <= PAGE_SIZE + REMAINDER; i += 1) {
+      await createStudent({ networkId: scenario.network.id, name: `Silva ${String(i).padStart(3, '0')}` });
     }
 
-    const pagina = await html('/secretaria/alunos?q=Silva', await entrarComoSecretaria(cenario));
+    const page = await html('/secretaria/alunos?q=Silva', await signInAsRegistrar(scenario));
 
-    expect(numerosDaAjuda(pagina)).toEqual([linhasDaTabela(pagina)]);
-    expect(numerosDaAjuda(pagina)).toEqual([TAMANHO]);
+    expect(numbersInHelpText(page)).toEqual([tableRows(page)]);
+    expect(numbersInHelpText(page)).toEqual([PAGE_SIZE]);
   });
 
   test('a ajuda não promete um teto: a paginação alcança todos os encontrados', async () => {
-    const cenario = await cenarioCompleto();
-    for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
-      await criarAluno({ networkId: cenario.rede.id, name: `Silva ${String(i).padStart(3, '0')}` });
+    const scenario = await fullScenario();
+    for (let i = 1; i <= PAGE_SIZE + REMAINDER; i += 1) {
+      await createStudent({ networkId: scenario.network.id, name: `Silva ${String(i).padStart(3, '0')}` });
     }
-    const cookie = await entrarComoSecretaria(cenario);
+    const cookie = await signInAsRegistrar(scenario);
 
-    const primeira = await html('/secretaria/alunos?q=Silva', cookie);
-    const ultima = await html('/secretaria/alunos?q=Silva&p=2', cookie);
+    const first = await html('/secretaria/alunos?q=Silva', cookie);
+    const last = await html('/secretaria/alunos?q=Silva&p=2', cookie);
 
-    const encontrados = linhasDaTabela(primeira) + linhasDaTabela(ultima);
-    expect(numerosDaAjuda(primeira)).toEqual(numerosDaAjuda(ultima));
-    expect(encontrados).toBeGreaterThan(numerosDaAjuda(primeira)[0] ?? 0);
+    const found = tableRows(first) + tableRows(last);
+    expect(numbersInHelpText(first)).toEqual(numbersInHelpText(last));
+    expect(found).toBeGreaterThan(numbersInHelpText(first)[0] ?? 0);
   });
 
   test('a tela sem busca declara o mesmo recorte da tela com resultado', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const semBusca = await html('/secretaria/alunos', cookie);
-    const comBusca = await html('/secretaria/alunos?q=Silva', cookie);
+    const withoutSearch = await html('/secretaria/alunos', cookie);
+    const withSearch = await html('/secretaria/alunos?q=Silva', cookie);
 
-    expect(numerosDaAjuda(semBusca)).toEqual(numerosDaAjuda(comBusca));
-    expect(numerosDaAjuda(semBusca)).toEqual([TAMANHO]);
+    expect(numbersInHelpText(withoutSearch)).toEqual(numbersInHelpText(withSearch));
+    expect(numbersInHelpText(withoutSearch)).toEqual([PAGE_SIZE]);
   });
 });

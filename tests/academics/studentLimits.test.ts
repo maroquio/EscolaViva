@@ -1,69 +1,69 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { ACADEMIC_LIMITS, academics } from '../../src/academics';
 import type { Result } from '../../src/shared/result';
-import { limparBanco } from '../support/database';
-import { criarAluno, criarRede } from '../support/factories';
+import { clearDatabase } from '../support/database';
+import { createStudent, createNetwork } from '../support/factories';
 
-beforeEach(limparBanco);
+beforeEach(clearDatabase);
 
-const LINHAS_DA_BUSCA = ACADEMIC_LIMITS.student.searchRows;
-const CARACTERES_DO_NOME = ACADEMIC_LIMITS.student.name;
+const SEARCH_ROWS = ACADEMIC_LIMITS.student.searchRows;
+const NAME_CHARACTERS = ACADEMIC_LIMITS.student.name;
 
-const nomeNumerado = (posicao: number): string => `Pessoa ${String(posicao).padStart(3, '0')}`;
+const numberedName = (position: number): string => `Pessoa ${String(position).padStart(3, '0')}`;
 
-const camposComErro = <T>(resultado: Result<T>): string[] =>
-  resultado.ok ? [] : resultado.erros.map((erro) => erro.campo ?? '');
+const fieldsWithError = <T>(result: Result<T>): string[] =>
+  result.ok ? [] : result.erros.map((error) => error.campo ?? '');
 
 describe('LIMITS.student.searchRows conta LINHAS devolvidas', () => {
   test('a busca sem faixa devolve no máximo esse tanto de linhas', async () => {
-    const rede = await criarRede();
-    for (let posicao = 1; posicao <= LINHAS_DA_BUSCA + 1; posicao += 1) {
-      await criarAluno({ networkId: rede.id, name: nomeNumerado(posicao) });
+    const network = await createNetwork();
+    for (let position = 1; position <= SEARCH_ROWS + 1; position += 1) {
+      await createStudent({ networkId: network.id, name: numberedName(position) });
     }
 
-    const encontrados = await academics.searchStudents(rede.id, 'Pessoa');
+    const found = await academics.searchStudents(network.id, 'Pessoa');
 
-    expect(encontrados).toHaveLength(LINHAS_DA_BUSCA);
-    expect(encontrados.map((aluno) => aluno.name)).toEqual(
-      Array.from({ length: LINHAS_DA_BUSCA }, (_, indice) => nomeNumerado(indice + 1)),
+    expect(found).toHaveLength(SEARCH_ROWS);
+    expect(found.map((student) => student.name)).toEqual(
+      Array.from({ length: SEARCH_ROWS }, (_, index) => numberedName(index + 1)),
     );
   });
 
   test('o nome longo não estreita nem alarga o corte da busca', async () => {
-    const rede = await criarRede();
-    for (let posicao = 1; posicao <= LINHAS_DA_BUSCA + 1; posicao += 1) {
-      await criarAluno({ networkId: rede.id, name: `${nomeNumerado(posicao)} ${'x'.repeat(80)}` });
+    const network = await createNetwork();
+    for (let position = 1; position <= SEARCH_ROWS + 1; position += 1) {
+      await createStudent({ networkId: network.id, name: `${numberedName(position)} ${'x'.repeat(80)}` });
     }
 
-    const encontrados = await academics.searchStudents(rede.id, 'Pessoa');
+    const found = await academics.searchStudents(network.id, 'Pessoa');
 
-    expect(encontrados).toHaveLength(LINHAS_DA_BUSCA);
+    expect(found).toHaveLength(SEARCH_ROWS);
   });
 });
 
 describe('LIMITS.student.name conta CARACTERES do nome', () => {
   test('aceita o nome com exatamente esse tanto de caracteres', async () => {
-    const rede = await criarRede();
+    const network = await createNetwork();
 
-    const resultado = await academics.registerStudent({
-      networkId: rede.id,
-      name: 'A'.repeat(CARACTERES_DO_NOME),
+    const result = await academics.registerStudent({
+      networkId: network.id,
+      name: 'A'.repeat(NAME_CHARACTERS),
       birthDate: '2014-05-10',
     });
 
-    expect(camposComErro(resultado)).toEqual([]);
-    expect(resultado.ok).toBe(true);
+    expect(fieldsWithError(result)).toEqual([]);
+    expect(result.ok).toBe(true);
   });
 
   test('recusa o nome com um caractere a mais', async () => {
-    const rede = await criarRede();
+    const network = await createNetwork();
 
-    const resultado = await academics.registerStudent({
-      networkId: rede.id,
-      name: 'A'.repeat(CARACTERES_DO_NOME + 1),
+    const result = await academics.registerStudent({
+      networkId: network.id,
+      name: 'A'.repeat(NAME_CHARACTERS + 1),
       birthDate: '2014-05-10',
     });
 
-    expect(camposComErro(resultado)).toEqual(['nome']);
+    expect(fieldsWithError(result)).toEqual(['nome']);
   });
 });

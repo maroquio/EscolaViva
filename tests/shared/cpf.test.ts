@@ -11,12 +11,12 @@ import { describe, expect, test } from 'bun:test';
 import { formatCpf, generateCpf, isValidCpf, normalizeCpf } from '../../src/shared/document';
 
 /** CPF de teste consagrado: os dois verificadores fecham. Não pertence a ninguém. */
-const VALIDO = '52998224725';
-const SEMENTES = 500;
+const VALID = '52998224725';
+const SEEDS = 500;
 
 describe('normalizeCpf', () => {
   test('tira pontuação, traço e espaço', () => {
-    expect(normalizeCpf(' 529.982.247-25 ')).toBe(VALIDO);
+    expect(normalizeCpf(' 529.982.247-25 ')).toBe(VALID);
   });
 
   test('texto sem dígito nenhum vira string vazia', () => {
@@ -26,7 +26,7 @@ describe('normalizeCpf', () => {
 
 describe('isValidCpf', () => {
   test('aceita CPF com os dois verificadores corretos', () => {
-    expect(isValidCpf(VALIDO)).toBe(true);
+    expect(isValidCpf(VALID)).toBe(true);
   });
 
   test('recusa quando o último dígito está errado', () => {
@@ -51,7 +51,7 @@ describe('isValidCpf', () => {
 
 describe('formatCpf', () => {
   test('aplica a máscara', () => {
-    expect(formatCpf(VALIDO)).toBe('529.982.247-25');
+    expect(formatCpf(VALID)).toBe('529.982.247-25');
   });
 
   test('entrada que não é CPF devolve o travessão das outras telas', () => {
@@ -66,16 +66,16 @@ describe('generateCpf', () => {
   });
 
   test('tudo o que sai do gerador passa no validador', () => {
-    const invalidos = Array.from({ length: SEMENTES }, (_, i) => generateCpf(i)).filter(
+    const invalid = Array.from({ length: SEEDS }, (_, i) => generateCpf(i)).filter(
       (cpf) => !isValidCpf(cpf),
     );
 
-    expect(invalidos).toEqual([]);
+    expect(invalid).toEqual([]);
   });
 
   test('sementes distintas nunca colidem', () => {
-    const gerados = Array.from({ length: SEMENTES }, (_, i) => generateCpf(i));
+    const generated = Array.from({ length: SEEDS }, (_, i) => generateCpf(i));
 
-    expect(new Set(gerados).size).toBe(SEMENTES);
+    expect(new Set(generated).size).toBe(SEEDS);
   });
 });

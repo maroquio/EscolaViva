@@ -8,44 +8,44 @@
 import { describe, expect, test } from 'bun:test';
 import { clientIp } from '../../src/shared/http/ip';
 
-const REMOTO = '198.51.100.10';
-const PROXY_DA_BORDA = '10.0.0.1';
-const PROXY_INTERNO = '10.0.0.2';
-const CLIENTE = '203.0.113.7';
+const REMOTE_IP = '198.51.100.10';
+const EDGE_PROXY = '10.0.0.1';
+const INTERNAL_PROXY = '10.0.0.2';
+const CLIENT_IP = '203.0.113.7';
 
-function requisicaoCom(cabecalhos: Record<string, string>): Request {
-  return new Request('http://escolaviva.test/login', { headers: cabecalhos });
+function requestWith(headers: Record<string, string>): Request {
+  return new Request('http://escolaviva.test/login', { headers });
 }
 
 describe('clientIp — sem proxy confiável', () => {
   test('ignora X-Forwarded-For e devolve o endereço remoto', () => {
-    const requisicao = requisicaoCom({ 'X-Forwarded-For': '1.2.3.4' });
+    const request = requestWith({ 'X-Forwarded-For': '1.2.3.4' });
 
-    const ip = clientIp(requisicao, REMOTO, []);
+    const ip = clientIp(request, REMOTE_IP, []);
 
-    expect(ip).toBe(REMOTO);
+    expect(ip).toBe(REMOTE_IP);
   });
 
   test('ignora uma cadeia inteira forjada pelo cliente', () => {
-    const requisicao = requisicaoCom({ 'X-Forwarded-For': `${CLIENTE}, 1.2.3.4, 5.6.7.8` });
+    const request = requestWith({ 'X-Forwarded-For': `${CLIENT_IP}, 1.2.3.4, 5.6.7.8` });
 
-    const ip = clientIp(requisicao, REMOTO, []);
+    const ip = clientIp(request, REMOTE_IP, []);
 
-    expect(ip).toBe(REMOTO);
+    expect(ip).toBe(REMOTE_IP);
   });
 
   test('sem cabeçalho nenhum devolve o endereço remoto', () => {
-    const requisicao = requisicaoCom({});
+    const request = requestWith({});
 
-    const ip = clientIp(requisicao, REMOTO, []);
+    const ip = clientIp(request, REMOTE_IP, []);
 
-    expect(ip).toBe(REMOTO);
+    expect(ip).toBe(REMOTE_IP);
   });
 
   test('endereço remoto desconhecido vira string vazia em vez de quebrar', () => {
-    const requisicao = requisicaoCom({ 'X-Forwarded-For': CLIENTE });
+    const request = requestWith({ 'X-Forwarded-For': CLIENT_IP });
 
-    const ip = clientIp(requisicao, undefined, []);
+    const ip = clientIp(request, undefined, []);
 
     expect(ip).toBe('');
   });
@@ -53,108 +53,108 @@ describe('clientIp — sem proxy confiável', () => {
 
 describe('clientIp — com proxy confiável', () => {
   test('devolve o endereço à esquerda do proxy confiável', () => {
-    const requisicao = requisicaoCom({ 'X-Forwarded-For': `${CLIENTE}, ${PROXY_DA_BORDA}` });
+    const request = requestWith({ 'X-Forwarded-For': `${CLIENT_IP}, ${EDGE_PROXY}` });
 
-    const ip = clientIp(requisicao, PROXY_DA_BORDA, [PROXY_DA_BORDA]);
+    const ip = clientIp(request, EDGE_PROXY, [EDGE_PROXY]);
 
-    expect(ip).toBe(CLIENTE);
+    expect(ip).toBe(CLIENT_IP);
   });
 
   test('descarta todos os saltos confiáveis da direita para a esquerda', () => {
-    const requisicao = requisicaoCom({
-      'X-Forwarded-For': `${CLIENTE}, ${PROXY_INTERNO}, ${PROXY_DA_BORDA}`,
+    const request = requestWith({
+      'X-Forwarded-For': `${CLIENT_IP}, ${INTERNAL_PROXY}, ${EDGE_PROXY}`,
     });
 
-    const ip = clientIp(requisicao, PROXY_DA_BORDA, [PROXY_DA_BORDA, PROXY_INTERNO]);
+    const ip = clientIp(request, EDGE_PROXY, [EDGE_PROXY, INTERNAL_PROXY]);
 
-    expect(ip).toBe(CLIENTE);
+    expect(ip).toBe(CLIENT_IP);
   });
 
   test('para no primeiro salto não confiável, mesmo com endereço forjado mais à esquerda', () => {
-    const requisicao = requisicaoCom({
-      'X-Forwarded-For': `1.2.3.4, ${CLIENTE}, ${PROXY_DA_BORDA}`,
+    const request = requestWith({
+      'X-Forwarded-For': `1.2.3.4, ${CLIENT_IP}, ${EDGE_PROXY}`,
     });
 
-    const ip = clientIp(requisicao, PROXY_DA_BORDA, [PROXY_DA_BORDA]);
+    const ip = clientIp(request, EDGE_PROXY, [EDGE_PROXY]);
 
-    expect(ip).toBe(CLIENTE);
+    expect(ip).toBe(CLIENT_IP);
   });
 
   test('cadeia formada só por proxies confiáveis cai no endereço remoto', () => {
-    const requisicao = requisicaoCom({
-      'X-Forwarded-For': `${PROXY_INTERNO}, ${PROXY_DA_BORDA}`,
+    const request = requestWith({
+      'X-Forwarded-For': `${INTERNAL_PROXY}, ${EDGE_PROXY}`,
     });
 
-    const ip = clientIp(requisicao, PROXY_DA_BORDA, [PROXY_DA_BORDA, PROXY_INTERNO]);
+    const ip = clientIp(request, EDGE_PROXY, [EDGE_PROXY, INTERNAL_PROXY]);
 
-    expect(ip).toBe(PROXY_DA_BORDA);
+    expect(ip).toBe(EDGE_PROXY);
   });
 
   test('sem o cabeçalho devolve o endereço remoto', () => {
-    const requisicao = requisicaoCom({});
+    const request = requestWith({});
 
-    const ip = clientIp(requisicao, REMOTO, [PROXY_DA_BORDA]);
+    const ip = clientIp(request, REMOTE_IP, [EDGE_PROXY]);
 
-    expect(ip).toBe(REMOTO);
+    expect(ip).toBe(REMOTE_IP);
   });
 
   test('apara os espaços em volta de cada endereço da cadeia', () => {
-    const requisicao = requisicaoCom({
-      'X-Forwarded-For': `   ${CLIENTE}   ,   ${PROXY_DA_BORDA}   `,
+    const request = requestWith({
+      'X-Forwarded-For': `   ${CLIENT_IP}   ,   ${EDGE_PROXY}   `,
     });
 
-    const ip = clientIp(requisicao, PROXY_DA_BORDA, [PROXY_DA_BORDA]);
+    const ip = clientIp(request, EDGE_PROXY, [EDGE_PROXY]);
 
-    expect(ip).toBe(CLIENTE);
+    expect(ip).toBe(CLIENT_IP);
   });
 
   test('apara os espaços da lista de proxies confiáveis', () => {
-    const requisicao = requisicaoCom({ 'X-Forwarded-For': `${CLIENTE}, ${PROXY_DA_BORDA}` });
+    const request = requestWith({ 'X-Forwarded-For': `${CLIENT_IP}, ${EDGE_PROXY}` });
 
-    const ip = clientIp(requisicao, PROXY_DA_BORDA, [`  ${PROXY_DA_BORDA}  `]);
+    const ip = clientIp(request, EDGE_PROXY, [`  ${EDGE_PROXY}  `]);
 
-    expect(ip).toBe(CLIENTE);
+    expect(ip).toBe(CLIENT_IP);
   });
 
   test('lê o cabeçalho independentemente da caixa do nome', () => {
-    const requisicao = requisicaoCom({ 'x-forwarded-for': `${CLIENTE}, ${PROXY_DA_BORDA}` });
+    const request = requestWith({ 'x-forwarded-for': `${CLIENT_IP}, ${EDGE_PROXY}` });
 
-    const ip = clientIp(requisicao, PROXY_DA_BORDA, [PROXY_DA_BORDA]);
+    const ip = clientIp(request, EDGE_PROXY, [EDGE_PROXY]);
 
-    expect(ip).toBe(CLIENTE);
+    expect(ip).toBe(CLIENT_IP);
   });
 });
 
 describe('clientIp — cabeçalho vazio ou com lixo', () => {
   test('cabeçalho vazio devolve o endereço remoto', () => {
-    const requisicao = requisicaoCom({ 'X-Forwarded-For': '' });
+    const request = requestWith({ 'X-Forwarded-For': '' });
 
-    const ip = clientIp(requisicao, REMOTO, [PROXY_DA_BORDA]);
+    const ip = clientIp(request, REMOTE_IP, [EDGE_PROXY]);
 
-    expect(ip).toBe(REMOTO);
+    expect(ip).toBe(REMOTE_IP);
   });
 
   test('cabeçalho só com vírgulas e espaços devolve o endereço remoto', () => {
-    const requisicao = requisicaoCom({ 'X-Forwarded-For': ' , ,, ' });
+    const request = requestWith({ 'X-Forwarded-For': ' , ,, ' });
 
-    const ip = clientIp(requisicao, REMOTO, [PROXY_DA_BORDA]);
+    const ip = clientIp(request, REMOTE_IP, [EDGE_PROXY]);
 
-    expect(ip).toBe(REMOTO);
+    expect(ip).toBe(REMOTE_IP);
   });
 
   test('cabeçalho com texto que não é endereço não quebra e é devolvido como veio', () => {
-    const requisicao = requisicaoCom({ 'X-Forwarded-For': 'lixo-qualquer' });
+    const request = requestWith({ 'X-Forwarded-For': 'lixo-qualquer' });
 
-    const ip = clientIp(requisicao, REMOTO, [PROXY_DA_BORDA]);
+    const ip = clientIp(request, REMOTE_IP, [EDGE_PROXY]);
 
     expect(ip).toBe('lixo-qualquer');
   });
 
   test('cabeçalho com lixo é ignorado quando não há proxy confiável', () => {
-    const requisicao = requisicaoCom({ 'X-Forwarded-For': 'lixo-qualquer' });
+    const request = requestWith({ 'X-Forwarded-For': 'lixo-qualquer' });
 
-    const ip = clientIp(requisicao, REMOTO, []);
+    const ip = clientIp(request, REMOTE_IP, []);
 
-    expect(ip).toBe(REMOTO);
+    expect(ip).toBe(REMOTE_IP);
   });
 });

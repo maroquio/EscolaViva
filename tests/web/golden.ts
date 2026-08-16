@@ -27,37 +27,37 @@
 import { join } from 'node:path';
 import { app } from '../../src/web/app';
 import { generateCpf } from '../../src/shared/document';
-import { sqlDeTeste } from '../support/database';
+import { testSql } from '../support/database';
 import {
-  SENHA_PADRAO,
-  criarAluno,
-  criarAnoLetivo,
-  criarComunicado,
-  criarDisciplina,
-  criarFrequencia,
-  criarMatricula,
-  criarNota,
-  criarRede,
-  criarResponsavel,
-  criarTurma,
-  criarTurmaDisciplina,
-  criarUnidade,
-  criarUsuario,
-  vincularAlunoResponsavel,
-  type AlunoDeTeste,
-  type MatriculaDeTeste,
-  type ResponsavelDeTeste,
+  DEFAULT_PASSWORD,
+  createStudent,
+  createAcademicYear,
+  createAnnouncement,
+  createSubject,
+  createAttendance,
+  createEnrollment,
+  createGrade,
+  createNetwork,
+  createGuardian,
+  createClassGroup,
+  createClassGroupSubject,
+  createSchool,
+  createUser,
+  linkStudentGuardian,
+  type TestStudent,
+  type TestEnrollment,
+  type TestGuardian,
 } from '../support/factories';
-import { entrar } from './support';
+import { signIn } from './support';
 
-export const PASTA_GOLDEN = join(import.meta.dir, 'golden');
+export const GOLDEN_DIR = join(import.meta.dir, 'golden');
 
 /**
  * Papéis que abrem as telas. `anonimo` é a ausência de sessão, e também é uma tela; `semPapel` é a
  * conta que existe e ainda não foi ligada a unidade nenhuma, que é a única porta para a tela
  * "Conta sem papel atribuído" de `/painel`.
  */
-export type Papel =
+export type GoldenRole =
   | 'anonimo'
   | 'semPapel'
   | 'admin'
@@ -65,11 +65,11 @@ export type Papel =
   | 'professor'
   | 'responsavel';
 
-export type Tela = {
+export type GoldenScreen = {
   /** Nome do arquivo em `tests/web/golden/`, sem extensão. */
-  readonly nome: string;
-  readonly papel: Papel;
-  readonly caminho: string;
+  readonly name: string;
+  readonly role: GoldenRole;
+  readonly path: string;
 };
 
 /*
@@ -77,35 +77,35 @@ export type Tela = {
  * determinística sem que a normalização precise apagar o código de ocorrência — se ele sumir da
  * tela, o golden acusa.
  */
-const CORRELACAO = 'golden-correlacao-fixa';
+const CORRELATION = 'golden-correlacao-fixa';
 
 /** Um identificador que respeita o formato e não existe no banco: a porta do 404. */
-const ID_INEXISTENTE = '00000000-0000-4000-8000-000000000000';
+const NONEXISTENT_ID = '00000000-0000-4000-8000-000000000000';
 
-const ANO_CORRENTE = 2026;
-const ANO_ANTERIOR = 2025;
-const TOTAL_DE_ALUNOS = 12;
-const TOTAL_DE_DIAS_DE_CHAMADA = 12;
-const BIMESTRE_FECHADO = 1;
+const CURRENT_YEAR = 2026;
+const PREVIOUS_YEAR = 2025;
+const STUDENT_COUNT = 12;
+const ROLL_CALL_DAY_COUNT = 12;
+const CLOSED_TERM = 1;
 
-const doisDigitos = (valor: number): string => String(valor).padStart(2, '0');
+const twoDigits = (value: number): string => String(value).padStart(2, '0');
 
 /* --- Cenário ---------------------------------------------------------------- */
 
-export type CenarioGolden = {
-  readonly cookies: Readonly<Record<Papel, string>>;
-  readonly marcadores: ReadonlyMap<string, string>;
+export type GoldenScenario = {
+  readonly cookies: Readonly<Record<GoldenRole, string>>;
+  readonly markers: ReadonlyMap<string, string>;
   readonly ids: {
-    readonly unidadeA: string;
-    readonly unidadeB: string;
-    readonly anoCorrente: string;
-    readonly turma1: string;
-    readonly turma2: string;
-    readonly alocacao1: string;
-    readonly aluno1: string;
-    readonly matricula1: string;
-    readonly comunicado1: string;
-    readonly inexistente: string;
+    readonly schoolA: string;
+    readonly schoolB: string;
+    readonly currentYear: string;
+    readonly classGroup1: string;
+    readonly classGroup2: string;
+    readonly assignment1: string;
+    readonly student1: string;
+    readonly enrollment1: string;
+    readonly announcement1: string;
+    readonly nonexistent: string;
   };
 };
 
@@ -118,148 +118,148 @@ export type CenarioGolden = {
  * diferentes. Barra de paginação monta `href` a partir do caminho da requisição, e caminho é
  * exatamente o que o refactor de rotas mexe.
  */
-export async function montarCenarioGolden(): Promise<CenarioGolden> {
-  const rede = await criarRede({ name: 'Rede Modelo do Litoral', slug: 'rede-golden' });
-  const redeId = rede.id;
+export async function buildGoldenScenario(): Promise<GoldenScenario> {
+  const network = await createNetwork({ name: 'Rede Modelo do Litoral', slug: 'rede-golden' });
+  const networkId = network.id;
 
-  const unidadeA = await criarUnidade({ networkId: redeId, name: 'Escola Central', inepCode: '32001234' });
-  const unidadeB = await criarUnidade({ networkId: redeId, name: 'Escola do Bairro', inepCode: '32005678' });
+  const schoolA = await createSchool({ networkId, name: 'Escola Central', inepCode: '32001234' });
+  const schoolB = await createSchool({ networkId, name: 'Escola do Bairro', inepCode: '32005678' });
 
-  const anoCorrente = await criarAnoLetivo({ networkId: redeId, year: ANO_CORRENTE });
-  const anoAnterior = await criarAnoLetivo({ networkId: redeId, year: ANO_ANTERIOR });
+  const currentYear = await createAcademicYear({ networkId, year: CURRENT_YEAR });
+  const previousYear = await createAcademicYear({ networkId, year: PREVIOUS_YEAR });
 
-  const admin = await criarUsuario({
-    networkId: redeId,
+  const admin = await createUser({
+    networkId,
     name: 'Alice Diretora',
     email: 'alice@golden.test',
     cpf: generateCpf(9_100_001),
-    senha: SENHA_PADRAO,
-    papeis: [
-      { schoolId: unidadeA.id, role: 'network_admin' },
-      { schoolId: unidadeB.id, role: 'network_admin' },
+    password: DEFAULT_PASSWORD,
+    roles: [
+      { schoolId: schoolA.id, role: 'network_admin' },
+      { schoolId: schoolB.id, role: 'network_admin' },
     ],
   });
-  const secretaria = await criarUsuario({
-    networkId: redeId,
+  const registrar = await createUser({
+    networkId,
     name: 'Bruno Secretário',
     email: 'bruno@golden.test',
     cpf: generateCpf(9_100_002),
-    senha: SENHA_PADRAO,
-    papeis: [{ schoolId: unidadeA.id, role: 'registrar' }],
+    password: DEFAULT_PASSWORD,
+    roles: [{ schoolId: schoolA.id, role: 'registrar' }],
   });
-  const professor = await criarUsuario({
-    networkId: redeId,
+  const teacher = await createUser({
+    networkId,
     name: 'Carla Professora',
     email: 'carla@golden.test',
     cpf: generateCpf(9_100_003),
-    senha: SENHA_PADRAO,
-    papeis: [{ schoolId: unidadeA.id, role: 'teacher' }],
+    password: DEFAULT_PASSWORD,
+    roles: [{ schoolId: schoolA.id, role: 'teacher' }],
   });
 
-  const turma1 = await criarTurma({
-    networkId: redeId, schoolId: unidadeA.id, academicYearId: anoCorrente.id,
+  const classGroup1 = await createClassGroup({
+    networkId, schoolId: schoolA.id, academicYearId: currentYear.id,
     name: '6A', gradeLevel: '6º ano', shift: 'morning',
   });
-  const turma2 = await criarTurma({
-    networkId: redeId, schoolId: unidadeA.id, academicYearId: anoCorrente.id,
+  const classGroup2 = await createClassGroup({
+    networkId, schoolId: schoolA.id, academicYearId: currentYear.id,
     name: '7B', gradeLevel: '7º ano', shift: 'afternoon',
   });
 
-  const portugues = await criarDisciplina({ networkId: redeId, name: 'Língua Portuguesa' });
-  const matematica = await criarDisciplina({ networkId: redeId, name: 'Matemática' });
-  const historia = await criarDisciplina({ networkId: redeId, name: 'História' });
+  const portuguese = await createSubject({ networkId, name: 'Língua Portuguesa' });
+  const math = await createSubject({ networkId, name: 'Matemática' });
+  const history = await createSubject({ networkId, name: 'História' });
 
-  const alocar = (disciplinaId: string): Promise<{ id: string }> =>
-    criarTurmaDisciplina({
-      networkId: redeId, classGroupId: turma1.id, subjectId: disciplinaId, teacherUserId: professor.id,
+  const assign = (subjectId: string): Promise<{ id: string }> =>
+    createClassGroupSubject({
+      networkId, classGroupId: classGroup1.id, subjectId, teacherUserId: teacher.id,
     });
-  const alocacao1 = await alocar(portugues.id);
-  const alocacao2 = await alocar(matematica.id);
-  const alocacao3 = await alocar(historia.id);
+  const assignment1 = await assign(portuguese.id);
+  const assignment2 = await assign(math.id);
+  const assignment3 = await assign(history.id);
 
-  const alunos: AlunoDeTeste[] = [];
-  const responsaveis: ResponsavelDeTeste[] = [];
-  const matriculas: MatriculaDeTeste[] = [];
-  for (let numero = 1; numero <= TOTAL_DE_ALUNOS; numero += 1) {
-    const rotulo = doisDigitos(numero);
-    const aluno = await criarAluno({
-      networkId: redeId, name: `Aluno ${rotulo} da Silva`, birthDate: `2014-${rotulo}-08`,
+  const students: TestStudent[] = [];
+  const guardians: TestGuardian[] = [];
+  const enrollments: TestEnrollment[] = [];
+  for (let number = 1; number <= STUDENT_COUNT; number += 1) {
+    const label = twoDigits(number);
+    const student = await createStudent({
+      networkId, name: `Aluno ${label} da Silva`, birthDate: `2014-${label}-08`,
     });
-    const responsavel = await criarResponsavel({
-      networkId: redeId,
-      name: `Responsável ${rotulo} da Silva`,
-      email: `responsavel${rotulo}@golden.test`,
-      cpf: generateCpf(9_200_000 + numero),
-      phone: `2799000${rotulo}${rotulo}`,
+    const guardian = await createGuardian({
+      networkId,
+      name: `Responsável ${label} da Silva`,
+      email: `responsavel${label}@golden.test`,
+      cpf: generateCpf(9_200_000 + number),
+      phone: `2799000${label}${label}`,
     });
-    await vincularAlunoResponsavel({
-      networkId: redeId, studentId: aluno.id, guardianId: responsavel.id,
-      relationship: numero % 2 === 0 ? 'pai' : 'mãe', financiallyResponsible: numero === 1,
+    await linkStudentGuardian({
+      networkId, studentId: student.id, guardianId: guardian.id,
+      relationship: number % 2 === 0 ? 'pai' : 'mãe', financiallyResponsible: number === 1,
     });
-    const matricula = await criarMatricula({
-      networkId: redeId, studentId: aluno.id, classGroupId: turma1.id,
-      academicYearId: anoCorrente.id, enrollmentDate: `${ANO_CORRENTE}-02-05`,
+    const enrollment = await createEnrollment({
+      networkId, studentId: student.id, classGroupId: classGroup1.id,
+      academicYearId: currentYear.id, enrollmentDate: `${CURRENT_YEAR}-02-05`,
     });
-    alunos.push(aluno);
-    responsaveis.push(responsavel);
-    matriculas.push(matricula);
+    students.push(student);
+    guardians.push(guardian);
+    enrollments.push(enrollment);
   }
 
   // Conta criada e ainda não atribuída: `/painel` não tem para onde mandá-la, e diz isso na tela.
-  const semPapel = await criarUsuario({
-    networkId: redeId,
+  const roleless = await createUser({
+    networkId,
     name: 'Eva Recém-Convidada',
     email: 'eva@golden.test',
     cpf: generateCpf(9_100_005),
-    senha: SENHA_PADRAO,
-    papeis: [],
+    password: DEFAULT_PASSWORD,
+    roles: [],
   });
 
-  const responsavel = await criarUsuario({
-    networkId: redeId,
+  const guardian = await createUser({
+    networkId,
     name: 'Responsável 01 da Silva',
     email: 'portal01@golden.test',
     cpf: generateCpf(9_100_004),
-    senha: SENHA_PADRAO,
-    guardianId: responsaveis[0]?.id ?? null,
-    papeis: [{ schoolId: unidadeA.id, role: 'guardian' }],
+    password: DEFAULT_PASSWORD,
+    guardianId: guardians[0]?.id ?? null,
+    roles: [{ schoolId: schoolA.id, role: 'guardian' }],
   });
 
   // Notas de dois bimestres para o primeiro aluno (o boletim precisa de linha cheia) e do primeiro
   // bimestre para os quatro primeiros (a tela de notas precisa de coluna preenchida e vazia).
-  const alocacoes = [alocacao1, alocacao2, alocacao3];
-  const VALORES = [8.5, 7, 9.5];
-  for (let indice = 0; indice < alocacoes.length; indice += 1) {
-    for (const bimestre of [1, 2]) {
-      await criarNota({
-        networkId: redeId,
-        enrollmentId: matriculas[0]?.id ?? '',
-        classGroupSubjectId: alocacoes[indice]?.id ?? '',
-        postedBy: professor.id,
-        term: bimestre,
-        value: (VALORES[indice] ?? 0) - (bimestre === 1 ? 0 : 1),
+  const assignments = [assignment1, assignment2, assignment3];
+  const GRADE_VALUES = [8.5, 7, 9.5];
+  for (let index = 0; index < assignments.length; index += 1) {
+    for (const term of [1, 2]) {
+      await createGrade({
+        networkId,
+        enrollmentId: enrollments[0]?.id ?? '',
+        classGroupSubjectId: assignments[index]?.id ?? '',
+        postedBy: teacher.id,
+        term,
+        value: (GRADE_VALUES[index] ?? 0) - (term === 1 ? 0 : 1),
       });
     }
   }
-  for (let indice = 1; indice < 4; indice += 1) {
-    await criarNota({
-      networkId: redeId,
-      enrollmentId: matriculas[indice]?.id ?? '',
-      classGroupSubjectId: alocacao1.id,
-      postedBy: professor.id,
+  for (let index = 1; index < 4; index += 1) {
+    await createGrade({
+      networkId,
+      enrollmentId: enrollments[index]?.id ?? '',
+      classGroupSubjectId: assignment1.id,
+      postedBy: teacher.id,
       term: 1,
-      value: 6 + indice,
+      value: 6 + index,
     });
   }
 
-  for (let dia = 1; dia <= TOTAL_DE_DIAS_DE_CHAMADA; dia += 1) {
-    const presente = dia % 5 !== 0;
-    await criarFrequencia({
-      networkId: redeId,
-      enrollmentId: matriculas[0]?.id ?? '',
-      attendanceDate: `${ANO_CORRENTE}-03-${doisDigitos(dia)}`,
-      present: presente,
-      excuse: presente ? null : 'Consulta médica com atestado.',
+  for (let day = 1; day <= ROLL_CALL_DAY_COUNT; day += 1) {
+    const present = day % 5 !== 0;
+    await createAttendance({
+      networkId,
+      enrollmentId: enrollments[0]?.id ?? '',
+      attendanceDate: `${CURRENT_YEAR}-03-${twoDigits(day)}`,
+      present,
+      excuse: present ? null : 'Consulta médica com atestado.',
     });
   }
 
@@ -267,100 +267,100 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
    * Meio-dia UTC de propósito: `formatarDataHora` imprime a hora local, e um carimbo à meia-noite
    * mudaria de dia conforme o fuso de quem roda a suíte. A hora em si é normalizada; o dia, não.
    */
-  const comunicado1 = await criarComunicado({
-    networkId: redeId, schoolId: unidadeA.id, authorUserId: admin.id,
+  const announcement1 = await createAnnouncement({
+    networkId, schoolId: schoolA.id, authorUserId: admin.id,
     title: 'Reunião de pais e mestres',
     body: 'A reunião do primeiro bimestre acontece no dia 20, às 19h, no auditório da unidade.',
     publishedAt: new Date('2026-03-10T12:00:00.000Z'),
-    destinatarios: [
-      { guardianId: responsaveis[0]?.id ?? '', readAt: new Date('2026-03-11T12:00:00.000Z') },
-      { guardianId: responsaveis[1]?.id ?? '' },
-      { guardianId: responsaveis[2]?.id ?? '' },
+    recipients: [
+      { guardianId: guardians[0]?.id ?? '', readAt: new Date('2026-03-11T12:00:00.000Z') },
+      { guardianId: guardians[1]?.id ?? '' },
+      { guardianId: guardians[2]?.id ?? '' },
     ],
   });
-  const comunicado2 = await criarComunicado({
-    networkId: redeId, schoolId: unidadeA.id, authorUserId: secretaria.id,
+  const announcement2 = await createAnnouncement({
+    networkId, schoolId: schoolA.id, authorUserId: registrar.id,
     title: 'Feira de ciências',
     body: 'A feira de ciências ocupa o pátio na primeira semana de maio.',
     publishedAt: new Date('2026-04-05T12:00:00.000Z'),
-    destinatarios: [
-      { guardianId: responsaveis[0]?.id ?? '' },
-      { guardianId: responsaveis[1]?.id ?? '', readAt: new Date('2026-04-06T12:00:00.000Z') },
+    recipients: [
+      { guardianId: guardians[0]?.id ?? '' },
+      { guardianId: guardians[1]?.id ?? '', readAt: new Date('2026-04-06T12:00:00.000Z') },
     ],
   });
-  const comunicado3 = await criarComunicado({
-    networkId: redeId, schoolId: unidadeB.id, authorUserId: admin.id,
+  const announcement3 = await createAnnouncement({
+    networkId, schoolId: schoolB.id, authorUserId: admin.id,
     title: 'Rascunho ainda não publicado',
     body: 'Este comunicado não foi publicado e não aparece em mural nenhum.',
     publishedAt: null,
-    destinatarios: [],
+    recipients: [],
   });
 
   // O primeiro bimestre da turma fechado: é o estado que a tela de fechamento e o boletim mostram.
-  const sql = sqlDeTeste();
+  const sql = testSql();
   await sql`
     INSERT INTO term_closing (id, network_id, class_group_id, term, closed_at, closed_by)
-    VALUES (${crypto.randomUUID()}, ${redeId}, ${turma1.id}, ${BIMESTRE_FECHADO},
-            ${new Date('2026-04-20T12:00:00.000Z')}, ${professor.id})
+    VALUES (${crypto.randomUUID()}, ${networkId}, ${classGroup1.id}, ${CLOSED_TERM},
+            ${new Date('2026-04-20T12:00:00.000Z')}, ${teacher.id})
   `;
 
-  const comoQuem = (cpf: string): Promise<string> =>
-    entrar({ redeSlug: rede.slug, cpf, senha: SENHA_PADRAO });
+  const signInWithCpf = (cpf: string): Promise<string> =>
+    signIn({ networkSlug: network.slug, cpf, password: DEFAULT_PASSWORD });
 
-  const cookies: Record<Papel, string> = {
+  const cookies: Record<GoldenRole, string> = {
     anonimo: '',
-    semPapel: await comoQuem(semPapel.cpf),
-    admin: await comoQuem(admin.cpf),
-    secretaria: await comoQuem(secretaria.cpf),
-    professor: await comoQuem(professor.cpf),
-    responsavel: await comoQuem(responsavel.cpf),
+    semPapel: await signInWithCpf(roleless.cpf),
+    admin: await signInWithCpf(admin.cpf),
+    secretaria: await signInWithCpf(registrar.cpf),
+    professor: await signInWithCpf(teacher.cpf),
+    responsavel: await signInWithCpf(guardian.cpf),
   };
 
-  const marcadores = new Map<string, string>([
-    [rede.id, '{{rede}}'],
-    [unidadeA.id, '{{unidadeA}}'],
-    [unidadeB.id, '{{unidadeB}}'],
-    [anoCorrente.id, '{{anoCorrente}}'],
-    [anoAnterior.id, '{{anoAnterior}}'],
+  const markers = new Map<string, string>([
+    [network.id, '{{rede}}'],
+    [schoolA.id, '{{unidadeA}}'],
+    [schoolB.id, '{{unidadeB}}'],
+    [currentYear.id, '{{anoCorrente}}'],
+    [previousYear.id, '{{anoAnterior}}'],
     [admin.id, '{{usuarioAdmin}}'],
-    [secretaria.id, '{{usuarioSecretaria}}'],
-    [professor.id, '{{usuarioProfessor}}'],
-    [responsavel.id, '{{usuarioResponsavel}}'],
-    [semPapel.id, '{{usuarioSemPapel}}'],
-    [turma1.id, '{{turma1}}'],
-    [turma2.id, '{{turma2}}'],
-    [portugues.id, '{{disciplinaPortugues}}'],
-    [matematica.id, '{{disciplinaMatematica}}'],
-    [historia.id, '{{disciplinaHistoria}}'],
-    [alocacao1.id, '{{alocacao1}}'],
-    [alocacao2.id, '{{alocacao2}}'],
-    [alocacao3.id, '{{alocacao3}}'],
-    [comunicado1.id, '{{comunicado1}}'],
-    [comunicado2.id, '{{comunicado2}}'],
-    [comunicado3.id, '{{comunicado3}}'],
-    [ID_INEXISTENTE, '{{idInexistente}}'],
+    [registrar.id, '{{usuarioSecretaria}}'],
+    [teacher.id, '{{usuarioProfessor}}'],
+    [guardian.id, '{{usuarioResponsavel}}'],
+    [roleless.id, '{{usuarioSemPapel}}'],
+    [classGroup1.id, '{{turma1}}'],
+    [classGroup2.id, '{{turma2}}'],
+    [portuguese.id, '{{disciplinaPortugues}}'],
+    [math.id, '{{disciplinaMatematica}}'],
+    [history.id, '{{disciplinaHistoria}}'],
+    [assignment1.id, '{{alocacao1}}'],
+    [assignment2.id, '{{alocacao2}}'],
+    [assignment3.id, '{{alocacao3}}'],
+    [announcement1.id, '{{comunicado1}}'],
+    [announcement2.id, '{{comunicado2}}'],
+    [announcement3.id, '{{comunicado3}}'],
+    [NONEXISTENT_ID, '{{idInexistente}}'],
   ]);
-  for (let indice = 0; indice < TOTAL_DE_ALUNOS; indice += 1) {
-    const rotulo = doisDigitos(indice + 1);
-    marcadores.set(alunos[indice]?.id ?? '', `{{aluno${rotulo}}}`);
-    marcadores.set(responsaveis[indice]?.id ?? '', `{{responsavel${rotulo}}}`);
-    marcadores.set(matriculas[indice]?.id ?? '', `{{matricula${rotulo}}}`);
+  for (let index = 0; index < STUDENT_COUNT; index += 1) {
+    const label = twoDigits(index + 1);
+    markers.set(students[index]?.id ?? '', `{{aluno${label}}}`);
+    markers.set(guardians[index]?.id ?? '', `{{responsavel${label}}}`);
+    markers.set(enrollments[index]?.id ?? '', `{{matricula${label}}}`);
   }
 
   return {
     cookies,
-    marcadores,
+    markers,
     ids: {
-      unidadeA: unidadeA.id,
-      unidadeB: unidadeB.id,
-      anoCorrente: anoCorrente.id,
-      turma1: turma1.id,
-      turma2: turma2.id,
-      alocacao1: alocacao1.id,
-      aluno1: alunos[0]?.id ?? '',
-      matricula1: matriculas[0]?.id ?? '',
-      comunicado1: comunicado1.id,
-      inexistente: ID_INEXISTENTE,
+      schoolA: schoolA.id,
+      schoolB: schoolB.id,
+      currentYear: currentYear.id,
+      classGroup1: classGroup1.id,
+      classGroup2: classGroup2.id,
+      assignment1: assignment1.id,
+      student1: students[0]?.id ?? '',
+      enrollment1: enrollments[0]?.id ?? '',
+      announcement1: announcement1.id,
+      nonexistent: NONEXISTENT_ID,
     },
   };
 }
@@ -373,98 +373,98 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
  * formulário com e sem unidade escolhida, a página com e sem aviso de sucesso, a segunda página de
  * uma tabela paginada e o 404 de quem pede o registro de outra unidade.
  */
-export function telasDoSistema(ids: CenarioGolden['ids']): readonly Tela[] {
-  const mensagemDeSaida = encodeURIComponent('Sessão encerrada.');
+export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen[] {
+  const signOutMessage = encodeURIComponent('Sessão encerrada.');
 
   return [
     /* Sem sessão ----------------------------------------------------------- */
-    { nome: 'anonimo-raiz', papel: 'anonimo', caminho: '/' },
-    { nome: 'anonimo-login', papel: 'anonimo', caminho: '/login' },
-    { nome: 'anonimo-login-apos-sair', papel: 'anonimo', caminho: `/login?ok=${mensagemDeSaida}` },
-    { nome: 'anonimo-painel', papel: 'anonimo', caminho: '/painel' },
-    { nome: 'anonimo-secretaria', papel: 'anonimo', caminho: '/secretaria' },
-    { nome: 'anonimo-rota-inexistente', papel: 'anonimo', caminho: '/nao-existe' },
-    { nome: 'anonimo-publico-inexistente', papel: 'anonimo', caminho: '/publico/nao-existe.css' },
-    { nome: 'anonimo-publico-nome-recusado', papel: 'anonimo', caminho: '/publico/..%2Fsegredo' },
+    { name: 'anonimo-raiz', role: 'anonimo', path: '/' },
+    { name: 'anonimo-login', role: 'anonimo', path: '/login' },
+    { name: 'anonimo-login-apos-sair', role: 'anonimo', path: `/login?ok=${signOutMessage}` },
+    { name: 'anonimo-painel', role: 'anonimo', path: '/painel' },
+    { name: 'anonimo-secretaria', role: 'anonimo', path: '/secretaria' },
+    { name: 'anonimo-rota-inexistente', role: 'anonimo', path: '/nao-existe' },
+    { name: 'anonimo-publico-inexistente', role: 'anonimo', path: '/publico/nao-existe.css' },
+    { name: 'anonimo-publico-nome-recusado', role: 'anonimo', path: '/publico/..%2Fsegredo' },
 
     /* Conta sem papel atribuído -------------------------------------------- */
-    { nome: 'sem-papel-painel', papel: 'semPapel', caminho: '/painel' },
-    { nome: 'sem-papel-raiz', papel: 'semPapel', caminho: '/' },
+    { name: 'sem-papel-painel', role: 'semPapel', path: '/painel' },
+    { name: 'sem-papel-raiz', role: 'semPapel', path: '/' },
 
     /* Saúde ---------------------------------------------------------------- */
-    { nome: 'saude-health', papel: 'anonimo', caminho: '/health' },
-    { nome: 'saude-health-live', papel: 'anonimo', caminho: '/health/live' },
+    { name: 'saude-health', role: 'anonimo', path: '/health' },
+    { name: 'saude-health-live', role: 'anonimo', path: '/health/live' },
 
     /* Administração da rede ------------------------------------------------ */
-    { nome: 'admin-raiz', papel: 'admin', caminho: '/' },
-    { nome: 'admin-painel', papel: 'admin', caminho: '/painel' },
-    { nome: 'admin-login-com-sessao', papel: 'admin', caminho: '/login' },
-    { nome: 'admin-rede-painel', papel: 'admin', caminho: '/rede' },
-    { nome: 'admin-rede-unidades', papel: 'admin', caminho: '/rede/unidades' },
-    { nome: 'admin-rede-unidades-criada', papel: 'admin', caminho: '/rede/unidades?ok=unidade-criada' },
-    { nome: 'admin-rede-unidade-nova', papel: 'admin', caminho: '/rede/unidades/nova' },
-    { nome: 'admin-rede-usuarios', papel: 'admin', caminho: '/rede/usuarios' },
-    { nome: 'admin-rede-usuarios-convidado', papel: 'admin', caminho: '/rede/usuarios?ok=usuario-convidado' },
-    { nome: 'admin-rede-usuario-novo', papel: 'admin', caminho: '/rede/usuarios/novo' },
-    { nome: 'admin-rede-anos-letivos', papel: 'admin', caminho: '/rede/anos-letivos' },
-    { nome: 'admin-rede-anos-letivos-definido', papel: 'admin', caminho: '/rede/anos-letivos?ok=ano-definido' },
-    { nome: 'admin-rede-ano-novo', papel: 'admin', caminho: '/rede/anos-letivos/novo' },
-    { nome: 'admin-comunicados', papel: 'admin', caminho: '/comunicados' },
-    { nome: 'admin-comunicados-unidade', papel: 'admin', caminho: `/comunicados?unidadeId=${ids.unidadeA}` },
-    { nome: 'admin-comunicado-novo', papel: 'admin', caminho: '/comunicados/novo' },
-    { nome: 'admin-comunicado-novo-unidade', papel: 'admin', caminho: `/comunicados/novo?unidadeId=${ids.unidadeA}` },
-    { nome: 'admin-conta-senha', papel: 'admin', caminho: '/conta/senha' },
-    { nome: 'admin-conta-senha-alterada', papel: 'admin', caminho: '/conta/senha?ok=senha-alterada' },
-    { nome: 'admin-professor-proibido', papel: 'admin', caminho: '/professor' },
+    { name: 'admin-raiz', role: 'admin', path: '/' },
+    { name: 'admin-painel', role: 'admin', path: '/painel' },
+    { name: 'admin-login-com-sessao', role: 'admin', path: '/login' },
+    { name: 'admin-rede-painel', role: 'admin', path: '/rede' },
+    { name: 'admin-rede-unidades', role: 'admin', path: '/rede/unidades' },
+    { name: 'admin-rede-unidades-criada', role: 'admin', path: '/rede/unidades?ok=unidade-criada' },
+    { name: 'admin-rede-unidade-nova', role: 'admin', path: '/rede/unidades/nova' },
+    { name: 'admin-rede-usuarios', role: 'admin', path: '/rede/usuarios' },
+    { name: 'admin-rede-usuarios-convidado', role: 'admin', path: '/rede/usuarios?ok=usuario-convidado' },
+    { name: 'admin-rede-usuario-novo', role: 'admin', path: '/rede/usuarios/novo' },
+    { name: 'admin-rede-anos-letivos', role: 'admin', path: '/rede/anos-letivos' },
+    { name: 'admin-rede-anos-letivos-definido', role: 'admin', path: '/rede/anos-letivos?ok=ano-definido' },
+    { name: 'admin-rede-ano-novo', role: 'admin', path: '/rede/anos-letivos/novo' },
+    { name: 'admin-comunicados', role: 'admin', path: '/comunicados' },
+    { name: 'admin-comunicados-unidade', role: 'admin', path: `/comunicados?unidadeId=${ids.schoolA}` },
+    { name: 'admin-comunicado-novo', role: 'admin', path: '/comunicados/novo' },
+    { name: 'admin-comunicado-novo-unidade', role: 'admin', path: `/comunicados/novo?unidadeId=${ids.schoolA}` },
+    { name: 'admin-conta-senha', role: 'admin', path: '/conta/senha' },
+    { name: 'admin-conta-senha-alterada', role: 'admin', path: '/conta/senha?ok=senha-alterada' },
+    { name: 'admin-professor-proibido', role: 'admin', path: '/professor' },
 
     /* Secretaria ------------------------------------------------------------ */
-    { nome: 'secretaria-painel-redirecionado', papel: 'secretaria', caminho: '/painel' },
-    { nome: 'secretaria-painel', papel: 'secretaria', caminho: '/secretaria' },
-    { nome: 'secretaria-alunos-sem-busca', papel: 'secretaria', caminho: '/secretaria/alunos' },
-    { nome: 'secretaria-alunos-busca', papel: 'secretaria', caminho: '/secretaria/alunos?q=Silva' },
-    { nome: 'secretaria-alunos-busca-pagina-2', papel: 'secretaria', caminho: '/secretaria/alunos?q=Silva&p=2' },
-    { nome: 'secretaria-aluno-novo', papel: 'secretaria', caminho: '/secretaria/alunos/novo' },
-    { nome: 'secretaria-aluno-ficha', papel: 'secretaria', caminho: `/secretaria/alunos/${ids.aluno1}` },
-    { nome: 'secretaria-aluno-inexistente', papel: 'secretaria', caminho: `/secretaria/alunos/${ids.inexistente}` },
-    { nome: 'secretaria-aluno-responsavel-novo', papel: 'secretaria', caminho: `/secretaria/alunos/${ids.aluno1}/responsaveis/novo` },
-    { nome: 'secretaria-aluno-matricular', papel: 'secretaria', caminho: `/secretaria/alunos/${ids.aluno1}/matricular` },
-    { nome: 'secretaria-matricula-transferir', papel: 'secretaria', caminho: `/secretaria/matriculas/${ids.matricula1}/transferir` },
-    { nome: 'secretaria-responsaveis', papel: 'secretaria', caminho: '/secretaria/responsaveis' },
-    { nome: 'secretaria-responsaveis-pagina-2', papel: 'secretaria', caminho: '/secretaria/responsaveis?p=2' },
-    { nome: 'secretaria-responsavel-novo', papel: 'secretaria', caminho: '/secretaria/responsaveis/novo' },
-    { nome: 'secretaria-turmas', papel: 'secretaria', caminho: '/secretaria/turmas' },
-    { nome: 'secretaria-turmas-filtradas', papel: 'secretaria', caminho: `/secretaria/turmas?unidade=${ids.unidadeA}&ano=${ids.anoCorrente}` },
-    { nome: 'secretaria-turma-nova', papel: 'secretaria', caminho: '/secretaria/turmas/nova' },
-    { nome: 'secretaria-turma-ficha', papel: 'secretaria', caminho: `/secretaria/turmas/${ids.turma1}` },
-    { nome: 'secretaria-turma-ficha-pagina-2', papel: 'secretaria', caminho: `/secretaria/turmas/${ids.turma1}?pMatriculas=2` },
-    { nome: 'secretaria-turma-disciplina-nova', papel: 'secretaria', caminho: `/secretaria/turmas/${ids.turma1}/disciplinas/nova` },
-    { nome: 'secretaria-disciplinas', papel: 'secretaria', caminho: '/secretaria/disciplinas' },
-    { nome: 'secretaria-disciplina-nova', papel: 'secretaria', caminho: '/secretaria/disciplinas/nova' },
-    { nome: 'secretaria-comunicados', papel: 'secretaria', caminho: '/comunicados' },
-    { nome: 'secretaria-comunicado-novo', papel: 'secretaria', caminho: '/comunicados/novo' },
-    { nome: 'secretaria-rota-inexistente', papel: 'secretaria', caminho: '/nao-existe' },
+    { name: 'secretaria-painel-redirecionado', role: 'secretaria', path: '/painel' },
+    { name: 'secretaria-painel', role: 'secretaria', path: '/secretaria' },
+    { name: 'secretaria-alunos-sem-busca', role: 'secretaria', path: '/secretaria/alunos' },
+    { name: 'secretaria-alunos-busca', role: 'secretaria', path: '/secretaria/alunos?q=Silva' },
+    { name: 'secretaria-alunos-busca-pagina-2', role: 'secretaria', path: '/secretaria/alunos?q=Silva&p=2' },
+    { name: 'secretaria-aluno-novo', role: 'secretaria', path: '/secretaria/alunos/novo' },
+    { name: 'secretaria-aluno-ficha', role: 'secretaria', path: `/secretaria/alunos/${ids.student1}` },
+    { name: 'secretaria-aluno-inexistente', role: 'secretaria', path: `/secretaria/alunos/${ids.nonexistent}` },
+    { name: 'secretaria-aluno-responsavel-novo', role: 'secretaria', path: `/secretaria/alunos/${ids.student1}/responsaveis/novo` },
+    { name: 'secretaria-aluno-matricular', role: 'secretaria', path: `/secretaria/alunos/${ids.student1}/matricular` },
+    { name: 'secretaria-matricula-transferir', role: 'secretaria', path: `/secretaria/matriculas/${ids.enrollment1}/transferir` },
+    { name: 'secretaria-responsaveis', role: 'secretaria', path: '/secretaria/responsaveis' },
+    { name: 'secretaria-responsaveis-pagina-2', role: 'secretaria', path: '/secretaria/responsaveis?p=2' },
+    { name: 'secretaria-responsavel-novo', role: 'secretaria', path: '/secretaria/responsaveis/novo' },
+    { name: 'secretaria-turmas', role: 'secretaria', path: '/secretaria/turmas' },
+    { name: 'secretaria-turmas-filtradas', role: 'secretaria', path: `/secretaria/turmas?unidade=${ids.schoolA}&ano=${ids.currentYear}` },
+    { name: 'secretaria-turma-nova', role: 'secretaria', path: '/secretaria/turmas/nova' },
+    { name: 'secretaria-turma-ficha', role: 'secretaria', path: `/secretaria/turmas/${ids.classGroup1}` },
+    { name: 'secretaria-turma-ficha-pagina-2', role: 'secretaria', path: `/secretaria/turmas/${ids.classGroup1}?pMatriculas=2` },
+    { name: 'secretaria-turma-disciplina-nova', role: 'secretaria', path: `/secretaria/turmas/${ids.classGroup1}/disciplinas/nova` },
+    { name: 'secretaria-disciplinas', role: 'secretaria', path: '/secretaria/disciplinas' },
+    { name: 'secretaria-disciplina-nova', role: 'secretaria', path: '/secretaria/disciplinas/nova' },
+    { name: 'secretaria-comunicados', role: 'secretaria', path: '/comunicados' },
+    { name: 'secretaria-comunicado-novo', role: 'secretaria', path: '/comunicados/novo' },
+    { name: 'secretaria-rota-inexistente', role: 'secretaria', path: '/nao-existe' },
 
     /* Professor ------------------------------------------------------------- */
-    { nome: 'professor-painel-redirecionado', papel: 'professor', caminho: '/painel' },
-    { nome: 'professor-painel', papel: 'professor', caminho: '/professor' },
-    { nome: 'professor-notas', papel: 'professor', caminho: `/professor/disciplinas/${ids.alocacao1}/notas` },
-    { nome: 'professor-notas-bimestre-2', papel: 'professor', caminho: `/professor/disciplinas/${ids.alocacao1}/notas?bimestre=2` },
-    { nome: 'professor-chamada-data-fixa', papel: 'professor', caminho: `/professor/turmas/${ids.turma1}/chamada?data=${ANO_CORRENTE}-03-05` },
-    { nome: 'professor-chamada-hoje', papel: 'professor', caminho: `/professor/turmas/${ids.turma1}/chamada` },
-    { nome: 'professor-fechamento', papel: 'professor', caminho: `/professor/turmas/${ids.turma1}/fechamento` },
-    { nome: 'professor-turma-alheia', papel: 'professor', caminho: `/professor/turmas/${ids.turma2}/fechamento` },
-    { nome: 'professor-conta-senha', papel: 'professor', caminho: '/conta/senha' },
+    { name: 'professor-painel-redirecionado', role: 'professor', path: '/painel' },
+    { name: 'professor-painel', role: 'professor', path: '/professor' },
+    { name: 'professor-notas', role: 'professor', path: `/professor/disciplinas/${ids.assignment1}/notas` },
+    { name: 'professor-notas-bimestre-2', role: 'professor', path: `/professor/disciplinas/${ids.assignment1}/notas?bimestre=2` },
+    { name: 'professor-chamada-data-fixa', role: 'professor', path: `/professor/turmas/${ids.classGroup1}/chamada?data=${CURRENT_YEAR}-03-05` },
+    { name: 'professor-chamada-hoje', role: 'professor', path: `/professor/turmas/${ids.classGroup1}/chamada` },
+    { name: 'professor-fechamento', role: 'professor', path: `/professor/turmas/${ids.classGroup1}/fechamento` },
+    { name: 'professor-turma-alheia', role: 'professor', path: `/professor/turmas/${ids.classGroup2}/fechamento` },
+    { name: 'professor-conta-senha', role: 'professor', path: '/conta/senha' },
 
     /* Responsável ----------------------------------------------------------- */
-    { nome: 'responsavel-painel-redirecionado', papel: 'responsavel', caminho: '/painel' },
-    { nome: 'responsavel-painel', papel: 'responsavel', caminho: '/responsavel' },
-    { nome: 'responsavel-boletim', papel: 'responsavel', caminho: `/responsavel/matriculas/${ids.matricula1}/boletim` },
-    { nome: 'responsavel-frequencia', papel: 'responsavel', caminho: `/responsavel/matriculas/${ids.matricula1}/frequencia` },
-    { nome: 'responsavel-frequencia-pagina-2', papel: 'responsavel', caminho: `/responsavel/matriculas/${ids.matricula1}/frequencia?p=2` },
-    { nome: 'responsavel-mural', papel: 'responsavel', caminho: '/responsavel/mural' },
-    { nome: 'responsavel-comunicado', papel: 'responsavel', caminho: `/responsavel/mural/${ids.comunicado1}` },
-    { nome: 'responsavel-comunicado-alheio', papel: 'responsavel', caminho: `/responsavel/mural/${ids.inexistente}` },
-    { nome: 'responsavel-conta-senha', papel: 'responsavel', caminho: '/conta/senha' },
+    { name: 'responsavel-painel-redirecionado', role: 'responsavel', path: '/painel' },
+    { name: 'responsavel-painel', role: 'responsavel', path: '/responsavel' },
+    { name: 'responsavel-boletim', role: 'responsavel', path: `/responsavel/matriculas/${ids.enrollment1}/boletim` },
+    { name: 'responsavel-frequencia', role: 'responsavel', path: `/responsavel/matriculas/${ids.enrollment1}/frequencia` },
+    { name: 'responsavel-frequencia-pagina-2', role: 'responsavel', path: `/responsavel/matriculas/${ids.enrollment1}/frequencia?p=2` },
+    { name: 'responsavel-mural', role: 'responsavel', path: '/responsavel/mural' },
+    { name: 'responsavel-comunicado', role: 'responsavel', path: `/responsavel/mural/${ids.announcement1}` },
+    { name: 'responsavel-comunicado-alheio', role: 'responsavel', path: `/responsavel/mural/${ids.nonexistent}` },
+    { name: 'responsavel-conta-senha', role: 'responsavel', path: '/conta/senha' },
   ];
 }
 
@@ -476,23 +476,23 @@ const UUID = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-
  * regex ficasse só com a antiga, o campo renomeado deixaria de ser normalizado e os 57
  * fixtures que o carregam passariam a divergir a cada execução, com um UUID novo por vez.
  */
-const CHAVE_DE_IDEMPOTENCIA = /(name="_(?:chave|key)" value=")[^"]*(")/g;
+const IDEMPOTENCY_KEY_ATTR = /(name="_(?:chave|key)" value=")[^"]*(")/g;
 /**
  * O nome publicado do CSS (I10) e o nome cru que `asset()` devolve quando ainda não houve
  * `bun run build:assets` viram o mesmo marcador. São a mesma linha da tela; congelar o hash faria
  * 71 arquivos mudarem a cada ajuste de folha de estilo, e um clone novo, sem manifesto, reprovaria
  * um refactor que não encostou em CSS nenhum.
  */
-const ASSET_VERSIONADO = /\/(?:publico|public)\/app\.(?:[0-9a-f]{6,}\.)?css/g;
+const VERSIONED_ASSET = /\/(?:publico|public)\/app\.(?:[0-9a-f]{6,}\.)?css/g;
 /** `Tue Mar 10 2026 09:00:00 GMT-0300 (Brasilia Standard Time)` — o `toString` de um `Date`. */
-const DATA_DO_JAVASCRIPT =
+const JAVASCRIPT_DATE =
   /[A-Z][a-z]{2} [A-Z][a-z]{2} \d{2} \d{4} \d{2}:\d{2}:\d{2} GMT[+-]\d{4}(?: \([^)]*\))?/g;
-const CARIMBO_ISO = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?/g;
-const HORA_DO_DIA = /\b\d{2}:\d{2}\b/g;
+const ISO_TIMESTAMP = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?/g;
+const TIME_OF_DAY = /\b\d{2}:\d{2}\b/g;
 
 /** Dois dias para cada lado cobrem o fuso local, o dia UTC e a virada da meia-noite no meio da suíte. */
-const JANELA_DE_DIAS = 2;
-const MS_POR_DIA = 86_400_000;
+const DAY_WINDOW = 2;
+const MS_PER_DAY = 86_400_000;
 
 /**
  * Os dias que dependem de quando a suíte roda: o `hoje()` da secretaria (dia UTC), o `hoje()` do
@@ -500,20 +500,20 @@ const MS_POR_DIA = 86_400_000;
  * marcador — a distinção entre eles fica congelada em `professor-chamada-data-fixa`, que passa a
  * data na query e por isso não depende de relógio nenhum.
  */
-function diasCorrentes(): string[] {
-  const agora = Date.now();
-  const dias = new Set<string>();
-  for (let passo = -JANELA_DE_DIAS; passo <= JANELA_DE_DIAS; passo += 1) {
-    const data = new Date(agora + passo * MS_POR_DIA);
-    dias.add(`${data.getFullYear()}-${doisDigitos(data.getMonth() + 1)}-${doisDigitos(data.getDate())}`);
-    dias.add(data.toISOString().slice(0, 10));
+function currentDays(): string[] {
+  const now = Date.now();
+  const days = new Set<string>();
+  for (let step = -DAY_WINDOW; step <= DAY_WINDOW; step += 1) {
+    const date = new Date(now + step * MS_PER_DAY);
+    days.add(`${date.getFullYear()}-${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())}`);
+    days.add(date.toISOString().slice(0, 10));
   }
-  return [...dias];
+  return [...days];
 }
 
-const emBrasileiro = (iso: string): string => {
-  const [ano, mes, dia] = iso.split('-');
-  return `${dia}/${mes}/${ano}`;
+const inBrazilianFormat = (iso: string): string => {
+  const [year, month, day] = iso.split('-');
+  return `${day}/${month}/${year}`;
 };
 
 /**
@@ -524,54 +524,54 @@ const emBrasileiro = (iso: string): string => {
  * identificadores conhecidos saem antes do varredor de UUID, senão todos virariam `{{uuid}}` e o
  * golden deixaria de distinguir o `href` de um aluno do `href` de outro.
  */
-export function normalizar(texto: string, marcadores: ReadonlyMap<string, string>): string {
-  let saida = texto;
+export function normalize(text: string, markers: ReadonlyMap<string, string>): string {
+  let output = text;
 
-  saida = saida.replace(CHAVE_DE_IDEMPOTENCIA, '$1{{chave}}$2');
-  saida = saida.replace(ASSET_VERSIONADO, '/publico/app.{{hashDoCss}}.css');
-  saida = saida.replaceAll(CORRELACAO, '{{correlacao}}');
+  output = output.replace(IDEMPOTENCY_KEY_ATTR, '$1{{chave}}$2');
+  output = output.replace(VERSIONED_ASSET, '/publico/app.{{hashDoCss}}.css');
+  output = output.replaceAll(CORRELATION, '{{correlacao}}');
 
-  for (const [bruto, marcador] of marcadores) {
-    if (bruto !== '') saida = saida.replaceAll(bruto, marcador);
+  for (const [raw, marker] of markers) {
+    if (raw !== '') output = output.replaceAll(raw, marker);
   }
 
-  saida = saida.replace(DATA_DO_JAVASCRIPT, '{{carimboDeTempo}}');
-  saida = saida.replace(CARIMBO_ISO, '{{carimboDeTempo}}');
+  output = output.replace(JAVASCRIPT_DATE, '{{carimboDeTempo}}');
+  output = output.replace(ISO_TIMESTAMP, '{{carimboDeTempo}}');
 
-  for (const dia of diasCorrentes()) {
-    saida = saida.replaceAll(dia, '{{diaCorrente}}');
-    saida = saida.replaceAll(emBrasileiro(dia), '{{diaCorrente}}');
+  for (const day of currentDays()) {
+    output = output.replaceAll(day, '{{diaCorrente}}');
+    output = output.replaceAll(inBrazilianFormat(day), '{{diaCorrente}}');
   }
 
-  saida = saida.replace(HORA_DO_DIA, '{{hora}}');
-  saida = saida.replace(UUID, '{{uuid}}');
+  output = output.replace(TIME_OF_DAY, '{{hora}}');
+  output = output.replace(UUID, '{{uuid}}');
 
-  return saida;
+  return output;
 }
 
 /* --- Captura ---------------------------------------------------------------- */
 
 /** O que entra no arquivo golden além do corpo: o que um refactor de rotas pode trocar sozinho. */
-const CABECALHOS_CONGELADOS = ['Location', 'Content-Type', 'Cache-Control', 'Vary'] as const;
+const FROZEN_HEADERS = ['Location', 'Content-Type', 'Cache-Control', 'Vary'] as const;
 
-const SEPARADOR = '-'.repeat(78);
+const SEPARATOR = '-'.repeat(78);
 
-export async function capturar(tela: Tela, cenario: CenarioGolden): Promise<string> {
-  const cookie = cenario.cookies[tela.papel];
-  const cabecalhos: Record<string, string> = { 'X-Correlation-Id': CORRELACAO };
-  if (cookie !== '') cabecalhos['Cookie'] = cookie;
+export async function capture(screen: GoldenScreen, scenario: GoldenScenario): Promise<string> {
+  const cookie = scenario.cookies[screen.role];
+  const headers: Record<string, string> = { 'X-Correlation-Id': CORRELATION };
+  if (cookie !== '') headers['Cookie'] = cookie;
 
-  const resposta = await app.request(tela.caminho, { headers: cabecalhos });
-  const corpo = await resposta.text();
+  const response = await app.request(screen.path, { headers });
+  const body = await response.text();
 
-  const linhas = [`GET ${tela.caminho}`, `papel: ${tela.papel}`, `status: ${resposta.status}`];
-  for (const nome of CABECALHOS_CONGELADOS) {
-    const valor = resposta.headers.get(nome);
-    if (valor !== null) linhas.push(`${nome}: ${valor}`);
+  const rows = [`GET ${screen.path}`, `papel: ${screen.role}`, `status: ${response.status}`];
+  for (const name of FROZEN_HEADERS) {
+    const value = response.headers.get(name);
+    if (value !== null) rows.push(`${name}: ${value}`);
   }
-  linhas.push(SEPARADOR, corpo);
+  rows.push(SEPARATOR, body);
 
-  return normalizar(linhas.join('\n'), cenario.marcadores);
+  return normalize(rows.join('\n'), scenario.markers);
 }
 
-export const caminhoDoGolden = (nome: string): string => join(PASTA_GOLDEN, `${nome}.txt`);
+export const goldenPath = (name: string): string => join(GOLDEN_DIR, `${name}.txt`);

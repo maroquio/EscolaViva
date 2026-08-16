@@ -24,7 +24,7 @@ import { join } from 'node:path';
 import { FIELDS } from '../../src/web/constants';
 import { firstExistingPath } from '../support/paths';
 
-const RAIZ_DO_PROJETO = join(import.meta.dir, '..', '..');
+const PROJECT_ROOT = join(import.meta.dir, '..', '..');
 
 const TEMPLATE = () =>
   firstExistingPath(
@@ -32,84 +32,84 @@ const TEMPLATE = () =>
     'src/web/templates/registrar/student_new.eta',
   );
 
-const TELA_CONGELADA = join(import.meta.dir, 'golden', 'secretaria-aluno-novo.txt');
+const FROZEN_SCREEN = join(import.meta.dir, 'golden', 'secretaria-aluno-novo.txt');
 
-const NOMES_DOS_CAMPOS = Object.values(FIELDS.student);
+const FIELD_NAMES = Object.values(FIELDS.student);
 
 /** A chave da constante é o que o template escreve; o valor é o que sai no HTML. */
-const NOME_DO_CAMPO: Record<string, string> = FIELDS.student;
-const CHAVES_DOS_CAMPOS = Object.keys(NOME_DO_CAMPO);
+const FIELD_NAME: Record<string, string> = FIELDS.student;
+const FIELD_KEYS = Object.keys(FIELD_NAME);
 
-const ANCORA = /\b(id|for)\s*=\s*"([^"]*)"/g;
+const ANCHOR = /\b(id|for)\s*=\s*"([^"]*)"/g;
 
-const BLOCO_DO_ETA = /<%[\s\S]*?%>/g;
+const ETA_BLOCK = /<%[\s\S]*?%>/g;
 
-const fonteDoTemplate = async (): Promise<string> =>
-  Bun.file(join(RAIZ_DO_PROJETO, await TEMPLATE())).text();
+const templateSource = async (): Promise<string> =>
+  Bun.file(join(PROJECT_ROOT, await TEMPLATE())).text();
 
-type Ancora = { readonly atributo: string; readonly valor: string };
+type Anchor = { readonly attribute: string; readonly value: string };
 
-const ancorasDe = (fonte: string): Ancora[] =>
-  [...fonte.matchAll(ANCORA)].map((achado) => ({
-    atributo: achado[1] ?? '',
-    valor: achado[2] ?? '',
+const anchorsOf = (source: string): Anchor[] =>
+  [...source.matchAll(ANCHOR)].map((finding) => ({
+    attribute: finding[1] ?? '',
+    value: finding[2] ?? '',
   }));
 
 /** O que sobra da âncora depois de tirar o que veio por interpolação: o pedaço escrito à mão. */
-const escritoAMao = (valor: string): string => valor.replaceAll(BLOCO_DO_ETA, '');
+const writtenByHand = (value: string): string => value.replaceAll(ETA_BLOCK, '');
 
-const ancorasQueReescrevemOCampo = (fonte: string): string[] =>
-  ancorasDe(fonte)
-    .filter(({ valor }) => NOMES_DOS_CAMPOS.some((campo) => escritoAMao(valor).includes(campo)))
-    .map(({ atributo, valor }) => `${atributo}="${valor}"`);
+const anchorsThatRewriteTheField = (source: string): string[] =>
+  anchorsOf(source)
+    .filter(({ value }) => FIELD_NAMES.some((field) => writtenByHand(value).includes(field)))
+    .map(({ attribute, value }) => `${attribute}="${value}"`);
 
-const ANCORA_QUE_INTERPOLA = new RegExp(
-  `\\b(id|for)="<%=\\s*fields\\.(${CHAVES_DOS_CAMPOS.join('|')})\\s*%>"`,
+const INTERPOLATING_ANCHOR = new RegExp(
+  `\\b(id|for)="<%=\\s*fields\\.(${FIELD_KEYS.join('|')})\\s*%>"`,
   'g',
 );
 
 /** Desfaz a correção: devolve o `id`/`for` a nome escrito à mão, como estava antes. */
-const comOCampoReescritoAMao = (fonte: string): string =>
-  fonte.replaceAll(
-    ANCORA_QUE_INTERPOLA,
-    (_inteiro, atributo: string, chave: string) => `${atributo}="${NOME_DO_CAMPO[chave] ?? chave}"`,
+const withTheFieldRewrittenByHand = (source: string): string =>
+  source.replaceAll(
+    INTERPOLATING_ANCHOR,
+    (_inteiro, attribute: string, key: string) => `${attribute}="${FIELD_NAME[key] ?? key}"`,
   );
 
-const SONDA_VIVA = 'a sonda devolveu ao menos uma âncora ao nome escrito à mão';
+const LIVE_PROBE = 'a sonda devolveu ao menos uma âncora ao nome escrito à mão';
 
-const SONDA_MORTA =
+const DEAD_PROBE =
   'a sonda não conseguiu reescrever âncora nenhuma — ela deixou de provar qualquer coisa sobre a ' +
   'regra acima; conserte a sonda antes de confiar no resultado dela.';
 
-const vereditoDaSonda = (fonte: string, recaida: string): string =>
-  recaida === fonte ? SONDA_MORTA : SONDA_VIVA;
+const probeVerdict = (source: string, regression: string): string =>
+  regression === source ? DEAD_PROBE : LIVE_PROBE;
 
 describe('o nome do campo do aluno vem da constante em toda âncora', () => {
   test('nenhum `id` ou `for` do formulário reescreve o nome do campo à mão', async () => {
-    const fonte = await fonteDoTemplate();
+    const source = await templateSource();
 
-    expect(ancorasDe(fonte).length).toBeGreaterThan(0);
-    expect(ancorasQueReescrevemOCampo(fonte)).toEqual([]);
+    expect(anchorsOf(source).length).toBeGreaterThan(0);
+    expect(anchorsThatRewriteTheField(source)).toEqual([]);
   });
 
   test('a sonda: devolver a âncora ao nome escrito à mão volta a ser acusado', async () => {
-    const fonte = await fonteDoTemplate();
-    const recaida = comOCampoReescritoAMao(fonte);
+    const source = await templateSource();
+    const regression = withTheFieldRewrittenByHand(source);
 
-    expect(vereditoDaSonda(fonte, recaida)).toBe(SONDA_VIVA);
-    expect(ancorasQueReescrevemOCampo(recaida).length).toBeGreaterThan(0);
+    expect(probeVerdict(source, regression)).toBe(LIVE_PROBE);
+    expect(anchorsThatRewriteTheField(regression).length).toBeGreaterThan(0);
   });
 
   test('a tela congelada continua casando cada `for` com o `id` de mesmo nome', async () => {
-    const html = await Bun.file(TELA_CONGELADA).text();
-    const ancoras = ancorasDe(html);
+    const html = await Bun.file(FROZEN_SCREEN).text();
+    const anchors = anchorsOf(html);
 
-    const rotulos = ancoras.filter(({ atributo }) => atributo === 'for').map(({ valor }) => valor);
-    const controles = new Set(
-      ancoras.filter(({ atributo }) => atributo === 'id').map(({ valor }) => valor),
+    const labels = anchors.filter(({ attribute }) => attribute === 'for').map(({ value }) => value);
+    const controls = new Set(
+      anchors.filter(({ attribute }) => attribute === 'id').map(({ value }) => value),
     );
 
-    expect(rotulos).toEqual([...NOMES_DOS_CAMPOS]);
-    expect(rotulos.filter((rotulo) => !controles.has(rotulo))).toEqual([]);
+    expect(labels).toEqual([...FIELD_NAMES]);
+    expect(labels.filter((label) => !controls.has(label))).toEqual([]);
   });
 });

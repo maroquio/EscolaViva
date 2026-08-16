@@ -7,162 +7,162 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { academics } from '../../src/academics';
 import type { ApplicationError, Result } from '../../src/shared/result';
-import { limparBanco, sqlDeTeste } from '../support/database';
+import { clearDatabase, testSql } from '../support/database';
 import {
-  ANO_PADRAO,
-  cenarioCompleto,
-  criarAluno,
-  criarAnoLetivo,
-  criarTurma,
-  duasRedes,
+  DEFAULT_YEAR,
+  fullScenario,
+  createStudent,
+  createAcademicYear,
+  createClassGroup,
+  twoNetworks,
 } from '../support/factories';
 
-const DATA_DE_MATRICULA = `${ANO_PADRAO}-02-10`;
-const DATA_DE_TRANSFERENCIA = `${ANO_PADRAO}-06-01`;
+const ENROLLMENT_DATE = `${DEFAULT_YEAR}-02-10`;
+const TRANSFER_DATE = `${DEFAULT_YEAR}-06-01`;
 
-function valorDe<T>(resultado: Result<T>): T {
-  if (!resultado.ok) {
-    throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(resultado.erros)}`);
+function valueOfResult<T>(result: Result<T>): T {
+  if (!result.ok) {
+    throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(result.erros)}`);
   }
-  return resultado.valor;
+  return result.valor;
 }
 
-function errosDe(resultado: Result<unknown>): ApplicationError[] {
-  if (resultado.ok) throw new Error('esperava recusa da aplicação, veio sucesso');
-  return resultado.erros;
+function errorsOf(result: Result<unknown>): ApplicationError[] {
+  if (result.ok) throw new Error('esperava recusa da aplicação, veio sucesso');
+  return result.erros;
 }
 
-async function situacoesDoAluno(studentId: string): Promise<string[]> {
-  const linhas = await sqlDeTeste()<{ status: string }[]>`
+async function studentStatuses(studentId: string): Promise<string[]> {
+  const rows = await testSql()<{ status: string }[]>`
     SELECT status FROM enrollment WHERE student_id = ${studentId} ORDER BY status, created_at`;
-  return linhas.map((linha) => linha.status);
+  return rows.map((row) => row.status);
 }
 
-beforeEach(limparBanco);
+beforeEach(clearDatabase);
 
 describe('matricular', () => {
   test('cria a matrícula ativa do aluno na turma do ano letivo', async () => {
-    const cenario = await cenarioCompleto();
-    const aluno = await criarAluno({ networkId: cenario.rede.id, name: 'Ana Souza' });
-    const [, turmaVazia] = cenario.turmas;
+    const scenario = await fullScenario();
+    const student = await createStudent({ networkId: scenario.network.id, name: 'Ana Souza' });
+    const [, emptyClassGroup] = scenario.classGroups;
 
-    const resultado = await academics.enroll({
-      networkId: cenario.rede.id,
-      studentId: aluno.id,
-      classGroupId: turmaVazia.id,
-      academicYearId: cenario.anoLetivo.id,
-      enrollmentDate: DATA_DE_MATRICULA,
+    const result = await academics.enroll({
+      networkId: scenario.network.id,
+      studentId: student.id,
+      classGroupId: emptyClassGroup.id,
+      academicYearId: scenario.academicYear.id,
+      enrollmentDate: ENROLLMENT_DATE,
     });
 
-    const matricula = valorDe(resultado);
-    expect(matricula).toEqual({
-      id: matricula.id,
-      networkId: cenario.rede.id,
-      studentId: aluno.id,
+    const enrollment = valueOfResult(result);
+    expect(enrollment).toEqual({
+      id: enrollment.id,
+      networkId: scenario.network.id,
+      studentId: student.id,
       studentName: 'Ana Souza',
-      classGroupId: turmaVazia.id,
-      classGroupName: turmaVazia.name,
-      schoolId: turmaVazia.schoolId,
-      academicYearId: cenario.anoLetivo.id,
-      year: ANO_PADRAO,
-      enrollmentDate: DATA_DE_MATRICULA,
+      classGroupId: emptyClassGroup.id,
+      classGroupName: emptyClassGroup.name,
+      schoolId: emptyClassGroup.schoolId,
+      academicYearId: scenario.academicYear.id,
+      year: DEFAULT_YEAR,
+      enrollmentDate: ENROLLMENT_DATE,
       status: 'active',
     });
-    const naTurma = await academics.activeEnrollmentsOfClassGroup(cenario.rede.id, turmaVazia.id);
-    expect(naTurma.map((linha) => linha.id)).toEqual([matricula.id]);
+    const inClassGroup = await academics.activeEnrollmentsOfClassGroup(scenario.network.id, emptyClassGroup.id);
+    expect(inClassGroup.map((row) => row.id)).toEqual([enrollment.id]);
   });
 
   test('a matrícula recém-criada é recuperável por id', async () => {
-    const cenario = await cenarioCompleto();
-    const aluno = await criarAluno({ networkId: cenario.rede.id });
-    const [, turmaVazia] = cenario.turmas;
+    const scenario = await fullScenario();
+    const student = await createStudent({ networkId: scenario.network.id });
+    const [, emptyClassGroup] = scenario.classGroups;
 
-    const criada = valorDe(
+    const created = valueOfResult(
       await academics.enroll({
-        networkId: cenario.rede.id,
-        studentId: aluno.id,
-        classGroupId: turmaVazia.id,
-        academicYearId: cenario.anoLetivo.id,
-        enrollmentDate: DATA_DE_MATRICULA,
+        networkId: scenario.network.id,
+        studentId: student.id,
+        classGroupId: emptyClassGroup.id,
+        academicYearId: scenario.academicYear.id,
+        enrollmentDate: ENROLLMENT_DATE,
       }),
     );
 
-    expect(await academics.enrollmentById(cenario.rede.id, criada.id)).toEqual(criada);
+    expect(await academics.enrollmentById(scenario.network.id, created.id)).toEqual(created);
   });
 
   test('segunda matrícula ativa do mesmo aluno no mesmo ano é recusada com erro de campo', async () => {
-    const cenario = await cenarioCompleto();
-    const [jaMatriculado] = cenario.alunos;
-    const [, outraTurma] = cenario.turmas;
+    const scenario = await fullScenario();
+    const [alreadyEnrolled] = scenario.students;
+    const [, anotherClassGroup] = scenario.classGroups;
 
-    const resultado = await academics.enroll({
-      networkId: cenario.rede.id,
-      studentId: jaMatriculado.id,
-      classGroupId: outraTurma.id,
-      academicYearId: cenario.anoLetivo.id,
-      enrollmentDate: DATA_DE_MATRICULA,
+    const result = await academics.enroll({
+      networkId: scenario.network.id,
+      studentId: alreadyEnrolled.id,
+      classGroupId: anotherClassGroup.id,
+      academicYearId: scenario.academicYear.id,
+      enrollmentDate: ENROLLMENT_DATE,
     });
 
-    expect(errosDe(resultado)).toEqual([
+    expect(errorsOf(result)).toEqual([
       {
         campo: 'alunoId',
         codigo: 'matricula_ativa_duplicada',
         mensagem: 'Este aluno já tem matrícula ativa neste ano letivo.',
       },
     ]);
-    expect(await situacoesDoAluno(jaMatriculado.id)).toEqual(['active']);
+    expect(await studentStatuses(alreadyEnrolled.id)).toEqual(['active']);
   });
 
   test('a recusa da matrícula duplicada é mensagem de negócio, não erro cru do banco', async () => {
-    const cenario = await cenarioCompleto();
-    const [jaMatriculado] = cenario.alunos;
-    const [, outraTurma] = cenario.turmas;
+    const scenario = await fullScenario();
+    const [alreadyEnrolled] = scenario.students;
+    const [, anotherClassGroup] = scenario.classGroups;
 
-    const resultado = await academics.enroll({
-      networkId: cenario.rede.id,
-      studentId: jaMatriculado.id,
-      classGroupId: outraTurma.id,
-      academicYearId: cenario.anoLetivo.id,
-      enrollmentDate: DATA_DE_MATRICULA,
+    const result = await academics.enroll({
+      networkId: scenario.network.id,
+      studentId: alreadyEnrolled.id,
+      classGroupId: anotherClassGroup.id,
+      academicYearId: scenario.academicYear.id,
+      enrollmentDate: ENROLLMENT_DATE,
     });
 
-    const mensagem = errosDe(resultado)[0]?.mensagem ?? '';
-    expect(mensagem).not.toMatch(/duplicate key|23505|constraint|unique index/i);
-    expect(mensagem).toMatch(/matrícula ativa/i);
+    const message = errorsOf(result)[0]?.mensagem ?? '';
+    expect(message).not.toMatch(/duplicate key|23505|constraint|unique index/i);
+    expect(message).toMatch(/matrícula ativa/i);
   });
 
   test('o mesmo aluno pode se matricular em outro ano letivo', async () => {
-    const cenario = await cenarioCompleto();
-    const [jaMatriculado] = cenario.alunos;
-    const proximoAno = await criarAnoLetivo({ networkId: cenario.rede.id, year: ANO_PADRAO + 1 });
-    const turmaDoProximoAno = await criarTurma({
-      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id, academicYearId: proximoAno.id,
+    const scenario = await fullScenario();
+    const [alreadyEnrolled] = scenario.students;
+    const nextYear = await createAcademicYear({ networkId: scenario.network.id, year: DEFAULT_YEAR + 1 });
+    const classGroupOfNextYear = await createClassGroup({
+      networkId: scenario.network.id, schoolId: scenario.schools[0].id, academicYearId: nextYear.id,
     });
 
-    const resultado = await academics.enroll({
-      networkId: cenario.rede.id,
-      studentId: jaMatriculado.id,
-      classGroupId: turmaDoProximoAno.id,
-      academicYearId: proximoAno.id,
-      enrollmentDate: `${ANO_PADRAO + 1}-02-05`,
+    const result = await academics.enroll({
+      networkId: scenario.network.id,
+      studentId: alreadyEnrolled.id,
+      classGroupId: classGroupOfNextYear.id,
+      academicYearId: nextYear.id,
+      enrollmentDate: `${DEFAULT_YEAR + 1}-02-05`,
     });
 
-    expect(valorDe(resultado).year).toBe(ANO_PADRAO + 1);
-    expect(await situacoesDoAluno(jaMatriculado.id)).toEqual(['active', 'active']);
+    expect(valueOfResult(result).year).toBe(DEFAULT_YEAR + 1);
+    expect(await studentStatuses(alreadyEnrolled.id)).toEqual(['active', 'active']);
   });
 
   test('aluno de outra rede é recusado', async () => {
-    const { a, b } = await duasRedes();
+    const { a, b } = await twoNetworks();
 
-    const resultado = await academics.enroll({
-      networkId: a.rede.id,
-      studentId: b.alunos[0].id,
-      classGroupId: a.turmas[1].id,
-      academicYearId: a.anoLetivo.id,
-      enrollmentDate: DATA_DE_MATRICULA,
+    const result = await academics.enroll({
+      networkId: a.network.id,
+      studentId: b.students[0].id,
+      classGroupId: a.classGroups[1].id,
+      academicYearId: a.academicYear.id,
+      enrollmentDate: ENROLLMENT_DATE,
     });
 
-    expect(errosDe(resultado)).toEqual([
+    expect(errorsOf(result)).toEqual([
       {
         campo: 'alunoId',
         codigo: 'aluno_nao_encontrado',
@@ -172,18 +172,18 @@ describe('matricular', () => {
   });
 
   test('turma de outra rede é recusada', async () => {
-    const { a, b } = await duasRedes();
-    const aluno = await criarAluno({ networkId: a.rede.id });
+    const { a, b } = await twoNetworks();
+    const student = await createStudent({ networkId: a.network.id });
 
-    const resultado = await academics.enroll({
-      networkId: a.rede.id,
-      studentId: aluno.id,
-      classGroupId: b.turmas[1].id,
-      academicYearId: a.anoLetivo.id,
-      enrollmentDate: DATA_DE_MATRICULA,
+    const result = await academics.enroll({
+      networkId: a.network.id,
+      studentId: student.id,
+      classGroupId: b.classGroups[1].id,
+      academicYearId: a.academicYear.id,
+      enrollmentDate: ENROLLMENT_DATE,
     });
 
-    expect(errosDe(resultado)).toEqual([
+    expect(errorsOf(result)).toEqual([
       {
         campo: 'turmaId',
         codigo: 'turma_nao_encontrada',
@@ -193,37 +193,37 @@ describe('matricular', () => {
   });
 
   test('ano letivo de outra rede é recusado', async () => {
-    const { a, b } = await duasRedes();
-    const aluno = await criarAluno({ networkId: a.rede.id });
+    const { a, b } = await twoNetworks();
+    const student = await createStudent({ networkId: a.network.id });
 
-    const resultado = await academics.enroll({
-      networkId: a.rede.id,
-      studentId: aluno.id,
-      classGroupId: a.turmas[1].id,
-      academicYearId: b.anoLetivo.id,
-      enrollmentDate: DATA_DE_MATRICULA,
+    const result = await academics.enroll({
+      networkId: a.network.id,
+      studentId: student.id,
+      classGroupId: a.classGroups[1].id,
+      academicYearId: b.academicYear.id,
+      enrollmentDate: ENROLLMENT_DATE,
     });
 
-    expect(errosDe(resultado)[0]?.codigo).toBe('ano_letivo_nao_encontrado');
+    expect(errorsOf(result)[0]?.codigo).toBe('ano_letivo_nao_encontrado');
   });
 
   test('turma de outro ano letivo da mesma rede é recusada', async () => {
-    const cenario = await cenarioCompleto();
-    const aluno = await criarAluno({ networkId: cenario.rede.id });
-    const outroAno = await criarAnoLetivo({ networkId: cenario.rede.id, year: ANO_PADRAO + 1 });
-    const turmaDoOutroAno = await criarTurma({
-      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id, academicYearId: outroAno.id,
+    const scenario = await fullScenario();
+    const student = await createStudent({ networkId: scenario.network.id });
+    const otherYear = await createAcademicYear({ networkId: scenario.network.id, year: DEFAULT_YEAR + 1 });
+    const classGroupOfAnotherYear = await createClassGroup({
+      networkId: scenario.network.id, schoolId: scenario.schools[0].id, academicYearId: otherYear.id,
     });
 
-    const resultado = await academics.enroll({
-      networkId: cenario.rede.id,
-      studentId: aluno.id,
-      classGroupId: turmaDoOutroAno.id,
-      academicYearId: cenario.anoLetivo.id,
-      enrollmentDate: DATA_DE_MATRICULA,
+    const result = await academics.enroll({
+      networkId: scenario.network.id,
+      studentId: student.id,
+      classGroupId: classGroupOfAnotherYear.id,
+      academicYearId: scenario.academicYear.id,
+      enrollmentDate: ENROLLMENT_DATE,
     });
 
-    expect(errosDe(resultado)).toEqual([
+    expect(errorsOf(result)).toEqual([
       {
         campo: 'turmaId',
         codigo: 'turma_de_outro_ano',
@@ -233,257 +233,257 @@ describe('matricular', () => {
   });
 
   test('data de matrícula fora do formato é recusada antes de escrever', async () => {
-    const cenario = await cenarioCompleto();
-    const aluno = await criarAluno({ networkId: cenario.rede.id });
+    const scenario = await fullScenario();
+    const student = await createStudent({ networkId: scenario.network.id });
 
-    const resultado = await academics.enroll({
-      networkId: cenario.rede.id,
-      studentId: aluno.id,
-      classGroupId: cenario.turmas[1].id,
-      academicYearId: cenario.anoLetivo.id,
+    const result = await academics.enroll({
+      networkId: scenario.network.id,
+      studentId: student.id,
+      classGroupId: scenario.classGroups[1].id,
+      academicYearId: scenario.academicYear.id,
       enrollmentDate: '10/02/2026',
     });
 
-    expect(errosDe(resultado)[0]?.campo).toBe('dataMatricula');
-    expect(await situacoesDoAluno(aluno.id)).toEqual([]);
+    expect(errorsOf(result)[0]?.campo).toBe('dataMatricula');
+    expect(await studentStatuses(student.id)).toEqual([]);
   });
 
   test('ids fora do formato são recusados pela validação de entrada', async () => {
-    const cenario = await cenarioCompleto();
+    const scenario = await fullScenario();
 
-    const resultado = await academics.enroll({
-      networkId: cenario.rede.id,
+    const result = await academics.enroll({
+      networkId: scenario.network.id,
       studentId: 'nao-e-uuid',
       classGroupId: 'tambem-nao',
-      academicYearId: cenario.anoLetivo.id,
-      enrollmentDate: DATA_DE_MATRICULA,
+      academicYearId: scenario.academicYear.id,
+      enrollmentDate: ENROLLMENT_DATE,
     });
 
-    expect(errosDe(resultado).map((erro) => erro.campo)).toEqual(['alunoId', 'turmaId']);
+    expect(errorsOf(result).map((error) => error.campo)).toEqual(['alunoId', 'turmaId']);
   });
 });
 
 describe('transferir', () => {
   test('encerra a matrícula de origem e abre a nova na turma de destino, no mesmo ano', async () => {
-    const cenario = await cenarioCompleto();
-    const [origem] = cenario.matriculas;
-    const [turmaDeOrigem, turmaDeDestino] = cenario.turmas;
+    const scenario = await fullScenario();
+    const [source] = scenario.enrollments;
+    const [sourceClassGroup, targetClassGroup] = scenario.classGroups;
 
-    const resultado = await academics.transfer({
-      networkId: cenario.rede.id,
-      enrollmentId: origem.id,
-      targetClassGroupId: turmaDeDestino.id,
-      date: DATA_DE_TRANSFERENCIA,
+    const result = await academics.transfer({
+      networkId: scenario.network.id,
+      enrollmentId: source.id,
+      targetClassGroupId: targetClassGroup.id,
+      date: TRANSFER_DATE,
     });
 
-    const nova = valorDe(resultado);
-    expect(nova.classGroupId).toBe(turmaDeDestino.id);
-    expect(nova.status).toBe('active');
-    expect(nova.studentId).toBe(origem.studentId);
-    expect(nova.academicYearId).toBe(origem.academicYearId);
-    expect(nova.enrollmentDate).toBe(DATA_DE_TRANSFERENCIA);
-    const antiga = await academics.enrollmentById(cenario.rede.id, origem.id);
-    expect(antiga?.status).toBe('transferred');
-    expect(antiga?.classGroupId).toBe(turmaDeOrigem.id);
+    const created = valueOfResult(result);
+    expect(created.classGroupId).toBe(targetClassGroup.id);
+    expect(created.status).toBe('active');
+    expect(created.studentId).toBe(source.studentId);
+    expect(created.academicYearId).toBe(source.academicYearId);
+    expect(created.enrollmentDate).toBe(TRANSFER_DATE);
+    const old = await academics.enrollmentById(scenario.network.id, source.id);
+    expect(old?.status).toBe('transferred');
+    expect(old?.classGroupId).toBe(sourceClassGroup.id);
   });
 
   test('depois de transferir sobra exatamente uma matrícula ativa do aluno no ano', async () => {
-    const cenario = await cenarioCompleto();
-    const [origem] = cenario.matriculas;
+    const scenario = await fullScenario();
+    const [source] = scenario.enrollments;
 
     await academics.transfer({
-      networkId: cenario.rede.id,
-      enrollmentId: origem.id,
-      targetClassGroupId: cenario.turmas[1].id,
-      date: DATA_DE_TRANSFERENCIA,
+      networkId: scenario.network.id,
+      enrollmentId: source.id,
+      targetClassGroupId: scenario.classGroups[1].id,
+      date: TRANSFER_DATE,
     });
 
-    const linhas = await sqlDeTeste()<{ status: string }[]>`
+    const rows = await testSql()<{ status: string }[]>`
       SELECT status FROM enrollment
-       WHERE student_id = ${origem.studentId} AND academic_year_id = ${origem.academicYearId}
+       WHERE student_id = ${source.studentId} AND academic_year_id = ${source.academicYearId}
        ORDER BY status`;
-    expect(linhas.map((linha) => linha.status)).toEqual(['active', 'transferred']);
+    expect(rows.map((row) => row.status)).toEqual(['active', 'transferred']);
   });
 
   test('a turma de origem perde o aluno e a de destino ganha', async () => {
-    const cenario = await cenarioCompleto();
-    const [origem] = cenario.matriculas;
-    const [turmaDeOrigem, turmaDeDestino] = cenario.turmas;
+    const scenario = await fullScenario();
+    const [source] = scenario.enrollments;
+    const [sourceClassGroup, targetClassGroup] = scenario.classGroups;
 
     await academics.transfer({
-      networkId: cenario.rede.id,
-      enrollmentId: origem.id,
-      targetClassGroupId: turmaDeDestino.id,
-      date: DATA_DE_TRANSFERENCIA,
+      networkId: scenario.network.id,
+      enrollmentId: source.id,
+      targetClassGroupId: targetClassGroup.id,
+      date: TRANSFER_DATE,
     });
 
-    const naOrigem = await academics.activeEnrollmentsOfClassGroup(cenario.rede.id, turmaDeOrigem.id);
-    const noDestino = await academics.activeEnrollmentsOfClassGroup(cenario.rede.id, turmaDeDestino.id);
-    expect(naOrigem.map((linha) => linha.studentId)).not.toContain(origem.studentId);
-    expect(noDestino.map((linha) => linha.studentId)).toEqual([origem.studentId]);
+    const atSource = await academics.activeEnrollmentsOfClassGroup(scenario.network.id, sourceClassGroup.id);
+    const atTarget = await academics.activeEnrollmentsOfClassGroup(scenario.network.id, targetClassGroup.id);
+    expect(atSource.map((row) => row.studentId)).not.toContain(source.studentId);
+    expect(atTarget.map((row) => row.studentId)).toEqual([source.studentId]);
   });
 
   test('transferir para a mesma turma é recusado e nada muda', async () => {
-    const cenario = await cenarioCompleto();
-    const [origem] = cenario.matriculas;
+    const scenario = await fullScenario();
+    const [source] = scenario.enrollments;
 
-    const resultado = await academics.transfer({
-      networkId: cenario.rede.id,
-      enrollmentId: origem.id,
-      targetClassGroupId: origem.classGroupId,
-      date: DATA_DE_TRANSFERENCIA,
+    const result = await academics.transfer({
+      networkId: scenario.network.id,
+      enrollmentId: source.id,
+      targetClassGroupId: source.classGroupId,
+      date: TRANSFER_DATE,
     });
 
-    expect(errosDe(resultado)).toEqual([
+    expect(errorsOf(result)).toEqual([
       {
         campo: 'turmaDestinoId',
         codigo: 'mesma_turma',
         mensagem: 'A turma de destino é a mesma turma da matrícula atual.',
       },
     ]);
-    expect(await situacoesDoAluno(origem.studentId)).toEqual(['active']);
+    expect(await studentStatuses(source.studentId)).toEqual(['active']);
   });
 
   test('transferir matrícula já transferida é recusado', async () => {
-    const cenario = await cenarioCompleto();
-    const [origem] = cenario.matriculas;
-    const [, turmaDeDestino] = cenario.turmas;
+    const scenario = await fullScenario();
+    const [source] = scenario.enrollments;
+    const [, targetClassGroup] = scenario.classGroups;
     await academics.transfer({
-      networkId: cenario.rede.id,
-      enrollmentId: origem.id,
-      targetClassGroupId: turmaDeDestino.id,
-      date: DATA_DE_TRANSFERENCIA,
+      networkId: scenario.network.id,
+      enrollmentId: source.id,
+      targetClassGroupId: targetClassGroup.id,
+      date: TRANSFER_DATE,
     });
 
-    const segundaVez = await academics.transfer({
-      networkId: cenario.rede.id,
-      enrollmentId: origem.id,
-      targetClassGroupId: turmaDeDestino.id,
-      date: DATA_DE_TRANSFERENCIA,
+    const secondTime = await academics.transfer({
+      networkId: scenario.network.id,
+      enrollmentId: source.id,
+      targetClassGroupId: targetClassGroup.id,
+      date: TRANSFER_DATE,
     });
 
-    expect(errosDe(segundaVez)).toEqual([
+    expect(errorsOf(secondTime)).toEqual([
       {
         campo: 'matriculaId',
         codigo: 'matricula_nao_ativa',
         mensagem: 'Apenas uma matrícula ativa pode ser transferida.',
       },
     ]);
-    expect(await situacoesDoAluno(origem.studentId)).toEqual(['active', 'transferred']);
+    expect(await studentStatuses(source.studentId)).toEqual(['active', 'transferred']);
   });
 
   test('a matrícula pode ser transferida de novo a partir da turma nova', async () => {
-    const cenario = await cenarioCompleto();
-    const [origem] = cenario.matriculas;
-    const [turmaDeOrigem, turmaDoMeio] = cenario.turmas;
-    const primeira = valorDe(
+    const scenario = await fullScenario();
+    const [source] = scenario.enrollments;
+    const [sourceClassGroup, middleClassGroup] = scenario.classGroups;
+    const first = valueOfResult(
       await academics.transfer({
-        networkId: cenario.rede.id,
-        enrollmentId: origem.id,
-        targetClassGroupId: turmaDoMeio.id,
-        date: DATA_DE_TRANSFERENCIA,
+        networkId: scenario.network.id,
+        enrollmentId: source.id,
+        targetClassGroupId: middleClassGroup.id,
+        date: TRANSFER_DATE,
       }),
     );
 
-    const segunda = await academics.transfer({
-      networkId: cenario.rede.id,
-      enrollmentId: primeira.id,
-      targetClassGroupId: turmaDeOrigem.id,
-      date: `${ANO_PADRAO}-08-01`,
+    const second = await academics.transfer({
+      networkId: scenario.network.id,
+      enrollmentId: first.id,
+      targetClassGroupId: sourceClassGroup.id,
+      date: `${DEFAULT_YEAR}-08-01`,
     });
 
-    expect(valorDe(segunda).classGroupId).toBe(turmaDeOrigem.id);
-    const ativas = await sqlDeTeste()<{ total: number }[]>`
+    expect(valueOfResult(second).classGroupId).toBe(sourceClassGroup.id);
+    const active = await testSql()<{ total: number }[]>`
       SELECT count(*)::int AS total FROM enrollment
-       WHERE student_id = ${origem.studentId} AND status = 'active'`;
-    expect(ativas[0]?.total).toBe(1);
+       WHERE student_id = ${source.studentId} AND status = 'active'`;
+    expect(active[0]?.total).toBe(1);
   });
 
   test('transferir para turma de outro ano letivo é recusado', async () => {
-    const cenario = await cenarioCompleto();
-    const [origem] = cenario.matriculas;
-    const outroAno = await criarAnoLetivo({ networkId: cenario.rede.id, year: ANO_PADRAO + 1 });
-    const turmaDoOutroAno = await criarTurma({
-      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id, academicYearId: outroAno.id,
+    const scenario = await fullScenario();
+    const [source] = scenario.enrollments;
+    const otherYear = await createAcademicYear({ networkId: scenario.network.id, year: DEFAULT_YEAR + 1 });
+    const classGroupOfAnotherYear = await createClassGroup({
+      networkId: scenario.network.id, schoolId: scenario.schools[0].id, academicYearId: otherYear.id,
     });
 
-    const resultado = await academics.transfer({
-      networkId: cenario.rede.id,
-      enrollmentId: origem.id,
-      targetClassGroupId: turmaDoOutroAno.id,
-      date: DATA_DE_TRANSFERENCIA,
+    const result = await academics.transfer({
+      networkId: scenario.network.id,
+      enrollmentId: source.id,
+      targetClassGroupId: classGroupOfAnotherYear.id,
+      date: TRANSFER_DATE,
     });
 
-    expect(errosDe(resultado)).toEqual([
+    expect(errorsOf(result)).toEqual([
       {
         campo: 'turmaDestinoId',
         codigo: 'turma_de_outro_ano',
         mensagem: 'A turma de destino pertence a outro ano letivo.',
       },
     ]);
-    expect(await situacoesDoAluno(origem.studentId)).toEqual(['active']);
+    expect(await studentStatuses(source.studentId)).toEqual(['active']);
   });
 
   test('transferir para turma de outra rede é recusado', async () => {
-    const { a, b } = await duasRedes();
-    const [origem] = a.matriculas;
+    const { a, b } = await twoNetworks();
+    const [source] = a.enrollments;
 
-    const resultado = await academics.transfer({
-      networkId: a.rede.id,
-      enrollmentId: origem.id,
-      targetClassGroupId: b.turmas[1].id,
-      date: DATA_DE_TRANSFERENCIA,
+    const result = await academics.transfer({
+      networkId: a.network.id,
+      enrollmentId: source.id,
+      targetClassGroupId: b.classGroups[1].id,
+      date: TRANSFER_DATE,
     });
 
-    expect(errosDe(resultado)[0]?.codigo).toBe('turma_nao_encontrada');
-    expect(await situacoesDoAluno(origem.studentId)).toEqual(['active']);
+    expect(errorsOf(result)[0]?.codigo).toBe('turma_nao_encontrada');
+    expect(await studentStatuses(source.studentId)).toEqual(['active']);
   });
 
   test('matrícula de outra rede não é alcançável pelo id', async () => {
-    const { a, b } = await duasRedes();
+    const { a, b } = await twoNetworks();
 
-    const resultado = await academics.transfer({
-      networkId: a.rede.id,
-      enrollmentId: b.matriculas[0].id,
-      targetClassGroupId: a.turmas[1].id,
-      date: DATA_DE_TRANSFERENCIA,
+    const result = await academics.transfer({
+      networkId: a.network.id,
+      enrollmentId: b.enrollments[0].id,
+      targetClassGroupId: a.classGroups[1].id,
+      date: TRANSFER_DATE,
     });
 
-    expect(errosDe(resultado)).toEqual([
+    expect(errorsOf(result)).toEqual([
       {
         campo: 'matriculaId',
         codigo: 'matricula_nao_encontrada',
         mensagem: 'Matrícula não encontrada nesta rede.',
       },
     ]);
-    expect(await situacoesDoAluno(b.matriculas[0].studentId)).toEqual(['active']);
+    expect(await studentStatuses(b.enrollments[0].studentId)).toEqual(['active']);
   });
 
   test('matrícula inexistente é recusada', async () => {
-    const cenario = await cenarioCompleto();
+    const scenario = await fullScenario();
 
-    const resultado = await academics.transfer({
-      networkId: cenario.rede.id,
+    const result = await academics.transfer({
+      networkId: scenario.network.id,
       enrollmentId: crypto.randomUUID(),
-      targetClassGroupId: cenario.turmas[1].id,
-      date: DATA_DE_TRANSFERENCIA,
+      targetClassGroupId: scenario.classGroups[1].id,
+      date: TRANSFER_DATE,
     });
 
-    expect(errosDe(resultado)[0]?.codigo).toBe('matricula_nao_encontrada');
+    expect(errorsOf(result)[0]?.codigo).toBe('matricula_nao_encontrada');
   });
 
   test('data de transferência fora do formato é recusada', async () => {
-    const cenario = await cenarioCompleto();
-    const [origem] = cenario.matriculas;
+    const scenario = await fullScenario();
+    const [source] = scenario.enrollments;
 
-    const resultado = await academics.transfer({
-      networkId: cenario.rede.id,
-      enrollmentId: origem.id,
-      targetClassGroupId: cenario.turmas[1].id,
+    const result = await academics.transfer({
+      networkId: scenario.network.id,
+      enrollmentId: source.id,
+      targetClassGroupId: scenario.classGroups[1].id,
       date: '01-06-2026',
     });
 
-    expect(errosDe(resultado)[0]?.campo).toBe('data');
-    expect(await situacoesDoAluno(origem.studentId)).toEqual(['active']);
+    expect(errorsOf(result)[0]?.campo).toBe('data');
+    expect(await studentStatuses(source.studentId)).toEqual(['active']);
   });
 });

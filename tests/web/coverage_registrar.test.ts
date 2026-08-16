@@ -16,125 +16,125 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { limparBanco } from '../support/database';
+import { clearDatabase } from '../support/database';
 import {
-  cenarioCompleto,
-  criarAluno,
-  criarAnoLetivo,
-  criarTurma,
-  criarUsuario,
-  type Cenario,
+  fullScenario,
+  createStudent,
+  createAcademicYear,
+  createClassGroup,
+  createUser,
+  type Scenario,
 } from '../support/factories';
-import { abrir, entrar } from './support';
+import { open, signIn } from './support';
 
-beforeEach(limparBanco);
+beforeEach(clearDatabase);
 
-const entrarComoSecretaria = (cenario: Cenario): Promise<string> =>
-  entrar({ redeSlug: cenario.rede.slug, cpf: cenario.secretaria.cpf, senha: cenario.senha });
+const signInAsRegistrar = (scenario: Scenario): Promise<string> =>
+  signIn({ networkSlug: scenario.network.slug, cpf: scenario.registrar.cpf, password: scenario.password });
 
 /** A secretaria do cenário responde por uma unidade só; esta responde pelas duas. */
-const entrarComoSecretariaDasDuasUnidades = async (cenario: Cenario): Promise<string> => {
-  const usuario = await criarUsuario({
-    networkId: cenario.rede.id,
-    senha: cenario.senha,
-    papeis: [
-      { schoolId: cenario.unidades[0].id, role: 'registrar' },
-      { schoolId: cenario.unidades[1].id, role: 'registrar' },
+const signInAsRegistrarOfBothSchools = async (scenario: Scenario): Promise<string> => {
+  const user = await createUser({
+    networkId: scenario.network.id,
+    password: scenario.password,
+    roles: [
+      { schoolId: scenario.schools[0].id, role: 'registrar' },
+      { schoolId: scenario.schools[1].id, role: 'registrar' },
     ],
   });
-  return await entrar({ redeSlug: cenario.rede.slug, cpf: usuario.cpf, senha: cenario.senha });
+  return await signIn({ networkSlug: scenario.network.slug, cpf: user.cpf, password: scenario.password });
 };
 
-const html = async (caminho: string, cookie: string): Promise<string> =>
-  await (await abrir(caminho, cookie)).text();
+const html = async (path: string, cookie: string): Promise<string> =>
+  await (await open(path, cookie)).text();
 
 /** O `h1` da tela — o que distingue uma página da outra dentro do mesmo layout. */
-const tituloDaTela = (titulo: string): string => `<h1 class="pagina__titulo">${titulo}</h1>`;
+const screenTitle = (title: string): string => `<h1 class="pagina__titulo">${title}</h1>`;
 
 /* ------------------------------------------------------------------------- */
 
 describe('cada endereço de leitura abre a sua própria tela', () => {
-  type Tela = {
-    readonly nome: string;
-    readonly caminho: (cenario: Cenario) => string;
-    readonly titulo: (cenario: Cenario) => string;
+  type GoldenScreen = {
+    readonly name: string;
+    readonly path: (scenario: Scenario) => string;
+    readonly title: (scenario: Scenario) => string;
   };
 
-  const TELAS: readonly Tela[] = [
-    { nome: '/secretaria', caminho: () => '/secretaria', titulo: () => 'Painel da secretaria' },
-    { nome: '/secretaria/alunos', caminho: () => '/secretaria/alunos', titulo: () => 'Alunos' },
+  const SCREENS: readonly GoldenScreen[] = [
+    { name: '/secretaria', path: () => '/secretaria', title: () => 'Painel da secretaria' },
+    { name: '/secretaria/alunos', path: () => '/secretaria/alunos', title: () => 'Alunos' },
     {
-      nome: '/secretaria/alunos/novo',
-      caminho: () => '/secretaria/alunos/novo',
-      titulo: () => 'Cadastrar aluno',
+      name: '/secretaria/alunos/novo',
+      path: () => '/secretaria/alunos/novo',
+      title: () => 'Cadastrar aluno',
     },
     {
-      nome: '/secretaria/alunos/:id',
-      caminho: (cenario) => `/secretaria/alunos/${cenario.alunos[0].id}`,
-      titulo: (cenario) => cenario.alunos[0].name,
+      name: '/secretaria/alunos/:id',
+      path: (scenario) => `/secretaria/alunos/${scenario.students[0].id}`,
+      title: (scenario) => scenario.students[0].name,
     },
     {
-      nome: '/secretaria/alunos/:id/responsaveis/novo',
-      caminho: (cenario) => `/secretaria/alunos/${cenario.alunos[0].id}/responsaveis/novo`,
-      titulo: () => 'Vincular responsável',
+      name: '/secretaria/alunos/:id/responsaveis/novo',
+      path: (scenario) => `/secretaria/alunos/${scenario.students[0].id}/responsaveis/novo`,
+      title: () => 'Vincular responsável',
     },
     {
-      nome: '/secretaria/alunos/:id/matricular',
-      caminho: (cenario) => `/secretaria/alunos/${cenario.alunos[0].id}/matricular`,
-      titulo: () => 'Matricular em uma turma',
+      name: '/secretaria/alunos/:id/matricular',
+      path: (scenario) => `/secretaria/alunos/${scenario.students[0].id}/matricular`,
+      title: () => 'Matricular em uma turma',
     },
     {
-      nome: '/secretaria/matriculas/:id/transferir',
-      caminho: (cenario) => `/secretaria/matriculas/${cenario.matriculas[0].id}/transferir`,
-      titulo: () => 'Transferir de turma',
+      name: '/secretaria/matriculas/:id/transferir',
+      path: (scenario) => `/secretaria/matriculas/${scenario.enrollments[0].id}/transferir`,
+      title: () => 'Transferir de turma',
     },
     {
-      nome: '/secretaria/responsaveis',
-      caminho: () => '/secretaria/responsaveis',
-      titulo: () => 'Responsáveis',
+      name: '/secretaria/responsaveis',
+      path: () => '/secretaria/responsaveis',
+      title: () => 'Responsáveis',
     },
     {
-      nome: '/secretaria/responsaveis/novo',
-      caminho: () => '/secretaria/responsaveis/novo',
-      titulo: () => 'Cadastrar responsável',
+      name: '/secretaria/responsaveis/novo',
+      path: () => '/secretaria/responsaveis/novo',
+      title: () => 'Cadastrar responsável',
     },
-    { nome: '/secretaria/turmas', caminho: () => '/secretaria/turmas', titulo: () => 'Turmas' },
+    { name: '/secretaria/turmas', path: () => '/secretaria/turmas', title: () => 'Turmas' },
     {
-      nome: '/secretaria/turmas/nova',
-      caminho: () => '/secretaria/turmas/nova',
-      titulo: () => 'Cadastrar turma',
-    },
-    {
-      nome: '/secretaria/turmas/:id',
-      caminho: (cenario) => `/secretaria/turmas/${cenario.turmas[0].id}`,
-      titulo: (cenario) => cenario.turmas[0].name,
+      name: '/secretaria/turmas/nova',
+      path: () => '/secretaria/turmas/nova',
+      title: () => 'Cadastrar turma',
     },
     {
-      nome: '/secretaria/turmas/:id/disciplinas/nova',
-      caminho: (cenario) => `/secretaria/turmas/${cenario.turmas[0].id}/disciplinas/nova`,
-      titulo: () => 'Alocar disciplina e professor',
+      name: '/secretaria/turmas/:id',
+      path: (scenario) => `/secretaria/turmas/${scenario.classGroups[0].id}`,
+      title: (scenario) => scenario.classGroups[0].name,
     },
     {
-      nome: '/secretaria/disciplinas',
-      caminho: () => '/secretaria/disciplinas',
-      titulo: () => 'Disciplinas',
+      name: '/secretaria/turmas/:id/disciplinas/nova',
+      path: (scenario) => `/secretaria/turmas/${scenario.classGroups[0].id}/disciplinas/nova`,
+      title: () => 'Alocar disciplina e professor',
     },
     {
-      nome: '/secretaria/disciplinas/nova',
-      caminho: () => '/secretaria/disciplinas/nova',
-      titulo: () => 'Cadastrar disciplina',
+      name: '/secretaria/disciplinas',
+      path: () => '/secretaria/disciplinas',
+      title: () => 'Disciplinas',
+    },
+    {
+      name: '/secretaria/disciplinas/nova',
+      path: () => '/secretaria/disciplinas/nova',
+      title: () => 'Cadastrar disciplina',
     },
   ];
 
-  for (const tela of TELAS) {
-    test(`${tela.nome} responde 200 com o título da tela`, async () => {
-      const cenario = await cenarioCompleto();
-      const cookie = await entrarComoSecretaria(cenario);
+  for (const screen of SCREENS) {
+    test(`${screen.name} responde 200 com o título da tela`, async () => {
+      const scenario = await fullScenario();
+      const cookie = await signInAsRegistrar(scenario);
 
-      const resposta = await abrir(tela.caminho(cenario), cookie);
+      const response = await open(screen.path(scenario), cookie);
 
-      expect(resposta.status).toBe(200);
-      expect(await resposta.text()).toContain(tituloDaTela(tela.titulo(cenario)));
+      expect(response.status).toBe(200);
+      expect(await response.text()).toContain(screenTitle(screen.title(scenario)));
     });
   }
 });
@@ -143,30 +143,30 @@ describe('cada endereço de leitura abre a sua própria tela', () => {
 
 describe('a página de cadastrar aluno', () => {
   test('abre com os dois campos que o cadastro pede, e nenhum vínculo', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir('/secretaria/alunos/novo', cookie);
-    const pagina = await resposta.text();
+    const response = await open('/secretaria/alunos/novo', cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('method="post" action="/secretaria/alunos"');
-    expect(pagina).toContain('name="nome"');
-    expect(pagina).toContain('name="dataNascimento"');
+    expect(response.status).toBe(200);
+    expect(page).toContain('method="post" action="/secretaria/alunos"');
+    expect(page).toContain('name="nome"');
+    expect(page).toContain('name="dataNascimento"');
     // Matrícula e responsável são vínculos que se fazem depois, da ficha: não cabem no cadastro.
-    expect(pagina).not.toContain('name="turmaId"');
-    expect(pagina).not.toContain('name="responsavelId"');
+    expect(page).not.toContain('name="turmaId"');
+    expect(page).not.toContain('name="responsavelId"');
   });
 
   test('nasce vazia — o formulário em branco não traz valor digitado', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const pagina = await html('/secretaria/alunos/novo', cookie);
+    const page = await html('/secretaria/alunos/novo', cookie);
 
-    expect(pagina).toContain('id="nome"');
-    expect(pagina).not.toContain('id="nome-erro"');
-    expect(pagina).not.toContain('id="dataNascimento-erro"');
+    expect(page).toContain('id="nome"');
+    expect(page).not.toContain('id="nome-erro"');
+    expect(page).not.toContain('id="dataNascimento-erro"');
   });
 });
 
@@ -174,44 +174,44 @@ describe('a página de cadastrar aluno', () => {
 
 describe('a busca de alunos tem três estados, e todos são GET', () => {
   test('sem termo, a tela pede a busca em vez de despejar a rede inteira', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir('/secretaria/alunos', cookie);
-    const pagina = await resposta.text();
+    const response = await open('/secretaria/alunos', cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Comece pela busca');
-    expect(pagina).not.toContain('Alunos encontrados para');
-    expect(pagina).not.toContain(cenario.alunos[0].name);
+    expect(response.status).toBe(200);
+    expect(page).toContain('Comece pela busca');
+    expect(page).not.toContain('Alunos encontrados para');
+    expect(page).not.toContain(scenario.students[0].name);
   });
 
   test('com termo que acha, a tabela traz o aluno e a situação da matrícula', async () => {
-    const cenario = await cenarioCompleto();
-    await criarAluno({ networkId: cenario.rede.id, name: 'Zulmira Peixoto de Andrade' });
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    await createStudent({ networkId: scenario.network.id, name: 'Zulmira Peixoto de Andrade' });
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir('/secretaria/alunos?q=Zulmira', cookie);
-    const pagina = await resposta.text();
+    const response = await open('/secretaria/alunos?q=Zulmira', cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Alunos encontrados para');
-    expect(pagina).toContain('Zulmira Peixoto de Andrade');
-    expect(pagina).toContain('aluno encontrado');
+    expect(response.status).toBe(200);
+    expect(page).toContain('Alunos encontrados para');
+    expect(page).toContain('Zulmira Peixoto de Andrade');
+    expect(page).toContain('aluno encontrado');
     // Ninguém a matriculou ainda, e a coluna afirma só o que se sabe.
-    expect(pagina).toContain('Sem matrícula');
+    expect(page).toContain('Sem matrícula');
   });
 
   test('com termo que não acha, a tela oferece o cadastro em vez de uma tabela vazia', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir('/secretaria/alunos?q=Zulmira', cookie);
-    const pagina = await resposta.text();
+    const response = await open('/secretaria/alunos?q=Zulmira', cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Nenhum aluno com esse nome');
-    expect(pagina).toContain('href="/secretaria/alunos/novo"');
+    expect(response.status).toBe(200);
+    expect(page).toContain('Nenhum aluno com esse nome');
+    expect(page).toContain('href="/secretaria/alunos/novo"');
   });
 });
 
@@ -219,40 +219,40 @@ describe('a busca de alunos tem três estados, e todos são GET', () => {
 
 describe('o painel conta o que está ao alcance de quem abriu', () => {
   /** Os quatro cartões, na ordem em que a tela os desenha. */
-  const numerosDosCartoes = (pagina: string): number[] =>
-    [...pagina.matchAll(/cartao__numero">(\d+)</g)].map(([, numero]) => Number(numero));
+  const cardNumbers = (page: string): number[] =>
+    [...page.matchAll(/cartao__numero">(\d+)</g)].map(([, number]) => Number(number));
 
   test('os cartões trazem os números da unidade em que a pessoa é secretaria', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const pagina = await html('/secretaria', cookie);
+    const page = await html('/secretaria', cookie);
 
     // Matrículas ativas, turmas, responsáveis e disciplinas: o cenário completo em uma unidade.
-    expect(numerosDosCartoes(pagina)).toEqual([5, 2, 5, 3]);
+    expect(cardNumbers(page)).toEqual([5, 2, 5, 3]);
   });
 
   test('com uma unidade só, a tabela por unidade não aparece — não há o que comparar', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const pagina = await html('/secretaria', cookie);
+    const page = await html('/secretaria', cookie);
 
-    expect(pagina).not.toContain('Números de cada unidade sob sua secretaria');
-    expect(pagina).not.toContain(cenario.unidades[1].name);
+    expect(page).not.toContain('Números de cada unidade sob sua secretaria');
+    expect(page).not.toContain(scenario.schools[1].name);
   });
 
   test('com duas unidades, a tabela aparece e nomeia as duas', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretariaDasDuasUnidades(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrarOfBothSchools(scenario);
 
-    const resposta = await abrir('/secretaria', cookie);
-    const pagina = await resposta.text();
+    const response = await open('/secretaria', cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Números de cada unidade sob sua secretaria');
-    expect(pagina).toContain(cenario.unidades[0].name);
-    expect(pagina).toContain(cenario.unidades[1].name);
+    expect(response.status).toBe(200);
+    expect(page).toContain('Números de cada unidade sob sua secretaria');
+    expect(page).toContain(scenario.schools[0].name);
+    expect(page).toContain(scenario.schools[1].name);
   });
 });
 
@@ -260,61 +260,61 @@ describe('o painel conta o que está ao alcance de quem abriu', () => {
 
 describe('o filtro de turmas vive na URL', () => {
   test('filtrar por unidade recorta a lista às turmas daquela unidade', async () => {
-    const cenario = await cenarioCompleto();
-    const base = { networkId: cenario.rede.id, academicYearId: cenario.anoLetivo.id };
-    await criarTurma({ ...base, schoolId: cenario.unidades[0].id, name: 'Turma Alfa da Central' });
-    await criarTurma({ ...base, schoolId: cenario.unidades[1].id, name: 'Turma Beta do Bairro' });
-    const cookie = await entrarComoSecretariaDasDuasUnidades(cenario);
+    const scenario = await fullScenario();
+    const base = { networkId: scenario.network.id, academicYearId: scenario.academicYear.id };
+    await createClassGroup({ ...base, schoolId: scenario.schools[0].id, name: 'Turma Alfa da Central' });
+    await createClassGroup({ ...base, schoolId: scenario.schools[1].id, name: 'Turma Beta do Bairro' });
+    const cookie = await signInAsRegistrarOfBothSchools(scenario);
 
-    const resposta = await abrir(`/secretaria/turmas?unidade=${cenario.unidades[1].id}`, cookie);
-    const pagina = await resposta.text();
+    const response = await open(`/secretaria/turmas?unidade=${scenario.schools[1].id}`, cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Turma Beta do Bairro');
-    expect(pagina).not.toContain('Turma Alfa da Central');
+    expect(response.status).toBe(200);
+    expect(page).toContain('Turma Beta do Bairro');
+    expect(page).not.toContain('Turma Alfa da Central');
   });
 
   test('filtrar por ano letivo recorta a lista àquele ano', async () => {
-    const cenario = await cenarioCompleto();
-    const outroAno = await criarAnoLetivo({ networkId: cenario.rede.id, year: cenario.anoLetivo.year + 1 });
-    const base = { networkId: cenario.rede.id, schoolId: cenario.unidades[0].id };
-    await criarTurma({ ...base, academicYearId: cenario.anoLetivo.id, name: 'Turma Gama do Ano Velho' });
-    await criarTurma({ ...base, academicYearId: outroAno.id, name: 'Turma Delta do Ano Novo' });
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const otherYear = await createAcademicYear({ networkId: scenario.network.id, year: scenario.academicYear.year + 1 });
+    const base = { networkId: scenario.network.id, schoolId: scenario.schools[0].id };
+    await createClassGroup({ ...base, academicYearId: scenario.academicYear.id, name: 'Turma Gama do Ano Velho' });
+    await createClassGroup({ ...base, academicYearId: otherYear.id, name: 'Turma Delta do Ano Novo' });
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir(`/secretaria/turmas?ano=${outroAno.id}`, cookie);
-    const pagina = await resposta.text();
+    const response = await open(`/secretaria/turmas?ano=${otherYear.id}`, cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Turma Delta do Ano Novo');
-    expect(pagina).not.toContain('Turma Gama do Ano Velho');
+    expect(response.status).toBe(200);
+    expect(page).toContain('Turma Delta do Ano Novo');
+    expect(page).not.toContain('Turma Gama do Ano Velho');
   });
 
   test('unidade fora do alcance vale como “todas as suas”, e não abre a de fora', async () => {
-    const cenario = await cenarioCompleto();
-    const base = { networkId: cenario.rede.id, academicYearId: cenario.anoLetivo.id };
-    await criarTurma({ ...base, schoolId: cenario.unidades[0].id, name: 'Turma Epsilon da Minha' });
-    await criarTurma({ ...base, schoolId: cenario.unidades[1].id, name: 'Turma Zeta da Outra' });
+    const scenario = await fullScenario();
+    const base = { networkId: scenario.network.id, academicYearId: scenario.academicYear.id };
+    await createClassGroup({ ...base, schoolId: scenario.schools[0].id, name: 'Turma Epsilon da Minha' });
+    await createClassGroup({ ...base, schoolId: scenario.schools[1].id, name: 'Turma Zeta da Outra' });
     // Esta secretaria só tem papel na primeira unidade: a segunda não é filtro que ela possa pedir.
-    const cookie = await entrarComoSecretaria(cenario);
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir(`/secretaria/turmas?unidade=${cenario.unidades[1].id}`, cookie);
-    const pagina = await resposta.text();
+    const response = await open(`/secretaria/turmas?unidade=${scenario.schools[1].id}`, cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Turma Epsilon da Minha');
-    expect(pagina).not.toContain('Turma Zeta da Outra');
+    expect(response.status).toBe(200);
+    expect(page).toContain('Turma Epsilon da Minha');
+    expect(page).not.toContain('Turma Zeta da Outra');
   });
 
   test('número de página que não existe não vira erro nem tela quebrada', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir('/secretaria/turmas?p=999', cookie);
-    const pagina = await resposta.text();
+    const response = await open('/secretaria/turmas?p=999', cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Turmas das unidades sob sua secretaria');
+    expect(response.status).toBe(200);
+    expect(page).toContain('Turmas das unidades sob sua secretaria');
   });
 });
 
@@ -322,57 +322,57 @@ describe('o filtro de turmas vive na URL', () => {
 
 describe('as listagens mostram o que prometem no cabeçalho', () => {
   test('a lista de disciplinas traz a tabela da rede', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir('/secretaria/disciplinas', cookie);
-    const pagina = await resposta.text();
+    const response = await open('/secretaria/disciplinas', cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Disciplinas disponíveis para alocar nas turmas');
-    expect(pagina).toContain(cenario.disciplinas[0].name);
-    expect(pagina).toContain('href="/secretaria/disciplinas/nova"');
+    expect(response.status).toBe(200);
+    expect(page).toContain('Disciplinas disponíveis para alocar nas turmas');
+    expect(page).toContain(scenario.subjects[0].name);
+    expect(page).toContain('href="/secretaria/disciplinas/nova"');
   });
 
   test('a lista de responsáveis traz nome, CPF e e-mail de quem responde pelos alunos', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir('/secretaria/responsaveis', cookie);
-    const pagina = await resposta.text();
+    const response = await open('/secretaria/responsaveis', cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Responsáveis cadastrados nesta rede');
-    expect(pagina).toContain(cenario.responsaveis[0].name);
-    expect(pagina).toContain(cenario.responsaveis[0].email);
+    expect(response.status).toBe(200);
+    expect(page).toContain('Responsáveis cadastrados nesta rede');
+    expect(page).toContain(scenario.guardians[0].name);
+    expect(page).toContain(scenario.guardians[0].email);
   });
 
   test('a tela da turma lista as disciplinas alocadas e os alunos com matrícula ativa', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir(`/secretaria/turmas/${cenario.turmas[0].id}`, cookie);
-    const pagina = await resposta.text();
+    const response = await open(`/secretaria/turmas/${scenario.classGroups[0].id}`, cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Quem leciona o quê nesta turma');
-    expect(pagina).toContain('Alunos com matrícula ativa nesta turma');
-    expect(pagina).toContain(cenario.disciplinas[0].name);
-    expect(pagina).toContain(cenario.professor.name);
-    expect(pagina).toContain(cenario.alunos[0].name);
+    expect(response.status).toBe(200);
+    expect(page).toContain('Quem leciona o quê nesta turma');
+    expect(page).toContain('Alunos com matrícula ativa nesta turma');
+    expect(page).toContain(scenario.subjects[0].name);
+    expect(page).toContain(scenario.teacher.name);
+    expect(page).toContain(scenario.students[0].name);
   });
 
   test('a ficha do aluno traz os responsáveis vinculados e o histórico de matrículas', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await abrir(`/secretaria/alunos/${cenario.alunos[0].id}`, cookie);
-    const pagina = await resposta.text();
+    const response = await open(`/secretaria/alunos/${scenario.students[0].id}`, cookie);
+    const page = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(pagina).toContain('Quem responde por este aluno');
-    expect(pagina).toContain('Histórico de matrículas deste aluno');
-    expect(pagina).toContain(cenario.responsaveis[0].name);
-    expect(pagina).toContain(cenario.turmas[0].name);
+    expect(response.status).toBe(200);
+    expect(page).toContain('Quem responde por este aluno');
+    expect(page).toContain('Histórico de matrículas deste aluno');
+    expect(page).toContain(scenario.guardians[0].name);
+    expect(page).toContain(scenario.classGroups[0].name);
   });
 });

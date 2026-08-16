@@ -24,130 +24,130 @@ import {
   type User,
 } from '../../src/identity/domain/user';
 
-const HORA_EM_MS = 3_600_000;
-const AGORA = new Date('2026-03-10T08:00:00.000Z');
+const HOUR_IN_MS = 3_600_000;
+const NOW = new Date('2026-03-10T08:00:00.000Z');
 
-const redeCom = (status: Network['status']): Network => ({
+const networkWith = (status: Network['status']): Network => ({
   id: 'rede-1',
   name: 'Rede Municipal Central',
   slug: 'central',
   status,
 });
 
-const sessaoQueVenceEm = (expiraEm: Date): Session => ({
+const sessionExpiringAt = (expiresAt: Date): Session => ({
   id: 'sessao-1',
   networkId: 'rede-1',
   userId: 'usuario-1',
-  createdAt: AGORA,
-  expiresAt: expiraEm,
+  createdAt: NOW,
+  expiresAt,
   ip: '203.0.113.7',
 });
 
 describe('status da rede', () => {
   test('converte os três status que o esquema aceita', () => {
-    const vindosDoBanco = [...NETWORK_STATUSES];
+    const fromTheDatabase = [...NETWORK_STATUSES];
 
-    const convertidos = vindosDoBanco.map(toNetworkStatus);
+    const converted = fromTheDatabase.map(toNetworkStatus);
 
-    expect(convertidos).toEqual(['active', 'suspended', 'cancelled']);
+    expect(converted).toEqual(['active', 'suspended', 'cancelled']);
   });
 
   test('recusa status fora do domínio em vez de servir a rede com estado desconhecido', () => {
-    const forasteiro = 'inadimplente';
+    const outsider = 'inadimplente';
 
-    const converter = (): string => toNetworkStatus(forasteiro);
+    const convert = (): string => toNetworkStatus(outsider);
 
-    expect(converter).toThrow('status de rede fora do domínio: inadimplente');
+    expect(convert).toThrow('status de rede fora do domínio: inadimplente');
   });
 
   test('só a rede ativa opera; suspensa e cancelada não', () => {
-    const redes = [redeCom('active'), redeCom('suspended'), redeCom('cancelled')];
+    const networks = [networkWith('active'), networkWith('suspended'), networkWith('cancelled')];
 
-    const operando = redes.map(isNetworkActive);
+    const operand = networks.map(isNetworkActive);
 
-    expect(operando).toEqual([true, false, false]);
+    expect(operand).toEqual([true, false, false]);
   });
 });
 
 describe('papel do usuário', () => {
   test('reconhece os quatro papéis do produto', () => {
-    const conhecidos = [...ROLES];
+    const known = [...ROLES];
 
-    const validos = conhecidos.map(isValidRole);
+    const valid = known.map(isValidRole);
 
-    expect(validos).toEqual([true, true, true, true]);
+    expect(valid).toEqual([true, true, true, true]);
   });
 
   test('não reconhece cargo que o produto não modela', () => {
-    const cargo = 'diretor';
+    const position = 'diretor';
 
-    const valido = isValidRole(cargo);
+    const valid = isValidRole(position);
 
-    expect(valido).toBe(false);
+    expect(valid).toBe(false);
   });
 
   test('recusa papel desconhecido em vez de descartá-lo em silêncio', () => {
-    const desconhecido = 'coordenador';
+    const unknown = 'coordenador';
 
-    const converter = (): string => toRole(desconhecido);
+    const convert = (): string => toRole(unknown);
 
-    expect(converter).toThrow('papel fora do domínio: coordenador');
+    expect(convert).toThrow('papel fora do domínio: coordenador');
   });
 });
 
 describe('validade da sessão', () => {
   test('a expiração é a duração somada ao instante da criação', () => {
-    const duracaoHoras = 12;
+    const durationHours = 12;
 
-    const expiraEm = sessionExpiration(AGORA, duracaoHoras);
+    const expiresAt = sessionExpiration(NOW, durationHours);
 
-    expect(expiraEm.getTime()).toBe(AGORA.getTime() + duracaoHoras * HORA_EM_MS);
+    expect(expiresAt.getTime()).toBe(NOW.getTime() + durationHours * HOUR_IN_MS);
   });
 
   test('a sessão dentro do prazo continua valendo', () => {
-    const sessao = sessaoQueVenceEm(new Date(AGORA.getTime() + HORA_EM_MS));
+    const session = sessionExpiringAt(new Date(NOW.getTime() + HOUR_IN_MS));
 
-    const expirou = hasSessionExpired(sessao, AGORA);
+    const expired = hasSessionExpired(session, NOW);
 
-    expect(expirou).toBe(false);
+    expect(expired).toBe(false);
   });
 
   test('a sessão vencida não vale mais', () => {
-    const sessao = sessaoQueVenceEm(new Date(AGORA.getTime() - 1));
+    const session = sessionExpiringAt(new Date(NOW.getTime() - 1));
 
-    const expirou = hasSessionExpired(sessao, AGORA);
+    const expired = hasSessionExpired(session, NOW);
 
-    expect(expirou).toBe(true);
+    expect(expired).toBe(true);
   });
 
   test('a sessão que vence exatamente agora já não vale', () => {
-    const sessao = sessaoQueVenceEm(new Date(AGORA.getTime()));
+    const session = sessionExpiringAt(new Date(NOW.getTime()));
 
-    const expirou = hasSessionExpired(sessao, AGORA);
+    const expired = hasSessionExpired(session, NOW);
 
-    expect(expirou).toBe(true);
+    expect(expired).toBe(true);
   });
 });
 
 describe('usuário', () => {
   test('o e-mail perde espaços das pontas e vai para caixa baixa', () => {
-    const digitado = '  Ana.Souza@Escola.BR  ';
+    const typed = '  Ana.Souza@Escola.BR  ';
 
-    const normalizado = normalizedEmail(digitado);
+    const normalized = normalizedEmail(typed);
 
-    expect(normalizado).toBe('ana.souza@escola.br');
+    expect(normalized).toBe('ana.souza@escola.br');
   });
 
   test('e-mail já normalizado atravessa sem mudança', () => {
-    const digitado = 'ana.souza@escola.br';
+    const typed = 'ana.souza@escola.br';
 
-    const normalizado = normalizedEmail(digitado);
+    const normalized = normalizedEmail(typed);
 
-    expect(normalizado).toBe(digitado);
+    expect(normalized).toBe(typed);
   });
 
   test('o usuário autenticado carrega identidade, rede e todos os papéis', () => {
-    const usuario: User = {
+    const user: User = {
       id: 'usuario-1',
       networkId: 'rede-1',
       name: 'Ana Souza',
@@ -156,27 +156,27 @@ describe('usuário', () => {
       active: true,
       guardianId: null,
     };
-    const papeis = [
+    const roles = [
       { schoolId: 'unidade-1', schoolName: 'Escola Centro', role: 'teacher' as const },
       { schoolId: 'unidade-2', schoolName: 'Escola Praia', role: 'registrar' as const },
     ];
 
-    const autenticado = toAuthenticatedUser(usuario, redeCom('active'), papeis);
+    const authenticatedUser = toAuthenticatedUser(user, networkWith('active'), roles);
 
-    expect(autenticado).toEqual({
+    expect(authenticatedUser).toEqual({
       id: 'usuario-1',
       networkId: 'rede-1',
       networkName: 'Rede Municipal Central',
       networkSlug: 'central',
       name: 'Ana Souza',
       email: 'ana.souza@escola.br',
-      roles: papeis,
+      roles,
       guardianId: null,
     });
   });
 
   test('quem entra como responsável leva o cadastro de responsável junto', () => {
-    const usuario: User = {
+    const user: User = {
       id: 'usuario-2',
       networkId: 'rede-1',
       name: 'Carlos Lima',
@@ -186,13 +186,13 @@ describe('usuário', () => {
       guardianId: 'responsavel-9',
     };
 
-    const autenticado = toAuthenticatedUser(usuario, redeCom('active'), []);
+    const authenticatedUser = toAuthenticatedUser(user, networkWith('active'), []);
 
-    expect(autenticado.guardianId).toBe('responsavel-9');
+    expect(authenticatedUser.guardianId).toBe('responsavel-9');
   });
 
   test('montar o usuário autenticado não altera o usuário recebido', () => {
-    const usuario: User = {
+    const user: User = {
       id: 'usuario-3',
       networkId: 'rede-1',
       name: 'Bia Nunes',
@@ -201,18 +201,18 @@ describe('usuário', () => {
       active: true,
       guardianId: null,
     };
-    const copia = { ...usuario };
+    const copy = { ...user };
 
-    toAuthenticatedUser(usuario, redeCom('active'), []);
+    toAuthenticatedUser(user, networkWith('active'), []);
 
-    expect(usuario).toEqual(copia);
+    expect(user).toEqual(copy);
   });
 
   test('o produto exige senha de pelo menos dez caracteres', () => {
-    const senhaCurta = 'abc123456';
+    const shortPassword = 'abc123456';
 
-    const cabe = senhaCurta.length >= MINIMUM_PASSWORD_LENGTH;
+    const fits = shortPassword.length >= MINIMUM_PASSWORD_LENGTH;
 
-    expect(cabe).toBe(false);
+    expect(fits).toBe(false);
   });
 });

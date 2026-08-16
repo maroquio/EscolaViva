@@ -8,251 +8,251 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { communication, type Announcement } from '../../src/communication';
-import { limparBanco, sqlDeTeste } from '../support/database';
+import { clearDatabase, testSql } from '../support/database';
 import {
-  cenarioCompleto,
-  criarAluno,
-  criarComunicado,
-  criarMatricula,
-  criarResponsavel,
-  criarTurma,
-  vincularAlunoResponsavel,
-  type Cenario,
+  fullScenario,
+  createStudent,
+  createAnnouncement,
+  createEnrollment,
+  createGuardian,
+  createClassGroup,
+  linkStudentGuardian,
+  type Scenario,
 } from '../support/factories';
 
-const INSTANTE_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
-const LEITURA_ANTIGA = new Date('2026-01-05T08:30:00.000Z');
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+const OLD_READ = new Date('2026-01-05T08:30:00.000Z');
 
-let cenario: Cenario;
+let scenario: Scenario;
 
 beforeEach(async () => {
-  await limparBanco();
-  cenario = await cenarioCompleto();
+  await clearDatabase();
+  scenario = await fullScenario();
 });
 
 /** Publica e estreita o `Result`: quando isto falha, o erro do arranjo aparece por inteiro. */
-async function publicar(entrada: {
+async function publish(input: {
   schoolId?: string;
   title?: string;
   body?: string;
   recipients?: { guardianId: string }[];
 }): Promise<Announcement> {
-  const resultado = await communication.publishAnnouncement({
-    networkId: cenario.rede.id,
-    schoolId: entrada.schoolId ?? cenario.unidades[0].id,
-    title: entrada.title ?? 'Reunião de pais',
-    body: entrada.body ?? 'A reunião começa às 19h no auditório.',
-    authorUserId: cenario.secretaria.id,
-    recipients: entrada.recipients ?? [],
+  const result = await communication.publishAnnouncement({
+    networkId: scenario.network.id,
+    schoolId: input.schoolId ?? scenario.schools[0].id,
+    title: input.title ?? 'Reunião de pais',
+    body: input.body ?? 'A reunião começa às 19h no auditório.',
+    authorUserId: scenario.registrar.id,
+    recipients: input.recipients ?? [],
   });
-  if (!resultado.ok) {
-    throw new Error(`publicação recusada no arranjo: ${JSON.stringify(resultado.erros)}`);
+  if (!result.ok) {
+    throw new Error(`publicação recusada no arranjo: ${JSON.stringify(result.erros)}`);
   }
-  return resultado.valor;
+  return result.valor;
 }
 
-async function destinatariosDe(comunicadoId: string): Promise<string[]> {
-  const linhas = await sqlDeTeste()<{ guardian_id: string }[]>`
+async function recipientsOf(announcementId: string): Promise<string[]> {
+  const rows = await testSql()<{ guardian_id: string }[]>`
     SELECT guardian_id FROM announcement_recipient
-     WHERE announcement_id = ${comunicadoId}`;
-  return linhas.map((linha) => linha.guardian_id).sort();
+     WHERE announcement_id = ${announcementId}`;
+  return rows.map((row) => row.guardian_id).sort();
 }
 
-async function leiturasDe(comunicadoId: string, responsavelId: string): Promise<(Date | null)[]> {
-  const linhas = await sqlDeTeste()<{ read_at: Date | null }[]>`
+async function readsOf(announcementId: string, guardianId: string): Promise<(Date | null)[]> {
+  const rows = await testSql()<{ read_at: Date | null }[]>`
     SELECT read_at FROM announcement_recipient
-     WHERE announcement_id = ${comunicadoId} AND guardian_id = ${responsavelId}`;
-  return linhas.map((linha) => linha.read_at);
+     WHERE announcement_id = ${announcementId} AND guardian_id = ${guardianId}`;
+  return rows.map((row) => row.read_at);
 }
 
 /** Um responsável com aluno matriculado ativo na unidade indicada. */
-async function responsavelNaUnidade(unidadeId: string): Promise<string> {
-  const turma = await criarTurma({
-    networkId: cenario.rede.id,
-    schoolId: unidadeId,
-    academicYearId: cenario.anoLetivo.id,
+async function guardianAtSchool(schoolId: string): Promise<string> {
+  const classGroup = await createClassGroup({
+    networkId: scenario.network.id,
+    schoolId,
+    academicYearId: scenario.academicYear.id,
   });
-  const aluno = await criarAluno({ networkId: cenario.rede.id });
-  const responsavel = await criarResponsavel({ networkId: cenario.rede.id });
-  await vincularAlunoResponsavel({
-    networkId: cenario.rede.id,
-    studentId: aluno.id,
-    guardianId: responsavel.id,
+  const student = await createStudent({ networkId: scenario.network.id });
+  const guardian = await createGuardian({ networkId: scenario.network.id });
+  await linkStudentGuardian({
+    networkId: scenario.network.id,
+    studentId: student.id,
+    guardianId: guardian.id,
   });
-  await criarMatricula({
-    networkId: cenario.rede.id,
-    studentId: aluno.id,
-    classGroupId: turma.id,
-    academicYearId: cenario.anoLetivo.id,
+  await createEnrollment({
+    networkId: scenario.network.id,
+    studentId: student.id,
+    classGroupId: classGroup.id,
+    academicYearId: scenario.academicYear.id,
   });
-  return responsavel.id;
+  return guardian.id;
 }
 
 describe('publishAnnouncement', () => {
   test('publica com o nome do autor e a data de publicação preenchida', async () => {
-    const comunicado = await publicar({
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+    const announcement = await publish({
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    expect(comunicado.title).toBe('Reunião de pais');
-    expect(comunicado.body).toBe('A reunião começa às 19h no auditório.');
-    expect(comunicado.authorName).toBe(cenario.secretaria.name);
-    expect(comunicado.schoolId).toBe(cenario.unidades[0].id);
-    expect(comunicado.publishedAt).toMatch(INSTANTE_ISO);
+    expect(announcement.title).toBe('Reunião de pais');
+    expect(announcement.body).toBe('A reunião começa às 19h no auditório.');
+    expect(announcement.authorName).toBe(scenario.registrar.name);
+    expect(announcement.schoolId).toBe(scenario.schools[0].id);
+    expect(announcement.publishedAt).toMatch(ISO_INSTANT);
   });
 
   test('grava um destinatário para cada responsável da lista', async () => {
-    const escolhidos = [cenario.responsaveis[0].id, cenario.responsaveis[2].id];
+    const chosen = [scenario.guardians[0].id, scenario.guardians[2].id];
 
-    const comunicado = await publicar({
-      recipients: escolhidos.map((guardianId) => ({ guardianId })),
+    const announcement = await publish({
+      recipients: chosen.map((guardianId) => ({ guardianId })),
     });
 
-    expect(await destinatariosDe(comunicado.id)).toEqual([...escolhidos].sort());
+    expect(await recipientsOf(announcement.id)).toEqual([...chosen].sort());
   });
 
   test('o mesmo responsável repetido na lista vira um destinatário só', async () => {
-    const comunicado = await publicar({
+    const announcement = await publish({
       recipients: [
-        { guardianId: cenario.responsaveis[0].id },
-        { guardianId: cenario.responsaveis[0].id },
+        { guardianId: scenario.guardians[0].id },
+        { guardianId: scenario.guardians[0].id },
       ],
     });
 
-    expect(await destinatariosDe(comunicado.id)).toEqual([cenario.responsaveis[0].id]);
+    expect(await recipientsOf(announcement.id)).toEqual([scenario.guardians[0].id]);
   });
 
   test('a lista vazia alcança todo responsável com aluno matriculado ativo na unidade', async () => {
-    const comunicado = await publicar({ recipients: [] });
+    const announcement = await publish({ recipients: [] });
 
-    expect(await destinatariosDe(comunicado.id)).toEqual(
-      cenario.responsaveis.map((responsavel) => responsavel.id).sort(),
+    expect(await recipientsOf(announcement.id)).toEqual(
+      scenario.guardians.map((guardian) => guardian.id).sort(),
     );
   });
 
   test('a lista vazia não alcança responsável de outra unidade da mesma rede', async () => {
-    const deOutraUnidade = await responsavelNaUnidade(cenario.unidades[1].id);
+    const fromAnotherSchool = await guardianAtSchool(scenario.schools[1].id);
 
-    const comunicado = await publicar({ recipients: [] });
+    const announcement = await publish({ recipients: [] });
 
-    expect(await destinatariosDe(comunicado.id)).not.toContain(deOutraUnidade);
+    expect(await recipientsOf(announcement.id)).not.toContain(fromAnotherSchool);
   });
 
   test('a lista vazia não alcança responsável de outra rede', async () => {
-    const outra = await cenarioCompleto();
+    const other = await fullScenario();
 
-    const comunicado = await publicar({ recipients: [] });
+    const announcement = await publish({ recipients: [] });
 
-    const alcancados = await destinatariosDe(comunicado.id);
-    for (const responsavel of outra.responsaveis) {
-      expect(alcancados).not.toContain(responsavel.id);
+    const reached = await recipientsOf(announcement.id);
+    for (const guardian of other.guardians) {
+      expect(reached).not.toContain(guardian.id);
     }
   });
 
   test('a lista vazia ignora responsável cujo aluno não tem matrícula ativa', async () => {
-    const desligado = await responsavelNaUnidade(cenario.unidades[0].id);
-    await sqlDeTeste()`
+    const shutDown = await guardianAtSchool(scenario.schools[0].id);
+    await testSql()`
       UPDATE enrollment SET status = 'cancelled'
-       WHERE student_id IN (SELECT student_id FROM student_guardian WHERE guardian_id = ${desligado})`;
+       WHERE student_id IN (SELECT student_id FROM student_guardian WHERE guardian_id = ${shutDown})`;
 
-    const comunicado = await publicar({ recipients: [] });
+    const announcement = await publish({ recipients: [] });
 
-    expect(await destinatariosDe(comunicado.id)).not.toContain(desligado);
+    expect(await recipientsOf(announcement.id)).not.toContain(shutDown);
   });
 
   test('recusa quando não há responsável nenhum para receber', async () => {
-    const resultado = await communication.publishAnnouncement({
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[1].id,
+    const result = await communication.publishAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[1].id,
       title: 'Aviso',
       body: 'Corpo do aviso.',
-      authorUserId: cenario.secretaria.id,
+      authorUserId: scenario.registrar.id,
       recipients: [],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'destinatarios', codigo: 'sem_destinatarios' })],
     });
   });
 
   test('recusa título vazio e título longo demais', async () => {
-    const vazio = communication.publishAnnouncement({
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[0].id,
+    const empty = communication.publishAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[0].id,
       title: '   ',
       body: 'Corpo do aviso.',
-      authorUserId: cenario.secretaria.id,
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+      authorUserId: scenario.registrar.id,
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
-    const longo = communication.publishAnnouncement({
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[0].id,
+    const long = communication.publishAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[0].id,
       title: 't'.repeat(161),
       body: 'Corpo do aviso.',
-      authorUserId: cenario.secretaria.id,
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+      authorUserId: scenario.registrar.id,
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    const [semTitulo, tituloLongo] = await Promise.all([vazio, longo]);
+    const [withoutTitle, longTitle] = await Promise.all([empty, long]);
 
-    expect(semTitulo).toEqual({
+    expect(withoutTitle).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'titulo', codigo: 'titulo_invalido' })],
     });
-    expect(tituloLongo).toEqual({
+    expect(longTitle).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'titulo', codigo: 'titulo_invalido' })],
     });
   });
 
   test('recusa corpo vazio', async () => {
-    const resultado = await communication.publishAnnouncement({
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[0].id,
+    const result = await communication.publishAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[0].id,
       title: 'Aviso',
       body: '  ',
-      authorUserId: cenario.secretaria.id,
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+      authorUserId: scenario.registrar.id,
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'corpo', codigo: 'corpo_invalido' })],
     });
   });
 
   test('recusa unidade que não é desta rede', async () => {
-    const outra = await cenarioCompleto();
+    const other = await fullScenario();
 
-    const resultado = await communication.publishAnnouncement({
-      networkId: cenario.rede.id,
-      schoolId: outra.unidades[0].id,
+    const result = await communication.publishAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: other.schools[0].id,
       title: 'Aviso',
       body: 'Corpo do aviso.',
-      authorUserId: cenario.secretaria.id,
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+      authorUserId: scenario.registrar.id,
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'unidadeId', codigo: 'unidade_desconhecida' })],
     });
   });
 
   test('recusa autor que não é desta rede', async () => {
-    const outra = await cenarioCompleto();
+    const other = await fullScenario();
 
-    const resultado = await communication.publishAnnouncement({
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[0].id,
+    const result = await communication.publishAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[0].id,
       title: 'Aviso',
       body: 'Corpo do aviso.',
-      authorUserId: outra.secretaria.id,
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+      authorUserId: other.registrar.id,
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'autorUsuarioId', codigo: 'autor_desconhecido' })],
     });
@@ -261,74 +261,74 @@ describe('publishAnnouncement', () => {
 
 describe('markAsRead', () => {
   test('registra a leitura do destinatário', async () => {
-    const comunicado = await publicar({
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+    const announcement = await publish({
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    const resultado = await communication.markAsRead({
-      networkId: cenario.rede.id,
-      announcementId: comunicado.id,
-      guardianId: cenario.responsaveis[0].id,
+    const result = await communication.markAsRead({
+      networkId: scenario.network.id,
+      announcementId: announcement.id,
+      guardianId: scenario.guardians[0].id,
     });
 
-    expect(resultado).toEqual({ ok: true, valor: undefined });
-    expect(await leiturasDe(comunicado.id, cenario.responsaveis[0].id)).not.toEqual([null]);
+    expect(result).toEqual({ ok: true, valor: undefined });
+    expect(await readsOf(announcement.id, scenario.guardians[0].id)).not.toEqual([null]);
   });
 
   test('a segunda chamada não desloca a data da primeira leitura', async () => {
-    const comunicado = await criarComunicado({
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[0].id,
-      authorUserId: cenario.secretaria.id,
-      destinatarios: [{ guardianId: cenario.responsaveis[0].id, readAt: LEITURA_ANTIGA }],
+    const announcement = await createAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[0].id,
+      authorUserId: scenario.registrar.id,
+      recipients: [{ guardianId: scenario.guardians[0].id, readAt: OLD_READ }],
     });
 
     await communication.markAsRead({
-      networkId: cenario.rede.id,
-      announcementId: comunicado.id,
-      guardianId: cenario.responsaveis[0].id,
+      networkId: scenario.network.id,
+      announcementId: announcement.id,
+      guardianId: scenario.guardians[0].id,
     });
 
-    expect(await leiturasDe(comunicado.id, cenario.responsaveis[0].id)).toEqual([LEITURA_ANTIGA]);
+    expect(await readsOf(announcement.id, scenario.guardians[0].id)).toEqual([OLD_READ]);
   });
 
   test('não cria leitura para quem não é destinatário', async () => {
-    const comunicado = await publicar({
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+    const announcement = await publish({
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    const resultado = await communication.markAsRead({
-      networkId: cenario.rede.id,
-      announcementId: comunicado.id,
-      guardianId: cenario.responsaveis[1].id,
+    const result = await communication.markAsRead({
+      networkId: scenario.network.id,
+      announcementId: announcement.id,
+      guardianId: scenario.guardians[1].id,
     });
 
-    expect(resultado).toEqual({ ok: true, valor: undefined });
-    expect(await leiturasDe(comunicado.id, cenario.responsaveis[1].id)).toEqual([]);
+    expect(result).toEqual({ ok: true, valor: undefined });
+    expect(await readsOf(announcement.id, scenario.guardians[1].id)).toEqual([]);
   });
 
   test('não marca a leitura a partir de outra rede', async () => {
-    const comunicado = await publicar({
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+    const announcement = await publish({
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
     await communication.markAsRead({
       networkId: crypto.randomUUID(),
-      announcementId: comunicado.id,
-      guardianId: cenario.responsaveis[0].id,
+      announcementId: announcement.id,
+      guardianId: scenario.guardians[0].id,
     });
 
-    expect(await leiturasDe(comunicado.id, cenario.responsaveis[0].id)).toEqual([null]);
+    expect(await readsOf(announcement.id, scenario.guardians[0].id)).toEqual([null]);
   });
 
   test('recusa identificador que não é uuid', async () => {
-    const resultado = await communication.markAsRead({
-      networkId: cenario.rede.id,
+    const result = await communication.markAsRead({
+      networkId: scenario.network.id,
       announcementId: 'nao-e-uuid',
-      guardianId: cenario.responsaveis[0].id,
+      guardianId: scenario.guardians[0].id,
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'announcementId' })],
     });
@@ -338,36 +338,36 @@ describe('markAsRead', () => {
 describe('guardianBoard', () => {
   test('traz os comunicados do responsável do mais recente para o mais antigo', async () => {
     const base = {
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[0].id,
-      authorUserId: cenario.secretaria.id,
-      destinatarios: [{ guardianId: cenario.responsaveis[0].id }],
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[0].id,
+      authorUserId: scenario.registrar.id,
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     };
-    const antigo = await criarComunicado({
+    const old = await createAnnouncement({
       ...base,
       title: 'Aviso de março',
       publishedAt: new Date('2026-03-01T12:00:00.000Z'),
     });
-    const recente = await criarComunicado({
+    const recent = await createAnnouncement({
       ...base,
       title: 'Aviso de maio',
       publishedAt: new Date('2026-05-01T12:00:00.000Z'),
     });
 
-    const mural = await communication.guardianBoard(
-      cenario.rede.id,
-      cenario.responsaveis[0].id,
+    const board = await communication.guardianBoard(
+      scenario.network.id,
+      scenario.guardians[0].id,
     );
 
-    expect(mural).toEqual([
+    expect(board).toEqual([
       {
-        announcementId: recente.id,
+        announcementId: recent.id,
         title: 'Aviso de maio',
         publishedAt: '2026-05-01T12:00:00.000Z',
         readAt: null,
       },
       {
-        announcementId: antigo.id,
+        announcementId: old.id,
         title: 'Aviso de março',
         publishedAt: '2026-03-01T12:00:00.000Z',
         readAt: null,
@@ -376,153 +376,153 @@ describe('guardianBoard', () => {
   });
 
   test('não traz comunicado de que o responsável não é destinatário', async () => {
-    await publicar({ recipients: [{ guardianId: cenario.responsaveis[0].id }] });
+    await publish({ recipients: [{ guardianId: scenario.guardians[0].id }] });
 
-    const mural = await communication.guardianBoard(
-      cenario.rede.id,
-      cenario.responsaveis[1].id,
+    const board = await communication.guardianBoard(
+      scenario.network.id,
+      scenario.guardians[1].id,
     );
 
-    expect(mural).toEqual([]);
+    expect(board).toEqual([]);
   });
 
   test('não traz comunicado que ainda não foi publicado', async () => {
-    await criarComunicado({
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[0].id,
-      authorUserId: cenario.secretaria.id,
+    await createAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[0].id,
+      authorUserId: scenario.registrar.id,
       publishedAt: null,
-      destinatarios: [{ guardianId: cenario.responsaveis[0].id }],
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    const mural = await communication.guardianBoard(
-      cenario.rede.id,
-      cenario.responsaveis[0].id,
+    const board = await communication.guardianBoard(
+      scenario.network.id,
+      scenario.guardians[0].id,
     );
 
-    expect(mural).toEqual([]);
+    expect(board).toEqual([]);
   });
 
   test('mostra a data de leitura de quem já leu', async () => {
-    await criarComunicado({
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[0].id,
-      authorUserId: cenario.secretaria.id,
+    await createAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[0].id,
+      authorUserId: scenario.registrar.id,
       publishedAt: new Date('2026-03-01T12:00:00.000Z'),
-      destinatarios: [{ guardianId: cenario.responsaveis[0].id, readAt: LEITURA_ANTIGA }],
+      recipients: [{ guardianId: scenario.guardians[0].id, readAt: OLD_READ }],
     });
 
-    const mural = await communication.guardianBoard(
-      cenario.rede.id,
-      cenario.responsaveis[0].id,
+    const board = await communication.guardianBoard(
+      scenario.network.id,
+      scenario.guardians[0].id,
     );
 
-    expect(mural[0]?.readAt).toBe(LEITURA_ANTIGA.toISOString());
+    expect(board[0]?.readAt).toBe(OLD_READ.toISOString());
   });
 
   test('não traz comunicado de outra rede', async () => {
-    const outra = await cenarioCompleto();
-    await criarComunicado({
-      networkId: outra.rede.id,
-      schoolId: outra.unidades[0].id,
-      authorUserId: outra.secretaria.id,
-      destinatarios: [{ guardianId: outra.responsaveis[0].id }],
+    const other = await fullScenario();
+    await createAnnouncement({
+      networkId: other.network.id,
+      schoolId: other.schools[0].id,
+      authorUserId: other.registrar.id,
+      recipients: [{ guardianId: other.guardians[0].id }],
     });
 
-    const mural = await communication.guardianBoard(
-      cenario.rede.id,
-      outra.responsaveis[0].id,
+    const board = await communication.guardianBoard(
+      scenario.network.id,
+      other.guardians[0].id,
     );
 
-    expect(mural).toEqual([]);
+    expect(board).toEqual([]);
   });
 });
 
 describe('announcementForGuardian', () => {
   test('devolve o comunicado inteiro para quem é destinatário', async () => {
-    const publicado = await publicar({
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+    const published = await publish({
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    const comunicado = await communication.announcementForGuardian(
-      cenario.rede.id,
-      cenario.responsaveis[0].id,
-      publicado.id,
+    const announcement = await communication.announcementForGuardian(
+      scenario.network.id,
+      scenario.guardians[0].id,
+      published.id,
     );
 
-    expect(comunicado).toEqual(publicado);
+    expect(announcement).toEqual(published);
   });
 
   test('devolve null para quem não é destinatário', async () => {
-    const publicado = await publicar({
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+    const published = await publish({
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    const comunicado = await communication.announcementForGuardian(
-      cenario.rede.id,
-      cenario.responsaveis[1].id,
-      publicado.id,
+    const announcement = await communication.announcementForGuardian(
+      scenario.network.id,
+      scenario.guardians[1].id,
+      published.id,
     );
 
-    expect(comunicado).toBeNull();
+    expect(announcement).toBeNull();
   });
 
   test('devolve null para comunicado que ainda não foi publicado', async () => {
-    const rascunho = await criarComunicado({
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[0].id,
-      authorUserId: cenario.secretaria.id,
+    const draft = await createAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[0].id,
+      authorUserId: scenario.registrar.id,
       publishedAt: null,
-      destinatarios: [{ guardianId: cenario.responsaveis[0].id }],
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    const comunicado = await communication.announcementForGuardian(
-      cenario.rede.id,
-      cenario.responsaveis[0].id,
-      rascunho.id,
+    const announcement = await communication.announcementForGuardian(
+      scenario.network.id,
+      scenario.guardians[0].id,
+      draft.id,
     );
 
-    expect(comunicado).toBeNull();
+    expect(announcement).toBeNull();
   });
 
   test('devolve null quando o comunicado é de outra rede', async () => {
-    const publicado = await publicar({
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+    const published = await publish({
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    const comunicado = await communication.announcementForGuardian(
+    const announcement = await communication.announcementForGuardian(
       crypto.randomUUID(),
-      cenario.responsaveis[0].id,
-      publicado.id,
+      scenario.guardians[0].id,
+      published.id,
     );
 
-    expect(comunicado).toBeNull();
+    expect(announcement).toBeNull();
   });
 });
 
 describe('listAnnouncements', () => {
   test('três leituras entre dez destinatários dão taxa de 0,3', async () => {
-    const dez = await Promise.all(
-      Array.from({ length: 10 }, () => criarResponsavel({ networkId: cenario.rede.id })),
+    const ten = await Promise.all(
+      Array.from({ length: 10 }, () => createGuardian({ networkId: scenario.network.id })),
     );
-    const comunicado = await publicar({
-      recipients: dez.map((responsavel) => ({ guardianId: responsavel.id })),
+    const announcement = await publish({
+      recipients: ten.map((guardian) => ({ guardianId: guardian.id })),
     });
-    for (const responsavel of dez.slice(0, 3)) {
+    for (const guardian of ten.slice(0, 3)) {
       await communication.markAsRead({
-        networkId: cenario.rede.id,
-        announcementId: comunicado.id,
-        guardianId: responsavel.id,
+        networkId: scenario.network.id,
+        announcementId: announcement.id,
+        guardianId: guardian.id,
       });
     }
 
-    const estatisticas = await communication.listAnnouncements(cenario.rede.id);
+    const statistics = await communication.listAnnouncements(scenario.network.id);
 
-    expect(estatisticas).toEqual([
+    expect(statistics).toEqual([
       {
-        announcementId: comunicado.id,
+        announcementId: announcement.id,
         title: 'Reunião de pais',
-        publishedAt: expect.stringMatching(INSTANTE_ISO),
+        publishedAt: expect.stringMatching(ISO_INSTANT),
         recipients: 10,
         reads: 3,
         rate: 0.3,
@@ -531,47 +531,47 @@ describe('listAnnouncements', () => {
   });
 
   test('uma única chamada devolve todos os comunicados da rede com a taxa de cada um', async () => {
-    const quantidades = [0, 1, 2, 3, 4, 5];
-    const esperados = [];
-    for (const lidos of quantidades) {
-      const comunicado = await criarComunicado({
-        networkId: cenario.rede.id,
-        schoolId: cenario.unidades[0].id,
-        authorUserId: cenario.secretaria.id,
-        publishedAt: new Date(`2026-03-0${lidos + 1}T12:00:00.000Z`),
-        destinatarios: cenario.responsaveis.map((responsavel, posicao) => ({
-          guardianId: responsavel.id,
-          readAt: posicao < lidos ? LEITURA_ANTIGA : null,
+    const counts = [0, 1, 2, 3, 4, 5];
+    const expected = [];
+    for (const read of counts) {
+      const announcement = await createAnnouncement({
+        networkId: scenario.network.id,
+        schoolId: scenario.schools[0].id,
+        authorUserId: scenario.registrar.id,
+        publishedAt: new Date(`2026-03-0${read + 1}T12:00:00.000Z`),
+        recipients: scenario.guardians.map((guardian, position) => ({
+          guardianId: guardian.id,
+          readAt: position < read ? OLD_READ : null,
         })),
       });
-      esperados.push({ announcementId: comunicado.id, reads: lidos, rate: lidos / 5 });
+      expected.push({ announcementId: announcement.id, reads: read, rate: read / 5 });
     }
 
-    const estatisticas = await communication.listAnnouncements(cenario.rede.id);
+    const statistics = await communication.listAnnouncements(scenario.network.id);
 
-    expect(estatisticas).toHaveLength(6);
+    expect(statistics).toHaveLength(6);
     expect(
-      estatisticas.map((linha) => ({
-        announcementId: linha.announcementId,
-        reads: linha.reads,
-        rate: linha.rate,
+      statistics.map((row) => ({
+        announcementId: row.announcementId,
+        reads: row.reads,
+        rate: row.rate,
       })),
-    ).toEqual([...esperados].reverse());
-    expect(estatisticas.every((linha) => linha.recipients === 5)).toBe(true);
+    ).toEqual([...expected].reverse());
+    expect(statistics.every((row) => row.recipients === 5)).toBe(true);
   });
 
   test('o comunicado sem destinatário aparece com taxa 0', async () => {
-    const semNinguem = await criarComunicado({
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[0].id,
-      authorUserId: cenario.secretaria.id,
+    const withoutAnyone = await createAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[0].id,
+      authorUserId: scenario.registrar.id,
     });
 
-    const estatisticas = await communication.listAnnouncements(cenario.rede.id);
+    const statistics = await communication.listAnnouncements(scenario.network.id);
 
-    expect(estatisticas).toEqual([
+    expect(statistics).toEqual([
       expect.objectContaining({
-        announcementId: semNinguem.id,
+        announcementId: withoutAnyone.id,
         recipients: 0,
         reads: 0,
         rate: 0,
@@ -580,58 +580,58 @@ describe('listAnnouncements', () => {
   });
 
   test('filtra por unidade quando a unidade é informada', async () => {
-    const daPrimeira = await publicar({
-      schoolId: cenario.unidades[0].id,
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+    const ofTheFirst = await publish({
+      schoolId: scenario.schools[0].id,
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
-    await publicar({
-      schoolId: cenario.unidades[1].id,
-      recipients: [{ guardianId: cenario.responsaveis[1].id }],
+    await publish({
+      schoolId: scenario.schools[1].id,
+      recipients: [{ guardianId: scenario.guardians[1].id }],
     });
 
-    const estatisticas = await communication.listAnnouncements(
-      cenario.rede.id,
-      cenario.unidades[0].id,
+    const statistics = await communication.listAnnouncements(
+      scenario.network.id,
+      scenario.schools[0].id,
     );
 
-    expect(estatisticas.map((linha) => linha.announcementId)).toEqual([daPrimeira.id]);
+    expect(statistics.map((row) => row.announcementId)).toEqual([ofTheFirst.id]);
   });
 
   test('sem filtro traz as duas unidades da rede e nenhuma de outra', async () => {
-    await publicar({
-      schoolId: cenario.unidades[0].id,
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+    await publish({
+      schoolId: scenario.schools[0].id,
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
-    await publicar({
-      schoolId: cenario.unidades[1].id,
-      recipients: [{ guardianId: cenario.responsaveis[1].id }],
+    await publish({
+      schoolId: scenario.schools[1].id,
+      recipients: [{ guardianId: scenario.guardians[1].id }],
     });
-    const outra = await cenarioCompleto();
-    await criarComunicado({
-      networkId: outra.rede.id,
-      schoolId: outra.unidades[0].id,
-      authorUserId: outra.secretaria.id,
+    const other = await fullScenario();
+    await createAnnouncement({
+      networkId: other.network.id,
+      schoolId: other.schools[0].id,
+      authorUserId: other.registrar.id,
     });
 
-    const estatisticas = await communication.listAnnouncements(cenario.rede.id);
+    const statistics = await communication.listAnnouncements(scenario.network.id);
 
-    expect(estatisticas).toHaveLength(2);
+    expect(statistics).toHaveLength(2);
   });
 
   test('o comunicado ainda não publicado fica no fim da lista', async () => {
-    const rascunho = await criarComunicado({
-      networkId: cenario.rede.id,
-      schoolId: cenario.unidades[0].id,
-      authorUserId: cenario.secretaria.id,
+    const draft = await createAnnouncement({
+      networkId: scenario.network.id,
+      schoolId: scenario.schools[0].id,
+      authorUserId: scenario.registrar.id,
       publishedAt: null,
     });
-    const publicado = await publicar({
-      recipients: [{ guardianId: cenario.responsaveis[0].id }],
+    const published = await publish({
+      recipients: [{ guardianId: scenario.guardians[0].id }],
     });
 
-    const estatisticas = await communication.listAnnouncements(cenario.rede.id);
+    const statistics = await communication.listAnnouncements(scenario.network.id);
 
-    expect(estatisticas.map((linha) => linha.announcementId)).toEqual([publicado.id, rascunho.id]);
-    expect(estatisticas[1]?.publishedAt).toBeNull();
+    expect(statistics.map((row) => row.announcementId)).toEqual([published.id, draft.id]);
+    expect(statistics[1]?.publishedAt).toBeNull();
   });
 });

@@ -14,40 +14,40 @@
 import { join } from 'node:path';
 import { app } from '../../src/web/app';
 
-export const RAIZ_DO_PROJETO = join(import.meta.dir, '..', '..');
+export const PROJECT_ROOT = join(import.meta.dir, '..', '..');
 
-const TIPO_DE_FORMULARIO = 'application/x-www-form-urlencoded';
+const FORM_CONTENT_TYPE = 'application/x-www-form-urlencoded';
 
 /** Porta 1 sem ninguém escutando: a conexão é recusada de imediato, sem esperar prazo nenhum. */
-const BANCO_FORA_DO_AR = 'postgres://escolaviva:escolaviva@127.0.0.1:1/inexistente';
+const DATABASE_DOWN_URL = 'postgres://escolaviva:escolaviva@127.0.0.1:1/inexistente';
 
-export type Campos = Record<string, string | readonly string[]>;
+export type FormFields = Record<string, string | readonly string[]>;
 
 /* --- Requisições ------------------------------------------------------------ */
 
-const cabecalhos = (cookie: string, extras: Record<string, string> = {}): Record<string, string> =>
+const headers = (cookie: string, extras: Record<string, string> = {}): Record<string, string> =>
   cookie === '' ? { ...extras } : { ...extras, Cookie: cookie };
 
-const corpoDeFormulario = (campos: Campos): string => {
-  const parametros = new URLSearchParams();
-  for (const [nome, valor] of Object.entries(campos)) {
-    if (typeof valor === 'string') parametros.append(nome, valor);
-    else for (const item of valor) parametros.append(nome, item);
+const formBody = (fields: FormFields): string => {
+  const params = new URLSearchParams();
+  for (const [name, value] of Object.entries(fields)) {
+    if (typeof value === 'string') params.append(name, value);
+    else for (const item of value) params.append(name, item);
   }
-  return parametros.toString();
+  return params.toString();
 };
 
 /** GET na aplicação, com ou sem sessão. */
-export async function abrir(caminho: string, cookie = ''): Promise<Response> {
-  return await app.request(caminho, { headers: cabecalhos(cookie) });
+export async function open(path: string, cookie = ''): Promise<Response> {
+  return await app.request(path, { headers: headers(cookie) });
 }
 
 /** POST cru: quem chama diz exatamente quais campos vão no corpo, `_chave` inclusive. */
-export async function postar(caminho: string, campos: Campos, cookie = ''): Promise<Response> {
-  return await app.request(caminho, {
+export async function post(path: string, fields: FormFields, cookie = ''): Promise<Response> {
+  return await app.request(path, {
     method: 'POST',
-    headers: cabecalhos(cookie, { 'Content-Type': TIPO_DE_FORMULARIO }),
-    body: corpoDeFormulario(campos),
+    headers: headers(cookie, { 'Content-Type': FORM_CONTENT_TYPE }),
+    body: formBody(fields),
   });
 }
 
@@ -55,81 +55,81 @@ export async function postar(caminho: string, campos: Campos, cookie = ''): Prom
  * O envio que o navegador faz: a chave de idempotência (I4) nasce no render, e um formulário
  * carregado duas vezes carrega duas chaves distintas.
  */
-export function enviar(caminho: string, campos: Campos, cookie = ''): Promise<Response> {
-  return postar(caminho, { _chave: crypto.randomUUID(), ...campos }, cookie);
+export function send(path: string, fields: FormFields, cookie = ''): Promise<Response> {
+  return post(path, { _chave: crypto.randomUUID(), ...fields }, cookie);
 }
 
 /** O par `nome=valor` do `Set-Cookie` — exatamente o que o navegador devolve na próxima ida. */
-export function cookieDaResposta(resposta: Response): string {
-  const bruto = resposta.headers.get('Set-Cookie') ?? '';
-  return bruto.split(';')[0] ?? '';
+export function cookieFromResponse(response: Response): string {
+  const raw = response.headers.get('Set-Cookie') ?? '';
+  return raw.split(';')[0] ?? '';
 }
 
-export type Credenciais = { redeSlug: string; cpf: string; senha: string };
+export type Credentials = { networkSlug: string; cpf: string; password: string };
 
 /**
  * Entra de verdade e devolve o cookie assinado que a aplicação emitiu. Desde que a janela de
  * compatibilidade do CPF fechou (ADR 0004), `/login` só aceita o campo `cpf` — não há mais
  * tradução a fazer aqui, só repassar o que o cenário de teste já tem à mão.
  */
-export async function entrar(credenciais: Credenciais): Promise<string> {
-  const resposta = await enviar('/login', {
-    redeSlug: credenciais.redeSlug,
-    cpf: credenciais.cpf,
-    senha: credenciais.senha,
+export async function signIn(credentials: Credentials): Promise<string> {
+  const response = await send('/login', {
+    redeSlug: credentials.networkSlug,
+    cpf: credentials.cpf,
+    senha: credentials.password,
   });
-  if (resposta.status !== 303) {
-    throw new Error(`login recusado com status ${resposta.status} — cenário mal montado`);
+  if (response.status !== 303) {
+    throw new Error(`login recusado com status ${response.status} — cenário mal montado`);
   }
-  const cookie = cookieDaResposta(resposta);
+  const cookie = cookieFromResponse(response);
   if (cookie === '') throw new Error('login sem Set-Cookie — cenário mal montado');
   return cookie;
 }
 
 /* --- Processos separados ---------------------------------------------------- */
 
-export type Encerramento = { codigo: number; saida: string; erro: string };
+export type ProcessOutcome = { exitCode: number; stdout: string; stderr: string };
 
 /**
  * Roda um processo Bun com o ambiente que o teste dita. As variáveis passadas aqui vencem o `.env`
  * do projeto, e é isso que permite provar tanto a falta de uma variável quanto o banco fora do ar.
  */
-export async function rodarProcesso(
-  argumentos: readonly string[],
-  ambiente: Record<string, string>,
-): Promise<Encerramento> {
-  const processo = Bun.spawn([process.execPath, ...argumentos], {
-    cwd: RAIZ_DO_PROJETO,
-    env: { PATH: Bun.env.PATH ?? '', ...ambiente },
+export async function runProcess(
+  args: readonly string[],
+  environment: Record<string, string>,
+): Promise<ProcessOutcome> {
+  const child = Bun.spawn([process.execPath, ...args], {
+    cwd: PROJECT_ROOT,
+    env: { PATH: Bun.env.PATH ?? '', ...environment },
     stdout: 'pipe',
     stderr: 'pipe',
   });
-  const [saida, erro, codigo] = await Promise.all([
-    new Response(processo.stdout).text(),
-    new Response(processo.stderr).text(),
-    processo.exited,
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+    child.exited,
   ]);
-  return { codigo, saida, erro };
+  return { exitCode, stdout, stderr };
 }
 
-const SEGREDO_DE_TESTE = 'segredo-de-teste-com-mais-de-32-caracteres';
+const TEST_SECRET = 'segredo-de-teste-com-mais-de-32-caracteres';
 
-const ambientePadrao = (extras: Record<string, string>): Record<string, string> => ({
+const defaultEnvironment = (extras: Record<string, string>): Record<string, string> => ({
   APP_ENV: 'test',
-  SESSION_SECRET: SEGREDO_DE_TESTE,
+  SESSION_SECRET: TEST_SECRET,
   LOG_LEVEL: 'error',
   ...extras,
 });
 
 /** A última linha de stdout que é um objeto JSON — o resultado que o script separado imprimiu. */
-function ultimoJson(saida: string): Record<string, unknown> {
-  const linhas = saida.trim().split('\n').filter((linha) => linha.startsWith('{'));
-  const ultima = linhas.at(-1);
-  if (ultima === undefined) throw new Error(`o processo separado não imprimiu resultado:\n${saida}`);
-  return JSON.parse(ultima) as Record<string, unknown>;
+function lastJson(stdout: string): Record<string, unknown> {
+  const rows = stdout.trim().split('\n').filter((row) => row.startsWith('{'));
+  const last = rows.at(-1);
+  if (last === undefined) throw new Error(`o processo separado não imprimiu resultado:\n${stdout}`);
+  return JSON.parse(last) as Record<string, unknown>;
 }
 
-export type RespostaDeSaude = {
+export type HealthResponse = {
   health: number;
   healthCache: string | null;
   live: number;
@@ -141,102 +141,102 @@ export type RespostaDeSaude = {
  * pergunta pelas duas rotas de saúde. Nenhum contêiner é derrubado e nenhuma dependência é
  * dublada — o banco está mesmo inalcançável para aquele processo.
  */
-export async function saudeComBancoForaDoAr(): Promise<RespostaDeSaude> {
+export async function healthWithDatabaseDown(): Promise<HealthResponse> {
   const script = `
     const { app } = await import('./src/web/app.ts');
-    const saude = await app.request('/health');
-    const vivo = await app.request('/health/live');
+    const health = await app.request('/health');
+    const live = await app.request('/health/live');
     console.log(JSON.stringify({
-      health: saude.status,
-      healthCache: saude.headers.get('Cache-Control'),
-      live: vivo.status,
-      liveCache: vivo.headers.get('Cache-Control'),
+      health: health.status,
+      healthCache: health.headers.get('Cache-Control'),
+      live: live.status,
+      liveCache: live.headers.get('Cache-Control'),
     }));
     process.exit(0);
   `;
-  const { codigo, saida, erro } = await rodarProcesso(
+  const { exitCode, stdout, stderr } = await runProcess(
     ['-e', script],
-    ambientePadrao({ DATABASE_URL: BANCO_FORA_DO_AR }),
+    defaultEnvironment({ DATABASE_URL: DATABASE_DOWN_URL }),
   );
-  if (codigo !== 0) throw new Error(`processo de saúde falhou (${codigo}):\n${erro}`);
-  return ultimoJson(saida) as unknown as RespostaDeSaude;
+  if (exitCode !== 0) throw new Error(`processo de saúde falhou (${exitCode}):\n${stderr}`);
+  return lastJson(stdout) as unknown as HealthResponse;
 }
 
-export type CenarioDeFluxo = {
-  redeSlug: string;
+export type FlowScenario = {
+  networkSlug: string;
   /** Só para o cenário verificar que o e-mail não vaza no log — não entra mais no login (ADR 0004). */
   email: string;
   cpf: string;
-  senha: string;
-  turmaDisciplinaId: string;
-  matriculaIds: readonly string[];
-  bimestre: number;
-  nota: number;
+  password: string;
+  classGroupSubjectId: string;
+  enrollmentIds: readonly string[];
+  term: number;
+  grade: number;
 };
 
-export type LogCapturado = { bruto: string; linhas: Record<string, unknown>[] };
+export type CapturedLog = { raw: string; rows: Record<string, unknown>[] };
 
 /**
  * I17: percorre login recusado, login aceito e lançamento de notas em um processo separado, com o
  * log no nível mais baixo, e devolve tudo o que saiu no stdout. Capturar aqui, e não dentro do
  * processo de teste, é o que garante que a linha examinada é a linha que o pino de fato escreveu.
  */
-export async function capturarLogDeUmFluxo(cenario: CenarioDeFluxo): Promise<LogCapturado> {
+export async function captureLogOfAFlow(scenario: FlowScenario): Promise<CapturedLog> {
   const script = `
-    const dados = ${JSON.stringify(cenario)};
+    const data = ${JSON.stringify(scenario)};
     const { app } = await import('./src/web/app.ts');
 
-    const formulario = (campos) => {
-      const corpo = new URLSearchParams();
-      for (const [nome, valor] of Object.entries(campos)) corpo.append(nome, String(valor));
+    const form = (fields) => {
+      const body = new URLSearchParams();
+      for (const [name, value] of Object.entries(fields)) body.append(name, String(value));
       return {
         method: 'POST',
-        headers: { 'Content-Type': '${TIPO_DE_FORMULARIO}' },
-        body: corpo.toString(),
+        headers: { 'Content-Type': '${FORM_CONTENT_TYPE}' },
+        body: body.toString(),
       };
     };
-    const chave = () => crypto.randomUUID();
+    const key = () => crypto.randomUUID();
 
-    await app.request('/login', formulario({
-      _chave: chave(), redeSlug: dados.redeSlug, cpf: dados.cpf, senha: 'senha-errada',
+    await app.request('/login', form({
+      _chave: key(), redeSlug: data.networkSlug, cpf: data.cpf, senha: 'senha-errada',
     }));
 
-    const entrada = await app.request('/login', formulario({
-      _chave: chave(), redeSlug: dados.redeSlug, cpf: dados.cpf, senha: dados.senha,
+    const signedIn = await app.request('/login', form({
+      _chave: key(), redeSlug: data.networkSlug, cpf: data.cpf, senha: data.password,
     }));
-    const cookie = (entrada.headers.get('Set-Cookie') ?? '').split(';')[0];
-    const comSessao = (init = {}) => ({
+    const cookie = (signedIn.headers.get('Set-Cookie') ?? '').split(';')[0];
+    const withSession = (init = {}) => ({
       ...init, headers: { ...(init.headers ?? {}), Cookie: cookie },
     });
 
-    await app.request('/painel', comSessao());
+    await app.request('/painel', withSession());
 
-    const caminho = '/professor/disciplinas/' + dados.turmaDisciplinaId + '/notas';
-    const notas = { _chave: chave(), bimestre: String(dados.bimestre) };
-    for (const id of dados.matriculaIds) notas['nota_' + id] = String(dados.nota);
-    await app.request(caminho, comSessao(formulario(notas)));
-    await app.request(caminho + '?bimestre=' + dados.bimestre, comSessao());
+    const path = '/professor/disciplinas/' + data.classGroupSubjectId + '/notas';
+    const grades = { _chave: key(), bimestre: String(data.term) };
+    for (const id of data.enrollmentIds) grades['nota_' + id] = String(data.grade);
+    await app.request(path, withSession(form(grades)));
+    await app.request(path + '?bimestre=' + data.term, withSession());
 
     process.exit(0);
   `;
-  const { codigo, saida, erro } = await rodarProcesso(
+  const { exitCode, stdout, stderr } = await runProcess(
     ['-e', script],
-    ambientePadrao({ DATABASE_URL: Bun.env.DATABASE_URL ?? '', LOG_LEVEL: 'debug' }),
+    defaultEnvironment({ DATABASE_URL: Bun.env.DATABASE_URL ?? '', LOG_LEVEL: 'debug' }),
   );
-  if (codigo !== 0) throw new Error(`processo do fluxo falhou (${codigo}):\n${erro}`);
+  if (exitCode !== 0) throw new Error(`processo do fluxo falhou (${exitCode}):\n${stderr}`);
 
-  const linhas = saida
+  const rows = stdout
     .split('\n')
-    .filter((linha) => linha.startsWith('{'))
-    .map((linha) => JSON.parse(linha) as Record<string, unknown>);
-  return { bruto: saida, linhas };
+    .filter((row) => row.startsWith('{'))
+    .map((row) => JSON.parse(row) as Record<string, unknown>);
+  return { raw: stdout, rows };
 }
 
 /** Todo valor escalar de uma linha de log, em qualquer profundidade. */
-export function valoresDoLog(linha: unknown): unknown[] {
-  if (Array.isArray(linha)) return linha.flatMap(valoresDoLog);
-  if (typeof linha === 'object' && linha !== null) {
-    return Object.values(linha as Record<string, unknown>).flatMap(valoresDoLog);
+export function logValues(row: unknown): unknown[] {
+  if (Array.isArray(row)) return row.flatMap(logValues);
+  if (typeof row === 'object' && row !== null) {
+    return Object.values(row as Record<string, unknown>).flatMap(logValues);
   }
-  return [linha];
+  return [row];
 }

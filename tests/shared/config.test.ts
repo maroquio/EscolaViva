@@ -8,259 +8,259 @@ import { describe, expect, test } from 'bun:test';
 import { config, loadConfig } from '../../src/shared/config';
 
 /** O mínimo que faz a configuração passar: as duas variáveis que não têm default. */
-const OBRIGATORIAS = {
+const REQUIRED = {
   DATABASE_URL: 'postgres://escolaviva:senha@localhost:5442/escolaviva',
   SESSION_SECRET: 'segredo-de-teste-com-mais-de-32-caracteres',
 };
 
-const TAMANHO_MINIMO_DO_SEGREDO = 32;
+const MINIMUM_SECRET_LENGTH = 32;
 
 /** Devolve a mensagem da recusa; falha o teste se o ambiente tiver sido aceito. */
-function mensagemDeRecusa(ambiente: Record<string, string | undefined>): string {
+function rejectionMessage(environment: Record<string, string | undefined>): string {
   try {
-    loadConfig(ambiente);
-  } catch (erro) {
-    return erro instanceof Error ? erro.message : String(erro);
+    loadConfig(environment);
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
   }
   throw new Error('loadConfig aceitou um ambiente que deveria ter recusado');
 }
 
 describe('loadConfig — variáveis obrigatórias', () => {
   test('recusa ambiente vazio: sem configuração o processo não sobe', () => {
-    const ambienteVazio = {};
+    const emptyEnvironment = {};
 
-    const carregar = (): unknown => loadConfig(ambienteVazio);
+    const load = (): unknown => loadConfig(emptyEnvironment);
 
-    expect(carregar).toThrow();
+    expect(load).toThrow();
   });
 
   test('a recusa cita todas as variáveis faltantes de uma vez, não só a primeira', () => {
-    const ambienteVazio = {};
+    const emptyEnvironment = {};
 
-    const mensagem = mensagemDeRecusa(ambienteVazio);
+    const message = rejectionMessage(emptyEnvironment);
 
-    expect(mensagem).toContain('DATABASE_URL');
-    expect(mensagem).toContain('SESSION_SECRET');
+    expect(message).toContain('DATABASE_URL');
+    expect(message).toContain('SESSION_SECRET');
   });
 
   test('recusa quando só falta SESSION_SECRET', () => {
-    const semSegredo = { DATABASE_URL: OBRIGATORIAS.DATABASE_URL };
+    const withoutSecret = { DATABASE_URL: REQUIRED.DATABASE_URL };
 
-    const mensagem = mensagemDeRecusa(semSegredo);
+    const message = rejectionMessage(withoutSecret);
 
-    expect(mensagem).toContain('SESSION_SECRET');
-    expect(mensagem).not.toContain('DATABASE_URL');
+    expect(message).toContain('SESSION_SECRET');
+    expect(message).not.toContain('DATABASE_URL');
   });
 
   test('recusa quando só falta DATABASE_URL', () => {
-    const semBanco = { SESSION_SECRET: OBRIGATORIAS.SESSION_SECRET };
+    const withoutDatabase = { SESSION_SECRET: REQUIRED.SESSION_SECRET };
 
-    const mensagem = mensagemDeRecusa(semBanco);
+    const message = rejectionMessage(withoutDatabase);
 
-    expect(mensagem).toContain('DATABASE_URL');
-    expect(mensagem).not.toContain('SESSION_SECRET');
+    expect(message).toContain('DATABASE_URL');
+    expect(message).not.toContain('SESSION_SECRET');
   });
 
   test('trata variável preenchida com vazio como ausente', () => {
-    const vazias = { DATABASE_URL: '', SESSION_SECRET: '' };
+    const empty = { DATABASE_URL: '', SESSION_SECRET: '' };
 
-    const mensagem = mensagemDeRecusa(vazias);
+    const message = rejectionMessage(empty);
 
-    expect(mensagem).toContain('DATABASE_URL');
-    expect(mensagem).toContain('SESSION_SECRET');
+    expect(message).toContain('DATABASE_URL');
+    expect(message).toContain('SESSION_SECRET');
   });
 });
 
 describe('loadConfig — SESSION_SECRET', () => {
-  test(`recusa segredo com menos de ${TAMANHO_MINIMO_DO_SEGREDO} caracteres`, () => {
-    const curto = { ...OBRIGATORIAS, SESSION_SECRET: 'x'.repeat(TAMANHO_MINIMO_DO_SEGREDO - 1) };
+  test(`recusa segredo com menos de ${MINIMUM_SECRET_LENGTH} caracteres`, () => {
+    const short = { ...REQUIRED, SESSION_SECRET: 'x'.repeat(MINIMUM_SECRET_LENGTH - 1) };
 
-    const mensagem = mensagemDeRecusa(curto);
+    const message = rejectionMessage(short);
 
-    expect(mensagem).toContain('SESSION_SECRET');
+    expect(message).toContain('SESSION_SECRET');
   });
 
-  test(`aceita segredo com exatamente ${TAMANHO_MINIMO_DO_SEGREDO} caracteres`, () => {
-    const noLimite = { ...OBRIGATORIAS, SESSION_SECRET: 'x'.repeat(TAMANHO_MINIMO_DO_SEGREDO) };
+  test(`aceita segredo com exatamente ${MINIMUM_SECRET_LENGTH} caracteres`, () => {
+    const atTheLimit = { ...REQUIRED, SESSION_SECRET: 'x'.repeat(MINIMUM_SECRET_LENGTH) };
 
-    const carregada = loadConfig(noLimite);
+    const loaded = loadConfig(atTheLimit);
 
-    expect(carregada.sessionSecret).toHaveLength(TAMANHO_MINIMO_DO_SEGREDO);
+    expect(loaded.sessionSecret).toHaveLength(MINIMUM_SECRET_LENGTH);
   });
 });
 
 describe('loadConfig — defaults', () => {
   test('aplica porta 3000, timeout de 25000 ms, 12 horas de sessão e nível info', () => {
-    const soObrigatorias = { ...OBRIGATORIAS };
+    const onlyRequired = { ...REQUIRED };
 
-    const carregada = loadConfig(soObrigatorias);
+    const loaded = loadConfig(onlyRequired);
 
-    expect(carregada.port).toBe(3000);
-    expect(carregada.httpTimeoutMs).toBe(25000);
-    expect(carregada.sessionDurationHours).toBe(12);
-    expect(carregada.logLevel).toBe('info');
+    expect(loaded.port).toBe(3000);
+    expect(loaded.httpTimeoutMs).toBe(25000);
+    expect(loaded.sessionDurationHours).toBe(12);
+    expect(loaded.logLevel).toBe('info');
   });
 
   test('sem PROXIES_CONFIAVEIS a lista de proxies nasce vazia', () => {
-    const soObrigatorias = { ...OBRIGATORIAS };
+    const onlyRequired = { ...REQUIRED };
 
-    const carregada = loadConfig(soObrigatorias);
+    const loaded = loadConfig(onlyRequired);
 
-    expect(carregada.trustedProxies).toEqual([]);
+    expect(loaded.trustedProxies).toEqual([]);
   });
 
   test('sem APP_ENV o ambiente é development', () => {
-    const soObrigatorias = { ...OBRIGATORIAS };
+    const onlyRequired = { ...REQUIRED };
 
-    const carregada = loadConfig(soObrigatorias);
+    const loaded = loadConfig(onlyRequired);
 
-    expect(carregada.environment).toBe('development');
+    expect(loaded.environment).toBe('development');
   });
 
   test('converte os números vindos como texto do ambiente', () => {
-    const numerosComoTexto = {
-      ...OBRIGATORIAS,
+    const numbersAsText = {
+      ...REQUIRED,
       PORT: '8080',
       HTTP_TIMEOUT_MS: '9000',
       SESSAO_DURACAO_HORAS: '4',
     };
 
-    const carregada = loadConfig(numerosComoTexto);
+    const loaded = loadConfig(numbersAsText);
 
-    expect(carregada.port).toBe(8080);
-    expect(carregada.httpTimeoutMs).toBe(9000);
-    expect(carregada.sessionDurationHours).toBe(4);
+    expect(loaded.port).toBe(8080);
+    expect(loaded.httpTimeoutMs).toBe(9000);
+    expect(loaded.sessionDurationHours).toBe(4);
   });
 });
 
 describe('loadConfig — secureCookie', () => {
   test('deriva secureCookie de APP_ENV: verdadeiro em produção', () => {
-    const producao = { ...OBRIGATORIAS, APP_ENV: 'production' };
+    const production = { ...REQUIRED, APP_ENV: 'production' };
 
-    const carregada = loadConfig(producao);
+    const loaded = loadConfig(production);
 
-    expect(carregada.secureCookie).toBe(true);
+    expect(loaded.secureCookie).toBe(true);
   });
 
   test('deriva secureCookie de APP_ENV: falso em desenvolvimento e em teste', () => {
-    const desenvolvimento = { ...OBRIGATORIAS, APP_ENV: 'development' };
-    const teste = { ...OBRIGATORIAS, APP_ENV: 'test' };
+    const development = { ...REQUIRED, APP_ENV: 'development' };
+    const teste = { ...REQUIRED, APP_ENV: 'test' };
 
-    const emDesenvolvimento = loadConfig(desenvolvimento);
-    const emTeste = loadConfig(teste);
+    const inDevelopment = loadConfig(development);
+    const inTest = loadConfig(teste);
 
-    expect(emDesenvolvimento.secureCookie).toBe(false);
-    expect(emTeste.secureCookie).toBe(false);
+    expect(inDevelopment.secureCookie).toBe(false);
+    expect(inTest.secureCookie).toBe(false);
   });
 
   test('COOKIE_SEGURO explícito vence o derivado do ambiente', () => {
-    const producaoSemTls = { ...OBRIGATORIAS, APP_ENV: 'production', COOKIE_SEGURO: 'false' };
+    const productionWithoutTls = { ...REQUIRED, APP_ENV: 'production', COOKIE_SEGURO: 'false' };
 
-    const carregada = loadConfig(producaoSemTls);
+    const loaded = loadConfig(productionWithoutTls);
 
-    expect(carregada.secureCookie).toBe(false);
+    expect(loaded.secureCookie).toBe(false);
   });
 
   test('recusa COOKIE_SEGURO que não é true nem false', () => {
-    const invalido = { ...OBRIGATORIAS, COOKIE_SEGURO: 'sim' };
+    const invalid = { ...REQUIRED, COOKIE_SEGURO: 'sim' };
 
-    const mensagem = mensagemDeRecusa(invalido);
+    const message = rejectionMessage(invalid);
 
-    expect(mensagem).toContain('COOKIE_SEGURO');
+    expect(message).toContain('COOKIE_SEGURO');
   });
 });
 
 describe('loadConfig — PROXIES_CONFIAVEIS', () => {
   test('quebra a lista por vírgula, apara espaços e descarta itens vazios', () => {
-    const comEspacos = { ...OBRIGATORIAS, PROXIES_CONFIAVEIS: ' 10.0.0.1 , 10.0.0.2 ,,10.0.0.3 ' };
+    const withSpaces = { ...REQUIRED, PROXIES_CONFIAVEIS: ' 10.0.0.1 , 10.0.0.2 ,,10.0.0.3 ' };
 
-    const carregada = loadConfig(comEspacos);
+    const loaded = loadConfig(withSpaces);
 
-    expect(carregada.trustedProxies).toEqual(['10.0.0.1', '10.0.0.2', '10.0.0.3']);
+    expect(loaded.trustedProxies).toEqual(['10.0.0.1', '10.0.0.2', '10.0.0.3']);
   });
 
   test('um único proxie sem vírgula vira lista de um item', () => {
-    const umSo = { ...OBRIGATORIAS, PROXIES_CONFIAVEIS: '172.17.0.1' };
+    const onlyOne = { ...REQUIRED, PROXIES_CONFIAVEIS: '172.17.0.1' };
 
-    const carregada = loadConfig(umSo);
+    const loaded = loadConfig(onlyOne);
 
-    expect(carregada.trustedProxies).toEqual(['172.17.0.1']);
+    expect(loaded.trustedProxies).toEqual(['172.17.0.1']);
   });
 
   test('lista só com vírgulas e espaços resulta em nenhum proxie confiável', () => {
-    const soSeparadores = { ...OBRIGATORIAS, PROXIES_CONFIAVEIS: ' , , ' };
+    const onlySeparators = { ...REQUIRED, PROXIES_CONFIAVEIS: ' , , ' };
 
-    const carregada = loadConfig(soSeparadores);
+    const loaded = loadConfig(onlySeparators);
 
-    expect(carregada.trustedProxies).toEqual([]);
+    expect(loaded.trustedProxies).toEqual([]);
   });
 });
 
 describe('loadConfig — valores inválidos', () => {
   test('recusa APP_ENV fora de development, test e production', () => {
-    const ambienteInventado = { ...OBRIGATORIAS, APP_ENV: 'producao' };
+    const madeUpEnvironment = { ...REQUIRED, APP_ENV: 'producao' };
 
-    const mensagem = mensagemDeRecusa(ambienteInventado);
+    const message = rejectionMessage(madeUpEnvironment);
 
-    expect(mensagem).toContain('APP_ENV');
+    expect(message).toContain('APP_ENV');
   });
 
   test('recusa LOG_LEVEL fora de debug, info, warn e error', () => {
-    const nivelInventado = { ...OBRIGATORIAS, LOG_LEVEL: 'verbose' };
+    const madeUpLevel = { ...REQUIRED, LOG_LEVEL: 'verbose' };
 
-    const mensagem = mensagemDeRecusa(nivelInventado);
+    const message = rejectionMessage(madeUpLevel);
 
-    expect(mensagem).toContain('LOG_LEVEL');
+    expect(message).toContain('LOG_LEVEL');
   });
 
   test('recusa PORT que não é número', () => {
-    const portaTexto = { ...OBRIGATORIAS, PORT: 'oitenta' };
+    const portAsText = { ...REQUIRED, PORT: 'oitenta' };
 
-    const mensagem = mensagemDeRecusa(portaTexto);
+    const message = rejectionMessage(portAsText);
 
-    expect(mensagem).toContain('PORT');
+    expect(message).toContain('PORT');
   });
 
   test('recusa PORT zero ou negativa', () => {
-    const portaZero = { ...OBRIGATORIAS, PORT: '0' };
+    const portZero = { ...REQUIRED, PORT: '0' };
 
-    const mensagem = mensagemDeRecusa(portaZero);
+    const message = rejectionMessage(portZero);
 
-    expect(mensagem).toContain('PORT');
+    expect(message).toContain('PORT');
   });
 
   test('recusa HTTP_TIMEOUT_MS negativo', () => {
-    const prazoNegativo = { ...OBRIGATORIAS, HTTP_TIMEOUT_MS: '-1' };
+    const negativeDeadline = { ...REQUIRED, HTTP_TIMEOUT_MS: '-1' };
 
-    const mensagem = mensagemDeRecusa(prazoNegativo);
+    const message = rejectionMessage(negativeDeadline);
 
-    expect(mensagem).toContain('HTTP_TIMEOUT_MS');
+    expect(message).toContain('HTTP_TIMEOUT_MS');
   });
 
   test('acusa todos os valores inválidos na mesma mensagem', () => {
-    const varios = { ...OBRIGATORIAS, APP_ENV: 'producao', LOG_LEVEL: 'verbose', PORT: 'oitenta' };
+    const several = { ...REQUIRED, APP_ENV: 'producao', LOG_LEVEL: 'verbose', PORT: 'oitenta' };
 
-    const mensagem = mensagemDeRecusa(varios);
+    const message = rejectionMessage(several);
 
-    expect(mensagem).toContain('APP_ENV');
-    expect(mensagem).toContain('LOG_LEVEL');
-    expect(mensagem).toContain('PORT');
+    expect(message).toContain('APP_ENV');
+    expect(message).toContain('LOG_LEVEL');
+    expect(message).toContain('PORT');
   });
 });
 
 describe('config do processo', () => {
   test('a suíte roda com o ambiente de teste já validado no import', () => {
-    const carregada = config;
+    const loaded = config;
 
-    const ambiente = carregada.environment;
+    const environment = loaded.environment;
 
-    expect(ambiente).toBe('test');
+    expect(environment).toBe('test');
   });
 
   test('a configuração do processo aponta para o banco descartável da suíte', () => {
-    const carregada = config;
+    const loaded = config;
 
-    const url = carregada.databaseUrl;
+    const url = loaded.databaseUrl;
 
     expect(url).toBe(Bun.env.DATABASE_URL_TESTE?.trim() ?? '');
   });

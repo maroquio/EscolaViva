@@ -2,55 +2,56 @@ import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { ASSETS } from '../src/shared/constants';
 
-const RAIZ = join(import.meta.dir, '..');
+const ROOT = join(import.meta.dir, '..');
 
-const ORIGEM = join(RAIZ, 'src', 'web', 'public', 'app.css');
+const SOURCE = join(ROOT, 'src', 'web', 'public', 'app.css');
 
-const DESTINO = join(RAIZ, ASSETS.directory);
+const DEST = join(ROOT, ASSETS.directory);
 
-const SEPARADOR_DE_NOME = '.';
+const NAME_SEPARATOR = '.';
 
-const [BASE_DA_FOLHA, EXTENSAO_DA_FOLHA] = ASSETS.stylesheetLogicalName.split(SEPARADOR_DE_NOME);
+const [STYLESHEET_BASE, STYLESHEET_EXTENSION] =
+  ASSETS.stylesheetLogicalName.split(NAME_SEPARATOR);
 
-const INDENTACAO_DO_MANIFESTO = 2;
+const MANIFEST_INDENT = 2;
 
-const ARQUIVO_COM_HASH = /^app\.[0-9a-f]{8}\.css$/;
+const HASHED_FILE = /^app\.[0-9a-f]{8}\.css$/;
 
-const calcularHash = (conteudo: string): string =>
+const computeHash = (content: string): string =>
   new Bun.CryptoHasher(ASSETS.hashAlgorithm)
-    .update(conteudo)
+    .update(content)
     .digest(ASSETS.hashEncoding)
     .slice(0, ASSETS.hashCharacters);
 
-const nomePublicado = (hash: string): string =>
-  [BASE_DA_FOLHA, hash, EXTENSAO_DA_FOLHA].join(SEPARADOR_DE_NOME);
+const publishedName = (hash: string): string =>
+  [STYLESHEET_BASE, hash, STYLESHEET_EXTENSION].join(NAME_SEPARATOR);
 
-const linhaDeSaida = (nome: string): string => `${ASSETS.directory}/${nome}`;
+const outputLine = (name: string): string => `${ASSETS.directory}/${name}`;
 
-const removerVersoesAntigas = (manter: string): void => {
-  for (const nome of readdirSync(DESTINO)) {
-    if (nome === manter || !ARQUIVO_COM_HASH.test(nome)) continue;
-    rmSync(join(DESTINO, nome));
+const removeOldVersions = (keep: string): void => {
+  for (const name of readdirSync(DEST)) {
+    if (name === keep || !HASHED_FILE.test(name)) continue;
+    rmSync(join(DEST, name));
   }
 };
 
-async function publicar(): Promise<void> {
-  const css = await Bun.file(ORIGEM).text();
-  const nomeComHash = nomePublicado(calcularHash(css));
+async function publish(): Promise<void> {
+  const css = await Bun.file(SOURCE).text();
+  const hashedName = publishedName(computeHash(css));
 
-  mkdirSync(DESTINO, { recursive: true });
-  await Bun.write(join(DESTINO, nomeComHash), css);
+  mkdirSync(DEST, { recursive: true });
+  await Bun.write(join(DEST, hashedName), css);
   await Bun.write(
-    join(DESTINO, ASSETS.manifest),
+    join(DEST, ASSETS.manifest),
     `${JSON.stringify(
-      { [ASSETS.stylesheetLogicalName]: nomeComHash },
+      { [ASSETS.stylesheetLogicalName]: hashedName },
       null,
-      INDENTACAO_DO_MANIFESTO,
+      MANIFEST_INDENT,
     )}\n`,
   );
-  removerVersoesAntigas(nomeComHash);
+  removeOldVersions(hashedName);
 
-  process.stdout.write(`${linhaDeSaida(nomeComHash)}\n${linhaDeSaida(ASSETS.manifest)}\n`);
+  process.stdout.write(`${outputLine(hashedName)}\n${outputLine(ASSETS.manifest)}\n`);
 }
 
-await publicar();
+await publish();

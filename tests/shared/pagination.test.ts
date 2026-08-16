@@ -89,75 +89,75 @@ describe('emptyPage', () => {
 });
 
 describe('sliceItems', () => {
-  const dez = Array.from({ length: 10 }, (_, i) => i + 1);
+  const ten = Array.from({ length: 10 }, (_, i) => i + 1);
 
   test('devolve o pedaço da página pedida', () => {
-    expect(sliceItems(dez, 2, 4).items).toEqual([5, 6, 7, 8]);
+    expect(sliceItems(ten, 2, 4).items).toEqual([5, 6, 7, 8]);
   });
 
   test('a última página traz o que sobrou', () => {
-    const ultima = sliceItems(dez, 3, 4);
-    expect(ultima.items).toEqual([9, 10]);
-    expect(ultima.pages).toBe(3);
+    const last = sliceItems(ten, 3, 4);
+    expect(last.items).toEqual([9, 10]);
+    expect(last.pages).toBe(3);
   });
 
   test('página além do fim é presa na última, em vez de devolver lista vazia', () => {
-    const alem = sliceItems(dez, 99, 4);
-    expect(alem.page).toBe(3);
-    expect(alem.items).toEqual([9, 10]);
+    const beyond = sliceItems(ten, 99, 4);
+    expect(beyond.page).toBe(3);
+    expect(beyond.items).toEqual([9, 10]);
   });
 
   test('o total é o da lista inteira, não o da página', () => {
-    expect(sliceItems(dez, 1, 4).total).toBe(10);
+    expect(sliceItems(ten, 1, 4).total).toBe(10);
   });
 });
 
 describe('queryPage', () => {
   /** Registra as faixas pedidas: é assim que se prova quantas buscas aconteceram, e com quê. */
-  const espiao = (itens: readonly number[]) => {
-    const pedidas: Range[] = [];
-    const buscar = async (faixa: Range): Promise<number[]> => {
-      pedidas.push(faixa);
-      return itens.slice(faixa.offset, faixa.offset + faixa.limit);
+  const spy = (items: readonly number[]) => {
+    const requested: Range[] = [];
+    const search = async (range: Range): Promise<number[]> => {
+      requested.push(range);
+      return items.slice(range.offset, range.offset + range.limit);
     };
-    return { pedidas, buscar };
+    return { requested, search };
   };
 
-  const cem = Array.from({ length: 100 }, (_, i) => i + 1);
+  const hundred = Array.from({ length: 100 }, (_, i) => i + 1);
 
   test('devolve o recorte com o total da lista inteira', async () => {
-    const { buscar } = espiao(cem);
+    const { search } = spy(hundred);
 
-    const pagina = await queryPage(2, 20, async () => 100, buscar);
+    const page = await queryPage(2, 20, async () => 100, search);
 
-    expect(pagina.items).toEqual(cem.slice(20, 40));
-    expect(pagina).toMatchObject({ total: 100, page: 2, size: 20, pages: 5 });
+    expect(page.items).toEqual(hundred.slice(20, 40));
+    expect(page).toMatchObject({ total: 100, page: 2, size: 20, pages: 5 });
   });
 
   test('a página existente é servida com uma busca só', async () => {
-    const { pedidas, buscar } = espiao(cem);
+    const { requested, search } = spy(hundred);
 
-    await queryPage(3, 20, async () => 100, buscar);
+    await queryPage(3, 20, async () => 100, search);
 
-    expect(pedidas).toEqual([{ limit: 20, offset: 40 }]);
+    expect(requested).toEqual([{ limit: 20, offset: 40 }]);
   });
 
   test('página além do fim serve a última, em vez de uma tela vazia', async () => {
-    const { pedidas, buscar } = espiao(cem);
+    const { requested, search } = spy(hundred);
 
-    const pagina = await queryPage(99, 20, async () => 100, buscar);
+    const page = await queryPage(99, 20, async () => 100, search);
 
-    expect(pagina.page).toBe(5);
-    expect(pagina.items).toEqual(cem.slice(80, 100));
+    expect(page.page).toBe(5);
+    expect(page.items).toEqual(hundred.slice(80, 100));
     // A segunda busca é o preço de uma URL digitada à mão, e só acontece nesse caso.
-    expect(pedidas).toHaveLength(2);
+    expect(requested).toHaveLength(2);
   });
 
   test('lista vazia devolve a primeira página, sem itens', async () => {
-    const { buscar } = espiao([]);
+    const { search } = spy([]);
 
-    const pagina = await queryPage(1, 20, async () => 0, buscar);
+    const page = await queryPage(1, 20, async () => 0, search);
 
-    expect(pagina).toEqual({ items: [], total: 0, page: 1, size: 20, pages: 1 });
+    expect(page).toEqual({ items: [], total: 0, page: 1, size: 20, pages: 1 });
   });
 });

@@ -12,54 +12,54 @@ import {
   closingStates,
   pendingItemsMessage,
 } from '../../src/assessment/domain/termClosing';
-import { limparBanco, sqlDeTeste } from '../support/database';
-import { cenarioCompleto, criarTurmaDisciplina, type Cenario } from '../support/factories';
+import { clearDatabase, testSql } from '../support/database';
+import { fullScenario, createClassGroupSubject, type Scenario } from '../support/factories';
 
-const INSTANTE_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 
-let cenario: Cenario;
+let scenario: Scenario;
 
 beforeEach(async () => {
-  await limparBanco();
-  cenario = await cenarioCompleto();
+  await clearDatabase();
+  scenario = await fullScenario();
 });
 
 /** Lança `valor` para todas as matrículas em todas as disciplinas da turma no bimestre. */
-async function lancarTudo(bimestre: number, valor = 7): Promise<void> {
-  for (const turmaDisciplina of cenario.turmaDisciplinas) {
+async function postEverything(term: number, value = 7): Promise<void> {
+  for (const classGroupSubject of scenario.classGroupSubjects) {
     await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: turmaDisciplina.id,
-      term: bimestre,
-      postedBy: cenario.professor.id,
-      grades: cenario.matriculas.map((matricula) => ({ enrollmentId: matricula.id, value: valor })),
+      networkId: scenario.network.id,
+      classGroupSubjectId: classGroupSubject.id,
+      term,
+      postedBy: scenario.teacher.id,
+      grades: scenario.enrollments.map((enrollment) => ({ enrollmentId: enrollment.id, value })),
     });
   }
 }
 
-function fechar(bimestre: number, turmaId = cenario.turmas[0].id): ReturnType<
+function close(term: number, classGroupId = scenario.classGroups[0].id): ReturnType<
   typeof assessment.closeTerm
 > {
   return assessment.closeTerm({
-    networkId: cenario.rede.id,
-    classGroupId: turmaId,
-    term: bimestre,
-    closedBy: cenario.professor.id,
+    networkId: scenario.network.id,
+    classGroupId,
+    term,
+    closedBy: scenario.teacher.id,
   });
 }
 
-function mensagemDe(resultado: { ok: boolean } & Record<string, unknown>): string {
-  const erros = resultado.ok ? [] : ((resultado.erros ?? []) as { mensagem: string }[]);
-  return erros[0]?.mensagem ?? '';
+function messageOf(result: { ok: boolean } & Record<string, unknown>): string {
+  const errors = result.ok ? [] : ((result.erros ?? []) as { mensagem: string }[]);
+  return errors[0]?.mensagem ?? '';
 }
 
 describe('fechamentoBimestre (domínio)', () => {
   test('expande a grade dos quatro bimestres tratando a ausência como bimestre aberto', () => {
-    const gravados = [{ term: 2, closedAt: '2026-05-10T12:00:00Z' }];
+    const saved = [{ term: 2, closedAt: '2026-05-10T12:00:00Z' }];
 
-    const estados = closingStates(gravados);
+    const states = closingStates(saved);
 
-    expect(estados).toEqual([
+    expect(states).toEqual([
       { term: 1, closed: false, closedAt: null },
       { term: 2, closed: true, closedAt: '2026-05-10T12:00:00Z' },
       { term: 3, closed: false, closedAt: null },
@@ -68,255 +68,255 @@ describe('fechamentoBimestre (domínio)', () => {
   });
 
   test('turma sem fechamento nenhum tem os quatro bimestres abertos', () => {
-    const estados = closingStates([]);
+    const states = closingStates([]);
 
-    expect(estados).toHaveLength(4);
-    expect(estados.every((estado) => !estado.closed)).toBe(true);
+    expect(states).toHaveLength(4);
+    expect(states.every((state) => !state.closed)).toBe(true);
   });
 
   test('só considera o ano encerrado quando os quatro bimestres estão fechados', () => {
-    const tresFechados = closingStates([1, 2, 3].map((bimestre) => ({
-      term: bimestre,
+    const threeClosed = closingStates([1, 2, 3].map((term) => ({
+      term,
       closedAt: '2026-05-10T12:00:00Z',
     })));
-    const quatroFechados = closingStates([1, 2, 3, 4].map((bimestre) => ({
-      term: bimestre,
+    const fourClosed = closingStates([1, 2, 3, 4].map((term) => ({
+      term,
       closedAt: '2026-05-10T12:00:00Z',
     })));
 
-    expect(allTermsClosed(tresFechados)).toBe(false);
-    expect(allTermsClosed(quatroFechados)).toBe(true);
+    expect(allTermsClosed(threeClosed)).toBe(false);
+    expect(allTermsClosed(fourClosed)).toBe(true);
   });
 
   test('lista só as disciplinas que ainda impedem o fechamento', () => {
-    const disciplinas = [
+    const subjects = [
       { id: 'a', subjectName: 'Matemática' },
       { id: 'b', subjectName: 'História' },
     ];
 
-    const pendencias = closingPendingItems(disciplinas, 5, new Map([['a', 5], ['b', 2]]));
+    const pendingItems = closingPendingItems(subjects, 5, new Map([['a', 5], ['b', 2]]));
 
-    expect(pendencias).toEqual([{ subjectName: 'História', missing: 3 }]);
+    expect(pendingItems).toEqual([{ subjectName: 'História', missing: 3 }]);
   });
 
   test('a disciplina sem lançamento nenhum falta a turma inteira', () => {
-    const disciplinas = [{ id: 'a', subjectName: 'Matemática' }];
+    const subjects = [{ id: 'a', subjectName: 'Matemática' }];
 
-    const pendencias = closingPendingItems(disciplinas, 5, new Map());
+    const pendingItems = closingPendingItems(subjects, 5, new Map());
 
-    expect(pendencias).toEqual([{ subjectName: 'Matemática', missing: 5 }]);
+    expect(pendingItems).toEqual([{ subjectName: 'Matemática', missing: 5 }]);
   });
 
   test('a mensagem de uma pendência única fica no singular', () => {
-    const mensagem = pendingItemsMessage([{ subjectName: 'História', missing: 1 }]);
+    const message = pendingItemsMessage([{ subjectName: 'História', missing: 1 }]);
 
-    expect(mensagem).toBe('Falta 1 nota para fechar o bimestre: História (1).');
+    expect(message).toBe('Falta 1 nota para fechar o bimestre: História (1).');
   });
 
   test('a mensagem soma as pendências e nomeia cada disciplina', () => {
-    const mensagem = pendingItemsMessage([
+    const message = pendingItemsMessage([
       { subjectName: 'História', missing: 3 },
       { subjectName: 'Matemática', missing: 4 },
     ]);
 
-    expect(mensagem).toBe('Faltam 7 notas para fechar o bimestre: História (3), Matemática (4).');
+    expect(message).toBe('Faltam 7 notas para fechar o bimestre: História (3), Matemática (4).');
   });
 });
 
 describe('closeTerm', () => {
   test('recusa enquanto falta nota e diz quantas são e em quais disciplinas', async () => {
     await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
-      grades: cenario.matriculas.map((matricula) => ({ enrollmentId: matricula.id, value: 7 })),
+      postedBy: scenario.teacher.id,
+      grades: scenario.enrollments.map((enrollment) => ({ enrollmentId: enrollment.id, value: 7 })),
     });
 
-    const resultado = await fechar(1);
+    const result = await close(1);
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'bimestre', codigo: 'fechamento_incompleto' })],
     });
-    const mensagem = mensagemDe(resultado);
-    expect(mensagem).toContain('Faltam 10 notas para fechar o bimestre');
-    expect(mensagem).toContain(`${cenario.disciplinas[1].name} (5)`);
-    expect(mensagem).toContain(`${cenario.disciplinas[2].name} (5)`);
+    const message = messageOf(result);
+    expect(message).toContain('Faltam 10 notas para fechar o bimestre');
+    expect(message).toContain(`${scenario.subjects[1].name} (5)`);
+    expect(message).toContain(`${scenario.subjects[2].name} (5)`);
   });
 
   test('a recusa por uma única nota faltando fica no singular e aponta a disciplina', async () => {
-    await lancarTudo(1);
+    await postEverything(1);
     await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[2].id,
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[2].id,
       term: 1,
-      postedBy: cenario.professor.id,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: null }],
+      postedBy: scenario.teacher.id,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: null }],
     });
 
-    const resultado = await fechar(1);
+    const result = await close(1);
 
-    expect(mensagemDe(resultado)).toBe(
-      `Falta 1 nota para fechar o bimestre: ${cenario.disciplinas[2].name} (1).`,
+    expect(messageOf(result)).toBe(
+      `Falta 1 nota para fechar o bimestre: ${scenario.subjects[2].name} (1).`,
     );
   });
 
   test('fecha quando toda matrícula ativa tem nota em toda disciplina alocada', async () => {
-    await lancarTudo(1);
+    await postEverything(1);
 
-    const resultado = await fechar(1);
+    const result = await close(1);
 
-    expect(resultado).toEqual({ ok: true, valor: undefined });
-    const estados = await assessment.closingState(cenario.rede.id, cenario.turmas[0].id);
-    expect(estados[0]).toEqual({
+    expect(result).toEqual({ ok: true, valor: undefined });
+    const states = await assessment.closingState(scenario.network.id, scenario.classGroups[0].id);
+    expect(states[0]).toEqual({
       term: 1,
       closed: true,
-      closedAt: expect.stringMatching(INSTANTE_ISO),
+      closedAt: expect.stringMatching(ISO_INSTANT),
     });
-    expect(estados.slice(1).every((estado) => !estado.closed)).toBe(true);
+    expect(states.slice(1).every((state) => !state.closed)).toBe(true);
   });
 
   test('recusa fechar o mesmo bimestre duas vezes', async () => {
-    await lancarTudo(1);
-    await fechar(1);
+    await postEverything(1);
+    await close(1);
 
-    const resultado = await fechar(1);
+    const result = await close(1);
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'bimestre', codigo: 'ja_fechado' })],
     });
   });
 
   test('depois de fechado o bimestre não aceita mais lançamento de nota', async () => {
-    await lancarTudo(1);
-    await fechar(1);
+    await postEverything(1);
+    await close(1);
 
-    const resultado = await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const result = await assessment.postGrades({
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 10 }],
+      postedBy: scenario.teacher.id,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: 10 }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'bimestre', codigo: 'bimestre_fechado' })],
     });
-    const notas = await assessment.classGroupSubjectGrades(
-      cenario.rede.id,
-      cenario.turmaDisciplinas[0].id,
+    const grades = await assessment.classGroupSubjectGrades(
+      scenario.network.id,
+      scenario.classGroupSubjects[0].id,
       1,
     );
-    expect(notas.get(cenario.matriculas[0].id)).toBe(7);
+    expect(grades.get(scenario.enrollments[0].id)).toBe(7);
   });
 
   test('o bimestre fechado não trava os outros três', async () => {
-    await lancarTudo(1);
-    await fechar(1);
+    await postEverything(1);
+    await close(1);
 
-    const resultado = await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const result = await assessment.postGrades({
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 2,
-      postedBy: cenario.professor.id,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 9 }],
+      postedBy: scenario.teacher.id,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: 9 }],
     });
 
-    expect(resultado).toEqual({ ok: true, valor: 1 });
+    expect(result).toEqual({ ok: true, valor: 1 });
   });
 
   test('o fechamento de uma turma não fecha o bimestre da turma vizinha', async () => {
-    await criarTurmaDisciplina({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[1].id,
-      subjectId: cenario.disciplinas[0].id,
-      teacherUserId: cenario.professor.id,
+    await createClassGroupSubject({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[1].id,
+      subjectId: scenario.subjects[0].id,
+      teacherUserId: scenario.teacher.id,
     });
-    await lancarTudo(1);
-    await fechar(1);
+    await postEverything(1);
+    await close(1);
 
-    const estados = await assessment.closingState(cenario.rede.id, cenario.turmas[1].id);
+    const states = await assessment.closingState(scenario.network.id, scenario.classGroups[1].id);
 
-    expect(estados.every((estado) => !estado.closed)).toBe(true);
+    expect(states.every((state) => !state.closed)).toBe(true);
   });
 
   test('nota de aluno transferido não conta como pendência', async () => {
-    const transferida = cenario.matriculas[4];
-    for (const turmaDisciplina of cenario.turmaDisciplinas) {
+    const transferred = scenario.enrollments[4];
+    for (const classGroupSubject of scenario.classGroupSubjects) {
       await assessment.postGrades({
-        networkId: cenario.rede.id,
-        classGroupSubjectId: turmaDisciplina.id,
+        networkId: scenario.network.id,
+        classGroupSubjectId: classGroupSubject.id,
         term: 1,
-        postedBy: cenario.professor.id,
-        grades: cenario.matriculas
-          .filter((matricula) => matricula.id !== transferida.id)
-          .map((matricula) => ({ enrollmentId: matricula.id, value: 7 })),
+        postedBy: scenario.teacher.id,
+        grades: scenario.enrollments
+          .filter((enrollment) => enrollment.id !== transferred.id)
+          .map((enrollment) => ({ enrollmentId: enrollment.id, value: 7 })),
       });
     }
-    await sqlDeTeste()`
-      UPDATE enrollment SET status = 'transferred' WHERE id = ${transferida.id}`;
+    await testSql()`
+      UPDATE enrollment SET status = 'transferred' WHERE id = ${transferred.id}`;
 
-    const resultado = await fechar(1);
+    const result = await close(1);
 
-    expect(resultado).toEqual({ ok: true, valor: undefined });
+    expect(result).toEqual({ ok: true, valor: undefined });
   });
 
   test('recusa turma sem disciplina alocada', async () => {
-    const resultado = await fechar(1, cenario.turmas[1].id);
+    const result = await close(1, scenario.classGroups[1].id);
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'turmaId', codigo: 'sem_disciplina' })],
     });
   });
 
   test('recusa turma sem matrícula ativa', async () => {
-    await criarTurmaDisciplina({
-      networkId: cenario.rede.id,
-      classGroupId: cenario.turmas[1].id,
-      subjectId: cenario.disciplinas[0].id,
-      teacherUserId: cenario.professor.id,
+    await createClassGroupSubject({
+      networkId: scenario.network.id,
+      classGroupId: scenario.classGroups[1].id,
+      subjectId: scenario.subjects[0].id,
+      teacherUserId: scenario.teacher.id,
     });
 
-    const resultado = await fechar(1, cenario.turmas[1].id);
+    const result = await close(1, scenario.classGroups[1].id);
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'turmaId', codigo: 'sem_matricula_ativa' })],
     });
   });
 
   test('recusa turma que não é desta rede', async () => {
-    const outra = await cenarioCompleto();
+    const other = await fullScenario();
 
-    const resultado = await fechar(1, outra.turmas[0].id);
+    const result = await close(1, other.classGroups[0].id);
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'turmaId', codigo: 'nao_encontrada' })],
     });
   });
 
   test('recusa bimestre fora de 1 a 4', async () => {
-    const resultado = await fechar(5);
+    const result = await close(5);
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'bimestre' })],
     });
   });
 
   test('fecha os quatro bimestres da turma, um a um', async () => {
-    for (const bimestre of [1, 2, 3, 4]) {
-      await lancarTudo(bimestre);
-      await fechar(bimestre);
+    for (const term of [1, 2, 3, 4]) {
+      await postEverything(term);
+      await close(term);
     }
 
-    const estados = await assessment.closingState(cenario.rede.id, cenario.turmas[0].id);
+    const states = await assessment.closingState(scenario.network.id, scenario.classGroups[0].id);
 
-    expect(allTermsClosed(estados)).toBe(true);
+    expect(allTermsClosed(states)).toBe(true);
   });
 });

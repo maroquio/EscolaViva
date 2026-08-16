@@ -1,145 +1,145 @@
 import { beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 
-const RAIZ = join(import.meta.dir, '..', '..');
+const ROOT = join(import.meta.dir, '..', '..');
 
-const CAMINHO_DO_BACKUP = join(RAIZ, 'scripts', 'backup.sh');
-const CAMINHO_DA_RESTAURACAO = join(RAIZ, 'scripts', 'restore-test.sh');
+const BACKUP_SCRIPT_PATH = join(ROOT, 'scripts', 'backup.sh');
+const RESTORE_SCRIPT_PATH = join(ROOT, 'scripts', 'restore-test.sh');
 
-const URL_COM_SEGREDO = 'postgres://escolaviva:senha_secreta@localhost:5432/escolaviva';
+const URL_WITH_SECRET = 'postgres://escolaviva:senha_secreta@localhost:5432/escolaviva';
 
-const BLOCO_QUE_LE_O_ENV = /if \[\[ -z "\$\{DATABASE_URL:-\}" && -f[\s\S]*?\nfi\n/;
+const ENV_READING_BLOCK = /if \[\[ -z "\$\{DATABASE_URL:-\}" && -f[\s\S]*?\nfi\n/;
 
-const SERVICO_DO_BANCO = /^SERVICO_DO_BANCO=(\S+)$/m;
+const DB_SERVICE = /^DB_SERVICE=(\S+)$/m;
 
-const MODELO_DO_ARQUIVO = /ARQUIVO="\$DESTINO\/([^"]+)"/;
+const FILE_TEMPLATE = /FILE="\$DEST\/([^"]+)"/;
 
-const SUFIXO_DO_PARCIAL = /PARCIAL="\$ARQUIVO([^"]*)"/;
+const PARTIAL_SUFFIX = /PARTIAL="\$FILE([^"]*)"/;
 
-const PADRAO_DA_RETENCAO = /"\$DESTINO"\/(\S+\.dump)/;
+const RETENTION_PATTERN = /"\$DEST"\/(\S+\.dump)/;
 
-const CARIMBO_DE_EXEMPLO = '20260815-101112';
+const SAMPLE_TIMESTAMP = '20260815-101112';
 
-const VARIAVEL_DO_CARIMBO = '$CARIMBO';
+const TIMESTAMP_VARIABLE = '$TIMESTAMP';
 
 let backup = '';
-let restauracao = '';
+let restore = '';
 
-function definicaoDaFuncao(script: string, nome: string): string {
-  const linhas = script.split('\n');
-  const inicio = linhas.findIndex((linha) => linha.startsWith(`${nome}() {`));
-  if (inicio === -1) throw new Error(`o script não define ${nome}()`);
-  const primeira = linhas[inicio] ?? '';
-  if (primeira.trimEnd().endsWith('}')) return primeira;
-  const fim = linhas.findIndex((linha, indice) => indice > inicio && linha === '}');
-  return linhas.slice(inicio, fim + 1).join('\n');
+function functionDefinition(script: string, name: string): string {
+  const rows = script.split('\n');
+  const start = rows.findIndex((row) => row.startsWith(`${name}() {`));
+  if (start === -1) throw new Error(`o script não define ${name}()`);
+  const first = rows[start] ?? '';
+  if (first.trimEnd().endsWith('}')) return first;
+  const end = rows.findIndex((row, index) => index > start && row === '}');
+  return rows.slice(start, end + 1).join('\n');
 }
 
-function capturar(script: string, expressao: RegExp, nome: string): string {
-  const capturado = expressao.exec(script)?.[1];
-  if (capturado === undefined) throw new Error(`o script não declara ${nome}`);
-  return capturado;
+function capture(script: string, expression: RegExp, name: string): string {
+  const captured = expression.exec(script)?.[1];
+  if (captured === undefined) throw new Error(`o script não declara ${name}`);
+  return captured;
 }
 
-async function chamar(preambulo: string, nome: string, argumento: string): Promise<string> {
-  const processo = Bun.spawn(['bash', '-c', `${preambulo}\n${nome} "$1"`, 'bash', argumento], {
+async function call(preamble: string, name: string, argument: string): Promise<string> {
+  const process = Bun.spawn(['bash', '-c', `${preamble}\n${name} "$1"`, 'bash', argument], {
     stdout: 'pipe',
     stderr: 'pipe',
   });
-  const saida = await new Response(processo.stdout).text();
-  await processo.exited;
-  return saida.trim();
+  const stdout = await new Response(process.stdout).text();
+  await process.exited;
+  return stdout.trim();
 }
 
 describe('scripts de backup e restauração', () => {
   beforeAll(async () => {
-    backup = await Bun.file(CAMINHO_DO_BACKUP).text();
-    restauracao = await Bun.file(CAMINHO_DA_RESTAURACAO).text();
+    backup = await Bun.file(BACKUP_SCRIPT_PATH).text();
+    restore = await Bun.file(RESTORE_SCRIPT_PATH).text();
   });
 
   test('a URL impressa no console não leva usuário nem senha', async () => {
-    const definicao = definicaoDaFuncao(backup, 'sem_credenciais');
+    const definition = functionDefinition(backup, 'without_credentials');
 
-    const impresso = await chamar(definicao, 'sem_credenciais', URL_COM_SEGREDO);
+    const printed = await call(definition, 'without_credentials', URL_WITH_SECRET);
 
-    expect(impresso).toBe('postgres://***@localhost:5432/escolaviva');
-    expect(impresso).not.toContain('senha_secreta');
+    expect(printed).toBe('postgres://***@localhost:5432/escolaviva');
+    expect(printed).not.toContain('senha_secreta');
   });
 
   test('a URL de dentro do compose troca o host publicado pelo nome do serviço', async () => {
-    const servico = capturar(backup, SERVICO_DO_BANCO, 'SERVICO_DO_BANCO');
-    const preambulo = `SERVICO_DO_BANCO=${servico}\n${definicaoDaFuncao(backup, 'url_de_dentro')}`;
+    const service = capture(backup, DB_SERVICE, 'DB_SERVICE');
+    const preamble = `DB_SERVICE=${service}\n${functionDefinition(backup, 'internal_url')}`;
 
-    const comPorta = await chamar(preambulo, 'url_de_dentro', URL_COM_SEGREDO);
-    const semPorta = await chamar(
-      preambulo,
-      'url_de_dentro',
+    const withPort = await call(preamble, 'internal_url', URL_WITH_SECRET);
+    const withoutPort = await call(
+      preamble,
+      'internal_url',
       'postgres://escolaviva:senha_secreta@localhost/escolaviva',
     );
 
-    expect(comPorta).toBe(`postgres://escolaviva:senha_secreta@${servico}:5432/escolaviva`);
-    expect(semPorta).toBe(`postgres://escolaviva:senha_secreta@${servico}:5432/escolaviva`);
+    expect(withPort).toBe(`postgres://escolaviva:senha_secreta@${service}:5432/escolaviva`);
+    expect(withoutPort).toBe(`postgres://escolaviva:senha_secreta@${service}:5432/escolaviva`);
   });
 
   test('a versão maior sai tanto da saída do cliente quanto da do servidor', async () => {
-    const definicao = definicaoDaFuncao(backup, 'versao_maior');
+    const definition = functionDefinition(backup, 'major_version');
 
-    const doCliente = await chamar(definicao, 'versao_maior', 'pg_dump (PostgreSQL) 14.9');
-    const doServidor = await chamar(definicao, 'versao_maior', '16.4 (Debian 16.4-1.pgdg120+1)');
+    const ofTheClient = await call(definition, 'major_version', 'pg_dump (PostgreSQL) 14.9');
+    const ofTheServer = await call(definition, 'major_version', '16.4 (Debian 16.4-1.pgdg120+1)');
 
-    expect(doCliente).toBe('14');
-    expect(doServidor).toBe('16');
-    expect(Number(doCliente) < Number(doServidor)).toBe(true);
+    expect(ofTheClient).toBe('14');
+    expect(ofTheServer).toBe('16');
+    expect(Number(ofTheClient) < Number(ofTheServer)).toBe(true);
   });
 
   test('o dump interrompido no meio não entra na contagem de retenção', () => {
-    const modelo = capturar(backup, MODELO_DO_ARQUIVO, 'o nome do arquivo de dump');
-    const sufixo = capturar(backup, SUFIXO_DO_PARCIAL, 'o sufixo do arquivo parcial');
-    const padrao = new Bun.Glob(capturar(backup, PADRAO_DA_RETENCAO, 'o padrão da retenção'));
+    const template = capture(backup, FILE_TEMPLATE, 'o nome do arquivo de dump');
+    const suffix = capture(backup, PARTIAL_SUFFIX, 'o sufixo do arquivo parcial');
+    const pattern = new Bun.Glob(capture(backup, RETENTION_PATTERN, 'o padrão da retenção'));
 
-    const pronto = modelo.replace(VARIAVEL_DO_CARIMBO, CARIMBO_DE_EXEMPLO);
+    const ready = template.replace(TIMESTAMP_VARIABLE, SAMPLE_TIMESTAMP);
 
-    expect(padrao.match(pronto)).toBe(true);
-    expect(padrao.match(`${pronto}${sufixo}`)).toBe(false);
+    expect(pattern.match(ready)).toBe(true);
+    expect(pattern.match(`${ready}${suffix}`)).toBe(false);
   });
 
   test('a retenção guarda um número declarado de dumps, e não um literal solto', () => {
-    const retencao = capturar(backup, /^RETENCAO=(\d+)$/m, 'RETENCAO');
+    const retention = capture(backup, /^RETENTION=(\d+)$/m, 'RETENTION');
 
-    expect(backup).toContain(`tail -n "+$((RETENCAO + 1))"`);
-    expect(Number(retencao)).toBeGreaterThan(0);
+    expect(backup).toContain('tail -n "+$((RETENTION + 1))"');
+    expect(Number(retention)).toBeGreaterThan(0);
   });
 
   test('os dois scripts leem DATABASE_URL do .env pelo mesmo bloco', () => {
-    const doBackup = BLOCO_QUE_LE_O_ENV.exec(backup)?.[0];
+    const ofTheBackup = ENV_READING_BLOCK.exec(backup)?.[0];
 
-    const daRestauracao = BLOCO_QUE_LE_O_ENV.exec(restauracao)?.[0];
+    const ofTheRestore = ENV_READING_BLOCK.exec(restore)?.[0];
 
-    expect(doBackup).toBeDefined();
-    expect(daRestauracao).toBe(doBackup);
+    expect(ofTheBackup).toBeDefined();
+    expect(ofTheRestore).toBe(ofTheBackup);
   });
 
   test('os dois scripts escolhem o cliente compatível pelas mesmas funções', () => {
-    const compartilhadas = ['versao_maior', 'versao_do_servidor', 'url_de_dentro'];
+    const shared = ['major_version', 'server_version', 'internal_url'];
 
-    const doBackup = compartilhadas.map((nome) => definicaoDaFuncao(backup, nome));
-    const daRestauracao = compartilhadas.map((nome) => definicaoDaFuncao(restauracao, nome));
+    const ofTheBackup = shared.map((name) => functionDefinition(backup, name));
+    const ofTheRestore = shared.map((name) => functionDefinition(restore, name));
 
-    expect(daRestauracao).toEqual(doBackup);
-    expect(capturar(restauracao, SERVICO_DO_BANCO, 'SERVICO_DO_BANCO')).toBe(
-      capturar(backup, SERVICO_DO_BANCO, 'SERVICO_DO_BANCO'),
+    expect(ofTheRestore).toEqual(ofTheBackup);
+    expect(capture(restore, DB_SERVICE, 'DB_SERVICE')).toBe(
+      capture(backup, DB_SERVICE, 'DB_SERVICE'),
     );
   });
 
   test('a restauração sai com código próprio para cada falha que um agendador precisa ver', () => {
-    const codigos = [...restauracao.matchAll(/^\s*exit (\d+)$/gm)].map((achado) => achado[1]);
+    const codes = [...restore.matchAll(/^\s*exit (\d+)$/gm)].map((finding) => finding[1]);
 
-    expect(new Set(codigos)).toEqual(new Set(['1', '2', '3']));
+    expect(new Set(codes)).toEqual(new Set(['1', '2', '3']));
   });
 
   test('os dois scripts param no primeiro erro e não expandem variável não definida', () => {
-    const modo = [backup, restauracao].map((script) => script.includes('\nset -euo pipefail\n'));
+    const mode = [backup, restore].map((script) => script.includes('\nset -euo pipefail\n'));
 
-    expect(modo).toEqual([true, true]);
+    expect(mode).toEqual([true, true]);
   });
 });

@@ -13,19 +13,19 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { generateCpf } from '../../src/shared/document';
-import { limparBanco } from '../support/database';
-import { cenarioCompleto, duasRedes, type Cenario } from '../support/factories';
-import { abrir, entrar, enviar } from './support';
+import { clearDatabase } from '../support/database';
+import { fullScenario, twoNetworks, type Scenario } from '../support/factories';
+import { open, signIn, send } from './support';
 
-const entrarComo = (cenario: Cenario, quem: 'admin' | 'secretaria'): Promise<string> =>
-  entrar({ redeSlug: cenario.rede.slug, cpf: cenario[quem].cpf, senha: cenario.senha });
+const signInAs = (scenario: Scenario, who: 'admin' | 'registrar'): Promise<string> =>
+  signIn({ networkSlug: scenario.network.slug, cpf: scenario[who].cpf, password: scenario.password });
 
 /** O `form` de escrita daquela página, e não o de sair da conta que vem no cabeçalho. */
-const temFormularioPara = (html: string, destino: string): boolean =>
-  html.includes(`method="post" action="${destino}"`);
+const hasFormFor = (html: string, target: string): boolean =>
+  html.includes(`method="post" action="${target}"`);
 
 beforeEach(async () => {
-  await limparBanco();
+  await clearDatabase();
 });
 
 /* ------------------------------------------------------------------------- */
@@ -36,7 +36,7 @@ beforeEach(async () => {
 // primeira checagem passaria com a tela ainda dizendo "CPF ou e-mail" acima de um campo renomeado
 // por baixo, a segunda é o que garante que a tela também parou de prometer o que já não aceita.
 test('a tela de entrada pede CPF, e não mais e-mail', async () => {
-  const html = await (await abrir('/login')).text();
+  const html = await (await open('/login')).text();
 
   expect(html).toContain('name="cpf"');
   expect(html).not.toContain('e-mail');
@@ -45,171 +45,171 @@ test('a tela de entrada pede CPF, e não mais e-mail', async () => {
 /* ------------------------------------------------------------------------- */
 
 describe('cada cadastro tem a sua página, e ela traz o formulário', () => {
-  type Page = { caminho: string; destino: string };
+  type Page = { path: string; target: string };
 
-  const DA_REDE: readonly Page[] = [
-    { caminho: '/rede/unidades/nova', destino: '/rede/unidades' },
-    { caminho: '/rede/anos-letivos/novo', destino: '/rede/anos-letivos' },
-    { caminho: '/rede/usuarios/novo', destino: '/rede/usuarios' },
+  const NETWORK_PAGES: readonly Page[] = [
+    { path: '/rede/unidades/nova', target: '/rede/unidades' },
+    { path: '/rede/anos-letivos/novo', target: '/rede/anos-letivos' },
+    { path: '/rede/usuarios/novo', target: '/rede/usuarios' },
   ];
 
-  const DA_SECRETARIA: readonly Page[] = [
-    { caminho: '/secretaria/disciplinas/nova', destino: '/secretaria/disciplinas' },
-    { caminho: '/secretaria/responsaveis/novo', destino: '/secretaria/responsaveis' },
-    { caminho: '/secretaria/turmas/nova', destino: '/secretaria/turmas' },
+  const REGISTRAR_PAGES: readonly Page[] = [
+    { path: '/secretaria/disciplinas/nova', target: '/secretaria/disciplinas' },
+    { path: '/secretaria/responsaveis/novo', target: '/secretaria/responsaveis' },
+    { path: '/secretaria/turmas/nova', target: '/secretaria/turmas' },
   ];
 
-  for (const pagina of DA_REDE) {
-    test(`${pagina.caminho} abre com o formulário que grava em ${pagina.destino}`, async () => {
-      const cenario = await cenarioCompleto();
-      const cookie = await entrarComo(cenario, 'admin');
+  for (const page of NETWORK_PAGES) {
+    test(`${page.path} abre com o formulário que grava em ${page.target}`, async () => {
+      const scenario = await fullScenario();
+      const cookie = await signInAs(scenario, 'admin');
 
-      const resposta = await abrir(pagina.caminho, cookie);
-      const html = await resposta.text();
+      const response = await open(page.path, cookie);
+      const html = await response.text();
 
-      expect(resposta.status).toBe(200);
-      expect(temFormularioPara(html, pagina.destino)).toBe(true);
+      expect(response.status).toBe(200);
+      expect(hasFormFor(html, page.target)).toBe(true);
     });
   }
 
-  for (const pagina of DA_SECRETARIA) {
-    test(`${pagina.caminho} abre com o formulário que grava em ${pagina.destino}`, async () => {
-      const cenario = await cenarioCompleto();
-      const cookie = await entrarComo(cenario, 'secretaria');
+  for (const page of REGISTRAR_PAGES) {
+    test(`${page.path} abre com o formulário que grava em ${page.target}`, async () => {
+      const scenario = await fullScenario();
+      const cookie = await signInAs(scenario, 'registrar');
 
-      const resposta = await abrir(pagina.caminho, cookie);
-      const html = await resposta.text();
+      const response = await open(page.path, cookie);
+      const html = await response.text();
 
-      expect(resposta.status).toBe(200);
-      expect(temFormularioPara(html, pagina.destino)).toBe(true);
+      expect(response.status).toBe(200);
+      expect(hasFormFor(html, page.target)).toBe(true);
     });
   }
 
   test('cadastro de responsável traz o campo de CPF', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
 
-    const html = await (await abrir('/secretaria/responsaveis/novo', cookie)).text();
+    const html = await (await open('/secretaria/responsaveis/novo', cookie)).text();
 
     expect(html).toContain('name="cpf"');
   });
 
   test('vincular responsável tem página própria, fora da ficha', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
-    const alunoId = cenario.alunos[0].id;
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
+    const studentId = scenario.students[0].id;
 
-    const resposta = await abrir(`/secretaria/alunos/${alunoId}/responsaveis/novo`, cookie);
-    const html = await resposta.text();
+    const response = await open(`/secretaria/alunos/${studentId}/responsaveis/novo`, cookie);
+    const html = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(temFormularioPara(html, `/secretaria/alunos/${alunoId}/responsaveis`)).toBe(true);
+    expect(response.status).toBe(200);
+    expect(hasFormFor(html, `/secretaria/alunos/${studentId}/responsaveis`)).toBe(true);
   });
 
   test('matricular tem página própria, fora da ficha', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
 
-    const resposta = await abrir(`/secretaria/alunos/${cenario.alunos[0].id}/matricular`, cookie);
-    const html = await resposta.text();
+    const response = await open(`/secretaria/alunos/${scenario.students[0].id}/matricular`, cookie);
+    const html = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(temFormularioPara(html, '/secretaria/matriculas')).toBe(true);
+    expect(response.status).toBe(200);
+    expect(hasFormFor(html, '/secretaria/matriculas')).toBe(true);
   });
 
   test('transferir tem página própria, e ela conhece a matrícula ativa', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
-    const matriculaId = cenario.matriculas[0].id;
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
+    const enrollmentId = scenario.enrollments[0].id;
 
-    const resposta = await abrir(`/secretaria/matriculas/${matriculaId}/transferir`, cookie);
-    const html = await resposta.text();
+    const response = await open(`/secretaria/matriculas/${enrollmentId}/transferir`, cookie);
+    const html = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(temFormularioPara(html, `/secretaria/matriculas/${matriculaId}/transferir`)).toBe(true);
+    expect(response.status).toBe(200);
+    expect(hasFormFor(html, `/secretaria/matriculas/${enrollmentId}/transferir`)).toBe(true);
   });
 
   test('alocar disciplina tem página própria, fora da tela da turma', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
-    const turmaId = cenario.turmas[0].id;
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
+    const classGroupId = scenario.classGroups[0].id;
 
-    const resposta = await abrir(`/secretaria/turmas/${turmaId}/disciplinas/nova`, cookie);
-    const html = await resposta.text();
+    const response = await open(`/secretaria/turmas/${classGroupId}/disciplinas/nova`, cookie);
+    const html = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(temFormularioPara(html, `/secretaria/turmas/${turmaId}/disciplinas`)).toBe(true);
+    expect(response.status).toBe(200);
+    expect(hasFormFor(html, `/secretaria/turmas/${classGroupId}/disciplinas`)).toBe(true);
   });
 });
 
 /* ------------------------------------------------------------------------- */
 
 describe('a listagem virou só a tabela', () => {
-  const DA_REDE = ['/rede/unidades', '/rede/anos-letivos', '/rede/usuarios'] as const;
-  const DA_SECRETARIA = [
+  const NETWORK_PAGES = ['/rede/unidades', '/rede/anos-letivos', '/rede/usuarios'] as const;
+  const REGISTRAR_PAGES = [
     '/secretaria/disciplinas',
     '/secretaria/responsaveis',
     '/secretaria/turmas',
   ] as const;
 
-  for (const caminho of DA_REDE) {
-    test(`${caminho} não grava mais nada`, async () => {
-      const cenario = await cenarioCompleto();
-      const cookie = await entrarComo(cenario, 'admin');
+  for (const path of NETWORK_PAGES) {
+    test(`${path} não grava mais nada`, async () => {
+      const scenario = await fullScenario();
+      const cookie = await signInAs(scenario, 'admin');
 
-      const resposta = await abrir(caminho, cookie);
-      const html = await resposta.text();
+      const response = await open(path, cookie);
+      const html = await response.text();
 
-      expect(resposta.status).toBe(200);
-      expect(temFormularioPara(html, caminho)).toBe(false);
+      expect(response.status).toBe(200);
+      expect(hasFormFor(html, path)).toBe(false);
     });
   }
 
-  for (const caminho of DA_SECRETARIA) {
-    test(`${caminho} não grava mais nada`, async () => {
-      const cenario = await cenarioCompleto();
-      const cookie = await entrarComo(cenario, 'secretaria');
+  for (const path of REGISTRAR_PAGES) {
+    test(`${path} não grava mais nada`, async () => {
+      const scenario = await fullScenario();
+      const cookie = await signInAs(scenario, 'registrar');
 
-      const resposta = await abrir(caminho, cookie);
-      const html = await resposta.text();
+      const response = await open(path, cookie);
+      const html = await response.text();
 
-      expect(resposta.status).toBe(200);
-      expect(temFormularioPara(html, caminho)).toBe(false);
+      expect(response.status).toBe(200);
+      expect(hasFormFor(html, path)).toBe(false);
     });
   }
 
   test('o filtro das turmas continua de pé — ele lê, e por isso é GET', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
 
-    const html = await (await abrir('/secretaria/turmas', cookie)).text();
+    const html = await (await open('/secretaria/turmas', cookie)).text();
 
     expect(html).toContain('method="get" action="/secretaria/turmas"');
   });
 
   test('a ficha do aluno perdeu os três formulários e ganhou os três caminhos', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
-    const alunoId = cenario.alunos[0].id;
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
+    const studentId = scenario.students[0].id;
 
-    const html = await (await abrir(`/secretaria/alunos/${alunoId}`, cookie)).text();
+    const html = await (await open(`/secretaria/alunos/${studentId}`, cookie)).text();
 
-    expect(temFormularioPara(html, `/secretaria/alunos/${alunoId}/responsaveis`)).toBe(false);
-    expect(temFormularioPara(html, '/secretaria/matriculas')).toBe(false);
-    expect(html).toContain(`href="/secretaria/alunos/${alunoId}/responsaveis/novo"`);
-    expect(html).toContain(`href="/secretaria/alunos/${alunoId}/matricular"`);
-    expect(html).toContain(`href="/secretaria/matriculas/${cenario.matriculas[0].id}/transferir"`);
+    expect(hasFormFor(html, `/secretaria/alunos/${studentId}/responsaveis`)).toBe(false);
+    expect(hasFormFor(html, '/secretaria/matriculas')).toBe(false);
+    expect(html).toContain(`href="/secretaria/alunos/${studentId}/responsaveis/novo"`);
+    expect(html).toContain(`href="/secretaria/alunos/${studentId}/matricular"`);
+    expect(html).toContain(`href="/secretaria/matriculas/${scenario.enrollments[0].id}/transferir"`);
   });
 
   test('a tela da turma perdeu o formulário de alocação e ganhou o caminho', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
-    const turmaId = cenario.turmas[0].id;
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
+    const classGroupId = scenario.classGroups[0].id;
 
-    const html = await (await abrir(`/secretaria/turmas/${turmaId}`, cookie)).text();
+    const html = await (await open(`/secretaria/turmas/${classGroupId}`, cookie)).text();
 
-    expect(temFormularioPara(html, `/secretaria/turmas/${turmaId}/disciplinas`)).toBe(false);
-    expect(html).toContain(`href="/secretaria/turmas/${turmaId}/disciplinas/nova"`);
+    expect(hasFormFor(html, `/secretaria/turmas/${classGroupId}/disciplinas`)).toBe(false);
+    expect(html).toContain(`href="/secretaria/turmas/${classGroupId}/disciplinas/nova"`);
   });
 });
 
@@ -217,107 +217,107 @@ describe('a listagem virou só a tabela', () => {
 
 describe('o formulário recusado volta para o formulário, não para a lista', () => {
   test('disciplina sem nome volta com o erro no campo', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
 
-    const resposta = await enviar('/secretaria/disciplinas', { nome: '' }, cookie);
-    const html = await resposta.text();
+    const response = await send('/secretaria/disciplinas', { nome: '' }, cookie);
+    const html = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(temFormularioPara(html, '/secretaria/disciplinas')).toBe(true);
+    expect(response.status).toBe(200);
+    expect(hasFormFor(html, '/secretaria/disciplinas')).toBe(true);
     expect(html).toContain('id="nome-erro"');
     expect(html).not.toContain('Disciplinas disponíveis para alocar nas turmas');
   });
 
   test('turma recusada volta com o que já tinha sido digitado', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
 
-    const resposta = await enviar(
+    const response = await send(
       '/secretaria/turmas',
       { nome: 'Turma Rejeitada', serie: '', turno: '', unidadeId: '', anoLetivoId: '' },
       cookie,
     );
-    const html = await resposta.text();
+    const html = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(temFormularioPara(html, '/secretaria/turmas')).toBe(true);
+    expect(response.status).toBe(200);
+    expect(hasFormFor(html, '/secretaria/turmas')).toBe(true);
     expect(html).toContain('value="Turma Rejeitada"');
     expect(html).not.toContain('Turmas das unidades sob sua secretaria');
   });
 
   test('unidade sem nome volta para a página de criar unidade', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'admin');
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'admin');
 
-    const resposta = await enviar('/rede/unidades', { nome: '', codigoInep: '123' }, cookie);
-    const html = await resposta.text();
+    const response = await send('/rede/unidades', { nome: '', codigoInep: '123' }, cookie);
+    const html = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(temFormularioPara(html, '/rede/unidades')).toBe(true);
+    expect(response.status).toBe(200);
+    expect(hasFormFor(html, '/rede/unidades')).toBe(true);
     expect(html).toContain('value="123"');
     expect(html).not.toContain('Unidades cadastradas');
   });
 
   test('o convite recusa CPF que diverge do cadastro, sem publicar o número', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'admin');
-    const responsavel = cenario.responsaveis[0];
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'admin');
+    const guardian = scenario.guardians[0];
 
-    const resposta = await enviar('/rede/usuarios', {
+    const response = await send('/rede/usuarios', {
       nome: 'Mãe do Aluno', email: 'mae@escolaviva.test', cpf: generateCpf(987_654),
-      responsavelId: responsavel.id, 'unidade[]': cenario.unidades[0].id, 'papel[]': 'guardian',
+      responsavelId: guardian.id, 'unidade[]': scenario.schools[0].id, 'papel[]': 'guardian',
     }, cookie);
-    const html = await resposta.text();
+    const html = await response.text();
 
-    expect(resposta.status).toBe(200);
+    expect(response.status).toBe(200);
     expect(html).toContain('id="cpf-erro"');
-    expect(html).toContain(responsavel.name);
-    expect(html).not.toContain(responsavel.cpf);
+    expect(html).toContain(guardian.name);
+    expect(html).not.toContain(guardian.cpf);
   });
 
   test('CPF inválido no cadastro de responsável volta com o erro ancorado no campo', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
 
-    const resposta = await enviar('/secretaria/responsaveis', {
+    const response = await send('/secretaria/responsaveis', {
       nome: 'Responsável Sem Acesso', email: 'sem.acesso@escolaviva.test', cpf: '52998224724',
     }, cookie);
-    const html = await resposta.text();
+    const html = await response.text();
 
-    expect(resposta.status).toBe(200);
+    expect(response.status).toBe(200);
     expect(html).toContain('id="cpf-erro"');
     expect(html).toContain('value="52998224724"');
   });
 
   test('responsavelId fora do formato não derruba o convite com erro de conversão', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'admin');
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'admin');
 
-    const resposta = await enviar('/rede/usuarios', {
+    const response = await send('/rede/usuarios', {
       nome: 'Sem Cadastro', email: 'sem.cadastro@escolaviva.test', cpf: generateCpf(987_655),
-      responsavelId: 'nao-e-uuid', 'unidade[]': cenario.unidades[0].id, 'papel[]': 'registrar',
+      responsavelId: 'nao-e-uuid', 'unidade[]': scenario.schools[0].id, 'papel[]': 'registrar',
     }, cookie);
-    const html = await resposta.text();
+    const html = await response.text();
 
-    expect(resposta.status).toBe(200);
+    expect(response.status).toBe(200);
     expect(html).toContain('id="responsavelId-erro"');
   });
 
   test('vínculo recusado volta para a página do vínculo, sem a ficha inteira', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
-    const alunoId = cenario.alunos[0].id;
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
+    const studentId = scenario.students[0].id;
 
-    const resposta = await enviar(
-      `/secretaria/alunos/${alunoId}/responsaveis`,
+    const response = await send(
+      `/secretaria/alunos/${studentId}/responsaveis`,
       { responsavelId: '', parentesco: '' },
       cookie,
     );
-    const html = await resposta.text();
+    const html = await response.text();
 
-    expect(resposta.status).toBe(200);
-    expect(temFormularioPara(html, `/secretaria/alunos/${alunoId}/responsaveis`)).toBe(true);
+    expect(response.status).toBe(200);
+    expect(hasFormFor(html, `/secretaria/alunos/${studentId}/responsaveis`)).toBe(true);
     expect(html).not.toContain('Histórico de matrículas deste aluno');
   });
 });
@@ -326,47 +326,47 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
 
 describe('as páginas novas respeitam o alcance da secretaria', () => {
   test('aluno de outra rede não abre a página de vínculo', async () => {
-    const { a, b } = await duasRedes();
-    const cookie = await entrarComo(a, 'secretaria');
+    const { a, b } = await twoNetworks();
+    const cookie = await signInAs(a, 'registrar');
 
-    const resposta = await abrir(`/secretaria/alunos/${b.alunos[0].id}/responsaveis/novo`, cookie);
+    const response = await open(`/secretaria/alunos/${b.students[0].id}/responsaveis/novo`, cookie);
 
-    expect(resposta.status).toBe(404);
+    expect(response.status).toBe(404);
   });
 
   test('aluno de outra rede não abre a página de matrícula', async () => {
-    const { a, b } = await duasRedes();
-    const cookie = await entrarComo(a, 'secretaria');
+    const { a, b } = await twoNetworks();
+    const cookie = await signInAs(a, 'registrar');
 
-    const resposta = await abrir(`/secretaria/alunos/${b.alunos[0].id}/matricular`, cookie);
+    const response = await open(`/secretaria/alunos/${b.students[0].id}/matricular`, cookie);
 
-    expect(resposta.status).toBe(404);
+    expect(response.status).toBe(404);
   });
 
   test('matrícula de outra rede não abre a página de transferência', async () => {
-    const { a, b } = await duasRedes();
-    const cookie = await entrarComo(a, 'secretaria');
+    const { a, b } = await twoNetworks();
+    const cookie = await signInAs(a, 'registrar');
 
-    const resposta = await abrir(`/secretaria/matriculas/${b.matriculas[0].id}/transferir`, cookie);
+    const response = await open(`/secretaria/matriculas/${b.enrollments[0].id}/transferir`, cookie);
 
-    expect(resposta.status).toBe(404);
+    expect(response.status).toBe(404);
   });
 
   test('turma de outra rede não abre a página de alocação', async () => {
-    const { a, b } = await duasRedes();
-    const cookie = await entrarComo(a, 'secretaria');
+    const { a, b } = await twoNetworks();
+    const cookie = await signInAs(a, 'registrar');
 
-    const resposta = await abrir(`/secretaria/turmas/${b.turmas[0].id}/disciplinas/nova`, cookie);
+    const response = await open(`/secretaria/turmas/${b.classGroups[0].id}/disciplinas/nova`, cookie);
 
-    expect(resposta.status).toBe(404);
+    expect(response.status).toBe(404);
   });
 
   test('identificador que não é uuid responde 404, e não erro de conversão', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
 
-    const resposta = await abrir('/secretaria/alunos/nao-e-uuid/matricular', cookie);
+    const response = await open('/secretaria/alunos/nao-e-uuid/matricular', cookie);
 
-    expect(resposta.status).toBe(404);
+    expect(response.status).toBe(404);
   });
 });

@@ -11,39 +11,39 @@ import { config } from '../../src/shared/config';
 import type { Connection } from '../../src/shared/db';
 
 /** A mesma chave de `scripts/migrate.ts`: dois processos de teste não migram ao mesmo tempo. */
-const CHAVE_DE_LOCK = 4242;
-const DIRETORIO_DE_MIGRACOES = resolve(import.meta.dir, '..', '..', 'migrations');
-const TABELA_DE_CONTROLE = 'schema_migrations';
-const MAX_CONEXOES = 4;
+const LOCK_KEY = 4242;
+const MIGRATIONS_DIR = resolve(import.meta.dir, '..', '..', 'migrations');
+const CONTROL_TABLE = 'schema_migrations';
+const MAX_CONNECTIONS = 4;
 
 let pool: SQL | undefined;
-let migracoes: Promise<void> | undefined;
-let comandoDeLimpeza: Promise<string> | undefined;
+let migrations: Promise<void> | undefined;
+let truncateCommand: Promise<string> | undefined;
 
 /** A conexão crua da suíte, para asserção direta no banco e para as fábricas escreverem. */
-export function sqlDeTeste(): Connection {
-  pool ??= new SQL({ url: config.databaseUrl, max: MAX_CONEXOES });
+export function testSql(): Connection {
+  pool ??= new SQL({ url: config.databaseUrl, max: MAX_CONNECTIONS });
   return pool;
 }
 
-async function arquivosDeMigracao(): Promise<string[]> {
-  const nomes: string[] = [];
-  for await (const nome of new Bun.Glob('*.sql').scan({ cwd: DIRETORIO_DE_MIGRACOES })) {
-    nomes.push(nome);
+async function migrationFiles(): Promise<string[]> {
+  const names: string[] = [];
+  for await (const name of new Bun.Glob('*.sql').scan({ cwd: MIGRATIONS_DIR })) {
+    names.push(name);
   }
-  return nomes.sort();
+  return names.sort();
 }
 
-async function versoesAplicadas(sql: Connection): Promise<Set<string>> {
-  const linhas = await sql<{ versao: string }[]>`SELECT versao FROM schema_migrations`;
-  return new Set(linhas.map((linha) => linha.versao));
+async function appliedVersions(sql: Connection): Promise<Set<string>> {
+  const rows = await sql<{ versao: string }[]>`SELECT versao FROM schema_migrations`;
+  return new Set(rows.map((row) => row.versao));
 }
 
 /** Uma transação por arquivo: o DDL e o registro da versão sobem juntos ou não sobem. */
-async function aplicar(sql: Connection, versao: string): Promise<void> {
-  const conteudo = await Bun.file(join(DIRETORIO_DE_MIGRACOES, versao)).text();
+async function apply(sql: Connection, versao: string): Promise<void> {
+  const content = await Bun.file(join(MIGRATIONS_DIR, versao)).text();
   await sql.begin(async (tx) => {
-    await tx.unsafe(conteudo);
+    await tx.unsafe(content);
     await tx`INSERT INTO schema_migrations (versao) VALUES (${versao})`;
   });
 }
@@ -52,10 +52,10 @@ async function aplicar(sql: Connection, versao: string): Promise<void> {
  * Conexão própria com uma única sessão: o advisory lock pertence à sessão, e um pool poderia
  * pegar o lock em uma conexão e soltá-lo em outra.
  */
-async function aplicarMigracoes(): Promise<void> {
+async function applyMigrations(): Promise<void> {
   const sql = new SQL({ url: config.databaseUrl, max: 1 });
   try {
-    await sql`SELECT pg_advisory_lock(${CHAVE_DE_LOCK})`;
+    await sql`SELECT pg_advisory_lock(${LOCK_KEY})`;
     try {
       await sql`
         CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -63,13 +63,13 @@ async function aplicarMigracoes(): Promise<void> {
           aplicada_em timestamptz NOT NULL DEFAULT now()
         )
       `;
-      const aplicadas = await versoesAplicadas(sql);
-      for (const versao of await arquivosDeMigracao()) {
-        if (aplicadas.has(versao)) continue;
-        await aplicar(sql, versao);
+      const applied = await appliedVersions(sql);
+      for (const versao of await migrationFiles()) {
+        if (applied.has(versao)) continue;
+        await apply(sql, versao);
       }
     } finally {
-      await sql`SELECT pg_advisory_unlock(${CHAVE_DE_LOCK})`;
+      await sql`SELECT pg_advisory_unlock(${LOCK_KEY})`;
     }
   } finally {
     await sql.close();
@@ -80,9 +80,9 @@ async function aplicarMigracoes(): Promise<void> {
  * Aplica todas as migrações no banco de teste. A promessa é memoizada no módulo: chamar em
  * `beforeAll` de cada arquivo custa nada a partir da segunda vez.
  */
-export async function prepararBanco(): Promise<void> {
-  migracoes ??= aplicarMigracoes();
-  await migracoes;
+export async function prepareDatabase(): Promise<void> {
+  migrations ??= applyMigrations();
+  await migrations;
 }
 
 /**
@@ -90,28 +90,28 @@ export async function prepararBanco(): Promise<void> {
  * suja para trás sem que ninguém perceba. `schema_migrations` fica de fora — truncá-la faria a
  * suíte reaplicar o DDL a cada caso.
  */
-async function montarComandoDeLimpeza(): Promise<string> {
-  const sql = sqlDeTeste();
-  const linhas = await sql<{ nome: string }[]>`
-    SELECT table_name AS nome
+async function buildTruncateCommand(): Promise<string> {
+  const sql = testSql();
+  const rows = await sql<{ name: string }[]>`
+    SELECT table_name AS name
     FROM information_schema.tables
     WHERE table_schema = current_schema()
       AND table_type = 'BASE TABLE'
-      AND table_name <> ${TABELA_DE_CONTROLE}
+      AND table_name <> ${CONTROL_TABLE}
     ORDER BY table_name
   `;
-  const tabelas = linhas.map((linha) => `"${linha.nome}"`).join(', ');
-  return `TRUNCATE TABLE ${tabelas} RESTART IDENTITY CASCADE`;
+  const tables = rows.map((row) => `"${row.name}"`).join(', ');
+  return `TRUNCATE TABLE ${tables} RESTART IDENTITY CASCADE`;
 }
 
 /**
  * Uma instrução só, com CASCADE, para caber em `beforeEach` sem pesar: cada caso começa do
  * zero e nenhum depende da ordem em que a suíte rodou.
  */
-export async function limparBanco(): Promise<void> {
-  await prepararBanco();
-  comandoDeLimpeza ??= montarComandoDeLimpeza();
-  await sqlDeTeste().unsafe(await comandoDeLimpeza);
+export async function clearDatabase(): Promise<void> {
+  await prepareDatabase();
+  truncateCommand ??= buildTruncateCommand();
+  await testSql().unsafe(await truncateCommand);
 }
 
 /**
@@ -119,8 +119,8 @@ export async function limparBanco(): Promise<void> {
  * `bun test` roda todos os arquivos no mesmo processo: um `afterAll` que fecha aqui não pode
  * derrubar o arquivo seguinte.
  */
-export async function fecharBanco(): Promise<void> {
-  const aberto = pool;
+export async function closeTestDatabase(): Promise<void> {
+  const openPool = pool;
   pool = undefined;
-  await aberto?.close();
+  await openPool?.close();
 }

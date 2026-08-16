@@ -8,204 +8,204 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { assessment } from '../../src/assessment';
 import { isValidGradeValue, isValidTerm } from '../../src/assessment/domain/grade';
-import { limparBanco, sqlDeTeste } from '../support/database';
+import { clearDatabase, testSql } from '../support/database';
 import {
-  ANO_PADRAO,
-  cenarioCompleto,
-  criarAluno,
-  criarAnoLetivo,
-  criarMatricula,
-  criarRede,
-  criarTurma,
-  criarUnidade,
-  type Cenario,
+  DEFAULT_YEAR,
+  fullScenario,
+  createStudent,
+  createAcademicYear,
+  createEnrollment,
+  createNetwork,
+  createClassGroup,
+  createSchool,
+  type Scenario,
 } from '../support/factories';
 
-let cenario: Cenario;
+let scenario: Scenario;
 
 beforeEach(async () => {
-  await limparBanco();
-  cenario = await cenarioCompleto();
+  await clearDatabase();
+  scenario = await fullScenario();
 });
 
 /** Quantas linhas de nota existem na rede — a contagem que separa "atualizou" de "duplicou". */
-async function contarNotas(redeId: string): Promise<number> {
-  const linhas = await sqlDeTeste()<{ total: number }[]>`
-    SELECT count(*)::int AS total FROM grade WHERE network_id = ${redeId}`;
-  return linhas[0]?.total ?? 0;
+async function countGrades(networkId: string): Promise<number> {
+  const rows = await testSql()<{ total: number }[]>`
+    SELECT count(*)::int AS total FROM grade WHERE network_id = ${networkId}`;
+  return rows[0]?.total ?? 0;
 }
 
 /** Uma matrícula ativa em uma rede completamente separada, para o teste de isolamento. */
-async function matriculaDeOutraRede(): Promise<string> {
-  const rede = await criarRede({});
-  const unidade = await criarUnidade({ networkId: rede.id });
-  const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
-  const turma = await criarTurma({
-    networkId: rede.id,
-    schoolId: unidade.id,
-    academicYearId: anoLetivo.id,
+async function enrollmentOfAnotherNetwork(): Promise<string> {
+  const network = await createNetwork({});
+  const school = await createSchool({ networkId: network.id });
+  const academicYear = await createAcademicYear({ networkId: network.id });
+  const classGroup = await createClassGroup({
+    networkId: network.id,
+    schoolId: school.id,
+    academicYearId: academicYear.id,
   });
-  const aluno = await criarAluno({ networkId: rede.id });
-  const matricula = await criarMatricula({
-    networkId: rede.id,
-    studentId: aluno.id,
-    classGroupId: turma.id,
-    academicYearId: anoLetivo.id,
+  const student = await createStudent({ networkId: network.id });
+  const enrollment = await createEnrollment({
+    networkId: network.id,
+    studentId: student.id,
+    classGroupId: classGroup.id,
+    academicYearId: academicYear.id,
   });
-  return matricula.id;
+  return enrollment.id;
 }
 
 describe('nota (domínio)', () => {
   test('aceita os quatro bimestres e recusa qualquer outro número', () => {
-    const aceitos = [1, 2, 3, 4].map(isValidTerm);
-    const recusados = [0, 5, -1, 2.5, Number.NaN].map(isValidTerm);
+    const accepted = [1, 2, 3, 4].map(isValidTerm);
+    const rejected = [0, 5, -1, 2.5, Number.NaN].map(isValidTerm);
 
-    expect(aceitos).toEqual([true, true, true, true]);
-    expect(recusados).toEqual([false, false, false, false, false]);
+    expect(accepted).toEqual([true, true, true, true]);
+    expect(rejected).toEqual([false, false, false, false, false]);
   });
 
   test('aceita nota de 0 a 10, inclusive nas pontas, e recusa fora do intervalo', () => {
-    const aceitos = [0, 5.5, 10].map(isValidGradeValue);
-    const recusados = [-0.1, 10.1, Number.NaN, Number.POSITIVE_INFINITY].map(isValidGradeValue);
+    const accepted = [0, 5.5, 10].map(isValidGradeValue);
+    const rejected = [-0.1, 10.1, Number.NaN, Number.POSITIVE_INFINITY].map(isValidGradeValue);
 
-    expect(aceitos).toEqual([true, true, true]);
-    expect(recusados).toEqual([false, false, false, false]);
+    expect(accepted).toEqual([true, true, true]);
+    expect(rejected).toEqual([false, false, false, false]);
   });
 });
 
 describe('postGrades', () => {
   test('grava o lote inteiro da disciplina no bimestre', async () => {
-    const notas = cenario.matriculas.map((matricula, posicao) => ({
-      enrollmentId: matricula.id,
-      value: posicao + 5,
+    const grades = scenario.enrollments.map((enrollment, position) => ({
+      enrollmentId: enrollment.id,
+      value: position + 5,
     }));
 
-    const resultado = await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const result = await assessment.postGrades({
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
-      grades: notas,
+      postedBy: scenario.teacher.id,
+      grades,
     });
 
-    expect(resultado).toEqual({ ok: true, valor: 5 });
-    const gravadas = await assessment.classGroupSubjectGrades(
-      cenario.rede.id,
-      cenario.turmaDisciplinas[0].id,
+    expect(result).toEqual({ ok: true, valor: 5 });
+    const saved = await assessment.classGroupSubjectGrades(
+      scenario.network.id,
+      scenario.classGroupSubjects[0].id,
       1,
     );
-    expect(gravadas.size).toBe(5);
-    expect(gravadas.get(cenario.matriculas[0].id)).toBe(5);
-    expect(gravadas.get(cenario.matriculas[4].id)).toBe(9);
+    expect(saved.size).toBe(5);
+    expect(saved.get(scenario.enrollments[0].id)).toBe(5);
+    expect(saved.get(scenario.enrollments[4].id)).toBe(9);
   });
 
   test('relançar a mesma disciplina atualiza a nota em vez de duplicar a linha', async () => {
-    const lancamento = {
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const posting = {
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
+      postedBy: scenario.teacher.id,
     };
     await assessment.postGrades({
-      ...lancamento,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 8 }],
+      ...posting,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: 8 }],
     });
 
-    const resultado = await assessment.postGrades({
-      ...lancamento,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 9.5 }],
+    const result = await assessment.postGrades({
+      ...posting,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: 9.5 }],
     });
 
-    expect(resultado).toEqual({ ok: true, valor: 1 });
-    expect(await contarNotas(cenario.rede.id)).toBe(1);
-    const gravadas = await assessment.classGroupSubjectGrades(
-      cenario.rede.id,
-      cenario.turmaDisciplinas[0].id,
+    expect(result).toEqual({ ok: true, valor: 1 });
+    expect(await countGrades(scenario.network.id)).toBe(1);
+    const saved = await assessment.classGroupSubjectGrades(
+      scenario.network.id,
+      scenario.classGroupSubjects[0].id,
       1,
     );
-    expect(gravadas.get(cenario.matriculas[0].id)).toBe(9.5);
+    expect(saved.get(scenario.enrollments[0].id)).toBe(9.5);
   });
 
   test('valor nulo apaga a nota daquele aluno e preserva as demais', async () => {
-    const lancamento = {
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const posting = {
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 2,
-      postedBy: cenario.professor.id,
+      postedBy: scenario.teacher.id,
     };
     await assessment.postGrades({
-      ...lancamento,
+      ...posting,
       grades: [
-        { enrollmentId: cenario.matriculas[0].id, value: 8 },
-        { enrollmentId: cenario.matriculas[1].id, value: 7 },
+        { enrollmentId: scenario.enrollments[0].id, value: 8 },
+        { enrollmentId: scenario.enrollments[1].id, value: 7 },
       ],
     });
 
-    const resultado = await assessment.postGrades({
-      ...lancamento,
+    const result = await assessment.postGrades({
+      ...posting,
       grades: [
-        { enrollmentId: cenario.matriculas[0].id, value: null },
-        { enrollmentId: cenario.matriculas[1].id, value: 7 },
+        { enrollmentId: scenario.enrollments[0].id, value: null },
+        { enrollmentId: scenario.enrollments[1].id, value: 7 },
       ],
     });
 
-    expect(resultado).toEqual({ ok: true, valor: 1 });
-    const gravadas = await assessment.classGroupSubjectGrades(
-      cenario.rede.id,
-      cenario.turmaDisciplinas[0].id,
+    expect(result).toEqual({ ok: true, valor: 1 });
+    const saved = await assessment.classGroupSubjectGrades(
+      scenario.network.id,
+      scenario.classGroupSubjects[0].id,
       2,
     );
-    expect(gravadas.has(cenario.matriculas[0].id)).toBe(false);
-    expect(gravadas.get(cenario.matriculas[1].id)).toBe(7);
+    expect(saved.has(scenario.enrollments[0].id)).toBe(false);
+    expect(saved.get(scenario.enrollments[1].id)).toBe(7);
   });
 
   test('um lote só de valores nulos apaga tudo e não grava nota nenhuma', async () => {
-    const lancamento = {
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const posting = {
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
+      postedBy: scenario.teacher.id,
     };
     await assessment.postGrades({
-      ...lancamento,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 6 }],
+      ...posting,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: 6 }],
     });
 
-    const resultado = await assessment.postGrades({
-      ...lancamento,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: null }],
+    const result = await assessment.postGrades({
+      ...posting,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: null }],
     });
 
-    expect(resultado).toEqual({ ok: true, valor: 0 });
-    expect(await contarNotas(cenario.rede.id)).toBe(0);
+    expect(result).toEqual({ ok: true, valor: 0 });
+    expect(await countGrades(scenario.network.id)).toBe(0);
   });
 
   test('recusa nota acima de 10', async () => {
-    const resultado = await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const result = await assessment.postGrades({
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 10.5 }],
+      postedBy: scenario.teacher.id,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: 10.5 }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ mensagem: 'A nota precisa ficar entre 0 e 10.' })],
     });
-    expect(await contarNotas(cenario.rede.id)).toBe(0);
+    expect(await countGrades(scenario.network.id)).toBe(0);
   });
 
   test('recusa nota negativa', async () => {
-    const resultado = await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const result = await assessment.postGrades({
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: -1 }],
+      postedBy: scenario.teacher.id,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: -1 }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ mensagem: 'A nota precisa ficar entre 0 e 10.' })],
     });
@@ -213,16 +213,16 @@ describe('postGrades', () => {
 
   test('recusa bimestre fora de 1 a 4', async () => {
     const base = {
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
-      postedBy: cenario.professor.id,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 7 }],
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
+      postedBy: scenario.teacher.id,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: 7 }],
     };
 
-    const quinto = await assessment.postGrades({ ...base, term: 5 });
+    const fifth = await assessment.postGrades({ ...base, term: 5 });
     const zero = await assessment.postGrades({ ...base, term: 0 });
 
-    expect(quinto).toEqual({
+    expect(fifth).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'bimestre' })],
     });
@@ -230,195 +230,195 @@ describe('postGrades', () => {
       ok: false,
       erros: [expect.objectContaining({ campo: 'bimestre' })],
     });
-    expect(await contarNotas(cenario.rede.id)).toBe(0);
+    expect(await countGrades(scenario.network.id)).toBe(0);
   });
 
   test('recusa lote vazio', async () => {
-    const resultado = await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const result = await assessment.postGrades({
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
+      postedBy: scenario.teacher.id,
       grades: [],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ mensagem: 'Nenhuma nota foi enviada.' })],
     });
   });
 
   test('recusa disciplina de turma que não é desta rede', async () => {
-    const outra = await cenarioCompleto();
+    const other = await fullScenario();
 
-    const resultado = await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: outra.turmaDisciplinas[0].id,
+    const result = await assessment.postGrades({
+      networkId: scenario.network.id,
+      classGroupSubjectId: other.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 7 }],
+      postedBy: scenario.teacher.id,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: 7 }],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'turmaDisciplinaId', codigo: 'nao_encontrada' })],
     });
   });
 
   test('recusa o lote com matrícula de outra turma', async () => {
-    const aluno = await criarAluno({ networkId: cenario.rede.id });
-    const forasteira = await criarMatricula({
-      networkId: cenario.rede.id,
-      studentId: aluno.id,
-      classGroupId: cenario.turmas[1].id,
-      academicYearId: cenario.anoLetivo.id,
+    const student = await createStudent({ networkId: scenario.network.id });
+    const outsider = await createEnrollment({
+      networkId: scenario.network.id,
+      studentId: student.id,
+      classGroupId: scenario.classGroups[1].id,
+      academicYearId: scenario.academicYear.id,
     });
 
-    const resultado = await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const result = await assessment.postGrades({
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
+      postedBy: scenario.teacher.id,
       grades: [
-        { enrollmentId: cenario.matriculas[0].id, value: 7 },
-        { enrollmentId: forasteira.id, value: 8 },
+        { enrollmentId: scenario.enrollments[0].id, value: 7 },
+        { enrollmentId: outsider.id, value: 8 },
       ],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'notas', codigo: 'matricula_fora_da_turma' })],
     });
-    expect(await contarNotas(cenario.rede.id)).toBe(0);
+    expect(await countGrades(scenario.network.id)).toBe(0);
   });
 
   test('recusa o lote com matrícula de outra rede', async () => {
-    const deOutraRede = await matriculaDeOutraRede();
+    const fromAnotherNetwork = await enrollmentOfAnotherNetwork();
 
-    const resultado = await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const result = await assessment.postGrades({
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
+      postedBy: scenario.teacher.id,
       grades: [
-        { enrollmentId: cenario.matriculas[0].id, value: 7 },
-        { enrollmentId: deOutraRede, value: 8 },
+        { enrollmentId: scenario.enrollments[0].id, value: 7 },
+        { enrollmentId: fromAnotherNetwork, value: 8 },
       ],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'notas', codigo: 'matricula_fora_da_turma' })],
     });
-    expect(await contarNotas(cenario.rede.id)).toBe(0);
+    expect(await countGrades(scenario.network.id)).toBe(0);
   });
 
   test('recusa o lote com o mesmo aluno duas vezes', async () => {
-    const resultado = await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+    const result = await assessment.postGrades({
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
+      postedBy: scenario.teacher.id,
       grades: [
-        { enrollmentId: cenario.matriculas[0].id, value: 7 },
-        { enrollmentId: cenario.matriculas[0].id, value: 8 },
+        { enrollmentId: scenario.enrollments[0].id, value: 7 },
+        { enrollmentId: scenario.enrollments[0].id, value: 8 },
       ],
     });
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [expect.objectContaining({ campo: 'notas', codigo: 'matricula_repetida' })],
     });
-    expect(await contarNotas(cenario.rede.id)).toBe(0);
+    expect(await countGrades(scenario.network.id)).toBe(0);
   });
 
   test('mantém as notas de bimestres diferentes lado a lado', async () => {
     const base = {
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
-      postedBy: cenario.professor.id,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 6 }],
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
+      postedBy: scenario.teacher.id,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: 6 }],
     };
 
     await assessment.postGrades({ ...base, term: 1 });
     await assessment.postGrades({
       ...base,
       term: 2,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 9 }],
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: 9 }],
     });
 
-    const primeiro = await assessment.classGroupSubjectGrades(
-      cenario.rede.id,
-      cenario.turmaDisciplinas[0].id,
+    const first = await assessment.classGroupSubjectGrades(
+      scenario.network.id,
+      scenario.classGroupSubjects[0].id,
       1,
     );
-    const segundo = await assessment.classGroupSubjectGrades(
-      cenario.rede.id,
-      cenario.turmaDisciplinas[0].id,
+    const second = await assessment.classGroupSubjectGrades(
+      scenario.network.id,
+      scenario.classGroupSubjects[0].id,
       2,
     );
-    expect(primeiro.get(cenario.matriculas[0].id)).toBe(6);
-    expect(segundo.get(cenario.matriculas[0].id)).toBe(9);
-    expect(await contarNotas(cenario.rede.id)).toBe(2);
+    expect(first.get(scenario.enrollments[0].id)).toBe(6);
+    expect(second.get(scenario.enrollments[0].id)).toBe(9);
+    expect(await countGrades(scenario.network.id)).toBe(2);
   });
 });
 
 describe('constraints da tabela nota', () => {
   /** O INSERT direto contorna a aplicação de propósito: é o que prova que a regra vive no banco. */
-  function inserirNotaCrua(bimestre: number, valor: number): Promise<void> {
-    const sql = sqlDeTeste();
+  function insertRawGrade(term: number, value: number): Promise<void> {
+    const sql = testSql();
     return (async () => {
       await sql`
         INSERT INTO grade (id, network_id, enrollment_id, class_group_subject_id,
                           term, value, posted_by)
-        VALUES (${crypto.randomUUID()}, ${cenario.rede.id}, ${cenario.matriculas[0].id},
-                ${cenario.turmaDisciplinas[0].id}, ${bimestre}, ${valor},
-                ${cenario.professor.id})`;
+        VALUES (${crypto.randomUUID()}, ${scenario.network.id}, ${scenario.enrollments[0].id},
+                ${scenario.classGroupSubjects[0].id}, ${term}, ${value},
+                ${scenario.teacher.id})`;
     })();
   }
 
   test('o banco barra nota acima de 10 mesmo por INSERT direto', async () => {
-    await expect(inserirNotaCrua(1, 11)).rejects.toThrow(/value_valid/);
+    await expect(insertRawGrade(1, 11)).rejects.toThrow(/value_valid/);
 
-    expect(await contarNotas(cenario.rede.id)).toBe(0);
+    expect(await countGrades(scenario.network.id)).toBe(0);
   });
 
   test('o banco barra nota negativa mesmo por INSERT direto', async () => {
-    await expect(inserirNotaCrua(1, -1)).rejects.toThrow(/value_valid/);
+    await expect(insertRawGrade(1, -1)).rejects.toThrow(/value_valid/);
 
-    expect(await contarNotas(cenario.rede.id)).toBe(0);
+    expect(await countGrades(scenario.network.id)).toBe(0);
   });
 
   test('o banco barra bimestre fora de 1 a 4 mesmo por INSERT direto', async () => {
-    await expect(inserirNotaCrua(5, 7)).rejects.toThrow(/term_valid/);
+    await expect(insertRawGrade(5, 7)).rejects.toThrow(/term_valid/);
 
-    expect(await contarNotas(cenario.rede.id)).toBe(0);
+    expect(await countGrades(scenario.network.id)).toBe(0);
   });
 
   test('o banco barra a segunda nota do mesmo aluno na mesma disciplina e bimestre', async () => {
-    await inserirNotaCrua(1, 7);
+    await insertRawGrade(1, 7);
 
-    await expect(inserirNotaCrua(1, 8)).rejects.toThrow(/grade_unique/);
+    await expect(insertRawGrade(1, 8)).rejects.toThrow(/grade_unique/);
 
-    expect(await contarNotas(cenario.rede.id)).toBe(1);
+    expect(await countGrades(scenario.network.id)).toBe(1);
   });
 
   test('a nota nasce presa ao ano letivo do cenário e à rede que a criou', async () => {
     await assessment.postGrades({
-      networkId: cenario.rede.id,
-      classGroupSubjectId: cenario.turmaDisciplinas[0].id,
+      networkId: scenario.network.id,
+      classGroupSubjectId: scenario.classGroupSubjects[0].id,
       term: 1,
-      postedBy: cenario.professor.id,
-      grades: [{ enrollmentId: cenario.matriculas[0].id, value: 7 }],
+      postedBy: scenario.teacher.id,
+      grades: [{ enrollmentId: scenario.enrollments[0].id, value: 7 }],
     });
 
-    const deOutraRede = await assessment.classGroupSubjectGrades(
+    const fromAnotherNetwork = await assessment.classGroupSubjectGrades(
       crypto.randomUUID(),
-      cenario.turmaDisciplinas[0].id,
+      scenario.classGroupSubjects[0].id,
       1,
     );
 
-    expect(cenario.anoLetivo.year).toBe(ANO_PADRAO);
-    expect(deOutraRede.size).toBe(0);
+    expect(scenario.academicYear.year).toBe(DEFAULT_YEAR);
+    expect(fromAnotherNetwork.size).toBe(0);
   });
 });

@@ -19,38 +19,38 @@ import { beforeEach, describe, expect, test } from 'bun:test';
 import { config } from '../../src/shared/config';
 import { generateCpf } from '../../src/shared/document';
 import { FORBIDDEN_LOG_KEYS } from '../../src/shared/log';
-import { limparBanco, sqlDeTeste } from '../support/database';
+import { clearDatabase, testSql } from '../support/database';
 import {
-  SENHA_PADRAO,
-  cenarioCompleto,
-  criarAluno,
-  criarAnoLetivo,
-  criarDisciplina,
-  criarMatricula,
-  criarRede,
-  criarTurma,
-  criarTurmaDisciplina,
-  criarUnidade,
-  criarUsuario,
+  DEFAULT_PASSWORD,
+  fullScenario,
+  createStudent,
+  createAcademicYear,
+  createSubject,
+  createEnrollment,
+  createNetwork,
+  createClassGroup,
+  createClassGroupSubject,
+  createSchool,
+  createUser,
 } from '../support/factories';
 import {
-  RAIZ_DO_PROJETO,
-  abrir,
-  capturarLogDeUmFluxo,
-  entrar,
-  enviar,
-  postar,
-  rodarProcesso,
-  saudeComBancoForaDoAr,
-  valoresDoLog,
+  PROJECT_ROOT,
+  open,
+  captureLogOfAFlow,
+  signIn,
+  send,
+  post,
+  runProcess,
+  healthWithDatabaseDown,
+  logValues,
 } from './support';
 
-const PRAZO_DE_PROCESSO_MS = 60_000;
+const PROCESS_DEADLINE_MS = 60_000;
 
 /* ------------------------------------------------------------------------- */
 
 describe('`bun run check` falha se um módulo importar arquivo interno de outro', () => {
-  type Violacao = { regra: string; caminho: string; conteudo: string };
+  type Violation = { rule: string; path: string; content: string };
 
   /*
    * As três regras nomeiam os quatro módulos numa alternância de regex. Plantar a violação
@@ -65,138 +65,138 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
    * O mesmo vale para a pasta de domínio, que é `dominio` antes da fase do módulo e `domain`
    * depois dela.
    */
-  const modulosDeDominio = (): readonly string[] =>
-    readdirSync(join(RAIZ_DO_PROJETO, 'src'), { withFileTypes: true })
-      .filter((entrada) => entrada.isDirectory())
-      .map((entrada) => entrada.name)
-      .filter((nome) => nome !== 'shared' && nome !== 'web')
-      .filter((nome) => existsSync(join(RAIZ_DO_PROJETO, 'src', nome, 'index.ts')))
+  const domainModules = (): readonly string[] =>
+    readdirSync(join(PROJECT_ROOT, 'src'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .filter((name) => name !== 'shared' && name !== 'web')
+      .filter((name) => existsSync(join(PROJECT_ROOT, 'src', name, 'index.ts')))
       .sort();
 
-  const pastaDeDominio = (modulo: string): string =>
-    existsSync(join(RAIZ_DO_PROJETO, 'src', modulo, 'domain')) ? 'domain' : 'dominio';
+  const domainFolder = (module: string): string =>
+    existsSync(join(PROJECT_ROOT, 'src', module, 'domain')) ? 'domain' : 'dominio';
 
   /** Um arquivo interno de OUTRO módulo: é o atalho que a regra proíbe. */
-  const alvoInterno = (modulo: string, modulos: readonly string[]): string => {
-    const outro = modulos.find((candidato) => candidato !== modulo) ?? modulo;
-    const pasta = pastaDeDominio(outro);
-    const arquivo = readdirSync(join(RAIZ_DO_PROJETO, 'src', outro, pasta))
-      .filter((nome) => nome.endsWith('.ts'))
+  const internalTarget = (module: string, modules: readonly string[]): string => {
+    const other = modules.find((candidate) => candidate !== module) ?? module;
+    const folder = domainFolder(other);
+    const file = readdirSync(join(PROJECT_ROOT, 'src', other, folder))
+      .filter((name) => name.endsWith('.ts'))
       .sort()[0];
-    return `${outro}/${pasta}/${(arquivo ?? '').replace(/\.ts$/, '')}`;
+    return `${other}/${folder}/${(file ?? '').replace(/\.ts$/, '')}`;
   };
 
-  const MODULOS = modulosDeDominio();
+  const MODULES = domainModules();
 
-  const VIOLACOES: readonly Violacao[] = MODULOS.flatMap((modulo) => [
+  const VIOLATIONS: readonly Violation[] = MODULES.flatMap((module) => [
     {
-      regra: 'no-cross-module-shortcut',
-      caminho: `src/${modulo}/_violacao_de_teste.ts`,
-      conteudo:
-        `import type * as Interno from '../${alvoInterno(modulo, MODULOS)}';\n` +
-        'export type Atalho = keyof typeof Interno;\n',
+      rule: 'no-cross-module-shortcut',
+      path: `src/${module}/_violacao_de_teste.ts`,
+      content:
+        `import type * as Internal from '../${internalTarget(module, MODULES)}';\n` +
+        'export type Shortcut = keyof typeof Internal;\n',
     },
     {
-      regra: 'pure-domain',
-      caminho: `src/${modulo}/${pastaDeDominio(modulo)}/_violacao_de_teste.ts`,
-      conteudo:
+      rule: 'pure-domain',
+      path: `src/${module}/${domainFolder(module)}/_violacao_de_teste.ts`,
+      content:
         "import { reader } from '../../shared/db';\n" +
-        'export const conexao = (): unknown => reader();\n',
+        'export const connection = (): unknown => reader();\n',
     },
     {
-      regra: 'shared-knows-no-domain',
-      caminho: `src/shared/_violacao_de_teste_${modulo}.ts`,
-      conteudo:
-        `import * as modulo from '../${modulo}';\n` +
-        'export const porta = (): unknown => modulo;\n',
+      rule: 'shared-knows-no-domain',
+      path: `src/shared/_violacao_de_teste_${module}.ts`,
+      content:
+        `import * as imported from '../${module}';\n` +
+        'export const port = (): unknown => imported;\n',
     },
   ]);
 
   test('a lista de módulos veio do disco e não está vazia', () => {
-    expect(MODULOS.length).toBeGreaterThanOrEqual(4);
+    expect(MODULES.length).toBeGreaterThanOrEqual(4);
   });
 
-  const rodarCheck = (): Promise<{ codigo: number; saida: string; erro: string }> =>
-    rodarProcesso(['x', 'depcruise', 'src', '--config', 'config/.dependency-cruiser.js'], {});
+  const runCheck = (): Promise<{ exitCode: number; stdout: string; stderr: string }> =>
+    runProcess(['x', 'depcruise', 'src', '--config', 'config/.dependency-cruiser.js'], {});
 
   /** O arquivo em falta some no `finally`: uma suíte que deixa lixo em `src/` quebra a seguinte. */
-  const checarCom = async (violacao: Violacao): Promise<{ codigo: number; saida: string }> => {
-    const caminho = join(RAIZ_DO_PROJETO, violacao.caminho);
-    await Bun.write(caminho, violacao.conteudo);
+  const checkWith = async (violation: Violation): Promise<{ exitCode: number; stdout: string }> => {
+    const path = join(PROJECT_ROOT, violation.path);
+    await Bun.write(path, violation.content);
     try {
-      const { codigo, saida, erro } = await rodarCheck();
-      return { codigo, saida: `${saida}${erro}` };
+      const { exitCode, stdout, stderr } = await runCheck();
+      return { exitCode, stdout: `${stdout}${stderr}` };
     } finally {
-      await unlink(caminho);
+      await unlink(path);
     }
   };
 
   test('o grafo limpo passa, e é esse o ponto de partida', async () => {
-    const { codigo } = await rodarCheck();
+    const { exitCode } = await runCheck();
 
-    expect(codigo).toBe(0);
-  }, PRAZO_DE_PROCESSO_MS);
+    expect(exitCode).toBe(0);
+  }, PROCESS_DEADLINE_MS);
 
-  for (const violacao of VIOLACOES) {
-    test(`a regra ${violacao.regra} derruba a verificação em ${violacao.caminho}`, async () => {
-      const { codigo, saida } = await checarCom(violacao);
+  for (const violation of VIOLATIONS) {
+    test(`a regra ${violation.rule} derruba a verificação em ${violation.path}`, async () => {
+      const { exitCode, stdout } = await checkWith(violation);
 
-      expect(codigo).not.toBe(0);
-      expect(saida).toContain(violacao.regra);
-      expect(saida).toContain(violacao.caminho);
-    }, PRAZO_DE_PROCESSO_MS);
+      expect(exitCode).not.toBe(0);
+      expect(stdout).toContain(violation.rule);
+      expect(stdout).toContain(violation.path);
+    }, PROCESS_DEADLINE_MS);
   }
 
   test('o arquivo em falta não sobra depois do teste', async () => {
-    const restos = await Promise.all(
-      VIOLACOES.map((violacao) => Bun.file(join(RAIZ_DO_PROJETO, violacao.caminho)).exists()),
+    const leftovers = await Promise.all(
+      VIOLATIONS.map((violation) => Bun.file(join(PROJECT_ROOT, violation.path)).exists()),
     );
 
-    expect(restos).toEqual(VIOLACOES.map(() => false));
+    expect(leftovers).toEqual(VIOLATIONS.map(() => false));
   });
 });
 
 /* ------------------------------------------------------------------------- */
 
 describe('nenhum arquivo é escrito em disco pela aplicação', () => {
-  const PADROES: readonly { nome: string; expressao: RegExp }[] = [
-    { nome: 'writeFile', expressao: /\bwriteFile(?:Sync)?\s*\(/ },
-    { nome: 'appendFile', expressao: /\bappendFile(?:Sync)?\s*\(/ },
-    { nome: 'createWriteStream', expressao: /\bcreateWriteStream\s*\(/ },
-    { nome: 'Bun.write', expressao: /\bBun\s*\.\s*write\b/ },
-    { nome: 'fs.', expressao: /\bfs\s*\./ },
+  const PATTERNS: readonly { name: string; expression: RegExp }[] = [
+    { name: 'writeFile', expression: /\bwriteFile(?:Sync)?\s*\(/ },
+    { name: 'appendFile', expression: /\bappendFile(?:Sync)?\s*\(/ },
+    { name: 'createWriteStream', expression: /\bcreateWriteStream\s*\(/ },
+    { name: 'Bun.write', expression: /\bBun\s*\.\s*write\b/ },
+    { name: 'fs.', expression: /\bfs\s*\./ },
   ];
 
-  const escritasEmDisco = async (): Promise<string[]> => {
-    const raizDoCodigo = join(RAIZ_DO_PROJETO, 'src');
-    const encontradas: string[] = [];
-    for await (const relativo of new Bun.Glob('**/*.ts').scan({ cwd: raizDoCodigo })) {
-      const linhas = (await Bun.file(join(raizDoCodigo, relativo)).text()).split('\n');
-      linhas.forEach((linha, indice) => {
-        for (const padrao of PADROES) {
-          if (padrao.expressao.test(linha)) {
-            encontradas.push(`src/${relativo}:${indice + 1} usa ${padrao.nome}`);
+  const diskWrites = async (): Promise<string[]> => {
+    const sourceRoot = join(PROJECT_ROOT, 'src');
+    const found: string[] = [];
+    for await (const relative of new Bun.Glob('**/*.ts').scan({ cwd: sourceRoot })) {
+      const rows = (await Bun.file(join(sourceRoot, relative)).text()).split('\n');
+      rows.forEach((row, index) => {
+        for (const pattern of PATTERNS) {
+          if (pattern.expression.test(row)) {
+            found.push(`src/${relative}:${index + 1} usa ${pattern.name}`);
           }
         }
       });
     }
-    return encontradas;
+    return found;
   };
 
   test('nenhum módulo de `src/` grava arquivo', async () => {
-    const encontradas = await escritasEmDisco();
+    const found = await diskWrites();
 
-    expect(encontradas).toEqual([]);
+    expect(found).toEqual([]);
   });
 
   test('a varredura de fato leu o código, e não uma pasta vazia', async () => {
-    const arquivos: string[] = [];
-    for await (const relativo of new Bun.Glob('**/*.ts').scan({ cwd: join(RAIZ_DO_PROJETO, 'src') })) {
-      arquivos.push(relativo);
+    const files: string[] = [];
+    for await (const relative of new Bun.Glob('**/*.ts').scan({ cwd: join(PROJECT_ROOT, 'src') })) {
+      files.push(relative);
     }
 
-    expect(arquivos.length).toBeGreaterThan(50);
-    expect(arquivos).toContain('web/app.ts');
+    expect(files.length).toBeGreaterThan(50);
+    expect(files).toContain('web/app.ts');
   });
 });
 
@@ -204,61 +204,61 @@ describe('nenhum arquivo é escrito em disco pela aplicação', () => {
 
 describe('derrubar o container e subir outro não perde nada além de sessões', () => {
   beforeEach(async () => {
-    await limparBanco();
+    await clearDatabase();
   });
 
   /** Uma conexão nova, fora do pool da aplicação: é o que um segundo contêiner teria. */
-  const outraConexao = async <T>(usar: (sql: SQL) => Promise<T>): Promise<T> => {
+  const anotherConnection = async <T>(use: (sql: SQL) => Promise<T>): Promise<T> => {
     const sql = new SQL({ url: config.databaseUrl, max: 1 });
     try {
-      return await usar(sql);
+      return await use(sql);
     } finally {
       await sql.close();
     }
   };
 
   test('o que uma requisição grava, outra conexão lê', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
 
-    await enviar('/secretaria/disciplinas', { nome: 'Sociologia' }, cookie);
-    const gravadas = await outraConexao((sql) =>
+    await send('/secretaria/disciplinas', { nome: 'Sociologia' }, cookie);
+    const saved = await anotherConnection((sql) =>
       sql<{ name: string }[]>`
-        SELECT name FROM subject WHERE network_id = ${cenario.rede.id} AND name = 'Sociologia'`,
+        SELECT name FROM subject WHERE network_id = ${scenario.network.id} AND name = 'Sociologia'`,
     );
 
-    expect(gravadas.map((linha) => linha.name)).toEqual(['Sociologia']);
+    expect(saved.map((row) => row.name)).toEqual(['Sociologia']);
   });
 
   test('o processo não guarda sessão em memória: apagar a linha derruba o acesso', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
 
-    const antes = await abrir('/secretaria', cookie);
-    await outraConexao((sql) => sql`DELETE FROM session WHERE user_id = ${cenario.secretaria.id}`);
-    const depois = await abrir('/secretaria', cookie);
+    const before = await open('/secretaria', cookie);
+    await anotherConnection((sql) => sql`DELETE FROM session WHERE user_id = ${scenario.registrar.id}`);
+    const after = await open('/secretaria', cookie);
 
-    expect(antes.status).toBe(200);
-    expect(depois.status).toBe(303);
-    expect(depois.headers.get('Location')).toBe('/login');
+    expect(before.status).toBe(200);
+    expect(after.status).toBe(303);
+    expect(after.headers.get('Location')).toBe('/login');
   });
 
   test('nenhuma tabela além de `sessao` guarda estado de usuário conectado', async () => {
-    const comValidade = await sqlDeTeste()<{ tabela: string }[]>`
-      SELECT table_name AS tabela
+    const withValidity = await testSql()<{ tableName: string }[]>`
+      SELECT table_name AS "tableName"
       FROM information_schema.columns
       WHERE table_schema = current_schema() AND column_name = 'expires_at'
       ORDER BY table_name`;
 
-    expect(comValidade.map((linha) => linha.tabela)).toEqual(['session']);
+    expect(withValidity.map((row) => row.tableName)).toEqual(['session']);
   });
 });
 
@@ -266,18 +266,18 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
 
 describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
   /** `network` é a própria dona; as outras duas são plataforma, e não pertencem a rede nenhuma. */
-  const FORA_DA_REGRA = ['network', 'idempotent_request', 'schema_migrations'];
+  const OUTSIDE_THE_RULE = ['network', 'idempotent_request', 'schema_migrations'];
 
-  type LinhaDoCatalogo = { tabela: string; tem_coluna: boolean; tem_fk: boolean };
+  type CatalogRow = { tableName: string; hasColumn: boolean; hasForeignKey: boolean };
 
-  const todasAsTabelas = (): Promise<LinhaDoCatalogo[]> => sqlDeTeste()<LinhaDoCatalogo[]>`
-    SELECT t.table_name AS tabela,
+  const allTables = (): Promise<CatalogRow[]> => testSql()<CatalogRow[]>`
+    SELECT t.table_name AS "tableName",
            EXISTS (
              SELECT 1 FROM information_schema.columns c
              WHERE c.table_schema = t.table_schema
                AND c.table_name = t.table_name
                AND c.column_name = 'network_id'
-           ) AS tem_coluna,
+           ) AS "hasColumn",
            EXISTS (
              SELECT 1
              FROM information_schema.table_constraints tc
@@ -292,41 +292,41 @@ describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
                AND tc.constraint_type = 'FOREIGN KEY'
                AND k.column_name = 'network_id'
                AND r.table_name = 'network'
-           ) AS tem_fk
+           ) AS "hasForeignKey"
     FROM information_schema.tables t
     WHERE t.table_schema = current_schema()
       AND t.table_type = 'BASE TABLE'
     ORDER BY t.table_name`;
 
   /** A exceção fica fora da consulta, escrita à mão e visível: é a lista que precisa ser lida. */
-  const catalogo = async (): Promise<LinhaDoCatalogo[]> =>
-    (await todasAsTabelas()).filter((linha) => !FORA_DA_REGRA.includes(linha.tabela));
+  const catalog = async (): Promise<CatalogRow[]> =>
+    (await allTables()).filter((row) => !OUTSIDE_THE_RULE.includes(row.tableName));
 
   test('nenhuma tabela de negócio fica sem a coluna `rede_id`', async () => {
-    const linhas = await catalogo();
+    const rows = await catalog();
 
-    const semColuna = linhas.filter((linha) => !linha.tem_coluna).map((linha) => linha.tabela);
+    const withoutColumn = rows.filter((row) => !row.hasColumn).map((row) => row.tableName);
 
-    expect(linhas.length).toBeGreaterThan(10);
-    expect(semColuna).toEqual([]);
+    expect(rows.length).toBeGreaterThan(10);
+    expect(withoutColumn).toEqual([]);
   });
 
   test('nenhuma tabela de negócio fica sem a chave estrangeira para `rede`', async () => {
-    const linhas = await catalogo();
+    const rows = await catalog();
 
-    const semChave = linhas.filter((linha) => !linha.tem_fk).map((linha) => linha.tabela);
+    const withoutKey = rows.filter((row) => !row.hasForeignKey).map((row) => row.tableName);
 
-    expect(semChave).toEqual([]);
+    expect(withoutKey).toEqual([]);
   });
 
   test('as tabelas de junção também carregam a rede, e não só as principais', async () => {
-    const linhas = await catalogo();
+    const rows = await catalog();
 
-    const nomes = linhas.map((linha) => linha.tabela);
+    const names = rows.map((row) => row.tableName);
 
-    expect(nomes).toContain('user_role');
-    expect(nomes).toContain('student_guardian');
-    expect(nomes).toContain('announcement_recipient');
+    expect(names).toContain('user_role');
+    expect(names).toContain('student_guardian');
+    expect(names).toContain('announcement_recipient');
   });
 });
 
@@ -334,44 +334,44 @@ describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
 
 describe('enviar o mesmo formulário duas vezes cria um registro', () => {
   beforeEach(async () => {
-    await limparBanco();
+    await clearDatabase();
   });
 
   test('dois envios com a mesma chave produzem uma linha só', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
-    const campos = { _chave: crypto.randomUUID(), nome: 'Educação Física' };
+    const fields = { _chave: crypto.randomUUID(), nome: 'Educação Física' };
 
-    await postar('/secretaria/disciplinas', campos, cookie);
-    await postar('/secretaria/disciplinas', campos, cookie);
-    const linhas = await sqlDeTeste()<{ total: string }[]>`
+    await post('/secretaria/disciplinas', fields, cookie);
+    await post('/secretaria/disciplinas', fields, cookie);
+    const rows = await testSql()<{ total: string }[]>`
       SELECT count(*)::text AS total
         FROM subject
-       WHERE network_id = ${cenario.rede.id} AND name = 'Educação Física'`;
+       WHERE network_id = ${scenario.network.id} AND name = 'Educação Física'`;
 
-    expect(Number(linhas[0]?.total ?? '0')).toBe(1);
+    expect(Number(rows[0]?.total ?? '0')).toBe(1);
   });
 
   test('dois envios com chaves distintas produzem duas linhas', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
 
-    await enviar('/secretaria/disciplinas', { nome: 'Educação Física' }, cookie);
-    await enviar('/secretaria/disciplinas', { nome: 'Educação Artística' }, cookie);
-    const linhas = await sqlDeTeste()<{ total: string }[]>`
+    await send('/secretaria/disciplinas', { nome: 'Educação Física' }, cookie);
+    await send('/secretaria/disciplinas', { nome: 'Educação Artística' }, cookie);
+    const rows = await testSql()<{ total: string }[]>`
       SELECT count(*)::text AS total
         FROM subject
-       WHERE network_id = ${cenario.rede.id} AND name LIKE 'Educação%'`;
+       WHERE network_id = ${scenario.network.id} AND name LIKE 'Educação%'`;
 
-    expect(Number(linhas[0]?.total ?? '0')).toBe(2);
+    expect(Number(rows[0]?.total ?? '0')).toBe(2);
   });
 });
 
@@ -379,30 +379,30 @@ describe('enviar o mesmo formulário duas vezes cria um registro', () => {
 
 describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
   beforeEach(async () => {
-    await limparBanco();
+    await clearDatabase();
   });
 
   test('toda tela com sessão recusa cache compartilhado', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
 
-    const telas = await Promise.all(
+    const screens = await Promise.all(
       ['/secretaria', '/secretaria/turmas', '/secretaria/disciplinas', '/conta/senha'].map(
-        (caminho) => abrir(caminho, cookie),
+        (path) => open(path, cookie),
       ),
     );
 
-    expect(telas.map((tela) => tela.headers.get('Cache-Control'))).toEqual([
+    expect(screens.map((screen) => screen.headers.get('Cache-Control'))).toEqual([
       'private, no-store',
       'private, no-store',
       'private, no-store',
       'private, no-store',
     ]);
-    expect(telas.map((tela) => tela.headers.get('Vary'))).toEqual([
+    expect(screens.map((screen) => screen.headers.get('Vary'))).toEqual([
       'Cookie',
       'Cookie',
       'Cookie',
@@ -411,32 +411,32 @@ describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
   });
 
   test('o boletim do responsável, que é o pior caso, também recusa cache', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.responsavel.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.guardian.cpf,
+      password: scenario.password,
     });
 
-    const boletim = await abrir(
-      `/responsavel/matriculas/${cenario.matriculas[0].id}/boletim`,
+    const reportCard = await open(
+      `/responsavel/matriculas/${scenario.enrollments[0].id}/boletim`,
       cookie,
     );
 
-    expect(boletim.status).toBe(200);
-    expect(boletim.headers.get('Cache-Control')).toBe('private, no-store');
+    expect(reportCard.status).toBe(200);
+    expect(reportCard.headers.get('Cache-Control')).toBe('private, no-store');
   });
 
   test('o arquivo publicado, cujo nome carrega o hash, pode ser guardado para sempre', async () => {
-    const resposta = await abrir('/publico/app.2a17037a.css');
+    const response = await open('/publico/app.2a17037a.css');
 
-    expect(resposta.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
+    expect(response.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
   });
 
   test('a tela de entrada, sem sessão, também não vai para cache nenhum', async () => {
-    const resposta = await abrir('/login');
+    const response = await open('/login');
 
-    expect(resposta.headers.get('Cache-Control')).toBe('no-store');
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
   });
 });
 
@@ -444,74 +444,74 @@ describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
 
 describe('`/health` responde 503 com o banco parado', () => {
   test('com o banco de pé, a saúde é 200 e a vida é 200', async () => {
-    const saude = await abrir('/health');
-    const vida = await abrir('/health/live');
+    const health = await open('/health');
+    const liveness = await open('/health/live');
 
-    expect([saude.status, vida.status]).toEqual([200, 200]);
+    expect([health.status, liveness.status]).toEqual([200, 200]);
   });
 
   test('com o banco fora do ar, a saúde cai para 503 e a vida continua 200', async () => {
-    const semBanco = await saudeComBancoForaDoAr();
+    const withoutDatabase = await healthWithDatabaseDown();
 
-    expect(semBanco.health).toBe(503);
-    expect(semBanco.live).toBe(200);
-  }, PRAZO_DE_PROCESSO_MS);
+    expect(withoutDatabase.health).toBe(503);
+    expect(withoutDatabase.live).toBe(200);
+  }, PROCESS_DEADLINE_MS);
 
   test('nos dois casos as respostas de saúde recusam cache', async () => {
-    const comBanco = await abrir('/health');
-    const semBanco = await saudeComBancoForaDoAr();
+    const withDatabase = await open('/health');
+    const withoutDatabase = await healthWithDatabaseDown();
 
-    expect(comBanco.headers.get('Cache-Control')).toBe('no-store');
-    expect(semBanco.healthCache).toBe('no-store');
-    expect(semBanco.liveCache).toBe('no-store');
-  }, PRAZO_DE_PROCESSO_MS);
+    expect(withDatabase.headers.get('Cache-Control')).toBe('no-store');
+    expect(withoutDatabase.healthCache).toBe('no-store');
+    expect(withoutDatabase.liveCache).toBe('no-store');
+  }, PROCESS_DEADLINE_MS);
 });
 
 /* ------------------------------------------------------------------------- */
 
 describe('falta uma variável de ambiente e o processo não sobe', () => {
-  const SEGREDO = 'segredo-de-teste-com-mais-de-32-caracteres';
+  const SECRET = 'segredo-de-teste-com-mais-de-32-caracteres';
 
   /** Variável declarada vazia vence o `.env` do projeto: é assim que a falta é simulada. */
-  const subirMain = (
-    ambiente: Record<string, string>,
-  ): Promise<{ codigo: number; saida: string; erro: string }> =>
-    rodarProcesso(['src/main.ts'], { APP_ENV: 'test', PORT: '45671', ...ambiente });
+  const runMain = (
+    environment: Record<string, string>,
+  ): Promise<{ exitCode: number; stdout: string; stderr: string }> =>
+    runProcess(['src/main.ts'], { APP_ENV: 'test', PORT: '45671', ...environment });
 
   test('sem DATABASE_URL o boot morre citando a variável', async () => {
-    const { codigo, erro } = await subirMain({ DATABASE_URL: '', SESSION_SECRET: SEGREDO });
+    const { exitCode, stderr } = await runMain({ DATABASE_URL: '', SESSION_SECRET: SECRET });
 
-    expect(codigo).not.toBe(0);
-    expect(erro).toContain('DATABASE_URL');
-    expect(erro).toContain('o processo não sobe');
-  }, PRAZO_DE_PROCESSO_MS);
+    expect(exitCode).not.toBe(0);
+    expect(stderr).toContain('DATABASE_URL');
+    expect(stderr).toContain('o processo não sobe');
+  }, PROCESS_DEADLINE_MS);
 
   test('sem SESSION_SECRET o boot morre citando a variável', async () => {
-    const { codigo, erro } = await subirMain({
+    const { exitCode, stderr } = await runMain({
       DATABASE_URL: Bun.env.DATABASE_URL ?? '',
       SESSION_SECRET: '',
     });
 
-    expect(codigo).not.toBe(0);
-    expect(erro).toContain('SESSION_SECRET');
-  }, PRAZO_DE_PROCESSO_MS);
+    expect(exitCode).not.toBe(0);
+    expect(stderr).toContain('SESSION_SECRET');
+  }, PROCESS_DEADLINE_MS);
 
   test('a falta é apontada de uma vez, e não uma variável por reinício', async () => {
-    const { erro } = await subirMain({ DATABASE_URL: '', SESSION_SECRET: '' });
+    const { stderr } = await runMain({ DATABASE_URL: '', SESSION_SECRET: '' });
 
-    expect(erro).toContain('DATABASE_URL');
-    expect(erro).toContain('SESSION_SECRET');
-  }, PRAZO_DE_PROCESSO_MS);
+    expect(stderr).toContain('DATABASE_URL');
+    expect(stderr).toContain('SESSION_SECRET');
+  }, PROCESS_DEADLINE_MS);
 
   test('segredo curto demais também impede o boot', async () => {
-    const { codigo, erro } = await subirMain({
+    const { exitCode, stderr } = await runMain({
       DATABASE_URL: Bun.env.DATABASE_URL ?? '',
       SESSION_SECRET: 'curto-demais',
     });
 
-    expect(codigo).not.toBe(0);
-    expect(erro).toContain('SESSION_SECRET');
-  }, PRAZO_DE_PROCESSO_MS);
+    expect(exitCode).not.toBe(0);
+    expect(stderr).toContain('SESSION_SECRET');
+  }, PROCESS_DEADLINE_MS);
 });
 
 /* ------------------------------------------------------------------------- */
@@ -519,134 +519,134 @@ describe('falta uma variável de ambiente e o processo não sobe', () => {
 describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
   const CPF = /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/;
 
-  const NOME_DO_PROFESSOR = 'Ludmila Vasconcelos Trindade';
-  const EMAIL_DO_PROFESSOR = 'ludmila.trindade@escolaviva.test';
+  const TEACHER_NAME = 'Ludmila Vasconcelos Trindade';
+  const TEACHER_EMAIL = 'ludmila.trindade@escolaviva.test';
   /** Semente própria, e não o contador global das fábricas: aqui o valor precisa ser previsível. */
-  const CPF_DO_PROFESSOR = generateCpf(910_827);
-  const NOME_DO_ALUNO = 'Anastácio Quintiliano Bragança';
+  const TEACHER_CPF = generateCpf(910_827);
+  const STUDENT_NAME = 'Anastácio Quintiliano Bragança';
   const SLUG = 'rede-do-teste-de-log';
-  const NOTA = 7.3;
-  const BIMESTRE = 1;
+  const GRADE = 7.3;
+  const TERM = 1;
 
   beforeEach(async () => {
-    await limparBanco();
+    await clearDatabase();
   });
 
   /** Um cenário com nomes próprios inconfundíveis: qualquer vazamento aparece por igualdade. */
-  const cenarioComNomesProprios = async (): Promise<{
-    redeSlug: string;
+  const scenarioWithProperNames = async (): Promise<{
+    networkSlug: string;
     email: string;
     cpf: string;
-    senha: string;
-    turmaDisciplinaId: string;
-    matriculaIds: string[];
-    bimestre: number;
-    nota: number;
+    password: string;
+    classGroupSubjectId: string;
+    enrollmentIds: string[];
+    term: number;
+    grade: number;
   }> => {
-    const rede = await criarRede({ name: 'Rede do Teste de Log', slug: SLUG });
-    const unidade = await criarUnidade({ networkId: rede.id });
-    const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
-    const turma = await criarTurma({
-      networkId: rede.id,
-      schoolId: unidade.id,
-      academicYearId: anoLetivo.id,
+    const network = await createNetwork({ name: 'Rede do Teste de Log', slug: SLUG });
+    const school = await createSchool({ networkId: network.id });
+    const academicYear = await createAcademicYear({ networkId: network.id });
+    const classGroup = await createClassGroup({
+      networkId: network.id,
+      schoolId: school.id,
+      academicYearId: academicYear.id,
     });
-    const disciplina = await criarDisciplina({ networkId: rede.id });
-    const professor = await criarUsuario({
-      networkId: rede.id,
-      name: NOME_DO_PROFESSOR,
-      email: EMAIL_DO_PROFESSOR,
-      cpf: CPF_DO_PROFESSOR,
-      senha: SENHA_PADRAO,
-      papeis: [{ schoolId: unidade.id, role: 'teacher' }],
+    const subject = await createSubject({ networkId: network.id });
+    const teacher = await createUser({
+      networkId: network.id,
+      name: TEACHER_NAME,
+      email: TEACHER_EMAIL,
+      cpf: TEACHER_CPF,
+      password: DEFAULT_PASSWORD,
+      roles: [{ schoolId: school.id, role: 'teacher' }],
     });
-    const turmaDisciplina = await criarTurmaDisciplina({
-      networkId: rede.id,
-      classGroupId: turma.id,
-      subjectId: disciplina.id,
-      teacherUserId: professor.id,
+    const classGroupSubject = await createClassGroupSubject({
+      networkId: network.id,
+      classGroupId: classGroup.id,
+      subjectId: subject.id,
+      teacherUserId: teacher.id,
     });
-    const aluno = await criarAluno({ networkId: rede.id, name: NOME_DO_ALUNO });
-    const matricula = await criarMatricula({
-      networkId: rede.id,
-      studentId: aluno.id,
-      classGroupId: turma.id,
-      academicYearId: anoLetivo.id,
+    const student = await createStudent({ networkId: network.id, name: STUDENT_NAME });
+    const enrollment = await createEnrollment({
+      networkId: network.id,
+      studentId: student.id,
+      classGroupId: classGroup.id,
+      academicYearId: academicYear.id,
     });
 
     return {
-      redeSlug: rede.slug,
-      email: professor.email,
-      cpf: CPF_DO_PROFESSOR,
-      senha: SENHA_PADRAO,
-      turmaDisciplinaId: turmaDisciplina.id,
-      matriculaIds: [matricula.id],
-      bimestre: BIMESTRE,
-      nota: NOTA,
+      networkSlug: network.slug,
+      email: teacher.email,
+      cpf: TEACHER_CPF,
+      password: DEFAULT_PASSWORD,
+      classGroupSubjectId: classGroupSubject.id,
+      enrollmentIds: [enrollment.id],
+      term: TERM,
+      grade: GRADE,
     };
   };
 
   test('o fluxo de fato produziu log — o teste não passa por silêncio', async () => {
-    const capturado = await capturarLogDeUmFluxo(await cenarioComNomesProprios());
+    const captured = await captureLogOfAFlow(await scenarioWithProperNames());
 
-    expect(capturado.linhas.length).toBeGreaterThanOrEqual(3);
-    expect(capturado.linhas.every((linha) => typeof linha['msg'] === 'string')).toBe(true);
-  }, PRAZO_DE_PROCESSO_MS);
+    expect(captured.rows.length).toBeGreaterThanOrEqual(3);
+    expect(captured.rows.every((row) => typeof row['msg'] === 'string')).toBe(true);
+  }, PROCESS_DEADLINE_MS);
 
   test('nenhum valor pessoal do cenário aparece em linha de log', async () => {
-    const cenario = await cenarioComNomesProprios();
+    const scenario = await scenarioWithProperNames();
 
-    const capturado = await capturarLogDeUmFluxo(cenario);
-    const valores = capturado.linhas.flatMap(valoresDoLog);
-    const proibidos: unknown[] = [
-      NOME_DO_PROFESSOR, EMAIL_DO_PROFESSOR, CPF_DO_PROFESSOR, NOME_DO_ALUNO, NOTA,
+    const captured = await captureLogOfAFlow(scenario);
+    const values = captured.rows.flatMap(logValues);
+    const forbidden: unknown[] = [
+      TEACHER_NAME, TEACHER_EMAIL, TEACHER_CPF, STUDENT_NAME, GRADE,
     ];
 
-    expect(valores.filter((valor) => proibidos.includes(valor))).toEqual([]);
-    expect(capturado.bruto).not.toContain(EMAIL_DO_PROFESSOR);
-    expect(capturado.bruto).not.toContain(NOME_DO_ALUNO);
+    expect(values.filter((value) => forbidden.includes(value))).toEqual([]);
+    expect(captured.raw).not.toContain(TEACHER_EMAIL);
+    expect(captured.raw).not.toContain(STUDENT_NAME);
     // Cru, não formatado: é a forma que a coluna grava, e é essa forma que vazaria de verdade.
-    expect(capturado.bruto).not.toContain(CPF_DO_PROFESSOR);
-  }, PRAZO_DE_PROCESSO_MS);
+    expect(captured.raw).not.toContain(TEACHER_CPF);
+  }, PROCESS_DEADLINE_MS);
 
   test('o log guarda identificadores e o desfecho, que é do que a operação precisa', async () => {
-    const cenario = await cenarioComNomesProprios();
+    const scenario = await scenarioWithProperNames();
 
-    const capturado = await capturarLogDeUmFluxo(cenario);
-    const campos = new Set(capturado.linhas.flatMap((linha) => Object.keys(linha)));
+    const captured = await captureLogOfAFlow(scenario);
+    const fields = new Set(captured.rows.flatMap((row) => Object.keys(row)));
 
-    expect(campos.has('correlation_id')).toBe(true);
-    expect(capturado.bruto).toContain(SLUG);
-    expect(capturado.bruto).toContain('recusado');
-  }, PRAZO_DE_PROCESSO_MS);
+    expect(fields.has('correlation_id')).toBe(true);
+    expect(captured.raw).toContain(SLUG);
+    expect(captured.raw).toContain('recusado');
+  }, PROCESS_DEADLINE_MS);
 
   test('nenhuma chave proibida escapa com valor, e nenhum CPF aparece', async () => {
-    const cenario = await cenarioComNomesProprios();
+    const scenario = await scenarioWithProperNames();
 
-    const capturado = await capturarLogDeUmFluxo(cenario);
-    const vazando = capturado.linhas.flatMap((linha) =>
-      Object.entries(linha).filter(
-        ([chave, valor]) => FORBIDDEN_LOG_KEYS.includes(chave) && valor !== '[redacted]',
+    const captured = await captureLogOfAFlow(scenario);
+    const leaking = captured.rows.flatMap((row) =>
+      Object.entries(row).filter(
+        ([key, value]) => FORBIDDEN_LOG_KEYS.includes(key) && value !== '[redacted]',
       ),
     );
 
-    expect(vazando).toEqual([]);
-    expect(CPF.test(capturado.bruto)).toBe(false);
-  }, PRAZO_DE_PROCESSO_MS);
+    expect(leaking).toEqual([]);
+    expect(CPF.test(captured.raw)).toBe(false);
+  }, PROCESS_DEADLINE_MS);
 
   test('a página de erro entrega o código de correlação, e não o detalhe da falha', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrar({
-      redeSlug: cenario.rede.slug,
-      cpf: cenario.secretaria.cpf,
-      senha: cenario.senha,
+    const scenario = await fullScenario();
+    const cookie = await signIn({
+      networkSlug: scenario.network.slug,
+      cpf: scenario.registrar.cpf,
+      password: scenario.password,
     });
 
-    const recusada = await postar('/secretaria/disciplinas', { nome: 'Xadrez' }, cookie);
-    const pagina = await recusada.text();
+    const rejected = await post('/secretaria/disciplinas', { nome: 'Xadrez' }, cookie);
+    const page = await rejected.text();
 
-    expect(recusada.status).toBe(400);
-    expect(pagina).not.toContain('idempotent_request');
-    expect(pagina).not.toContain(cenario.secretaria.email);
+    expect(rejected.status).toBe(400);
+    expect(page).not.toContain('idempotent_request');
+    expect(page).not.toContain(scenario.registrar.email);
   });
 });

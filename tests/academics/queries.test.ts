@@ -6,490 +6,490 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { academics } from '../../src/academics';
-import { limparBanco } from '../support/database';
+import { clearDatabase } from '../support/database';
 import {
-  ANO_PADRAO,
-  cenarioCompleto,
-  criarAluno,
-  criarAnoLetivo,
-  criarDisciplina,
-  criarMatricula,
-  criarRede,
-  criarResponsavel,
-  criarTurma,
-  criarTurmaDisciplina,
-  criarUnidade,
-  criarUsuario,
-  duasRedes,
-  vincularAlunoResponsavel,
+  DEFAULT_YEAR,
+  fullScenario,
+  createStudent,
+  createAcademicYear,
+  createSubject,
+  createEnrollment,
+  createNetwork,
+  createGuardian,
+  createClassGroup,
+  createClassGroupSubject,
+  createSchool,
+  createUser,
+  twoNetworks,
+  linkStudentGuardian,
 } from '../support/factories';
 
-beforeEach(limparBanco);
+beforeEach(clearDatabase);
 
 describe('buscarAlunos', () => {
   test('acha o aluno por um trecho do nome', async () => {
-    const rede = await criarRede();
-    await criarAluno({ networkId: rede.id, name: 'Ana Carolina Souza' });
-    await criarAluno({ networkId: rede.id, name: 'Bruno Teixeira' });
+    const network = await createNetwork();
+    await createStudent({ networkId: network.id, name: 'Ana Carolina Souza' });
+    await createStudent({ networkId: network.id, name: 'Bruno Teixeira' });
 
-    const encontrados = await academics.searchStudents(rede.id, 'Carolina');
+    const found = await academics.searchStudents(network.id, 'Carolina');
 
-    expect(encontrados.map((aluno) => aluno.name)).toEqual(['Ana Carolina Souza']);
+    expect(found.map((student) => student.name)).toEqual(['Ana Carolina Souza']);
   });
 
   test('a busca é insensível a maiúsculas e minúsculas', async () => {
-    const rede = await criarRede();
-    await criarAluno({ networkId: rede.id, name: 'Ana Carolina Souza' });
+    const network = await createNetwork();
+    await createStudent({ networkId: network.id, name: 'Ana Carolina Souza' });
 
-    const encontrados = await academics.searchStudents(rede.id, 'cArOLiNa');
+    const found = await academics.searchStudents(network.id, 'cArOLiNa');
 
-    expect(encontrados.map((aluno) => aluno.name)).toEqual(['Ana Carolina Souza']);
+    expect(found.map((student) => student.name)).toEqual(['Ana Carolina Souza']);
   });
 
   test('devolve os achados em ordem de nome', async () => {
-    const rede = await criarRede();
-    await criarAluno({ networkId: rede.id, name: 'Carlos Silva' });
-    await criarAluno({ networkId: rede.id, name: 'Ana Silva' });
-    await criarAluno({ networkId: rede.id, name: 'Bruno Silva' });
+    const network = await createNetwork();
+    await createStudent({ networkId: network.id, name: 'Carlos Silva' });
+    await createStudent({ networkId: network.id, name: 'Ana Silva' });
+    await createStudent({ networkId: network.id, name: 'Bruno Silva' });
 
-    const encontrados = await academics.searchStudents(rede.id, 'silva');
+    const found = await academics.searchStudents(network.id, 'silva');
 
-    expect(encontrados.map((aluno) => aluno.name)).toEqual([
+    expect(found.map((student) => student.name)).toEqual([
       'Ana Silva', 'Bruno Silva', 'Carlos Silva',
     ]);
   });
 
   test('nunca devolve aluno de outra rede', async () => {
-    const nossa = await criarRede();
-    const alheia = await criarRede();
-    await criarAluno({ networkId: nossa.id, name: 'Ana Silva' });
-    await criarAluno({ networkId: alheia.id, name: 'Ana Silva' });
+    const ours = await createNetwork();
+    const foreign = await createNetwork();
+    await createStudent({ networkId: ours.id, name: 'Ana Silva' });
+    await createStudent({ networkId: foreign.id, name: 'Ana Silva' });
 
-    const encontrados = await academics.searchStudents(nossa.id, 'Ana Silva');
+    const found = await academics.searchStudents(ours.id, 'Ana Silva');
 
-    expect(encontrados).toHaveLength(1);
-    expect(encontrados[0]?.networkId).toBe(nossa.id);
+    expect(found).toHaveLength(1);
+    expect(found[0]?.networkId).toBe(ours.id);
   });
 
   test('trecho que ninguém tem devolve lista vazia', async () => {
-    const rede = await criarRede();
-    await criarAluno({ networkId: rede.id, name: 'Ana Silva' });
+    const network = await createNetwork();
+    await createStudent({ networkId: network.id, name: 'Ana Silva' });
 
-    const encontrados = await academics.searchStudents(rede.id, 'Wagner');
+    const found = await academics.searchStudents(network.id, 'Wagner');
 
-    expect(encontrados).toEqual([]);
+    expect(found).toEqual([]);
   });
 
   test('os curingas do LIKE são procurados como texto comum', async () => {
-    const rede = await criarRede();
-    await criarAluno({ networkId: rede.id, name: 'Ana 100% Silva' });
-    await criarAluno({ networkId: rede.id, name: 'Bruno Teixeira' });
+    const network = await createNetwork();
+    await createStudent({ networkId: network.id, name: 'Ana 100% Silva' });
+    await createStudent({ networkId: network.id, name: 'Bruno Teixeira' });
 
-    const encontrados = await academics.searchStudents(rede.id, '100%');
+    const found = await academics.searchStudents(network.id, '100%');
 
-    expect(encontrados.map((aluno) => aluno.name)).toEqual(['Ana 100% Silva']);
+    expect(found.map((student) => student.name)).toEqual(['Ana 100% Silva']);
   });
 
   test('a data de nascimento volta no formato canônico da aplicação', async () => {
-    const rede = await criarRede();
-    await criarAluno({ networkId: rede.id, name: 'Ana Silva', birthDate: '2014-05-10' });
+    const network = await createNetwork();
+    await createStudent({ networkId: network.id, name: 'Ana Silva', birthDate: '2014-05-10' });
 
-    const encontrados = await academics.searchStudents(rede.id, 'Ana');
+    const found = await academics.searchStudents(network.id, 'Ana');
 
-    expect(encontrados[0]?.birthDate).toBe('2014-05-10');
+    expect(found[0]?.birthDate).toBe('2014-05-10');
   });
 });
 
 describe('alunoPorId', () => {
   test('devolve o aluno da rede', async () => {
-    const rede = await criarRede();
-    const aluno = await criarAluno({ networkId: rede.id, name: 'Ana Silva' });
+    const network = await createNetwork();
+    const student = await createStudent({ networkId: network.id, name: 'Ana Silva' });
 
-    const encontrado = await academics.studentById(rede.id, aluno.id);
+    const found = await academics.studentById(network.id, student.id);
 
-    expect(encontrado).toEqual({
-      id: aluno.id, networkId: rede.id, name: 'Ana Silva', birthDate: aluno.birthDate,
+    expect(found).toEqual({
+      id: student.id, networkId: network.id, name: 'Ana Silva', birthDate: student.birthDate,
     });
   });
 
   test('aluno de outra rede não é alcançável pelo id', async () => {
-    const { a, b } = await duasRedes();
+    const { a, b } = await twoNetworks();
 
-    const encontrado = await academics.studentById(a.rede.id, b.alunos[0].id);
+    const found = await academics.studentById(a.network.id, b.students[0].id);
 
-    expect(encontrado).toBeNull();
+    expect(found).toBeNull();
   });
 });
 
 describe('turmas', () => {
   test('listarTurmas sem filtro traz as turmas da rede em ordem de série e nome', async () => {
-    const rede = await criarRede();
-    const unidade = await criarUnidade({ networkId: rede.id });
-    const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
-    await criarTurma({
-      networkId: rede.id, schoolId: unidade.id, academicYearId: anoLetivo.id,
+    const network = await createNetwork();
+    const school = await createSchool({ networkId: network.id });
+    const academicYear = await createAcademicYear({ networkId: network.id });
+    await createClassGroup({
+      networkId: network.id, schoolId: school.id, academicYearId: academicYear.id,
       name: '7º B', gradeLevel: '7º ano',
     });
-    await criarTurma({
-      networkId: rede.id, schoolId: unidade.id, academicYearId: anoLetivo.id,
+    await createClassGroup({
+      networkId: network.id, schoolId: school.id, academicYearId: academicYear.id,
       name: '6º A', gradeLevel: '6º ano',
     });
-    await criarTurma({
-      networkId: rede.id, schoolId: unidade.id, academicYearId: anoLetivo.id,
+    await createClassGroup({
+      networkId: network.id, schoolId: school.id, academicYearId: academicYear.id,
       name: '7º A', gradeLevel: '7º ano',
     });
 
-    const turmas = await academics.listClassGroups(rede.id);
+    const classGroups = await academics.listClassGroups(network.id);
 
-    expect(turmas.map((turma) => turma.name)).toEqual(['6º A', '7º A', '7º B']);
+    expect(classGroups.map((classGroup) => classGroup.name)).toEqual(['6º A', '7º A', '7º B']);
   });
 
   test('listarTurmas filtra por unidade', async () => {
-    const rede = await criarRede();
-    const centro = await criarUnidade({ networkId: rede.id });
-    const praia = await criarUnidade({ networkId: rede.id });
-    const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
-    await criarTurma({
-      networkId: rede.id, schoolId: centro.id, academicYearId: anoLetivo.id, name: 'Centro 6º A',
+    const network = await createNetwork();
+    const center = await createSchool({ networkId: network.id });
+    const beach = await createSchool({ networkId: network.id });
+    const academicYear = await createAcademicYear({ networkId: network.id });
+    await createClassGroup({
+      networkId: network.id, schoolId: center.id, academicYearId: academicYear.id, name: 'Centro 6º A',
     });
-    await criarTurma({
-      networkId: rede.id, schoolId: praia.id, academicYearId: anoLetivo.id, name: 'Praia 6º A',
+    await createClassGroup({
+      networkId: network.id, schoolId: beach.id, academicYearId: academicYear.id, name: 'Praia 6º A',
     });
 
-    const turmas = await academics.listClassGroups(rede.id, { schoolId: centro.id });
+    const classGroups = await academics.listClassGroups(network.id, { schoolId: center.id });
 
-    expect(turmas.map((turma) => turma.name)).toEqual(['Centro 6º A']);
+    expect(classGroups.map((classGroup) => classGroup.name)).toEqual(['Centro 6º A']);
   });
 
   test('listarTurmas filtra por ano letivo', async () => {
-    const rede = await criarRede();
-    const unidade = await criarUnidade({ networkId: rede.id });
-    const esteAno = await criarAnoLetivo({ networkId: rede.id, year: ANO_PADRAO });
-    const proximoAno = await criarAnoLetivo({ networkId: rede.id, year: ANO_PADRAO + 1 });
-    await criarTurma({
-      networkId: rede.id, schoolId: unidade.id, academicYearId: esteAno.id, name: 'Turma de agora',
+    const network = await createNetwork();
+    const school = await createSchool({ networkId: network.id });
+    const thisYear = await createAcademicYear({ networkId: network.id, year: DEFAULT_YEAR });
+    const nextYear = await createAcademicYear({ networkId: network.id, year: DEFAULT_YEAR + 1 });
+    await createClassGroup({
+      networkId: network.id, schoolId: school.id, academicYearId: thisYear.id, name: 'Turma de agora',
     });
-    await criarTurma({
-      networkId: rede.id, schoolId: unidade.id, academicYearId: proximoAno.id, name: 'Turma do ano que vem',
+    await createClassGroup({
+      networkId: network.id, schoolId: school.id, academicYearId: nextYear.id, name: 'Turma do ano que vem',
     });
 
-    const turmas = await academics.listClassGroups(rede.id, { academicYearId: proximoAno.id });
+    const classGroups = await academics.listClassGroups(network.id, { academicYearId: nextYear.id });
 
-    expect(turmas.map((turma) => turma.name)).toEqual(['Turma do ano que vem']);
+    expect(classGroups.map((classGroup) => classGroup.name)).toEqual(['Turma do ano que vem']);
   });
 
   test('listarTurmas nunca traz turma de outra rede', async () => {
-    const { a, b } = await duasRedes();
+    const { a, b } = await twoNetworks();
 
-    const turmas = await academics.listClassGroups(a.rede.id);
+    const classGroups = await academics.listClassGroups(a.network.id);
 
-    expect(turmas.every((turma) => turma.networkId === a.rede.id)).toBe(true);
-    expect(turmas.map((turma) => turma.id)).not.toContain(b.turmas[0].id);
+    expect(classGroups.every((classGroup) => classGroup.networkId === a.network.id)).toBe(true);
+    expect(classGroups.map((classGroup) => classGroup.id)).not.toContain(b.classGroups[0].id);
   });
 
   test('turmaPorId não alcança turma de outra rede', async () => {
-    const { a, b } = await duasRedes();
+    const { a, b } = await twoNetworks();
 
-    const encontrada = await academics.classGroupById(a.rede.id, b.turmas[0].id);
+    const found = await academics.classGroupById(a.network.id, b.classGroups[0].id);
 
-    expect(encontrada).toBeNull();
-    expect(await academics.classGroupById(a.rede.id, a.turmas[0].id)).not.toBeNull();
+    expect(found).toBeNull();
+    expect(await academics.classGroupById(a.network.id, a.classGroups[0].id)).not.toBeNull();
   });
 });
 
 describe('disciplinas da turma e do professor', () => {
   test('listarDisciplinas traz as disciplinas da rede em ordem de nome', async () => {
-    const rede = await criarRede();
-    await criarDisciplina({ networkId: rede.id, name: 'Matemática' });
-    await criarDisciplina({ networkId: rede.id, name: 'Artes' });
-    await criarDisciplina({ networkId: rede.id, name: 'História' });
+    const network = await createNetwork();
+    await createSubject({ networkId: network.id, name: 'Matemática' });
+    await createSubject({ networkId: network.id, name: 'Artes' });
+    await createSubject({ networkId: network.id, name: 'História' });
 
-    const disciplinas = await academics.listSubjects(rede.id);
+    const subjects = await academics.listSubjects(network.id);
 
-    expect(disciplinas.map((disciplina) => disciplina.name)).toEqual([
+    expect(subjects.map((subject) => subject.name)).toEqual([
       'Artes', 'História', 'Matemática',
     ]);
   });
 
   test('listarTurmaDisciplinas traz as alocações da turma com o nome da disciplina', async () => {
-    const cenario = await cenarioCompleto();
-    const [turma] = cenario.turmas;
+    const scenario = await fullScenario();
+    const [classGroup] = scenario.classGroups;
 
-    const alocacoes = await academics.listClassGroupSubjects(cenario.rede.id, turma.id);
+    const assignments = await academics.listClassGroupSubjects(scenario.network.id, classGroup.id);
 
-    expect(alocacoes).toHaveLength(3);
-    expect(alocacoes.every((alocacao) => alocacao.classGroupId === turma.id)).toBe(true);
-    expect(alocacoes.every((alocacao) => alocacao.subjectName.length > 0)).toBe(true);
-    expect(alocacoes.every((alocacao) => alocacao.teacherUserId === cenario.professor.id)).toBe(true);
+    expect(assignments).toHaveLength(3);
+    expect(assignments.every((assignment) => assignment.classGroupId === classGroup.id)).toBe(true);
+    expect(assignments.every((assignment) => assignment.subjectName.length > 0)).toBe(true);
+    expect(assignments.every((assignment) => assignment.teacherUserId === scenario.teacher.id)).toBe(true);
   });
 
   test('turmaDisciplinaPorId devolve a alocação e não alcança a de outra rede', async () => {
-    const { a, b } = await duasRedes();
-    const alvo = a.turmaDisciplinas[0];
+    const { a, b } = await twoNetworks();
+    const target = a.classGroupSubjects[0];
 
-    const encontrada = await academics.classGroupSubjectById(a.rede.id, alvo.id);
+    const found = await academics.classGroupSubjectById(a.network.id, target.id);
 
-    expect(encontrada?.id).toBe(alvo.id);
-    expect(await academics.classGroupSubjectById(a.rede.id, b.turmaDisciplinas[0].id)).toBeNull();
+    expect(found?.id).toBe(target.id);
+    expect(await academics.classGroupSubjectById(a.network.id, b.classGroupSubjects[0].id)).toBeNull();
   });
 
   test('turmaDisciplinasDoProfessor traz turma e série junto da disciplina', async () => {
-    const cenario = await cenarioCompleto();
-    const [turma] = cenario.turmas;
+    const scenario = await fullScenario();
+    const [classGroup] = scenario.classGroups;
 
-    const doProfessor = await academics.teacherClassGroupSubjects(
-      cenario.rede.id, cenario.professor.id,
+    const teacherRows = await academics.teacherClassGroupSubjects(
+      scenario.network.id, scenario.teacher.id,
     );
 
-    expect(doProfessor).toHaveLength(3);
-    expect(doProfessor.every((linha) => linha.classGroupName === turma.name)).toBe(true);
-    expect(doProfessor.every((linha) => linha.schoolId === turma.schoolId)).toBe(true);
-    expect(doProfessor.every((linha) => linha.shift === turma.shift)).toBe(true);
+    expect(teacherRows).toHaveLength(3);
+    expect(teacherRows.every((row) => row.classGroupName === classGroup.name)).toBe(true);
+    expect(teacherRows.every((row) => row.schoolId === classGroup.schoolId)).toBe(true);
+    expect(teacherRows.every((row) => row.shift === classGroup.shift)).toBe(true);
   });
 
   test('professor sem alocação nenhuma abre o painel vazio', async () => {
-    const cenario = await cenarioCompleto();
-    const outroProfessor = await criarUsuario({
-      networkId: cenario.rede.id,
-      papeis: [{ schoolId: cenario.unidades[0].id, role: 'teacher' }],
+    const scenario = await fullScenario();
+    const anotherTeacher = await createUser({
+      networkId: scenario.network.id,
+      roles: [{ schoolId: scenario.schools[0].id, role: 'teacher' }],
     });
 
-    const doProfessor = await academics.teacherClassGroupSubjects(
-      cenario.rede.id, outroProfessor.id,
+    const teacherRows = await academics.teacherClassGroupSubjects(
+      scenario.network.id, anotherTeacher.id,
     );
 
-    expect(doProfessor).toEqual([]);
+    expect(teacherRows).toEqual([]);
   });
 
   test('turmasDoProfessor traz cada turma uma vez, mesmo com várias disciplinas nela', async () => {
-    const cenario = await cenarioCompleto();
-    const [turma] = cenario.turmas;
+    const scenario = await fullScenario();
+    const [classGroup] = scenario.classGroups;
 
-    const turmas = await academics.teacherClassGroups(cenario.rede.id, cenario.professor.id);
+    const classGroups = await academics.teacherClassGroups(scenario.network.id, scenario.teacher.id);
 
-    expect(turmas.map((linha) => linha.id)).toEqual([turma.id]);
+    expect(classGroups.map((row) => row.id)).toEqual([classGroup.id]);
   });
 
   test('turmasDoProfessor conta as duas turmas quando ele leciona nas duas', async () => {
-    const cenario = await cenarioCompleto();
-    const [primeira, segunda] = cenario.turmas;
-    const geografia = await criarDisciplina({ networkId: cenario.rede.id, name: 'Geografia' });
-    await criarTurmaDisciplina({
-      networkId: cenario.rede.id, classGroupId: segunda.id,
-      subjectId: geografia.id, teacherUserId: cenario.professor.id,
+    const scenario = await fullScenario();
+    const [first, second] = scenario.classGroups;
+    const geography = await createSubject({ networkId: scenario.network.id, name: 'Geografia' });
+    await createClassGroupSubject({
+      networkId: scenario.network.id, classGroupId: second.id,
+      subjectId: geography.id, teacherUserId: scenario.teacher.id,
     });
 
-    const turmas = await academics.teacherClassGroups(cenario.rede.id, cenario.professor.id);
+    const classGroups = await academics.teacherClassGroups(scenario.network.id, scenario.teacher.id);
 
-    expect(turmas.map((linha) => linha.id).sort()).toEqual([primeira.id, segunda.id].sort());
+    expect(classGroups.map((row) => row.id).sort()).toEqual([first.id, second.id].sort());
   });
 
   test('as alocações do professor de outra rede não vazam', async () => {
-    const { a, b } = await duasRedes();
+    const { a, b } = await twoNetworks();
 
-    const doProfessorAlheio = await academics.teacherClassGroupSubjects(
-      a.rede.id, b.professor.id,
+    const ofTheForeignTeacher = await academics.teacherClassGroupSubjects(
+      a.network.id, b.teacher.id,
     );
 
-    expect(doProfessorAlheio).toEqual([]);
-    expect(await academics.teacherClassGroups(a.rede.id, b.professor.id)).toEqual([]);
+    expect(ofTheForeignTeacher).toEqual([]);
+    expect(await academics.teacherClassGroups(a.network.id, b.teacher.id)).toEqual([]);
   });
 });
 
 describe('responsáveis', () => {
   test('listarResponsaveis traz os da rede em ordem de nome', async () => {
-    const rede = await criarRede();
-    await criarResponsavel({ networkId: rede.id, name: 'Carla Dias' });
-    await criarResponsavel({ networkId: rede.id, name: 'Ana Souza' });
+    const network = await createNetwork();
+    await createGuardian({ networkId: network.id, name: 'Carla Dias' });
+    await createGuardian({ networkId: network.id, name: 'Ana Souza' });
 
-    const responsaveis = await academics.listGuardians(rede.id);
+    const guardians = await academics.listGuardians(network.id);
 
-    expect(responsaveis.map((responsavel) => responsavel.name)).toEqual(['Ana Souza', 'Carla Dias']);
+    expect(guardians.map((guardian) => guardian.name)).toEqual(['Ana Souza', 'Carla Dias']);
   });
 
   test('listarResponsaveis não traz responsável de outra rede', async () => {
-    const { a, b } = await duasRedes();
+    const { a, b } = await twoNetworks();
 
-    const responsaveis = await academics.listGuardians(a.rede.id);
+    const guardians = await academics.listGuardians(a.network.id);
 
-    expect(responsaveis.every((responsavel) => responsavel.networkId === a.rede.id)).toBe(true);
-    expect(responsaveis.map((responsavel) => responsavel.id)).not.toContain(b.responsaveis[0].id);
+    expect(guardians.every((guardian) => guardian.networkId === a.network.id)).toBe(true);
+    expect(guardians.map((guardian) => guardian.id)).not.toContain(b.guardians[0].id);
   });
 
   test('responsaveisDoAluno traz o vínculo com parentesco e marca de financeiro', async () => {
-    const rede = await criarRede();
-    const aluno = await criarAluno({ networkId: rede.id });
-    const mae = await criarResponsavel({
-      networkId: rede.id, name: 'Ana Souza', email: 'ana@familia.br',
+    const network = await createNetwork();
+    const student = await createStudent({ networkId: network.id });
+    const mother = await createGuardian({
+      networkId: network.id, name: 'Ana Souza', email: 'ana@familia.br',
     });
-    const pai = await criarResponsavel({
-      networkId: rede.id, name: 'Bruno Souza', email: 'bruno@familia.br',
+    const father = await createGuardian({
+      networkId: network.id, name: 'Bruno Souza', email: 'bruno@familia.br',
     });
-    await vincularAlunoResponsavel({
-      networkId: rede.id, studentId: aluno.id, guardianId: mae.id,
+    await linkStudentGuardian({
+      networkId: network.id, studentId: student.id, guardianId: mother.id,
       relationship: 'mãe', financiallyResponsible: true,
     });
-    await vincularAlunoResponsavel({
-      networkId: rede.id, studentId: aluno.id, guardianId: pai.id,
+    await linkStudentGuardian({
+      networkId: network.id, studentId: student.id, guardianId: father.id,
       relationship: 'pai', financiallyResponsible: false,
     });
 
-    const vinculos = await academics.studentGuardians(rede.id, aluno.id);
+    const guardianLinks = await academics.studentGuardians(network.id, student.id);
 
-    expect(vinculos).toEqual([
+    expect(guardianLinks).toEqual([
       {
-        guardianId: mae.id, name: 'Ana Souza', email: 'ana@familia.br',
+        guardianId: mother.id, name: 'Ana Souza', email: 'ana@familia.br',
         relationship: 'mãe', financiallyResponsible: true,
       },
       {
-        guardianId: pai.id, name: 'Bruno Souza', email: 'bruno@familia.br',
+        guardianId: father.id, name: 'Bruno Souza', email: 'bruno@familia.br',
         relationship: 'pai', financiallyResponsible: false,
       },
     ]);
   });
 
   test('responsaveisDaUnidade traz quem responde por aluno com matrícula ativa ali', async () => {
-    const cenario = await cenarioCompleto();
-    const [unidadeComAlunos, unidadeVazia] = cenario.unidades;
+    const scenario = await fullScenario();
+    const [schoolWithStudents, emptySchool] = scenario.schools;
 
-    const daUnidade = await academics.schoolGuardians(cenario.rede.id, unidadeComAlunos.id);
+    const schoolGuardiansList = await academics.schoolGuardians(scenario.network.id, schoolWithStudents.id);
 
-    expect(daUnidade).toHaveLength(5);
-    expect(await academics.schoolGuardians(cenario.rede.id, unidadeVazia.id)).toEqual([]);
+    expect(schoolGuardiansList).toHaveLength(5);
+    expect(await academics.schoolGuardians(scenario.network.id, emptySchool.id)).toEqual([]);
   });
 
   test('responsável de aluno sem matrícula ativa não recebe comunicado da unidade', async () => {
-    const cenario = await cenarioCompleto();
-    const [unidade] = cenario.unidades;
-    const semMatricula = await criarResponsavel({
-      networkId: cenario.rede.id, name: 'Zulmira Sem Turma',
+    const scenario = await fullScenario();
+    const [school] = scenario.schools;
+    const withoutEnrollment = await createGuardian({
+      networkId: scenario.network.id, name: 'Zulmira Sem Turma',
     });
-    const alunoSaido = await criarAluno({ networkId: cenario.rede.id });
-    await vincularAlunoResponsavel({
-      networkId: cenario.rede.id, studentId: alunoSaido.id, guardianId: semMatricula.id,
+    const departedStudent = await createStudent({ networkId: scenario.network.id });
+    await linkStudentGuardian({
+      networkId: scenario.network.id, studentId: departedStudent.id, guardianId: withoutEnrollment.id,
     });
-    await criarMatricula({
-      networkId: cenario.rede.id, studentId: alunoSaido.id, classGroupId: cenario.turmas[0].id,
-      academicYearId: cenario.anoLetivo.id, status: 'transferred',
+    await createEnrollment({
+      networkId: scenario.network.id, studentId: departedStudent.id, classGroupId: scenario.classGroups[0].id,
+      academicYearId: scenario.academicYear.id, status: 'transferred',
     });
 
-    const daUnidade = await academics.schoolGuardians(cenario.rede.id, unidade.id);
+    const schoolGuardiansList = await academics.schoolGuardians(scenario.network.id, school.id);
 
-    expect(daUnidade.map((responsavel) => responsavel.id)).not.toContain(semMatricula.id);
+    expect(schoolGuardiansList.map((guardian) => guardian.id)).not.toContain(withoutEnrollment.id);
   });
 });
 
 describe('matrículas', () => {
   test('matriculaPorId traz nome do aluno, nome da turma e ano', async () => {
-    const cenario = await cenarioCompleto();
-    const [matricula] = cenario.matriculas;
-    const [aluno] = cenario.alunos;
-    const [turma] = cenario.turmas;
+    const scenario = await fullScenario();
+    const [enrollment] = scenario.enrollments;
+    const [student] = scenario.students;
+    const [classGroup] = scenario.classGroups;
 
-    const encontrada = await academics.enrollmentById(cenario.rede.id, matricula.id);
+    const found = await academics.enrollmentById(scenario.network.id, enrollment.id);
 
-    expect(encontrada).toEqual({
-      id: matricula.id,
-      networkId: cenario.rede.id,
-      studentId: aluno.id,
-      studentName: aluno.name,
-      classGroupId: turma.id,
-      classGroupName: turma.name,
-      schoolId: turma.schoolId,
-      academicYearId: cenario.anoLetivo.id,
-      year: ANO_PADRAO,
-      enrollmentDate: matricula.enrollmentDate,
+    expect(found).toEqual({
+      id: enrollment.id,
+      networkId: scenario.network.id,
+      studentId: student.id,
+      studentName: student.name,
+      classGroupId: classGroup.id,
+      classGroupName: classGroup.name,
+      schoolId: classGroup.schoolId,
+      academicYearId: scenario.academicYear.id,
+      year: DEFAULT_YEAR,
+      enrollmentDate: enrollment.enrollmentDate,
       status: 'active',
     });
   });
 
   test('matrícula de outra rede não é alcançável pelo id', async () => {
-    const { a, b } = await duasRedes();
+    const { a, b } = await twoNetworks();
 
-    const encontrada = await academics.enrollmentById(a.rede.id, b.matriculas[0].id);
+    const found = await academics.enrollmentById(a.network.id, b.enrollments[0].id);
 
-    expect(encontrada).toBeNull();
+    expect(found).toBeNull();
   });
 
   test('matriculasAtivasDaTurma lista os ativos em ordem de nome do aluno', async () => {
-    const cenario = await cenarioCompleto();
-    const [turma] = cenario.turmas;
+    const scenario = await fullScenario();
+    const [classGroup] = scenario.classGroups;
 
-    const ativas = await academics.activeEnrollmentsOfClassGroup(cenario.rede.id, turma.id);
+    const active = await academics.activeEnrollmentsOfClassGroup(scenario.network.id, classGroup.id);
 
-    const nomes = ativas.map((matricula) => matricula.studentName);
-    expect(ativas).toHaveLength(5);
-    expect(nomes).toEqual([...nomes].sort());
+    const names = active.map((enrollment) => enrollment.studentName);
+    expect(active).toHaveLength(5);
+    expect(names).toEqual([...names].sort());
   });
 
   test('matriculasAtivasDaTurma ignora quem saiu da turma', async () => {
-    const cenario = await cenarioCompleto();
-    const [turma] = cenario.turmas;
-    const [saiu] = cenario.matriculas;
+    const scenario = await fullScenario();
+    const [classGroup] = scenario.classGroups;
+    const [departed] = scenario.enrollments;
     await academics.transfer({
-      networkId: cenario.rede.id, enrollmentId: saiu.id,
-      targetClassGroupId: cenario.turmas[1].id, date: `${ANO_PADRAO}-06-01`,
+      networkId: scenario.network.id, enrollmentId: departed.id,
+      targetClassGroupId: scenario.classGroups[1].id, date: `${DEFAULT_YEAR}-06-01`,
     });
 
-    const ativas = await academics.activeEnrollmentsOfClassGroup(cenario.rede.id, turma.id);
+    const active = await academics.activeEnrollmentsOfClassGroup(scenario.network.id, classGroup.id);
 
-    expect(ativas).toHaveLength(4);
-    expect(ativas.map((matricula) => matricula.id)).not.toContain(saiu.id);
+    expect(active).toHaveLength(4);
+    expect(active.map((enrollment) => enrollment.id)).not.toContain(departed.id);
   });
 
   test('matriculasDoResponsavel devolve só os alunos vinculados àquele responsável', async () => {
-    const cenario = await cenarioCompleto();
-    const [primeiro, segundo] = cenario.responsaveis;
-    const [alunoDoPrimeiro] = cenario.alunos;
+    const scenario = await fullScenario();
+    const [first, second] = scenario.guardians;
+    const [studentOfTheFirst] = scenario.students;
 
-    const doPrimeiro = await academics.guardianEnrollments(cenario.rede.id, primeiro.id);
+    const ofTheFirst = await academics.guardianEnrollments(scenario.network.id, first.id);
 
-    expect(doPrimeiro.map((matricula) => matricula.studentId)).toEqual([alunoDoPrimeiro.id]);
-    const doSegundo = await academics.guardianEnrollments(cenario.rede.id, segundo.id);
-    expect(doSegundo.map((matricula) => matricula.studentId)).not.toContain(alunoDoPrimeiro.id);
+    expect(ofTheFirst.map((enrollment) => enrollment.studentId)).toEqual([studentOfTheFirst.id]);
+    const ofTheSecond = await academics.guardianEnrollments(scenario.network.id, second.id);
+    expect(ofTheSecond.map((enrollment) => enrollment.studentId)).not.toContain(studentOfTheFirst.id);
   });
 
   test('matriculasDoResponsavel traz os dois filhos de quem responde por dois', async () => {
-    const cenario = await cenarioCompleto();
-    const [responsavel] = cenario.responsaveis;
-    const irmao = await criarAluno({ networkId: cenario.rede.id, name: 'Irmão Caçula' });
-    await vincularAlunoResponsavel({
-      networkId: cenario.rede.id, studentId: irmao.id, guardianId: responsavel.id,
+    const scenario = await fullScenario();
+    const [guardian] = scenario.guardians;
+    const sibling = await createStudent({ networkId: scenario.network.id, name: 'Irmão Caçula' });
+    await linkStudentGuardian({
+      networkId: scenario.network.id, studentId: sibling.id, guardianId: guardian.id,
     });
-    await criarMatricula({
-      networkId: cenario.rede.id, studentId: irmao.id, classGroupId: cenario.turmas[1].id,
-      academicYearId: cenario.anoLetivo.id,
+    await createEnrollment({
+      networkId: scenario.network.id, studentId: sibling.id, classGroupId: scenario.classGroups[1].id,
+      academicYearId: scenario.academicYear.id,
     });
 
-    const doResponsavel = await academics.guardianEnrollments(cenario.rede.id, responsavel.id);
+    const guardianRows = await academics.guardianEnrollments(scenario.network.id, guardian.id);
 
-    expect(doResponsavel).toHaveLength(2);
-    expect(doResponsavel.map((matricula) => matricula.studentName)).toContain('Irmão Caçula');
+    expect(guardianRows).toHaveLength(2);
+    expect(guardianRows.map((enrollment) => enrollment.studentName)).toContain('Irmão Caçula');
   });
 
   test('matriculasDoResponsavel mostra o histórico, com o ano mais recente primeiro', async () => {
-    const cenario = await cenarioCompleto();
-    const [responsavel] = cenario.responsaveis;
-    const [aluno] = cenario.alunos;
-    const proximoAno = await criarAnoLetivo({ networkId: cenario.rede.id, year: ANO_PADRAO + 1 });
-    const turmaFutura = await criarTurma({
-      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id, academicYearId: proximoAno.id,
+    const scenario = await fullScenario();
+    const [guardian] = scenario.guardians;
+    const [student] = scenario.students;
+    const nextYear = await createAcademicYear({ networkId: scenario.network.id, year: DEFAULT_YEAR + 1 });
+    const futureClassGroup = await createClassGroup({
+      networkId: scenario.network.id, schoolId: scenario.schools[0].id, academicYearId: nextYear.id,
     });
-    await criarMatricula({
-      networkId: cenario.rede.id, studentId: aluno.id, classGroupId: turmaFutura.id,
-      academicYearId: proximoAno.id, enrollmentDate: `${ANO_PADRAO + 1}-02-05`,
+    await createEnrollment({
+      networkId: scenario.network.id, studentId: student.id, classGroupId: futureClassGroup.id,
+      academicYearId: nextYear.id, enrollmentDate: `${DEFAULT_YEAR + 1}-02-05`,
     });
 
-    const doResponsavel = await academics.guardianEnrollments(cenario.rede.id, responsavel.id);
+    const guardianRows = await academics.guardianEnrollments(scenario.network.id, guardian.id);
 
-    expect(doResponsavel.map((matricula) => matricula.year)).toEqual([ANO_PADRAO + 1, ANO_PADRAO]);
+    expect(guardianRows.map((enrollment) => enrollment.year)).toEqual([DEFAULT_YEAR + 1, DEFAULT_YEAR]);
   });
 
   test('matriculasDoResponsavel de outra rede não devolve nada', async () => {
-    const { a, b } = await duasRedes();
+    const { a, b } = await twoNetworks();
 
-    const alheias = await academics.guardianEnrollments(a.rede.id, b.responsaveis[0].id);
+    const foreign = await academics.guardianEnrollments(a.network.id, b.guardians[0].id);
 
-    expect(alheias).toEqual([]);
+    expect(foreign).toEqual([]);
   });
 });

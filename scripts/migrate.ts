@@ -2,51 +2,51 @@ import { SQL } from 'bun';
 import { join, resolve } from 'node:path';
 import { config } from '../src/shared/config/index';
 import { LOCK_KEYS, MIGRATIONS } from '../src/shared/constants';
-import { ARGUMENTOS, MENSAGENS_DA_MIGRACAO as MENSAGENS } from './constantes';
+import { ARGUMENTS, MIGRATION_MESSAGES as MESSAGES } from './constants';
 
-const DIRETORIO_DE_MIGRACOES = resolve(import.meta.dir, '..', MIGRATIONS.directory);
+const MIGRATIONS_DIRECTORY = resolve(import.meta.dir, '..', MIGRATIONS.directory);
 
-type Argumentos = { readonly somenteStatus: boolean; readonly url: string };
+type Args = { readonly statusOnly: boolean; readonly url: string };
 
-function lerArgumentos(argv: readonly string[]): Argumentos {
-  const restantes = [...argv];
-  let somenteStatus = false;
+function readArgs(argv: readonly string[]): Args {
+  const remaining = [...argv];
+  let statusOnly = false;
   let url = config.databaseUrl;
 
-  while (restantes.length > 0) {
-    const argumento = restantes.shift();
-    if (argumento === ARGUMENTOS.status) {
-      somenteStatus = true;
+  while (remaining.length > 0) {
+    const argument = remaining.shift();
+    if (argument === ARGUMENTS.status) {
+      statusOnly = true;
       continue;
     }
-    if (argumento === ARGUMENTOS.url) {
-      const valor = restantes.shift();
-      if (valor === undefined || valor.startsWith(ARGUMENTOS.prefixo)) {
-        throw new Error(MENSAGENS.urlSemValor);
+    if (argument === ARGUMENTS.url) {
+      const value = remaining.shift();
+      if (value === undefined || value.startsWith(ARGUMENTS.prefix)) {
+        throw new Error(MESSAGES.urlWithoutValue);
       }
-      url = valor;
+      url = value;
       continue;
     }
-    throw new Error(MENSAGENS.argumentoDesconhecido(String(argumento)));
+    throw new Error(MESSAGES.unknownArgument(String(argument)));
   }
 
-  return { somenteStatus, url };
+  return { statusOnly, url };
 }
 
-function destinoLegivel(url: string): string {
-  const endereco = new URL(url);
-  return `${endereco.host}${endereco.pathname}`;
+function readableTarget(url: string): string {
+  const address = new URL(url);
+  return `${address.host}${address.pathname}`;
 }
 
-async function arquivosDeMigracao(): Promise<string[]> {
-  const nomes: string[] = [];
-  for await (const nome of new Bun.Glob(MIGRATIONS.glob).scan({ cwd: DIRETORIO_DE_MIGRACOES })) {
-    nomes.push(nome);
+async function migrationFiles(): Promise<string[]> {
+  const names: string[] = [];
+  for await (const name of new Bun.Glob(MIGRATIONS.glob).scan({ cwd: MIGRATIONS_DIRECTORY })) {
+    names.push(name);
   }
-  return nomes.sort();
+  return names.sort();
 }
 
-async function garantirTabelaDeControle(sql: SQL): Promise<void> {
+async function ensureControlTable(sql: SQL): Promise<void> {
   await sql`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       versao      text PRIMARY KEY,
@@ -55,80 +55,80 @@ async function garantirTabelaDeControle(sql: SQL): Promise<void> {
   `;
 }
 
-async function versoesAplicadas(sql: SQL): Promise<Map<string, Date>> {
-  const controle: { presente: boolean }[] =
-    await sql`SELECT to_regclass('schema_migrations') IS NOT NULL AS presente`;
-  if (controle[0]?.presente !== true) {
+async function appliedVersions(sql: SQL): Promise<Map<string, Date>> {
+  const control: { present: boolean }[] =
+    await sql`SELECT to_regclass('schema_migrations') IS NOT NULL AS present`;
+  if (control[0]?.present !== true) {
     return new Map();
   }
-  const linhas: { versao: string; aplicada_em: Date }[] =
+  const rows: { versao: string; aplicada_em: Date }[] =
     await sql`SELECT versao, aplicada_em FROM schema_migrations ORDER BY versao`;
-  return new Map(linhas.map((linha) => [linha.versao, linha.aplicada_em]));
+  return new Map(rows.map((row) => [row.versao, row.aplicada_em]));
 }
 
-async function aplicar(sql: SQL, versao: string): Promise<void> {
-  const conteudo = await Bun.file(join(DIRETORIO_DE_MIGRACOES, versao)).text();
+async function apply(sql: SQL, version: string): Promise<void> {
+  const content = await Bun.file(join(MIGRATIONS_DIRECTORY, version)).text();
   await sql.begin(async (tx) => {
-    await tx.unsafe(conteudo);
-    await tx`INSERT INTO schema_migrations (versao) VALUES (${versao})`;
+    await tx.unsafe(content);
+    await tx`INSERT INTO schema_migrations (versao) VALUES (${version})`;
   });
 }
 
-function imprimirStatus(arquivos: readonly string[], aplicadas: ReadonlyMap<string, Date>): void {
-  let pendentes = 0;
-  for (const versao of arquivos) {
-    const aplicadaEm = aplicadas.get(versao);
-    if (aplicadaEm === undefined) {
-      pendentes += 1;
-      console.log(MENSAGENS.status.pendente(versao));
+function printStatus(files: readonly string[], applied: ReadonlyMap<string, Date>): void {
+  let pending = 0;
+  for (const version of files) {
+    const appliedAt = applied.get(version);
+    if (appliedAt === undefined) {
+      pending += 1;
+      console.log(MESSAGES.status.pending(version));
       continue;
     }
-    console.log(MENSAGENS.status.aplicada(versao, aplicadaEm.toISOString()));
+    console.log(MESSAGES.status.applied(version, appliedAt.toISOString()));
   }
-  for (const versao of aplicadas.keys()) {
-    if (!arquivos.includes(versao)) {
-      console.log(MENSAGENS.status.semArquivo(versao));
+  for (const version of applied.keys()) {
+    if (!files.includes(version)) {
+      console.log(MESSAGES.status.withoutFile(version));
     }
   }
-  console.log(MENSAGENS.status.resumo(arquivos.length - pendentes, pendentes));
+  console.log(MESSAGES.status.summary(files.length - pending, pending));
 }
 
-async function aplicarPendentes(sql: SQL, arquivos: readonly string[]): Promise<void> {
-  const aplicadas = await versoesAplicadas(sql);
-  const pendentes = arquivos.filter((versao) => !aplicadas.has(versao));
+async function applyPending(sql: SQL, files: readonly string[]): Promise<void> {
+  const applied = await appliedVersions(sql);
+  const pending = files.filter((version) => !applied.has(version));
 
-  if (pendentes.length === 0) {
-    console.log(MENSAGENS.aplicacao.nadaAAplicar);
+  if (pending.length === 0) {
+    console.log(MESSAGES.application.nothingToApply);
     return;
   }
 
-  for (const versao of pendentes) {
-    const inicio = Date.now();
-    await aplicar(sql, versao);
-    console.log(MENSAGENS.aplicacao.aplicada(versao, Date.now() - inicio));
+  for (const version of pending) {
+    const start = Date.now();
+    await apply(sql, version);
+    console.log(MESSAGES.application.applied(version, Date.now() - start));
   }
   console.log(
-    pendentes.length === 1 ? MENSAGENS.aplicacao.uma : MENSAGENS.aplicacao.varias(pendentes.length),
+    pending.length === 1 ? MESSAGES.application.one : MESSAGES.application.many(pending.length),
   );
 }
 
-async function executar(): Promise<void> {
-  const argumentos = lerArgumentos(Bun.argv.slice(ARGUMENTOS.primeiroDoUsuario));
-  const sql = new SQL({ url: argumentos.url, max: 1 });
+async function run(): Promise<void> {
+  const args = readArgs(Bun.argv.slice(ARGUMENTS.firstUserArg));
+  const sql = new SQL({ url: args.url, max: 1 });
 
   try {
-    console.log(MENSAGENS.destino(destinoLegivel(argumentos.url)));
-    const arquivos = await arquivosDeMigracao();
+    console.log(MESSAGES.target(readableTarget(args.url)));
+    const files = await migrationFiles();
 
-    if (argumentos.somenteStatus) {
-      imprimirStatus(arquivos, await versoesAplicadas(sql));
+    if (args.statusOnly) {
+      printStatus(files, await appliedVersions(sql));
       return;
     }
 
     await sql`SELECT pg_advisory_lock(${LOCK_KEYS.migration})`;
     try {
-      await garantirTabelaDeControle(sql);
-      await aplicarPendentes(sql, arquivos);
+      await ensureControlTable(sql);
+      await applyPending(sql, files);
     } finally {
       await sql`SELECT pg_advisory_unlock(${LOCK_KEYS.migration})`;
     }
@@ -138,8 +138,8 @@ async function executar(): Promise<void> {
 }
 
 try {
-  await executar();
-} catch (erro) {
-  console.error(MENSAGENS.falha(erro instanceof Error ? erro.message : String(erro)));
+  await run();
+} catch (error) {
+  console.error(MESSAGES.failure(error instanceof Error ? error.message : String(error)));
   process.exitCode = 1;
 }

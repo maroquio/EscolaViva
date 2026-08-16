@@ -14,251 +14,251 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { limparBanco, sqlDeTeste } from '../support/database';
-import { cenarioCompleto, type Cenario } from '../support/factories';
-import { abrir, entrar, enviar } from './support';
+import { clearDatabase, testSql } from '../support/database';
+import { fullScenario, type Scenario } from '../support/factories';
+import { open, signIn, send } from './support';
 
-const PRAZO_DO_FLUXO_MS = 60_000;
+const FLOW_DEADLINE_MS = 60_000;
 
-const BIMESTRES = [1, 2, 3, 4] as const;
-const DIAS_DE_CHAMADA = ['2026-03-02', '2026-03-03', '2026-03-04', '2026-03-05'] as const;
+const TERMS = [1, 2, 3, 4] as const;
+const ROLL_CALL_DAYS = ['2026-03-02', '2026-03-03', '2026-03-04', '2026-03-05'] as const;
 const NOTA_DE_APROVACAO = '8';
 
-const identificadorDoDestino = (resposta: Response): string => {
-  const destino = resposta.headers.get('Location') ?? '';
-  const caminho = destino.split('?')[0] ?? '';
-  return caminho.slice(caminho.lastIndexOf('/') + 1);
+const targetIdentifier = (response: Response): string => {
+  const target = response.headers.get('Location') ?? '';
+  const path = target.split('?')[0] ?? '';
+  return path.slice(path.lastIndexOf('/') + 1);
 };
 
-const responsavelPorEmail = async (redeId: string, email: string): Promise<string> => {
-  const linhas = await sqlDeTeste()<{ id: string }[]>`
-    SELECT id::text FROM guardian WHERE network_id = ${redeId} AND email = ${email}`;
-  const id = linhas[0]?.id;
+const guardianByEmail = async (networkId: string, email: string): Promise<string> => {
+  const rows = await testSql()<{ id: string }[]>`
+    SELECT id::text FROM guardian WHERE network_id = ${networkId} AND email = ${email}`;
+  const id = rows[0]?.id;
   if (id === undefined) throw new Error(`responsável ${email} não foi gravado`);
   return id;
 };
 
-const entrarComo = (
-  cenario: Cenario,
-  quem: 'secretaria' | 'professor' | 'responsavel',
+const signInAs = (
+  scenario: Scenario,
+  who: 'registrar' | 'teacher' | 'guardian',
 ): Promise<string> =>
-  entrar({ redeSlug: cenario.rede.slug, cpf: cenario[quem].cpf, senha: cenario.senha });
+  signIn({ networkSlug: scenario.network.slug, cpf: scenario[who].cpf, password: scenario.password });
 
 describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
   beforeEach(async () => {
-    await limparBanco();
+    await clearDatabase();
   });
 
   test('cadastrar, vincular e matricular deixa o aluno na turma escolhida', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
-    const turmaDestino = cenario.turmas[1];
-    const nomeDoAluno = 'Marina Aparecida do Vale';
-    const nomeDaResponsavel = 'Cleuza do Vale';
-    const emailDaResponsavel = 'cleuza.do.vale@escolaviva.test';
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
+    const targetClassGroup = scenario.classGroups[1];
+    const studentName = 'Marina Aparecida do Vale';
+    const guardianName = 'Cleuza do Vale';
+    const guardianEmail = 'cleuza.do.vale@escolaviva.test';
 
-    const cadastro = await enviar(
+    const registration = await send(
       '/secretaria/alunos',
-      { nome: nomeDoAluno, dataNascimento: '2014-07-21' },
+      { nome: studentName, dataNascimento: '2014-07-21' },
       cookie,
     );
-    const alunoId = identificadorDoDestino(cadastro);
+    const studentId = targetIdentifier(registration);
 
-    const responsavel = await enviar(
+    const guardian = await send(
       '/secretaria/responsaveis',
-      { nome: nomeDaResponsavel, email: emailDaResponsavel, telefone: '(27) 99999-0000' },
+      { nome: guardianName, email: guardianEmail, telefone: '(27) 99999-0000' },
       cookie,
     );
-    const responsavelId = await responsavelPorEmail(cenario.rede.id, emailDaResponsavel);
+    const guardianId = await guardianByEmail(scenario.network.id, guardianEmail);
 
-    const vinculo = await enviar(
-      `/secretaria/alunos/${alunoId}/responsaveis`,
-      { responsavelId, parentesco: 'mãe', financeiro: 'on' },
+    const guardianLink = await send(
+      `/secretaria/alunos/${studentId}/responsaveis`,
+      { responsavelId: guardianId, parentesco: 'mãe', financeiro: 'on' },
       cookie,
     );
 
-    const matricula = await enviar(
+    const enrollment = await send(
       '/secretaria/matriculas',
       {
-        alunoId,
-        turmaId: turmaDestino.id,
-        anoLetivoId: cenario.anoLetivo.id,
+        alunoId: studentId,
+        turmaId: targetClassGroup.id,
+        anoLetivoId: scenario.academicYear.id,
         dataMatricula: '2026-02-10',
       },
       cookie,
     );
 
-    const turma = await abrir(`/secretaria/turmas/${turmaDestino.id}`, cookie);
-    const paginaDaTurma = await turma.text();
+    const classGroup = await open(`/secretaria/turmas/${targetClassGroup.id}`, cookie);
+    const classGroupPage = await classGroup.text();
 
-    expect([cadastro.status, responsavel.status, vinculo.status, matricula.status]).toEqual([
+    expect([registration.status, guardian.status, guardianLink.status, enrollment.status]).toEqual([
       303, 303, 303, 303,
     ]);
-    expect(matricula.headers.get('Location')).toContain(`/secretaria/alunos/${alunoId}`);
-    expect(turma.status).toBe(200);
-    expect(paginaDaTurma).toContain(nomeDoAluno);
-  }, PRAZO_DO_FLUXO_MS);
+    expect(enrollment.headers.get('Location')).toContain(`/secretaria/alunos/${studentId}`);
+    expect(classGroup.status).toBe(200);
+    expect(classGroupPage).toContain(studentName);
+  }, FLOW_DEADLINE_MS);
 
   test('a ficha do aluno mostra o responsável vinculado e a matrícula ativa', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComo(cenario, 'secretaria');
-    const nomeDoAluno = 'Ivo Sampaio Rezende';
-    const emailDaResponsavel = 'tia.de.ivo@escolaviva.test';
+    const scenario = await fullScenario();
+    const cookie = await signInAs(scenario, 'registrar');
+    const studentName = 'Ivo Sampaio Rezende';
+    const guardianEmail = 'tia.de.ivo@escolaviva.test';
 
-    const cadastro = await enviar(
+    const registration = await send(
       '/secretaria/alunos',
-      { nome: nomeDoAluno, dataNascimento: '2013-01-30' },
+      { nome: studentName, dataNascimento: '2013-01-30' },
       cookie,
     );
-    const alunoId = identificadorDoDestino(cadastro);
-    await enviar(
+    const studentId = targetIdentifier(registration);
+    await send(
       '/secretaria/responsaveis',
-      { nome: 'Regina Sampaio', email: emailDaResponsavel, telefone: '' },
+      { nome: 'Regina Sampaio', email: guardianEmail, telefone: '' },
       cookie,
     );
-    const responsavelId = await responsavelPorEmail(cenario.rede.id, emailDaResponsavel);
-    await enviar(
-      `/secretaria/alunos/${alunoId}/responsaveis`,
-      { responsavelId, parentesco: 'tia', financeiro: 'on' },
+    const guardianId = await guardianByEmail(scenario.network.id, guardianEmail);
+    await send(
+      `/secretaria/alunos/${studentId}/responsaveis`,
+      { responsavelId: guardianId, parentesco: 'tia', financeiro: 'on' },
       cookie,
     );
-    await enviar(
+    await send(
       '/secretaria/matriculas',
       {
-        alunoId,
-        turmaId: cenario.turmas[1].id,
-        anoLetivoId: cenario.anoLetivo.id,
+        alunoId: studentId,
+        turmaId: scenario.classGroups[1].id,
+        anoLetivoId: scenario.academicYear.id,
         dataMatricula: '2026-02-10',
       },
       cookie,
     );
 
-    const ficha = await (await abrir(`/secretaria/alunos/${alunoId}`, cookie)).text();
+    const record = await (await open(`/secretaria/alunos/${studentId}`, cookie)).text();
 
-    expect(ficha).toContain('Regina Sampaio');
-    expect(ficha).toContain('tia');
-    expect(ficha).toContain(cenario.turmas[1].name);
-    expect(ficha).toContain('Ativa');
-  }, PRAZO_DO_FLUXO_MS);
+    expect(record).toContain('Regina Sampaio');
+    expect(record).toContain('tia');
+    expect(record).toContain(scenario.classGroups[1].name);
+    expect(record).toContain('Ativa');
+  }, FLOW_DEADLINE_MS);
 });
 
 describe('o professor fecha o ano e o responsável lê o boletim', () => {
   beforeEach(async () => {
-    await limparBanco();
+    await clearDatabase();
   });
 
-  const lancarTodasAsNotas = async (cenario: Cenario, cookie: string): Promise<Response[]> => {
-    const envios: Response[] = [];
-    for (const alocacao of cenario.turmaDisciplinas) {
-      for (const bimestre of BIMESTRES) {
-        const campos: Record<string, string> = { bimestre: String(bimestre) };
-        for (const matricula of cenario.matriculas) {
-          campos[`nota_${matricula.id}`] = NOTA_DE_APROVACAO;
+  const postAllGrades = async (scenario: Scenario, cookie: string): Promise<Response[]> => {
+    const submissions: Response[] = [];
+    for (const assignment of scenario.classGroupSubjects) {
+      for (const term of TERMS) {
+        const fields: Record<string, string> = { bimestre: String(term) };
+        for (const enrollment of scenario.enrollments) {
+          fields[`nota_${enrollment.id}`] = NOTA_DE_APROVACAO;
         }
-        envios.push(await enviar(`/professor/disciplinas/${alocacao.id}/notas`, campos, cookie));
+        submissions.push(await send(`/professor/disciplinas/${assignment.id}/notas`, fields, cookie));
       }
     }
-    return envios;
+    return submissions;
   };
 
-  const registrarChamadaCompleta = async (
-    cenario: Cenario,
+  const recordFullRollCall = async (
+    scenario: Scenario,
     cookie: string,
   ): Promise<Response[]> => {
-    const envios: Response[] = [];
-    for (const data of DIAS_DE_CHAMADA) {
-      const campos: Record<string, string> = { data };
-      for (const matricula of cenario.matriculas) campos[`presenca_${matricula.id}`] = 'on';
-      envios.push(
-        await enviar(`/professor/turmas/${cenario.turmas[0].id}/chamada`, campos, cookie),
+    const submissions: Response[] = [];
+    for (const date of ROLL_CALL_DAYS) {
+      const fields: Record<string, string> = { data: date };
+      for (const enrollment of scenario.enrollments) fields[`presenca_${enrollment.id}`] = 'on';
+      submissions.push(
+        await send(`/professor/turmas/${scenario.classGroups[0].id}/chamada`, fields, cookie),
       );
     }
-    return envios;
+    return submissions;
   };
 
-  const fecharBimestre = (cenario: Cenario, cookie: string, bimestre: number): Promise<Response> =>
-    enviar(
-      `/professor/turmas/${cenario.turmas[0].id}/fechamento`,
-      { bimestre: String(bimestre) },
+  const closeTerm = (scenario: Scenario, cookie: string, term: number): Promise<Response> =>
+    send(
+      `/professor/turmas/${scenario.classGroups[0].id}/fechamento`,
+      { bimestre: String(term) },
       cookie,
     );
 
   test('quatro bimestres lançados, chamada registrada e ano fechado dão a situação final', async () => {
-    const cenario = await cenarioCompleto();
-    const doProfessor = await entrarComo(cenario, 'professor');
-    const doResponsavel = await entrarComo(cenario, 'responsavel');
-    const boletimDe = (): Promise<Response> =>
-      abrir(`/responsavel/matriculas/${cenario.matriculas[0].id}/boletim`, doResponsavel);
+    const scenario = await fullScenario();
+    const teacherCookie = await signInAs(scenario, 'teacher');
+    const guardianCookie = await signInAs(scenario, 'guardian');
+    const reportCardOf = (): Promise<Response> =>
+      open(`/responsavel/matriculas/${scenario.enrollments[0].id}/boletim`, guardianCookie);
 
-    const notas = await lancarTodasAsNotas(cenario, doProfessor);
-    const chamadas = await registrarChamadaCompleta(cenario, doProfessor);
+    const grades = await postAllGrades(scenario, teacherCookie);
+    const rollCalls = await recordFullRollCall(scenario, teacherCookie);
 
-    const antesDoFechamento = await (await boletimDe()).text();
-    const fechamentos: Response[] = [];
-    for (const bimestre of BIMESTRES) {
-      fechamentos.push(await fecharBimestre(cenario, doProfessor, bimestre));
+    const beforeClosing = await (await reportCardOf()).text();
+    const closings: Response[] = [];
+    for (const term of TERMS) {
+      closings.push(await closeTerm(scenario, teacherCookie, term));
     }
-    const depoisDoFechamento = await boletimDe();
-    const boletim = await depoisDoFechamento.text();
+    const afterClosing = await reportCardOf();
+    const reportCard = await afterClosing.text();
 
-    expect(notas.every((resposta) => resposta.status === 303)).toBe(true);
-    expect(chamadas.every((resposta) => resposta.status === 303)).toBe(true);
-    expect(fechamentos.every((resposta) => resposta.status === 303)).toBe(true);
-    expect(antesDoFechamento).toContain('Em curso');
-    expect(depoisDoFechamento.status).toBe(200);
-    expect(boletim).toContain('Aprovado');
-    expect(boletim).not.toContain('Em curso');
-  }, PRAZO_DO_FLUXO_MS);
+    expect(grades.every((response) => response.status === 303)).toBe(true);
+    expect(rollCalls.every((response) => response.status === 303)).toBe(true);
+    expect(closings.every((response) => response.status === 303)).toBe(true);
+    expect(beforeClosing).toContain('Em curso');
+    expect(afterClosing.status).toBe(200);
+    expect(reportCard).toContain('Aprovado');
+    expect(reportCard).not.toContain('Em curso');
+  }, FLOW_DEADLINE_MS);
 
   test('o boletim mostra a média e a frequência que decidiram a situação', async () => {
-    const cenario = await cenarioCompleto();
-    const doProfessor = await entrarComo(cenario, 'professor');
-    const doResponsavel = await entrarComo(cenario, 'responsavel');
+    const scenario = await fullScenario();
+    const teacherCookie = await signInAs(scenario, 'teacher');
+    const guardianCookie = await signInAs(scenario, 'guardian');
 
-    await lancarTodasAsNotas(cenario, doProfessor);
-    await registrarChamadaCompleta(cenario, doProfessor);
-    for (const bimestre of BIMESTRES) await fecharBimestre(cenario, doProfessor, bimestre);
-    const boletim = await (
-      await abrir(`/responsavel/matriculas/${cenario.matriculas[0].id}/boletim`, doResponsavel)
+    await postAllGrades(scenario, teacherCookie);
+    await recordFullRollCall(scenario, teacherCookie);
+    for (const term of TERMS) await closeTerm(scenario, teacherCookie, term);
+    const reportCard = await (
+      await open(`/responsavel/matriculas/${scenario.enrollments[0].id}/boletim`, guardianCookie)
     ).text();
 
-    expect(boletim).toContain('8,0');
-    expect(boletim).toContain('100,0 %');
-    expect(boletim).toContain(cenario.alunos[0].name);
-    for (const disciplina of cenario.disciplinas) expect(boletim).toContain(disciplina.name);
-  }, PRAZO_DO_FLUXO_MS);
+    expect(reportCard).toContain('8,0');
+    expect(reportCard).toContain('100,0 %');
+    expect(reportCard).toContain(scenario.students[0].name);
+    for (const subject of scenario.subjects) expect(reportCard).toContain(subject.name);
+  }, FLOW_DEADLINE_MS);
 
   test('a frequência dia a dia mostra as quatro chamadas registradas', async () => {
-    const cenario = await cenarioCompleto();
-    const doProfessor = await entrarComo(cenario, 'professor');
-    const doResponsavel = await entrarComo(cenario, 'responsavel');
+    const scenario = await fullScenario();
+    const teacherCookie = await signInAs(scenario, 'teacher');
+    const guardianCookie = await signInAs(scenario, 'guardian');
 
-    await registrarChamadaCompleta(cenario, doProfessor);
-    const pagina = await abrir(
-      `/responsavel/matriculas/${cenario.matriculas[0].id}/frequencia`,
-      doResponsavel,
+    await recordFullRollCall(scenario, teacherCookie);
+    const page = await open(
+      `/responsavel/matriculas/${scenario.enrollments[0].id}/frequencia`,
+      guardianCookie,
     );
-    const frequencia = await pagina.text();
+    const attendance = await page.text();
 
-    expect(pagina.status).toBe(200);
-    expect(frequencia).toContain('02/03/2026');
-    expect(frequencia).toContain('05/03/2026');
-  }, PRAZO_DO_FLUXO_MS);
+    expect(page.status).toBe(200);
+    expect(attendance).toContain('02/03/2026');
+    expect(attendance).toContain('05/03/2026');
+  }, FLOW_DEADLINE_MS);
 
   test('o fechamento é recusado enquanto falta nota, e o boletim segue em curso', async () => {
-    const cenario = await cenarioCompleto();
-    const doProfessor = await entrarComo(cenario, 'professor');
-    const doResponsavel = await entrarComo(cenario, 'responsavel');
+    const scenario = await fullScenario();
+    const teacherCookie = await signInAs(scenario, 'teacher');
+    const guardianCookie = await signInAs(scenario, 'guardian');
 
-    const recusa = await fecharBimestre(cenario, doProfessor, 1);
-    const corpoDaRecusa = await recusa.text();
-    const boletim = await (
-      await abrir(`/responsavel/matriculas/${cenario.matriculas[0].id}/boletim`, doResponsavel)
+    const rejection = await closeTerm(scenario, teacherCookie, 1);
+    const rejectionBody = await rejection.text();
+    const reportCard = await (
+      await open(`/responsavel/matriculas/${scenario.enrollments[0].id}/boletim`, guardianCookie)
     ).text();
 
     // Cinco matrículas ativas em três disciplinas alocadas, nenhuma nota lançada: faltam quinze.
-    expect(recusa.status).toBe(200);
-    expect(corpoDaRecusa).toContain('Faltam 15 notas para fechar o bimestre');
-    expect(boletim).toContain('Em curso');
-  }, PRAZO_DO_FLUXO_MS);
+    expect(rejection.status).toBe(200);
+    expect(rejectionBody).toContain('Faltam 15 notas para fechar o bimestre');
+    expect(reportCard).toContain('Em curso');
+  }, FLOW_DEADLINE_MS);
 });

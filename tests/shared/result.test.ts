@@ -15,55 +15,55 @@ import {
 } from '../../src/shared/result';
 
 /** Issues de zod de verdade: é delas que `schemaErrors` vive em todos os casos de uso. */
-function issuesDe(schema: z.ZodTypeAny, entrada: unknown): z.ZodIssue[] {
-  const analise = schema.safeParse(entrada);
-  return analise.success ? [] : analise.error.issues;
+function issuesOf(schema: z.ZodTypeAny, input: unknown): z.ZodIssue[] {
+  const parsed = schema.safeParse(input);
+  return parsed.success ? [] : parsed.error.issues;
 }
 
 describe('success', () => {
   test('marca ok como verdadeiro e carrega o valor', () => {
-    const valor = { id: 'm1', situacao: 'active' };
+    const value = { id: 'm1', status: 'active' };
 
-    const resultado = success(valor);
+    const result = success(value);
 
-    expect(resultado).toEqual({ ok: true, valor });
+    expect(result).toEqual({ ok: true, valor: value });
   });
 
   test('aceita void como valor, para caso de uso que não devolve nada', () => {
-    const nada = undefined;
+    const nothing = undefined;
 
-    const resultado = success(nada);
+    const result = success(nothing);
 
-    expect(resultado).toEqual({ ok: true, valor: undefined });
+    expect(result).toEqual({ ok: true, valor: undefined });
   });
 });
 
 describe('failure', () => {
   test('marca ok como falso e carrega os erros na ordem recebida', () => {
-    const primeiro: ApplicationError = { codigo: 'nota_invalida', mensagem: 'nota fora de 0 a 10' };
-    const segundo: ApplicationError = { codigo: 'bimestre_fechado', mensagem: 'bimestre fechado' };
+    const first: ApplicationError = { codigo: 'nota_invalida', mensagem: 'nota fora de 0 a 10' };
+    const second: ApplicationError = { codigo: 'bimestre_fechado', mensagem: 'bimestre fechado' };
 
-    const resultado = failure(primeiro, segundo);
+    const result = failure(first, second);
 
-    expect(resultado).toEqual({ ok: false, erros: [primeiro, segundo] });
+    expect(result).toEqual({ ok: false, erros: [first, second] });
   });
 
   test('sem argumento nenhum devolve lista de erros vazia', () => {
-    const semErros: ApplicationError[] = [];
+    const withoutErrors: ApplicationError[] = [];
 
-    const resultado = failure(...semErros);
+    const result = failure(...withoutErrors);
 
-    expect(resultado).toEqual({ ok: false, erros: [] });
+    expect(result).toEqual({ ok: false, erros: [] });
   });
 });
 
 describe('fieldFailure', () => {
   test('produz um único erro amarrado ao campo do formulário', () => {
-    const campo = 'email';
+    const field = 'email';
 
-    const resultado = fieldFailure(campo, 'email_em_uso', 'já existe usuário com este e-mail');
+    const result = fieldFailure(field, 'email_em_uso', 'já existe usuário com este e-mail');
 
-    expect(resultado).toEqual({
+    expect(result).toEqual({
       ok: false,
       erros: [{ campo: 'email', codigo: 'email_em_uso', mensagem: 'já existe usuário com este e-mail' }],
     });
@@ -74,9 +74,9 @@ describe('schemaErrors', () => {
   test('converte cada issue de zod preservando o nome do campo', () => {
     const schema = z.object({ nome: z.string().min(3, 'nome curto demais') });
 
-    const erros = schemaErrors(issuesDe(schema, { nome: 'Jo' }));
+    const errors = schemaErrors(issuesOf(schema, { nome: 'Jo' }));
 
-    expect(erros).toEqual([{ codigo: 'too_small', mensagem: 'nome curto demais', campo: 'nome' }]);
+    expect(errors).toEqual([{ codigo: 'too_small', mensagem: 'nome curto demais', campo: 'nome' }]);
   });
 
   test('preserva o caminho completo de campo aninhado, com o índice do array', () => {
@@ -84,9 +84,9 @@ describe('schemaErrors', () => {
       notas: z.array(z.object({ valor: z.number().max(10, 'nota acima de dez') })),
     });
 
-    const erros = schemaErrors(issuesDe(schema, { notas: [{ valor: 8 }, { valor: 11 }] }));
+    const errors = schemaErrors(issuesOf(schema, { notas: [{ valor: 8 }, { valor: 11 }] }));
 
-    expect(erros).toEqual([{ codigo: 'too_big', mensagem: 'nota acima de dez', campo: 'notas.1.valor' }]);
+    expect(errors).toEqual([{ codigo: 'too_big', mensagem: 'nota acima de dez', campo: 'notas.1.valor' }]);
   });
 
   test('converte todas as issues de uma vez, e não só a primeira', () => {
@@ -95,27 +95,27 @@ describe('schemaErrors', () => {
       ano: z.number().int('ano precisa ser inteiro'),
     });
 
-    const erros = schemaErrors(issuesDe(schema, { nome: 'Jo', ano: 2026.5 }));
+    const errors = schemaErrors(issuesOf(schema, { nome: 'Jo', ano: 2026.5 }));
 
-    expect(erros.map((erro) => erro.campo)).toEqual(['nome', 'ano']);
+    expect(errors.map((error) => error.campo)).toEqual(['nome', 'ano']);
   });
 
   test('omite a chave campo quando o erro é da raiz do schema', () => {
     const schema = z
       .object({ dataInicio: z.string(), dataFim: z.string() })
-      .refine((valor) => valor.dataFim > valor.dataInicio, 'fim antes do início');
+      .refine((value) => value.dataFim > value.dataInicio, 'fim antes do início');
 
-    const erros = schemaErrors(issuesDe(schema, { dataInicio: '2026-12-15', dataFim: '2026-02-01' }));
+    const errors = schemaErrors(issuesOf(schema, { dataInicio: '2026-12-15', dataFim: '2026-02-01' }));
 
-    expect(erros).toEqual([{ codigo: 'custom', mensagem: 'fim antes do início' }]);
-    expect(Object.hasOwn(erros[0] ?? {}, 'campo')).toBe(false);
+    expect(errors).toEqual([{ codigo: 'custom', mensagem: 'fim antes do início' }]);
+    expect(Object.hasOwn(errors[0] ?? {}, 'campo')).toBe(false);
   });
 
   test('lista vazia de issues vira lista vazia de erros', () => {
     const schema = z.object({ nome: z.string() });
 
-    const erros = schemaErrors(issuesDe(schema, { nome: 'Ana' }));
+    const errors = schemaErrors(issuesOf(schema, { nome: 'Ana' }));
 
-    expect(erros).toEqual([]);
+    expect(errors).toEqual([]);
   });
 });

@@ -10,50 +10,50 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test';
-import { prepararBanco } from '../support/database';
-import { abrir, saudeComBancoForaDoAr } from './support';
+import { prepareDatabase } from '../support/database';
+import { open, healthWithDatabaseDown } from './support';
 
-const PRAZO_DO_PROCESSO_MS = 30_000;
+const PROCESS_DEADLINE_MS = 30_000;
 
 describe('rotas de saúde', () => {
   beforeAll(async () => {
-    await prepararBanco();
+    await prepareDatabase();
   });
 
   test('/health responde 200 com o banco de pé', async () => {
-    const resposta = await abrir('/health');
+    const response = await open('/health');
 
-    const corpo = (await resposta.json()) as { status: string; banco: string };
+    const body = (await response.json()) as { status: string; banco: string };
 
-    expect(resposta.status).toBe(200);
-    expect(corpo).toEqual({ status: 'ok', banco: 'ok' });
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ status: 'ok', banco: 'ok' });
   });
 
   test('/health/live responde 200 sem tocar no banco', async () => {
-    const comBancoDePe = await abrir('/health/live');
+    const withDatabaseUp = await open('/health/live');
 
-    const semBanco = await saudeComBancoForaDoAr();
+    const withoutDatabase = await healthWithDatabaseDown();
 
-    expect(comBancoDePe.status).toBe(200);
-    expect(semBanco.live).toBe(200);
-    expect(semBanco.health).toBe(503);
-  }, PRAZO_DO_PROCESSO_MS);
+    expect(withDatabaseUp.status).toBe(200);
+    expect(withoutDatabase.live).toBe(200);
+    expect(withoutDatabase.health).toBe(503);
+  }, PROCESS_DEADLINE_MS);
 
   test('as duas rotas de saúde recusam cache', async () => {
-    const saude = await abrir('/health');
-    const vivo = await abrir('/health/live');
+    const health = await open('/health');
+    const live = await open('/health/live');
 
-    const cabecalhos = [saude.headers.get('Cache-Control'), vivo.headers.get('Cache-Control')];
+    const headers = [health.headers.get('Cache-Control'), live.headers.get('Cache-Control')];
 
-    expect(cabecalhos).toEqual(['no-store', 'no-store']);
+    expect(headers).toEqual(['no-store', 'no-store']);
   });
 
   test('/health não é rota autenticada: responde sem sessão nenhuma', async () => {
-    const resposta = await abrir('/health');
+    const response = await open('/health');
 
-    const tipo = resposta.headers.get('Content-Type') ?? '';
+    const kind = response.headers.get('Content-Type') ?? '';
 
-    expect(resposta.status).toBe(200);
-    expect(tipo).toContain('application/json');
+    expect(response.status).toBe(200);
+    expect(kind).toContain('application/json');
   });
 });

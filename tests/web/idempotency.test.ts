@@ -12,157 +12,157 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { limparBanco, sqlDeTeste } from '../support/database';
-import { cenarioCompleto, type Cenario } from '../support/factories';
-import { abrir, entrar, enviar, postar } from './support';
+import { clearDatabase, testSql } from '../support/database';
+import { fullScenario, type Scenario } from '../support/factories';
+import { open, signIn, send, post } from './support';
 
-const ROTA = '/secretaria/disciplinas';
-const CHAVE_DE_UUID = /name="_chave" value="([0-9a-f-]{36})"/g;
+const ROUTE = '/secretaria/disciplinas';
+const UUID_KEY = /name="_chave" value="([0-9a-f-]{36})"/g;
 
-const chavesDaPagina = (html: string): string[] =>
-  [...html.matchAll(CHAVE_DE_UUID)].flatMap((encontro) =>
-    encontro[1] === undefined ? [] : [encontro[1]],
+const pageKeys = (html: string): string[] =>
+  [...html.matchAll(UUID_KEY)].flatMap((meeting) =>
+    meeting[1] === undefined ? [] : [meeting[1]],
   );
 
-const entrarComoSecretaria = (cenario: Cenario): Promise<string> =>
-  entrar({
-    redeSlug: cenario.rede.slug,
-    cpf: cenario.secretaria.cpf,
-    senha: cenario.senha,
+const signInAsRegistrar = (scenario: Scenario): Promise<string> =>
+  signIn({
+    networkSlug: scenario.network.slug,
+    cpf: scenario.registrar.cpf,
+    password: scenario.password,
   });
 
-const disciplinasChamadas = async (redeId: string, nome: string): Promise<number> => {
-  const linhas = await sqlDeTeste()<{ total: string }[]>`
-    SELECT count(*)::text AS total FROM subject WHERE network_id = ${redeId} AND name = ${nome}`;
-  return Number(linhas[0]?.total ?? '0');
+const subjectsNamed = async (networkId: string, name: string): Promise<number> => {
+  const rows = await testSql()<{ total: string }[]>`
+    SELECT count(*)::text AS total FROM subject WHERE network_id = ${networkId} AND name = ${name}`;
+  return Number(rows[0]?.total ?? '0');
 };
 
-const chavesGravadas = async (): Promise<number> => {
-  const linhas = await sqlDeTeste()<{ total: string }[]>`
+const storedKeys = async (): Promise<number> => {
+  const rows = await testSql()<{ total: string }[]>`
     SELECT count(*)::text AS total FROM idempotent_request`;
-  return Number(linhas[0]?.total ?? '0');
+  return Number(rows[0]?.total ?? '0');
 };
 
 describe('idempotência de formulário', () => {
   beforeEach(async () => {
-    await limparBanco();
+    await clearDatabase();
   });
 
   test('escrita sem chave de idempotência é recusada com 400', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await postar(ROTA, { nome: 'Geografia' }, cookie);
+    const response = await post(ROUTE, { nome: 'Geografia' }, cookie);
 
-    expect(resposta.status).toBe(400);
-    expect(await disciplinasChamadas(cenario.rede.id, 'Geografia')).toBe(0);
+    expect(response.status).toBe(400);
+    expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(0);
   });
 
   test('chave fora do formato de uuid é recusada com 400', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const resposta = await postar(ROTA, { _chave: 'chave-inventada', nome: 'Geografia' }, cookie);
+    const response = await post(ROUTE, { _chave: 'chave-inventada', nome: 'Geografia' }, cookie);
 
-    expect(resposta.status).toBe(400);
-    expect(await disciplinasChamadas(cenario.rede.id, 'Geografia')).toBe(0);
+    expect(response.status).toBe(400);
+    expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(0);
   });
 
   test('o mesmo formulário enviado duas vezes cria um único registro', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
-    const campos = { _chave: crypto.randomUUID(), nome: 'Geografia' };
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
+    const fields = { _chave: crypto.randomUUID(), nome: 'Geografia' };
 
-    const primeira = await postar(ROTA, campos, cookie);
-    const segunda = await postar(ROTA, campos, cookie);
+    const first = await post(ROUTE, fields, cookie);
+    const second = await post(ROUTE, fields, cookie);
 
-    expect(primeira.status).toBe(303);
-    expect(segunda.status).toBe(303);
-    expect(await disciplinasChamadas(cenario.rede.id, 'Geografia')).toBe(1);
+    expect(first.status).toBe(303);
+    expect(second.status).toBe(303);
+    expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(1);
   });
 
   test('o reenvio leva ao mesmo destino da primeira submissão', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
-    const campos = { _chave: crypto.randomUUID(), nome: 'Geografia' };
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
+    const fields = { _chave: crypto.randomUUID(), nome: 'Geografia' };
 
-    const primeira = await postar(ROTA, campos, cookie);
-    const segunda = await postar(ROTA, campos, cookie);
+    const first = await post(ROUTE, fields, cookie);
+    const second = await post(ROUTE, fields, cookie);
 
-    expect(segunda.headers.get('Location')).toBe(primeira.headers.get('Location'));
+    expect(second.headers.get('Location')).toBe(first.headers.get('Location'));
   });
 
   test('chaves diferentes criam dois registros', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    await enviar(ROTA, { nome: 'Geografia' }, cookie);
-    await enviar(ROTA, { nome: 'Artes' }, cookie);
+    await send(ROUTE, { nome: 'Geografia' }, cookie);
+    await send(ROUTE, { nome: 'Artes' }, cookie);
 
-    expect(await disciplinasChamadas(cenario.rede.id, 'Geografia')).toBe(1);
-    expect(await disciplinasChamadas(cenario.rede.id, 'Artes')).toBe(1);
+    expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(1);
+    expect(await subjectsNamed(scenario.network.id, 'Artes')).toBe(1);
   });
 
   test('a chave é registrada com o destino gravado, e não com a resposta inteira', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
-    const chave = crypto.randomUUID();
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
+    const key = crypto.randomUUID();
 
-    const resposta = await postar(ROTA, { _chave: chave, nome: 'Geografia' }, cookie);
-    const linhas = await sqlDeTeste()<{ route: string; response_location: string }[]>`
-      SELECT route, response_location FROM idempotent_request WHERE idempotency_key = ${chave}`;
+    const response = await post(ROUTE, { _chave: key, nome: 'Geografia' }, cookie);
+    const rows = await testSql()<{ route: string; response_location: string }[]>`
+      SELECT route, response_location FROM idempotent_request WHERE idempotency_key = ${key}`;
 
-    expect(linhas).toHaveLength(1);
-    expect(linhas[0]?.route).toBe(ROTA);
-    expect(linhas[0]?.response_location).toBe(resposta.headers.get('Location') ?? '');
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.route).toBe(ROUTE);
+    expect(rows[0]?.response_location).toBe(response.headers.get('Location') ?? '');
   });
 
   test('formulário recusado na validação devolve a chave para a correção', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
-    const chave = crypto.randomUUID();
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
+    const key = crypto.randomUUID();
 
-    const recusada = await postar(ROTA, { _chave: chave, nome: '' }, cookie);
-    const chavesApos = await chavesGravadas();
-    const corrigida = await postar(ROTA, { _chave: chave, nome: 'Geografia' }, cookie);
+    const rejected = await post(ROUTE, { _chave: key, nome: '' }, cookie);
+    const keysAfter = await storedKeys();
+    const fixed = await post(ROUTE, { _chave: key, nome: 'Geografia' }, cookie);
 
-    expect(recusada.status).toBe(200);
-    expect(chavesApos).toBe(0);
-    expect(corrigida.status).toBe(303);
-    expect(await disciplinasChamadas(cenario.rede.id, 'Geografia')).toBe(1);
+    expect(rejected.status).toBe(200);
+    expect(keysAfter).toBe(0);
+    expect(fixed.status).toBe(303);
+    expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(1);
   });
 
   test('cada carregamento do formulário traz uma chave nova', async () => {
-    const cenario = await cenarioCompleto();
-    const cookie = await entrarComoSecretaria(cenario);
+    const scenario = await fullScenario();
+    const cookie = await signInAsRegistrar(scenario);
 
-    const primeira = chavesDaPagina(await (await abrir(ROTA, cookie)).text());
-    const segunda = chavesDaPagina(await (await abrir(ROTA, cookie)).text());
+    const first = pageKeys(await (await open(ROUTE, cookie)).text());
+    const second = pageKeys(await (await open(ROUTE, cookie)).text());
 
-    expect(primeira.length).toBeGreaterThan(0);
-    expect(segunda.length).toBe(primeira.length);
-    expect(primeira.some((chave) => segunda.includes(chave))).toBe(false);
+    expect(first.length).toBeGreaterThan(0);
+    expect(second.length).toBe(first.length);
+    expect(first.some((key) => second.includes(key))).toBe(false);
   });
 
   test('a chave de uma pessoa não bloqueia o formulário de outra', async () => {
-    const cenario = await cenarioCompleto();
-    const outraRede = await cenarioCompleto();
-    const chave = crypto.randomUUID();
+    const scenario = await fullScenario();
+    const otherNetwork = await fullScenario();
+    const key = crypto.randomUUID();
 
-    const daPrimeira = await postar(
-      ROTA,
-      { _chave: chave, nome: 'Geografia' },
-      await entrarComoSecretaria(cenario),
+    const ofTheFirst = await post(
+      ROUTE,
+      { _chave: key, nome: 'Geografia' },
+      await signInAsRegistrar(scenario),
     );
-    const daSegunda = await postar(
-      ROTA,
+    const ofTheSecond = await post(
+      ROUTE,
       { _chave: crypto.randomUUID(), nome: 'Geografia' },
-      await entrarComoSecretaria(outraRede),
+      await signInAsRegistrar(otherNetwork),
     );
 
-    expect(daPrimeira.status).toBe(303);
-    expect(daSegunda.status).toBe(303);
-    expect(await disciplinasChamadas(cenario.rede.id, 'Geografia')).toBe(1);
-    expect(await disciplinasChamadas(outraRede.rede.id, 'Geografia')).toBe(1);
+    expect(ofTheFirst.status).toBe(303);
+    expect(ofTheSecond.status).toBe(303);
+    expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(1);
+    expect(await subjectsNamed(otherNetwork.network.id, 'Geografia')).toBe(1);
   });
 });
