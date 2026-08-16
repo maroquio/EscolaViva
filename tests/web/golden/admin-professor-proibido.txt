@@ -18,42 +18,42 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="publico">
-    <main class="publico__cartao" id="content" tabindex="-1">
+  <div class="public">
+    <main class="public__card" id="content" tabindex="-1">
       <header>
-        <span class="marca publico__marca">Escola<em>Viva</em></span>
-        <p class="publico__titulo">Portal da rede escolar</p>
+        <span class="brand public__brand">Escola<em>Viva</em></span>
+        <p class="public__title">Portal da rede escolar</p>
       </header>
 
       
 
-      <div class="erro">
+      <div class="error">
   <div>
-    <p class="erro__status">Erro 403</p>
+    <p class="error__status">Erro 403</p>
     <h1>Acesso não permitido</h1>
   </div>
 
-  <p class="leitura">Sua conta não tem permissão para esta tela. Se você deveria ter, peça ao administrador da rede.</p>
+  <p class="reading">Sua conta não tem permissão para esta tela. Se você deveria ter, peça ao administrador da rede.</p>
 
-    <div class="erro__ocorrencia">
-    <dl class="lista-definicoes">
+    <div class="error__occurrence">
+    <dl class="definition-list">
       <dt>Ocorrência</dt>
-      <dd><code class="codigo">{{correlacao}}</code></dd>
+      <dd><code class="code">{{correlacao}}</code></dd>
     </dl>
-    <p class="erro__instrucao">
+    <p class="error__instruction">
       Informe este código ao pedir ajuda: ele localiza exatamente esta ocorrência no registro do sistema.
     </p>
   </div>
   
-  <p class="linha">
-    <a class="botao botao--secundario" href="/dashboard">Voltar ao painel</a>
-    <a class="botao botao--discreto" href="/login">Entrar novamente</a>
+  <p class="row">
+    <a class="button button--secondary" href="/dashboard">Voltar ao painel</a>
+    <a class="button button--quiet" href="/login">Entrar novamente</a>
   </p>
 </div>
 
-      <p class="publico__rodape">
+      <p class="public__footer">
         Sistema de uso restrito. O acesso é registrado.
       </p>
     </main>
@@ -61,7 +61,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -69,7 +69,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

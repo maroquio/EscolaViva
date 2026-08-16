@@ -18,113 +18,113 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
-    <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
 
-    <div class="cabecalho__contexto">
-    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
-    <span class="cabecalho__unidade">
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
               2 unidades
           </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+  <div class="header__user">
+    <span class="header__name" title="alice@golden.test">Alice Diretora</span>
+    <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{chave}}">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   </header>
-    <nav class="navegacao" aria-label="Navegação principal">
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Rede</h2>
-    <ul class="navegacao__lista">
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Rede</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/network">Painel da rede</a>
+        <a class="navigation__link" href="/network">Painel da rede</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/schools">Unidades</a>
+        <a class="navigation__link" href="/network/schools">Unidades</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/users">Usuários</a>
+        <a class="navigation__link" href="/network/users">Usuários</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/academic-years">Anos letivos</a>
-      </li>
-          </ul>
-  </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Comunicação</h2>
-    <ul class="navegacao__lista">
-            <li>
-        <a class="navegacao__link" href="/announcements" aria-current="page">Comunicados</a>
+        <a class="navigation__link" href="/network/academic-years">Anos letivos</a>
       </li>
           </ul>
   </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Conta</h2>
-    <ul class="navegacao__lista">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Comunicação</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/account/password">Trocar senha</a>
+        <a class="navigation__link" href="/announcements" aria-current="page">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
   </nav>
 
-    <main class="conteudo" id="content" tabindex="-1">
+    <main class="content" id="content" tabindex="-1">
       
 
-      <header class="pagina__cabecalho">
+      <header class="page__header">
   <div>
-    <p class="sobretitulo">Comunicação</p>
-    <h1 class="pagina__titulo">Novo comunicado</h1>
-    <p class="pagina__resumo">
+    <p class="overline">Comunicação</p>
+    <h1 class="page__title">Novo comunicado</h1>
+    <p class="page__summary">
       O comunicado aparece no mural dos responsáveis escolhidos, e a leitura de cada um passa a ser
       medida a partir da publicação.
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="/announcements">Voltar aos comunicados</a>
+  <p class="page__actions">
+    <a class="button button--quiet" href="/announcements">Voltar aos comunicados</a>
   </p>
 </header>
 
-<section class="secao" aria-labelledby="message-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="message-title">
+  <div class="section__header">
     <h2 id="message-title">Passo 2 · Mensagem</h2>
-    <p class="secao__nota">
+    <p class="section__note">
       Unidade <strong>Escola Central</strong> ·
       <a href="/announcements/new">trocar unidade</a>
     </p>
   </div>
 
-  <form class="formulario formulario--largo" method="post" action="/announcements/new">
+  <form class="form form--wide" method="post" action="/announcements/new">
     <input type="hidden" name="_key" value="{{chave}}">
     <input type="hidden" name="schoolId" value="{{unidadeA}}">
 
-    <div class="campo leitura">
-      <label class="campo__rotulo" for="title">
-        Título <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="field reading">
+      <label class="field__label" for="title">
+        Título <span class="field__required" aria-hidden="true">*</span>
       </label>
       <input type="text" id="title" name="title" required
              value=""
              aria-describedby="title-help"
              >
-      <p class="campo__ajuda" id="title-help">
+      <p class="field__help" id="title-help">
         É a linha que o responsável vê na lista do mural.
       </p>
           </div>
 
-    <div class="campo leitura">
-      <label class="campo__rotulo" for="body">
-        Mensagem <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="field reading">
+      <label class="field__label" for="body">
+        Mensagem <span class="field__required" aria-hidden="true">*</span>
       </label>
       <textarea id="body" name="body" required rows="10"
                                 aria-describedby="body-help"></textarea>
-      <p class="campo__ajuda" id="body-help">
+      <p class="field__help" id="body-help">
         O texto aparece como foi digitado, com as quebras de linha preservadas.
       </p>
           </div>
@@ -132,126 +132,126 @@ Vary: Cookie
     <fieldset aria-describedby="recipients-help">
       <legend>Destinatários</legend>
 
-      <div class="pilha">
-        <div class="campo campo--opcao">
+      <div class="stack">
+        <div class="field field--choice">
           <input type="radio" id="audience-school" name="audience" value="unidade"
                  checked>
-          <label class="campo__rotulo" for="audience-school">
+          <label class="field__label" for="audience-school">
             Todos os responsáveis da unidade
-            (<span class="numero">12</span>)
+            (<span class="number">12</span>)
           </label>
         </div>
 
-        <div class="campo campo--opcao">
+        <div class="field field--choice">
           <input type="radio" id="audience-selected" name="audience" value="selecionados"
                  >
-          <label class="campo__rotulo" for="audience-selected">
+          <label class="field__label" for="audience-selected">
             Apenas os responsáveis marcados abaixo
           </label>
         </div>
 
-        <p class="campo__ajuda" id="recipients-help">
+        <p class="field__help" id="recipients-help">
           Enviar para toda a unidade alcança quem tiver aluno com matrícula ativa no dia do envio.
         </p>
 
         
-                        <p class="linha">
-          <button class="botao botao--secundario botao--miudo" type="button"
+                        <p class="row">
+          <button class="button button--secondary button--small" type="button"
                   id="select-all" hidden>Selecionar todos</button>
         </p>
 
-        <ul class="grade-opcoes">
-                    <li class="campo campo--opcao">
+        <ul class="options-grid">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel01}}"
                    name="guardians[]" value="{{responsavel01}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel01}}">
+            <label class="field__label" for="guardian-{{responsavel01}}">
               Responsável 01 da Silva            </label>
           </li>
-                    <li class="campo campo--opcao">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel02}}"
                    name="guardians[]" value="{{responsavel02}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel02}}">
+            <label class="field__label" for="guardian-{{responsavel02}}">
               Responsável 02 da Silva            </label>
           </li>
-                    <li class="campo campo--opcao">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel03}}"
                    name="guardians[]" value="{{responsavel03}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel03}}">
+            <label class="field__label" for="guardian-{{responsavel03}}">
               Responsável 03 da Silva            </label>
           </li>
-                    <li class="campo campo--opcao">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel04}}"
                    name="guardians[]" value="{{responsavel04}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel04}}">
+            <label class="field__label" for="guardian-{{responsavel04}}">
               Responsável 04 da Silva            </label>
           </li>
-                    <li class="campo campo--opcao">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel05}}"
                    name="guardians[]" value="{{responsavel05}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel05}}">
+            <label class="field__label" for="guardian-{{responsavel05}}">
               Responsável 05 da Silva            </label>
           </li>
-                    <li class="campo campo--opcao">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel06}}"
                    name="guardians[]" value="{{responsavel06}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel06}}">
+            <label class="field__label" for="guardian-{{responsavel06}}">
               Responsável 06 da Silva            </label>
           </li>
-                    <li class="campo campo--opcao">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel07}}"
                    name="guardians[]" value="{{responsavel07}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel07}}">
+            <label class="field__label" for="guardian-{{responsavel07}}">
               Responsável 07 da Silva            </label>
           </li>
-                    <li class="campo campo--opcao">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel08}}"
                    name="guardians[]" value="{{responsavel08}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel08}}">
+            <label class="field__label" for="guardian-{{responsavel08}}">
               Responsável 08 da Silva            </label>
           </li>
-                    <li class="campo campo--opcao">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel09}}"
                    name="guardians[]" value="{{responsavel09}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel09}}">
+            <label class="field__label" for="guardian-{{responsavel09}}">
               Responsável 09 da Silva            </label>
           </li>
-                    <li class="campo campo--opcao">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel10}}"
                    name="guardians[]" value="{{responsavel10}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel10}}">
+            <label class="field__label" for="guardian-{{responsavel10}}">
               Responsável 10 da Silva            </label>
           </li>
-                    <li class="campo campo--opcao">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel11}}"
                    name="guardians[]" value="{{responsavel11}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel11}}">
+            <label class="field__label" for="guardian-{{responsavel11}}">
               Responsável 11 da Silva            </label>
           </li>
-                    <li class="campo campo--opcao">
+                    <li class="field field--choice">
             <input type="checkbox" id="guardian-{{responsavel12}}"
                    name="guardians[]" value="{{responsavel12}}"
                    >
-            <label class="campo__rotulo" for="guardian-{{responsavel12}}">
+            <label class="field__label" for="guardian-{{responsavel12}}">
               Responsável 12 da Silva            </label>
           </li>
                   </ul>
               </div>
     </fieldset>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit">Publicar comunicado</button>
-      <a class="botao botao--discreto" href="/announcements">Cancelar</a>
+    <div class="actions">
+      <button class="button button--primary" type="submit">Publicar comunicado</button>
+      <a class="button button--quiet" href="/announcements">Cancelar</a>
     </div>
   </form>
 </section>
@@ -286,7 +286,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -294,7 +294,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

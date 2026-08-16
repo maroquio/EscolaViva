@@ -18,81 +18,81 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
-    <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
 
-    <div class="cabecalho__contexto">
-    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
-    <span class="cabecalho__unidade">
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
               2 unidades
           </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+  <div class="header__user">
+    <span class="header__name" title="alice@golden.test">Alice Diretora</span>
+    <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{chave}}">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   </header>
-    <nav class="navegacao" aria-label="Navegação principal">
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Rede</h2>
-    <ul class="navegacao__lista">
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Rede</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/network">Painel da rede</a>
+        <a class="navigation__link" href="/network">Painel da rede</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/schools">Unidades</a>
+        <a class="navigation__link" href="/network/schools">Unidades</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/users">Usuários</a>
+        <a class="navigation__link" href="/network/users">Usuários</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/academic-years">Anos letivos</a>
-      </li>
-          </ul>
-  </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Comunicação</h2>
-    <ul class="navegacao__lista">
-            <li>
-        <a class="navegacao__link" href="/announcements" aria-current="page">Comunicados</a>
+        <a class="navigation__link" href="/network/academic-years">Anos letivos</a>
       </li>
           </ul>
   </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Conta</h2>
-    <ul class="navegacao__lista">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Comunicação</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/account/password">Trocar senha</a>
+        <a class="navigation__link" href="/announcements" aria-current="page">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
   </nav>
 
-    <main class="conteudo" id="content" tabindex="-1">
+    <main class="content" id="content" tabindex="-1">
       
 
-      <header class="pagina__cabecalho">
+      <header class="page__header">
   <div>
-    <p class="sobretitulo">Comunicação</p>
-    <h1 class="pagina__titulo">Comunicados</h1>
-    <p class="pagina__resumo">
+    <p class="overline">Comunicação</p>
+    <h1 class="page__title">Comunicados</h1>
+    <p class="page__summary">
       O que foi enviado ao mural dos responsáveis, com quantos receberam e quantos leram.
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--primario" href="/announcements/new">Novo comunicado</a>
+  <p class="page__actions">
+    <a class="button button--primary" href="/announcements/new">Novo comunicado</a>
   </p>
 </header>
 
-<form class="filtro" method="get" action="/announcements">
-  <label class="campo__rotulo" for="school-filter">Unidade</label>
+<form class="filter" method="get" action="/announcements">
+  <label class="field__label" for="school-filter">Unidade</label>
   <select id="school-filter" name="schoolId">
         <option value="">Toda a rede</option>
             <option value="{{unidadeA}}" selected>
@@ -100,37 +100,37 @@ Vary: Cookie
         <option value="{{unidadeB}}">
       Escola do Bairro    </option>
       </select>
-  <button class="botao botao--secundario" type="submit">Filtrar</button>
+  <button class="button button--secondary" type="submit">Filtrar</button>
 </form>
 
-<section class="secao" aria-labelledby="audience-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="audience-title">
+  <div class="section__header">
     <h2 id="audience-title">Alcance da comunicação</h2>
-    <p class="secao__nota">Soma dos comunicados listados abaixo</p>
+    <p class="section__note">Soma dos comunicados listados abaixo</p>
   </div>
 
-  <div class="pilha">
-    <div class="painel">
-      <div class="cartao">
-        <p class="cartao__rotulo">Taxa de leitura</p>
-        <p class="cartao__numero">40,0 %</p>
-        <p class="cartao__detalhe">Leituras sobre destinatários alcançados</p>
+  <div class="stack">
+    <div class="dashboard">
+      <div class="card">
+        <p class="card__label">Taxa de leitura</p>
+        <p class="card__number">40,0 %</p>
+        <p class="card__detail">Leituras sobre destinatários alcançados</p>
       </div>
 
-      <div class="cartao">
-        <p class="cartao__rotulo">Destinatários</p>
-        <p class="cartao__numero">5</p>
-        <p class="cartao__detalhe">Responsáveis que receberam algum comunicado</p>
+      <div class="card">
+        <p class="card__label">Destinatários</p>
+        <p class="card__number">5</p>
+        <p class="card__detail">Responsáveis que receberam algum comunicado</p>
       </div>
 
-      <div class="cartao">
-        <p class="cartao__rotulo">Leituras</p>
-        <p class="cartao__numero">2</p>
-        <p class="cartao__detalhe">Marcadas pelo próprio responsável no mural</p>
+      <div class="card">
+        <p class="card__label">Leituras</p>
+        <p class="card__number">2</p>
+        <p class="card__detail">Marcadas pelo próprio responsável no mural</p>
       </div>
     </div>
 
-    <p class="suave">
+    <p class="muted">
       A leitura é registrada quando o responsável abre o comunicado no portal e marca que leu.
       Comunicado publicado que ninguém marcou continua contando como enviado e não como lido — é
       essa distância entre os dois números que diz quanto da comunicação da escola chega ao destino.
@@ -138,14 +138,14 @@ Vary: Cookie
   </div>
 </section>
 
-<section class="secao" aria-labelledby="published-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="published-title">
+  <div class="section__header">
     <h2 id="published-title">Publicados</h2>
-    <p class="secao__nota">Do mais recente para o mais antigo</p>
+    <p class="section__note">Do mais recente para o mais antigo</p>
   </div>
 
-    <div class="tabela-rolagem">
-    <table class="tabela">
+    <div class="table-scroll">
+    <table class="table">
       <caption>Comunicados e leituras</caption>
       <thead>
         <tr>
@@ -158,38 +158,38 @@ Vary: Cookie
       </thead>
       <tbody>
                 <tr>
-          <td class="celula-texto">Feira de ciências</td>
-          <td class="numero">
+          <td class="cell-text">Feira de ciências</td>
+          <td class="number">
             <time datetime="{{carimboDeTempo}}">05/04/2026</time>
           </td>
-          <td class="numero">2</td>
-          <td class="numero">1</td>
-          <td class="numero">50,0 %</td>
+          <td class="number">2</td>
+          <td class="number">1</td>
+          <td class="number">50,0 %</td>
         </tr>
                 <tr>
-          <td class="celula-texto">Reunião de pais e mestres</td>
-          <td class="numero">
+          <td class="cell-text">Reunião de pais e mestres</td>
+          <td class="number">
             <time datetime="{{carimboDeTempo}}">10/03/2026</time>
           </td>
-          <td class="numero">3</td>
-          <td class="numero">1</td>
-          <td class="numero">33,3 %</td>
+          <td class="number">3</td>
+          <td class="number">1</td>
+          <td class="number">33,3 %</td>
         </tr>
               </tbody>
       <tfoot>
         <tr>
-          <td class="celula-texto" colspan="2">Total do recorte</td>
-          <td class="numero">5</td>
-          <td class="numero">2</td>
-          <td class="numero">40,0 %</td>
+          <td class="cell-text" colspan="2">Total do recorte</td>
+          <td class="number">5</td>
+          <td class="number">2</td>
+          <td class="number">40,0 %</td>
         </tr>
       </tfoot>
     </table>
   </div>
-  <nav class="paginacao" aria-label="Paginação de comunicados">
-  <p class="paginacao__contagem">
-    <span class="numero">1–2</span>
-    de <span class="numero">2</span> comunicados  </p>
+  <nav class="pagination" aria-label="Paginação de comunicados">
+  <p class="pagination__count">
+    <span class="number">1–2</span>
+    de <span class="number">2</span> comunicados  </p>
 
   </nav>
   </section>
@@ -198,7 +198,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -206,7 +206,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

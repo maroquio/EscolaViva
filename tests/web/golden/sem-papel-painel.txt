@@ -18,54 +18,54 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
-    <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
 
-    <div class="cabecalho__contexto">
-    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
-    <span class="cabecalho__unidade">
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
               sem unidade atribuída
           </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="eva@golden.test">Eva Recém-Convidada</span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+  <div class="header__user">
+    <span class="header__name" title="eva@golden.test">Eva Recém-Convidada</span>
+    <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{chave}}">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   </header>
-    <nav class="navegacao" aria-label="Navegação principal">
+    <nav class="navigation" aria-label="Navegação principal">
   </nav>
 
-    <main class="conteudo" id="content" tabindex="-1">
+    <main class="content" id="content" tabindex="-1">
       
 
-      <div class="erro">
+      <div class="error">
   <div>
-    <p class="erro__status">Erro 403</p>
+    <p class="error__status">Erro 403</p>
     <h1>Conta sem papel atribuído</h1>
   </div>
 
-  <p class="leitura">Seu acesso existe, mas ainda não foi ligado a nenhuma unidade. Peça ao administrador da rede para atribuir um papel.</p>
+  <p class="reading">Seu acesso existe, mas ainda não foi ligado a nenhuma unidade. Peça ao administrador da rede para atribuir um papel.</p>
 
-    <div class="erro__ocorrencia">
-    <dl class="lista-definicoes">
+    <div class="error__occurrence">
+    <dl class="definition-list">
       <dt>Ocorrência</dt>
-      <dd><code class="codigo">{{correlacao}}</code></dd>
+      <dd><code class="code">{{correlacao}}</code></dd>
     </dl>
-    <p class="erro__instrucao">
+    <p class="error__instruction">
       Informe este código ao pedir ajuda: ele localiza exatamente esta ocorrência no registro do sistema.
     </p>
   </div>
   
-  <p class="linha">
-    <a class="botao botao--secundario" href="/dashboard">Voltar ao painel</a>
-    <a class="botao botao--discreto" href="/login">Entrar novamente</a>
+  <p class="row">
+    <a class="button button--secondary" href="/dashboard">Voltar ao painel</a>
+    <a class="button button--quiet" href="/login">Entrar novamente</a>
   </p>
 </div>
     </main>
@@ -73,7 +73,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -81,7 +81,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

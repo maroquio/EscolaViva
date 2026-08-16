@@ -18,89 +18,89 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
-    <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
 
-    <div class="cabecalho__contexto">
-    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
-    <span class="cabecalho__unidade">
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
               2 unidades
           </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+  <div class="header__user">
+    <span class="header__name" title="alice@golden.test">Alice Diretora</span>
+    <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{chave}}">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   </header>
-    <nav class="navegacao" aria-label="Navegação principal">
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Rede</h2>
-    <ul class="navegacao__lista">
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Rede</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/network">Painel da rede</a>
+        <a class="navigation__link" href="/network">Painel da rede</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/schools" aria-current="page">Unidades</a>
+        <a class="navigation__link" href="/network/schools" aria-current="page">Unidades</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/users">Usuários</a>
+        <a class="navigation__link" href="/network/users">Usuários</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/academic-years">Anos letivos</a>
-      </li>
-          </ul>
-  </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Comunicação</h2>
-    <ul class="navegacao__lista">
-            <li>
-        <a class="navegacao__link" href="/announcements">Comunicados</a>
+        <a class="navigation__link" href="/network/academic-years">Anos letivos</a>
       </li>
           </ul>
   </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Conta</h2>
-    <ul class="navegacao__lista">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Comunicação</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/account/password">Trocar senha</a>
+        <a class="navigation__link" href="/announcements">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
   </nav>
 
-    <main class="conteudo" id="content" tabindex="-1">
-      <p class="aviso aviso--sucesso" role="status">Unidade criada.</p>
+    <main class="content" id="content" tabindex="-1">
+      <p class="notice notice--success" role="status">Unidade criada.</p>
 
 
-      <div class="pagina__cabecalho">
+      <div class="page__header">
   <div>
-    <p class="sobretitulo">Rede</p>
-    <h1 class="pagina__titulo">Unidades</h1>
-    <p class="pagina__resumo">
+    <p class="overline">Rede</p>
+    <h1 class="page__title">Unidades</h1>
+    <p class="page__summary">
       Cada escola da rede é uma unidade. Papéis, turmas e comunicados existem sempre dentro de
       uma — ninguém é "professor da rede".
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--primario" href="/network/schools/new">Criar unidade</a>
+  <div class="page__actions">
+    <a class="button button--primary" href="/network/schools/new">Criar unidade</a>
   </div>
 </div>
 
-<section class="secao" aria-labelledby="schools-list-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="schools-list-title">
+  <div class="section__header">
     <h2 id="schools-list-title">Unidades da rede</h2>
-    <p class="secao__nota">2 no total</p>
+    <p class="section__note">2 no total</p>
   </div>
 
-    <div class="tabela-rolagem">
-    <table class="tabela">
+    <div class="table-scroll">
+    <table class="table">
       <caption>Unidades cadastradas</caption>
       <thead>
         <tr>
@@ -112,25 +112,25 @@ Vary: Cookie
       <tbody>
                 <tr>
           <th scope="row">Escola Central</th>
-          <td class="numero">32001234</td>
+          <td class="number">32001234</td>
           <td>
-            <span class="etiqueta etiqueta--ativa">Ativa</span>
+            <span class="tag tag--active">Ativa</span>
           </td>
         </tr>
                 <tr>
           <th scope="row">Escola do Bairro</th>
-          <td class="numero">32005678</td>
+          <td class="number">32005678</td>
           <td>
-            <span class="etiqueta etiqueta--ativa">Ativa</span>
+            <span class="tag tag--active">Ativa</span>
           </td>
         </tr>
               </tbody>
     </table>
   </div>
-  <nav class="paginacao" aria-label="Paginação de unidades">
-  <p class="paginacao__contagem">
-    <span class="numero">1–2</span>
-    de <span class="numero">2</span> unidades  </p>
+  <nav class="pagination" aria-label="Paginação de unidades">
+  <p class="pagination__count">
+    <span class="number">1–2</span>
+    de <span class="number">2</span> unidades  </p>
 
   </nav>
   </section>
@@ -139,7 +139,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -147,7 +147,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

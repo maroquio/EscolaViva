@@ -17,25 +17,25 @@ Cache-Control: no-store
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="publico">
-    <main class="publico__cartao" id="content" tabindex="-1">
+  <div class="public">
+    <main class="public__card" id="content" tabindex="-1">
       <header>
-        <span class="marca publico__marca">Escola<em>Viva</em></span>
-        <p class="publico__titulo">Portal da rede escolar</p>
+        <span class="brand public__brand">Escola<em>Viva</em></span>
+        <p class="public__title">Portal da rede escolar</p>
       </header>
 
       
 
       <h1>Entrar</h1>
 
-<form class="formulario" method="post" action="/login">
+<form class="form" method="post" action="/login">
   <input type="hidden" name="_key" value="{{chave}}">
 
-  <div class="campo">
-    <label class="campo__rotulo" for="networkSlug">
-      Identificador da rede <span class="campo__obrigatorio" aria-hidden="true">*</span>
+  <div class="field">
+    <label class="field__label" for="networkSlug">
+      Identificador da rede <span class="field__required" aria-hidden="true">*</span>
     </label>
     <input
       id="networkSlug"
@@ -47,14 +47,14 @@ Cache-Control: no-store
       spellcheck="false"
       value=""
             aria-describedby="networkSlug-help">
-    <p class="campo__ajuda" id="networkSlug-help">
+    <p class="field__help" id="networkSlug-help">
       O apelido curto da rede, informado pela secretaria — tudo minúsculo, sem espaço.
     </p>
       </div>
 
-  <div class="campo">
-    <label class="campo__rotulo" for="cpf">
-      CPF <span class="campo__obrigatorio" aria-hidden="true">*</span>
+  <div class="field">
+    <label class="field__label" for="cpf">
+      CPF <span class="field__required" aria-hidden="true">*</span>
     </label>
     <input
       id="cpf"
@@ -67,14 +67,14 @@ Cache-Control: no-store
       spellcheck="false"
       value=""
             aria-describedby="cpf-help">
-    <p class="campo__ajuda" id="cpf-help">
+    <p class="field__help" id="cpf-help">
       O CPF pode ser digitado com ou sem pontos e traço.
     </p>
       </div>
 
-  <div class="campo">
-    <label class="campo__rotulo" for="password">
-      Senha <span class="campo__obrigatorio" aria-hidden="true">*</span>
+  <div class="field">
+    <label class="field__label" for="password">
+      Senha <span class="field__required" aria-hidden="true">*</span>
     </label>
     <input
       id="password"
@@ -85,12 +85,12 @@ Cache-Control: no-store
             >
       </div>
 
-  <div class="acoes">
-    <button class="botao botao--primario" type="submit">Entrar</button>
+  <div class="actions">
+    <button class="button button--primary" type="submit">Entrar</button>
   </div>
 </form>
 
-      <p class="publico__rodape">
+      <p class="public__footer">
         Sistema de uso restrito. O acesso é registrado.
       </p>
     </main>
@@ -98,7 +98,7 @@ Cache-Control: no-store
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -106,7 +106,7 @@ Cache-Control: no-store
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

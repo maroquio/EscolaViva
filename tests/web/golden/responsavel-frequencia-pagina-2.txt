@@ -18,159 +18,159 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
-    <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
 
-    <div class="cabecalho__contexto">
-    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
-    <span class="cabecalho__unidade">
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
               Escola Central          </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="portal01@golden.test">Responsável 01 da Silva</span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+  <div class="header__user">
+    <span class="header__name" title="portal01@golden.test">Responsável 01 da Silva</span>
+    <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{chave}}">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   </header>
-    <nav class="navegacao" aria-label="Navegação principal">
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Acompanhamento</h2>
-    <ul class="navegacao__lista">
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Acompanhamento</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/guardian" aria-current="page">Meus alunos</a>
+        <a class="navigation__link" href="/guardian" aria-current="page">Meus alunos</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/guardian/board">Mural</a>
+        <a class="navigation__link" href="/guardian/board">Mural</a>
       </li>
           </ul>
   </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Conta</h2>
-    <ul class="navegacao__lista">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/account/password">Trocar senha</a>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
   </nav>
 
-    <main class="conteudo" id="content" tabindex="-1">
+    <main class="content" id="content" tabindex="-1">
       
 
-      <header class="pagina__cabecalho">
+      <header class="page__header">
   <div>
-    <p class="sobretitulo">Frequência</p>
-    <h1 class="pagina__titulo">Aluno 01 da Silva</h1>
-    <p class="pagina__resumo">
+    <p class="overline">Frequência</p>
+    <h1 class="page__title">Aluno 01 da Silva</h1>
+    <p class="page__summary">
       Turma 6A · ano letivo
-      <span class="numero">2026</span>
+      <span class="number">2026</span>
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--secundario"
+  <p class="page__actions">
+    <a class="button button--secondary"
        href="/guardian/enrollments/{{matricula01}}/report-card">Ver boletim</a>
-    <a class="botao botao--discreto" href="/guardian">Voltar aos alunos</a>
+    <a class="button button--quiet" href="/guardian">Voltar aos alunos</a>
   </p>
 </header>
 
-<section class="secao" aria-labelledby="tally-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="tally-title">
+  <div class="section__header">
     <h2 id="tally-title">Apuração do ano</h2>
-    <p class="secao__nota">São necessários 75 % de presença para aprovação</p>
+    <p class="section__note">São necessários 75 % de presença para aprovação</p>
   </div>
 
-  <div class="painel">
-    <div class="cartao">
-      <p class="cartao__rotulo">Frequência</p>
-      <p class="cartao__numero">83,3 %</p>
-      <p class="cartao__detalhe">Presenças sobre dias com chamada</p>
+  <div class="dashboard">
+    <div class="card">
+      <p class="card__label">Frequência</p>
+      <p class="card__number">83,3 %</p>
+      <p class="card__detail">Presenças sobre dias com chamada</p>
     </div>
 
-    <div class="cartao">
-      <p class="cartao__rotulo">Presenças</p>
-      <p class="cartao__numero">10</p>
-      <p class="cartao__detalhe">
-        de <span class="numero">12</span> dias registrados
+    <div class="card">
+      <p class="card__label">Presenças</p>
+      <p class="card__number">10</p>
+      <p class="card__detail">
+        de <span class="number">12</span> dias registrados
       </p>
     </div>
 
-    <div class="cartao">
-      <p class="cartao__rotulo">Faltas</p>
-      <p class="cartao__numero">2</p>
-      <p class="cartao__detalhe">Justificadas e não justificadas</p>
+    <div class="card">
+      <p class="card__label">Faltas</p>
+      <p class="card__number">2</p>
+      <p class="card__detail">Justificadas e não justificadas</p>
     </div>
   </div>
 </section>
 
-<section class="secao" aria-labelledby="days-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="days-title">
+  <div class="section__header">
     <h2 id="days-title">Dia a dia</h2>
-    <p class="secao__nota">Do dia mais recente para o mais antigo</p>
+    <p class="section__note">Do dia mais recente para o mais antigo</p>
   </div>
 
-    <div class="tabela-rolagem">
-    <table class="tabela">
+    <div class="table-scroll">
+    <table class="table">
       <caption>Chamada de Aluno 01 da Silva</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-centro">Data</th>
-          <th scope="col" class="celula-centro">Situação</th>
-          <th scope="col" class="celula-texto celula-elastica">Justificativa</th>
+          <th scope="col" class="cell-center">Data</th>
+          <th scope="col" class="cell-center">Situação</th>
+          <th scope="col" class="cell-text cell-elastic">Justificativa</th>
         </tr>
       </thead>
       <tbody>
                 <tr>
-          <th scope="row" class="celula-centro">
+          <th scope="row" class="cell-center">
             <time datetime="2026-03-02">02/03/2026</time>
           </th>
-          <td class="celula-centro">
-            <span class="etiqueta etiqueta--ativa">Presente</span>
+          <td class="cell-center">
+            <span class="tag tag--active">Presente</span>
           </td>
-          <td class="celula-texto celula-elastica">
+          <td class="cell-text cell-elastic">
             —          </td>
         </tr>
                 <tr>
-          <th scope="row" class="celula-centro">
+          <th scope="row" class="cell-center">
             <time datetime="2026-03-01">01/03/2026</time>
           </th>
-          <td class="celula-centro">
-            <span class="etiqueta etiqueta--ativa">Presente</span>
+          <td class="cell-center">
+            <span class="tag tag--active">Presente</span>
           </td>
-          <td class="celula-texto celula-elastica">
+          <td class="cell-text cell-elastic">
             —          </td>
         </tr>
               </tbody>
     </table>
   </div>
-  <nav class="paginacao" aria-label="Paginação de dias registrados">
-  <p class="paginacao__contagem">
-    <span class="numero">11–12</span>
-    de <span class="numero">12</span> dias registrados  </p>
+  <nav class="pagination" aria-label="Paginação de dias registrados">
+  <p class="pagination__count">
+    <span class="number">11–12</span>
+    de <span class="number">12</span> dias registrados  </p>
 
-    <ul class="paginacao__lista">
+    <ul class="pagination__list">
     <li>
-            <a class="paginacao__passo" href="/guardian/enrollments/{{matricula01}}/attendance" rel="prev">
+            <a class="pagination__step" href="/guardian/enrollments/{{matricula01}}/attendance" rel="prev">
         <span aria-hidden="true">&lsaquo;</span> Anterior
       </a>
           </li>
 
         <li>
-            <a class="paginacao__numero" href="/guardian/enrollments/{{matricula01}}/attendance" aria-label="Página 1">
+            <a class="pagination__number" href="/guardian/enrollments/{{matricula01}}/attendance" aria-label="Página 1">
         1      </a>
           </li>
         <li>
-            <span class="paginacao__numero paginacao__numero--atual" aria-current="page">
+            <span class="pagination__number pagination__number--current" aria-current="page">
         2      </span>
           </li>
     
     <li>
-            <span class="paginacao__passo paginacao__passo--inerte" aria-hidden="true">
+            <span class="pagination__step pagination__step--inert" aria-hidden="true">
         Próxima &rsaquo;
       </span>
           </li>
@@ -182,7 +182,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -190,7 +190,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

@@ -18,89 +18,89 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
-    <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
 
-    <div class="cabecalho__contexto">
-    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
-    <span class="cabecalho__unidade">
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
               2 unidades
           </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+  <div class="header__user">
+    <span class="header__name" title="alice@golden.test">Alice Diretora</span>
+    <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{chave}}">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   </header>
-    <nav class="navegacao" aria-label="Navegação principal">
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Rede</h2>
-    <ul class="navegacao__lista">
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Rede</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/network">Painel da rede</a>
+        <a class="navigation__link" href="/network">Painel da rede</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/schools">Unidades</a>
+        <a class="navigation__link" href="/network/schools">Unidades</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/users" aria-current="page">Usuários</a>
+        <a class="navigation__link" href="/network/users" aria-current="page">Usuários</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/academic-years">Anos letivos</a>
-      </li>
-          </ul>
-  </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Comunicação</h2>
-    <ul class="navegacao__lista">
-            <li>
-        <a class="navegacao__link" href="/announcements">Comunicados</a>
+        <a class="navigation__link" href="/network/academic-years">Anos letivos</a>
       </li>
           </ul>
   </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Conta</h2>
-    <ul class="navegacao__lista">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Comunicação</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/account/password">Trocar senha</a>
+        <a class="navigation__link" href="/announcements">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
   </nav>
 
-    <main class="conteudo" id="content" tabindex="-1">
+    <main class="content" id="content" tabindex="-1">
       
 
-      <div class="pagina__cabecalho">
+      <div class="page__header">
   <div>
-    <p class="sobretitulo">Rede</p>
-    <h1 class="pagina__titulo">Usuários</h1>
-    <p class="pagina__resumo">
+    <p class="overline">Rede</p>
+    <h1 class="page__title">Usuários</h1>
+    <p class="page__summary">
       Todo acesso nasce aqui. O papel decide o que a pessoa vê, e ele existe sempre dentro de uma
       unidade: a mesma pessoa pode ser secretária em uma escola e responsável em outra.
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--primario" href="/network/users/new">Convidar usuário</a>
+  <div class="page__actions">
+    <a class="button button--primary" href="/network/users/new">Convidar usuário</a>
   </div>
 </div>
 
 
-<section class="secao" aria-labelledby="users-list-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="users-list-title">
+  <div class="section__header">
     <h2 id="users-list-title">Quem tem acesso</h2>
-    <p class="secao__nota">5 no total</p>
+    <p class="section__note">5 no total</p>
   </div>
 
-    <div class="tabela-rolagem">
-    <table class="tabela">
+    <div class="table-scroll">
+    <table class="table">
       <caption>Usuários da rede</caption>
       <thead>
         <tr>
@@ -114,67 +114,67 @@ Vary: Cookie
       <tbody>
                 <tr>
           <th scope="row">Alice Diretora</th>
-          <td class="celula-texto">109.100.001-82</td>
-          <td class="celula-texto">alice@golden.test</td>
-          <td class="celula-texto">
+          <td class="cell-text">109.100.001-82</td>
+          <td class="cell-text">alice@golden.test</td>
+          <td class="cell-text">
                                     <div>Administração da rede · Escola Central</div>
                         <div>Administração da rede · Escola do Bairro</div>
                                   </td>
           <td>
-            <span class="etiqueta etiqueta--ativa">Ativo</span>
+            <span class="tag tag--active">Ativo</span>
           </td>
         </tr>
                 <tr>
           <th scope="row">Bruno Secretário</th>
-          <td class="celula-texto">109.100.002-63</td>
-          <td class="celula-texto">bruno@golden.test</td>
-          <td class="celula-texto">
+          <td class="cell-text">109.100.002-63</td>
+          <td class="cell-text">bruno@golden.test</td>
+          <td class="cell-text">
                                     <div>Secretaria · Escola Central</div>
                                   </td>
           <td>
-            <span class="etiqueta etiqueta--ativa">Ativo</span>
+            <span class="tag tag--active">Ativo</span>
           </td>
         </tr>
                 <tr>
           <th scope="row">Carla Professora</th>
-          <td class="celula-texto">109.100.003-44</td>
-          <td class="celula-texto">carla@golden.test</td>
-          <td class="celula-texto">
+          <td class="cell-text">109.100.003-44</td>
+          <td class="cell-text">carla@golden.test</td>
+          <td class="cell-text">
                                     <div>Professor · Escola Central</div>
                                   </td>
           <td>
-            <span class="etiqueta etiqueta--ativa">Ativo</span>
+            <span class="tag tag--active">Ativo</span>
           </td>
         </tr>
                 <tr>
           <th scope="row">Eva Recém-Convidada</th>
-          <td class="celula-texto">109.100.005-06</td>
-          <td class="celula-texto">eva@golden.test</td>
-          <td class="celula-texto">
-                        <span class="suave">sem papel atribuído</span>
+          <td class="cell-text">109.100.005-06</td>
+          <td class="cell-text">eva@golden.test</td>
+          <td class="cell-text">
+                        <span class="muted">sem papel atribuído</span>
                       </td>
           <td>
-            <span class="etiqueta etiqueta--ativa">Ativo</span>
+            <span class="tag tag--active">Ativo</span>
           </td>
         </tr>
                 <tr>
           <th scope="row">Responsável 01 da Silva</th>
-          <td class="celula-texto">109.100.004-25</td>
-          <td class="celula-texto">portal01@golden.test</td>
-          <td class="celula-texto">
+          <td class="cell-text">109.100.004-25</td>
+          <td class="cell-text">portal01@golden.test</td>
+          <td class="cell-text">
                                     <div>Responsável · Escola Central</div>
                                   </td>
           <td>
-            <span class="etiqueta etiqueta--ativa">Ativo</span>
+            <span class="tag tag--active">Ativo</span>
           </td>
         </tr>
               </tbody>
     </table>
   </div>
-  <nav class="paginacao" aria-label="Paginação de usuários">
-  <p class="paginacao__contagem">
-    <span class="numero">1–5</span>
-    de <span class="numero">5</span> usuários  </p>
+  <nav class="pagination" aria-label="Paginação de usuários">
+  <p class="pagination__count">
+    <span class="number">1–5</span>
+    de <span class="number">5</span> usuários  </p>
 
   </nav>
   </section>
@@ -183,7 +183,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -191,7 +191,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

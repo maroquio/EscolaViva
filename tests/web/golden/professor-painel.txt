@@ -18,53 +18,53 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
-    <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
 
-    <div class="cabecalho__contexto">
-    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
-    <span class="cabecalho__unidade">
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
               Escola Central          </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="carla@golden.test">Carla Professora</span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+  <div class="header__user">
+    <span class="header__name" title="carla@golden.test">Carla Professora</span>
+    <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{chave}}">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   </header>
-    <nav class="navegacao" aria-label="Navegação principal">
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Ensino</h2>
-    <ul class="navegacao__lista">
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Ensino</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/teacher" aria-current="page">Minhas turmas</a>
+        <a class="navigation__link" href="/teacher" aria-current="page">Minhas turmas</a>
       </li>
           </ul>
   </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Conta</h2>
-    <ul class="navegacao__lista">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/account/password">Trocar senha</a>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
   </nav>
 
-    <main class="conteudo" id="content" tabindex="-1">
+    <main class="content" id="content" tabindex="-1">
       
 
-      <div class="pagina__cabecalho">
+      <div class="page__header">
   <div>
-    <p class="sobretitulo">Professor</p>
-    <h1 class="pagina__titulo">Minhas turmas</h1>
-    <p class="pagina__resumo">
+    <p class="overline">Professor</p>
+    <h1 class="page__title">Minhas turmas</h1>
+    <p class="page__summary">
       As turmas em que você leciona nesta rede. Cada disciplina abre o diário de notas; a chamada e o
       fechamento valem para a turma inteira.
     </p>
@@ -72,33 +72,33 @@ Vary: Cookie
 </div>
 
 
-<section class="secao" aria-labelledby="class-group-{{turma1}}">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="class-group-{{turma1}}">
+  <div class="section__header">
     <h2 id="class-group-{{turma1}}">6A</h2>
-    <p class="secao__nota">6º ano · turno matutino</p>
+    <p class="section__note">6º ano · turno matutino</p>
   </div>
 
-  <div class="painel">
-        <a class="cartao" href="/teacher/subjects/{{alocacao3}}/grades">
-      <span class="cartao__rotulo">Disciplina</span>
+  <div class="dashboard">
+        <a class="card" href="/teacher/subjects/{{alocacao3}}/grades">
+      <span class="card__label">Disciplina</span>
       <strong>História</strong>
-      <span class="cartao__detalhe">Lançar notas do bimestre</span>
+      <span class="card__detail">Lançar notas do bimestre</span>
     </a>
-        <a class="cartao" href="/teacher/subjects/{{alocacao1}}/grades">
-      <span class="cartao__rotulo">Disciplina</span>
+        <a class="card" href="/teacher/subjects/{{alocacao1}}/grades">
+      <span class="card__label">Disciplina</span>
       <strong>Língua Portuguesa</strong>
-      <span class="cartao__detalhe">Lançar notas do bimestre</span>
+      <span class="card__detail">Lançar notas do bimestre</span>
     </a>
-        <a class="cartao" href="/teacher/subjects/{{alocacao2}}/grades">
-      <span class="cartao__rotulo">Disciplina</span>
+        <a class="card" href="/teacher/subjects/{{alocacao2}}/grades">
+      <span class="card__label">Disciplina</span>
       <strong>Matemática</strong>
-      <span class="cartao__detalhe">Lançar notas do bimestre</span>
+      <span class="card__detail">Lançar notas do bimestre</span>
     </a>
       </div>
 
-  <div class="acoes">
-    <a class="botao botao--secundario" href="/teacher/class-groups/{{turma1}}/roll-call">Chamada do dia</a>
-    <a class="botao botao--secundario" href="/teacher/class-groups/{{turma1}}/closing">Fechamento de bimestre</a>
+  <div class="actions">
+    <a class="button button--secondary" href="/teacher/class-groups/{{turma1}}/roll-call">Chamada do dia</a>
+    <a class="button button--secondary" href="/teacher/class-groups/{{turma1}}/closing">Fechamento de bimestre</a>
   </div>
 </section>
     </main>
@@ -106,7 +106,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -114,7 +114,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

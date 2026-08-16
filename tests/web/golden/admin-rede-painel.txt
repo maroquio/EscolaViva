@@ -18,126 +18,126 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
-    <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
 
-    <div class="cabecalho__contexto">
-    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
-    <span class="cabecalho__unidade">
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
               2 unidades
           </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+  <div class="header__user">
+    <span class="header__name" title="alice@golden.test">Alice Diretora</span>
+    <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{chave}}">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   </header>
-    <nav class="navegacao" aria-label="Navegação principal">
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Rede</h2>
-    <ul class="navegacao__lista">
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Rede</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/network" aria-current="page">Painel da rede</a>
+        <a class="navigation__link" href="/network" aria-current="page">Painel da rede</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/schools">Unidades</a>
+        <a class="navigation__link" href="/network/schools">Unidades</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/users">Usuários</a>
+        <a class="navigation__link" href="/network/users">Usuários</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/academic-years">Anos letivos</a>
-      </li>
-          </ul>
-  </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Comunicação</h2>
-    <ul class="navegacao__lista">
-            <li>
-        <a class="navegacao__link" href="/announcements">Comunicados</a>
+        <a class="navigation__link" href="/network/academic-years">Anos letivos</a>
       </li>
           </ul>
   </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Conta</h2>
-    <ul class="navegacao__lista">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Comunicação</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/account/password">Trocar senha</a>
+        <a class="navigation__link" href="/announcements">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
   </nav>
 
-    <main class="conteudo" id="content" tabindex="-1">
+    <main class="content" id="content" tabindex="-1">
       
 
-      <div class="pagina__cabecalho">
+      <div class="page__header">
   <div>
-    <p class="sobretitulo">Rede</p>
-    <h1 class="pagina__titulo">Rede Modelo do Litoral</h1>
-    <p class="pagina__resumo">
+    <p class="overline">Rede</p>
+    <h1 class="page__title">Rede Modelo do Litoral</h1>
+    <p class="page__summary">
       A rede é o contorno de tudo o que este sistema mostra: nenhuma consulta atravessa para outra
       rede, e é daqui que saem as unidades, os acessos e o calendário que a secretaria usa.
     </p>
   </div>
 </div>
 
-<section class="secao" aria-labelledby="numbers-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="numbers-title">
+  <div class="section__header">
     <h2 id="numbers-title">Onde a rede está hoje</h2>
-    <p class="secao__nota">Contagem no momento em que esta página foi aberta.</p>
+    <p class="section__note">Contagem no momento em que esta página foi aberta.</p>
   </div>
 
-  <div class="painel">
-    <a class="cartao" href="/network/schools">
-      <span class="cartao__rotulo">Unidades</span>
-      <span class="cartao__numero">2</span>
-      <span class="cartao__detalhe">Escolas ativas e inativas da rede</span>
+  <div class="dashboard">
+    <a class="card" href="/network/schools">
+      <span class="card__label">Unidades</span>
+      <span class="card__number">2</span>
+      <span class="card__detail">Escolas ativas e inativas da rede</span>
     </a>
 
-    <a class="cartao" href="/network/users">
-      <span class="cartao__rotulo">Usuários</span>
-      <span class="cartao__numero">5</span>
-      <span class="cartao__detalhe">Pessoas com acesso, somando todos os papéis</span>
+    <a class="card" href="/network/users">
+      <span class="card__label">Usuários</span>
+      <span class="card__number">5</span>
+      <span class="card__detail">Pessoas com acesso, somando todos os papéis</span>
     </a>
 
-    <div class="cartao">
-      <span class="cartao__rotulo">Turmas</span>
-      <span class="cartao__numero">2</span>
-      <span class="cartao__detalhe">Abertas no ano letivo 2026</span>
+    <div class="card">
+      <span class="card__label">Turmas</span>
+      <span class="card__number">2</span>
+      <span class="card__detail">Abertas no ano letivo 2026</span>
     </div>
 
-    <div class="cartao">
-      <span class="cartao__rotulo">Matriculados</span>
-      <span class="cartao__numero">12</span>
-      <span class="cartao__detalhe">Matrículas ativas no ano letivo 2026</span>
+    <div class="card">
+      <span class="card__label">Matriculados</span>
+      <span class="card__number">12</span>
+      <span class="card__detail">Matrículas ativas no ano letivo 2026</span>
     </div>
   </div>
 </section>
 
-<section class="secao" aria-labelledby="year-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="year-title">
+  <div class="section__header">
     <h2 id="year-title">Ano letivo em vigor</h2>
-    <p class="secao__nota">
+    <p class="section__note">
       2 ano(s) definido(s) nesta rede.
     </p>
   </div>
 
-    <div class="quadro">
-    <dl class="lista-definicoes">
+    <div class="panel">
+    <dl class="definition-list">
       <dt>Ano</dt>
-      <dd class="numero">2026</dd>
+      <dd class="number">2026</dd>
       <dt>Início</dt>
-      <dd class="numero">01/02/2026</dd>
+      <dd class="number">01/02/2026</dd>
       <dt>Término</dt>
-      <dd class="numero">15/12/2026</dd>
+      <dd class="number">15/12/2026</dd>
     </dl>
   </div>
   </section>
@@ -146,7 +146,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -154,7 +154,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

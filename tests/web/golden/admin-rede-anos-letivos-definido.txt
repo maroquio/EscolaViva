@@ -18,89 +18,89 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
-    <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
 
-    <div class="cabecalho__contexto">
-    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
-    <span class="cabecalho__unidade">
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
               2 unidades
           </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+  <div class="header__user">
+    <span class="header__name" title="alice@golden.test">Alice Diretora</span>
+    <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{chave}}">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   </header>
-    <nav class="navegacao" aria-label="Navegação principal">
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Rede</h2>
-    <ul class="navegacao__lista">
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Rede</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/network">Painel da rede</a>
+        <a class="navigation__link" href="/network">Painel da rede</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/schools">Unidades</a>
+        <a class="navigation__link" href="/network/schools">Unidades</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/users">Usuários</a>
+        <a class="navigation__link" href="/network/users">Usuários</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/academic-years" aria-current="page">Anos letivos</a>
-      </li>
-          </ul>
-  </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Comunicação</h2>
-    <ul class="navegacao__lista">
-            <li>
-        <a class="navegacao__link" href="/announcements">Comunicados</a>
+        <a class="navigation__link" href="/network/academic-years" aria-current="page">Anos letivos</a>
       </li>
           </ul>
   </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Conta</h2>
-    <ul class="navegacao__lista">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Comunicação</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/account/password">Trocar senha</a>
+        <a class="navigation__link" href="/announcements">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
   </nav>
 
-    <main class="conteudo" id="content" tabindex="-1">
-      <p class="aviso aviso--sucesso" role="status">Ano letivo definido.</p>
+    <main class="content" id="content" tabindex="-1">
+      <p class="notice notice--success" role="status">Ano letivo definido.</p>
 
 
-      <div class="pagina__cabecalho">
+      <div class="page__header">
   <div>
-    <p class="sobretitulo">Rede</p>
-    <h1 class="pagina__titulo">Anos letivos</h1>
-    <p class="pagina__resumo">
+    <p class="overline">Rede</p>
+    <h1 class="page__title">Anos letivos</h1>
+    <p class="page__summary">
       O ano letivo delimita as matrículas: um aluno tem uma matrícula ativa por ano, e é esse
       recorte que o boletim e a frequência usam.
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--primario" href="/network/academic-years/new">Definir ano letivo</a>
+  <div class="page__actions">
+    <a class="button button--primary" href="/network/academic-years/new">Definir ano letivo</a>
   </div>
 </div>
 
-<section class="secao" aria-labelledby="years-list-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="years-list-title">
+  <div class="section__header">
     <h2 id="years-list-title">Anos definidos</h2>
-    <p class="secao__nota">Do mais recente para o mais antigo</p>
+    <p class="section__note">Do mais recente para o mais antigo</p>
   </div>
 
-    <div class="tabela-rolagem">
-    <table class="tabela">
+    <div class="table-scroll">
+    <table class="table">
       <caption>Calendário letivo da rede</caption>
       <thead>
         <tr>
@@ -111,22 +111,22 @@ Vary: Cookie
       </thead>
       <tbody>
                 <tr>
-          <th scope="row" class="numero">2026</th>
-          <td class="numero">01/02/2026</td>
-          <td class="numero">15/12/2026</td>
+          <th scope="row" class="number">2026</th>
+          <td class="number">01/02/2026</td>
+          <td class="number">15/12/2026</td>
         </tr>
                 <tr>
-          <th scope="row" class="numero">2025</th>
-          <td class="numero">01/02/2025</td>
-          <td class="numero">15/12/2025</td>
+          <th scope="row" class="number">2025</th>
+          <td class="number">01/02/2025</td>
+          <td class="number">15/12/2025</td>
         </tr>
               </tbody>
     </table>
   </div>
-  <nav class="paginacao" aria-label="Paginação de anos letivos">
-  <p class="paginacao__contagem">
-    <span class="numero">1–2</span>
-    de <span class="numero">2</span> anos letivos  </p>
+  <nav class="pagination" aria-label="Paginação de anos letivos">
+  <p class="pagination__count">
+    <span class="number">1–2</span>
+    de <span class="number">2</span> anos letivos  </p>
 
   </nav>
   </section>
@@ -135,7 +135,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -143,7 +143,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

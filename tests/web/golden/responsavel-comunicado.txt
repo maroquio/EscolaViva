@@ -18,75 +18,75 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
-    <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
 
-    <div class="cabecalho__contexto">
-    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
-    <span class="cabecalho__unidade">
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
               Escola Central          </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="portal01@golden.test">Responsável 01 da Silva</span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+  <div class="header__user">
+    <span class="header__name" title="portal01@golden.test">Responsável 01 da Silva</span>
+    <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{chave}}">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   </header>
-    <nav class="navegacao" aria-label="Navegação principal">
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Acompanhamento</h2>
-    <ul class="navegacao__lista">
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Acompanhamento</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/guardian">Meus alunos</a>
+        <a class="navigation__link" href="/guardian">Meus alunos</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/guardian/board" aria-current="page">Mural</a>
+        <a class="navigation__link" href="/guardian/board" aria-current="page">Mural</a>
       </li>
           </ul>
   </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Conta</h2>
-    <ul class="navegacao__lista">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/account/password">Trocar senha</a>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
   </nav>
 
-    <main class="conteudo" id="content" tabindex="-1">
+    <main class="content" id="content" tabindex="-1">
       
 
-      <header class="pagina__cabecalho">
+      <header class="page__header">
   <div>
-    <p class="sobretitulo">Comunicado</p>
-    <h1 class="pagina__titulo">Reunião de pais e mestres</h1>
-    <p class="pagina__resumo">
+    <p class="overline">Comunicado</p>
+    <h1 class="page__title">Reunião de pais e mestres</h1>
+    <p class="page__summary">
       Publicado por Alice Diretora em
       <time datetime="{{carimboDeTempo}}">
         10/03/2026 {{hora}}      </time>
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="/guardian/board">Voltar ao mural</a>
+  <p class="page__actions">
+    <a class="button button--quiet" href="/guardian/board">Voltar ao mural</a>
   </p>
 </header>
 
-<article class="pilha">
-  <div class="quadro leitura">
-    <p class="texto-corrido">A reunião do primeiro bimestre acontece no dia 20, às 19h, no auditório da unidade.</p>
+<article class="stack">
+  <div class="panel reading">
+    <p class="running-text">A reunião do primeiro bimestre acontece no dia 20, às 19h, no auditório da unidade.</p>
   </div>
 
-  <footer class="acoes">
-        <p class="linha">
-      <span class="etiqueta etiqueta--aprovado">Lido</span>
-      <span class="suave">
+  <footer class="actions">
+        <p class="row">
+      <span class="tag tag--passed">Lido</span>
+      <span class="muted">
         em <time datetime="{{carimboDeTempo}}">11/03/2026 {{hora}}</time>
       </span>
     </p>
@@ -97,7 +97,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -105,7 +105,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 

@@ -18,85 +18,85 @@ Vary: Cookie
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23264a91'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' fill='%23faf8f3' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#content">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#content">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
-    <header class="cabecalho">
-  <a class="marca cabecalho__marca" href="/dashboard">Escola<em>Viva</em></a>
+  <div class="app">
+    <header class="header">
+  <a class="brand header__brand" href="/dashboard">Escola<em>Viva</em></a>
 
-    <div class="cabecalho__contexto">
-    <span class="cabecalho__rede">Rede Modelo do Litoral</span>
-    <span class="cabecalho__unidade">
+    <div class="header__context">
+    <span class="header__network">Rede Modelo do Litoral</span>
+    <span class="header__school">
               2 unidades
           </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="alice@golden.test">Alice Diretora</span>
-    <form class="cabecalho__sair" method="post" action="/logout">
+  <div class="header__user">
+    <span class="header__name" title="alice@golden.test">Alice Diretora</span>
+    <form class="header__signout" method="post" action="/logout">
       <input type="hidden" name="_key" value="{{chave}}">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   </header>
-    <nav class="navegacao" aria-label="Navegação principal">
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Rede</h2>
-    <ul class="navegacao__lista">
+    <nav class="navigation" aria-label="Navegação principal">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Rede</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/network">Painel da rede</a>
+        <a class="navigation__link" href="/network">Painel da rede</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/schools">Unidades</a>
+        <a class="navigation__link" href="/network/schools">Unidades</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/users" aria-current="page">Usuários</a>
+        <a class="navigation__link" href="/network/users" aria-current="page">Usuários</a>
       </li>
             <li>
-        <a class="navegacao__link" href="/network/academic-years">Anos letivos</a>
-      </li>
-          </ul>
-  </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Comunicação</h2>
-    <ul class="navegacao__lista">
-            <li>
-        <a class="navegacao__link" href="/announcements">Comunicados</a>
+        <a class="navigation__link" href="/network/academic-years">Anos letivos</a>
       </li>
           </ul>
   </div>
-    <div class="navegacao__grupo">
-    <h2 class="navegacao__titulo">Conta</h2>
-    <ul class="navegacao__lista">
+    <div class="navigation__group">
+    <h2 class="navigation__title">Comunicação</h2>
+    <ul class="navigation__list">
             <li>
-        <a class="navegacao__link" href="/account/password">Trocar senha</a>
+        <a class="navigation__link" href="/announcements">Comunicados</a>
+      </li>
+          </ul>
+  </div>
+    <div class="navigation__group">
+    <h2 class="navigation__title">Conta</h2>
+    <ul class="navigation__list">
+            <li>
+        <a class="navigation__link" href="/account/password">Trocar senha</a>
       </li>
           </ul>
   </div>
   </nav>
 
-    <main class="conteudo" id="content" tabindex="-1">
+    <main class="content" id="content" tabindex="-1">
       
 
-      <div class="pagina__cabecalho">
+      <div class="page__header">
   <div>
-    <p class="sobretitulo">Rede · Usuários</p>
-    <h1 class="pagina__titulo">Convidar usuário</h1>
-    <p class="pagina__resumo">
+    <p class="overline">Rede · Usuários</p>
+    <h1 class="page__title">Convidar usuário</h1>
+    <p class="page__summary">
       A senha provisória é gerada agora e aparece uma única vez na lista, logo depois de criar.
       Tenha onde anotá-la antes de enviar o formulário.
     </p>
   </div>
 </div>
 
-<div class="quadro">
-  <form class="formulario formulario--largo" method="post" action="/network/users">
+<div class="panel">
+  <form class="form form--wide" method="post" action="/network/users">
     <input type="hidden" name="_key" value="{{chave}}">
 
-    <div class="formulario__linha">
-      <div class="campo">
-        <label class="campo__rotulo" for="name">
-          Nome <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="name">
+          Nome <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="name"
@@ -109,9 +109,9 @@ Vary: Cookie
                     >
               </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="cpf">
-          CPF <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="cpf">
+          CPF <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="cpf"
@@ -122,12 +122,12 @@ Vary: Cookie
           autocomplete="off"
           value=""
                     aria-describedby="cpf-help">
-        <p class="campo__ajuda" id="cpf-help">É por ele que a pessoa entra. Com ou sem pontos.</p>
+        <p class="field__help" id="cpf-help">É por ele que a pessoa entra. Com ou sem pontos.</p>
               </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="email">
-          E-mail <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="email">
+          E-mail <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="email"
@@ -139,17 +139,17 @@ Vary: Cookie
           autocomplete="off"
           value=""
                     aria-describedby="email-help">
-        <p class="campo__ajuda" id="email-help">Contato. Não é usado para entrar.</p>
+        <p class="field__help" id="email-help">Contato. Não é usado para entrar.</p>
               </div>
     </div>
 
     <fieldset >
       <legend>Atribuições</legend>
       
-      <div class="pilha">
-                <div class="formulario__linha">
-          <div class="campo">
-            <label class="campo__rotulo" for="school-0">Unidade 1</label>
+      <div class="stack">
+                <div class="form__row">
+          <div class="field">
+            <label class="field__label" for="school-0">Unidade 1</label>
             <select id="school-0" name="schools[]">
               <option value="">Sem atribuição</option>
                             <option value="{{unidadeA}}" >Escola Central</option>
@@ -157,8 +157,8 @@ Vary: Cookie
                           </select>
           </div>
 
-          <div class="campo">
-            <label class="campo__rotulo" for="role-0">Papel 1</label>
+          <div class="field">
+            <label class="field__label" for="role-0">Papel 1</label>
             <select id="role-0" name="roles[]">
               <option value="">Sem atribuição</option>
                             <option value="network_admin" >Administração da rede</option>
@@ -168,9 +168,9 @@ Vary: Cookie
                           </select>
           </div>
         </div>
-                <div class="formulario__linha">
-          <div class="campo">
-            <label class="campo__rotulo" for="school-1">Unidade 2</label>
+                <div class="form__row">
+          <div class="field">
+            <label class="field__label" for="school-1">Unidade 2</label>
             <select id="school-1" name="schools[]">
               <option value="">Sem atribuição</option>
                             <option value="{{unidadeA}}" >Escola Central</option>
@@ -178,8 +178,8 @@ Vary: Cookie
                           </select>
           </div>
 
-          <div class="campo">
-            <label class="campo__rotulo" for="role-1">Papel 2</label>
+          <div class="field">
+            <label class="field__label" for="role-1">Papel 2</label>
             <select id="role-1" name="roles[]">
               <option value="">Sem atribuição</option>
                             <option value="network_admin" >Administração da rede</option>
@@ -189,9 +189,9 @@ Vary: Cookie
                           </select>
           </div>
         </div>
-                <div class="formulario__linha">
-          <div class="campo">
-            <label class="campo__rotulo" for="school-2">Unidade 3</label>
+                <div class="form__row">
+          <div class="field">
+            <label class="field__label" for="school-2">Unidade 3</label>
             <select id="school-2" name="schools[]">
               <option value="">Sem atribuição</option>
                             <option value="{{unidadeA}}" >Escola Central</option>
@@ -199,8 +199,8 @@ Vary: Cookie
                           </select>
           </div>
 
-          <div class="campo">
-            <label class="campo__rotulo" for="role-2">Papel 3</label>
+          <div class="field">
+            <label class="field__label" for="role-2">Papel 3</label>
             <select id="role-2" name="roles[]">
               <option value="">Sem atribuição</option>
                             <option value="network_admin" >Administração da rede</option>
@@ -213,8 +213,8 @@ Vary: Cookie
               </div>
     </fieldset>
 
-    <div class="campo">
-      <label class="campo__rotulo" for="guardianId">Cadastro de responsável</label>
+    <div class="field">
+      <label class="field__label" for="guardianId">Cadastro de responsável</label>
       <select
         id="guardianId"
         name="guardianId"
@@ -233,15 +233,15 @@ Vary: Cookie
                 <option value="{{responsavel11}}" >Responsável 11 da Silva — responsavel11@golden.test</option>
                 <option value="{{responsavel12}}" >Responsável 12 da Silva — responsavel12@golden.test</option>
               </select>
-      <p class="campo__ajuda" id="guardianId-help">
+      <p class="field__help" id="guardianId-help">
         Obrigatório quando alguma atribuição acima for Responsável: é esse cadastro que liga a
         conta aos alunos. A secretaria cria o cadastro antes do convite.
       </p>
           </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit">Criar usuário</button>
-      <a class="botao botao--discreto" href="/network/users">Cancelar</a>
+    <div class="actions">
+      <button class="button button--primary" type="submit">Criar usuário</button>
+      <a class="button button--quiet" href="/network/users">Cancelar</a>
     </div>
   </form>
 </div>
@@ -250,7 +250,7 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.aviso');
+    const avisos = document.querySelectorAll('.notice');
     if (avisos.length === 0) return;
 
     const conteudo = document.getElementById('content');
@@ -258,7 +258,7 @@ Vary: Cookie
     avisos.forEach((aviso) => {
       const fechar = document.createElement('button');
       fechar.type = 'button';
-      fechar.className = 'aviso__fechar';
+      fechar.className = 'notice__close';
       fechar.setAttribute('aria-label', 'Fechar aviso');
       fechar.textContent = '×';
 
