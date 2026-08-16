@@ -75,13 +75,13 @@ I20, I22 — plus the cheap groundwork for I3, I4, I9 and I21 (detailed in Secti
 escolaviva/
 ├─ src/
 │  ├─ identity/            # who signs in and what they may do
-│  │  ├─ domain/           #   Network, School, User, Role
+│  │  ├─ domain/           #   Network, School, User, Role, Session
 │  │  ├─ application/      #   authenticate, invite a user, change password
 │  │  ├─ infra/            #   repositories (SQL)
 │  │  └─ index.ts          #   ⟵ the module's ONLY way in
 │  │
 │  ├─ academics/           # who studies, where and with whom
-│  │  ├─ domain/           #   Student, Guardian, ClassGroup, Subject, Enrollment
+│  │  ├─ domain/           #   Student, GuardianLink, ClassGroup, Subject, Enrollment
 │  │  ├─ application/      #   enrol, transfer, assign a teacher
 │  │  ├─ infra/
 │  │  └─ index.ts
@@ -101,6 +101,8 @@ escolaviva/
 │  ├─ shared/              # infrastructure with no business rule
 │  │  ├─ ports/            #   Clock, IdGenerator  (Mailer→S04, FileStorage→S03, Payment→S02)
 │  │  ├─ db/               #   connection, unit of work, reader()/writer()  (I15)
+│  │  ├─ document/         #   CPF arithmetic — a pure value, shared by identity and academics
+│  │  ├─ pagination/       #   page, range and slicing, in SQL and in memory
 │  │  ├─ http/             #   correlation (I16), tenant, ip (I12), session (I2), cache control (I11)
 │  │  ├─ log/              #   structured logger + field redaction (I17)
 │  │  ├─ jobs/             #   scheduler + advisory-lock locking (I20)
@@ -111,7 +113,7 @@ escolaviva/
 │     ├─ templates/
 │     └─ health.ts         #   /health and /health/live  (I13)
 │
-├─ migrations/                    # 0001_..., 0002_...  (I6)
+├─ migrations/                    # 0001_initial_schema.sql  (I6)
 ├─ scripts/
 │  ├─ backup.sh
 │  └─ restore-test.sh            # restores into a throwaway database and validates  (I7)
@@ -184,21 +186,42 @@ CREATE TABLE school (
 -- The table is `app_user`, not `user`: `user` is a reserved word in PostgreSQL, `CREATE TABLE user`
 -- is a syntax error, and `SELECT * FROM user` does not fail — it returns the current role, which is
 -- the quietest way to be wrong.
+--
+-- `app_user` is the person, not merely the credential. Whoever answers for a student is a row
+-- here, reached from `student_guardian` — there is no separate record of a guardian. The CPF is
+-- what a person types to sign in; the e-mail is contact only and is **not** unique, because a
+-- mother and a father may share a family address.
 CREATE TABLE app_user (
   id             uuid PRIMARY KEY,
   network_id     uuid NOT NULL REFERENCES network(id),
   email          text NOT NULL,
+  cpf            text NOT NULL,
+  phone          text,
   password_hash  text NOT NULL,
   name           text NOT NULL,
-  active         boolean NOT NULL DEFAULT true
+  active         boolean NOT NULL DEFAULT true,
+  CONSTRAINT user_cpf_format CHECK (cpf ~ '^[0-9]{11}$'),
+  CONSTRAINT user_cpf_unique_in_network UNIQUE (network_id, cpf)
 );
 
 CREATE TABLE user_role (
+  network_id  uuid NOT NULL REFERENCES network(id),
   user_id     uuid NOT NULL REFERENCES app_user(id),
   school_id   uuid NOT NULL REFERENCES school(id),
   role        text NOT NULL,
   PRIMARY KEY (user_id, school_id, role),
   CONSTRAINT role_valid CHECK (role IN ('network_admin','registrar','teacher','guardian'))
+);
+
+-- The session lives in a table, and the cookie carries only its id: that is what keeps the
+-- process stateless (I2). Killing the container and starting another loses nothing.
+CREATE TABLE session (
+  id          uuid PRIMARY KEY,
+  network_id  uuid NOT NULL REFERENCES network(id),
+  user_id     uuid NOT NULL REFERENCES app_user(id),
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  expires_at  timestamptz NOT NULL,
+  ip          text
 );
 ```
 
@@ -257,21 +280,17 @@ CREATE TABLE student (
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE guardian (
-  id          uuid PRIMARY KEY,
-  network_id  uuid NOT NULL REFERENCES network(id),
-  name        text NOT NULL,
-  email       text NOT NULL,
-  phone       text,
-  CONSTRAINT guardian_email_unique_in_network UNIQUE (network_id, email)
-);
-
+-- Who answers for a student, and under what relationship. There is no `guardian` table: the
+-- guardian is an `app_user`, and academics keeps the academic relationship alone. It is the same
+-- direction as the teacher's `class_group_subject.teacher_user_id` — academics points at identity,
+-- never the other way round.
 CREATE TABLE student_guardian (
+  network_id              uuid NOT NULL REFERENCES network(id),
   student_id              uuid NOT NULL REFERENCES student(id),
-  guardian_id             uuid NOT NULL REFERENCES guardian(id),
+  user_id                 uuid NOT NULL REFERENCES app_user(id),
   relationship            text NOT NULL,
   financially_responsible boolean NOT NULL DEFAULT false,
-  PRIMARY KEY (student_id, guardian_id)
+  PRIMARY KEY (student_id, user_id)
 );
 
 CREATE TABLE enrollment (
@@ -349,10 +368,11 @@ CREATE TABLE announcement (
 );
 
 CREATE TABLE announcement_recipient (
+  network_id       uuid NOT NULL REFERENCES network(id),
   announcement_id  uuid NOT NULL REFERENCES announcement(id),
-  guardian_id      uuid NOT NULL REFERENCES guardian(id),
+  user_id          uuid NOT NULL REFERENCES app_user(id),
   read_at          timestamptz,
-  PRIMARY KEY (announcement_id, guardian_id)
+  PRIMARY KEY (announcement_id, user_id)
 );
 ```
 
@@ -394,11 +414,11 @@ recommends for the Web Client channel on day 1.
 | # | Invariant | Where it lives at Stage 01 | Cost today |
 |---|-----------|-------------------------|------------|
 | **I1** | Modular monolith | 4 domain folders + `config/.dependency-cruiser.js` with the 3 rules from Section 1 | 1 config file |
-| **I2** | Stateless application | `src/shared/http/session.ts`: signed cookie (`HttpOnly`, `Secure`, `SameSite=Lax`). Zero module variables holding state, zero writes to disk | free |
+| **I2** | Stateless application | The `session` table holds the session; the signed cookie (`HttpOnly`, `Secure`, `SameSite=Lax`) carries only its id, read by `src/shared/http/session.ts`. Zero module variables holding state, zero writes to disk | 1 table |
 | **I3** | Side effects behind an interface | `src/shared/ports/` holds `Clock` and `IdGenerator`. **There is no external effect at S01** — what is established is rule 2 of dependency-cruiser: the domain does not import an SDK. When `Mailer` arrives at S04, it is born in `ports/` because that is the only place it fits | free |
 | **I4** | Idempotency on external input | The browser **is** external input: a guardian on bad 4G submits the form twice. Table `idempotent_request(idempotency_key, route, user_id, response_hash, response_location, created_at)` + middleware on the write routes. At S02 the gateway webhook uses the same table unchanged | 1 table + 1 middleware |
 | **I5** | The database is the single source of truth | Trivial today (there is no copy). The rule being established: no use case decides from a value that was computed and stored — enrollment status, average and attendance are **queried**, never kept in a denormalised column | free |
-| **I6** | Versioned migrations | `migrations/0001_*.sql` numbered, applied by command in a single order. The README pins the compatibility window: **never drop a column the previous version still reads** — add, migrate, stop writing, then drop | free |
+| **I6** | Versioned migrations | `migrations/*.sql` numbered, applied by command in a single order, recorded in `schema_migrations`. The compatibility window — **never drop or rename a column the previous version still reads**: add, migrate, stop writing, then drop — is stated in the README, enforced over every migration by `tests/shared/migration_window.test.ts` and demonstrated running against a real database by `tests/shared/migration_window_in_motion.test.ts` | 2 test files |
 | **I7** | Backup with a tested restore | `scripts/restore-test.sh` restores the dump into a throwaway database and runs `SELECT count(*) FROM enrollment WHERE status='active'`, comparing against the expected value. Run **every Friday**, by hand, with the result written down | 1 script + 10 min/week |
 | **I8** | Integrity in the database | Every FK, UNIQUE and CHECK from Section 2, including the partial unique index `active_enrollment_unique_per_year` | free |
 | **I9** | Object key, not URL | There is no file at S01. Decision recorded in an ADR: when storage arrives (S03), the column is called `document.object_key`, never `document.url` | 1 ADR |
@@ -440,8 +460,8 @@ following a script and reproducing the method.
 
 1. `identity`: network, school, user, role, login with a session in a signed cookie
 2. `shared`: config validated at boot, structured logger, correlation ID, `/health`, `Cache-Control`
-3. Migrations 0001–0003 with every FK, UNIQUE and CHECK
-4. `academics`: student, guardian, class group, subject, enrollment
+3. The migration with every FK, UNIQUE and CHECK
+4. `academics`: student, the guardian link, class group, subject, enrollment
 5. `assessment`: grade posting and roll call, with idempotency on form submission
 6. `assessment`: term closing and the on-screen report card
 7. `communication`: publish an announcement, the guardian's board, mark as read
