@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 820" width="1300" height="820">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+    <marker id="p-2563eb" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="p-9ca3af" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#9ca3af"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1300" height="820" fill="#ffffff"/>
+  <text x="36" y="44" font-size="21" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Lifecycle of a form submission</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">src/shared/http/idempotency.ts · idempotent_request table · the key is born at render time and comes back in the hidden field _key</text>
+  <circle cx="315" cy="132" r="9" fill="#111827"/>
+  <path d="M 315,141 L 315,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="332" y="146" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">POST with _key in the expected format</text>
+  <text x="332" y="159" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">INSERT ... ON CONFLICT (idempotency_key) DO NOTHING</text>
+  <text x="332" y="172" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">RETURNING idempotency_key  →  one row inserted</text>
+  <rect x="190" y="195" width="250" height="105" rx="12" ry="12" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.8"/>
+  <text x="206" y="221" font-size="13.5" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">reserved</text>
+  <text x="206" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_location = '' — still empty</text>
+  <text x="206" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the write is IN PROGRESS</text>
+  <text x="206" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the key is already taken</text>
+  <rect x="650" y="195" width="250" height="105" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="666" y="221" font-size="13.5" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">completed</text>
+  <text x="666" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_location = the response's Location</text>
+  <text x="666" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_hash written</text>
+  <text x="666" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the row stays: it is the record</text>
+  <path d="M 440,247 L 648,247" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <text x="452" y="216" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">3xx response with Location</text>
+  <text x="452" y="229" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ UPDATE response_location + hash</text>
+  <circle cx="1010" cy="247" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8"/>
+  <circle cx="1010" cy="247" r="7.5" fill="#111827"/>
+  <path d="M 900,247 L 995,247" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <rect x="190" y="400" width="250" height="100" rx="12" ry="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="206" y="426" font-size="13.5" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">released</text>
+  <text x="206" y="446" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">DELETE: the row disappears</text>
+  <text x="206" y="460" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the same key becomes usable again</text>
+  <path d="M 315,300 L 315,398" fill="none" stroke="#dc2626" stroke-width="1.6" marker-end="url(#p-dc2626)"/>
+  <text x="332" y="330" font-size="9.5" fill="#dc2626" font-weight="600" text-anchor="start">exception in the handler,</text>
+  <text x="332" y="343" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">or a response WITHOUT a redirect</text>
+  <text x="332" y="356" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">(validation rejected the form)</text>
+  <text x="332" y="369" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ DELETE FROM idempotent_request</text>
+  <circle cx="560" cy="450" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8"/>
+  <circle cx="560" cy="450" r="7.5" fill="#111827"/>
+  <path d="M 440,450 L 545,450" fill="none" stroke="#dc2626" stroke-width="1.6" marker-end="url(#p-dc2626)"/>
+  <text x="452" y="480" font-size="9.5" fill="#dc2626" font-weight="600" text-anchor="start">the user corrects it and resubmits</text>
+  <text x="452" y="493" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the SAME form, the same key</text>
+  <rect x="660" y="385" width="300" height="130" rx="10" ry="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.3" data-graph-role="container"/>
+  <text x="674" y="409" font-size="11.5" fill="#92400e" font-weight="600" text-anchor="start">What the repeat finds</text>
+  <text x="674" y="429" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">reserved → 303 to /dashboard.</text>
+  <text x="674" y="442" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">There is no target stored yet: the</text>
+  <text x="674" y="455" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">first request has not finished.</text>
+  <text x="674" y="468" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="674" y="481" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">completed → 303 to response_location:</text>
+  <text x="674" y="494" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the same target as the first one.</text>
+  <rect x="60" y="560" width="380" height="230" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="74" y="584" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Why the row goes in BEFORE</text>
+  <text x="74" y="604" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">The INSERT happens before the handler runs, and</text>
+  <text x="74" y="617" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">exclusivity belongs to the database (PRIMARY KEY),</text>
+  <text x="74" y="630" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">not to an if. Two identical requests arriving at the</text>
+  <text x="74" y="643" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">same time: one inserts, the other gets a conflict.</text>
+  <text x="74" y="656" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="74" y="669" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">If the reservation came later, the window between</text>
+  <text x="74" y="682" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">checking and writing would be exactly the interval</text>
+  <text x="74" y="695" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">in which the double tap on bad 4G creates the second</text>
+  <text x="74" y="708" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">enrollment.</text>
+  <text x="74" y="721" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="74" y="734" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Releasing on failure is what keeps a validation</text>
+  <text x="74" y="747" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">error from burning the form's key.</text>
+  <rect x="460" y="560" width="380" height="230" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="474" y="584" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">What never enters this machine</text>
+  <text x="474" y="604" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">GET — the middleware returns next() on its first</text>
+  <text x="474" y="617" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">line.</text>
+  <text x="474" y="630" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="474" y="643" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Anonymous POST — the table requires user_id, and the</text>
+  <text x="474" y="656" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">only write without a session is login itself.</text>
+  <text x="474" y="669" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Repeating a login only creates another session, and</text>
+  <text x="474" y="682" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">there is no record to protect.</text>
+  <text x="474" y="695" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="474" y="708" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">POST without _key, or with a malformed key —</text>
+  <text x="474" y="721" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">answers 400 and logs a warning. It is not</text>
+  <text x="474" y="734" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">tolerated silently: a form with no key is a bug.</text>
+  <text x="474" y="747" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="474" y="760" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/logout — stays out of the write group.</text>
+  <rect x="860" y="560" width="380" height="230" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="874" y="584" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">The guarantee does not come from HTML</text>
+  <text x="874" y="604" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Nothing here depends on the client being a form</text>
+  <text x="874" y="617" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">rendered by the system itself. The contract is:</text>
+  <text x="874" y="630" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">bring one unique key per intent.</text>
+  <text x="874" y="643" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="874" y="656" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">A webhook sending the same key gets the same</text>
+  <text x="874" y="669" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">treatment, without one line of change — and that is</text>
+  <text x="874" y="682" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">why the table is a platform one, with no network_id.</text>
+  <text x="874" y="695" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start"></text>
+  <text x="874" y="708" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">The response hash is stored next to the target:</text>
+  <text x="874" y="721" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">it decides nothing today, and exists so that a</text>
+  <text x="874" y="734" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">repeat can later be compared instead of merely</text>
+  <text x="874" y="747" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">redirected.</text>
+  <text x="36" y="800" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Read from src/shared/http/idempotency.ts. State of Stage 01.</text>
+</svg>

@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:">
+  <title>EscolaViva — domain blocks</title>
+  <style>
+    :root { color-scheme: dark; --page:#0f0f1a; --panel:#0f172a; --border:#334155; --text:#e2e8f0; --muted:#94a3b8; --accent:#a855f7; }
+    html[data-theme="light"] { color-scheme:light; --page:#f8fafc; --panel:#fff; --border:#cbd5e1; --text:#0f172a; --muted:#475569; --accent:#7c3aed; }
+    * { box-sizing:border-box; }
+    html,body { width:100%; height:100%; margin:0; overflow:hidden; background:linear-gradient(135deg,var(--page),#1a1a2e); color:var(--text); font-family:'SF Mono','Fira Code',ui-monospace,monospace; }
+    body { display:grid; grid-template-rows:auto 1fr; }
+    .toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 14px; background:color-mix(in srgb,var(--panel) 92%,transparent); border-bottom:1px solid var(--border); z-index:2; }
+    .title { margin-right:auto; font-size:13px; font-weight:700; }
+    button,select { min-height:34px; padding:6px 10px; color:var(--text); background:var(--panel); border:1px solid var(--border); border-radius:8px; font:inherit; cursor:pointer; }
+    button:hover,button:focus-visible,select:focus-visible { border-color:var(--accent); outline:2px solid color-mix(in srgb,var(--accent) 35%,transparent); outline-offset:1px; }
+    #stage { position:relative; overflow:hidden; touch-action:none; cursor:grab; }
+    #stage.dragging { cursor:grabbing; }
+    /* Sem `will-change:transform` e sem `filter:` — as duas rasterizam o SVG antes do zoom.
+       `will-change` promove #canvas a camada de composicao propria: o Chrome rasteriza a camada
+       uma vez, no tamanho em que ela estava, e a GPU passa a escalar o bitmap em vez de reler o
+       vetor. `filter:drop-shadow()` obriga o elemento a virar bitmap antes de o filtro rodar, e
+       sozinha ja bastaria para pixelar. A sombra volta como `box-shadow`, que se aplica a CAIXA
+       do elemento em vez do conteudo pintado e por isso nao força rasterizacao. */
+    #canvas { width:100%; height:100%; display:grid; place-items:center; transform-origin:0 0; }
+    #canvas svg { max-width:calc(100vw - 40px); max-height:calc(100vh - 92px); width:auto; height:auto; box-shadow:0 22px 60px rgba(0,0,0,.28); user-select:none; }
+    #status { min-width:76px; color:var(--muted); font-size:12px; text-align:center; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
+  </style>
+</head>
+<body>
+  <header class="toolbar" aria-label="Diagram controls">
+    <span class="title">EscolaViva — domain blocks</span>
+    <button type="button" data-action="zoom-out" aria-label="Zoom out">−</button>
+    <button type="button" data-action="reset" aria-label="Reset view">Reset</button>
+    <button type="button" data-action="zoom-in" aria-label="Zoom in">+</button>
+    <span id="status" aria-live="polite">100%</span>
+    <button type="button" data-action="theme" aria-label="Toggle theme">Theme</button>
+    <button type="button" data-action="copy" aria-label="Copy SVG source">Copy SVG</button>
+    <select id="scale" aria-label="Raster export scale"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option><option value="4">4×</option></select>
+    <select id="format" aria-label="Export format"><option>SVG</option><option>PNG</option><option>JPEG</option><option>WebP</option></select>
+    <button type="button" data-action="download">Export</button>
+  </header>
+  <main id="stage" tabindex="0" aria-label="Interactive diagram. Drag to pan; use plus and minus to zoom.">
+    <div id="canvas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1190" width="1800" height="1190" role="img" focusable="false">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569" />
+    </marker>
+    <marker id="p-2563eb" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb" />
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a" />
+    </marker>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed" />
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c" />
+    </marker>
+    <marker id="p-0d9488" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0d9488" />
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626" />
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1800" height="1190" fill="#ffffff" />
+  <text x="36" y="44" font-size="21" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — The domain layer, block by block</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">src/*/domain/ · 17 files, 4 bounded contexts · none imports a database, HTTP, log, scheduler or third-party library</text>
+  <rect x="40" y="108" width="420" height="412" rx="12" ry="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container" />
+  <path d="M 42,122 V 506" stroke="#7c3aed" stroke-width="4" stroke-linecap="round" />
+  <text x="58" y="138" font-size="14.5" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">identity</text>
+  <text x="58" y="156" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">who signs in, with what role, at which school</text>
+  <circle cx="62" cy="178" r="4" fill="#2563eb" />
+  <text x="72" y="182" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">Entities (records)</text>
+  <text x="72" y="198" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Network { id, name, slug, status }</text>
+  <text x="72" y="211" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">School { id, networkId, name, inepCode, active }</text>
+  <text x="72" y="224" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">User { id, networkId, name, email, cpf, phone, active }</text>
+  <text x="72" y="237" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Session { id, networkId, userId, createdAt, expiresAt, ip }</text>
+  <circle cx="62" cy="254" r="4" fill="#0d9488" />
+  <text x="72" y="258" font-size="9.5" fill="#0d9488" font-weight="600" text-anchor="start">Value objects (closed sets)</text>
+  <text x="72" y="274" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Role  network_admin | registrar | teacher | guardian</text>
+  <text x="72" y="287" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">NetworkStatus  active | suspended | cancelled</text>
+  <text x="72" y="300" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">RoleInSchool { schoolId, schoolName, role }</text>
+  <circle cx="62" cy="317" r="4" fill="#16a34a" />
+  <text x="72" y="321" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">Invariants (pure predicates)</text>
+  <text x="72" y="337" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidRole(v)     isNetworkActive(network)</text>
+  <text x="72" y="350" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">hasSessionExpired(session, now)</text>
+  <text x="72" y="363" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">MINIMUM_PASSWORD_LENGTH = 10</text>
+  <circle cx="62" cy="380" r="4" fill="#7c3aed" />
+  <text x="72" y="384" font-size="9.5" fill="#7c3aed" font-weight="600" text-anchor="start">Services and factories</text>
+  <text x="72" y="400" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">toAuthenticatedUser(user, network, roles)  ← joins 3 sources</text>
+  <text x="72" y="413" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">sessionExpiration(now, durationHours)</text>
+  <text x="72" y="426" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">normalizedEmail(email)</text>
+  <circle cx="62" cy="443" r="4" fill="#ea580c" />
+  <text x="72" y="447" font-size="9.5" fill="#ea580c" font-weight="600" text-anchor="start">Constructors that THROW</text>
+  <text x="72" y="463" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">toRole(v)          toNetworkStatus(v)</text>
+  <text x="72" y="476" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">only when the DATABASE returns a value outside the domain</text>
+  <rect x="480" y="108" width="420" height="412" rx="12" ry="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container" />
+  <path d="M 482,122 V 506" stroke="#2563eb" stroke-width="4" stroke-linecap="round" />
+  <text x="498" y="138" font-size="14.5" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">academics</text>
+  <text x="498" y="156" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">who studies, where and with whom</text>
+  <circle cx="502" cy="178" r="4" fill="#2563eb" />
+  <text x="512" y="182" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">Entities (records)</text>
+  <text x="512" y="198" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Student · Subject</text>
+  <text x="512" y="211" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">AcademicYear { year, startDate, endDate }</text>
+  <text x="512" y="224" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ClassGroup { schoolId, academicYearId, name, gradeLevel, shift }</text>
+  <text x="512" y="237" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ClassGroupSubject { classGroupId, subjectId, teacherUserId }</text>
+  <text x="512" y="250" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Enrollment { studentId, classGroupId, academicYearId, status }</text>
+  <circle cx="502" cy="267" r="4" fill="#0d9488" />
+  <text x="512" y="271" font-size="9.5" fill="#0d9488" font-weight="600" text-anchor="start">Value objects (closed sets)</text>
+  <text x="512" y="287" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Shift  morning | afternoon | evening | full_time</text>
+  <text x="512" y="300" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">EnrollmentStatus  active | transferred | cancelled | completed</text>
+  <text x="512" y="313" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">GuardianLink { userId, relationship, financiallyResponsible }</text>
+  <circle cx="502" cy="330" r="4" fill="#16a34a" />
+  <text x="512" y="334" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">Invariants (pure predicates)</text>
+  <text x="512" y="350" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">canTransfer(enrollment)   ← only the active one</text>
+  <text x="512" y="363" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isCoherentPeriod(start, end)</text>
+  <text x="512" y="376" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidShift(v)    isValidEnrollmentStatus(v)</text>
+  <circle cx="502" cy="393" r="4" fill="#7c3aed" />
+  <text x="512" y="397" font-size="9.5" fill="#7c3aed" font-weight="600" text-anchor="start">Domain services</text>
+  <text x="512" y="413" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ageOn(birthDate, date)</text>
+  <rect x="920" y="108" width="420" height="412" rx="12" ry="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container" />
+  <path d="M 922,122 V 506" stroke="#16a34a" stroke-width="4" stroke-linecap="round" />
+  <text x="938" y="138" font-size="14.5" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">assessment</text>
+  <text x="938" y="156" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">grade, attendance and the closing of the term</text>
+  <circle cx="942" cy="178" r="4" fill="#2563eb" />
+  <text x="952" y="182" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">Entities and computed types</text>
+  <text x="952" y="198" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Grade { enrollmentId, classGroupSubjectId, term, value }</text>
+  <text x="952" y="211" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">RollCallRow · DayPresence · AttendanceTally</text>
+  <text x="952" y="224" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">TermClosing · TermClosingState · ClosingPendingItem</text>
+  <text x="952" y="237" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ReportCard { rows, averages, attendance, status }  ← never stored</text>
+  <circle cx="942" cy="254" r="4" fill="#0d9488" />
+  <text x="952" y="258" font-size="9.5" fill="#0d9488" font-weight="600" text-anchor="start">Value objects</text>
+  <text x="952" y="274" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">FinalStatus  in_progress | passed | failed</text>
+  <circle cx="942" cy="291" r="4" fill="#16a34a" />
+  <text x="952" y="295" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">Invariants (pure predicates)</text>
+  <text x="952" y="311" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidTerm(t)      isValidGradeValue(v)</text>
+  <text x="952" y="324" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidRollCallDate(d)  isDateWithinAcademicYear(d, ini, fim)</text>
+  <text x="952" y="337" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">allTermsClosed(states)</text>
+  <circle cx="942" cy="354" r="4" fill="#7c3aed" />
+  <text x="952" y="358" font-size="9.5" fill="#7c3aed" font-weight="600" text-anchor="start">Domain services — the core of the module</text>
+  <text x="952" y="374" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">subjectAverage(grades)      overallAverage(averages)</text>
+  <text x="952" y="387" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">termAverages(rows)     attendanceRate(present, total)</text>
+  <text x="952" y="400" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">finalStatus(average, attendance, allClosed)</text>
+  <text x="952" y="413" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">closingStates(closed)   ← absence becomes state</text>
+  <text x="952" y="426" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">closingPendingItems(subjects, active, posted)</text>
+  <text x="952" y="439" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">pendingItemsMessage(pendingItems)</text>
+  <rect x="1360" y="108" width="420" height="412" rx="12" ry="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container" />
+  <path d="M 1362,122 V 506" stroke="#ea580c" stroke-width="4" stroke-linecap="round" />
+  <text x="1378" y="138" font-size="14.5" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">communication</text>
+  <text x="1378" y="156" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">what the school tells families, and who read it</text>
+  <circle cx="1382" cy="178" r="4" fill="#2563eb" />
+  <text x="1392" y="182" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">Entities (records)</text>
+  <text x="1392" y="198" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Announcement { title, body, authorName, publishedAt }</text>
+  <text x="1392" y="211" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">StoredAnnouncement { ..., authorUserId }</text>
+  <text x="1392" y="224" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">BoardItem · ReadCount · ReadStatistic</text>
+  <circle cx="1382" cy="241" r="4" fill="#16a34a" />
+  <text x="1392" y="245" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">Invariants (pure predicates)</text>
+  <text x="1392" y="261" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidTitle(t)    1..160</text>
+  <text x="1392" y="274" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidBody(b)     1..8000</text>
+  <text x="1392" y="287" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isPublished(announcement)</text>
+  <circle cx="1382" cy="304" r="4" fill="#7c3aed" />
+  <text x="1392" y="308" font-size="9.5" fill="#7c3aed" font-weight="600" text-anchor="start">Domain services</text>
+  <text x="1392" y="324" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">readRate(recipients, reads)</text>
+  <text x="1392" y="337" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">withAuthor(stored, authorName)  ← builds the read view</text>
+  <rect x="40" y="546" width="1080" height="172" rx="12" ry="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6" data-graph-role="container" />
+  <text x="58" y="570" font-size="12" fill="#0d9488" font-weight="600" text-anchor="start">Shared kernel — the only three things the domain is allowed to reach</text>
+  <text x="58" y="596" font-size="10.5" fill="#0f766e" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">shared/document/ — CPF</text>
+  <text x="58" y="614" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">The only value object with arithmetic of its own:</text>
+  <text x="58" y="627" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">normalizeCpf · isValidCpf (check digits)</text>
+  <text x="58" y="640" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">formatCpf · generateCpf</text>
+  <text x="58" y="653" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">It lives in shared/ because the rule is the SAME for</text>
+  <text x="58" y="666" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">identity and academics. Duplicating it would be worse.</text>
+  <text x="414" y="596" font-size="10.5" fill="#0f766e" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">shared/result.ts</text>
+  <text x="414" y="614" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">Result&lt;T&gt; = { ok: true, valor } | { ok: false, erros }</text>
+  <text x="414" y="627" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">success() · failure() · fieldFailure() · schemaErrors()</text>
+  <text x="414" y="640" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">An expected failure is a VALUE, not an exception. Used in</text>
+  <text x="414" y="653" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">18 use cases. The domain does not use it: a predicate</text>
+  <text x="414" y="666" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">returns a boolean; the application builds the error.</text>
+  <text x="770" y="596" font-size="10.5" fill="#0f766e" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">shared/ports/</text>
+  <text x="770" y="614" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">Clock { now(): Date }</text>
+  <text x="770" y="627" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">IdGenerator { next(): string }</text>
+  <text x="770" y="640" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">The domain never reads the real clock nor generates an id.</text>
+  <text x="770" y="653" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">It is what makes "expired?" and "which term is</text>
+  <text x="770" y="666" font-size="8.6" fill="#115e59" font-weight="400" text-anchor="start">today?" testable without waiting for time to pass.</text>
+  <rect x="1140" y="546" width="620" height="172" rx="10" ry="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.3" data-graph-role="container" />
+  <text x="1154" y="570" font-size="11.5" fill="#92400e" font-weight="600" text-anchor="start">The rule that draws this boundary — config/.dependency-cruiser.js</text>
+  <text x="1154" y="590" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">{ name: 'pure-domain', severity: 'error',</text>
+  <text x="1154" y="603" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  from: { path: '^src/[^/]+/domain/' },</text>
+  <text x="1154" y="616" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  to:   { path: ['^src/shared/(?:db|http|log|jobs)/', 'node_modules'] } }</text>
+  <text x="1154" y="629" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="1154" y="642" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">The domain may not reach a database, HTTP, log, scheduler or ANY</text>
+  <text x="1154" y="655" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">third-party library — zod included. What is left is ports/, result.ts</text>
+  <text x="1154" y="668" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">and document/. Not a convention: `bun run check` breaks the build.</text>
+  <text x="1154" y="681" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="1154" y="694" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">That is why zod appears in 20 use cases and in zero file under</text>
+  <text x="1154" y="707" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">domain/: validating input shape is the edge's job, not the rule's.</text>
+  <rect x="40" y="748" width="420" height="370" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container" />
+  <text x="54" y="772" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">The style: anaemic record + pure function</text>
+  <text x="54" y="792" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">No entity is a class. They are all type X = { ... },</text>
+  <text x="54" y="805" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">and behaviour lives in an exported function that takes</text>
+  <text x="54" y="818" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the record:</text>
+  <text x="54" y="831" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="54" y="844" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  canTransfer(enrollment)   and not   enrollment.canTransfer()</text>
+  <text x="54" y="857" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">  isNetworkActive(network)    and not   network.isActive()</text>
+  <text x="54" y="870" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="54" y="883" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Accepted consequence: there is no encapsulation. Nothing</text>
+  <text x="54" y="896" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">stops building an Enrollment with an inconsistent status —</text>
+  <text x="54" y="909" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the guarantee comes from the database CHECK and the predicate</text>
+  <text x="54" y="922" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the use case calls, not from the constructor.</text>
+  <text x="54" y="935" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="54" y="948" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">In exchange: every rule is a pure function, testable without</text>
+  <text x="54" y="961" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">building an object, without mocks and without a database. The</text>
+  <text x="54" y="974" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">17 files under domain/ import NOTHING beyond their own module's</text>
+  <text x="54" y="987" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">constants and the shared kernel.</text>
+  <text x="54" y="1000" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="54" y="1013" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">It is tactical DDD in a functional style. Calling it an</text>
+  <text x="54" y="1026" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">"anaemic model" is only a criticism when the rule leaks into</text>
+  <text x="54" y="1039" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the service — here it does not: it is in domain/, checked.</text>
+  <rect x="480" y="748" width="420" height="370" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container" />
+  <text x="494" y="772" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Where failure comes out — three channels, never mixed</text>
+  <text x="494" y="792" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">1. PREDICATE (domain/) — returns a boolean.</text>
+  <text x="494" y="805" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">   isValidGradeValue(11) → false. It does not throw, does not</text>
+  <text x="494" y="818" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">   format a message, does not know what a form field is.</text>
+  <text x="494" y="831" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="494" y="844" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">2. Result&lt;T&gt; (application/) — the EXPECTED failure becomes a value.</text>
+  <text x="494" y="857" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">   fieldFailure(campo, codigo, mensagem). 18 use cases.</text>
+  <text x="494" y="870" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">   A grade out of range, a duplicate enrollment, a term already</text>
+  <text x="494" y="883" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">   closed: none of that is an exception, it is a response.</text>
+  <text x="494" y="896" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="494" y="909" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">3. throw (web/routes/) — 4 classes in shared/http/errors.ts:</text>
+  <text x="494" y="922" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">   Unauthorized (3 uses) · NotFound (12) ·</text>
+  <text x="494" y="935" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">   BusinessRuleViolation (3) · Forbidden (0 uses, declared and</text>
+  <text x="494" y="948" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">   never thrown).</text>
+  <text x="494" y="961" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="494" y="974" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">And two exceptions in the domain itself: toRole() and</text>
+  <text x="494" y="987" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">toNetworkStatus(). They only fire if the DATABASE returns</text>
+  <text x="494" y="1000" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a value outside the set — corruption, not a user error.</text>
+  <text x="494" y="1013" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">For that case, failing loudly beats carrying on with a</text>
+  <text x="494" y="1026" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">role nobody knows how to interpret.</text>
+  <rect x="920" y="748" width="420" height="370" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container" />
+  <text x="934" y="772" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">What this domain does NOT have</text>
+  <text x="934" y="792" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">AGGREGATE ROOT as an object. There is no class holding</text>
+  <text x="934" y="805" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">children and refusing an invalid change. The aggregate's</text>
+  <text x="934" y="818" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">boundary is the module's index.ts plus the repository: whoever</text>
+  <text x="934" y="831" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">is outside only sees what the facade publishes.</text>
+  <text x="934" y="844" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="934" y="857" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">DOMAIN EVENTS. Zero. No event is created, published or</text>
+  <text x="934" y="870" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">consumed anywhere under src/. unitOfWork was written as the</text>
+  <text x="934" y="883" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">only commit point precisely so that the outbox, when it</text>
+  <text x="934" y="896" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">exists, goes in there and nowhere else — but it does not</text>
+  <text x="934" y="909" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">exist yet.</text>
+  <text x="934" y="922" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="934" y="935" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">REPOSITORY IN THE DOMAIN LAYER. There is no repository</text>
+  <text x="934" y="948" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">interface under domain/. The repositories live in infra/ and</text>
+  <text x="934" y="961" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">take the transaction's `sql` as a parameter. Dependency</text>
+  <text x="934" y="974" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">inversion exists only for Clock and IdGenerator.</text>
+  <text x="934" y="987" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="934" y="1000" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">SPECIFICATION, POLICY, SAGA. None of those patterns shows</text>
+  <text x="934" y="1013" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">up — and nothing in the code pretends they do.</text>
+  <rect x="1360" y="748" width="400" height="370" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container" />
+  <text x="1374" y="772" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Contexts: who depends on whom</text>
+  <text x="1374" y="792" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">communication ─┐</text>
+  <text x="1374" y="805" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">assessment ───┼─▶ academics ─▶ identity</text>
+  <text x="1374" y="818" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">             └─▶ identity</text>
+  <text x="1374" y="831" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="1374" y="844" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">identity is the leaf: it knows nobody.</text>
+  <text x="1374" y="857" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="1374" y="870" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">PUBLISHED LANGUAGE — the crossing is always through index.ts.</text>
+  <text x="1374" y="883" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">domain/, application/ and infra/ are private, and depcruise</text>
+  <text x="1374" y="896" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">rejects the shortcut.</text>
+  <text x="1374" y="909" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="1374" y="922" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">NO ANTI-CORRUPTION LAYER. academics imports ROLE from</text>
+  <text x="1374" y="935" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">identity and uses the type as is; assessment consumes</text>
+  <text x="1374" y="948" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Enrollment and ClassGroupSubject from academics untranslated.</text>
+  <text x="1374" y="961" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">It is a Conformist relationship over published language, not an ACL.</text>
+  <text x="1374" y="974" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Cheap now, and it is the bill Stage 14 will pay.</text>
+  <text x="1374" y="987" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" />
+  <text x="1374" y="1000" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">THE INVERSION THE DATABASE USED TO IMPOSE is gone: app_user</text>
+  <text x="1374" y="1013" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">no longer points at academics. student_guardian.user_id points</text>
+  <text x="1374" y="1026" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the other way, and identity is a leaf here too. See the ER.</text>
+  <text x="40" y="1150" font-size="9.5" fill="#111827" font-weight="600" text-anchor="start">Marker colour:</text>
+  <circle cx="150" cy="1146" r="4" fill="#2563eb" />
+  <text x="160" y="1150" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Entity</text>
+  <circle cx="238" cy="1146" r="4" fill="#0d9488" />
+  <text x="248" y="1150" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Value object</text>
+  <circle cx="368" cy="1146" r="4" fill="#16a34a" />
+  <text x="378" y="1150" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Invariant</text>
+  <circle cx="468" cy="1146" r="4" fill="#7c3aed" />
+  <text x="478" y="1150" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Domain service</text>
+  <circle cx="616" cy="1146" r="4" fill="#ea580c" />
+  <text x="626" y="1150" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Factory / constructor</text>
+  <text x="36" y="1170" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Read from src/*/domain/, src/shared/ and config/.dependency-cruiser.js. State of Stage 01.</text>
+</svg></div>
+    <p class="sr-only">Keyboard shortcuts: plus and minus zoom, zero resets, T toggles theme, S exports.</p>
+  </main>
+  <script>
+  (() => {
+    'use strict';
+    const metadata = {"slug": "domain-blocks"};
+    const stage = document.getElementById('stage');
+    const canvas = document.getElementById('canvas');
+    const svg = canvas.querySelector('svg');
+    const status = document.getElementById('status');
+    const scaleSelect = document.getElementById('scale');
+    const formatSelect = document.getElementById('format');
+    let view = { x:0, y:0, scale:1 };
+    let drag = null;
+    const clamp = value => Math.max(.2, Math.min(8, value));
+    const render = () => {
+      canvas.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.scale})`;
+      status.textContent = `${Math.round(view.scale * 100)}%`;
+    };
+    const zoom = (factor, originX=stage.clientWidth/2, originY=stage.clientHeight/2) => {
+      const next = clamp(view.scale * factor);
+      const ratio = next / view.scale;
+      view.x = originX - (originX - view.x) * ratio;
+      view.y = originY - (originY - view.y) * ratio;
+      view.scale = next; render();
+    };
+    const reset = () => { view = {x:0,y:0,scale:1}; render(); };
+    stage.addEventListener('wheel', event => { event.preventDefault(); const rect=stage.getBoundingClientRect(); zoom(event.deltaY < 0 ? 1.12 : .89, event.clientX-rect.left, event.clientY-rect.top); }, {passive:false});
+    stage.addEventListener('pointerdown', event => { drag={id:event.pointerId,x:event.clientX,y:event.clientY,vx:view.x,vy:view.y}; stage.setPointerCapture(event.pointerId); stage.classList.add('dragging'); });
+    stage.addEventListener('pointermove', event => { if(!drag||drag.id!==event.pointerId)return; view.x=drag.vx+event.clientX-drag.x; view.y=drag.vy+event.clientY-drag.y; render(); });
+    const endDrag = () => { drag=null; stage.classList.remove('dragging'); };
+    stage.addEventListener('pointerup', endDrag); stage.addEventListener('pointercancel', endDrag);
+    const source = () => new XMLSerializer().serializeToString(svg);
+    const saveBlob = (blob, extension) => { const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${(metadata.slug||'fireworks-tech-graph')}.${extension}`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); };
+    const copySource = async () => {
+      const value=source();
+      try { await navigator.clipboard.writeText(value); status.textContent='Copied'; return; } catch {}
+      const area=document.createElement('textarea'); area.value=value; area.setAttribute('readonly',''); area.style.position='fixed'; area.style.opacity='0'; document.body.appendChild(area); area.select();
+      status.textContent=document.execCommand('copy')?'Copied':'Copy failed'; area.remove();
+    };
+    const exportDiagram = async () => {
+      const format = formatSelect.value.toLowerCase();
+      if(format==='svg') { saveBlob(new Blob([source()],{type:'image/svg+xml;charset=utf-8'}),'svg'); return; }
+      const scale = Math.max(1,Math.min(4,Number(scaleSelect.value)||2));
+      const box = svg.viewBox.baseVal; const width=box.width||svg.clientWidth; const height=box.height||svg.clientHeight;
+      const image = new Image(); const url=URL.createObjectURL(new Blob([source()],{type:'image/svg+xml'}));
+      await new Promise((resolve,reject)=>{ image.onload=resolve; image.onerror=reject; image.src=url; });
+      const raster=document.createElement('canvas'); raster.width=Math.round(width*scale); raster.height=Math.round(height*scale);
+      const ctx=raster.getContext('2d'); if(format==='jpeg'){ctx.fillStyle='#ffffff';ctx.fillRect(0,0,raster.width,raster.height);} ctx.drawImage(image,0,0,raster.width,raster.height); URL.revokeObjectURL(url);
+      const mime=format==='jpeg'?'image/jpeg':format==='webp'?'image/webp':'image/png';
+      const blob=await new Promise(resolve=>raster.toBlob(resolve,mime,.94)); if(blob) saveBlob(blob,format==='jpeg'?'jpg':format);
+    };
+    document.querySelector('.toolbar').addEventListener('click', async event => {
+      const action=event.target.closest('[data-action]')?.dataset.action; if(!action)return;
+      if(action==='zoom-in')zoom(1.2); else if(action==='zoom-out')zoom(.83); else if(action==='reset')reset();
+      else if(action==='theme')document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';
+      else if(action==='download')await exportDiagram();
+      else if(action==='copy') await copySource();
+    });
+    document.addEventListener('keydown', event => {
+      if(event.target.matches('select'))return;
+      if(event.key==='+'||event.key==='=')zoom(1.2); else if(event.key==='-')zoom(.83); else if(event.key==='0'||event.key.toLowerCase()==='r')reset();
+      else if(event.key.toLowerCase()==='t')document.querySelector('[data-action=theme]').click(); else if(event.key.toLowerCase()==='s'){event.preventDefault();exportDiagram();}
+    });
+    render();
+  })();
+  </script>
+</body>
+</html>
