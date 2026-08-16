@@ -1,6 +1,9 @@
 # ADR 0004 — CPF como identificador de acesso, e-mail volta a ser só contato
 
 **Status:** aceita — Estágio 01
+**Parcialmente superseded pela ADR 0006:** a decisão central segue valendo e sai reforçada. Cai
+apenas a consequência "Responsável sem CPF não recebe portal" — sob as premissas da 0006, o
+responsável sem CPF deixa de ser cadastrável, e não só de receber acesso.
 
 ## Contexto
 

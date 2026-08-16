@@ -1,6 +1,9 @@
 # ADR 0005 — Responsável e usuário seguem dois registros, e a seta que isso obriga
 
-**Status:** aceita — Estágio 01 (a duplicação é decidida; a correção de direção fica adiada, com o gatilho anotado)
+**Status:** superseded pela ADR 0006 — as três decisões caíram junto com a premissa que as
+sustentava ("um responsável pode existir sem credencial"). A **análise** continua válida e é o
+motivo de a 0006 existir: as três camadas da inversão, o ponto cego do `dependency-cruiser` e o
+contraste com o professor.
 
 ## Contexto
 
