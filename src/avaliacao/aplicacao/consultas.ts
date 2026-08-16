@@ -1,4 +1,4 @@
-import { academico } from '../../academico';
+import { academico } from '../../academics';
 import { reader } from '../../shared/db';
 import { DEFAULT_PAGE_SIZE, queryPage, type Page } from '../../shared/pagination';
 import {

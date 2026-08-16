@@ -3,9 +3,9 @@ import { isValidCpf, normalizeCpf } from '../../shared/document';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
-import type { Responsavel } from '../dominio/responsavel';
-import * as responsaveis from '../infra/responsavelRepositorio';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
+import type { Responsavel } from '../domain/guardian';
+import * as responsaveis from '../infra/guardianRepository';
 
 const entrada = z.object({
   redeId: z.string().uuid(),

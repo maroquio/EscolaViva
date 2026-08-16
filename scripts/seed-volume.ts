@@ -1,4 +1,4 @@
-import { MATRICULA_ATIVA, TURNOS } from '../src/academico';
+import { MATRICULA_ATIVA, TURNOS } from '../src/academics';
 import { ACTIVE_NETWORK_STATUS } from '../src/identity';
 import { config } from '../src/shared/config';
 import { LOCALE, PRODUCTION_ENV, TIME, WEEK_DAYS } from '../src/shared/constants';

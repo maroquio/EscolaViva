@@ -6,7 +6,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { academico } from '../../src/academico';
+import { academico } from '../../src/academics';
 import type { ApplicationError, Result } from '../../src/shared/result';
 import { limparBanco } from '../apoio/banco';
 import {

@@ -7,7 +7,7 @@ import {
   type AnoLetivo,
   type Matricula,
   type Turma,
-} from '../../academico';
+} from '../../academics';
 import { ROLE, identity } from '../../identity';
 import {
   CONTEXT_VARIABLES,

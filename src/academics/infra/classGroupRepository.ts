@@ -1,13 +1,13 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import { ERROS_INTERNOS } from '../constantes';
+import { ERROS_INTERNOS } from '../constants';
 import {
   turnoValido,
   type Turma,
   type TurmaDisciplina,
   type TurmaDisciplinaDoProfessor,
   type Turno,
-} from '../dominio/turma';
+} from '../domain/classGroup';
 
 type LinhaDeTurma = {
   id: string;

@@ -1,6 +1,6 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import type { AnoLetivo } from '../dominio/anoLetivo';
+import type { AnoLetivo } from '../domain/academicYear';
 
 type LinhaDeAnoLetivo = {
   id: string;

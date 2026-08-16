@@ -1,7 +1,7 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import { ERROS_INTERNOS } from '../constantes';
-import { situacaoValida, type Matricula, type SituacaoMatricula } from '../dominio/matricula';
+import { ERROS_INTERNOS } from '../constants';
+import { situacaoValida, type Matricula, type SituacaoMatricula } from '../domain/enrollment';
 
 type LinhaDeMatricula = {
   id: string;

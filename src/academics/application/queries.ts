@@ -1,20 +1,20 @@
 import { reader } from '../../shared/db';
 import { DEFAULT_PAGE_SIZE, queryPage, type Page } from '../../shared/pagination';
-import type { Aluno } from '../dominio/aluno';
-import type { AnoLetivo } from '../dominio/anoLetivo';
-import type { Disciplina } from '../dominio/disciplina';
-import type { Matricula } from '../dominio/matricula';
-import type { Responsavel, VinculoResponsavel } from '../dominio/responsavel';
-import type { Turma, TurmaDisciplina, TurmaDisciplinaDoProfessor } from '../dominio/turma';
-import type { FiltroDeTurma } from '../infra/turmaRepositorio';
-import * as alunos from '../infra/alunoRepositorio';
-import * as anosLetivos from '../infra/anoLetivoRepositorio';
-import * as disciplinas from '../infra/disciplinaRepositorio';
-import * as matriculas from '../infra/matriculaRepositorio';
-import * as responsaveis from '../infra/responsavelRepositorio';
-import * as turmas from '../infra/turmaRepositorio';
+import type { Aluno } from '../domain/student';
+import type { AnoLetivo } from '../domain/academicYear';
+import type { Disciplina } from '../domain/subject';
+import type { Matricula } from '../domain/enrollment';
+import type { Responsavel, VinculoResponsavel } from '../domain/guardian';
+import type { Turma, TurmaDisciplina, TurmaDisciplinaDoProfessor } from '../domain/classGroup';
+import type { FiltroDeTurma } from '../infra/classGroupRepository';
+import * as alunos from '../infra/studentRepository';
+import * as anosLetivos from '../infra/academicYearRepository';
+import * as disciplinas from '../infra/subjectRepository';
+import * as matriculas from '../infra/enrollmentRepository';
+import * as responsaveis from '../infra/guardianRepository';
+import * as turmas from '../infra/classGroupRepository';
 
-export type { FiltroDeTurma } from '../infra/turmaRepositorio';
+export type { FiltroDeTurma } from '../infra/classGroupRepository';
 
 export type ContagemDaUnidade = {
   readonly turmas: number;

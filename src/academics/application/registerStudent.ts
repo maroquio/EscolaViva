@@ -3,9 +3,9 @@ import { ISO_DATE_LENGTH } from '../../shared/constants';
 import { unitOfWork } from '../../shared/db';
 import { systemClock, uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
-import { idadeEm, type Aluno } from '../dominio/aluno';
-import * as alunos from '../infra/alunoRepositorio';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
+import { idadeEm, type Aluno } from '../domain/student';
+import * as alunos from '../infra/studentRepository';
 
 const entrada = z.object({
   redeId: z.string().uuid(),

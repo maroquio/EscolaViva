@@ -3,10 +3,10 @@ import { identity } from '../../identity/index';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
-import type { TurmaDisciplina } from '../dominio/turma';
-import * as disciplinas from '../infra/disciplinaRepositorio';
-import * as turmas from '../infra/turmaRepositorio';
+import { CAMPOS, CODIGOS, MENSAGENS } from '../constants';
+import type { TurmaDisciplina } from '../domain/classGroup';
+import * as disciplinas from '../infra/subjectRepository';
+import * as turmas from '../infra/classGroupRepository';
 
 const entrada = z.object({
   redeId: z.string().uuid(),

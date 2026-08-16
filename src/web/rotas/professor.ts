@@ -1,5 +1,5 @@
 import { Hono, type Context } from 'hono';
-import { VOCABULARIO_DO_ACADEMICO, academico } from '../../academico';
+import { VOCABULARIO_DO_ACADEMICO, academico } from '../../academics';
 import {
   BIMESTRES,
   LIMITES_DA_AVALIACAO,

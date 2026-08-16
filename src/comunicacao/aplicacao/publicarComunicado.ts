@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { academico } from '../../academico';
+import { academico } from '../../academics';
 import { identity } from '../../identity';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';

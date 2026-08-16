@@ -1,4 +1,4 @@
-import { CAMPOS_DO_ACADEMICO } from '../academico';
+import { CAMPOS_DO_ACADEMICO } from '../academics';
 import { CAMPOS_DA_AVALIACAO, ROTULO_DE_BIMESTRE } from '../avaliacao';
 import { CAMPOS_DA_COMUNICACAO } from '../comunicacao';
 import { IDENTITY_FIELDS, ROLE } from '../identity';

@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { describe, expect, test } from 'bun:test';
-import { LIMITES } from '../../src/academico/constantes';
+import { LIMITES } from '../../src/academics/constants';
 
 const ENTIDADES_COM_LIMITE_DE_NOME = ['aluno', 'disciplina', 'responsavel', 'turma'] as const;
 
@@ -17,7 +17,7 @@ const POR_QUE_FUNDIR_E_O_DEFEITO =
   'demais em nome da consistência e o formulário de turma passaria a aceitar um nome que a política da ' +
   'turma recusa. Para mudar um limite, mude o número daquela entidade e deixe os outros três onde estão.';
 
-const CAMINHO_RELATIVO_DAS_CONSTANTES = 'src/academico/constantes.ts';
+const CAMINHO_RELATIVO_DAS_CONSTANTES = 'src/academics/constants.ts';
 
 const RAIZ_DO_PROJETO = join(import.meta.dir, '..', '..');
 

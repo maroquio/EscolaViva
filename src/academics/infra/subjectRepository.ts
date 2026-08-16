@@ -1,6 +1,6 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import type { Disciplina } from '../dominio/disciplina';
+import type { Disciplina } from '../domain/subject';
 
 type LinhaDeDisciplina = {
   id: string;

@@ -1,5 +1,5 @@
-import type { SituacaoMatricula } from './dominio/matricula';
-import type { Turno } from './dominio/turma';
+import type { SituacaoMatricula } from './domain/enrollment';
+import type { Turno } from './domain/classGroup';
 
 export const LIMITES = {
   aluno: {

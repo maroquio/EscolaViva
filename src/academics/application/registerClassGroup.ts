@@ -3,10 +3,10 @@ import { identity } from '../../identity/index';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
-import { turnoValido, type Turma } from '../dominio/turma';
-import * as anosLetivos from '../infra/anoLetivoRepositorio';
-import * as turmas from '../infra/turmaRepositorio';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
+import { turnoValido, type Turma } from '../domain/classGroup';
+import * as anosLetivos from '../infra/academicYearRepository';
+import * as turmas from '../infra/classGroupRepository';
 
 const entrada = z.object({
   redeId: z.string().uuid(),

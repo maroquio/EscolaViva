@@ -4,7 +4,7 @@
  * caso de uso é deliberado: o teste de `matricular` não pode depender de `matricular`.
  */
 
-import type { SituacaoMatricula } from '../../src/academico';
+import type { SituacaoMatricula } from '../../src/academics';
 import type { Role } from '../../src/identity';
 import { generateCpf } from '../../src/shared/document';
 import { sqlDeTeste } from './banco';

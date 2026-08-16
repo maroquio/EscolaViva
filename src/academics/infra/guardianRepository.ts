@@ -1,6 +1,6 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import type { Responsavel, VinculoResponsavel } from '../dominio/responsavel';
+import type { Responsavel, VinculoResponsavel } from '../domain/guardian';
 
 type LinhaDeResponsavel = {
   id: string;

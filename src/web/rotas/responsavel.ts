@@ -1,5 +1,5 @@
 import { Hono, type Context } from 'hono';
-import { VOCABULARIO_DO_ACADEMICO, academico, type Matricula } from '../../academico';
+import { VOCABULARIO_DO_ACADEMICO, academico, type Matricula } from '../../academics';
 import {
   APROVACAO,
   ARITMETICA,

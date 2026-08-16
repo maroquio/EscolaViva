@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { deleteCookie, getSignedCookie, setSignedCookie } from 'hono/cookie';
-import { LIMITES_DO_ACADEMICO, academico, type Turma } from '../../academico';
+import { LIMITES_DO_ACADEMICO, academico, type Turma } from '../../academics';
 import {
   IDENTITY_LIMITS,
   IDENTITY_VOCABULARY,

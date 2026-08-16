@@ -7,7 +7,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { academico } from '../../src/academico';
+import { academico } from '../../src/academics';
 import { identity } from '../../src/identity';
 import { limparBanco } from '../apoio/banco';
 import {

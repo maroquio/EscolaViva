@@ -4,16 +4,16 @@
  */
 
 import { describe, expect, test } from 'bun:test';
-import { idadeEm } from '../../src/academico/dominio/aluno';
-import { periodoCoerente } from '../../src/academico/dominio/anoLetivo';
+import { idadeEm } from '../../src/academics/domain/student';
+import { periodoCoerente } from '../../src/academics/domain/academicYear';
 import {
   SITUACOES_DE_MATRICULA,
   podeTransferir,
   situacaoValida,
   type Matricula,
   type SituacaoMatricula,
-} from '../../src/academico/dominio/matricula';
-import { TURNOS, turnoValido } from '../../src/academico/dominio/turma';
+} from '../../src/academics/domain/enrollment';
+import { TURNOS, turnoValido } from '../../src/academics/domain/classGroup';
 
 const matriculaCom = (situacao: SituacaoMatricula): Matricula => ({
   id: 'matricula-1',

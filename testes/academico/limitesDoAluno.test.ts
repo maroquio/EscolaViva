@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { LIMITES_DO_ACADEMICO, academico } from '../../src/academico';
+import { LIMITES_DO_ACADEMICO, academico } from '../../src/academics';
 import type { Result } from '../../src/shared/result';
 import { limparBanco } from '../apoio/banco';
 import { criarAluno, criarRede } from '../apoio/fabricas';

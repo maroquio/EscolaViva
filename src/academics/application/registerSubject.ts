@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
-import type { Disciplina } from '../dominio/disciplina';
-import * as disciplinas from '../infra/disciplinaRepositorio';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
+import type { Disciplina } from '../domain/subject';
+import * as disciplinas from '../infra/subjectRepository';
 
 const entrada = z.object({
   redeId: z.string().uuid(),

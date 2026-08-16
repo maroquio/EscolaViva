@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { academico } from '../../academico';
+import { academico } from '../../academics';
 import { unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
 import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';

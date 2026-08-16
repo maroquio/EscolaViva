@@ -3,13 +3,13 @@ import type { Connection } from '../../shared/db';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
-import { MATRICULA_ATIVA, type Matricula } from '../dominio/matricula';
-import type { Turma } from '../dominio/turma';
-import * as alunos from '../infra/alunoRepositorio';
-import * as anosLetivos from '../infra/anoLetivoRepositorio';
-import * as matriculas from '../infra/matriculaRepositorio';
-import * as turmas from '../infra/turmaRepositorio';
+import { CAMPOS, CODIGOS, MENSAGENS } from '../constants';
+import { MATRICULA_ATIVA, type Matricula } from '../domain/enrollment';
+import type { Turma } from '../domain/classGroup';
+import * as alunos from '../infra/studentRepository';
+import * as anosLetivos from '../infra/academicYearRepository';
+import * as matriculas from '../infra/enrollmentRepository';
+import * as turmas from '../infra/classGroupRepository';
 
 const entrada = z.object({
   redeId: z.string().uuid(),

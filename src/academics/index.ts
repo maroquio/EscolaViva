@@ -1,8 +1,8 @@
-import { alocarProfessor } from './aplicacao/alocarProfessor';
-import { cadastrarAluno } from './aplicacao/cadastrarAluno';
-import { cadastrarDisciplina } from './aplicacao/cadastrarDisciplina';
-import { cadastrarResponsavel } from './aplicacao/cadastrarResponsavel';
-import { cadastrarTurma } from './aplicacao/cadastrarTurma';
+import { alocarProfessor } from './application/assignTeacher';
+import { cadastrarAluno } from './application/registerStudent';
+import { cadastrarDisciplina } from './application/registerSubject';
+import { cadastrarResponsavel } from './application/registerGuardian';
+import { cadastrarTurma } from './application/registerClassGroup';
 import {
   alunoPorId,
   alunoTemMatricula,
@@ -35,19 +35,19 @@ import {
   turmaDisciplinasDoProfessor,
   turmaPorId,
   turmasDoProfessor,
-} from './aplicacao/consultas';
-import { definirAnoLetivo } from './aplicacao/definirAnoLetivo';
-import { matricular } from './aplicacao/matricular';
-import { transferir } from './aplicacao/transferir';
-import { vincularResponsavel } from './aplicacao/vincularResponsavel';
+} from './application/queries';
+import { definirAnoLetivo } from './application/defineAcademicYear';
+import { matricular } from './application/enroll';
+import { transferir } from './application/transfer';
+import { vincularResponsavel } from './application/linkGuardian';
 
-export type { Aluno } from './dominio/aluno';
-export type { AnoLetivo } from './dominio/anoLetivo';
-export type { Disciplina } from './dominio/disciplina';
-export type { Matricula, SituacaoMatricula } from './dominio/matricula';
-export type { Responsavel, VinculoResponsavel } from './dominio/responsavel';
-export type { Turma, TurmaDisciplina } from './dominio/turma';
-export type { ContagemDaUnidade, FiltroDeTurma } from './aplicacao/consultas';
+export type { Aluno } from './domain/student';
+export type { AnoLetivo } from './domain/academicYear';
+export type { Disciplina } from './domain/subject';
+export type { Matricula, SituacaoMatricula } from './domain/enrollment';
+export type { Responsavel, VinculoResponsavel } from './domain/guardian';
+export type { Turma, TurmaDisciplina } from './domain/classGroup';
+export type { ContagemDaUnidade, FiltroDeTurma } from './application/queries';
 
 export const academico = {
   definirAnoLetivo,
@@ -96,7 +96,7 @@ export {
   CAMPOS as CAMPOS_DO_ACADEMICO,
   LIMITES as LIMITES_DO_ACADEMICO,
   VOCABULARIO as VOCABULARIO_DO_ACADEMICO,
-} from './constantes';
+} from './constants';
 
-export { MATRICULA_ATIVA, SITUACOES_DE_MATRICULA } from './dominio/matricula';
-export { TURNOS } from './dominio/turma';
+export { MATRICULA_ATIVA, SITUACOES_DE_MATRICULA } from './domain/enrollment';
+export { TURNOS } from './domain/classGroup';

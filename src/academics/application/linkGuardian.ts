@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
-import * as alunos from '../infra/alunoRepositorio';
-import * as responsaveis from '../infra/responsavelRepositorio';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
+import * as alunos from '../infra/studentRepository';
+import * as responsaveis from '../infra/guardianRepository';
 
 const entrada = z.object({
   redeId: z.string().uuid(),

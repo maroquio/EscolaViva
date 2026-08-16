@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
-import { periodoCoerente, type AnoLetivo } from '../dominio/anoLetivo';
-import * as anosLetivos from '../infra/anoLetivoRepositorio';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
+import { periodoCoerente, type AnoLetivo } from '../domain/academicYear';
+import * as anosLetivos from '../infra/academicYearRepository';
 
 const entrada = z.object({
   redeId: z.string().uuid(),

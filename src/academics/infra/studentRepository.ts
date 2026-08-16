@@ -1,7 +1,7 @@
 import type { Connection } from '../../shared/db';
 import type { Range } from '../../shared/pagination';
-import { LIMITES } from '../constantes';
-import type { Aluno } from '../dominio/aluno';
+import { LIMITES } from '../constants';
+import type { Aluno } from '../domain/student';
 
 type LinhaDeAluno = {
   id: string;
