@@ -258,27 +258,27 @@ Vary: Cookie
 
 <script>
   (() => {
-    const botao = document.getElementById('select-all');
-    const caixas = Array.from(document.querySelectorAll('input[name="guardians[]"]'));
-    const alcanceSelecionados = document.getElementById('audience-selected');
-    if (botao === null || caixas.length === 0) return;
+    const button = document.getElementById('select-all');
+    const checkboxes = Array.from(document.querySelectorAll('input[name="guardians[]"]'));
+    const selectedAudience = document.getElementById('audience-selected');
+    if (button === null || checkboxes.length === 0) return;
 
-    const todasMarcadas = () => caixas.every((caixa) => caixa.checked);
-    const atualizarRotulo = () => {
-      botao.textContent = todasMarcadas() ? 'Desmarcar todos' : 'Selecionar todos';
+    const allChecked = () => checkboxes.every((checkbox) => checkbox.checked);
+    const updateLabel = () => {
+      button.textContent = allChecked() ? 'Desmarcar todos' : 'Selecionar todos';
     };
 
-    botao.addEventListener('click', () => {
-      const marcar = !todasMarcadas();
-      caixas.forEach((caixa) => { caixa.checked = marcar; });
-      if (marcar && alcanceSelecionados !== null) alcanceSelecionados.checked = true;
-      atualizarRotulo();
+    button.addEventListener('click', () => {
+      const shouldCheck = !allChecked();
+      checkboxes.forEach((checkbox) => { checkbox.checked = shouldCheck; });
+      if (shouldCheck && selectedAudience !== null) selectedAudience.checked = true;
+      updateLabel();
     });
 
-    caixas.forEach((caixa) => caixa.addEventListener('change', atualizarRotulo));
+    checkboxes.forEach((checkbox) => checkbox.addEventListener('change', updateLabel));
 
-    atualizarRotulo();
-    botao.hidden = false;
+    updateLabel();
+    button.hidden = false;
   })();
 </script>
     </main>
@@ -286,25 +286,25 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.notice');
-    if (avisos.length === 0) return;
+    const notices = document.querySelectorAll('.notice');
+    if (notices.length === 0) return;
 
-    const conteudo = document.getElementById('content');
+    const content = document.getElementById('content');
 
-    avisos.forEach((aviso) => {
-      const fechar = document.createElement('button');
-      fechar.type = 'button';
-      fechar.className = 'notice__close';
-      fechar.setAttribute('aria-label', 'Fechar aviso');
-      fechar.textContent = '×';
+    notices.forEach((notice) => {
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'notice__close';
+      closeButton.setAttribute('aria-label', 'Fechar aviso');
+      closeButton.textContent = '×';
 
-      fechar.addEventListener('click', () => {
-        const tinhaFoco = document.activeElement === fechar;
-        aviso.remove();
-        if (tinhaFoco && conteudo !== null) conteudo.focus({ preventScroll: true });
+      closeButton.addEventListener('click', () => {
+        const hadFocus = document.activeElement === closeButton;
+        notice.remove();
+        if (hadFocus && content !== null) content.focus({ preventScroll: true });
       });
 
-      aviso.append(fechar);
+      notice.append(closeButton);
     });
   })();
 </script>

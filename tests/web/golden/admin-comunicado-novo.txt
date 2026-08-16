@@ -125,25 +125,25 @@ Vary: Cookie
 
   <script>
   (() => {
-    const avisos = document.querySelectorAll('.notice');
-    if (avisos.length === 0) return;
+    const notices = document.querySelectorAll('.notice');
+    if (notices.length === 0) return;
 
-    const conteudo = document.getElementById('content');
+    const content = document.getElementById('content');
 
-    avisos.forEach((aviso) => {
-      const fechar = document.createElement('button');
-      fechar.type = 'button';
-      fechar.className = 'notice__close';
-      fechar.setAttribute('aria-label', 'Fechar aviso');
-      fechar.textContent = '×';
+    notices.forEach((notice) => {
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'notice__close';
+      closeButton.setAttribute('aria-label', 'Fechar aviso');
+      closeButton.textContent = '×';
 
-      fechar.addEventListener('click', () => {
-        const tinhaFoco = document.activeElement === fechar;
-        aviso.remove();
-        if (tinhaFoco && conteudo !== null) conteudo.focus({ preventScroll: true });
+      closeButton.addEventListener('click', () => {
+        const hadFocus = document.activeElement === closeButton;
+        notice.remove();
+        if (hadFocus && content !== null) content.focus({ preventScroll: true });
       });
 
-      aviso.append(fechar);
+      notice.append(closeButton);
     });
   })();
 </script>
