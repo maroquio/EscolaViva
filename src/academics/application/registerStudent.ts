@@ -3,7 +3,7 @@ import { ISO_DATE_LENGTH } from '../../shared/constants';
 import { unitOfWork } from '../../shared/db';
 import { systemClock, uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, LIMITS, MESSAGES } from '../constants';
 import { ageOn, type Student } from '../domain/student';
 import * as students from '../infra/studentRepository';
 
@@ -26,7 +26,7 @@ export async function registerStudent(input: {
 }): Promise<Result<Student>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.student));
+    return failure(...schemaErrors(parsed.error.issues));
   }
 
   if (ageOn(parsed.data.birthDate, today()) < 0) {

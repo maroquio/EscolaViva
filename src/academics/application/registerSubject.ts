@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, LIMITS, MESSAGES } from '../constants';
 import type { Subject } from '../domain/subject';
 import * as subjects from '../infra/subjectRepository';
 
@@ -21,7 +21,7 @@ export async function registerSubject(input: {
 }): Promise<Result<Subject>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.subject));
+    return failure(...schemaErrors(parsed.error.issues));
   }
 
   const subject: Subject = { id: uuidIdGenerator.next(), ...parsed.data };

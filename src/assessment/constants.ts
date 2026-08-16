@@ -19,29 +19,12 @@ export const MIDNIGHT_UTC = 'T00:00:00Z';
 export const NOON_UTC = 'T12:00:00Z';
 
 export const FIELDS = {
-  classGroupId: 'turmaId',
-  classGroupSubjectId: 'turmaDisciplinaId',
-  term: 'bimestre',
-  date: 'data',
-  grades: 'notas',
-  rows: 'linhas',
-} as const;
-
-export const SCHEMA_FIELD_NAMES = {
-  grades: {
-    classGroupSubjectId: FIELDS.classGroupSubjectId,
-    term: FIELDS.term,
-    grades: FIELDS.grades,
-  },
-  rollCall: {
-    classGroupId: FIELDS.classGroupId,
-    date: FIELDS.date,
-    rows: FIELDS.rows,
-  },
-  closing: {
-    classGroupId: FIELDS.classGroupId,
-    term: FIELDS.term,
-  },
+  classGroupId: 'classGroupId',
+  classGroupSubjectId: 'classGroupSubjectId',
+  term: 'term',
+  date: 'date',
+  grades: 'grades',
+  rows: 'rows',
 } as const;
 
 export const CODES = {

@@ -103,7 +103,7 @@ export const HTML_ENTITIES = {
   doubleQuote: '&quot;',
 } as const;
 
-export const KEY_FIELD = '_chave';
+export const KEY_FIELD = '_key';
 
 export const CONTEXT_VARIABLES = {
   user: 'user',

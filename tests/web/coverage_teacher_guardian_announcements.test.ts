@@ -9,7 +9,7 @@
  *
  * Por isso cada caso aqui olha para o conteúdo, e escolhe como âncora aquilo que a tela existe para
  * mostrar: o título da página, o cabeçalho da tabela, o nome do campo do formulário, o link que
- * leva ao próximo passo. Nomes de campo (`nota_<id>`, `presenca_<id>`, `responsaveis[]`) são
+ * leva ao próximo passo. Nomes de campo (`grade_<id>`, `present_<id>`, `guardians[]`) são
  * contrato com o navegador, não detalhe interno — trocá-los quebra o envio, e é a asserção que
  * transforma isso em teste vermelho em vez de bug silencioso.
  *
@@ -116,7 +116,7 @@ describe('as quatro telas do diário de classe', () => {
     expect(html).toContain(formFor(`/teacher/subjects/${assignment.id}/grades`));
     // O campo é nomeado pela matrícula, e o aluno da linha aparece pelo nome.
     for (const enrollment of scenario.enrollments) {
-      expect(html).toContain(`name="nota_${enrollment.id}"`);
+      expect(html).toContain(`name="grade_${enrollment.id}"`);
     }
     for (const student of scenario.students) {
       expect(html).toContain(student.name);
@@ -152,11 +152,11 @@ describe('as quatro telas do diário de classe', () => {
     expect(html).toContain(`Chamada de 02/03/2026 · ${classGroup.name}`);
     expect(html).toContain('<th scope="col">Justificativa da falta</th>');
     expect(html).toContain(formFor(`/teacher/class-groups/${classGroup.id}/roll-call`));
-    expect(html).toContain('name="data" value="2026-03-02"');
+    expect(html).toContain('name="date" value="2026-03-02"');
     // Sem registro no dia, a caixa de cada aluno já vem marcada.
     for (const enrollment of scenario.enrollments) {
-      expect(html).toContain(`name="presenca_${enrollment.id}"\n                   checked`);
-      expect(html).toContain(`name="justificativa_${enrollment.id}"`);
+      expect(html).toContain(`name="present_${enrollment.id}"\n                   checked`);
+      expect(html).toContain(`name="excuse_${enrollment.id}"`);
     }
     // O eixo da tela é o calendário: um dia para trás e um para a frente.
     expect(html).toContain(`/teacher/class-groups/${classGroup.id}/roll-call?date=2026-03-01`);
@@ -171,7 +171,7 @@ describe('as quatro telas do diário de classe', () => {
     const { status, html } = await screen(`/teacher/class-groups/${classGroup.id}/roll-call`, cookie);
 
     expect(status).toBe(200);
-    expect(html).toMatch(/name="data" value="\d{4}-\d{2}-\d{2}"/);
+    expect(html).toMatch(/name="date" value="\d{4}-\d{2}-\d{2}"/);
   });
 
   test('a chamada de turma sem matrícula ativa explica a ausência', async () => {
@@ -208,7 +208,7 @@ describe('as quatro telas do diário de classe', () => {
     for (const term of [1, 2, 3, 4]) {
       expect(html).toContain(`<h2>${term}º bimestre</h2>`);
       expect(html).toContain(`Fechar ${term}º bimestre`);
-      expect(html).toContain(`name="bimestre" value="${term}"`);
+      expect(html).toContain(`name="term" value="${term}"`);
     }
     // Cada bimestre aberto oferece o atalho para o diário das disciplinas deste professor.
     expect(html).toContain(`/teacher/subjects/${scenario.classGroupSubjects[0].id}/grades?term=1`);
@@ -512,11 +512,11 @@ describe('as telas de quem publica no mural', () => {
     expect(html).toContain('Passo 2 · Mensagem');
     expect(html).toContain(school.name);
     expect(html).toContain(formFor('/announcements/new'));
-    expect(html).toContain(`name="unidadeId" value="${school.id}"`);
-    expect(html).toContain('name="titulo"');
-    expect(html).toContain('name="corpo"');
+    expect(html).toContain(`name="schoolId" value="${school.id}"`);
+    expect(html).toContain('name="title"');
+    expect(html).toContain('name="body"');
     // O sufixo `[]` é o que faz a segunda caixa marcada somar em vez de sobrescrever a primeira.
-    expect(html).toContain('name="responsaveis[]"');
+    expect(html).toContain('name="guardians[]"');
     for (const guardian of scenario.guardians) {
       expect(html).toContain(`value="${guardian.id}"`);
       expect(html).toContain(guardian.name);

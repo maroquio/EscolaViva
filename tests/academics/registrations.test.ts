@@ -63,7 +63,7 @@ describe('definirAnoLetivo', () => {
     });
 
     expect(errorsOf(result)).toEqual([
-      { campo: 'ano', codigo: 'ano_duplicado', mensagem: 'Esta rede já tem o ano letivo 2027 definido.' },
+      { campo: 'year', codigo: 'ano_duplicado', mensagem: 'Esta rede já tem o ano letivo 2027 definido.' },
     ]);
     expect(await academics.listAcademicYears(network.id)).toHaveLength(1);
   });
@@ -90,7 +90,7 @@ describe('definirAnoLetivo', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'dataFim',
+        campo: 'endDate',
         codigo: 'periodo_incoerente',
         mensagem: 'A data de término precisa ser posterior à data de início.',
       },
@@ -104,7 +104,7 @@ describe('definirAnoLetivo', () => {
       networkId: network.id, year: 1998, startDate: '1998-02-01', endDate: '1998-12-15',
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('ano');
+    expect(errorsOf(result)[0]?.campo).toBe('year');
   });
 
   test('lista os anos letivos do mais recente para o mais antigo', async () => {
@@ -138,7 +138,7 @@ describe('cadastrarDisciplina', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'nome',
+        campo: 'name',
         codigo: 'disciplina_duplicada',
         mensagem: 'Esta rede já tem uma disciplina com este nome.',
       },
@@ -161,7 +161,7 @@ describe('cadastrarDisciplina', () => {
 
     const result = await academics.registerSubject({ networkId: network.id, name: '   ' });
 
-    expect(errorsOf(result)[0]?.campo).toBe('nome');
+    expect(errorsOf(result)[0]?.campo).toBe('name');
   });
 });
 
@@ -199,7 +199,7 @@ describe('cadastrarTurma', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'nome',
+        campo: 'name',
         codigo: 'turma_duplicada',
         mensagem: 'Esta unidade já tem uma turma com este nome neste ano letivo.',
       },
@@ -251,7 +251,7 @@ describe('cadastrarTurma', () => {
       name: '6º A', gradeLevel: '6º ano', shift: 'madrugada',
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('turno');
+    expect(errorsOf(result)[0]?.campo).toBe('shift');
   });
 
   test('recusa unidade de outra rede', async () => {
@@ -267,7 +267,7 @@ describe('cadastrarTurma', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'unidadeId',
+        campo: 'schoolId',
         codigo: 'unidade_nao_encontrada',
         mensagem: 'Unidade não encontrada nesta rede.',
       },
@@ -313,7 +313,7 @@ describe('cadastrarAluno', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'dataNascimento',
+        campo: 'birthDate',
         codigo: 'data_no_futuro',
         mensagem: 'A data de nascimento não pode estar no futuro.',
       },
@@ -328,7 +328,7 @@ describe('cadastrarAluno', () => {
       networkId: network.id, name: 'Ana Souza', birthDate: '10/05/2014',
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('dataNascimento');
+    expect(errorsOf(result)[0]?.campo).toBe('birthDate');
   });
 
   test('recusa aluno sem nome', async () => {
@@ -338,7 +338,7 @@ describe('cadastrarAluno', () => {
       networkId: network.id, name: '', birthDate: '2014-05-10',
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('nome');
+    expect(errorsOf(result)[0]?.campo).toBe('name');
   });
 
   test('dois alunos podem ter o mesmo nome: homônimo não é duplicidade', async () => {
@@ -517,7 +517,7 @@ describe('vincularResponsavel', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'responsavelId',
+        campo: 'guardianId',
         codigo: 'vinculo_duplicado',
         mensagem: 'Este responsável já está vinculado a este aluno.',
       },
@@ -563,7 +563,7 @@ describe('vincularResponsavel', () => {
       relationship: ' ', financiallyResponsible: false,
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('parentesco');
+    expect(errorsOf(result)[0]?.campo).toBe('relationship');
   });
 });
 
@@ -599,7 +599,7 @@ describe('alocarProfessor', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'professorUsuarioId',
+        campo: 'teacherUserId',
         codigo: 'sem_papel_de_professor',
         mensagem: 'Este usuário não tem papel de professor na unidade desta turma.',
       },
@@ -648,7 +648,7 @@ describe('alocarProfessor', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'disciplinaId',
+        campo: 'subjectId',
         codigo: 'disciplina_ja_alocada',
         mensagem: 'Esta disciplina já está alocada nesta turma.',
       },
@@ -702,6 +702,6 @@ describe('alocarProfessor', () => {
       subjectId: 'tambem-nao', teacherUserId: scenario.teacher.id,
     });
 
-    expect(errorsOf(result).map((error) => error.campo)).toEqual(['turmaId', 'disciplinaId']);
+    expect(errorsOf(result).map((error) => error.campo)).toEqual(['classGroupId', 'subjectId']);
   });
 });

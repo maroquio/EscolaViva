@@ -225,7 +225,7 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
       password: scenario.password,
     });
 
-    await send('/registrar/subjects', { nome: 'Sociologia' }, cookie);
+    await send('/registrar/subjects', { name: 'Sociologia' }, cookie);
     const saved = await anotherConnection((sql) =>
       sql<{ name: string }[]>`
         SELECT name FROM subject WHERE network_id = ${scenario.network.id} AND name = 'Sociologia'`,
@@ -344,7 +344,7 @@ describe('enviar o mesmo formulário duas vezes cria um registro', () => {
       cpf: scenario.registrar.cpf,
       password: scenario.password,
     });
-    const fields = { _chave: crypto.randomUUID(), nome: 'Educação Física' };
+    const fields = { _key: crypto.randomUUID(), name: 'Educação Física' };
 
     await post('/registrar/subjects', fields, cookie);
     await post('/registrar/subjects', fields, cookie);
@@ -364,8 +364,8 @@ describe('enviar o mesmo formulário duas vezes cria um registro', () => {
       password: scenario.password,
     });
 
-    await send('/registrar/subjects', { nome: 'Educação Física' }, cookie);
-    await send('/registrar/subjects', { nome: 'Educação Artística' }, cookie);
+    await send('/registrar/subjects', { name: 'Educação Física' }, cookie);
+    await send('/registrar/subjects', { name: 'Educação Artística' }, cookie);
     const rows = await testSql()<{ total: string }[]>`
       SELECT count(*)::text AS total
         FROM subject
@@ -642,7 +642,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
       password: scenario.password,
     });
 
-    const rejected = await post('/registrar/subjects', { nome: 'Xadrez' }, cookie);
+    const rejected = await post('/registrar/subjects', { name: 'Xadrez' }, cookie);
     const page = await rejected.text();
 
     expect(rejected.status).toBe(400);

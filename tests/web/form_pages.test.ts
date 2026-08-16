@@ -7,7 +7,7 @@
  *
  * O terceiro grupo é o que a separação poderia ter quebrado sem ninguém notar: o formulário
  * recusado precisa voltar para a própria página de formulário, com o que foi digitado, e não para
- * a lista. O quarto é o alcance: as páginas novas são portas novas, e cada uma responde 404 para
+ * a lista. O quarto é o audience: as páginas novas são portas novas, e cada uma responde 404 para
  * registro de fora da rede como as antigas respondiam.
  */
 
@@ -220,12 +220,12 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'registrar');
 
-    const response = await send('/registrar/subjects', { nome: '' }, cookie);
+    const response = await send('/registrar/subjects', { name: '' }, cookie);
     const html = await response.text();
 
     expect(response.status).toBe(200);
     expect(hasFormFor(html, '/registrar/subjects')).toBe(true);
-    expect(html).toContain('id="nome-erro"');
+    expect(html).toContain('id="name-erro"');
     expect(html).not.toContain('Disciplinas disponíveis para alocar nas turmas');
   });
 
@@ -235,7 +235,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
 
     const response = await send(
       '/registrar/class-groups',
-      { nome: 'Turma Rejeitada', serie: '', turno: '', unidadeId: '', anoLetivoId: '' },
+      { name: 'Turma Rejeitada', gradeLevel: '', shift: '', schoolId: '', academicYearId: '' },
       cookie,
     );
     const html = await response.text();
@@ -250,7 +250,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const scenario = await fullScenario();
     const cookie = await signInAs(scenario, 'admin');
 
-    const response = await send('/network/schools', { nome: '', codigoInep: '123' }, cookie);
+    const response = await send('/network/schools', { name: '', inepCode: '123' }, cookie);
     const html = await response.text();
 
     expect(response.status).toBe(200);
@@ -265,8 +265,8 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const guardian = scenario.guardians[0];
 
     const response = await send('/network/users', {
-      nome: 'Mãe do Aluno', email: 'mae@escolaviva.test', cpf: generateCpf(987_654),
-      responsavelId: guardian.id, 'unidade[]': scenario.schools[0].id, 'papel[]': 'guardian',
+      name: 'Mãe do Aluno', email: 'mae@escolaviva.test', cpf: generateCpf(987_654),
+      guardianId: guardian.id, 'schools[]': scenario.schools[0].id, 'roles[]': 'guardian',
     }, cookie);
     const html = await response.text();
 
@@ -281,7 +281,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const cookie = await signInAs(scenario, 'registrar');
 
     const response = await send('/registrar/guardians', {
-      nome: 'Responsável Sem Acesso', email: 'sem.acesso@escolaviva.test', cpf: '52998224724',
+      name: 'Responsável Sem Acesso', email: 'sem.acesso@escolaviva.test', cpf: '52998224724',
     }, cookie);
     const html = await response.text();
 
@@ -295,13 +295,13 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
     const cookie = await signInAs(scenario, 'admin');
 
     const response = await send('/network/users', {
-      nome: 'Sem Cadastro', email: 'sem.cadastro@escolaviva.test', cpf: generateCpf(987_655),
-      responsavelId: 'nao-e-uuid', 'unidade[]': scenario.schools[0].id, 'papel[]': 'registrar',
+      name: 'Sem Cadastro', email: 'sem.cadastro@escolaviva.test', cpf: generateCpf(987_655),
+      guardianId: 'nao-e-uuid', 'schools[]': scenario.schools[0].id, 'roles[]': 'registrar',
     }, cookie);
     const html = await response.text();
 
     expect(response.status).toBe(200);
-    expect(html).toContain('id="responsavelId-erro"');
+    expect(html).toContain('id="guardianId-erro"');
   });
 
   test('vínculo recusado volta para a página do vínculo, sem a ficha inteira', async () => {
@@ -311,7 +311,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
 
     const response = await send(
       `/registrar/students/${studentId}/guardians`,
-      { responsavelId: '', parentesco: '' },
+      { guardianId: '', relationship: '' },
       cookie,
     );
     const html = await response.text();

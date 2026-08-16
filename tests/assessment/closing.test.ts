@@ -137,7 +137,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'bimestre', codigo: 'fechamento_incompleto' })],
+      erros: [expect.objectContaining({ campo: 'term', codigo: 'fechamento_incompleto' })],
     });
     const message = messageOf(result);
     expect(message).toContain('Faltam 10 notas para fechar o bimestre');
@@ -185,7 +185,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'bimestre', codigo: 'ja_fechado' })],
+      erros: [expect.objectContaining({ campo: 'term', codigo: 'ja_fechado' })],
     });
   });
 
@@ -203,7 +203,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'bimestre', codigo: 'bimestre_fechado' })],
+      erros: [expect.objectContaining({ campo: 'term', codigo: 'bimestre_fechado' })],
     });
     const grades = await assessment.classGroupSubjectGrades(
       scenario.network.id,
@@ -269,7 +269,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'turmaId', codigo: 'sem_disciplina' })],
+      erros: [expect.objectContaining({ campo: 'classGroupId', codigo: 'sem_disciplina' })],
     });
   });
 
@@ -285,7 +285,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'turmaId', codigo: 'sem_matricula_ativa' })],
+      erros: [expect.objectContaining({ campo: 'classGroupId', codigo: 'sem_matricula_ativa' })],
     });
   });
 
@@ -296,7 +296,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'turmaId', codigo: 'nao_encontrada' })],
+      erros: [expect.objectContaining({ campo: 'classGroupId', codigo: 'nao_encontrada' })],
     });
   });
 
@@ -305,7 +305,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'bimestre' })],
+      erros: [expect.objectContaining({ campo: 'term' })],
     });
   });
 

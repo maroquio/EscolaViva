@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, LIMITS, MESSAGES } from '../constants';
 import { isCoherentPeriod, type AcademicYear } from '../domain/academicYear';
 import * as academicYears from '../infra/academicYearRepository';
 
@@ -25,7 +25,7 @@ export async function defineAcademicYear(input: {
 }): Promise<Result<AcademicYear>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.academicYear));
+    return failure(...schemaErrors(parsed.error.issues));
   }
 
   const { networkId, year, startDate, endDate } = parsed.data;

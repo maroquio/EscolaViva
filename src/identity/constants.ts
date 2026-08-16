@@ -25,37 +25,24 @@ export const SECURITY = {
 export const ROLE_ASSIGNMENT_SEPARATOR = ':';
 
 export const FIELDS = {
-  login: { networkSlug: 'redeSlug', cpf: 'cpf', password: 'senha' },
+  login: { networkSlug: 'networkSlug', cpf: 'cpf', password: 'password' },
   user: {
-    name: 'nome',
+    name: 'name',
     email: 'email',
     cpf: 'cpf',
-    roleAssignments: 'atribuicoes',
-    guardianId: 'responsavelId',
+    roleAssignments: 'roleAssignments',
+    guardianId: 'guardianId',
   },
-  school: { name: 'nome', inepCode: 'codigoInep' },
-  password: { current: 'senhaAtual', new: 'senhaNova', confirmation: 'senhaConfirmacao' },
+  school: { name: 'name', inepCode: 'inepCode' },
+  password: {
+    currentPassword: 'currentPassword',
+    newPassword: 'newPassword',
+    passwordConfirmation: 'passwordConfirmation',
+  },
 } as const;
 
 export const SCHEMA_FIELD_NAMES = {
-  login: {
-    networkSlug: FIELDS.login.networkSlug,
-    loginIdentifier: FIELDS.login.cpf,
-    password: FIELDS.login.password,
-  },
-  user: {
-    name: FIELDS.user.name,
-    email: FIELDS.user.email,
-    cpf: FIELDS.user.cpf,
-    roleAssignments: FIELDS.user.roleAssignments,
-    guardianId: FIELDS.user.guardianId,
-  },
-  school: { name: FIELDS.school.name, inepCode: FIELDS.school.inepCode },
-  password: {
-    currentPassword: FIELDS.password.current,
-    newPassword: FIELDS.password.new,
-    confirmation: FIELDS.password.confirmation,
-  },
+  login: { loginIdentifier: FIELDS.login.cpf },
 } as const;
 
 export const CODES = {

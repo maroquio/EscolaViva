@@ -44,15 +44,15 @@ accountRoutes.get(ROUTES.account.password.pattern, (c) =>
 accountRoutes.post(ROUTES.account.password.pattern, async (c) => {
   const user = currentUser(c);
   const body = c.get(CONTEXT_VARIABLES.body);
-  const newPassword = password(body, FIELDS.password.new);
+  const newPassword = password(body, FIELDS.password.newPassword);
 
-  if (newPassword !== password(body, FIELDS.password.confirmation)) {
+  if (newPassword !== password(body, FIELDS.password.passwordConfirmation)) {
     return passwordScreen(c, [FORM_ERRORS.confirmationMismatch]);
   }
 
   const result = await identity.changePassword({
     userId: user.id,
-    currentPassword: password(body, FIELDS.password.current),
+    currentPassword: password(body, FIELDS.password.currentPassword),
     newPassword,
   });
   if (!result.ok) return passwordScreen(c, result.erros);

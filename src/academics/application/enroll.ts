@@ -3,7 +3,7 @@ import type { Connection } from '../../shared/db';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, MESSAGES } from '../constants';
 import { ACTIVE_ENROLLMENT_STATUS, type Enrollment } from '../domain/enrollment';
 import type { ClassGroup } from '../domain/classGroup';
 import * as students from '../infra/studentRepository';
@@ -71,7 +71,7 @@ export async function enroll(input: {
 }): Promise<Result<Enrollment>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.enrollment));
+    return failure(...schemaErrors(parsed.error.issues));
   }
 
   const { networkId, studentId, classGroupId, academicYearId, enrollmentDate } = parsed.data;

@@ -17,7 +17,7 @@ import { fullScenario, type Scenario } from '../support/factories';
 import { open, signIn, send, post } from './support';
 
 const ROUTE = '/registrar/subjects';
-const UUID_KEY = /name="_chave" value="([0-9a-f-]{36})"/g;
+const UUID_KEY = /name="_key" value="([0-9a-f-]{36})"/g;
 
 const pageKeys = (html: string): string[] =>
   [...html.matchAll(UUID_KEY)].flatMap((meeting) =>
@@ -52,7 +52,7 @@ describe('idempotência de formulário', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await post(ROUTE, { nome: 'Geografia' }, cookie);
+    const response = await post(ROUTE, { name: 'Geografia' }, cookie);
 
     expect(response.status).toBe(400);
     expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(0);
@@ -62,7 +62,7 @@ describe('idempotência de formulário', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    const response = await post(ROUTE, { _chave: 'chave-inventada', nome: 'Geografia' }, cookie);
+    const response = await post(ROUTE, { _key: 'chave-inventada', name: 'Geografia' }, cookie);
 
     expect(response.status).toBe(400);
     expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(0);
@@ -71,7 +71,7 @@ describe('idempotência de formulário', () => {
   test('o mesmo formulário enviado duas vezes cria um único registro', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
-    const fields = { _chave: crypto.randomUUID(), nome: 'Geografia' };
+    const fields = { _key: crypto.randomUUID(), name: 'Geografia' };
 
     const first = await post(ROUTE, fields, cookie);
     const second = await post(ROUTE, fields, cookie);
@@ -84,7 +84,7 @@ describe('idempotência de formulário', () => {
   test('o reenvio leva ao mesmo destino da primeira submissão', async () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
-    const fields = { _chave: crypto.randomUUID(), nome: 'Geografia' };
+    const fields = { _key: crypto.randomUUID(), name: 'Geografia' };
 
     const first = await post(ROUTE, fields, cookie);
     const second = await post(ROUTE, fields, cookie);
@@ -96,8 +96,8 @@ describe('idempotência de formulário', () => {
     const scenario = await fullScenario();
     const cookie = await signInAsRegistrar(scenario);
 
-    await send(ROUTE, { nome: 'Geografia' }, cookie);
-    await send(ROUTE, { nome: 'Artes' }, cookie);
+    await send(ROUTE, { name: 'Geografia' }, cookie);
+    await send(ROUTE, { name: 'Artes' }, cookie);
 
     expect(await subjectsNamed(scenario.network.id, 'Geografia')).toBe(1);
     expect(await subjectsNamed(scenario.network.id, 'Artes')).toBe(1);
@@ -108,7 +108,7 @@ describe('idempotência de formulário', () => {
     const cookie = await signInAsRegistrar(scenario);
     const key = crypto.randomUUID();
 
-    const response = await post(ROUTE, { _chave: key, nome: 'Geografia' }, cookie);
+    const response = await post(ROUTE, { _key: key, name: 'Geografia' }, cookie);
     const rows = await testSql()<{ route: string; response_location: string }[]>`
       SELECT route, response_location FROM idempotent_request WHERE idempotency_key = ${key}`;
 
@@ -122,9 +122,9 @@ describe('idempotência de formulário', () => {
     const cookie = await signInAsRegistrar(scenario);
     const key = crypto.randomUUID();
 
-    const rejected = await post(ROUTE, { _chave: key, nome: '' }, cookie);
+    const rejected = await post(ROUTE, { _key: key, name: '' }, cookie);
     const keysAfter = await storedKeys();
-    const fixed = await post(ROUTE, { _chave: key, nome: 'Geografia' }, cookie);
+    const fixed = await post(ROUTE, { _key: key, name: 'Geografia' }, cookie);
 
     expect(rejected.status).toBe(200);
     expect(keysAfter).toBe(0);
@@ -151,12 +151,12 @@ describe('idempotência de formulário', () => {
 
     const ofTheFirst = await post(
       ROUTE,
-      { _chave: key, nome: 'Geografia' },
+      { _key: key, name: 'Geografia' },
       await signInAsRegistrar(scenario),
     );
     const ofTheSecond = await post(
       ROUTE,
-      { _chave: crypto.randomUUID(), nome: 'Geografia' },
+      { _key: crypto.randomUUID(), name: 'Geografia' },
       await signInAsRegistrar(otherNetwork),
     );
 

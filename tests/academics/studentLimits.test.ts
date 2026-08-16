@@ -64,6 +64,6 @@ describe('LIMITS.student.name conta CARACTERES do nome', () => {
       birthDate: '2014-05-10',
     });
 
-    expect(fieldsWithError(result)).toEqual(['nome']);
+    expect(fieldsWithError(result)).toEqual(['name']);
   });
 });

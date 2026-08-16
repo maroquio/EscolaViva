@@ -59,31 +59,31 @@ describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
 
     const registration = await send(
       '/registrar/students',
-      { nome: studentName, dataNascimento: '2014-07-21' },
+      { name: studentName, birthDate: '2014-07-21' },
       cookie,
     );
     const studentId = targetIdentifier(registration);
 
     const guardian = await send(
       '/registrar/guardians',
-      { nome: guardianName, email: guardianEmail, telefone: '(27) 99999-0000' },
+      { name: guardianName, email: guardianEmail, phone: '(27) 99999-0000' },
       cookie,
     );
     const guardianId = await guardianByEmail(scenario.network.id, guardianEmail);
 
     const guardianLink = await send(
       `/registrar/students/${studentId}/guardians`,
-      { responsavelId: guardianId, parentesco: 'mãe', financeiro: 'on' },
+      { guardianId: guardianId, relationship: 'mãe', financiallyResponsible: 'on' },
       cookie,
     );
 
     const enrollment = await send(
       '/registrar/enrollments',
       {
-        alunoId: studentId,
-        turmaId: targetClassGroup.id,
-        anoLetivoId: scenario.academicYear.id,
-        dataMatricula: '2026-02-10',
+        studentId: studentId,
+        classGroupId: targetClassGroup.id,
+        academicYearId: scenario.academicYear.id,
+        enrollmentDate: '2026-02-10',
       },
       cookie,
     );
@@ -107,28 +107,28 @@ describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
 
     const registration = await send(
       '/registrar/students',
-      { nome: studentName, dataNascimento: '2013-01-30' },
+      { name: studentName, birthDate: '2013-01-30' },
       cookie,
     );
     const studentId = targetIdentifier(registration);
     await send(
       '/registrar/guardians',
-      { nome: 'Regina Sampaio', email: guardianEmail, telefone: '' },
+      { name: 'Regina Sampaio', email: guardianEmail, phone: '' },
       cookie,
     );
     const guardianId = await guardianByEmail(scenario.network.id, guardianEmail);
     await send(
       `/registrar/students/${studentId}/guardians`,
-      { responsavelId: guardianId, parentesco: 'tia', financeiro: 'on' },
+      { guardianId: guardianId, relationship: 'tia', financiallyResponsible: 'on' },
       cookie,
     );
     await send(
       '/registrar/enrollments',
       {
-        alunoId: studentId,
-        turmaId: scenario.classGroups[1].id,
-        anoLetivoId: scenario.academicYear.id,
-        dataMatricula: '2026-02-10',
+        studentId: studentId,
+        classGroupId: scenario.classGroups[1].id,
+        academicYearId: scenario.academicYear.id,
+        enrollmentDate: '2026-02-10',
       },
       cookie,
     );
@@ -151,9 +151,9 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
     const submissions: Response[] = [];
     for (const assignment of scenario.classGroupSubjects) {
       for (const term of TERMS) {
-        const fields: Record<string, string> = { bimestre: String(term) };
+        const fields: Record<string, string> = { term: String(term) };
         for (const enrollment of scenario.enrollments) {
-          fields[`nota_${enrollment.id}`] = NOTA_DE_APROVACAO;
+          fields[`grade_${enrollment.id}`] = NOTA_DE_APROVACAO;
         }
         submissions.push(await send(`/teacher/subjects/${assignment.id}/grades`, fields, cookie));
       }
@@ -167,8 +167,8 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
   ): Promise<Response[]> => {
     const submissions: Response[] = [];
     for (const date of ROLL_CALL_DAYS) {
-      const fields: Record<string, string> = { data: date };
-      for (const enrollment of scenario.enrollments) fields[`presenca_${enrollment.id}`] = 'on';
+      const fields: Record<string, string> = { date: date };
+      for (const enrollment of scenario.enrollments) fields[`present_${enrollment.id}`] = 'on';
       submissions.push(
         await send(`/teacher/class-groups/${scenario.classGroups[0].id}/roll-call`, fields, cookie),
       );
@@ -179,7 +179,7 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
   const closeTerm = (scenario: Scenario, cookie: string, term: number): Promise<Response> =>
     send(
       `/teacher/class-groups/${scenario.classGroups[0].id}/closing`,
-      { bimestre: String(term) },
+      { term: String(term) },
       cookie,
     );
 

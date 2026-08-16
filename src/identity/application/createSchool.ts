@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, LIMITS, MESSAGES } from '../constants';
 import type { School } from '../domain/school';
 import * as schoolRepository from '../infra/schoolRepository';
 
@@ -27,7 +27,7 @@ export async function createSchool(input: {
   inepCode?: string | null | undefined;
 }): Promise<Result<School>> {
   const parsed = schema.safeParse(input);
-  if (!parsed.success) return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.school));
+  if (!parsed.success) return failure(...schemaErrors(parsed.error.issues));
   const data = parsed.data;
 
   const inepCode = data.inepCode === '' ? null : (data.inepCode ?? null);

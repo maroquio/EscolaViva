@@ -164,7 +164,7 @@ describe('autenticar', () => {
     // entre si e distintas da recusa de credenciais, para não virar chamado de "senha parou".
     const networkRejection = [
       {
-        campo: 'redeSlug',
+        campo: 'networkSlug',
         codigo: 'rede_indisponivel',
         mensagem: 'rede não encontrada ou fora de operação',
       },
@@ -194,7 +194,7 @@ describe('autenticar', () => {
     });
 
     const fields = errorsOf(result).map((error) => error.campo);
-    expect(fields).toEqual(['redeSlug', 'cpf', 'senha']);
+    expect(fields).toEqual(['networkSlug', 'cpf', 'password']);
   });
 
   test('o mesmo CPF em redes diferentes autentica cada um na sua rede', async () => {
@@ -425,7 +425,7 @@ describe('trocarSenha', () => {
     });
 
     expect(errorsOf(result)).toEqual([
-      { campo: 'senhaAtual', codigo: 'senha_incorreta', mensagem: 'a senha atual não confere' },
+      { campo: 'currentPassword', codigo: 'senha_incorreta', mensagem: 'a senha atual não confere' },
     ]);
   });
 
@@ -437,7 +437,7 @@ describe('trocarSenha', () => {
       userId: user.id, currentPassword: DEFAULT_PASSWORD, newPassword: 'curta123',
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('senhaNova');
+    expect(errorsOf(result)[0]?.campo).toBe('newPassword');
   });
 
   test('a senha nova passa a autenticar e a antiga deixa de funcionar', async () => {

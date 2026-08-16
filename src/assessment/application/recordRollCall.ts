@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { academics } from '../../academics';
 import { unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, LIMITS, MESSAGES } from '../constants';
 import { isDateWithinAcademicYear, isValidRollCallDate } from '../domain/attendance';
 import * as attendanceRepository from '../infra/attendanceRepository';
 
@@ -35,7 +35,7 @@ const schema = z.object({
 export async function recordRollCall(input: RollCallRecord): Promise<Result<number>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.rollCall));
+    return failure(...schemaErrors(parsed.error.issues));
   }
   const { networkId, classGroupId, date, rows } = parsed.data;
 

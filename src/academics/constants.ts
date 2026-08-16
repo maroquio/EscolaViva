@@ -14,79 +14,34 @@ export const LIMITS = {
 } as const;
 
 export const FIELDS = {
-  student: { name: 'nome', birthDate: 'dataNascimento' },
-  subject: { name: 'nome' },
-  guardian: { name: 'nome', email: 'email', phone: 'telefone', cpf: 'cpf' },
+  student: { name: 'name', birthDate: 'birthDate' },
+  subject: { name: 'name' },
+  guardian: { name: 'name', email: 'email', phone: 'phone', cpf: 'cpf' },
   classGroup: {
-    name: 'nome',
-    gradeLevel: 'serie',
-    shift: 'turno',
-    schoolId: 'unidadeId',
-    academicYearId: 'anoLetivoId',
+    name: 'name',
+    gradeLevel: 'gradeLevel',
+    shift: 'shift',
+    schoolId: 'schoolId',
+    academicYearId: 'academicYearId',
   },
-  academicYear: { year: 'ano', startDate: 'dataInicio', endDate: 'dataFim' },
+  academicYear: { year: 'year', startDate: 'startDate', endDate: 'endDate' },
   teachingAssignment: {
-    classGroupId: 'turmaId',
-    subjectId: 'disciplinaId',
-    teacherUserId: 'professorUsuarioId',
+    classGroupId: 'classGroupId',
+    subjectId: 'subjectId',
+    teacherUserId: 'teacherUserId',
   },
   enrollment: {
-    studentId: 'alunoId',
-    classGroupId: 'turmaId',
-    academicYearId: 'anoLetivoId',
-    enrollmentDate: 'dataMatricula',
+    studentId: 'studentId',
+    classGroupId: 'classGroupId',
+    academicYearId: 'academicYearId',
+    enrollmentDate: 'enrollmentDate',
   },
-  transfer: { enrollmentId: 'matriculaId', targetClassGroupId: 'turmaDestinoId', date: 'data' },
+  transfer: { enrollmentId: 'enrollmentId', targetClassGroupId: 'targetClassGroupId', date: 'date' },
   guardianLink: {
-    studentId: 'alunoId',
-    guardianId: 'responsavelId',
-    relationship: 'parentesco',
-    financiallyResponsible: 'financeiro',
-  },
-} as const;
-
-export const SCHEMA_FIELD_NAMES = {
-  student: { name: FIELDS.student.name, birthDate: FIELDS.student.birthDate },
-  subject: { name: FIELDS.subject.name },
-  guardian: {
-    name: FIELDS.guardian.name,
-    email: FIELDS.guardian.email,
-    phone: FIELDS.guardian.phone,
-    cpf: FIELDS.guardian.cpf,
-  },
-  classGroup: {
-    schoolId: FIELDS.classGroup.schoolId,
-    academicYearId: FIELDS.classGroup.academicYearId,
-    name: FIELDS.classGroup.name,
-    gradeLevel: FIELDS.classGroup.gradeLevel,
-    shift: FIELDS.classGroup.shift,
-  },
-  academicYear: {
-    year: FIELDS.academicYear.year,
-    startDate: FIELDS.academicYear.startDate,
-    endDate: FIELDS.academicYear.endDate,
-  },
-  teachingAssignment: {
-    classGroupId: FIELDS.teachingAssignment.classGroupId,
-    subjectId: FIELDS.teachingAssignment.subjectId,
-    teacherUserId: FIELDS.teachingAssignment.teacherUserId,
-  },
-  enrollment: {
-    studentId: FIELDS.enrollment.studentId,
-    classGroupId: FIELDS.enrollment.classGroupId,
-    academicYearId: FIELDS.enrollment.academicYearId,
-    enrollmentDate: FIELDS.enrollment.enrollmentDate,
-  },
-  transfer: {
-    enrollmentId: FIELDS.transfer.enrollmentId,
-    targetClassGroupId: FIELDS.transfer.targetClassGroupId,
-    date: FIELDS.transfer.date,
-  },
-  guardianLink: {
-    studentId: FIELDS.guardianLink.studentId,
-    guardianId: FIELDS.guardianLink.guardianId,
-    relationship: FIELDS.guardianLink.relationship,
-    financiallyResponsible: FIELDS.guardianLink.financiallyResponsible,
+    studentId: 'studentId',
+    guardianId: 'guardianId',
+    relationship: 'relationship',
+    financiallyResponsible: 'financiallyResponsible',
   },
 } as const;
 

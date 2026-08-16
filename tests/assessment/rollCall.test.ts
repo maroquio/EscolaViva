@@ -194,7 +194,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'data', codigo: 'data_fora_do_ano_letivo' })],
+      erros: [expect.objectContaining({ campo: 'date', codigo: 'data_fora_do_ano_letivo' })],
     });
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
@@ -209,7 +209,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'data', codigo: 'data_fora_do_ano_letivo' })],
+      erros: [expect.objectContaining({ campo: 'date', codigo: 'data_fora_do_ano_letivo' })],
     });
   });
 
@@ -238,7 +238,7 @@ describe('recordRollCall', () => {
       ok: false,
       erros: [
         expect.objectContaining({
-          campo: 'data',
+          campo: 'date',
           mensagem: 'Informe uma data válida no formato AAAA-MM-DD.',
         }),
       ],
@@ -255,7 +255,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'data' })],
+      erros: [expect.objectContaining({ campo: 'date' })],
     });
   });
 
@@ -271,7 +271,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'turmaId', codigo: 'nao_encontrada' })],
+      erros: [expect.objectContaining({ campo: 'classGroupId', codigo: 'nao_encontrada' })],
     });
   });
 
@@ -296,7 +296,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'linhas', codigo: 'matricula_fora_da_turma' })],
+      erros: [expect.objectContaining({ campo: 'rows', codigo: 'matricula_fora_da_turma' })],
     });
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
@@ -316,7 +316,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'linhas', codigo: 'matricula_fora_da_turma' })],
+      erros: [expect.objectContaining({ campo: 'rows', codigo: 'matricula_fora_da_turma' })],
     });
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
@@ -334,7 +334,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'linhas', codigo: 'matricula_repetida' })],
+      erros: [expect.objectContaining({ campo: 'rows', codigo: 'matricula_repetida' })],
     });
   });
 

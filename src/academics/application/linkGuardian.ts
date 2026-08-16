@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, LIMITS, MESSAGES } from '../constants';
 import * as students from '../infra/studentRepository';
 import * as guardians from '../infra/guardianRepository';
 
@@ -26,7 +26,7 @@ export async function linkGuardian(input: {
 }): Promise<Result<void>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.guardianLink));
+    return failure(...schemaErrors(parsed.error.issues));
   }
 
   const { networkId, studentId, guardianId } = parsed.data;

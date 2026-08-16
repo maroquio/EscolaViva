@@ -130,8 +130,8 @@ describe('as unidades da rede', () => {
 
     expect(response.status).toBe(200);
     expect(page).toContain('<h1 class="pagina__titulo">Criar unidade</h1>');
-    expect(page).toContain('name="nome"');
-    expect(page).toContain('name="codigoInep"');
+    expect(page).toContain('name="name"');
+    expect(page).toContain('name="inepCode"');
     expect(page).not.toContain('<caption>Unidades cadastradas</caption>');
   });
 });
@@ -168,11 +168,11 @@ describe('os usuários da rede', () => {
     const creation = await send(
       '/network/users',
       {
-        nome: 'Nova Secretária',
+        name: 'Nova Secretária',
         email: 'nova.secretaria@escolaviva.test',
         cpf: generateCpf(424_242),
-        'unidade[]': scenario.schools[0].id,
-        'papel[]': 'registrar',
+        'schools[]': scenario.schools[0].id,
+        'roles[]': 'registrar',
       },
       session,
     );
@@ -209,9 +209,9 @@ describe('os usuários da rede', () => {
 
     expect(response.status).toBe(200);
     expect(page).toContain('<h1 class="pagina__titulo">Convidar usuário</h1>');
-    expect(page).toContain('name="unidade[]"');
-    expect(page).toContain('name="papel[]"');
-    expect(page).toContain('name="responsavelId"');
+    expect(page).toContain('name="schools[]"');
+    expect(page).toContain('name="roles[]"');
+    expect(page).toContain('name="guardianId"');
     // Sem JavaScript no cliente, as linhas são fixas: três, nem mais nem menos.
     expect(page).toContain('id="unidade-2"');
     expect(page).not.toContain('id="unidade-3"');
@@ -257,9 +257,9 @@ describe('os anos letivos da rede', () => {
 
     expect(response.status).toBe(200);
     expect(page).toContain('<h1 class="pagina__titulo">Definir ano letivo</h1>');
-    expect(page).toContain('name="ano"');
-    expect(page).toContain('name="dataInicio"');
-    expect(page).toContain('name="dataFim"');
+    expect(page).toContain('name="year"');
+    expect(page).toContain('name="startDate"');
+    expect(page).toContain('name="endDate"');
     expect(page).not.toContain('<caption>Calendário letivo da rede</caption>');
   });
 });
@@ -276,9 +276,9 @@ describe('a troca da própria senha', () => {
 
     expect(response.status).toBe(200);
     expect(page).toContain('<h1 class="pagina__titulo">Trocar senha</h1>');
-    expect(page).toContain('name="senhaAtual"');
-    expect(page).toContain('name="senhaNova"');
-    expect(page).toContain('name="senhaConfirmacao"');
+    expect(page).toContain('name="currentPassword"');
+    expect(page).toContain('name="newPassword"');
+    expect(page).toContain('name="passwordConfirmation"');
   });
 
   test('o retorno da troca vira frase, e não o código que veio na URL', async () => {
@@ -304,9 +304,9 @@ describe('a tela de entrada', () => {
 
     expect(response.status).toBe(200);
     expect(page).toContain('<h1>Entrar</h1>');
-    expect(page).toContain('name="redeSlug"');
+    expect(page).toContain('name="networkSlug"');
     expect(page).toContain('name="cpf"');
-    expect(page).toContain('name="senha"');
+    expect(page).toContain('name="password"');
   });
 
   test('a mensagem que volta do logout aparece no aviso do topo', async () => {

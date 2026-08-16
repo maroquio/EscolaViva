@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { academics } from '../../academics';
 import { unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, MESSAGES } from '../constants';
 import { closingPendingItems, pendingItemsMessage } from '../domain/termClosing';
 import { isValidTerm } from '../domain/grade';
 import * as closingRepository from '../infra/closingRepository';
@@ -25,7 +25,7 @@ const schema = z.object({
 export async function closeTerm(input: TermClosingInput): Promise<Result<void>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.closing));
+    return failure(...schemaErrors(parsed.error.issues));
   }
   const { networkId, classGroupId, term, closedBy } = parsed.data;
 

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { academics } from '../../academics';
 import { unitOfWork, type UnitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, MESSAGES } from '../constants';
 import { isValidGradeValue, isValidTerm } from '../domain/grade';
 import * as closingRepository from '../infra/closingRepository';
 import * as gradeRepository from '../infra/gradeRepository';
@@ -38,7 +38,7 @@ const schema = z.object({
 export async function postGrades(input: GradePosting): Promise<Result<number>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.grades));
+    return failure(...schemaErrors(parsed.error.issues));
   }
   const { networkId, classGroupSubjectId, term, postedBy, grades } = parsed.data;
 

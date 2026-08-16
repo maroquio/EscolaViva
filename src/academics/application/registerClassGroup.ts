@@ -3,7 +3,7 @@ import { identity } from '../../identity/index';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, LIMITS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, LIMITS, MESSAGES } from '../constants';
 import { isValidShift, type ClassGroup } from '../domain/classGroup';
 import * as academicYears from '../infra/academicYearRepository';
 import * as classGroups from '../infra/classGroupRepository';
@@ -35,7 +35,7 @@ export async function registerClassGroup(input: {
 }): Promise<Result<ClassGroup>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.classGroup));
+    return failure(...schemaErrors(parsed.error.issues));
   }
 
   const { networkId, schoolId, academicYearId } = parsed.data;

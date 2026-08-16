@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { reader, unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, MESSAGES } from '../constants';
 import { MINIMUM_PASSWORD_LENGTH } from '../domain/user';
 import * as userRepository from '../infra/userRepository';
 
@@ -19,7 +19,7 @@ export async function changePassword(input: {
   newPassword: string;
 }): Promise<Result<void>> {
   const parsed = schema.safeParse(input);
-  if (!parsed.success) return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.password));
+  if (!parsed.success) return failure(...schemaErrors(parsed.error.issues));
   const data = parsed.data;
 
   const credentials = await userRepository.credentialsById(reader(), data.userId);
@@ -33,7 +33,7 @@ export async function changePassword(input: {
   const matches = await Bun.password.verify(data.currentPassword, credentials.passwordHash);
   if (!matches) {
     return fieldFailure(
-      FIELDS.password.current,
+      FIELDS.password.currentPassword,
       CODES.wrongPassword,
       MESSAGES.password.currentDoesNotMatch,
     );

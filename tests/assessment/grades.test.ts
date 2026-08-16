@@ -224,11 +224,11 @@ describe('postGrades', () => {
 
     expect(fifth).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'bimestre' })],
+      erros: [expect.objectContaining({ campo: 'term' })],
     });
     expect(zero).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'bimestre' })],
+      erros: [expect.objectContaining({ campo: 'term' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });
@@ -261,7 +261,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'turmaDisciplinaId', codigo: 'nao_encontrada' })],
+      erros: [expect.objectContaining({ campo: 'classGroupSubjectId', codigo: 'nao_encontrada' })],
     });
   });
 
@@ -287,7 +287,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'notas', codigo: 'matricula_fora_da_turma' })],
+      erros: [expect.objectContaining({ campo: 'grades', codigo: 'matricula_fora_da_turma' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });
@@ -308,7 +308,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'notas', codigo: 'matricula_fora_da_turma' })],
+      erros: [expect.objectContaining({ campo: 'grades', codigo: 'matricula_fora_da_turma' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });
@@ -327,7 +327,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'notas', codigo: 'matricula_repetida' })],
+      erros: [expect.objectContaining({ campo: 'grades', codigo: 'matricula_repetida' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });

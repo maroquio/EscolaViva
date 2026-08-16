@@ -6,22 +6,12 @@ export const AUDIENCE = { school: 'unidade', selected: 'selecionados' } as const
   Record<string, Audience>;
 
 export const FIELDS = {
-  title: 'titulo',
-  body: 'corpo',
-  schoolId: 'unidadeId',
-  authorUserId: 'autorUsuarioId',
-  recipients: 'destinatarios',
-  audience: 'alcance',
-} as const;
-
-export const SCHEMA_FIELD_NAMES = {
-  announcement: {
-    schoolId: FIELDS.schoolId,
-    title: FIELDS.title,
-    body: FIELDS.body,
-    authorUserId: FIELDS.authorUserId,
-    recipients: FIELDS.recipients,
-  },
+  title: 'title',
+  body: 'body',
+  schoolId: 'schoolId',
+  authorUserId: 'authorUserId',
+  recipients: 'recipients',
+  audience: 'audience',
 } as const;
 
 export const CODES = {

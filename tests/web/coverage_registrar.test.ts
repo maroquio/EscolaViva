@@ -151,11 +151,11 @@ describe('a página de cadastrar aluno', () => {
 
     expect(response.status).toBe(200);
     expect(page).toContain('method="post" action="/registrar/students"');
-    expect(page).toContain('name="nome"');
-    expect(page).toContain('name="dataNascimento"');
+    expect(page).toContain('name="name"');
+    expect(page).toContain('name="birthDate"');
     // Matrícula e responsável são vínculos que se fazem depois, da ficha: não cabem no cadastro.
-    expect(page).not.toContain('name="turmaId"');
-    expect(page).not.toContain('name="responsavelId"');
+    expect(page).not.toContain('name="classGroupId"');
+    expect(page).not.toContain('name="guardianId"');
   });
 
   test('nasce vazia — o formulário em branco não traz valor digitado', async () => {
@@ -164,9 +164,9 @@ describe('a página de cadastrar aluno', () => {
 
     const page = await html('/registrar/students/new', cookie);
 
-    expect(page).toContain('id="nome"');
-    expect(page).not.toContain('id="nome-erro"');
-    expect(page).not.toContain('id="dataNascimento-erro"');
+    expect(page).toContain('id="name"');
+    expect(page).not.toContain('id="name-erro"');
+    expect(page).not.toContain('id="birthDate-erro"');
   });
 });
 

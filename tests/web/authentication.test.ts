@@ -45,9 +45,9 @@ describe('autenticação', () => {
     const scenario = await fullScenario();
 
     const response = await send('/login', {
-      redeSlug: scenario.network.slug,
+      networkSlug: scenario.network.slug,
       cpf: scenario.registrar.cpf,
-      senha: scenario.password,
+      password: scenario.password,
     });
 
     expect(response.status).toBe(303);
@@ -58,9 +58,9 @@ describe('autenticação', () => {
     const scenario = await fullScenario();
 
     const response = await send('/login', {
-      redeSlug: scenario.network.slug,
+      networkSlug: scenario.network.slug,
       cpf: scenario.registrar.cpf,
-      senha: scenario.password,
+      password: scenario.password,
     });
     const header = response.headers.get('Set-Cookie') ?? '';
 
@@ -91,9 +91,9 @@ describe('autenticação', () => {
     const scenario = await fullScenario();
 
     const response = await send('/login', {
-      redeSlug: scenario.network.slug,
+      networkSlug: scenario.network.slug,
       cpf: scenario.registrar.cpf,
-      senha: 'senha-que-nao-e-a-dele',
+      password: 'senha-que-nao-e-a-dele',
     });
 
     expect(response.status).toBe(200);
@@ -106,14 +106,14 @@ describe('autenticação', () => {
     const unknown = generateCpf(888_888);
 
     const withWrongPassword = await send('/login', {
-      redeSlug: scenario.network.slug,
+      networkSlug: scenario.network.slug,
       cpf: scenario.registrar.cpf,
-      senha: 'senha-que-nao-e-a-dele',
+      password: 'senha-que-nao-e-a-dele',
     });
     const withNonexistentCpf = await send('/login', {
-      redeSlug: scenario.network.slug,
+      networkSlug: scenario.network.slug,
       cpf: unknown,
-      senha: 'senha-que-nao-e-a-dele',
+      password: 'senha-que-nao-e-a-dele',
     });
     const first = withoutVolatileValues(await withWrongPassword.text(), scenario.registrar.cpf);
     const second = withoutVolatileValues(await withNonexistentCpf.text(), unknown);
@@ -129,9 +129,9 @@ describe('autenticação', () => {
     await createUser({ networkId: other.id, password: DEFAULT_PASSWORD });
 
     const response = await send('/login', {
-      redeSlug: other.slug,
+      networkSlug: other.slug,
       cpf: scenario.registrar.cpf,
-      senha: scenario.password,
+      password: scenario.password,
     });
 
     expect(response.status).toBe(200);
@@ -146,7 +146,7 @@ describe('autenticação', () => {
   });
 
   test('escrita sem cookie é recusada em vez de redirecionada', async () => {
-    const response = await send('/registrar/subjects', { nome: 'Filosofia' });
+    const response = await send('/registrar/subjects', { name: 'Filosofia' });
 
     expect(response.status).toBe(401);
   });

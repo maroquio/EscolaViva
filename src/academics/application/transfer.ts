@@ -3,7 +3,7 @@ import type { Connection } from '../../shared/db';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, INTERNAL_ERRORS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, INTERNAL_ERRORS, MESSAGES } from '../constants';
 import { ACTIVE_ENROLLMENT_STATUS, canTransfer, type Enrollment } from '../domain/enrollment';
 import type { ClassGroup } from '../domain/classGroup';
 import * as enrollments from '../infra/enrollmentRepository';
@@ -57,7 +57,7 @@ export async function transfer(input: {
 }): Promise<Result<Enrollment>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.transfer));
+    return failure(...schemaErrors(parsed.error.issues));
   }
 
   const { networkId, enrollmentId, targetClassGroupId, date } = parsed.data;

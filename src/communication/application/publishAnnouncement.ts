@@ -5,7 +5,7 @@ import { identity } from '../../identity';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, MESSAGES } from '../constants';
 import {
   MAX_BODY_LENGTH,
   MAX_TITLE_LENGTH,
@@ -82,7 +82,7 @@ export async function publishAnnouncement(
 ): Promise<Result<Announcement>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.announcement));
+    return failure(...schemaErrors(parsed.error.issues));
   }
 
   const data = parsed.data;

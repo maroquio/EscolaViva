@@ -172,7 +172,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'destinatarios', codigo: 'sem_destinatarios' })],
+      erros: [expect.objectContaining({ campo: 'recipients', codigo: 'sem_destinatarios' })],
     });
   });
 
@@ -198,11 +198,11 @@ describe('publishAnnouncement', () => {
 
     expect(withoutTitle).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'titulo', codigo: 'titulo_invalido' })],
+      erros: [expect.objectContaining({ campo: 'title', codigo: 'titulo_invalido' })],
     });
     expect(longTitle).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'titulo', codigo: 'titulo_invalido' })],
+      erros: [expect.objectContaining({ campo: 'title', codigo: 'titulo_invalido' })],
     });
   });
 
@@ -218,7 +218,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'corpo', codigo: 'corpo_invalido' })],
+      erros: [expect.objectContaining({ campo: 'body', codigo: 'corpo_invalido' })],
     });
   });
 
@@ -236,7 +236,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'unidadeId', codigo: 'unidade_desconhecida' })],
+      erros: [expect.objectContaining({ campo: 'schoolId', codigo: 'unidade_desconhecida' })],
     });
   });
 
@@ -254,7 +254,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'autorUsuarioId', codigo: 'autor_desconhecido' })],
+      erros: [expect.objectContaining({ campo: 'authorUserId', codigo: 'autor_desconhecido' })],
     });
   });
 });

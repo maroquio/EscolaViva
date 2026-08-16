@@ -187,9 +187,9 @@ export const FIELDS = {
     password: IDENTITY_FIELDS.login.password,
   },
   password: {
-    current: IDENTITY_FIELDS.password.current,
-    new: IDENTITY_FIELDS.password.new,
-    confirmation: IDENTITY_FIELDS.password.confirmation,
+    currentPassword: IDENTITY_FIELDS.password.currentPassword,
+    newPassword: IDENTITY_FIELDS.password.newPassword,
+    passwordConfirmation: IDENTITY_FIELDS.password.passwordConfirmation,
   },
   student: {
     name: ACADEMIC_FIELDS.student.name,
@@ -238,8 +238,8 @@ export const FIELDS = {
     cpf: IDENTITY_FIELDS.user.cpf,
     roleAssignments: IDENTITY_FIELDS.user.roleAssignments,
     guardianId: IDENTITY_FIELDS.user.guardianId,
-    schools: 'unidade[]',
-    roles: 'papel[]',
+    schools: 'schools[]',
+    roles: 'roles[]',
   },
   academicYear: {
     year: ACADEMIC_FIELDS.academicYear.year,
@@ -253,9 +253,9 @@ export const FIELDS = {
     authorUserId: COMMUNICATION_FIELDS.authorUserId,
     recipients: COMMUNICATION_FIELDS.recipients,
     audience: COMMUNICATION_FIELDS.audience,
-    guardians: 'responsaveis[]',
+    guardians: 'guardians[]',
   },
-  journal: { grade: 'nota_', present: 'presenca_', excuse: 'justificativa_' },
+  journal: { grade: 'grade_', present: 'present_', excuse: 'excuse_' },
   term: ASSESSMENT_FIELDS.term,
   date: ASSESSMENT_FIELDS.date,
   grades: ASSESSMENT_FIELDS.grades,
@@ -416,7 +416,7 @@ export const FOUR_DIGIT_YEAR = /^\d{4}$/;
 
 export const FORM_ERRORS = {
   confirmationMismatch: {
-    campo: FIELDS.password.confirmation,
+    campo: FIELDS.password.passwordConfirmation,
     codigo: 'confirmacao_diferente',
     mensagem: 'A confirmação não confere com a senha nova.',
   },

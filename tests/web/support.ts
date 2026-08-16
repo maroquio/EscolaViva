@@ -42,7 +42,7 @@ export async function open(path: string, cookie = ''): Promise<Response> {
   return await app.request(path, { headers: headers(cookie) });
 }
 
-/** POST cru: quem chama diz exatamente quais campos vão no corpo, `_chave` inclusive. */
+/** POST cru: quem chama diz exatamente quais campos vão no corpo, `_key` inclusive. */
 export async function post(path: string, fields: FormFields, cookie = ''): Promise<Response> {
   return await app.request(path, {
     method: 'POST',
@@ -56,7 +56,7 @@ export async function post(path: string, fields: FormFields, cookie = ''): Promi
  * carregado duas vezes carrega duas chaves distintas.
  */
 export function send(path: string, fields: FormFields, cookie = ''): Promise<Response> {
-  return post(path, { _chave: crypto.randomUUID(), ...fields }, cookie);
+  return post(path, { _key: crypto.randomUUID(), ...fields }, cookie);
 }
 
 /** O par `nome=valor` do `Set-Cookie` — exatamente o que o navegador devolve na próxima ida. */
@@ -74,9 +74,9 @@ export type Credentials = { networkSlug: string; cpf: string; password: string }
  */
 export async function signIn(credentials: Credentials): Promise<string> {
   const response = await send('/login', {
-    redeSlug: credentials.networkSlug,
+    networkSlug: credentials.networkSlug,
     cpf: credentials.cpf,
-    senha: credentials.password,
+    password: credentials.password,
   });
   if (response.status !== 303) {
     throw new Error(`login recusado com status ${response.status} — cenário mal montado`);
@@ -198,11 +198,11 @@ export async function captureLogOfAFlow(scenario: FlowScenario): Promise<Capture
     const key = () => crypto.randomUUID();
 
     await app.request('/login', form({
-      _chave: key(), redeSlug: data.networkSlug, cpf: data.cpf, senha: 'senha-errada',
+      _key: key(), networkSlug: data.networkSlug, cpf: data.cpf, password: 'senha-errada',
     }));
 
     const signedIn = await app.request('/login', form({
-      _chave: key(), redeSlug: data.networkSlug, cpf: data.cpf, senha: data.password,
+      _key: key(), networkSlug: data.networkSlug, cpf: data.cpf, password: data.password,
     }));
     const cookie = (signedIn.headers.get('Set-Cookie') ?? '').split(';')[0];
     const withSession = (init = {}) => ({
@@ -212,8 +212,8 @@ export async function captureLogOfAFlow(scenario: FlowScenario): Promise<Capture
     await app.request('/dashboard', withSession());
 
     const path = '/teacher/subjects/' + data.classGroupSubjectId + '/grades';
-    const grades = { _chave: key(), bimestre: String(data.term) };
-    for (const id of data.enrollmentIds) grades['nota_' + id] = String(data.grade);
+    const grades = { _key: key(), term: String(data.term) };
+    for (const id of data.enrollmentIds) grades['grade_' + id] = String(data.grade);
     await app.request(path, withSession(form(grades)));
     await app.request(path + '?term=' + data.term, withSession());
 

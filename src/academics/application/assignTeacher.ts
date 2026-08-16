@@ -3,7 +3,7 @@ import { identity } from '../../identity/index';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CODES, FIELDS, MESSAGES, SCHEMA_FIELD_NAMES } from '../constants';
+import { CODES, FIELDS, MESSAGES } from '../constants';
 import type { ClassGroupSubject } from '../domain/classGroup';
 import * as subjects from '../infra/subjectRepository';
 import * as classGroups from '../infra/classGroupRepository';
@@ -23,7 +23,7 @@ export async function assignTeacher(input: {
 }): Promise<Result<ClassGroupSubject>> {
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.teachingAssignment));
+    return failure(...schemaErrors(parsed.error.issues));
   }
 
   const { networkId, classGroupId, subjectId, teacherUserId } = parsed.data;

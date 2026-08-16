@@ -10,7 +10,6 @@ import {
   MESSAGES,
   ROLE,
   ROLE_ASSIGNMENT_SEPARATOR,
-  SCHEMA_FIELD_NAMES,
   SECURITY,
 } from '../constants';
 import { ROLES, type Role } from '../domain/role';
@@ -117,7 +116,7 @@ export async function inviteUser(input: {
   guardianId?: string | null | undefined;
 }): Promise<Result<AcceptedInvitation>> {
   const parsed = schema.safeParse(input);
-  if (!parsed.success) return failure(...schemaErrors(parsed.error.issues, SCHEMA_FIELD_NAMES.user));
+  if (!parsed.success) return failure(...schemaErrors(parsed.error.issues));
   const data = parsed.data;
 
   const roleAssignments = distinctRoleAssignments(data.roleAssignments);

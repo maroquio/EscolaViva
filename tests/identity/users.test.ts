@@ -188,7 +188,7 @@ describe('convidarUsuario', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'responsavelId',
+        campo: 'guardianId',
         codigo: 'responsavel_obrigatorio',
         mensagem:
           'quem entra como responsável precisa estar ligado a um cadastro de responsável',
@@ -235,7 +235,7 @@ describe('convidarUsuario', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'atribuicoes',
+        campo: 'roleAssignments',
         codigo: 'unidade_de_outra_rede',
         mensagem: 'unidade não pertence a esta rede',
       },
@@ -254,7 +254,7 @@ describe('convidarUsuario', () => {
       roleAssignments: [],
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('atribuicoes');
+    expect(errorsOf(result)[0]?.campo).toBe('roleAssignments');
   });
 
   test('e-mail inválido é recusado antes de tocar no banco', async () => {
@@ -453,7 +453,7 @@ describe('unidades da rede', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'nome',
+        campo: 'name',
         codigo: 'nome_em_uso',
         mensagem: 'já existe unidade com este nome na rede',
       },
@@ -476,7 +476,7 @@ describe('unidades da rede', () => {
 
     const result = await identity.createSchool({ networkId: network.id, name: '   ' });
 
-    expect(errorsOf(result)[0]?.campo).toBe('nome');
+    expect(errorsOf(result)[0]?.campo).toBe('name');
   });
 
   test('unidadePorId devolve a unidade da rede e nulo para id desconhecido', async () => {
