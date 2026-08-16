@@ -5,11 +5,11 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { LIMITES_DA_AVALIACAO, avaliacao } from '../../src/avaliacao';
+import { LIMITES_DA_AVALIACAO, avaliacao } from '../../src/assessment';
 import {
   dataDeChamadaValida,
   dataDentroDoAnoLetivo,
-} from '../../src/avaliacao/dominio/frequencia';
+} from '../../src/assessment/domain/attendance';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
   ANO_PADRAO,

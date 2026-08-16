@@ -5,15 +5,15 @@ import {
   frequenciaDaMatricula,
   notasDaTurmaDisciplina,
   paginaDeFrequencia,
-} from './aplicacao/consultas';
-import { fecharBimestre } from './aplicacao/fecharBimestre';
-import { lancarNotas } from './aplicacao/lancarNotas';
-import { registrarChamada } from './aplicacao/registrarChamada';
+} from './application/queries';
+import { fecharBimestre } from './application/closeTerm';
+import { lancarNotas } from './application/postGrades';
+import { registrarChamada } from './application/recordRollCall';
 
-export type { Boletim, LinhaDeBoletim } from './dominio/boletim';
-export type { EstadoDeFechamento } from './dominio/fechamentoBimestre';
-export type { LinhaDeChamada, ResumoFrequencia } from './dominio/frequencia';
-export type { Nota } from './dominio/nota';
+export type { Boletim, LinhaDeBoletim } from './domain/reportCard';
+export type { EstadoDeFechamento } from './domain/termClosing';
+export type { LinhaDeChamada, ResumoFrequencia } from './domain/attendance';
+export type { Nota } from './domain/grade';
 
 export const avaliacao = {
   lancarNotas,
@@ -36,6 +36,6 @@ export {
   MEIO_DIA_UTC,
   ROTULO_DE_BIMESTRE,
   VOCABULARIO as VOCABULARIO_DA_AVALIACAO,
-} from './constantes';
+} from './constants';
 
-export { BIMESTRES } from './dominio/nota';
+export { BIMESTRES } from './domain/grade';

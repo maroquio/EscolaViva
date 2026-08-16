@@ -7,7 +7,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { comunicacao, type Comunicado } from '../../src/comunicacao';
+import { comunicacao, type Comunicado } from '../../src/communication';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
   cenarioCompleto,

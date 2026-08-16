@@ -1,13 +1,13 @@
 import { identity } from '../../identity';
 import { reader } from '../../shared/db';
 import { DEFAULT_PAGE_SIZE, queryPage, type Page } from '../../shared/pagination';
-import { ERROS_INTERNOS } from '../constantes';
-import { comAutor, estaPublicado, type Comunicado } from '../dominio/comunicado';
+import { ERROS_INTERNOS } from '../constants';
+import { comAutor, estaPublicado, type Comunicado } from '../domain/announcement';
 import {
   taxaDeLeitura,
   type EstatisticaDeLeitura,
   type ItemDoMural,
-} from '../dominio/destinatario';
+} from '../domain/recipient';
 import {
   buscarParaResponsavel,
   contarComunicados,
@@ -15,7 +15,7 @@ import {
   contarLeituras,
   listarDoResponsavel,
   somarLeituras,
-} from '../infra/comunicadoRepositorio';
+} from '../infra/announcementRepository';
 
 export async function muralDoResponsavel(
   redeId: string,

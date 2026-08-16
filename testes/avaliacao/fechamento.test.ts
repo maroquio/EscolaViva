@@ -5,13 +5,13 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { avaliacao } from '../../src/avaliacao';
+import { avaliacao } from '../../src/assessment';
 import {
   estadosDeFechamento,
   mensagemDePendencias,
   pendenciasDoFechamento,
   todosBimestresFechados,
-} from '../../src/avaliacao/dominio/fechamentoBimestre';
+} from '../../src/assessment/domain/termClosing';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import { cenarioCompleto, criarTurmaDisciplina, type Cenario } from '../apoio/fabricas';
 

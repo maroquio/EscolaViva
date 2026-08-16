@@ -5,7 +5,7 @@ import { identity } from '../../identity';
 import { unitOfWork } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
+import { CAMPOS, CODIGOS, MENSAGENS } from '../constants';
 import {
   CORPO_TAMANHO_MAXIMO,
   TITULO_TAMANHO_MAXIMO,
@@ -14,8 +14,8 @@ import {
   tituloValido,
   type Comunicado,
   type ComunicadoArmazenado,
-} from '../dominio/comunicado';
-import { inserirDestinatarios, inserirPublicado } from '../infra/comunicadoRepositorio';
+} from '../domain/announcement';
+import { inserirDestinatarios, inserirPublicado } from '../infra/announcementRepository';
 
 export type EntradaDeComunicado = {
   redeId: string;

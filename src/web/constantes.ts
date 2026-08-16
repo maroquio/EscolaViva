@@ -1,6 +1,6 @@
 import { CAMPOS_DO_ACADEMICO } from '../academics';
-import { CAMPOS_DA_AVALIACAO, ROTULO_DE_BIMESTRE } from '../avaliacao';
-import { CAMPOS_DA_COMUNICACAO } from '../comunicacao';
+import { CAMPOS_DA_AVALIACAO, ROTULO_DE_BIMESTRE } from '../assessment';
+import { CAMPOS_DA_COMUNICACAO } from '../communication';
 import { IDENTITY_FIELDS, ROLE } from '../identity';
 import { ASSETS, ENTRY_PATHS, HEALTH_PATHS, MISSING_VALUE } from '../shared/constants';
 import { grupo } from './rotas/mapa';

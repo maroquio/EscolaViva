@@ -1,5 +1,5 @@
 import { FORMATS, ISO_DATE_LENGTH } from '../../shared/constants';
-import { MEIA_NOITE_UTC } from '../constantes';
+import { MEIA_NOITE_UTC } from '../constants';
 
 export type LinhaDeChamada = {
   matriculaId: string;

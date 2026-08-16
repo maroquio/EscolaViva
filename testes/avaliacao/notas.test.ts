@@ -6,8 +6,8 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { avaliacao } from '../../src/avaliacao';
-import { bimestreValido, valorDeNotaValido } from '../../src/avaliacao/dominio/nota';
+import { avaliacao } from '../../src/assessment';
+import { bimestreValido, valorDeNotaValido } from '../../src/assessment/domain/grade';
 import { limparBanco, sqlDeTeste } from '../apoio/banco';
 import {
   ANO_PADRAO,

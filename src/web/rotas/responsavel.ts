@@ -6,8 +6,8 @@ import {
   VOCABULARIO_DA_AVALIACAO,
   avaliacao,
   type Boletim,
-} from '../../avaliacao';
-import { comunicacao, type ItemDoMural } from '../../comunicacao';
+} from '../../assessment';
+import { comunicacao, type ItemDoMural } from '../../communication';
 import { ROLE } from '../../identity';
 import {
   NotFound,

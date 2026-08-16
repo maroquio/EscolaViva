@@ -1,6 +1,6 @@
 import type { Connection } from '../../shared/db';
 import { uuidIdGenerator } from '../../shared/ports';
-import type { FechamentoBimestre } from '../dominio/fechamentoBimestre';
+import type { FechamentoBimestre } from '../domain/termClosing';
 
 export async function porTurma(
   sql: Connection,

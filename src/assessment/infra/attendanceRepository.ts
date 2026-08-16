@@ -5,7 +5,7 @@ import type {
   ApuracaoDeFrequencia,
   PresencaDoDia,
   ResumoFrequencia,
-} from '../dominio/frequencia';
+} from '../domain/attendance';
 
 export type LinhaParaGravar = {
   matriculaId: string;

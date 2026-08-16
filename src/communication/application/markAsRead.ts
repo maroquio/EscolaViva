@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { unitOfWork } from '../../shared/db';
 import { failure, schemaErrors, success, type Result } from '../../shared/result';
-import { marcarLeitura } from '../infra/comunicadoRepositorio';
+import { marcarLeitura } from '../infra/announcementRepository';
 
 export type EntradaDeLeitura = {
   redeId: string;

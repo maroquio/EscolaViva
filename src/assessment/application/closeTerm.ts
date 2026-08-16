@@ -2,11 +2,11 @@ import { z } from 'zod';
 import { academico } from '../../academics';
 import { unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, MENSAGENS } from '../constantes';
-import { mensagemDePendencias, pendenciasDoFechamento } from '../dominio/fechamentoBimestre';
-import { bimestreValido } from '../dominio/nota';
-import * as fechamentoRepositorio from '../infra/fechamentoRepositorio';
-import * as notaRepositorio from '../infra/notaRepositorio';
+import { CAMPOS, CODIGOS, MENSAGENS } from '../constants';
+import { mensagemDePendencias, pendenciasDoFechamento } from '../domain/termClosing';
+import { bimestreValido } from '../domain/grade';
+import * as fechamentoRepositorio from '../infra/closingRepository';
+import * as notaRepositorio from '../infra/gradeRepository';
 
 export type FechamentoDeBimestre = {
   redeId: string;

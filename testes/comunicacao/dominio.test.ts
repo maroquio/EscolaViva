@@ -12,8 +12,8 @@ import {
   corpoValido,
   estaPublicado,
   tituloValido,
-} from '../../src/comunicacao/dominio/comunicado';
-import { taxaDeLeitura } from '../../src/comunicacao/dominio/destinatario';
+} from '../../src/communication/domain/announcement';
+import { taxaDeLeitura } from '../../src/communication/domain/recipient';
 
 describe('taxaDeLeitura', () => {
   test('devolve 0 sem destinatário, em vez de dividir por zero', () => {

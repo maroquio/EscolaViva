@@ -1,5 +1,5 @@
-import { APROVACAO, ARITMETICA } from '../constantes';
-import { QUANTIDADE_DE_BIMESTRES } from './nota';
+import { APROVACAO, ARITMETICA } from '../constants';
+import { QUANTIDADE_DE_BIMESTRES } from './grade';
 
 export const SITUACOES_FINAIS = {
   emCurso: 'in_progress',

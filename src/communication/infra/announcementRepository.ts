@@ -1,8 +1,8 @@
 import type { Connection } from '../../shared/db';
 import { rangeParams, type Range } from '../../shared/pagination';
-import { ERROS_INTERNOS } from '../constantes';
-import type { ComunicadoArmazenado } from '../dominio/comunicado';
-import type { ContagemDeLeitura, ItemDoMural } from '../dominio/destinatario';
+import { ERROS_INTERNOS } from '../constants';
+import type { ComunicadoArmazenado } from '../domain/announcement';
+import type { ContagemDeLeitura, ItemDoMural } from '../domain/recipient';
 
 type LinhaDeComunicado = {
   id: string;

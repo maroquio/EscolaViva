@@ -1,5 +1,5 @@
-import { MENSAGENS } from '../constantes';
-import { BIMESTRES } from './nota';
+import { MENSAGENS } from '../constants';
+import { BIMESTRES } from './grade';
 
 export type FechamentoBimestre = { bimestre: number; fechadoEm: string };
 

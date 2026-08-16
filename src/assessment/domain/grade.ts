@@ -1,4 +1,4 @@
-import { LIMITES } from '../constantes';
+import { LIMITES } from '../constants';
 
 export type Nota = {
   matriculaId: string;

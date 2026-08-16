@@ -6,7 +6,7 @@ import {
   MEIO_DIA_UTC,
   VOCABULARIO_DA_AVALIACAO,
   avaliacao,
-} from '../../avaliacao';
+} from '../../assessment';
 import { ROLE } from '../../identity';
 import { CONTEXT_VARIABLES, FORMATS, ISO_DATE_LENGTH, LOCALE, TIME } from '../../shared/constants';
 import {

@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { academico } from '../../academics';
 import { unitOfWork } from '../../shared/db';
 import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
-import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constantes';
-import { dataDeChamadaValida, dataDentroDoAnoLetivo } from '../dominio/frequencia';
-import * as frequenciaRepositorio from '../infra/frequenciaRepositorio';
+import { CAMPOS, CODIGOS, LIMITES, MENSAGENS } from '../constants';
+import { dataDeChamadaValida, dataDentroDoAnoLetivo } from '../domain/attendance';
+import * as frequenciaRepositorio from '../infra/attendanceRepository';
 
 export type RegistroDeChamada = {
   redeId: string;

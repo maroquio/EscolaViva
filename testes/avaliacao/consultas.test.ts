@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { avaliacao } from '../../src/avaliacao';
+import { avaliacao } from '../../src/assessment';
 import { limparBanco } from '../apoio/banco';
 import {
   ANO_PADRAO,

@@ -14,7 +14,7 @@ import {
   mediasPorBimestre,
   percentualFrequencia,
   situacaoFinal,
-} from '../../src/avaliacao/dominio/boletim';
+} from '../../src/assessment/domain/reportCard';
 
 describe('mediaDaDisciplina', () => {
   test('calcula a média aritmética simples dos quatro bimestres', () => {

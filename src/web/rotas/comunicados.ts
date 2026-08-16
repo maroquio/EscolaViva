@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { academico } from '../../academics';
-import { ALCANCE, comunicacao, type Alcance, type EstatisticaDeLeitura } from '../../comunicacao';
+import { ALCANCE, comunicacao, type Alcance, type EstatisticaDeLeitura } from '../../communication';
 import { ROLE, identity, type School } from '../../identity';
 import { CONTEXT_VARIABLES } from '../../shared/constants';
 import { emptyPage } from '../../shared/pagination';

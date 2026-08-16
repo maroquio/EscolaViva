@@ -9,17 +9,17 @@ import {
   situacaoFinal,
   type Boletim,
   type LinhaDeBoletim,
-} from '../dominio/boletim';
+} from '../domain/reportCard';
 import {
   estadosDeFechamento,
   todosBimestresFechados,
   type EstadoDeFechamento,
-} from '../dominio/fechamentoBimestre';
-import type { PresencaDoDia, ResumoFrequencia } from '../dominio/frequencia';
-import { BIMESTRES } from '../dominio/nota';
-import * as fechamentoRepositorio from '../infra/fechamentoRepositorio';
-import * as frequenciaRepositorio from '../infra/frequenciaRepositorio';
-import * as notaRepositorio from '../infra/notaRepositorio';
+} from '../domain/termClosing';
+import type { PresencaDoDia, ResumoFrequencia } from '../domain/attendance';
+import { BIMESTRES } from '../domain/grade';
+import * as fechamentoRepositorio from '../infra/closingRepository';
+import * as frequenciaRepositorio from '../infra/attendanceRepository';
+import * as notaRepositorio from '../infra/gradeRepository';
 
 export async function notasDaTurmaDisciplina(
   redeId: string,
