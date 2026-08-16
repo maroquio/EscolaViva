@@ -4,9 +4,9 @@ export async function comLockExclusivo<T>(chave: number, fn: () => Promise<T>): 
   const conexao = await escrita().reserve();
   try {
     const [linha] = await conexao<
-      { obtido: boolean }[]
-    >`SELECT pg_try_advisory_lock(${chave}::bigint) AS obtido`;
-    if (linha?.obtido !== true) return null;
+      { acquired: boolean }[]
+    >`SELECT pg_try_advisory_lock(${chave}::bigint) AS acquired`;
+    if (linha?.acquired !== true) return null;
     try {
       return await fn();
     } finally {

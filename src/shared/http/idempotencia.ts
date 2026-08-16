@@ -20,7 +20,7 @@ export { CAMPO_CHAVE };
 export type CorpoDeFormulario = Record<string, string | File | (string | File)[]>;
 
 const liberarChave = async (sql: Conexao, chave: string): Promise<void> => {
-  await sql`DELETE FROM requisicao_idempotente WHERE chave = ${chave}`;
+  await sql`DELETE FROM idempotent_request WHERE idempotency_key = ${chave}`;
 };
 
 const ehRedirecionamento = (status: number): boolean => status >= 300 && status < 400;
@@ -42,16 +42,16 @@ export const middlewareIdempotencia: MiddlewareHandler = async (c, next) => {
   }
 
   const sql = escrita();
-  const inseridas: { chave: string }[] = await sql`
-    INSERT INTO requisicao_idempotente (chave, rota, usuario_id, resposta_hash, resposta_local)
+  const inseridas: { idempotency_key: string }[] = await sql`
+    INSERT INTO idempotent_request (idempotency_key, route, user_id, response_hash, response_location)
     VALUES (${chave}, ${c.req.path}, ${usuario.id}, '', '')
-    ON CONFLICT (chave) DO NOTHING
-    RETURNING chave`;
+    ON CONFLICT (idempotency_key) DO NOTHING
+    RETURNING idempotency_key`;
 
   if (inseridas.length === 0) {
-    const gravadas: { resposta_local: string }[] = await sql`
-      SELECT resposta_local FROM requisicao_idempotente WHERE chave = ${chave}`;
-    const destino = gravadas[0]?.resposta_local ?? '';
+    const gravadas: { response_location: string }[] = await sql`
+      SELECT response_location FROM idempotent_request WHERE idempotency_key = ${chave}`;
+    const destino = gravadas[0]?.response_location ?? '';
     return c.redirect(destino === '' ? CAMINHOS_DE_ENTRADA.painel : destino, 303);
   }
 
@@ -72,7 +72,7 @@ export const middlewareIdempotencia: MiddlewareHandler = async (c, next) => {
     .update(local)
     .digest(HASH_DE_RESPOSTA.codificacao);
   await sql`
-    UPDATE requisicao_idempotente
-       SET resposta_local = ${local}, resposta_hash = ${hash}
-     WHERE chave = ${chave}`;
+    UPDATE idempotent_request
+       SET response_location = ${local}, response_hash = ${hash}
+     WHERE idempotency_key = ${chave}`;
 };

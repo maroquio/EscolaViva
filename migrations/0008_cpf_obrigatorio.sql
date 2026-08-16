@@ -4,9 +4,9 @@
 -- restrição que só fazia sentido enquanto identificava. Mãe e pai passam a poder compartilhar
 -- um e-mail de família.
 
-ALTER TABLE usuario ALTER COLUMN cpf SET NOT NULL;
+ALTER TABLE app_user ALTER COLUMN cpf SET NOT NULL;
 
-DROP INDEX usuario_cpf_unico_na_rede;
-ALTER TABLE usuario ADD CONSTRAINT usuario_cpf_unico_na_rede UNIQUE (rede_id, cpf);
+DROP INDEX user_cpf_unique_in_network;
+ALTER TABLE app_user ADD CONSTRAINT user_cpf_unique_in_network UNIQUE (network_id, cpf);
 
-ALTER TABLE usuario DROP CONSTRAINT usuario_email_unico_na_rede;
+ALTER TABLE app_user DROP CONSTRAINT user_email_unique_in_network;

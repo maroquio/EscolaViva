@@ -32,7 +32,7 @@ const identificadorDoDestino = (resposta: Response): string => {
 
 const responsavelPorEmail = async (redeId: string, email: string): Promise<string> => {
   const linhas = await sqlDeTeste()<{ id: string }[]>`
-    SELECT id::text FROM responsavel WHERE rede_id = ${redeId} AND email = ${email}`;
+    SELECT id::text FROM guardian WHERE network_id = ${redeId} AND email = ${email}`;
   const id = linhas[0]?.id;
   if (id === undefined) throw new Error(`responsável ${email} não foi gravado`);
   return id;
@@ -137,7 +137,7 @@ describe('a secretaria matricula um aluno novo, do cadastro à turma', () => {
 
     expect(ficha).toContain('Regina Sampaio');
     expect(ficha).toContain('tia');
-    expect(ficha).toContain(cenario.turmas[1].nome);
+    expect(ficha).toContain(cenario.turmas[1].name);
     expect(ficha).toContain('Ativa');
   }, PRAZO_DO_FLUXO_MS);
 });
@@ -224,8 +224,8 @@ describe('o professor fecha o ano e o responsável lê o boletim', () => {
 
     expect(boletim).toContain('8,0');
     expect(boletim).toContain('100,0 %');
-    expect(boletim).toContain(cenario.alunos[0].nome);
-    for (const disciplina of cenario.disciplinas) expect(boletim).toContain(disciplina.nome);
+    expect(boletim).toContain(cenario.alunos[0].name);
+    for (const disciplina of cenario.disciplinas) expect(boletim).toContain(disciplina.name);
   }, PRAZO_DO_FLUXO_MS);
 
   test('a frequência dia a dia mostra as quatro chamadas registradas', async () => {

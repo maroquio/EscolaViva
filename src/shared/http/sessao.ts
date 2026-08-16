@@ -5,7 +5,7 @@ import { COOKIE, MOTIVOS_INTERNOS, TEMPO, VARIAVEIS_DE_CONTEXTO } from '../const
 import { comContexto, contextoAtual } from './correlacao';
 import { NaoAutorizado } from './erros';
 
-export type PapelDaSessao = 'admin_rede' | 'secretaria' | 'professor' | 'responsavel';
+export type PapelDaSessao = 'network_admin' | 'registrar' | 'teacher' | 'guardian';
 
 export type UsuarioDaSessao = {
   id: string;

@@ -7,56 +7,56 @@ export type SessaoComDono = { sessao: Sessao; rede: Rede; usuario: Usuario };
 
 type LinhaDeSessao = {
   id: string;
-  rede_id: string;
-  usuario_id: string;
-  criado_em: Date;
-  expira_em: Date;
+  network_id: string;
+  user_id: string;
+  created_at: Date;
+  expires_at: Date;
   ip: string | null;
-  rede_nome: string;
-  rede_slug: string;
-  rede_status: string;
-  usuario_nome: string;
-  usuario_email: string;
-  usuario_cpf: string;
-  usuario_ativo: boolean;
-  responsavel_id: string | null;
+  network_name: string;
+  network_slug: string;
+  network_status: string;
+  user_name: string;
+  user_email: string;
+  user_cpf: string;
+  user_active: boolean;
+  guardian_id: string | null;
 };
 
 const paraSessaoComDono = (linha: LinhaDeSessao): SessaoComDono => ({
   sessao: {
     id: linha.id,
-    redeId: linha.rede_id,
-    usuarioId: linha.usuario_id,
-    criadoEm: linha.criado_em,
-    expiraEm: linha.expira_em,
+    redeId: linha.network_id,
+    usuarioId: linha.user_id,
+    criadoEm: linha.created_at,
+    expiraEm: linha.expires_at,
     ip: linha.ip,
   },
   rede: {
-    id: linha.rede_id,
-    nome: linha.rede_nome,
-    slug: linha.rede_slug,
-    status: paraStatusDeRede(linha.rede_status),
+    id: linha.network_id,
+    nome: linha.network_name,
+    slug: linha.network_slug,
+    status: paraStatusDeRede(linha.network_status),
   },
   usuario: {
-    id: linha.usuario_id,
-    redeId: linha.rede_id,
-    nome: linha.usuario_nome,
-    email: linha.usuario_email,
-    cpf: linha.usuario_cpf,
-    ativo: linha.usuario_ativo,
-    responsavelId: linha.responsavel_id,
+    id: linha.user_id,
+    redeId: linha.network_id,
+    nome: linha.user_name,
+    email: linha.user_email,
+    cpf: linha.user_cpf,
+    ativo: linha.user_active,
+    responsavelId: linha.guardian_id,
   },
 });
 
 export async function porId(sql: Conexao, sessaoId: string): Promise<SessaoComDono | null> {
   const linhas = await sql<LinhaDeSessao[]>`
-    SELECT s.id, s.rede_id, s.usuario_id, s.criado_em, s.expira_em, s.ip,
-           r.nome AS rede_nome, r.slug AS rede_slug, r.status AS rede_status,
-           u.nome AS usuario_nome, u.email AS usuario_email, u.cpf AS usuario_cpf,
-           u.ativo AS usuario_ativo, u.responsavel_id
-    FROM sessao s
-    JOIN rede r ON r.id = s.rede_id
-    JOIN usuario u ON u.id = s.usuario_id AND u.rede_id = s.rede_id
+    SELECT s.id, s.network_id, s.user_id, s.created_at, s.expires_at, s.ip,
+           n.name AS network_name, n.slug AS network_slug, n.status AS network_status,
+           u.name AS user_name, u.email AS user_email, u.cpf AS user_cpf,
+           u.active AS user_active, u.guardian_id
+    FROM session s
+    JOIN network n ON n.id = s.network_id
+    JOIN app_user u ON u.id = s.user_id AND u.network_id = s.network_id
     WHERE s.id = ${sessaoId}
   `;
   const linha = linhas[0];
@@ -65,7 +65,7 @@ export async function porId(sql: Conexao, sessaoId: string): Promise<SessaoComDo
 
 export async function inserir(sql: Conexao, sessao: Sessao): Promise<void> {
   await sql`
-    INSERT INTO sessao (id, rede_id, usuario_id, criado_em, expira_em, ip)
+    INSERT INTO session (id, network_id, user_id, created_at, expires_at, ip)
     VALUES (
       ${sessao.id}, ${sessao.redeId}, ${sessao.usuarioId},
       ${sessao.criadoEm}, ${sessao.expiraEm}, ${sessao.ip}
@@ -74,13 +74,13 @@ export async function inserir(sql: Conexao, sessao: Sessao): Promise<void> {
 }
 
 export async function remover(sql: Conexao, sessaoId: string): Promise<void> {
-  await sql`DELETE FROM sessao WHERE id = ${sessaoId}`;
+  await sql`DELETE FROM session WHERE id = ${sessaoId}`;
 }
 
 export async function expurgarExpiradas(sql: Conexao): Promise<number> {
   const linhas = await sql<{ total: number }[]>`
     WITH expiradas AS (
-      DELETE FROM sessao WHERE expira_em < now() RETURNING 1
+      DELETE FROM session WHERE expires_at < now() RETURNING 1
     )
     SELECT count(*)::int AS total FROM expiradas
   `;

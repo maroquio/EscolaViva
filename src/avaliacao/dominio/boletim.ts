@@ -2,9 +2,9 @@ import { APROVACAO, ARITMETICA } from '../constantes';
 import { QUANTIDADE_DE_BIMESTRES } from './nota';
 
 export const SITUACOES_FINAIS = {
-  emCurso: 'em_curso',
-  aprovado: 'aprovado',
-  reprovado: 'reprovado',
+  emCurso: 'in_progress',
+  aprovado: 'passed',
+  reprovado: 'failed',
 } as const;
 
 export type SituacaoFinal = (typeof SITUACOES_FINAIS)[keyof typeof SITUACOES_FINAIS];

@@ -3,6 +3,7 @@ const estados = it.estados ?? [];
 const turma = it.turma;
 const disciplinas = turma.disciplinas ?? [];
 const ROTULO_DO_FECHAMENTO = it.rotuloDoFechamento;
+const CLASSE_DO_FECHAMENTO = it.classeDaEtiqueta.fechamento;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -25,7 +26,7 @@ const ROTULO_DO_FECHAMENTO = it.rotuloDoFechamento;
   <li class="quadro">
     <div class="secao__cabecalho">
       <h2><%= it.rotuloDeBimestre(estado.bimestre) %></h2>
-      <span class="etiqueta <%= estado.fechado ? 'etiqueta--aprovado' : 'etiqueta--em-curso' %>">
+      <span class="etiqueta <%= estado.fechado ? CLASSE_DO_FECHAMENTO.fechado : CLASSE_DO_FECHAMENTO.aberto %>">
         <%= estado.fechado ? ROTULO_DO_FECHAMENTO.fechado : ROTULO_DO_FECHAMENTO.aberto %>
       </span>
     </div>

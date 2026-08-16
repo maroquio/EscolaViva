@@ -32,5 +32,5 @@ export const MENSAGENS = {
 
 export const ERROS_INTERNOS = {
   autorForaDaRede: 'Comunicado com autor fora da rede',
-  insercaoSemPublicadoEm: 'INSERT em comunicado não devolveu publicado_em',
+  insercaoSemPublicadoEm: 'INSERT em announcement não devolveu published_at',
 } as const;

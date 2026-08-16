@@ -18,7 +18,7 @@ describe('LIMITES.aluno.linhasDaBusca conta LINHAS devolvidas', () => {
   test('a busca sem faixa devolve no máximo esse tanto de linhas', async () => {
     const rede = await criarRede();
     for (let posicao = 1; posicao <= LINHAS_DA_BUSCA + 1; posicao += 1) {
-      await criarAluno({ redeId: rede.id, nome: nomeNumerado(posicao) });
+      await criarAluno({ networkId: rede.id, name: nomeNumerado(posicao) });
     }
 
     const encontrados = await academico.buscarAlunos(rede.id, 'Pessoa');
@@ -32,7 +32,7 @@ describe('LIMITES.aluno.linhasDaBusca conta LINHAS devolvidas', () => {
   test('o nome longo não estreita nem alarga o corte da busca', async () => {
     const rede = await criarRede();
     for (let posicao = 1; posicao <= LINHAS_DA_BUSCA + 1; posicao += 1) {
-      await criarAluno({ redeId: rede.id, nome: `${nomeNumerado(posicao)} ${'x'.repeat(80)}` });
+      await criarAluno({ networkId: rede.id, name: `${nomeNumerado(posicao)} ${'x'.repeat(80)}` });
     }
 
     const encontrados = await academico.buscarAlunos(rede.id, 'Pessoa');

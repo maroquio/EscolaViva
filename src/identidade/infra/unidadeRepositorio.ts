@@ -4,18 +4,18 @@ import type { Unidade } from '../dominio/unidade';
 
 type LinhaDeUnidade = {
   id: string;
-  rede_id: string;
-  nome: string;
-  codigo_inep: string | null;
-  ativa: boolean;
+  network_id: string;
+  name: string;
+  inep_code: string | null;
+  active: boolean;
 };
 
 const paraUnidade = (linha: LinhaDeUnidade): Unidade => ({
   id: linha.id,
-  redeId: linha.rede_id,
-  nome: linha.nome,
-  codigoInep: linha.codigo_inep,
-  ativa: linha.ativa,
+  redeId: linha.network_id,
+  nome: linha.name,
+  codigoInep: linha.inep_code,
+  ativa: linha.active,
 });
 
 export async function listarPorRede(
@@ -25,10 +25,10 @@ export async function listarPorRede(
 ): Promise<Unidade[]> {
   const { limite, deslocamento } = recorte(faixa);
   const linhas = await sql<LinhaDeUnidade[]>`
-    SELECT id, rede_id, nome, codigo_inep, ativa
-    FROM unidade
-    WHERE rede_id = ${redeId}
-    ORDER BY nome
+    SELECT id, network_id, name, inep_code, active
+    FROM school
+    WHERE network_id = ${redeId}
+    ORDER BY name
     LIMIT ${limite}::int OFFSET ${deslocamento}::int
   `;
   return linhas.map(paraUnidade);
@@ -37,8 +37,8 @@ export async function listarPorRede(
 export async function contarPorRede(sql: Conexao, redeId: string): Promise<number> {
   const linhas = await sql<{ total: number }[]>`
     SELECT count(*)::int AS total
-    FROM unidade
-    WHERE rede_id = ${redeId}
+    FROM school
+    WHERE network_id = ${redeId}
   `;
   return linhas[0]?.total ?? 0;
 }
@@ -49,9 +49,9 @@ export async function porId(
   unidadeId: string,
 ): Promise<Unidade | null> {
   const linhas = await sql<LinhaDeUnidade[]>`
-    SELECT id, rede_id, nome, codigo_inep, ativa
-    FROM unidade
-    WHERE rede_id = ${redeId} AND id = ${unidadeId}
+    SELECT id, network_id, name, inep_code, active
+    FROM school
+    WHERE network_id = ${redeId} AND id = ${unidadeId}
   `;
   const linha = linhas[0];
   return linha === undefined ? null : paraUnidade(linha);
@@ -60,8 +60,8 @@ export async function porId(
 export async function existeNome(sql: Conexao, redeId: string, nome: string): Promise<boolean> {
   const linhas = await sql<{ existe: number }[]>`
     SELECT 1 AS existe
-    FROM unidade
-    WHERE rede_id = ${redeId} AND nome = ${nome}
+    FROM school
+    WHERE network_id = ${redeId} AND name = ${nome}
     LIMIT 1
   `;
   return linhas.length > 0;
@@ -75,15 +75,15 @@ export async function idsNaRede(
   if (ids.length === 0) return new Set<string>();
   const linhas = await sql<{ id: string }[]>`
     SELECT id
-    FROM unidade
-    WHERE rede_id = ${redeId} AND id IN ${sql(ids)}
+    FROM school
+    WHERE network_id = ${redeId} AND id IN ${sql(ids)}
   `;
   return new Set(linhas.map((linha) => linha.id));
 }
 
 export async function inserir(sql: Conexao, unidade: Unidade): Promise<void> {
   await sql`
-    INSERT INTO unidade (id, rede_id, nome, codigo_inep, ativa)
+    INSERT INTO school (id, network_id, name, inep_code, active)
     VALUES (${unidade.id}, ${unidade.redeId}, ${unidade.nome}, ${unidade.codigoInep}, ${unidade.ativa})
   `;
 }

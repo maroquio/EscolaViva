@@ -33,13 +33,13 @@ const entrarComoSecretaria = (cenario: Cenario): Promise<string> =>
 
 const disciplinasChamadas = async (redeId: string, nome: string): Promise<number> => {
   const linhas = await sqlDeTeste()<{ total: string }[]>`
-    SELECT count(*)::text AS total FROM disciplina WHERE rede_id = ${redeId} AND nome = ${nome}`;
+    SELECT count(*)::text AS total FROM subject WHERE network_id = ${redeId} AND name = ${nome}`;
   return Number(linhas[0]?.total ?? '0');
 };
 
 const chavesGravadas = async (): Promise<number> => {
   const linhas = await sqlDeTeste()<{ total: string }[]>`
-    SELECT count(*)::text AS total FROM requisicao_idempotente`;
+    SELECT count(*)::text AS total FROM idempotent_request`;
   return Number(linhas[0]?.total ?? '0');
 };
 
@@ -109,12 +109,12 @@ describe('idempotência de formulário', () => {
     const chave = crypto.randomUUID();
 
     const resposta = await postar(ROTA, { _chave: chave, nome: 'Geografia' }, cookie);
-    const linhas = await sqlDeTeste()<{ rota: string; resposta_local: string }[]>`
-      SELECT rota, resposta_local FROM requisicao_idempotente WHERE chave = ${chave}`;
+    const linhas = await sqlDeTeste()<{ route: string; response_location: string }[]>`
+      SELECT route, response_location FROM idempotent_request WHERE idempotency_key = ${chave}`;
 
     expect(linhas).toHaveLength(1);
-    expect(linhas[0]?.rota).toBe(ROTA);
-    expect(linhas[0]?.resposta_local).toBe(resposta.headers.get('Location') ?? '');
+    expect(linhas[0]?.route).toBe(ROTA);
+    expect(linhas[0]?.response_location).toBe(resposta.headers.get('Location') ?? '');
   });
 
   test('formulário recusado na validação devolve a chave para a correção', async () => {

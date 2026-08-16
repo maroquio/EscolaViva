@@ -68,7 +68,7 @@ describe('as quatro telas do diário de classe', () => {
 
     expect(status).toBe(200);
     expect(html).toContain(tituloDaPagina('Minhas turmas'));
-    expect(html).toContain(turma.nome);
+    expect(html).toContain(turma.name);
     // As três disciplinas alocadas abrem o diário; a chamada e o fechamento são da turma.
     for (const disciplina of cenario.turmaDisciplinas) {
       expect(html).toContain(`href="/professor/disciplinas/${disciplina.id}/notas"`);
@@ -82,9 +82,9 @@ describe('as quatro telas do diário de classe', () => {
   test('professor sem alocação vê o que falta, e não uma lista vazia', async () => {
     const cenario = await cenarioCompleto();
     const recemChegado = await criarUsuario({
-      redeId: cenario.rede.id,
+      networkId: cenario.rede.id,
       senha: cenario.senha,
-      papeis: [{ unidadeId: cenario.unidades[0].id, papel: 'professor' }],
+      papeis: [{ schoolId: cenario.unidades[0].id, role: 'teacher' }],
     });
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
@@ -110,8 +110,8 @@ describe('as quatro telas do diário de classe', () => {
     );
 
     expect(status).toBe(200);
-    expect(html).toContain(tituloDaPagina(disciplina.nome));
-    expect(html).toContain(`Notas do 3º bimestre · ${disciplina.nome} · ${cenario.turmas[0].nome}`);
+    expect(html).toContain(tituloDaPagina(disciplina.name));
+    expect(html).toContain(`Notas do 3º bimestre · ${disciplina.name} · ${cenario.turmas[0].name}`);
     expect(html).toContain('<th scope="col">Nota (0 a 10)</th>');
     expect(html).toContain(formularioPara(`/professor/disciplinas/${alocacao.id}/notas`));
     // O campo é nomeado pela matrícula, e o aluno da linha aparece pelo nome.
@@ -119,7 +119,7 @@ describe('as quatro telas do diário de classe', () => {
       expect(html).toContain(`name="nota_${matricula.id}"`);
     }
     for (const aluno of cenario.alunos) {
-      expect(html).toContain(aluno.nome);
+      expect(html).toContain(aluno.name);
     }
   });
 
@@ -148,8 +148,8 @@ describe('as quatro telas do diário de classe', () => {
     );
 
     expect(status).toBe(200);
-    expect(html).toContain(tituloDaPagina(`Chamada · ${turma.nome}`));
-    expect(html).toContain(`Chamada de 02/03/2026 · ${turma.nome}`);
+    expect(html).toContain(tituloDaPagina(`Chamada · ${turma.name}`));
+    expect(html).toContain(`Chamada de 02/03/2026 · ${turma.name}`);
     expect(html).toContain('<th scope="col">Justificativa da falta</th>');
     expect(html).toContain(formularioPara(`/professor/turmas/${turma.id}/chamada`));
     expect(html).toContain('name="data" value="2026-03-02"');
@@ -177,12 +177,12 @@ describe('as quatro telas do diário de classe', () => {
   test('a chamada de turma sem matrícula ativa explica a ausência', async () => {
     const cenario = await cenarioCompleto();
     // A segunda turma do cenário nasce vazia: alocar o professor nela é o que abre a porta.
-    const disciplina = await criarDisciplina({ redeId: cenario.rede.id });
+    const disciplina = await criarDisciplina({ networkId: cenario.rede.id });
     await criarTurmaDisciplina({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[1].id,
-      disciplinaId: disciplina.id,
-      professorUsuarioId: cenario.professor.id,
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[1].id,
+      subjectId: disciplina.id,
+      teacherUserId: cenario.professor.id,
     });
     const cookie = await entrarComo(cenario, 'professor');
 
@@ -203,7 +203,7 @@ describe('as quatro telas do diário de classe', () => {
     const { status, html } = await tela(`/professor/turmas/${turma.id}/fechamento`, cookie);
 
     expect(status).toBe(200);
-    expect(html).toContain(tituloDaPagina(`Fechamento · ${turma.nome}`));
+    expect(html).toContain(tituloDaPagina(`Fechamento · ${turma.name}`));
     expect(html).toContain(formularioPara(`/professor/turmas/${turma.id}/fechamento`));
     for (const bimestre of [1, 2, 3, 4]) {
       expect(html).toContain(`<h2>${bimestre}º bimestre</h2>`);
@@ -228,7 +228,7 @@ describe('as telas do portal do responsável', () => {
     expect(status).toBe(200);
     expect(html).toContain(tituloDaPagina('Meus alunos'));
     expect(html).toContain('Matrículas sob sua responsabilidade');
-    expect(html).toContain(cenario.alunos[0].nome);
+    expect(html).toContain(cenario.alunos[0].name);
     expect(html).toContain(`href="/responsavel/matriculas/${minha.id}/boletim"`);
     expect(html).toContain(`href="/responsavel/matriculas/${minha.id}/frequencia"`);
     // O aluno de outra família não aparece nem como link.
@@ -239,18 +239,18 @@ describe('as telas do portal do responsável', () => {
     const cenario = await cenarioCompleto();
     const [responsavel] = cenario.responsaveis;
     const porLer = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      titulo: 'Reunião de pais na quinta',
-      destinatarios: [{ responsavelId: responsavel.id }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      title: 'Reunião de pais na quinta',
+      destinatarios: [{ guardianId: responsavel.id }],
     });
     const jaLido = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      titulo: 'Calendário do primeiro bimestre',
-      destinatarios: [{ responsavelId: responsavel.id, lidoEm: new Date() }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      title: 'Calendário do primeiro bimestre',
+      destinatarios: [{ guardianId: responsavel.id, readAt: new Date() }],
     });
     const cookie = await entrarComo(cenario, 'responsavel');
 
@@ -258,7 +258,7 @@ describe('as telas do portal do responsável', () => {
 
     expect(status).toBe(200);
     expect(html).toContain(`href="/responsavel/mural/${porLer.id}"`);
-    expect(html).toContain(porLer.titulo);
+    expect(html).toContain(porLer.title);
     expect(html).toContain('Não lido');
     // O painel mostra só o que está por ler; o que já foi lido mora no mural.
     expect(html).not.toContain(`href="/responsavel/mural/${jaLido.id}"`);
@@ -267,9 +267,9 @@ describe('as telas do portal do responsável', () => {
   test('conta com o papel mas sem vínculo manda procurar a secretaria', async () => {
     const cenario = await cenarioCompleto();
     const semVinculo = await criarUsuario({
-      redeId: cenario.rede.id,
+      networkId: cenario.rede.id,
       senha: cenario.senha,
-      papeis: [{ unidadeId: cenario.unidades[0].id, papel: 'responsavel' }],
+      papeis: [{ schoolId: cenario.unidades[0].id, role: 'guardian' }],
     });
     const cookie = await entrar({
       redeSlug: cenario.rede.slug,
@@ -287,18 +287,18 @@ describe('as telas do portal do responsável', () => {
     const cenario = await cenarioCompleto();
     const [responsavel] = cenario.responsaveis;
     const porLer = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      titulo: 'Feira de ciências no sábado',
-      destinatarios: [{ responsavelId: responsavel.id }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      title: 'Feira de ciências no sábado',
+      destinatarios: [{ guardianId: responsavel.id }],
     });
     const jaLido = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      titulo: 'Uniforme novo a partir de março',
-      destinatarios: [{ responsavelId: responsavel.id, lidoEm: new Date() }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      title: 'Uniforme novo a partir de março',
+      destinatarios: [{ guardianId: responsavel.id, readAt: new Date() }],
     });
     const cookie = await entrarComo(cenario, 'responsavel');
 
@@ -310,28 +310,28 @@ describe('as telas do portal do responsável', () => {
     expect(html).toContain('<h2 id="titulo-lidos">Já lidos</h2>');
     expect(html).toContain(`href="/responsavel/mural/${porLer.id}"`);
     expect(html).toContain(`href="/responsavel/mural/${jaLido.id}"`);
-    expect(html).toContain(porLer.titulo);
-    expect(html).toContain(jaLido.titulo);
+    expect(html).toContain(porLer.title);
+    expect(html).toContain(jaLido.title);
   });
 
   test('o comunicado abre por inteiro, com o botão que registra a leitura', async () => {
     const cenario = await cenarioCompleto();
     const comunicado = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      titulo: 'Vacinação na escola',
-      corpo: 'A equipe da unidade de saúde estará na escola na próxima terça-feira.',
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      title: 'Vacinação na escola',
+      body: 'A equipe da unidade de saúde estará na escola na próxima terça-feira.',
+      destinatarios: [{ guardianId: cenario.responsaveis[0].id }],
     });
     const cookie = await entrarComo(cenario, 'responsavel');
 
     const { status, html } = await tela(`/responsavel/mural/${comunicado.id}`, cookie);
 
     expect(status).toBe(200);
-    expect(html).toContain(tituloDaPagina(comunicado.titulo));
-    expect(html).toContain(comunicado.corpo);
-    expect(html).toContain(cenario.secretaria.nome);
+    expect(html).toContain(tituloDaPagina(comunicado.title));
+    expect(html).toContain(comunicado.body);
+    expect(html).toContain(cenario.secretaria.name);
     // Abrir a página não marca leitura: quem marca é este formulário, com POST.
     expect(html).toContain(formularioPara(`/responsavel/mural/${comunicado.id}/lido`));
     expect(html).toContain('Marcar como lido');
@@ -340,18 +340,18 @@ describe('as telas do portal do responsável', () => {
   test('comunicado já lido mostra a data da leitura no lugar do botão', async () => {
     const cenario = await cenarioCompleto();
     const comunicado = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      titulo: 'Boletim disponível no portal',
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id, lidoEm: new Date() }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      title: 'Boletim disponível no portal',
+      destinatarios: [{ guardianId: cenario.responsaveis[0].id, readAt: new Date() }],
     });
     const cookie = await entrarComo(cenario, 'responsavel');
 
     const { status, html } = await tela(`/responsavel/mural/${comunicado.id}`, cookie);
 
     expect(status).toBe(200);
-    expect(html).toContain(tituloDaPagina(comunicado.titulo));
+    expect(html).toContain(tituloDaPagina(comunicado.title));
     expect(html).toContain('etiqueta--aprovado');
     expect(html).not.toContain('Marcar como lido');
     expect(html).not.toContain(formularioPara(`/responsavel/mural/${comunicado.id}/lido`));
@@ -360,10 +360,10 @@ describe('as telas do portal do responsável', () => {
   test('comunicado de outra família não existe para quem pergunta', async () => {
     const cenario = await cenarioCompleto();
     const deOutraFamilia = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[1].id }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      destinatarios: [{ guardianId: cenario.responsaveis[1].id }],
     });
     const cookie = await entrarComo(cenario, 'responsavel');
 
@@ -375,11 +375,11 @@ describe('as telas do portal do responsável', () => {
   test('comunicado ainda não publicado não abre no mural de ninguém', async () => {
     const cenario = await cenarioCompleto();
     const rascunho = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      publicadoEm: null,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      publishedAt: null,
+      destinatarios: [{ guardianId: cenario.responsaveis[0].id }],
     });
     const cookie = await entrarComo(cenario, 'responsavel');
 
@@ -395,13 +395,13 @@ describe('as telas de quem publica no mural', () => {
   /** Dois destinatários e uma leitura: a taxa do recorte é exatamente a metade. */
   const comunicadoComMetadeLida = (cenario: Cenario, unidadeId: string, titulo: string) =>
     criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId,
-      autorUsuarioId: cenario.secretaria.id,
-      titulo,
+      networkId: cenario.rede.id,
+      schoolId: unidadeId,
+      authorUserId: cenario.secretaria.id,
+      title: titulo,
       destinatarios: [
-        { responsavelId: cenario.responsaveis[0].id, lidoEm: new Date() },
-        { responsavelId: cenario.responsaveis[1].id },
+        { guardianId: cenario.responsaveis[0].id, readAt: new Date() },
+        { guardianId: cenario.responsaveis[1].id },
       ],
     });
 
@@ -421,7 +421,7 @@ describe('as telas de quem publica no mural', () => {
     expect(html).toContain('Comunicados e leituras');
     expect(html).toContain('<th scope="col">Destinatários</th>');
     expect(html).toContain('<th scope="col">Taxa de leitura</th>');
-    expect(html).toContain(comunicado.titulo);
+    expect(html).toContain(comunicado.title);
     expect(html).toContain('50,0 %');
     expect(html).toContain('href="/comunicados/novo"');
   });
@@ -443,12 +443,12 @@ describe('as telas de quem publica no mural', () => {
     const listaDoAdmin = await tela('/comunicados', await entrarComo(cenario, 'admin'));
 
     expect(listaDaSecretaria.status).toBe(200);
-    expect(listaDaSecretaria.html).toContain(daSecretaria.titulo);
-    expect(listaDaSecretaria.html).not.toContain(daOutraUnidade.titulo);
+    expect(listaDaSecretaria.html).toContain(daSecretaria.title);
+    expect(listaDaSecretaria.html).not.toContain(daOutraUnidade.title);
 
     expect(listaDoAdmin.status).toBe(200);
-    expect(listaDoAdmin.html).toContain(daSecretaria.titulo);
-    expect(listaDoAdmin.html).toContain(daOutraUnidade.titulo);
+    expect(listaDoAdmin.html).toContain(daSecretaria.title);
+    expect(listaDoAdmin.html).toContain(daOutraUnidade.title);
   });
 
   test('o filtro da query recorta a lista pela unidade escolhida', async () => {
@@ -471,8 +471,8 @@ describe('as telas de quem publica no mural', () => {
     );
 
     expect(status).toBe(200);
-    expect(html).toContain(doBairro.titulo);
-    expect(html).not.toContain(daCentral.titulo);
+    expect(html).toContain(doBairro.title);
+    expect(html).not.toContain(daCentral.title);
     // O filtro volta escolhido, para que a próxima página continue no mesmo recorte.
     expect(html).toContain(`<option value="${cenario.unidades[1].id}" selected>`);
   });
@@ -510,7 +510,7 @@ describe('as telas de quem publica no mural', () => {
 
     expect(status).toBe(200);
     expect(html).toContain('Passo 2 · Mensagem');
-    expect(html).toContain(unidade.nome);
+    expect(html).toContain(unidade.name);
     expect(html).toContain(formularioPara('/comunicados/novo'));
     expect(html).toContain(`name="unidadeId" value="${unidade.id}"`);
     expect(html).toContain('name="titulo"');
@@ -519,7 +519,7 @@ describe('as telas de quem publica no mural', () => {
     expect(html).toContain('name="responsaveis[]"');
     for (const responsavel of cenario.responsaveis) {
       expect(html).toContain(`value="${responsavel.id}"`);
-      expect(html).toContain(responsavel.nome);
+      expect(html).toContain(responsavel.name);
     }
   });
 
@@ -538,9 +538,9 @@ describe('as telas de quem publica no mural', () => {
   test('unidade inativa não recebe comunicado nem aparece na escolha', async () => {
     const cenario = await cenarioCompleto();
     const fechada = await criarUnidade({
-      redeId: cenario.rede.id,
-      nome: 'Escola Desativada',
-      ativa: false,
+      networkId: cenario.rede.id,
+      name: 'Escola Desativada',
+      active: false,
     });
     const cookie = await entrarComo(cenario, 'admin');
 
@@ -550,7 +550,7 @@ describe('as telas de quem publica no mural', () => {
     expect(escolha.status).toBe(200);
     expect(escolha.html).toContain(`<option value="${cenario.unidades[0].id}">`);
     expect(escolha.html).not.toContain(`<option value="${fechada.id}">`);
-    expect(escolha.html).not.toContain(fechada.nome);
+    expect(escolha.html).not.toContain(fechada.name);
     expect(direto.status).toBe(404);
   });
 });

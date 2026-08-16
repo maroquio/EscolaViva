@@ -31,7 +31,7 @@ describe('paginaDeResponsaveis', () => {
   test('a primeira página traz o tamanho pedido, e o total conta todos', async () => {
     const rede = await criarRede();
     for (let i = 1; i <= 7; i += 1) {
-      await criarResponsavel({ redeId: rede.id, nome: nomeNumerado(i) });
+      await criarResponsavel({ networkId: rede.id, name: nomeNumerado(i) });
     }
 
     const pagina = await academico.paginaDeResponsaveis(rede.id, 1, 3);
@@ -45,7 +45,7 @@ describe('paginaDeResponsaveis', () => {
   test('a página seguinte continua de onde a anterior parou, sem repetir nem pular', async () => {
     const rede = await criarRede();
     for (let i = 1; i <= 7; i += 1) {
-      await criarResponsavel({ redeId: rede.id, nome: nomeNumerado(i) });
+      await criarResponsavel({ networkId: rede.id, name: nomeNumerado(i) });
     }
 
     const [primeira, segunda, terceira] = await Promise.all([
@@ -61,7 +61,7 @@ describe('paginaDeResponsaveis', () => {
   test('página além do fim devolve a última, e não uma lista vazia', async () => {
     const rede = await criarRede();
     for (let i = 1; i <= 5; i += 1) {
-      await criarResponsavel({ redeId: rede.id, nome: nomeNumerado(i) });
+      await criarResponsavel({ networkId: rede.id, name: nomeNumerado(i) });
     }
 
     const pagina = await academico.paginaDeResponsaveis(rede.id, 99, 2);
@@ -73,8 +73,8 @@ describe('paginaDeResponsaveis', () => {
   test('o total nunca conta responsável de outra rede', async () => {
     const nossa = await criarRede();
     const alheia = await criarRede();
-    await criarResponsavel({ redeId: nossa.id, nome: nomeNumerado(1) });
-    const deFora = await criarResponsavel({ redeId: alheia.id, nome: nomeNumerado(2) });
+    await criarResponsavel({ networkId: nossa.id, name: nomeNumerado(1) });
+    const deFora = await criarResponsavel({ networkId: alheia.id, name: nomeNumerado(2) });
 
     const pagina = await academico.paginaDeResponsaveis(nossa.id, 1, 50);
 
@@ -87,9 +87,9 @@ describe('paginaDeAlunos', () => {
   test('recorta os achados da busca e conta todos os que casam com o termo', async () => {
     const rede = await criarRede();
     for (let i = 1; i <= 6; i += 1) {
-      await criarAluno({ redeId: rede.id, nome: `Silva ${String(i).padStart(3, '0')}` });
+      await criarAluno({ networkId: rede.id, name: `Silva ${String(i).padStart(3, '0')}` });
     }
-    await criarAluno({ redeId: rede.id, nome: 'Outro Sobrenome' });
+    await criarAluno({ networkId: rede.id, name: 'Outro Sobrenome' });
 
     const pagina = await academico.paginaDeAlunos(rede.id, 'Silva', 2, 4);
 
@@ -101,8 +101,8 @@ describe('paginaDeAlunos', () => {
   test('a busca paginada não alcança aluno de outra rede', async () => {
     const nossa = await criarRede();
     const alheia = await criarRede();
-    await criarAluno({ redeId: nossa.id, nome: 'Ana Silva' });
-    await criarAluno({ redeId: alheia.id, nome: 'Ana Silva' });
+    await criarAluno({ networkId: nossa.id, name: 'Ana Silva' });
+    await criarAluno({ networkId: alheia.id, name: 'Ana Silva' });
 
     const pagina = await academico.paginaDeAlunos(nossa.id, 'Ana Silva', 1, 20);
 
@@ -115,15 +115,15 @@ describe('paginaDeTurmas', () => {
   test('o alcance entra como condição: só as turmas das unidades informadas', async () => {
     const rede = await criarRede();
     const [alcancada, fora] = await Promise.all([
-      criarUnidade({ redeId: rede.id }),
-      criarUnidade({ redeId: rede.id }),
+      criarUnidade({ networkId: rede.id }),
+      criarUnidade({ networkId: rede.id }),
     ]);
-    const anoLetivo = await criarAnoLetivo({ redeId: rede.id });
+    const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
     await criarTurma({
-      redeId: rede.id, unidadeId: alcancada.id, anoLetivoId: anoLetivo.id, nome: 'Da minha unidade',
+      networkId: rede.id, schoolId: alcancada.id, academicYearId: anoLetivo.id, name: 'Da minha unidade',
     });
     await criarTurma({
-      redeId: rede.id, unidadeId: fora.id, anoLetivoId: anoLetivo.id, nome: 'Da outra unidade',
+      networkId: rede.id, schoolId: fora.id, academicYearId: anoLetivo.id, name: 'Da outra unidade',
     });
 
     const pagina = await academico.paginaDeTurmas(rede.id, { unidadeIds: [alcancada.id] }, 1, 20);
@@ -143,10 +143,10 @@ describe('paginaDeTurmas', () => {
 
   test('o filtro de ano letivo continua valendo junto com o alcance', async () => {
     const cenario = await cenarioCompleto();
-    const outroAno = await criarAnoLetivo({ redeId: cenario.rede.id, ano: ANO_PADRAO + 1 });
+    const outroAno = await criarAnoLetivo({ networkId: cenario.rede.id, year: ANO_PADRAO + 1 });
     await criarTurma({
-      redeId: cenario.rede.id, unidadeId: cenario.unidades[0].id,
-      anoLetivoId: outroAno.id, nome: 'Turma do ano que vem',
+      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id,
+      academicYearId: outroAno.id, name: 'Turma do ano que vem',
     });
 
     const pagina = await academico.paginaDeTurmas(
@@ -189,7 +189,7 @@ describe('paginaDeMatriculasDoAluno', () => {
 describe('contagens que substituíram as listas', () => {
   test('alunoTemMatricula separa o aluno novo do aluno de outra unidade', async () => {
     const cenario = await cenarioCompleto();
-    const recemCadastrado = await criarAluno({ redeId: cenario.rede.id });
+    const recemCadastrado = await criarAluno({ networkId: cenario.rede.id });
 
     expect(await academico.alunoTemMatricula(cenario.rede.id, cenario.alunos[0].id)).toBe(true);
     expect(await academico.alunoTemMatricula(cenario.rede.id, recemCadastrado.id)).toBe(false);
@@ -213,7 +213,7 @@ describe('contagens que substituíram as listas', () => {
 
   test('totaisDoAlcance conta cada responsável uma vez, mesmo com filhos em duas unidades', async () => {
     const cenario = await cenarioCompleto();
-    await criarDisciplina({ redeId: cenario.rede.id });
+    await criarDisciplina({ networkId: cenario.rede.id });
 
     const totais = await academico.totaisDoAlcance(
       cenario.rede.id, cenario.unidades.map((unidade) => unidade.id),

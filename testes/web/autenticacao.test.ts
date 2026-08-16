@@ -32,7 +32,7 @@ const adulterar = (cookie: string): string => {
 
 const sessoesGravadas = async (usuarioId: string): Promise<number> => {
   const linhas = await sqlDeTeste()<{ total: string }[]>`
-    SELECT count(*)::text AS total FROM sessao WHERE usuario_id = ${usuarioId}`;
+    SELECT count(*)::text AS total FROM session WHERE user_id = ${usuarioId}`;
   return Number(linhas[0]?.total ?? '0');
 };
 
@@ -79,7 +79,7 @@ describe('autenticação', () => {
       senha: cenario.senha,
     });
     const linhas = await sqlDeTeste()<{ id: string }[]>`
-      SELECT id::text FROM sessao WHERE usuario_id = ${cenario.secretaria.id}`;
+      SELECT id::text FROM session WHERE user_id = ${cenario.secretaria.id}`;
     const sessaoId = linhas[0]?.id ?? '';
 
     expect(linhas).toHaveLength(1);
@@ -126,7 +126,7 @@ describe('autenticação', () => {
   test('usuário de outra rede não entra pelo slug errado', async () => {
     const cenario = await cenarioCompleto();
     const outra = await criarRede({});
-    await criarUsuario({ redeId: outra.id, senha: SENHA_PADRAO });
+    await criarUsuario({ networkId: outra.id, senha: SENHA_PADRAO });
 
     const resposta = await enviar('/login', {
       redeSlug: outra.slug,

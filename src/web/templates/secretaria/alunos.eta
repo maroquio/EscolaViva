@@ -2,6 +2,8 @@
 const alunos = it.alunos ?? [];
 const termo = it.termo ?? '';
 const buscou = it.buscou === true;
+
+const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoDeMatricula;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -84,7 +86,7 @@ const buscou = it.buscou === true;
             <% if (aluno.situacao === null) { %>
                         <span class="etiqueta">Sem matrícula</span>
             <% } else { %>
-            <span class="etiqueta etiqueta--<%= aluno.situacao %>"><%= aluno.situacaoNome %></span>
+            <span class="etiqueta <%= CLASSE_DA_SITUACAO[aluno.situacao] %>"><%= aluno.situacaoNome %></span>
             <% } %>
           </td>
           <td class="celula-centro">

@@ -5,16 +5,16 @@ import type { Aluno } from '../dominio/aluno';
 
 type LinhaDeAluno = {
   id: string;
-  rede_id: string;
-  nome: string;
-  data_nascimento: string;
+  network_id: string;
+  name: string;
+  birth_date: string;
 };
 
 const paraAluno = (linha: LinhaDeAluno): Aluno => ({
   id: linha.id,
-  redeId: linha.rede_id,
-  nome: linha.nome,
-  dataNascimento: linha.data_nascimento,
+  redeId: linha.network_id,
+  nome: linha.name,
+  dataNascimento: linha.birth_date,
 });
 
 const escaparCuringas = (termo: string): string =>
@@ -22,15 +22,15 @@ const escaparCuringas = (termo: string): string =>
 
 export async function inserir(sql: Conexao, aluno: Aluno): Promise<void> {
   await sql`
-    INSERT INTO aluno (id, rede_id, nome, data_nascimento)
+    INSERT INTO student (id, network_id, name, birth_date)
     VALUES (${aluno.id}, ${aluno.redeId}, ${aluno.nome}, ${aluno.dataNascimento})`;
 }
 
 export async function porId(sql: Conexao, redeId: string, id: string): Promise<Aluno | null> {
   const linhas: LinhaDeAluno[] = await sql`
-    SELECT id, rede_id, nome, to_char(data_nascimento, 'YYYY-MM-DD') AS data_nascimento
-      FROM aluno
-     WHERE rede_id = ${redeId} AND id = ${id}`;
+    SELECT id, network_id, name, to_char(birth_date, 'YYYY-MM-DD') AS birth_date
+      FROM student
+     WHERE network_id = ${redeId} AND id = ${id}`;
   const linha = linhas[0];
   return linha === undefined ? null : paraAluno(linha);
 }
@@ -43,10 +43,10 @@ export async function buscar(
 ): Promise<Aluno[]> {
   const padrao = `%${escaparCuringas(termo.trim())}%`;
   const linhas: LinhaDeAluno[] = await sql`
-    SELECT id, rede_id, nome, to_char(data_nascimento, 'YYYY-MM-DD') AS data_nascimento
-      FROM aluno
-     WHERE rede_id = ${redeId} AND nome ILIKE ${padrao}
-     ORDER BY nome
+    SELECT id, network_id, name, to_char(birth_date, 'YYYY-MM-DD') AS birth_date
+      FROM student
+     WHERE network_id = ${redeId} AND name ILIKE ${padrao}
+     ORDER BY name
      LIMIT ${faixa?.limite ?? LIMITES.aluno.linhasDaBusca} OFFSET ${faixa?.deslocamento ?? 0}`;
   return linhas.map(paraAluno);
 }
@@ -55,7 +55,7 @@ export async function contarBusca(sql: Conexao, redeId: string, termo: string): 
   const padrao = `%${escaparCuringas(termo.trim())}%`;
   const linhas: { total: number }[] = await sql`
     SELECT count(*)::int AS total
-      FROM aluno
-     WHERE rede_id = ${redeId} AND nome ILIKE ${padrao}`;
+      FROM student
+     WHERE network_id = ${redeId} AND name ILIKE ${padrao}`;
   return linhas[0]?.total ?? 0;
 }

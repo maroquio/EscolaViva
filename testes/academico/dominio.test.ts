@@ -47,7 +47,7 @@ describe('turno da turma', () => {
   });
 
   test('a comparação é exata: turno com espaço sobrando não passa', () => {
-    const comEspaco = 'matutino ';
+    const comEspaco = 'morning ';
 
     const valido = turnoValido(comEspaco);
 

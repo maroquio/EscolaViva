@@ -164,15 +164,15 @@ export const ERROS_INTERNOS = {
 
 export const VOCABULARIO = {
   turno: {
-    matutino: 'Matutino',
-    vespertino: 'Vespertino',
-    noturno: 'Noturno',
-    integral: 'Integral',
+    morning: 'Matutino',
+    afternoon: 'Vespertino',
+    evening: 'Noturno',
+    full_time: 'Integral',
   } as const satisfies Record<Turno, string>,
   situacaoDeMatricula: {
-    ativa: 'Ativa',
-    transferida: 'Transferida',
-    cancelada: 'Cancelada',
-    concluida: 'Concluída',
+    active: 'Ativa',
+    transferred: 'Transferida',
+    cancelled: 'Cancelada',
+    completed: 'Concluída',
   } as const satisfies Record<SituacaoMatricula, string>,
 } as const;

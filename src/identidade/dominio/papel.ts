@@ -1,6 +1,6 @@
 import { ERROS_INTERNOS } from '../constantes';
 
-export const PAPEIS = ['admin_rede', 'secretaria', 'professor', 'responsavel'] as const;
+export const PAPEIS = ['network_admin', 'registrar', 'teacher', 'guardian'] as const;
 
 export type Papel = (typeof PAPEIS)[number];
 

@@ -1,84 +1,88 @@
 -- Identidade: o tenant e quem entra nele.
--- Cria a função de gatilho que mantém `atualizado_em` em todas as tabelas, a rede (conta
+-- Cria a função de gatilho que mantém `updated_at` em todas as tabelas, a rede (conta
 -- contratante), suas unidades, os usuários e o papel que cada um exerce em cada unidade.
 -- A sessão vive em tabela para que o processo continue sem estado próprio (I2).
+--
+-- A tabela de usuário se chama `app_user`, e não `user`: `user` é palavra reservada no
+-- PostgreSQL, `CREATE TABLE user` é erro de sintaxe, e `SELECT * FROM user` não falha —
+-- devolve o role corrente, que é a forma mais silenciosa de errar.
 
-CREATE FUNCTION set_atualizado_em() RETURNS trigger
+CREATE FUNCTION set_updated_at() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
-  NEW.atualizado_em := now();
+  NEW.updated_at := now();
   RETURN NEW;
 END;
 $$;
 
-CREATE TABLE rede (
-  id             uuid PRIMARY KEY,
-  nome           text NOT NULL,
-  slug           text NOT NULL,
-  status         text NOT NULL DEFAULT 'ativa',
-  criado_em      timestamptz NOT NULL DEFAULT now(),
-  atualizado_em  timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT rede_slug_unico UNIQUE (slug),
-  CONSTRAINT rede_status_valido CHECK (status IN ('ativa','suspensa','cancelada'))
+CREATE TABLE network (
+  id          uuid PRIMARY KEY,
+  name        text NOT NULL,
+  slug        text NOT NULL,
+  status      text NOT NULL DEFAULT 'active',
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT network_slug_unique UNIQUE (slug),
+  CONSTRAINT network_status_valid CHECK (status IN ('active','suspended','cancelled'))
 );
 
-CREATE TRIGGER rede_atualizado_em BEFORE UPDATE ON rede
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER network_updated_at BEFORE UPDATE ON network
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-CREATE TABLE unidade (
-  id             uuid PRIMARY KEY,
-  rede_id        uuid NOT NULL REFERENCES rede(id),
-  nome           text NOT NULL,
-  codigo_inep    text,
-  ativa          boolean NOT NULL DEFAULT true,
-  criado_em      timestamptz NOT NULL DEFAULT now(),
-  atualizado_em  timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT unidade_nome_unico_na_rede UNIQUE (rede_id, nome)
+CREATE TABLE school (
+  id          uuid PRIMARY KEY,
+  network_id  uuid NOT NULL REFERENCES network(id),
+  name        text NOT NULL,
+  inep_code   text,
+  active      boolean NOT NULL DEFAULT true,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT school_name_unique_in_network UNIQUE (network_id, name)
 );
 
-CREATE TRIGGER unidade_atualizado_em BEFORE UPDATE ON unidade
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER school_updated_at BEFORE UPDATE ON school
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-CREATE TABLE usuario (
+CREATE TABLE app_user (
   id             uuid PRIMARY KEY,
-  rede_id        uuid NOT NULL REFERENCES rede(id),
+  network_id     uuid NOT NULL REFERENCES network(id),
   email          text NOT NULL,
-  senha_hash     text NOT NULL,
-  nome           text NOT NULL,
-  ativo          boolean NOT NULL DEFAULT true,
-  criado_em      timestamptz NOT NULL DEFAULT now(),
-  atualizado_em  timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT usuario_email_unico_na_rede UNIQUE (rede_id, email)
+  password_hash  text NOT NULL,
+  name           text NOT NULL,
+  active         boolean NOT NULL DEFAULT true,
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  updated_at     timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT user_email_unique_in_network UNIQUE (network_id, email)
 );
 
-CREATE TRIGGER usuario_atualizado_em BEFORE UPDATE ON usuario
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER app_user_updated_at BEFORE UPDATE ON app_user
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-CREATE TABLE papel_usuario (
-  rede_id        uuid NOT NULL REFERENCES rede(id),
-  usuario_id     uuid NOT NULL REFERENCES usuario(id),
-  unidade_id     uuid NOT NULL REFERENCES unidade(id),
-  papel          text NOT NULL,
-  criado_em      timestamptz NOT NULL DEFAULT now(),
-  atualizado_em  timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (usuario_id, unidade_id, papel),
-  CONSTRAINT papel_valido CHECK (papel IN ('admin_rede','secretaria','professor','responsavel'))
+CREATE TABLE user_role (
+  network_id  uuid NOT NULL REFERENCES network(id),
+  user_id     uuid NOT NULL REFERENCES app_user(id),
+  school_id   uuid NOT NULL REFERENCES school(id),
+  role        text NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, school_id, role),
+  CONSTRAINT role_valid CHECK (role IN ('network_admin','registrar','teacher','guardian'))
 );
 
-CREATE TRIGGER papel_usuario_atualizado_em BEFORE UPDATE ON papel_usuario
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER user_role_updated_at BEFORE UPDATE ON user_role
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- Montar o menu e o painel exige todos os papéis do usuário logado a cada requisição.
-CREATE INDEX papel_usuario_por_usuario ON papel_usuario (rede_id, usuario_id);
+CREATE INDEX user_role_by_user ON user_role (network_id, user_id);
 
-CREATE TABLE sessao (
+CREATE TABLE session (
   id          uuid PRIMARY KEY,
-  rede_id     uuid NOT NULL REFERENCES rede(id),
-  usuario_id  uuid NOT NULL REFERENCES usuario(id),
-  criado_em   timestamptz NOT NULL DEFAULT now(),
-  expira_em   timestamptz NOT NULL,
+  network_id  uuid NOT NULL REFERENCES network(id),
+  user_id     uuid NOT NULL REFERENCES app_user(id),
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  expires_at  timestamptz NOT NULL,
   ip          text
 );
 
 -- O expurgo periódico varre por expiração (I20).
-CREATE INDEX sessao_por_expiracao ON sessao (expira_em);
+CREATE INDEX session_by_expiration ON session (expires_at);

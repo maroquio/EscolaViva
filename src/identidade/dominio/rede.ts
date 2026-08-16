@@ -1,6 +1,6 @@
 import { ERROS_INTERNOS, REDE_ATIVA } from '../constantes';
 
-export const STATUS_DE_REDE = ['ativa', 'suspensa', 'cancelada'] as const;
+export const STATUS_DE_REDE = ['active', 'suspended', 'cancelled'] as const;
 
 export type StatusDeRede = (typeof STATUS_DE_REDE)[number];
 

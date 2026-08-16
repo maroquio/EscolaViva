@@ -3,11 +3,7 @@ const boletim = it.boletim;
 
 const criterio = it.criterio;
 
-const CLASSE_DA_SITUACAO = {
-  aprovado: 'etiqueta--aprovado',
-  reprovado: 'etiqueta--reprovado',
-  em_curso: 'etiqueta--em-curso',
-};
+const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoFinal;
 
 const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
 %>

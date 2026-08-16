@@ -54,7 +54,7 @@ const MENSAGENS = {
     `${OPCOES.apagar} remove a rede '${SLUG}' inteira. Confirme com ${OPCOES.sim}. ` +
     'Nada foi apagado.',
   previsao: (linhas: number, ano: number): string =>
-    `Vai gravar ~${comSeparador(linhas)} linhas em 'frequencia', ano ${ano}:`,
+    `Vai gravar ~${comSeparador(linhas)} linhas em 'attendance', ano ${ano}:`,
   dimensoes: (alunos: number): string =>
     `${comSeparador(alunos)} alunos, ${UNIDADES} unidades, ${DIAS_LETIVOS} dias.`,
   confirmeGravar: `Confirme com ${OPCOES.sim}. Nada foi gravado.`,
@@ -73,8 +73,8 @@ const MENSAGENS = {
   cargaConcluida: (linhas: number, segundos: string): string =>
     `\n${comSeparador(linhas)} linhas gravadas em ${segundos} s.`,
   totalDaTabela: (linhas: number): string =>
-    `'frequencia' tem agora ${comSeparador(linhas)} linhas no total.`,
-  analisar: 'Rode ANALYZE frequencia; antes de medir — o planejador precisa da estatística nova.',
+    `'attendance' tem agora ${comSeparador(linhas)} linhas no total.`,
+  analisar: 'Rode ANALYZE attendance; antes de medir — o planejador precisa da estatística nova.',
   sinalDeMedicao: '\nSinal de medição — as três consultas para anotar à mão uma vez por semana:',
   falha: (detalhe: string): string => `Falha na carga: ${detalhe}`,
 } as const;
@@ -109,23 +109,23 @@ function lerArgumentos(argv: readonly string[]): Argumentos {
 }
 
 async function garantirRede(sql: Conexao): Promise<string> {
-  const existente: { id: string }[] = await sql`SELECT id FROM rede WHERE slug = ${SLUG}`;
+  const existente: { id: string }[] = await sql`SELECT id FROM network WHERE slug = ${SLUG}`;
   const encontrada = existente[0];
   if (encontrada !== undefined) return encontrada.id;
   const id = crypto.randomUUID();
   await sql`
-    INSERT INTO rede (id, nome, slug, status)
+    INSERT INTO network (id, name, slug, status)
     VALUES (${id}, ${REDE}, ${SLUG}, ${REDE_ATIVA})`;
   return id;
 }
 
 async function garantirUnidades(sql: Conexao, redeId: string): Promise<number> {
   const contagem: { total: number }[] =
-    await sql`SELECT count(*)::int AS total FROM unidade WHERE rede_id = ${redeId}`;
+    await sql`SELECT count(*)::int AS total FROM school WHERE network_id = ${redeId}`;
   const existentes = contagem[0]?.total ?? 0;
   if (existentes >= UNIDADES) return existentes;
   await sql`
-    INSERT INTO unidade (id, rede_id, nome)
+    INSERT INTO school (id, network_id, name)
     SELECT gen_random_uuid(), ${redeId}, 'Unidade ' || lpad(i::text, 3, '0')
       FROM generate_series(${existentes + 1}, ${UNIDADES}) AS i`;
   return UNIDADES;
@@ -133,11 +133,11 @@ async function garantirUnidades(sql: Conexao, redeId: string): Promise<number> {
 
 async function garantirAlunos(sql: Conexao, redeId: string, alunos: number): Promise<void> {
   const contagem: { total: number }[] =
-    await sql`SELECT count(*)::int AS total FROM aluno WHERE rede_id = ${redeId}`;
+    await sql`SELECT count(*)::int AS total FROM student WHERE network_id = ${redeId}`;
   const existentes = contagem[0]?.total ?? 0;
   if (existentes >= alunos) return;
   await sql`
-    INSERT INTO aluno (id, rede_id, nome, data_nascimento)
+    INSERT INTO student (id, network_id, name, birth_date)
     SELECT gen_random_uuid(), ${redeId}, 'Aluno de carga ' || lpad(i::text, 6, '0'),
            (current_date - ((3650 + (i % 2555)) || ' days')::interval)::date
       FROM generate_series(${existentes + 1}, ${alunos}) AS i`;
@@ -151,33 +151,35 @@ async function montarAnoLetivo(
   const anoLetivoId = crypto.randomUUID();
   const turmas = Math.ceil(alunos / ALUNOS_POR_TURMA);
   await sql`
-    INSERT INTO ano_letivo (id, rede_id, ano, data_inicio, data_fim)
+    INSERT INTO academic_year (id, network_id, year, start_date, end_date)
     VALUES (${anoLetivoId}, ${redeId}, ${ano},
             ${CALENDARIO.inicio(ano)}, ${CALENDARIO.fim(ano)})`;
   await sql`
-    INSERT INTO turma (id, rede_id, unidade_id, ano_letivo_id, nome, serie, turno)
+    INSERT INTO class_group (id, network_id, school_id, academic_year_id, name, grade_level, shift)
     SELECT gen_random_uuid(), ${redeId}, u.id, ${anoLetivoId},
            'Turma ' || lpad(i::text, 4, '0'), ((i % 9) + 1) || 'º ano',
            (${ARRANJO_DE_TURNOS}::text[])[(i % ${TURNOS.length}) + 1]
       FROM generate_series(1, ${turmas}) AS i
       JOIN LATERAL (
-        SELECT id FROM unidade WHERE rede_id = ${redeId} ORDER BY nome
+        SELECT id FROM school WHERE network_id = ${redeId} ORDER BY name
          OFFSET (i - 1) % ${UNIDADES} LIMIT 1
       ) AS u ON true`;
   await sql`
-    INSERT INTO matricula (id, rede_id, aluno_id, turma_id, ano_letivo_id, data_matricula, situacao)
-    SELECT gen_random_uuid(), ${redeId}, a.aluno_id, t.id, ${anoLetivoId},
+    INSERT INTO enrollment
+           (id, network_id, student_id, class_group_id, academic_year_id, enrollment_date, status)
+    SELECT gen_random_uuid(), ${redeId}, a.student_id, t.id, ${anoLetivoId},
            ${CALENDARIO.matricula(ano)}::date, ${MATRICULA_ATIVA}
-      FROM (SELECT aluno_id, posicao FROM (
-              SELECT id AS aluno_id, row_number() OVER (ORDER BY nome) AS posicao
-                FROM aluno WHERE rede_id = ${redeId}) AS numerados
+      FROM (SELECT student_id, posicao FROM (
+              SELECT id AS student_id, row_number() OVER (ORDER BY name) AS posicao
+                FROM student WHERE network_id = ${redeId}) AS numerados
              WHERE posicao <= ${alunos}) AS a
-      JOIN (SELECT id, row_number() OVER (ORDER BY nome) AS posicao
-              FROM turma WHERE rede_id = ${redeId} AND ano_letivo_id = ${anoLetivoId}) AS t
+      JOIN (SELECT id, row_number() OVER (ORDER BY name) AS posicao
+              FROM class_group
+             WHERE network_id = ${redeId} AND academic_year_id = ${anoLetivoId}) AS t
         ON t.posicao = ((a.posicao - 1) / ${ALUNOS_POR_TURMA}) + 1`;
   const total: { total: number }[] = await sql`
-    SELECT count(*)::int AS total FROM matricula
-     WHERE rede_id = ${redeId} AND ano_letivo_id = ${anoLetivoId}`;
+    SELECT count(*)::int AS total FROM enrollment
+     WHERE network_id = ${redeId} AND academic_year_id = ${anoLetivoId}`;
   return { anoLetivoId, turmas, matriculas: total[0]?.total ?? 0 };
 }
 
@@ -189,19 +191,20 @@ async function preencherFrequencia(
   for (let deslocamento = 0; deslocamento < cenario.matriculas; deslocamento += MATRICULAS_POR_LOTE) {
     const lote: { count: number } = await sql`
       WITH dias AS (
-        SELECT d::date AS data
+        SELECT d::date AS attendance_date
           FROM generate_series(${CALENDARIO.inicio(ano)}::date,
                                ${CALENDARIO.fim(ano)}::date, '1 day') AS d
          WHERE extract(isodow FROM d) < ${DIAS_DA_SEMANA.primeiroDiaDoFimDeSemanaIso}
          ORDER BY d
          LIMIT ${DIAS_LETIVOS}
       ), lote AS (
-        SELECT id FROM matricula
-         WHERE rede_id = ${redeId} AND ano_letivo_id = ${cenario.anoLetivoId}
+        SELECT id FROM enrollment
+         WHERE network_id = ${redeId} AND academic_year_id = ${cenario.anoLetivoId}
          ORDER BY id OFFSET ${deslocamento} LIMIT ${MATRICULAS_POR_LOTE}
       )
-      INSERT INTO frequencia (id, rede_id, matricula_id, data, presente)
-      SELECT gen_random_uuid(), ${redeId}, lote.id, dias.data, random() >= ${TAXA_DE_FALTA}
+      INSERT INTO attendance (id, network_id, enrollment_id, attendance_date, present)
+      SELECT gen_random_uuid(), ${redeId}, lote.id, dias.attendance_date,
+             random() >= ${TAXA_DE_FALTA}
         FROM lote CROSS JOIN dias`;
     gravadas += lote.count;
     const progresso = Math.min(deslocamento + MATRICULAS_POR_LOTE, cenario.matriculas);
@@ -212,7 +215,7 @@ async function preencherFrequencia(
 
 const MEDICAO = `
 -- 1. Maior tabela: a contagem que o documento manda anotar (~3,6 milhões por ano letivo).
-SELECT count(*) AS linhas_de_frequencia FROM frequencia;
+SELECT count(*) AS attendance_rows FROM attendance;
 
 -- 2. p95 aproximado por consulta. pg_stat_statements NÃO guarda percentil: 'media + 2 desvios'
 --    é a aproximação usada, e 'max' é o teto real observado. Rode uma vez, na primeira semana:
@@ -224,7 +227,7 @@ SELECT substring(query, 1, 70)                              AS consulta,
        round((mean_exec_time + 2 * stddev_exec_time)::numeric, 1) AS p95_aprox_ms,
        round(max_exec_time::numeric, 1)                     AS pior_ms
   FROM pg_stat_statements
- WHERE query ILIKE '%nota%' OR query ILIKE '%frequencia%'
+ WHERE query ILIKE '%grade%' OR query ILIKE '%attendance%'
  ORDER BY mean_exec_time DESC
  LIMIT 10;
 
@@ -244,10 +247,12 @@ function instruirMedicao(): void {
   console.log(MEDICAO);
 }
 
-const APAGAR_EM_ORDEM = ['frequencia', 'nota', 'matricula', 'turma', 'ano_letivo', 'aluno', 'unidade'];
+const APAGAR_EM_ORDEM = [
+  'attendance', 'grade', 'enrollment', 'class_group', 'academic_year', 'student', 'school',
+];
 
 async function apagarRedeDeCarga(sql: Conexao): Promise<void> {
-  const existente: { id: string }[] = await sql`SELECT id FROM rede WHERE slug = ${SLUG}`;
+  const existente: { id: string }[] = await sql`SELECT id FROM network WHERE slug = ${SLUG}`;
   const rede = existente[0];
   if (rede === undefined) {
     console.log(MENSAGENS.semRedeDeCarga);
@@ -255,10 +260,10 @@ async function apagarRedeDeCarga(sql: Conexao): Promise<void> {
   }
   for (const tabela of APAGAR_EM_ORDEM) {
     const apagadas: { count: number } =
-      await sql`DELETE FROM ${sql(tabela)} WHERE rede_id = ${rede.id}`;
+      await sql`DELETE FROM ${sql(tabela)} WHERE network_id = ${rede.id}`;
     console.log(MENSAGENS.tabelaApagada(tabela, apagadas.count));
   }
-  await sql`DELETE FROM rede WHERE id = ${rede.id}`;
+  await sql`DELETE FROM network WHERE id = ${rede.id}`;
   console.log(MENSAGENS.redeRemovida);
 }
 
@@ -288,7 +293,8 @@ async function carregar(): Promise<void> {
   const inicio = agora();
   const redeId = await garantirRede(sql);
   const jaCarregado: { total: number }[] = await sql`
-    SELECT count(*)::int AS total FROM ano_letivo WHERE rede_id = ${redeId} AND ano = ${ano}`;
+    SELECT count(*)::int AS total FROM academic_year
+     WHERE network_id = ${redeId} AND year = ${ano}`;
   if ((jaCarregado[0]?.total ?? 0) > 0) {
     throw new Error(MENSAGENS.anoJaCarregado(ano));
   }
@@ -301,7 +307,7 @@ async function carregar(): Promise<void> {
   console.log(MENSAGENS.cenarioPronto(cenario.turmas, cenario.matriculas));
   const linhas = await preencherFrequencia(sql, redeId, cenario, ano);
 
-  const total: { total: number }[] = await sql`SELECT count(*)::int AS total FROM frequencia`;
+  const total: { total: number }[] = await sql`SELECT count(*)::int AS total FROM attendance`;
   console.log(MENSAGENS.cargaConcluida(linhas, emSegundos(inicio)));
   console.log(MENSAGENS.totalDaTabela(total[0]?.total ?? 0));
   console.log(MENSAGENS.analisar);

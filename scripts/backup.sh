@@ -18,7 +18,7 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
 fi
 
 SERVICO_DO_BANCO=banco
-COMPOSE=(docker compose -f "$RAIZ/docker-compose.yml")
+COMPOSE=(docker compose -f "$RAIZ/infra/docker-compose.yml")
 
 versao_maior() { sed -E 's/[^0-9]*([0-9]+).*/\1/' <<< "$1"; }
 

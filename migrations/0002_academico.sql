@@ -4,139 +4,139 @@
 -- O índice único parcial garante no banco que ninguém tenha duas matrículas ativas no
 -- mesmo ano letivo — a regra não depende de a aplicação lembrar dela (I8).
 
-CREATE TABLE ano_letivo (
-  id             uuid PRIMARY KEY,
-  rede_id        uuid NOT NULL REFERENCES rede(id),
-  ano            integer NOT NULL,
-  data_inicio    date NOT NULL,
-  data_fim       date NOT NULL,
-  criado_em      timestamptz NOT NULL DEFAULT now(),
-  atualizado_em  timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT ano_unico_na_rede UNIQUE (rede_id, ano),
-  CONSTRAINT periodo_coerente CHECK (data_fim > data_inicio)
+CREATE TABLE academic_year (
+  id          uuid PRIMARY KEY,
+  network_id  uuid NOT NULL REFERENCES network(id),
+  year        integer NOT NULL,
+  start_date  date NOT NULL,
+  end_date    date NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT year_unique_in_network UNIQUE (network_id, year),
+  CONSTRAINT period_consistent CHECK (end_date > start_date)
 );
 
-CREATE TRIGGER ano_letivo_atualizado_em BEFORE UPDATE ON ano_letivo
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER academic_year_updated_at BEFORE UPDATE ON academic_year
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-CREATE TABLE turma (
-  id             uuid PRIMARY KEY,
-  rede_id        uuid NOT NULL REFERENCES rede(id),
-  unidade_id     uuid NOT NULL REFERENCES unidade(id),
-  ano_letivo_id  uuid NOT NULL REFERENCES ano_letivo(id),
-  nome           text NOT NULL,
-  serie          text NOT NULL,
-  turno          text NOT NULL,
-  criado_em      timestamptz NOT NULL DEFAULT now(),
-  atualizado_em  timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT turma_unica UNIQUE (unidade_id, ano_letivo_id, nome),
-  CONSTRAINT turno_valido CHECK (turno IN ('matutino','vespertino','noturno','integral'))
+CREATE TABLE class_group (
+  id                uuid PRIMARY KEY,
+  network_id        uuid NOT NULL REFERENCES network(id),
+  school_id         uuid NOT NULL REFERENCES school(id),
+  academic_year_id  uuid NOT NULL REFERENCES academic_year(id),
+  name              text NOT NULL,
+  grade_level       text NOT NULL,
+  shift             text NOT NULL,
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT class_group_unique UNIQUE (school_id, academic_year_id, name),
+  CONSTRAINT shift_valid CHECK (shift IN ('morning','afternoon','evening','full_time'))
 );
 
-CREATE TRIGGER turma_atualizado_em BEFORE UPDATE ON turma
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER class_group_updated_at BEFORE UPDATE ON class_group
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- A secretaria lista as turmas filtrando por unidade e ano letivo.
-CREATE INDEX turma_por_unidade_e_ano ON turma (rede_id, unidade_id, ano_letivo_id);
+CREATE INDEX class_group_by_school_and_year ON class_group (network_id, school_id, academic_year_id);
 
-CREATE TABLE disciplina (
-  id             uuid PRIMARY KEY,
-  rede_id        uuid NOT NULL REFERENCES rede(id),
-  nome           text NOT NULL,
-  criado_em      timestamptz NOT NULL DEFAULT now(),
-  atualizado_em  timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT disciplina_unica_na_rede UNIQUE (rede_id, nome)
+CREATE TABLE subject (
+  id          uuid PRIMARY KEY,
+  network_id  uuid NOT NULL REFERENCES network(id),
+  name        text NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT subject_unique_in_network UNIQUE (network_id, name)
 );
 
-CREATE TRIGGER disciplina_atualizado_em BEFORE UPDATE ON disciplina
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER subject_updated_at BEFORE UPDATE ON subject
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-CREATE TABLE turma_disciplina (
-  id                    uuid PRIMARY KEY,
-  rede_id               uuid NOT NULL REFERENCES rede(id),
-  turma_id              uuid NOT NULL REFERENCES turma(id),
-  disciplina_id         uuid NOT NULL REFERENCES disciplina(id),
-  professor_usuario_id  uuid NOT NULL REFERENCES usuario(id),
-  criado_em             timestamptz NOT NULL DEFAULT now(),
-  atualizado_em         timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT disciplina_unica_na_turma UNIQUE (turma_id, disciplina_id)
+CREATE TABLE class_group_subject (
+  id               uuid PRIMARY KEY,
+  network_id       uuid NOT NULL REFERENCES network(id),
+  class_group_id   uuid NOT NULL REFERENCES class_group(id),
+  subject_id       uuid NOT NULL REFERENCES subject(id),
+  teacher_user_id  uuid NOT NULL REFERENCES app_user(id),
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  updated_at       timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT subject_unique_in_class_group UNIQUE (class_group_id, subject_id)
 );
 
-CREATE TRIGGER turma_disciplina_atualizado_em BEFORE UPDATE ON turma_disciplina
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER class_group_subject_updated_at BEFORE UPDATE ON class_group_subject
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- O painel do professor abre pelas disciplinas dele; a tela da turma, pelas disciplinas dela.
-CREATE INDEX turma_disciplina_por_professor ON turma_disciplina (rede_id, professor_usuario_id);
-CREATE INDEX turma_disciplina_por_turma ON turma_disciplina (rede_id, turma_id);
+CREATE INDEX class_group_subject_by_teacher ON class_group_subject (network_id, teacher_user_id);
+CREATE INDEX class_group_subject_by_class_group ON class_group_subject (network_id, class_group_id);
 
-CREATE TABLE aluno (
-  id                uuid PRIMARY KEY,
-  rede_id           uuid NOT NULL REFERENCES rede(id),
-  nome              text NOT NULL,
-  data_nascimento   date NOT NULL,
-  criado_em         timestamptz NOT NULL DEFAULT now(),
-  atualizado_em     timestamptz NOT NULL DEFAULT now()
+CREATE TABLE student (
+  id          uuid PRIMARY KEY,
+  network_id  uuid NOT NULL REFERENCES network(id),
+  name        text NOT NULL,
+  birth_date  date NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TRIGGER aluno_atualizado_em BEFORE UPDATE ON aluno
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER student_updated_at BEFORE UPDATE ON student
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- A secretaria procura aluno pelo nome antes de matricular.
-CREATE INDEX aluno_por_nome ON aluno (rede_id, nome);
+CREATE INDEX student_by_name ON student (network_id, name);
 
-CREATE TABLE responsavel (
-  id             uuid PRIMARY KEY,
-  rede_id        uuid NOT NULL REFERENCES rede(id),
-  nome           text NOT NULL,
-  email          text NOT NULL,
-  telefone       text,
-  criado_em      timestamptz NOT NULL DEFAULT now(),
-  atualizado_em  timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT responsavel_email_unico_na_rede UNIQUE (rede_id, email)
+CREATE TABLE guardian (
+  id          uuid PRIMARY KEY,
+  network_id  uuid NOT NULL REFERENCES network(id),
+  name        text NOT NULL,
+  email       text NOT NULL,
+  phone       text,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT guardian_email_unique_in_network UNIQUE (network_id, email)
 );
 
-CREATE TRIGGER responsavel_atualizado_em BEFORE UPDATE ON responsavel
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER guardian_updated_at BEFORE UPDATE ON guardian
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-CREATE TABLE aluno_responsavel (
-  rede_id         uuid NOT NULL REFERENCES rede(id),
-  aluno_id        uuid NOT NULL REFERENCES aluno(id),
-  responsavel_id  uuid NOT NULL REFERENCES responsavel(id),
-  parentesco      text NOT NULL,
-  financeiro      boolean NOT NULL DEFAULT false,
-  criado_em       timestamptz NOT NULL DEFAULT now(),
-  atualizado_em   timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (aluno_id, responsavel_id)
+CREATE TABLE student_guardian (
+  network_id              uuid NOT NULL REFERENCES network(id),
+  student_id              uuid NOT NULL REFERENCES student(id),
+  guardian_id             uuid NOT NULL REFERENCES guardian(id),
+  relationship            text NOT NULL,
+  financially_responsible boolean NOT NULL DEFAULT false,
+  created_at              timestamptz NOT NULL DEFAULT now(),
+  updated_at              timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (student_id, guardian_id)
 );
 
-CREATE TRIGGER aluno_responsavel_atualizado_em BEFORE UPDATE ON aluno_responsavel
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER student_guardian_updated_at BEFORE UPDATE ON student_guardian
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- O portal do responsável parte do responsável para chegar aos filhos.
-CREATE INDEX aluno_responsavel_por_responsavel ON aluno_responsavel (rede_id, responsavel_id);
+CREATE INDEX student_guardian_by_guardian ON student_guardian (network_id, guardian_id);
 
-CREATE TABLE matricula (
-  id              uuid PRIMARY KEY,
-  rede_id         uuid NOT NULL REFERENCES rede(id),
-  aluno_id        uuid NOT NULL REFERENCES aluno(id),
-  turma_id        uuid NOT NULL REFERENCES turma(id),
-  ano_letivo_id   uuid NOT NULL REFERENCES ano_letivo(id),
-  data_matricula  date NOT NULL,
-  situacao        text NOT NULL DEFAULT 'ativa',
-  criado_em       timestamptz NOT NULL DEFAULT now(),
-  atualizado_em   timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT situacao_valida CHECK (situacao IN ('ativa','transferida','cancelada','concluida'))
+CREATE TABLE enrollment (
+  id                uuid PRIMARY KEY,
+  network_id        uuid NOT NULL REFERENCES network(id),
+  student_id        uuid NOT NULL REFERENCES student(id),
+  class_group_id    uuid NOT NULL REFERENCES class_group(id),
+  academic_year_id  uuid NOT NULL REFERENCES academic_year(id),
+  enrollment_date   date NOT NULL,
+  status            text NOT NULL DEFAULT 'active',
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT status_valid CHECK (status IN ('active','transferred','cancelled','completed'))
 );
 
-CREATE TRIGGER matricula_atualizado_em BEFORE UPDATE ON matricula
-  FOR EACH ROW EXECUTE FUNCTION set_atualizado_em();
+CREATE TRIGGER enrollment_updated_at BEFORE UPDATE ON enrollment
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- Um aluno não pode ter duas matrículas ATIVAS no mesmo ano letivo.
-CREATE UNIQUE INDEX matricula_ativa_unica_por_ano
-  ON matricula (aluno_id, ano_letivo_id)
-  WHERE situacao = 'ativa';
+CREATE UNIQUE INDEX active_enrollment_unique_per_year
+  ON enrollment (student_id, academic_year_id)
+  WHERE status = 'active';
 
 -- Chamada, boletim e fechamento sempre partem da lista de ativos da turma.
-CREATE INDEX matricula_ativa_por_turma
-  ON matricula (rede_id, turma_id)
-  WHERE situacao = 'ativa';
+CREATE INDEX active_enrollment_by_class_group
+  ON enrollment (network_id, class_group_id)
+  WHERE status = 'active';

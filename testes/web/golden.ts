@@ -119,59 +119,59 @@ export type CenarioGolden = {
  * exatamente o que o refactor de rotas mexe.
  */
 export async function montarCenarioGolden(): Promise<CenarioGolden> {
-  const rede = await criarRede({ nome: 'Rede Modelo do Litoral', slug: 'rede-golden' });
+  const rede = await criarRede({ name: 'Rede Modelo do Litoral', slug: 'rede-golden' });
   const redeId = rede.id;
 
-  const unidadeA = await criarUnidade({ redeId, nome: 'Escola Central', codigoInep: '32001234' });
-  const unidadeB = await criarUnidade({ redeId, nome: 'Escola do Bairro', codigoInep: '32005678' });
+  const unidadeA = await criarUnidade({ networkId: redeId, name: 'Escola Central', inepCode: '32001234' });
+  const unidadeB = await criarUnidade({ networkId: redeId, name: 'Escola do Bairro', inepCode: '32005678' });
 
-  const anoCorrente = await criarAnoLetivo({ redeId, ano: ANO_CORRENTE });
-  const anoAnterior = await criarAnoLetivo({ redeId, ano: ANO_ANTERIOR });
+  const anoCorrente = await criarAnoLetivo({ networkId: redeId, year: ANO_CORRENTE });
+  const anoAnterior = await criarAnoLetivo({ networkId: redeId, year: ANO_ANTERIOR });
 
   const admin = await criarUsuario({
-    redeId,
-    nome: 'Alice Diretora',
+    networkId: redeId,
+    name: 'Alice Diretora',
     email: 'alice@golden.test',
     cpf: gerarCpf(9_100_001),
     senha: SENHA_PADRAO,
     papeis: [
-      { unidadeId: unidadeA.id, papel: 'admin_rede' },
-      { unidadeId: unidadeB.id, papel: 'admin_rede' },
+      { schoolId: unidadeA.id, role: 'network_admin' },
+      { schoolId: unidadeB.id, role: 'network_admin' },
     ],
   });
   const secretaria = await criarUsuario({
-    redeId,
-    nome: 'Bruno Secretário',
+    networkId: redeId,
+    name: 'Bruno Secretário',
     email: 'bruno@golden.test',
     cpf: gerarCpf(9_100_002),
     senha: SENHA_PADRAO,
-    papeis: [{ unidadeId: unidadeA.id, papel: 'secretaria' }],
+    papeis: [{ schoolId: unidadeA.id, role: 'registrar' }],
   });
   const professor = await criarUsuario({
-    redeId,
-    nome: 'Carla Professora',
+    networkId: redeId,
+    name: 'Carla Professora',
     email: 'carla@golden.test',
     cpf: gerarCpf(9_100_003),
     senha: SENHA_PADRAO,
-    papeis: [{ unidadeId: unidadeA.id, papel: 'professor' }],
+    papeis: [{ schoolId: unidadeA.id, role: 'teacher' }],
   });
 
   const turma1 = await criarTurma({
-    redeId, unidadeId: unidadeA.id, anoLetivoId: anoCorrente.id,
-    nome: '6A', serie: '6º ano', turno: 'matutino',
+    networkId: redeId, schoolId: unidadeA.id, academicYearId: anoCorrente.id,
+    name: '6A', gradeLevel: '6º ano', shift: 'morning',
   });
   const turma2 = await criarTurma({
-    redeId, unidadeId: unidadeA.id, anoLetivoId: anoCorrente.id,
-    nome: '7B', serie: '7º ano', turno: 'vespertino',
+    networkId: redeId, schoolId: unidadeA.id, academicYearId: anoCorrente.id,
+    name: '7B', gradeLevel: '7º ano', shift: 'afternoon',
   });
 
-  const portugues = await criarDisciplina({ redeId, nome: 'Língua Portuguesa' });
-  const matematica = await criarDisciplina({ redeId, nome: 'Matemática' });
-  const historia = await criarDisciplina({ redeId, nome: 'História' });
+  const portugues = await criarDisciplina({ networkId: redeId, name: 'Língua Portuguesa' });
+  const matematica = await criarDisciplina({ networkId: redeId, name: 'Matemática' });
+  const historia = await criarDisciplina({ networkId: redeId, name: 'História' });
 
   const alocar = (disciplinaId: string): Promise<{ id: string }> =>
     criarTurmaDisciplina({
-      redeId, turmaId: turma1.id, disciplinaId, professorUsuarioId: professor.id,
+      networkId: redeId, classGroupId: turma1.id, subjectId: disciplinaId, teacherUserId: professor.id,
     });
   const alocacao1 = await alocar(portugues.id);
   const alocacao2 = await alocar(matematica.id);
@@ -183,22 +183,22 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
   for (let numero = 1; numero <= TOTAL_DE_ALUNOS; numero += 1) {
     const rotulo = doisDigitos(numero);
     const aluno = await criarAluno({
-      redeId, nome: `Aluno ${rotulo} da Silva`, dataNascimento: `2014-${rotulo}-08`,
+      networkId: redeId, name: `Aluno ${rotulo} da Silva`, birthDate: `2014-${rotulo}-08`,
     });
     const responsavel = await criarResponsavel({
-      redeId,
-      nome: `Responsável ${rotulo} da Silva`,
+      networkId: redeId,
+      name: `Responsável ${rotulo} da Silva`,
       email: `responsavel${rotulo}@golden.test`,
       cpf: gerarCpf(9_200_000 + numero),
-      telefone: `2799000${rotulo}${rotulo}`,
+      phone: `2799000${rotulo}${rotulo}`,
     });
     await vincularAlunoResponsavel({
-      redeId, alunoId: aluno.id, responsavelId: responsavel.id,
-      parentesco: numero % 2 === 0 ? 'pai' : 'mãe', financeiro: numero === 1,
+      networkId: redeId, studentId: aluno.id, guardianId: responsavel.id,
+      relationship: numero % 2 === 0 ? 'pai' : 'mãe', financiallyResponsible: numero === 1,
     });
     const matricula = await criarMatricula({
-      redeId, alunoId: aluno.id, turmaId: turma1.id,
-      anoLetivoId: anoCorrente.id, dataMatricula: `${ANO_CORRENTE}-02-05`,
+      networkId: redeId, studentId: aluno.id, classGroupId: turma1.id,
+      academicYearId: anoCorrente.id, enrollmentDate: `${ANO_CORRENTE}-02-05`,
     });
     alunos.push(aluno);
     responsaveis.push(responsavel);
@@ -207,8 +207,8 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
 
   // Conta criada e ainda não atribuída: `/painel` não tem para onde mandá-la, e diz isso na tela.
   const semPapel = await criarUsuario({
-    redeId,
-    nome: 'Eva Recém-Convidada',
+    networkId: redeId,
+    name: 'Eva Recém-Convidada',
     email: 'eva@golden.test',
     cpf: gerarCpf(9_100_005),
     senha: SENHA_PADRAO,
@@ -216,13 +216,13 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
   });
 
   const responsavel = await criarUsuario({
-    redeId,
-    nome: 'Responsável 01 da Silva',
+    networkId: redeId,
+    name: 'Responsável 01 da Silva',
     email: 'portal01@golden.test',
     cpf: gerarCpf(9_100_004),
     senha: SENHA_PADRAO,
-    responsavelId: responsaveis[0]?.id ?? null,
-    papeis: [{ unidadeId: unidadeA.id, papel: 'responsavel' }],
+    guardianId: responsaveis[0]?.id ?? null,
+    papeis: [{ schoolId: unidadeA.id, role: 'guardian' }],
   });
 
   // Notas de dois bimestres para o primeiro aluno (o boletim precisa de linha cheia) e do primeiro
@@ -232,34 +232,34 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
   for (let indice = 0; indice < alocacoes.length; indice += 1) {
     for (const bimestre of [1, 2]) {
       await criarNota({
-        redeId,
-        matriculaId: matriculas[0]?.id ?? '',
-        turmaDisciplinaId: alocacoes[indice]?.id ?? '',
-        lancadaPor: professor.id,
-        bimestre,
-        valor: (VALORES[indice] ?? 0) - (bimestre === 1 ? 0 : 1),
+        networkId: redeId,
+        enrollmentId: matriculas[0]?.id ?? '',
+        classGroupSubjectId: alocacoes[indice]?.id ?? '',
+        postedBy: professor.id,
+        term: bimestre,
+        value: (VALORES[indice] ?? 0) - (bimestre === 1 ? 0 : 1),
       });
     }
   }
   for (let indice = 1; indice < 4; indice += 1) {
     await criarNota({
-      redeId,
-      matriculaId: matriculas[indice]?.id ?? '',
-      turmaDisciplinaId: alocacao1.id,
-      lancadaPor: professor.id,
-      bimestre: 1,
-      valor: 6 + indice,
+      networkId: redeId,
+      enrollmentId: matriculas[indice]?.id ?? '',
+      classGroupSubjectId: alocacao1.id,
+      postedBy: professor.id,
+      term: 1,
+      value: 6 + indice,
     });
   }
 
   for (let dia = 1; dia <= TOTAL_DE_DIAS_DE_CHAMADA; dia += 1) {
     const presente = dia % 5 !== 0;
     await criarFrequencia({
-      redeId,
-      matriculaId: matriculas[0]?.id ?? '',
-      data: `${ANO_CORRENTE}-03-${doisDigitos(dia)}`,
-      presente,
-      justificativa: presente ? null : 'Consulta médica com atestado.',
+      networkId: redeId,
+      enrollmentId: matriculas[0]?.id ?? '',
+      attendanceDate: `${ANO_CORRENTE}-03-${doisDigitos(dia)}`,
+      present: presente,
+      excuse: presente ? null : 'Consulta médica com atestado.',
     });
   }
 
@@ -268,38 +268,38 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
    * mudaria de dia conforme o fuso de quem roda a suíte. A hora em si é normalizada; o dia, não.
    */
   const comunicado1 = await criarComunicado({
-    redeId, unidadeId: unidadeA.id, autorUsuarioId: admin.id,
-    titulo: 'Reunião de pais e mestres',
-    corpo: 'A reunião do primeiro bimestre acontece no dia 20, às 19h, no auditório da unidade.',
-    publicadoEm: new Date('2026-03-10T12:00:00.000Z'),
+    networkId: redeId, schoolId: unidadeA.id, authorUserId: admin.id,
+    title: 'Reunião de pais e mestres',
+    body: 'A reunião do primeiro bimestre acontece no dia 20, às 19h, no auditório da unidade.',
+    publishedAt: new Date('2026-03-10T12:00:00.000Z'),
     destinatarios: [
-      { responsavelId: responsaveis[0]?.id ?? '', lidoEm: new Date('2026-03-11T12:00:00.000Z') },
-      { responsavelId: responsaveis[1]?.id ?? '' },
-      { responsavelId: responsaveis[2]?.id ?? '' },
+      { guardianId: responsaveis[0]?.id ?? '', readAt: new Date('2026-03-11T12:00:00.000Z') },
+      { guardianId: responsaveis[1]?.id ?? '' },
+      { guardianId: responsaveis[2]?.id ?? '' },
     ],
   });
   const comunicado2 = await criarComunicado({
-    redeId, unidadeId: unidadeA.id, autorUsuarioId: secretaria.id,
-    titulo: 'Feira de ciências',
-    corpo: 'A feira de ciências ocupa o pátio na primeira semana de maio.',
-    publicadoEm: new Date('2026-04-05T12:00:00.000Z'),
+    networkId: redeId, schoolId: unidadeA.id, authorUserId: secretaria.id,
+    title: 'Feira de ciências',
+    body: 'A feira de ciências ocupa o pátio na primeira semana de maio.',
+    publishedAt: new Date('2026-04-05T12:00:00.000Z'),
     destinatarios: [
-      { responsavelId: responsaveis[0]?.id ?? '' },
-      { responsavelId: responsaveis[1]?.id ?? '', lidoEm: new Date('2026-04-06T12:00:00.000Z') },
+      { guardianId: responsaveis[0]?.id ?? '' },
+      { guardianId: responsaveis[1]?.id ?? '', readAt: new Date('2026-04-06T12:00:00.000Z') },
     ],
   });
   const comunicado3 = await criarComunicado({
-    redeId, unidadeId: unidadeB.id, autorUsuarioId: admin.id,
-    titulo: 'Rascunho ainda não publicado',
-    corpo: 'Este comunicado não foi publicado e não aparece em mural nenhum.',
-    publicadoEm: null,
+    networkId: redeId, schoolId: unidadeB.id, authorUserId: admin.id,
+    title: 'Rascunho ainda não publicado',
+    body: 'Este comunicado não foi publicado e não aparece em mural nenhum.',
+    publishedAt: null,
     destinatarios: [],
   });
 
   // O primeiro bimestre da turma fechado: é o estado que a tela de fechamento e o boletim mostram.
   const sql = sqlDeTeste();
   await sql`
-    INSERT INTO fechamento_bimestre (id, rede_id, turma_id, bimestre, fechado_em, fechado_por)
+    INSERT INTO term_closing (id, network_id, class_group_id, term, closed_at, closed_by)
     VALUES (${crypto.randomUUID()}, ${redeId}, ${turma1.id}, ${BIMESTRE_FECHADO},
             ${new Date('2026-04-20T12:00:00.000Z')}, ${professor.id})
   `;

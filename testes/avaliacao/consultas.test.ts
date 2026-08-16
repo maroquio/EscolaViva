@@ -39,39 +39,39 @@ beforeEach(limparBanco);
 /** Uma turma com um aluno e uma disciplina: o menor cenário em que um boletim inteiro cabe. */
 async function cenarioMinimo(): Promise<CenarioMinimo> {
   const rede = await criarRede({});
-  const unidade = await criarUnidade({ redeId: rede.id });
-  const anoLetivo = await criarAnoLetivo({ redeId: rede.id });
+  const unidade = await criarUnidade({ networkId: rede.id });
+  const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
   const turma = await criarTurma({
-    redeId: rede.id,
-    unidadeId: unidade.id,
-    anoLetivoId: anoLetivo.id,
+    networkId: rede.id,
+    schoolId: unidade.id,
+    academicYearId: anoLetivo.id,
   });
-  const disciplina = await criarDisciplina({ redeId: rede.id });
+  const disciplina = await criarDisciplina({ networkId: rede.id });
   const professor = await criarUsuario({
-    redeId: rede.id,
-    papeis: [{ unidadeId: unidade.id, papel: 'professor' }],
+    networkId: rede.id,
+    papeis: [{ schoolId: unidade.id, role: 'teacher' }],
   });
   const turmaDisciplina = await criarTurmaDisciplina({
-    redeId: rede.id,
-    turmaId: turma.id,
-    disciplinaId: disciplina.id,
-    professorUsuarioId: professor.id,
+    networkId: rede.id,
+    classGroupId: turma.id,
+    subjectId: disciplina.id,
+    teacherUserId: professor.id,
   });
-  const aluno = await criarAluno({ redeId: rede.id });
+  const aluno = await criarAluno({ networkId: rede.id });
   const matricula = await criarMatricula({
-    redeId: rede.id,
-    alunoId: aluno.id,
-    turmaId: turma.id,
-    anoLetivoId: anoLetivo.id,
+    networkId: rede.id,
+    studentId: aluno.id,
+    classGroupId: turma.id,
+    academicYearId: anoLetivo.id,
   });
   return {
     redeId: rede.id,
     turmaId: turma.id,
-    turmaNome: turma.nome,
+    turmaNome: turma.name,
     turmaDisciplinaId: turmaDisciplina.id,
-    disciplinaNome: disciplina.nome,
+    disciplinaNome: disciplina.name,
     matriculaId: matricula.id,
-    alunoNome: aluno.nome,
+    alunoNome: aluno.name,
     professorId: professor.id,
   };
 }
@@ -318,7 +318,7 @@ describe('boletim', () => {
     const nomes = boletim?.linhas.map((linha) => linha.disciplinaNome) ?? [];
     expect(nomes).toHaveLength(3);
     expect(nomes).toEqual([...nomes].sort());
-    expect([...nomes].sort()).toEqual(cenario.disciplinas.map((d) => d.nome).sort());
+    expect([...nomes].sort()).toEqual(cenario.disciplinas.map((d) => d.name).sort());
     expect(boletim?.linhas[0]).toEqual({
       disciplinaNome: nomes[0] ?? '',
       notas: [7, null, null, null],
@@ -332,7 +332,7 @@ describe('boletim', () => {
     const boletim = await avaliacao.boletim(cenario.rede.id, cenario.matriculas[0].id);
 
     expect(boletim?.mediaGeral).toBeNull();
-    expect(boletim?.situacao).toBe('em_curso');
+    expect(boletim?.situacao).toBe('in_progress');
     expect(boletim?.linhas.every((linha) => linha.media === null)).toBe(true);
   });
 
@@ -354,7 +354,7 @@ describe('boletim', () => {
       percentualFrequencia: 75,
       totalDias: 4,
       presencas: 3,
-      situacao: 'aprovado',
+      situacao: 'passed',
     });
   });
 
@@ -367,7 +367,7 @@ describe('boletim', () => {
     const boletim = await avaliacao.boletim(minimo.redeId, minimo.matriculaId);
     expect(boletim?.mediaGeral).toBe(8);
     expect(boletim?.percentualFrequencia).toBe(50);
-    expect(boletim?.situacao).toBe('reprovado');
+    expect(boletim?.situacao).toBe('failed');
   });
 
   test('reprova por nota o aluno de média 5,9 com presença integral', async () => {
@@ -379,7 +379,7 @@ describe('boletim', () => {
     const boletim = await avaliacao.boletim(minimo.redeId, minimo.matriculaId);
     expect(boletim?.mediaGeral).toBe(5.9);
     expect(boletim?.percentualFrequencia).toBe(100);
-    expect(boletim?.situacao).toBe('reprovado');
+    expect(boletim?.situacao).toBe('failed');
   });
 
   test('mantém em curso enquanto o quarto bimestre não é fechado, mesmo com média alta', async () => {
@@ -396,7 +396,7 @@ describe('boletim', () => {
     const boletim = await avaliacao.boletim(minimo.redeId, minimo.matriculaId);
 
     expect(boletim?.mediaGeral).toBe(9);
-    expect(boletim?.situacao).toBe('em_curso');
+    expect(boletim?.situacao).toBe('in_progress');
   });
 
   test('devolve frequência zero, sem dia nenhum, para turma que ainda não teve chamada', async () => {

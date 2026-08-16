@@ -9,9 +9,9 @@ import type { Papel } from '../../src/identidade';
 import { gerarCpf } from '../../src/shared/documento';
 import { sqlDeTeste } from './banco';
 
-export type StatusDeRede = 'ativa' | 'suspensa' | 'cancelada';
-export type Turno = 'matutino' | 'vespertino' | 'noturno' | 'integral';
-export type PapelEmUnidade = { unidadeId: string; papel: Papel };
+export type StatusDeRede = 'active' | 'suspended' | 'cancelled';
+export type Turno = 'morning' | 'afternoon' | 'evening' | 'full_time';
+export type PapelEmUnidade = { schoolId: string; role: Papel };
 
 /** A senha de todo usuário de teste. Dez caracteres: é o mínimo que o domínio aceita. */
 export const SENHA_PADRAO = 'teste-1234';
@@ -28,8 +28,9 @@ const proximo = (): number => (sequencia += 1);
 const emSnake = (chave: string): string => chave.replace(/[A-Z]/g, (l) => `_${l.toLowerCase()}`);
 
 /**
- * Grava o registro e o devolve. As chaves do objeto viram as colunas — `redeId` é `rede_id` —,
- * então cada fábrica descreve o que criou uma vez só, e não em camelCase e em snake_case.
+ * Grava o registro e o devolve. As chaves do objeto viram as colunas — `networkId` é
+ * `network_id` —, então cada fábrica descreve o que criou uma vez só, e não em camelCase e em
+ * snake_case.
  */
 async function gravar<T extends object>(tabela: string, registro: T): Promise<T> {
   const linha = Object.fromEntries(Object.entries(registro).map(([c, v]) => [emSnake(c), v]));
@@ -49,249 +50,252 @@ function hashDeSenha(senha: string): Promise<string> {
   return novo;
 }
 
-export type RedeDeTeste = { id: string; nome: string; slug: string; status: StatusDeRede };
+export type RedeDeTeste = { id: string; name: string; slug: string; status: StatusDeRede };
 
 export async function criarRede(opcoes: {
-  nome?: string | undefined; slug?: string | undefined; status?: StatusDeRede | undefined;
+  name?: string | undefined; slug?: string | undefined; status?: StatusDeRede | undefined;
 } = {}): Promise<RedeDeTeste> {
   const numero = proximo();
-  return await gravar('rede', {
-    id: novoId(), nome: opcoes.nome ?? `Rede de Teste ${numero}`,
-    slug: opcoes.slug ?? `rede-teste-${numero}`, status: opcoes.status ?? 'ativa',
+  return await gravar('network', {
+    id: novoId(), name: opcoes.name ?? `Rede de Teste ${numero}`,
+    slug: opcoes.slug ?? `rede-teste-${numero}`, status: opcoes.status ?? 'active',
   });
 }
 
 export type UnidadeDeTeste = {
-  id: string; redeId: string; nome: string; codigoInep: string | null; ativa: boolean;
+  id: string; networkId: string; name: string; inepCode: string | null; active: boolean;
 };
 
 export async function criarUnidade(opcoes: {
-  redeId: string; nome?: string | undefined;
-  codigoInep?: string | null | undefined; ativa?: boolean | undefined;
+  networkId: string; name?: string | undefined;
+  inepCode?: string | null | undefined; active?: boolean | undefined;
 }): Promise<UnidadeDeTeste> {
-  return await gravar('unidade', {
-    id: novoId(), redeId: opcoes.redeId, nome: opcoes.nome ?? `Unidade de Teste ${proximo()}`,
-    codigoInep: opcoes.codigoInep ?? null, ativa: opcoes.ativa ?? true,
+  return await gravar('school', {
+    id: novoId(), networkId: opcoes.networkId, name: opcoes.name ?? `Unidade de Teste ${proximo()}`,
+    inepCode: opcoes.inepCode ?? null, active: opcoes.active ?? true,
   });
 }
 
 export type UsuarioDeTeste = {
-  id: string; redeId: string; nome: string; email: string;
-  /** Migração 0008 (ADR 0004): toda linha de `usuario` tem CPF, sempre — nunca `null` aqui. */
+  id: string; networkId: string; name: string; email: string;
+  /** Migração 0008 (ADR 0004): toda linha de `app_user` tem CPF, sempre — nunca `null` aqui. */
   cpf: string;
   /** A senha em claro, para o teste conseguir autenticar depois. */
   senha: string;
-  ativo: boolean; responsavelId: string | null; papeis: PapelEmUnidade[];
+  active: boolean; guardianId: string | null; papeis: PapelEmUnidade[];
 };
 
 export async function criarUsuario(opcoes: {
-  redeId: string; nome?: string | undefined; email?: string | undefined;
+  networkId: string; name?: string | undefined; email?: string | undefined;
   cpf?: string | undefined; senha?: string | undefined;
-  ativo?: boolean | undefined; responsavelId?: string | null | undefined;
+  active?: boolean | undefined; guardianId?: string | null | undefined;
   papeis?: PapelEmUnidade[] | undefined;
 }): Promise<UsuarioDeTeste> {
   const numero = proximo();
   const usuario: UsuarioDeTeste = {
-    id: novoId(), redeId: opcoes.redeId, nome: opcoes.nome ?? `Pessoa de Teste ${numero}`,
+    id: novoId(), networkId: opcoes.networkId, name: opcoes.name ?? `Pessoa de Teste ${numero}`,
     email: opcoes.email ?? `usuario${numero}@${DOMINIO}`,
     cpf: opcoes.cpf === undefined ? gerarCpf(numero) : opcoes.cpf,
     senha: opcoes.senha ?? SENHA_PADRAO,
-    ativo: opcoes.ativo ?? true, responsavelId: opcoes.responsavelId ?? null, papeis: opcoes.papeis ?? [],
+    active: opcoes.active ?? true, guardianId: opcoes.guardianId ?? null, papeis: opcoes.papeis ?? [],
   };
 
-  // `senha` e `papeis` não são colunas de `usuario`: a primeira vira hash, os segundos viram linhas.
+  // `senha` e `papeis` não são colunas de `app_user`: a primeira vira hash, os segundos viram linhas.
   const { senha, papeis, ...colunas } = usuario;
-  await gravar('usuario', { ...colunas, senhaHash: await hashDeSenha(senha) });
-  for (const { unidadeId, papel } of papeis) {
-    await gravar('papel_usuario', { redeId: usuario.redeId, usuarioId: usuario.id, unidadeId, papel });
+  await gravar('app_user', { ...colunas, passwordHash: await hashDeSenha(senha) });
+  for (const { schoolId, role } of papeis) {
+    await gravar('user_role', { networkId: usuario.networkId, userId: usuario.id, schoolId, role });
   }
   return usuario;
 }
 
 export type SessaoDeTeste = {
-  id: string; redeId: string; usuarioId: string; expiraEm: Date; ip: string | null;
+  id: string; networkId: string; userId: string; expiresAt: Date; ip: string | null;
 };
 
-/** Passe `expiraEm` no passado para montar a sessão vencida que o expurgo precisa encontrar. */
+/** Passe `expiresAt` no passado para montar a sessão vencida que o expurgo precisa encontrar. */
 export async function criarSessao(opcoes: {
-  redeId: string; usuarioId: string; expiraEm?: Date | undefined; ip?: string | null | undefined;
+  networkId: string; userId: string; expiresAt?: Date | undefined; ip?: string | null | undefined;
 }): Promise<SessaoDeTeste> {
-  return await gravar('sessao', {
-    id: novoId(), redeId: opcoes.redeId, usuarioId: opcoes.usuarioId,
-    expiraEm: opcoes.expiraEm ?? new Date(Date.now() + DURACAO_DA_SESSAO_HORAS * HORA_EM_MS),
+  return await gravar('session', {
+    id: novoId(), networkId: opcoes.networkId, userId: opcoes.userId,
+    expiresAt: opcoes.expiresAt ?? new Date(Date.now() + DURACAO_DA_SESSAO_HORAS * HORA_EM_MS),
     ip: opcoes.ip ?? null,
   });
 }
 
 export type AnoLetivoDeTeste = {
-  id: string; redeId: string; ano: number; dataInicio: string; dataFim: string;
+  id: string; networkId: string; year: number; startDate: string; endDate: string;
 };
 
 export async function criarAnoLetivo(opcoes: {
-  redeId: string; ano?: number | undefined;
-  dataInicio?: string | undefined; dataFim?: string | undefined;
+  networkId: string; year?: number | undefined;
+  startDate?: string | undefined; endDate?: string | undefined;
 }): Promise<AnoLetivoDeTeste> {
-  const ano = opcoes.ano ?? ANO_PADRAO;
-  return await gravar('ano_letivo', {
-    id: novoId(), redeId: opcoes.redeId, ano,
-    dataInicio: opcoes.dataInicio ?? `${ano}-02-01`, dataFim: opcoes.dataFim ?? `${ano}-12-15`,
+  const year = opcoes.year ?? ANO_PADRAO;
+  return await gravar('academic_year', {
+    id: novoId(), networkId: opcoes.networkId, year,
+    startDate: opcoes.startDate ?? `${year}-02-01`, endDate: opcoes.endDate ?? `${year}-12-15`,
   });
 }
 
-export type DisciplinaDeTeste = { id: string; redeId: string; nome: string };
+export type DisciplinaDeTeste = { id: string; networkId: string; name: string };
 
 export async function criarDisciplina(opcoes: {
-  redeId: string; nome?: string | undefined;
+  networkId: string; name?: string | undefined;
 }): Promise<DisciplinaDeTeste> {
-  return await gravar('disciplina', {
-    id: novoId(), redeId: opcoes.redeId, nome: opcoes.nome ?? `Disciplina ${proximo()}`,
+  return await gravar('subject', {
+    id: novoId(), networkId: opcoes.networkId, name: opcoes.name ?? `Disciplina ${proximo()}`,
   });
 }
 
 export type TurmaDeTeste = {
-  id: string; redeId: string; unidadeId: string; anoLetivoId: string;
-  nome: string; serie: string; turno: Turno;
+  id: string; networkId: string; schoolId: string; academicYearId: string;
+  name: string; gradeLevel: string; shift: Turno;
 };
 
 export async function criarTurma(opcoes: {
-  redeId: string; unidadeId: string; anoLetivoId: string;
-  nome?: string | undefined; serie?: string | undefined; turno?: Turno | undefined;
+  networkId: string; schoolId: string; academicYearId: string;
+  name?: string | undefined; gradeLevel?: string | undefined; shift?: Turno | undefined;
 }): Promise<TurmaDeTeste> {
-  return await gravar('turma', {
-    id: novoId(), redeId: opcoes.redeId, unidadeId: opcoes.unidadeId,
-    anoLetivoId: opcoes.anoLetivoId, nome: opcoes.nome ?? `Turma ${proximo()}`,
-    serie: opcoes.serie ?? '6º ano', turno: opcoes.turno ?? 'matutino',
+  return await gravar('class_group', {
+    id: novoId(), networkId: opcoes.networkId, schoolId: opcoes.schoolId,
+    academicYearId: opcoes.academicYearId, name: opcoes.name ?? `Turma ${proximo()}`,
+    gradeLevel: opcoes.gradeLevel ?? '6º ano', shift: opcoes.shift ?? 'morning',
   });
 }
 
 export type TurmaDisciplinaDeTeste = {
-  id: string; redeId: string; turmaId: string; disciplinaId: string; professorUsuarioId: string;
+  id: string; networkId: string; classGroupId: string; subjectId: string; teacherUserId: string;
 };
 
 export async function criarTurmaDisciplina(opcoes: {
-  redeId: string; turmaId: string; disciplinaId: string; professorUsuarioId: string;
+  networkId: string; classGroupId: string; subjectId: string; teacherUserId: string;
 }): Promise<TurmaDisciplinaDeTeste> {
-  return await gravar('turma_disciplina', { id: novoId(), ...opcoes });
+  return await gravar('class_group_subject', { id: novoId(), ...opcoes });
 }
 
-export type AlunoDeTeste = { id: string; redeId: string; nome: string; dataNascimento: string };
+export type AlunoDeTeste = { id: string; networkId: string; name: string; birthDate: string };
 
 export async function criarAluno(opcoes: {
-  redeId: string; nome?: string | undefined; dataNascimento?: string | undefined;
+  networkId: string; name?: string | undefined; birthDate?: string | undefined;
 }): Promise<AlunoDeTeste> {
-  return await gravar('aluno', {
-    id: novoId(), redeId: opcoes.redeId, nome: opcoes.nome ?? `Aluno de Teste ${proximo()}`,
-    dataNascimento: opcoes.dataNascimento ?? '2014-05-10',
+  return await gravar('student', {
+    id: novoId(), networkId: opcoes.networkId, name: opcoes.name ?? `Aluno de Teste ${proximo()}`,
+    birthDate: opcoes.birthDate ?? '2014-05-10',
   });
 }
 
 export type ResponsavelDeTeste = {
-  id: string; redeId: string; nome: string; email: string; cpf: string | null;
-  telefone: string | null;
+  id: string; networkId: string; name: string; email: string; cpf: string | null;
+  phone: string | null;
 };
 
 export async function criarResponsavel(opcoes: {
-  redeId: string; nome?: string | undefined; email?: string | undefined;
-  cpf?: string | null | undefined; telefone?: string | null | undefined;
+  networkId: string; name?: string | undefined; email?: string | undefined;
+  cpf?: string | null | undefined; phone?: string | null | undefined;
 }): Promise<ResponsavelDeTeste> {
   const numero = proximo();
-  return await gravar('responsavel', {
-    id: novoId(), redeId: opcoes.redeId, nome: opcoes.nome ?? `Responsável de Teste ${numero}`,
+  return await gravar('guardian', {
+    id: novoId(), networkId: opcoes.networkId, name: opcoes.name ?? `Responsável de Teste ${numero}`,
     email: opcoes.email ?? `responsavel${numero}@${DOMINIO}`,
-    cpf: opcoes.cpf === undefined ? gerarCpf(numero) : opcoes.cpf, telefone: opcoes.telefone ?? null,
+    cpf: opcoes.cpf === undefined ? gerarCpf(numero) : opcoes.cpf, phone: opcoes.phone ?? null,
   });
 }
 
 export type VinculoDeTeste = {
-  redeId: string; alunoId: string; responsavelId: string; parentesco: string; financeiro: boolean;
+  networkId: string; studentId: string; guardianId: string; relationship: string;
+  financiallyResponsible: boolean;
 };
 
 export async function vincularAlunoResponsavel(opcoes: {
-  redeId: string; alunoId: string; responsavelId: string;
-  parentesco?: string | undefined; financeiro?: boolean | undefined;
+  networkId: string; studentId: string; guardianId: string;
+  relationship?: string | undefined; financiallyResponsible?: boolean | undefined;
 }): Promise<VinculoDeTeste> {
-  return await gravar('aluno_responsavel', {
-    redeId: opcoes.redeId, alunoId: opcoes.alunoId, responsavelId: opcoes.responsavelId,
-    parentesco: opcoes.parentesco ?? 'mãe', financeiro: opcoes.financeiro ?? true,
+  return await gravar('student_guardian', {
+    networkId: opcoes.networkId, studentId: opcoes.studentId, guardianId: opcoes.guardianId,
+    relationship: opcoes.relationship ?? 'mãe',
+    financiallyResponsible: opcoes.financiallyResponsible ?? true,
   });
 }
 
 export type MatriculaDeTeste = {
-  id: string; redeId: string; alunoId: string; turmaId: string; anoLetivoId: string;
-  dataMatricula: string; situacao: SituacaoMatricula;
+  id: string; networkId: string; studentId: string; classGroupId: string; academicYearId: string;
+  enrollmentDate: string; status: SituacaoMatricula;
 };
 
 export async function criarMatricula(opcoes: {
-  redeId: string; alunoId: string; turmaId: string; anoLetivoId: string;
-  dataMatricula?: string | undefined; situacao?: SituacaoMatricula | undefined;
+  networkId: string; studentId: string; classGroupId: string; academicYearId: string;
+  enrollmentDate?: string | undefined; status?: SituacaoMatricula | undefined;
 }): Promise<MatriculaDeTeste> {
-  return await gravar('matricula', {
-    id: novoId(), redeId: opcoes.redeId, alunoId: opcoes.alunoId, turmaId: opcoes.turmaId,
-    anoLetivoId: opcoes.anoLetivoId, dataMatricula: opcoes.dataMatricula ?? `${ANO_PADRAO}-02-05`,
-    situacao: opcoes.situacao ?? 'ativa',
+  return await gravar('enrollment', {
+    id: novoId(), networkId: opcoes.networkId, studentId: opcoes.studentId,
+    classGroupId: opcoes.classGroupId, academicYearId: opcoes.academicYearId,
+    enrollmentDate: opcoes.enrollmentDate ?? `${ANO_PADRAO}-02-05`,
+    status: opcoes.status ?? 'active',
   });
 }
 
 export type NotaDeTeste = {
-  id: string; redeId: string; matriculaId: string; turmaDisciplinaId: string;
-  bimestre: number; valor: number; lancadaPor: string;
+  id: string; networkId: string; enrollmentId: string; classGroupSubjectId: string;
+  term: number; value: number; postedBy: string;
 };
 
 export async function criarNota(opcoes: {
-  redeId: string; matriculaId: string; turmaDisciplinaId: string; lancadaPor: string;
-  bimestre?: number | undefined; valor?: number | undefined;
+  networkId: string; enrollmentId: string; classGroupSubjectId: string; postedBy: string;
+  term?: number | undefined; value?: number | undefined;
 }): Promise<NotaDeTeste> {
-  return await gravar('nota', {
-    id: novoId(), redeId: opcoes.redeId, matriculaId: opcoes.matriculaId,
-    turmaDisciplinaId: opcoes.turmaDisciplinaId, bimestre: opcoes.bimestre ?? 1,
-    valor: opcoes.valor ?? 8, lancadaPor: opcoes.lancadaPor,
+  return await gravar('grade', {
+    id: novoId(), networkId: opcoes.networkId, enrollmentId: opcoes.enrollmentId,
+    classGroupSubjectId: opcoes.classGroupSubjectId, term: opcoes.term ?? 1,
+    value: opcoes.value ?? 8, postedBy: opcoes.postedBy,
   });
 }
 
 export type FrequenciaDeTeste = {
-  id: string; redeId: string; matriculaId: string; data: string;
-  presente: boolean; justificativa: string | null;
+  id: string; networkId: string; enrollmentId: string; attendanceDate: string;
+  present: boolean; excuse: string | null;
 };
 
 export async function criarFrequencia(opcoes: {
-  redeId: string; matriculaId: string; data?: string | undefined;
-  presente?: boolean | undefined; justificativa?: string | null | undefined;
+  networkId: string; enrollmentId: string; attendanceDate?: string | undefined;
+  present?: boolean | undefined; excuse?: string | null | undefined;
 }): Promise<FrequenciaDeTeste> {
-  return await gravar('frequencia', {
-    id: novoId(), redeId: opcoes.redeId, matriculaId: opcoes.matriculaId,
-    data: opcoes.data ?? `${ANO_PADRAO}-03-02`, presente: opcoes.presente ?? true,
-    justificativa: opcoes.justificativa ?? null,
+  return await gravar('attendance', {
+    id: novoId(), networkId: opcoes.networkId, enrollmentId: opcoes.enrollmentId,
+    attendanceDate: opcoes.attendanceDate ?? `${ANO_PADRAO}-03-02`, present: opcoes.present ?? true,
+    excuse: opcoes.excuse ?? null,
   });
 }
 
-export type DestinatarioDeTeste = { responsavelId: string; lidoEm: Date | null };
+export type DestinatarioDeTeste = { guardianId: string; readAt: Date | null };
 
 export type ComunicadoDeTeste = {
-  id: string; redeId: string; unidadeId: string; titulo: string; corpo: string;
-  autorUsuarioId: string; publicadoEm: Date | null; destinatarios: DestinatarioDeTeste[];
+  id: string; networkId: string; schoolId: string; title: string; body: string;
+  authorUserId: string; publishedAt: Date | null; destinatarios: DestinatarioDeTeste[];
 };
 
 export async function criarComunicado(opcoes: {
-  redeId: string; unidadeId: string; autorUsuarioId: string;
-  titulo?: string | undefined; corpo?: string | undefined;
+  networkId: string; schoolId: string; authorUserId: string;
+  title?: string | undefined; body?: string | undefined;
   /** `null` monta o comunicado que ainda não foi publicado e não aparece em mural nenhum. */
-  publicadoEm?: Date | null | undefined;
-  destinatarios?: { responsavelId: string; lidoEm?: Date | null | undefined }[] | undefined;
+  publishedAt?: Date | null | undefined;
+  destinatarios?: { guardianId: string; readAt?: Date | null | undefined }[] | undefined;
 }): Promise<ComunicadoDeTeste> {
   const comunicado: ComunicadoDeTeste = {
-    id: novoId(), redeId: opcoes.redeId, unidadeId: opcoes.unidadeId,
-    titulo: opcoes.titulo ?? `Comunicado de Teste ${proximo()}`,
-    corpo: opcoes.corpo ?? 'Corpo do comunicado de teste.',
-    autorUsuarioId: opcoes.autorUsuarioId,
-    publicadoEm: opcoes.publicadoEm === undefined ? new Date() : opcoes.publicadoEm,
-    destinatarios: (opcoes.destinatarios ?? []).map((d) => ({ ...d, lidoEm: d.lidoEm ?? null })),
+    id: novoId(), networkId: opcoes.networkId, schoolId: opcoes.schoolId,
+    title: opcoes.title ?? `Comunicado de Teste ${proximo()}`,
+    body: opcoes.body ?? 'Corpo do comunicado de teste.',
+    authorUserId: opcoes.authorUserId,
+    publishedAt: opcoes.publishedAt === undefined ? new Date() : opcoes.publishedAt,
+    destinatarios: (opcoes.destinatarios ?? []).map((d) => ({ ...d, readAt: d.readAt ?? null })),
   };
 
   const { destinatarios, ...colunas } = comunicado;
-  await gravar('comunicado', colunas);
-  for (const { responsavelId, lidoEm } of destinatarios) {
-    await gravar('comunicado_destinatario', {
-      redeId: comunicado.redeId, comunicadoId: comunicado.id, responsavelId, lidoEm,
+  await gravar('announcement', colunas);
+  for (const { guardianId, readAt } of destinatarios) {
+    await gravar('announcement_recipient', {
+      networkId: comunicado.networkId, announcementId: comunicado.id, guardianId, readAt,
     });
   }
   return comunicado;
@@ -320,70 +324,74 @@ export type Cenario = {
 };
 
 async function matricularAluno(base: {
-  redeId: string; turmaId: string; anoLetivoId: string; ano: number;
+  networkId: string; classGroupId: string; academicYearId: string; year: number;
 }): Promise<{ aluno: AlunoDeTeste; responsavel: ResponsavelDeTeste; matricula: MatriculaDeTeste }> {
-  const aluno = await criarAluno({ redeId: base.redeId });
-  const responsavel = await criarResponsavel({ redeId: base.redeId });
-  await vincularAlunoResponsavel({ redeId: base.redeId, alunoId: aluno.id, responsavelId: responsavel.id });
+  const aluno = await criarAluno({ networkId: base.networkId });
+  const responsavel = await criarResponsavel({ networkId: base.networkId });
+  await vincularAlunoResponsavel({
+    networkId: base.networkId, studentId: aluno.id, guardianId: responsavel.id,
+  });
   const matricula = await criarMatricula({
-    redeId: base.redeId, alunoId: aluno.id, turmaId: base.turmaId,
-    anoLetivoId: base.anoLetivoId, dataMatricula: `${base.ano}-02-05`,
+    networkId: base.networkId, studentId: aluno.id, classGroupId: base.classGroupId,
+    academicYearId: base.academicYearId, enrollmentDate: `${base.year}-02-05`,
   });
   return { aluno, responsavel, matricula };
 }
 
 export async function cenarioCompleto(opcoes: {
-  nome?: string | undefined; slug?: string | undefined;
-  ano?: number | undefined; senha?: string | undefined;
+  name?: string | undefined; slug?: string | undefined;
+  year?: number | undefined; senha?: string | undefined;
 } = {}): Promise<Cenario> {
   const senha = opcoes.senha ?? SENHA_PADRAO;
   const rede = await criarRede({
-    ...(opcoes.nome === undefined ? {} : { nome: opcoes.nome }),
+    ...(opcoes.name === undefined ? {} : { name: opcoes.name }),
     ...(opcoes.slug === undefined ? {} : { slug: opcoes.slug }),
   });
-  const redeId = rede.id;
+  const networkId = rede.id;
 
   const [unidadeA, unidadeB] = await Promise.all([
-    criarUnidade({ redeId, nome: `Escola Central ${proximo()}` }),
-    criarUnidade({ redeId, nome: `Escola Bairro ${proximo()}` }),
+    criarUnidade({ networkId, name: `Escola Central ${proximo()}` }),
+    criarUnidade({ networkId, name: `Escola Bairro ${proximo()}` }),
   ]);
-  const anoLetivo = await criarAnoLetivo({ redeId, ano: opcoes.ano ?? ANO_PADRAO });
+  const anoLetivo = await criarAnoLetivo({ networkId, year: opcoes.year ?? ANO_PADRAO });
 
   const admin = await criarUsuario({
-    redeId, senha,
+    networkId, senha,
     papeis: [
-      { unidadeId: unidadeA.id, papel: 'admin_rede' }, { unidadeId: unidadeB.id, papel: 'admin_rede' },
+      { schoolId: unidadeA.id, role: 'network_admin' }, { schoolId: unidadeB.id, role: 'network_admin' },
     ],
   });
   const [secretaria, professor] = await Promise.all([
-    criarUsuario({ redeId, senha, papeis: [{ unidadeId: unidadeA.id, papel: 'secretaria' }] }),
-    criarUsuario({ redeId, senha, papeis: [{ unidadeId: unidadeA.id, papel: 'professor' }] }),
+    criarUsuario({ networkId, senha, papeis: [{ schoolId: unidadeA.id, role: 'registrar' }] }),
+    criarUsuario({ networkId, senha, papeis: [{ schoolId: unidadeA.id, role: 'teacher' }] }),
   ]);
 
   const [turmaA, turmaB] = await Promise.all([
-    criarTurma({ redeId, unidadeId: unidadeA.id, anoLetivoId: anoLetivo.id, serie: '6º ano' }),
-    criarTurma({ redeId, unidadeId: unidadeA.id, anoLetivoId: anoLetivo.id, serie: '7º ano' }),
+    criarTurma({ networkId, schoolId: unidadeA.id, academicYearId: anoLetivo.id, gradeLevel: '6º ano' }),
+    criarTurma({ networkId, schoolId: unidadeA.id, academicYearId: anoLetivo.id, gradeLevel: '7º ano' }),
   ]);
   const [portugues, matematica, historia] = await Promise.all([
-    criarDisciplina({ redeId, nome: `Português ${proximo()}` }),
-    criarDisciplina({ redeId, nome: `Matemática ${proximo()}` }),
-    criarDisciplina({ redeId, nome: `História ${proximo()}` }),
+    criarDisciplina({ networkId, name: `Português ${proximo()}` }),
+    criarDisciplina({ networkId, name: `Matemática ${proximo()}` }),
+    criarDisciplina({ networkId, name: `História ${proximo()}` }),
   ]);
-  const alocar = (disciplinaId: string): Promise<TurmaDisciplinaDeTeste> =>
-    criarTurmaDisciplina({ redeId, turmaId: turmaA.id, disciplinaId, professorUsuarioId: professor.id });
+  const alocar = (subjectId: string): Promise<TurmaDisciplinaDeTeste> =>
+    criarTurmaDisciplina({ networkId, classGroupId: turmaA.id, subjectId, teacherUserId: professor.id });
   const [alocacaoA, alocacaoB, alocacaoC] = await Promise.all([
     alocar(portugues.id), alocar(matematica.id), alocar(historia.id),
   ]);
 
-  const base = { redeId, turmaId: turmaA.id, anoLetivoId: anoLetivo.id, ano: anoLetivo.ano };
+  const base = {
+    networkId, classGroupId: turmaA.id, academicYearId: anoLetivo.id, year: anoLetivo.year,
+  };
   const [um, dois, tres, quatro, cinco] = await Promise.all([
     matricularAluno(base), matricularAluno(base), matricularAluno(base),
     matricularAluno(base), matricularAluno(base),
   ]);
 
   const responsavel = await criarUsuario({
-    redeId, senha, responsavelId: um.responsavel.id,
-    papeis: [{ unidadeId: unidadeA.id, papel: 'responsavel' }],
+    networkId, senha, guardianId: um.responsavel.id,
+    papeis: [{ schoolId: unidadeA.id, role: 'guardian' }],
   });
 
   return {

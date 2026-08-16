@@ -49,7 +49,7 @@ describe('status da rede', () => {
 
     const convertidos = vindosDoBanco.map(paraStatusDeRede);
 
-    expect(convertidos).toEqual(['ativa', 'suspensa', 'cancelada']);
+    expect(convertidos).toEqual(['active', 'suspended', 'cancelled']);
   });
 
   test('recusa status fora do domínio em vez de servir a rede com estado desconhecido', () => {
@@ -61,7 +61,7 @@ describe('status da rede', () => {
   });
 
   test('só a rede ativa opera; suspensa e cancelada não', () => {
-    const redes = [redeCom('ativa'), redeCom('suspensa'), redeCom('cancelada')];
+    const redes = [redeCom('active'), redeCom('suspended'), redeCom('cancelled')];
 
     const operando = redes.map(redeAtiva);
 
@@ -157,11 +157,11 @@ describe('usuário', () => {
       responsavelId: null,
     };
     const papeis = [
-      { unidadeId: 'unidade-1', unidadeNome: 'Escola Centro', papel: 'professor' as const },
-      { unidadeId: 'unidade-2', unidadeNome: 'Escola Praia', papel: 'secretaria' as const },
+      { unidadeId: 'unidade-1', unidadeNome: 'Escola Centro', papel: 'teacher' as const },
+      { unidadeId: 'unidade-2', unidadeNome: 'Escola Praia', papel: 'registrar' as const },
     ];
 
-    const autenticado = usuarioAutenticado(usuario, redeCom('ativa'), papeis);
+    const autenticado = usuarioAutenticado(usuario, redeCom('active'), papeis);
 
     expect(autenticado).toEqual({
       id: 'usuario-1',
@@ -186,7 +186,7 @@ describe('usuário', () => {
       responsavelId: 'responsavel-9',
     };
 
-    const autenticado = usuarioAutenticado(usuario, redeCom('ativa'), []);
+    const autenticado = usuarioAutenticado(usuario, redeCom('active'), []);
 
     expect(autenticado.responsavelId).toBe('responsavel-9');
   });
@@ -203,7 +203,7 @@ describe('usuário', () => {
     };
     const copia = { ...usuario };
 
-    usuarioAutenticado(usuario, redeCom('ativa'), []);
+    usuarioAutenticado(usuario, redeCom('active'), []);
 
     expect(usuario).toEqual(copia);
   });

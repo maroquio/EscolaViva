@@ -2,13 +2,13 @@ import type { Papel } from './dominio/papel';
 import type { StatusDeRede } from './dominio/rede';
 
 export const PAPEL = {
-  adminRede: 'admin_rede',
-  secretaria: 'secretaria',
-  professor: 'professor',
-  responsavel: 'responsavel',
+  adminRede: 'network_admin',
+  secretaria: 'registrar',
+  professor: 'teacher',
+  responsavel: 'guardian',
 } as const satisfies Record<string, Papel>;
 
-export const REDE_ATIVA = 'ativa' as const satisfies StatusDeRede;
+export const REDE_ATIVA = 'active' as const satisfies StatusDeRede;
 
 export const LIMITES = {
   usuario: { nome: 120 },
@@ -110,10 +110,10 @@ export const EXPURGO_DE_SESSOES = { nome: 'expurgo-de-sessoes', intervaloEmMinut
 
 export const VOCABULARIO = {
   papel: {
-    admin_rede: 'Administração da rede',
-    secretaria: 'Secretaria',
-    professor: 'Professor',
-    responsavel: 'Responsável',
+    network_admin: 'Administração da rede',
+    registrar: 'Secretaria',
+    teacher: 'Professor',
+    guardian: 'Responsável',
   } as const satisfies Record<Papel, string>,
   ativo: { sim: 'Ativo', nao: 'Inativo' },
   unidadeAtiva: { sim: 'Ativa', nao: 'Inativa' },

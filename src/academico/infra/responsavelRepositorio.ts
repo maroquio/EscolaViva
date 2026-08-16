@@ -4,44 +4,44 @@ import type { Responsavel, VinculoResponsavel } from '../dominio/responsavel';
 
 type LinhaDeResponsavel = {
   id: string;
-  rede_id: string;
-  nome: string;
+  network_id: string;
+  name: string;
   email: string;
   cpf: string | null;
-  telefone: string | null;
+  phone: string | null;
 };
 
 type LinhaDeVinculo = {
-  responsavel_id: string;
-  nome: string;
+  guardian_id: string;
+  name: string;
   email: string;
-  parentesco: string;
-  financeiro: boolean;
+  relationship: string;
+  financially_responsible: boolean;
 };
 
 const paraResponsavel = (linha: LinhaDeResponsavel): Responsavel => ({
   id: linha.id,
-  redeId: linha.rede_id,
-  nome: linha.nome,
+  redeId: linha.network_id,
+  nome: linha.name,
   email: linha.email,
   cpf: linha.cpf,
-  telefone: linha.telefone,
+  telefone: linha.phone,
 });
 
 const paraVinculo = (linha: LinhaDeVinculo): VinculoResponsavel => ({
-  responsavelId: linha.responsavel_id,
-  nome: linha.nome,
+  responsavelId: linha.guardian_id,
+  nome: linha.name,
   email: linha.email,
-  parentesco: linha.parentesco,
-  financeiro: linha.financeiro,
+  parentesco: linha.relationship,
+  financeiro: linha.financially_responsible,
 });
 
 export async function inserir(sql: Conexao, responsavel: Responsavel): Promise<boolean> {
   const criados: { id: string }[] = await sql`
-    INSERT INTO responsavel (id, rede_id, nome, email, cpf, telefone)
+    INSERT INTO guardian (id, network_id, name, email, cpf, phone)
     VALUES (${responsavel.id}, ${responsavel.redeId}, ${responsavel.nome},
             ${responsavel.email}, ${responsavel.cpf}, ${responsavel.telefone})
-    ON CONFLICT ON CONSTRAINT responsavel_email_unico_na_rede DO NOTHING
+    ON CONFLICT ON CONSTRAINT guardian_email_unique_in_network DO NOTHING
     RETURNING id`;
   return criados.length === 1;
 }
@@ -52,9 +52,9 @@ export async function porId(
   id: string,
 ): Promise<Responsavel | null> {
   const linhas: LinhaDeResponsavel[] = await sql`
-    SELECT id, rede_id, nome, email, cpf, telefone
-      FROM responsavel
-     WHERE rede_id = ${redeId} AND id = ${id}`;
+    SELECT id, network_id, name, email, cpf, phone
+      FROM guardian
+     WHERE network_id = ${redeId} AND id = ${id}`;
   const linha = linhas[0];
   return linha === undefined ? null : paraResponsavel(linha);
 }
@@ -66,17 +66,17 @@ export async function listar(
 ): Promise<Responsavel[]> {
   const { limite, deslocamento } = recorte(faixa);
   const linhas: LinhaDeResponsavel[] = await sql`
-    SELECT id, rede_id, nome, email, cpf, telefone
-      FROM responsavel
-     WHERE rede_id = ${redeId}
-     ORDER BY nome
+    SELECT id, network_id, name, email, cpf, phone
+      FROM guardian
+     WHERE network_id = ${redeId}
+     ORDER BY name
      LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map(paraResponsavel);
 }
 
 export async function contar(sql: Conexao, redeId: string): Promise<number> {
   const linhas: { total: number }[] = await sql`
-    SELECT count(*)::int AS total FROM responsavel WHERE rede_id = ${redeId}`;
+    SELECT count(*)::int AS total FROM guardian WHERE network_id = ${redeId}`;
   return linhas[0]?.total ?? 0;
 }
 
@@ -90,12 +90,13 @@ export async function vincular(
     financeiro: boolean;
   },
 ): Promise<boolean> {
-  const criados: { responsavel_id: string }[] = await sql`
-    INSERT INTO aluno_responsavel (rede_id, aluno_id, responsavel_id, parentesco, financeiro)
+  const criados: { guardian_id: string }[] = await sql`
+    INSERT INTO student_guardian (network_id, student_id, guardian_id, relationship,
+                                  financially_responsible)
     VALUES (${vinculo.redeId}, ${vinculo.alunoId}, ${vinculo.responsavelId},
             ${vinculo.parentesco}, ${vinculo.financeiro})
-    ON CONFLICT (aluno_id, responsavel_id) DO NOTHING
-    RETURNING responsavel_id`;
+    ON CONFLICT (student_id, guardian_id) DO NOTHING
+    RETURNING guardian_id`;
   return criados.length === 1;
 }
 
@@ -107,11 +108,11 @@ export async function doAluno(
 ): Promise<VinculoResponsavel[]> {
   const { limite, deslocamento } = recorte(faixa);
   const linhas: LinhaDeVinculo[] = await sql`
-    SELECT av.responsavel_id, r.nome, r.email, av.parentesco, av.financeiro
-      FROM aluno_responsavel av
-      JOIN responsavel r ON r.id = av.responsavel_id AND r.rede_id = av.rede_id
-     WHERE av.rede_id = ${redeId} AND av.aluno_id = ${alunoId}
-     ORDER BY r.nome
+    SELECT av.guardian_id, r.name, r.email, av.relationship, av.financially_responsible
+      FROM student_guardian av
+      JOIN guardian r ON r.id = av.guardian_id AND r.network_id = av.network_id
+     WHERE av.network_id = ${redeId} AND av.student_id = ${alunoId}
+     ORDER BY r.name
      LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map(paraVinculo);
 }
@@ -123,8 +124,8 @@ export async function contarDoAluno(
 ): Promise<number> {
   const linhas: { total: number }[] = await sql`
     SELECT count(*)::int AS total
-      FROM aluno_responsavel
-     WHERE rede_id = ${redeId} AND aluno_id = ${alunoId}`;
+      FROM student_guardian
+     WHERE network_id = ${redeId} AND student_id = ${alunoId}`;
   return linhas[0]?.total ?? 0;
 }
 
@@ -136,13 +137,13 @@ export async function contarNasUnidades(
   if (unidadeIds.length === 0) return 0;
   const linhas: { total: number }[] = await sql`
     SELECT count(DISTINCT r.id)::int AS total
-      FROM responsavel r
-      JOIN aluno_responsavel av ON av.responsavel_id = r.id AND av.rede_id = r.rede_id
-      JOIN matricula m ON m.aluno_id = av.aluno_id AND m.rede_id = r.rede_id
-      JOIN turma t ON t.id = m.turma_id AND t.rede_id = r.rede_id
-     WHERE r.rede_id = ${redeId}
-       AND m.situacao = 'ativa'
-       AND t.unidade_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])`;
+      FROM guardian r
+      JOIN student_guardian av ON av.guardian_id = r.id AND av.network_id = r.network_id
+      JOIN enrollment m ON m.student_id = av.student_id AND m.network_id = r.network_id
+      JOIN class_group t ON t.id = m.class_group_id AND t.network_id = r.network_id
+     WHERE r.network_id = ${redeId}
+       AND m.status = 'active'
+       AND t.school_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])`;
   return linhas[0]?.total ?? 0;
 }
 
@@ -152,17 +153,17 @@ export async function contarPorUnidade(
   unidadeIds: readonly string[],
 ): Promise<Map<string, number>> {
   if (unidadeIds.length === 0) return new Map<string, number>();
-  const linhas: { unidade_id: string; total: number }[] = await sql`
-    SELECT t.unidade_id, count(DISTINCT r.id)::int AS total
-      FROM responsavel r
-      JOIN aluno_responsavel av ON av.responsavel_id = r.id AND av.rede_id = r.rede_id
-      JOIN matricula m ON m.aluno_id = av.aluno_id AND m.rede_id = r.rede_id
-      JOIN turma t ON t.id = m.turma_id AND t.rede_id = r.rede_id
-     WHERE r.rede_id = ${redeId}
-       AND m.situacao = 'ativa'
-       AND t.unidade_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
-     GROUP BY t.unidade_id`;
-  return new Map(linhas.map((linha): [string, number] => [linha.unidade_id, linha.total]));
+  const linhas: { school_id: string; total: number }[] = await sql`
+    SELECT t.school_id, count(DISTINCT r.id)::int AS total
+      FROM guardian r
+      JOIN student_guardian av ON av.guardian_id = r.id AND av.network_id = r.network_id
+      JOIN enrollment m ON m.student_id = av.student_id AND m.network_id = r.network_id
+      JOIN class_group t ON t.id = m.class_group_id AND t.network_id = r.network_id
+     WHERE r.network_id = ${redeId}
+       AND m.status = 'active'
+       AND t.school_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
+     GROUP BY t.school_id`;
+  return new Map(linhas.map((linha): [string, number] => [linha.school_id, linha.total]));
 }
 
 export async function daUnidade(
@@ -170,13 +171,13 @@ export async function daUnidade(
   redeId: string,
   unidadeId: string,
 ): Promise<{ id: string; nome: string }[]> {
-  const linhas: { id: string; nome: string }[] = await sql`
-    SELECT DISTINCT r.id, r.nome
-      FROM responsavel r
-      JOIN aluno_responsavel av ON av.responsavel_id = r.id AND av.rede_id = r.rede_id
-      JOIN matricula m ON m.aluno_id = av.aluno_id AND m.rede_id = r.rede_id
-      JOIN turma t ON t.id = m.turma_id AND t.rede_id = r.rede_id
-     WHERE r.rede_id = ${redeId} AND t.unidade_id = ${unidadeId} AND m.situacao = 'ativa'
-     ORDER BY r.nome`;
-  return linhas.map((linha) => ({ id: linha.id, nome: linha.nome }));
+  const linhas: { id: string; name: string }[] = await sql`
+    SELECT DISTINCT r.id, r.name
+      FROM guardian r
+      JOIN student_guardian av ON av.guardian_id = r.id AND av.network_id = r.network_id
+      JOIN enrollment m ON m.student_id = av.student_id AND m.network_id = r.network_id
+      JOIN class_group t ON t.id = m.class_group_id AND t.network_id = r.network_id
+     WHERE r.network_id = ${redeId} AND t.school_id = ${unidadeId} AND m.status = 'active'
+     ORDER BY r.name`;
+  return linhas.map((linha) => ({ id: linha.id, nome: linha.name }));
 }

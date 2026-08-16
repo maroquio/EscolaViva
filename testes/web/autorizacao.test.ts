@@ -126,16 +126,16 @@ describe('alcance dentro do papel', () => {
   test('professor não abre as notas de turma-disciplina de outro professor', async () => {
     const cenario = await cenarioCompleto();
     const outroProfessor = await criarUsuario({
-      redeId: cenario.rede.id,
+      networkId: cenario.rede.id,
       senha: cenario.senha,
-      papeis: [{ unidadeId: cenario.unidades[0].id, papel: 'professor' }],
+      papeis: [{ schoolId: cenario.unidades[0].id, role: 'teacher' }],
     });
-    const disciplina = await criarDisciplina({ redeId: cenario.rede.id });
+    const disciplina = await criarDisciplina({ networkId: cenario.rede.id });
     const alheia = await criarTurmaDisciplina({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[1].id,
-      disciplinaId: disciplina.id,
-      professorUsuarioId: outroProfessor.id,
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[1].id,
+      subjectId: disciplina.id,
+      teacherUserId: outroProfessor.id,
     });
     const cookie = await entrarComo(cenario, 'professor');
 

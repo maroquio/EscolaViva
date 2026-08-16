@@ -1,8 +1,8 @@
 export const SITUACOES_DE_MATRICULA = [
-  'ativa',
-  'transferida',
-  'cancelada',
-  'concluida',
+  'active',
+  'transferred',
+  'cancelled',
+  'completed',
 ] as const;
 
 export type SituacaoMatricula = (typeof SITUACOES_DE_MATRICULA)[number];

@@ -17,7 +17,7 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
 fi
 
 SERVICO_DO_BANCO=banco
-COMPOSE=(docker compose -f "$RAIZ/docker-compose.yml")
+COMPOSE=(docker compose -f "$RAIZ/infra/docker-compose.yml")
 
 versao_maior() { sed -E 's/[^0-9]*([0-9]+).*/\1/' <<< "$1"; }
 
@@ -74,7 +74,7 @@ URL_TEMP="$BASE/$BANCO_TEMP$CONSULTA"
 
 contar_ativas() {
   "${PREFIXO[@]}" psql --no-psqlrc --quiet --tuples-only --no-align \
-       --dbname="$1" --command="SELECT count(*) FROM matricula WHERE situacao = 'ativa'" \
+       --dbname="$1" --command="SELECT count(*) FROM enrollment WHERE status = 'active'" \
        | tr -d '[:space:]'
 }
 

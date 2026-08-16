@@ -201,11 +201,11 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
 
     await enviar('/secretaria/disciplinas', { nome: 'Sociologia' }, cookie);
     const gravadas = await outraConexao((sql) =>
-      sql<{ nome: string }[]>`
-        SELECT nome FROM disciplina WHERE rede_id = ${cenario.rede.id} AND nome = 'Sociologia'`,
+      sql<{ name: string }[]>`
+        SELECT name FROM subject WHERE network_id = ${cenario.rede.id} AND name = 'Sociologia'`,
     );
 
-    expect(gravadas.map((linha) => linha.nome)).toEqual(['Sociologia']);
+    expect(gravadas.map((linha) => linha.name)).toEqual(['Sociologia']);
   });
 
   test('o processo não guarda sessão em memória: apagar a linha derruba o acesso', async () => {
@@ -217,7 +217,7 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
     });
 
     const antes = await abrir('/secretaria', cookie);
-    await outraConexao((sql) => sql`DELETE FROM sessao WHERE usuario_id = ${cenario.secretaria.id}`);
+    await outraConexao((sql) => sql`DELETE FROM session WHERE user_id = ${cenario.secretaria.id}`);
     const depois = await abrir('/secretaria', cookie);
 
     expect(antes.status).toBe(200);
@@ -229,18 +229,18 @@ describe('derrubar o container e subir outro não perde nada além de sessões',
     const comValidade = await sqlDeTeste()<{ tabela: string }[]>`
       SELECT table_name AS tabela
       FROM information_schema.columns
-      WHERE table_schema = current_schema() AND column_name = 'expira_em'
+      WHERE table_schema = current_schema() AND column_name = 'expires_at'
       ORDER BY table_name`;
 
-    expect(comValidade.map((linha) => linha.tabela)).toEqual(['sessao']);
+    expect(comValidade.map((linha) => linha.tabela)).toEqual(['session']);
   });
 });
 
 /* ------------------------------------------------------------------------- */
 
 describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
-  /** `rede` é a própria dona; as outras duas são plataforma, e não pertencem a rede nenhuma. */
-  const FORA_DA_REGRA = ['rede', 'requisicao_idempotente', 'schema_migrations'];
+  /** `network` é a própria dona; as outras duas são plataforma, e não pertencem a rede nenhuma. */
+  const FORA_DA_REGRA = ['network', 'idempotent_request', 'schema_migrations'];
 
   type LinhaDoCatalogo = { tabela: string; tem_coluna: boolean; tem_fk: boolean };
 
@@ -250,7 +250,7 @@ describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
              SELECT 1 FROM information_schema.columns c
              WHERE c.table_schema = t.table_schema
                AND c.table_name = t.table_name
-               AND c.column_name = 'rede_id'
+               AND c.column_name = 'network_id'
            ) AS tem_coluna,
            EXISTS (
              SELECT 1
@@ -264,8 +264,8 @@ describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
              WHERE tc.table_schema = t.table_schema
                AND tc.table_name = t.table_name
                AND tc.constraint_type = 'FOREIGN KEY'
-               AND k.column_name = 'rede_id'
-               AND r.table_name = 'rede'
+               AND k.column_name = 'network_id'
+               AND r.table_name = 'network'
            ) AS tem_fk
     FROM information_schema.tables t
     WHERE t.table_schema = current_schema()
@@ -298,9 +298,9 @@ describe('toda tabela de negócio tem `rede_id` e FK declarada', () => {
 
     const nomes = linhas.map((linha) => linha.tabela);
 
-    expect(nomes).toContain('papel_usuario');
-    expect(nomes).toContain('aluno_responsavel');
-    expect(nomes).toContain('comunicado_destinatario');
+    expect(nomes).toContain('user_role');
+    expect(nomes).toContain('student_guardian');
+    expect(nomes).toContain('announcement_recipient');
   });
 });
 
@@ -324,8 +324,8 @@ describe('enviar o mesmo formulário duas vezes cria um registro', () => {
     await postar('/secretaria/disciplinas', campos, cookie);
     const linhas = await sqlDeTeste()<{ total: string }[]>`
       SELECT count(*)::text AS total
-        FROM disciplina
-       WHERE rede_id = ${cenario.rede.id} AND nome = 'Educação Física'`;
+        FROM subject
+       WHERE network_id = ${cenario.rede.id} AND name = 'Educação Física'`;
 
     expect(Number(linhas[0]?.total ?? '0')).toBe(1);
   });
@@ -342,8 +342,8 @@ describe('enviar o mesmo formulário duas vezes cria um registro', () => {
     await enviar('/secretaria/disciplinas', { nome: 'Educação Artística' }, cookie);
     const linhas = await sqlDeTeste()<{ total: string }[]>`
       SELECT count(*)::text AS total
-        FROM disciplina
-       WHERE rede_id = ${cenario.rede.id} AND nome LIKE 'Educação%'`;
+        FROM subject
+       WHERE network_id = ${cenario.rede.id} AND name LIKE 'Educação%'`;
 
     expect(Number(linhas[0]?.total ?? '0')).toBe(2);
   });
@@ -517,35 +517,35 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
     bimestre: number;
     nota: number;
   }> => {
-    const rede = await criarRede({ nome: 'Rede do Teste de Log', slug: SLUG });
-    const unidade = await criarUnidade({ redeId: rede.id });
-    const anoLetivo = await criarAnoLetivo({ redeId: rede.id });
+    const rede = await criarRede({ name: 'Rede do Teste de Log', slug: SLUG });
+    const unidade = await criarUnidade({ networkId: rede.id });
+    const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
     const turma = await criarTurma({
-      redeId: rede.id,
-      unidadeId: unidade.id,
-      anoLetivoId: anoLetivo.id,
+      networkId: rede.id,
+      schoolId: unidade.id,
+      academicYearId: anoLetivo.id,
     });
-    const disciplina = await criarDisciplina({ redeId: rede.id });
+    const disciplina = await criarDisciplina({ networkId: rede.id });
     const professor = await criarUsuario({
-      redeId: rede.id,
-      nome: NOME_DO_PROFESSOR,
+      networkId: rede.id,
+      name: NOME_DO_PROFESSOR,
       email: EMAIL_DO_PROFESSOR,
       cpf: CPF_DO_PROFESSOR,
       senha: SENHA_PADRAO,
-      papeis: [{ unidadeId: unidade.id, papel: 'professor' }],
+      papeis: [{ schoolId: unidade.id, role: 'teacher' }],
     });
     const turmaDisciplina = await criarTurmaDisciplina({
-      redeId: rede.id,
-      turmaId: turma.id,
-      disciplinaId: disciplina.id,
-      professorUsuarioId: professor.id,
+      networkId: rede.id,
+      classGroupId: turma.id,
+      subjectId: disciplina.id,
+      teacherUserId: professor.id,
     });
-    const aluno = await criarAluno({ redeId: rede.id, nome: NOME_DO_ALUNO });
+    const aluno = await criarAluno({ networkId: rede.id, name: NOME_DO_ALUNO });
     const matricula = await criarMatricula({
-      redeId: rede.id,
-      alunoId: aluno.id,
-      turmaId: turma.id,
-      anoLetivoId: anoLetivo.id,
+      networkId: rede.id,
+      studentId: aluno.id,
+      classGroupId: turma.id,
+      academicYearId: anoLetivo.id,
     });
 
     return {
@@ -620,7 +620,7 @@ describe('nenhum log contém nome, e-mail, CPF ou nota', () => {
     const pagina = await recusada.text();
 
     expect(recusada.status).toBe(400);
-    expect(pagina).not.toContain('requisicao_idempotente');
+    expect(pagina).not.toContain('idempotent_request');
     expect(pagina).not.toContain(cenario.secretaria.email);
   });
 });

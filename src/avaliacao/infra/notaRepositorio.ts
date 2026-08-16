@@ -11,13 +11,13 @@ export async function porTurmaDisciplinaEBimestre(
   turmaDisciplinaId: string,
   bimestre: number,
 ): Promise<Map<string, number>> {
-  const linhas: { matricula_id: string; valor: number }[] = await sql`
-    SELECT matricula_id, valor::float8 AS valor
-      FROM nota
-     WHERE rede_id = ${redeId}
-       AND turma_disciplina_id = ${turmaDisciplinaId}
-       AND bimestre = ${bimestre}`;
-  return new Map(linhas.map((linha): [string, number] => [linha.matricula_id, linha.valor]));
+  const linhas: { enrollment_id: string; value: number }[] = await sql`
+    SELECT enrollment_id, value::float8 AS value
+      FROM grade
+     WHERE network_id = ${redeId}
+       AND class_group_subject_id = ${turmaDisciplinaId}
+       AND term = ${bimestre}`;
+  return new Map(linhas.map((linha): [string, number] => [linha.enrollment_id, linha.value]));
 }
 
 export async function porMatricula(
@@ -25,15 +25,15 @@ export async function porMatricula(
   redeId: string,
   matriculaId: string,
 ): Promise<NotaDaMatricula[]> {
-  const linhas: { turma_disciplina_id: string; bimestre: number; valor: number }[] = await sql`
-    SELECT turma_disciplina_id, bimestre, valor::float8 AS valor
-      FROM nota
-     WHERE rede_id = ${redeId}
-       AND matricula_id = ${matriculaId}`;
+  const linhas: { class_group_subject_id: string; term: number; value: number }[] = await sql`
+    SELECT class_group_subject_id, term, value::float8 AS value
+      FROM grade
+     WHERE network_id = ${redeId}
+       AND enrollment_id = ${matriculaId}`;
   return linhas.map((linha) => ({
-    turmaDisciplinaId: linha.turma_disciplina_id,
-    bimestre: linha.bimestre,
-    valor: linha.valor,
+    turmaDisciplinaId: linha.class_group_subject_id,
+    bimestre: linha.term,
+    valor: linha.value,
   }));
 }
 
@@ -44,16 +44,16 @@ export async function contagemPorDisciplina(
   bimestre: number,
   matriculaIds: string[],
 ): Promise<Map<string, number>> {
-  const linhas: { turma_disciplina_id: string; total: number }[] = await sql`
-    SELECT turma_disciplina_id, count(*)::int AS total
-      FROM nota
-     WHERE rede_id = ${redeId}
-       AND turma_disciplina_id = ANY(${sql.array(turmaDisciplinaIds, 'TEXT')}::uuid[])
-       AND bimestre = ${bimestre}
-       AND matricula_id = ANY(${sql.array(matriculaIds, 'TEXT')}::uuid[])
-     GROUP BY turma_disciplina_id`;
+  const linhas: { class_group_subject_id: string; total: number }[] = await sql`
+    SELECT class_group_subject_id, count(*)::int AS total
+      FROM grade
+     WHERE network_id = ${redeId}
+       AND class_group_subject_id = ANY(${sql.array(turmaDisciplinaIds, 'TEXT')}::uuid[])
+       AND term = ${bimestre}
+       AND enrollment_id = ANY(${sql.array(matriculaIds, 'TEXT')}::uuid[])
+     GROUP BY class_group_subject_id`;
   return new Map(
-    linhas.map((linha): [string, number] => [linha.turma_disciplina_id, linha.total]),
+    linhas.map((linha): [string, number] => [linha.class_group_subject_id, linha.total]),
   );
 }
 
@@ -69,19 +69,19 @@ export async function gravarEmLote(
 ): Promise<number> {
   const linhas = lancamento.notas.map((nota) => ({
     id: idGeneratorUuid.novo(),
-    rede_id: lancamento.redeId,
-    matricula_id: nota.matriculaId,
-    turma_disciplina_id: lancamento.turmaDisciplinaId,
-    bimestre: lancamento.bimestre,
-    valor: nota.valor,
-    lancada_por: lancamento.lancadaPor,
+    network_id: lancamento.redeId,
+    enrollment_id: nota.matriculaId,
+    class_group_subject_id: lancamento.turmaDisciplinaId,
+    term: lancamento.bimestre,
+    value: nota.valor,
+    posted_by: lancamento.lancadaPor,
   }));
   const gravadas: { id: string }[] = await sql`
-    INSERT INTO nota ${sql(linhas)}
-    ON CONFLICT (matricula_id, turma_disciplina_id, bimestre)
-    DO UPDATE SET valor = EXCLUDED.valor,
-                  lancada_por = EXCLUDED.lancada_por,
-                  lancada_em = now()
+    INSERT INTO grade ${sql(linhas)}
+    ON CONFLICT (enrollment_id, class_group_subject_id, term)
+    DO UPDATE SET value = EXCLUDED.value,
+                  posted_by = EXCLUDED.posted_by,
+                  posted_at = now()
     RETURNING id`;
   return gravadas.length;
 }
@@ -94,11 +94,11 @@ export async function apagarEmLote(
   matriculaIds: string[],
 ): Promise<number> {
   const apagadas: { id: string }[] = await sql`
-    DELETE FROM nota
-     WHERE rede_id = ${redeId}
-       AND turma_disciplina_id = ${turmaDisciplinaId}
-       AND bimestre = ${bimestre}
-       AND matricula_id = ANY(${sql.array(matriculaIds, 'TEXT')}::uuid[])
+    DELETE FROM grade
+     WHERE network_id = ${redeId}
+       AND class_group_subject_id = ${turmaDisciplinaId}
+       AND term = ${bimestre}
+       AND enrollment_id = ANY(${sql.array(matriculaIds, 'TEXT')}::uuid[])
     RETURNING id`;
   return apagadas.length;
 }

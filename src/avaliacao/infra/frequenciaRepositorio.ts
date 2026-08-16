@@ -19,17 +19,16 @@ export async function porMatriculasEData(
   matriculaIds: string[],
   data: string,
 ): Promise<Map<string, PresencaDoDia>> {
-  const linhas: { matricula_id: string; presente: boolean; justificativa: string | null }[] =
-    await sql`
-      SELECT matricula_id, presente, justificativa
-        FROM frequencia
-       WHERE rede_id = ${redeId}
-         AND matricula_id = ANY(${sql.array(matriculaIds, 'TEXT')}::uuid[])
-         AND data = ${data}`;
+  const linhas: { enrollment_id: string; present: boolean; excuse: string | null }[] = await sql`
+      SELECT enrollment_id, present, excuse
+        FROM attendance
+       WHERE network_id = ${redeId}
+         AND enrollment_id = ANY(${sql.array(matriculaIds, 'TEXT')}::uuid[])
+         AND attendance_date = ${data}`;
   return new Map(
     linhas.map((linha): [string, PresencaDoDia] => [
-      linha.matricula_id,
-      { presente: linha.presente, justificativa: linha.justificativa },
+      linha.enrollment_id,
+      { presente: linha.present, justificativa: linha.excuse },
     ]),
   );
 }
@@ -41,17 +40,17 @@ export async function porMatricula(
   faixa?: Faixa,
 ): Promise<ResumoFrequencia[]> {
   const { limite, deslocamento } = recorte(faixa);
-  const linhas: { data: string; presente: boolean; justificativa: string | null }[] = await sql`
-    SELECT to_char(data, 'YYYY-MM-DD') AS data, presente, justificativa
-      FROM frequencia
-     WHERE rede_id = ${redeId}
-       AND matricula_id = ${matriculaId}
-     ORDER BY data DESC
+  const linhas: { attendance_date: string; present: boolean; excuse: string | null }[] = await sql`
+    SELECT to_char(attendance_date, 'YYYY-MM-DD') AS attendance_date, present, excuse
+      FROM attendance
+     WHERE network_id = ${redeId}
+       AND enrollment_id = ${matriculaId}
+     ORDER BY attendance_date DESC
      LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map((linha) => ({
-    data: linha.data,
-    presente: linha.presente,
-    justificativa: linha.justificativa,
+    data: linha.attendance_date,
+    presente: linha.present,
+    justificativa: linha.excuse,
   }));
 }
 
@@ -62,8 +61,8 @@ export async function contarPorMatricula(
 ): Promise<number> {
   const linhas: { total: number }[] = await sql`
     SELECT count(*)::int AS total
-      FROM frequencia
-     WHERE rede_id = ${redeId} AND matricula_id = ${matriculaId}`;
+      FROM attendance
+     WHERE network_id = ${redeId} AND enrollment_id = ${matriculaId}`;
   return linhas[0]?.total ?? 0;
 }
 
@@ -72,15 +71,15 @@ export async function apuracaoDaMatricula(
   redeId: string,
   matriculaId: string,
 ): Promise<ApuracaoDeFrequencia> {
-  const linhas: { total_dias: number; presencas: number }[] = await sql`
-    SELECT count(*)::int AS total_dias,
-           (count(*) FILTER (WHERE presente))::int AS presencas
-      FROM frequencia
-     WHERE rede_id = ${redeId}
-       AND matricula_id = ${matriculaId}`;
+  const linhas: { total_days: number; present_days: number }[] = await sql`
+    SELECT count(*)::int AS total_days,
+           (count(*) FILTER (WHERE present))::int AS present_days
+      FROM attendance
+     WHERE network_id = ${redeId}
+       AND enrollment_id = ${matriculaId}`;
   const apurado = linhas[0];
   if (apurado === undefined) return { totalDias: 0, presencas: 0 };
-  return { totalDias: apurado.total_dias, presencas: apurado.presencas };
+  return { totalDias: apurado.total_days, presencas: apurado.present_days };
 }
 
 export async function gravarEmLote(
@@ -89,17 +88,17 @@ export async function gravarEmLote(
 ): Promise<number> {
   const registros = chamada.linhas.map((linha) => ({
     id: idGeneratorUuid.novo(),
-    rede_id: chamada.redeId,
-    matricula_id: linha.matriculaId,
-    data: chamada.data,
-    presente: linha.presente,
-    justificativa: linha.justificativa,
+    network_id: chamada.redeId,
+    enrollment_id: linha.matriculaId,
+    attendance_date: chamada.data,
+    present: linha.presente,
+    excuse: linha.justificativa,
   }));
   const gravadas: { id: string }[] = await sql`
-    INSERT INTO frequencia ${sql(registros)}
-    ON CONFLICT (matricula_id, data)
-    DO UPDATE SET presente = EXCLUDED.presente,
-                  justificativa = EXCLUDED.justificativa
+    INSERT INTO attendance ${sql(registros)}
+    ON CONFLICT (enrollment_id, attendance_date)
+    DO UPDATE SET present = EXCLUDED.present,
+                  excuse = EXCLUDED.excuse
     RETURNING id`;
   return gravadas.length;
 }

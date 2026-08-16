@@ -52,38 +52,38 @@ async function publicar(entrada: {
 }
 
 async function destinatariosDe(comunicadoId: string): Promise<string[]> {
-  const linhas = await sqlDeTeste()<{ responsavel_id: string }[]>`
-    SELECT responsavel_id FROM comunicado_destinatario
-     WHERE comunicado_id = ${comunicadoId}`;
-  return linhas.map((linha) => linha.responsavel_id).sort();
+  const linhas = await sqlDeTeste()<{ guardian_id: string }[]>`
+    SELECT guardian_id FROM announcement_recipient
+     WHERE announcement_id = ${comunicadoId}`;
+  return linhas.map((linha) => linha.guardian_id).sort();
 }
 
 async function leiturasDe(comunicadoId: string, responsavelId: string): Promise<(Date | null)[]> {
-  const linhas = await sqlDeTeste()<{ lido_em: Date | null }[]>`
-    SELECT lido_em FROM comunicado_destinatario
-     WHERE comunicado_id = ${comunicadoId} AND responsavel_id = ${responsavelId}`;
-  return linhas.map((linha) => linha.lido_em);
+  const linhas = await sqlDeTeste()<{ read_at: Date | null }[]>`
+    SELECT read_at FROM announcement_recipient
+     WHERE announcement_id = ${comunicadoId} AND guardian_id = ${responsavelId}`;
+  return linhas.map((linha) => linha.read_at);
 }
 
 /** Um responsável com aluno matriculado ativo na unidade indicada. */
 async function responsavelNaUnidade(unidadeId: string): Promise<string> {
   const turma = await criarTurma({
-    redeId: cenario.rede.id,
-    unidadeId,
-    anoLetivoId: cenario.anoLetivo.id,
+    networkId: cenario.rede.id,
+    schoolId: unidadeId,
+    academicYearId: cenario.anoLetivo.id,
   });
-  const aluno = await criarAluno({ redeId: cenario.rede.id });
-  const responsavel = await criarResponsavel({ redeId: cenario.rede.id });
+  const aluno = await criarAluno({ networkId: cenario.rede.id });
+  const responsavel = await criarResponsavel({ networkId: cenario.rede.id });
   await vincularAlunoResponsavel({
-    redeId: cenario.rede.id,
-    alunoId: aluno.id,
-    responsavelId: responsavel.id,
+    networkId: cenario.rede.id,
+    studentId: aluno.id,
+    guardianId: responsavel.id,
   });
   await criarMatricula({
-    redeId: cenario.rede.id,
-    alunoId: aluno.id,
-    turmaId: turma.id,
-    anoLetivoId: cenario.anoLetivo.id,
+    networkId: cenario.rede.id,
+    studentId: aluno.id,
+    classGroupId: turma.id,
+    academicYearId: cenario.anoLetivo.id,
   });
   return responsavel.id;
 }
@@ -96,7 +96,7 @@ describe('publicarComunicado', () => {
 
     expect(comunicado.titulo).toBe('Reunião de pais');
     expect(comunicado.corpo).toBe('A reunião começa às 19h no auditório.');
-    expect(comunicado.autorNome).toBe(cenario.secretaria.nome);
+    expect(comunicado.autorNome).toBe(cenario.secretaria.name);
     expect(comunicado.unidadeId).toBe(cenario.unidades[0].id);
     expect(comunicado.publicadoEm).toMatch(INSTANTE_ISO);
   });
@@ -152,8 +152,8 @@ describe('publicarComunicado', () => {
   test('a lista vazia ignora responsável cujo aluno não tem matrícula ativa', async () => {
     const desligado = await responsavelNaUnidade(cenario.unidades[0].id);
     await sqlDeTeste()`
-      UPDATE matricula SET situacao = 'cancelada'
-       WHERE aluno_id IN (SELECT aluno_id FROM aluno_responsavel WHERE responsavel_id = ${desligado})`;
+      UPDATE enrollment SET status = 'cancelled'
+       WHERE student_id IN (SELECT student_id FROM student_guardian WHERE guardian_id = ${desligado})`;
 
     const comunicado = await publicar({ destinatarios: [] });
 
@@ -277,10 +277,10 @@ describe('marcarComoLido', () => {
 
   test('a segunda chamada não desloca a data da primeira leitura', async () => {
     const comunicado = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id, lidoEm: LEITURA_ANTIGA }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      destinatarios: [{ guardianId: cenario.responsaveis[0].id, readAt: LEITURA_ANTIGA }],
     });
 
     await comunicacao.marcarComoLido({
@@ -338,20 +338,20 @@ describe('marcarComoLido', () => {
 describe('muralDoResponsavel', () => {
   test('traz os comunicados do responsável do mais recente para o mais antigo', async () => {
     const base = {
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      destinatarios: [{ guardianId: cenario.responsaveis[0].id }],
     };
     const antigo = await criarComunicado({
       ...base,
-      titulo: 'Aviso de março',
-      publicadoEm: new Date('2026-03-01T12:00:00.000Z'),
+      title: 'Aviso de março',
+      publishedAt: new Date('2026-03-01T12:00:00.000Z'),
     });
     const recente = await criarComunicado({
       ...base,
-      titulo: 'Aviso de maio',
-      publicadoEm: new Date('2026-05-01T12:00:00.000Z'),
+      title: 'Aviso de maio',
+      publishedAt: new Date('2026-05-01T12:00:00.000Z'),
     });
 
     const mural = await comunicacao.muralDoResponsavel(
@@ -388,11 +388,11 @@ describe('muralDoResponsavel', () => {
 
   test('não traz comunicado que ainda não foi publicado', async () => {
     await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      publicadoEm: null,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      publishedAt: null,
+      destinatarios: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
     const mural = await comunicacao.muralDoResponsavel(
@@ -405,11 +405,11 @@ describe('muralDoResponsavel', () => {
 
   test('mostra a data de leitura de quem já leu', async () => {
     await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      publicadoEm: new Date('2026-03-01T12:00:00.000Z'),
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id, lidoEm: LEITURA_ANTIGA }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      publishedAt: new Date('2026-03-01T12:00:00.000Z'),
+      destinatarios: [{ guardianId: cenario.responsaveis[0].id, readAt: LEITURA_ANTIGA }],
     });
 
     const mural = await comunicacao.muralDoResponsavel(
@@ -423,10 +423,10 @@ describe('muralDoResponsavel', () => {
   test('não traz comunicado de outra rede', async () => {
     const outra = await cenarioCompleto();
     await criarComunicado({
-      redeId: outra.rede.id,
-      unidadeId: outra.unidades[0].id,
-      autorUsuarioId: outra.secretaria.id,
-      destinatarios: [{ responsavelId: outra.responsaveis[0].id }],
+      networkId: outra.rede.id,
+      schoolId: outra.unidades[0].id,
+      authorUserId: outra.secretaria.id,
+      destinatarios: [{ guardianId: outra.responsaveis[0].id }],
     });
 
     const mural = await comunicacao.muralDoResponsavel(
@@ -469,11 +469,11 @@ describe('comunicadoParaResponsavel', () => {
 
   test('devolve null para comunicado que ainda não foi publicado', async () => {
     const rascunho = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      publicadoEm: null,
-      destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      publishedAt: null,
+      destinatarios: [{ guardianId: cenario.responsaveis[0].id }],
     });
 
     const comunicado = await comunicacao.comunicadoParaResponsavel(
@@ -503,7 +503,7 @@ describe('comunicadoParaResponsavel', () => {
 describe('listarComunicados', () => {
   test('três leituras entre dez destinatários dão taxa de 0,3', async () => {
     const dez = await Promise.all(
-      Array.from({ length: 10 }, () => criarResponsavel({ redeId: cenario.rede.id })),
+      Array.from({ length: 10 }, () => criarResponsavel({ networkId: cenario.rede.id })),
     );
     const comunicado = await publicar({
       destinatarios: dez.map((responsavel) => ({ responsavelId: responsavel.id })),
@@ -535,13 +535,13 @@ describe('listarComunicados', () => {
     const esperados = [];
     for (const lidos of quantidades) {
       const comunicado = await criarComunicado({
-        redeId: cenario.rede.id,
-        unidadeId: cenario.unidades[0].id,
-        autorUsuarioId: cenario.secretaria.id,
-        publicadoEm: new Date(`2026-03-0${lidos + 1}T12:00:00.000Z`),
+        networkId: cenario.rede.id,
+        schoolId: cenario.unidades[0].id,
+        authorUserId: cenario.secretaria.id,
+        publishedAt: new Date(`2026-03-0${lidos + 1}T12:00:00.000Z`),
         destinatarios: cenario.responsaveis.map((responsavel, posicao) => ({
-          responsavelId: responsavel.id,
-          lidoEm: posicao < lidos ? LEITURA_ANTIGA : null,
+          guardianId: responsavel.id,
+          readAt: posicao < lidos ? LEITURA_ANTIGA : null,
         })),
       });
       esperados.push({ comunicadoId: comunicado.id, leituras: lidos, taxa: lidos / 5 });
@@ -562,9 +562,9 @@ describe('listarComunicados', () => {
 
   test('o comunicado sem destinatário aparece com taxa 0', async () => {
     const semNinguem = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
     });
 
     const estatisticas = await comunicacao.listarComunicados(cenario.rede.id);
@@ -608,9 +608,9 @@ describe('listarComunicados', () => {
     });
     const outra = await cenarioCompleto();
     await criarComunicado({
-      redeId: outra.rede.id,
-      unidadeId: outra.unidades[0].id,
-      autorUsuarioId: outra.secretaria.id,
+      networkId: outra.rede.id,
+      schoolId: outra.unidades[0].id,
+      authorUserId: outra.secretaria.id,
     });
 
     const estatisticas = await comunicacao.listarComunicados(cenario.rede.id);
@@ -620,10 +620,10 @@ describe('listarComunicados', () => {
 
   test('o comunicado ainda não publicado fica no fim da lista', async () => {
     const rascunho = await criarComunicado({
-      redeId: cenario.rede.id,
-      unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      publicadoEm: null,
+      networkId: cenario.rede.id,
+      schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      publishedAt: null,
     });
     const publicado = await publicar({
       destinatarios: [{ responsavelId: cenario.responsaveis[0].id }],

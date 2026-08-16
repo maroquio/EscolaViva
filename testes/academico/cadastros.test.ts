@@ -56,7 +56,7 @@ describe('definirAnoLetivo', () => {
 
   test('recusa o mesmo ano duas vezes na rede', async () => {
     const rede = await criarRede();
-    await criarAnoLetivo({ redeId: rede.id, ano: 2027 });
+    await criarAnoLetivo({ networkId: rede.id, year: 2027 });
 
     const resultado = await academico.definirAnoLetivo({
       redeId: rede.id, ano: 2027, dataInicio: '2027-02-01', dataFim: '2027-12-15',
@@ -71,7 +71,7 @@ describe('definirAnoLetivo', () => {
   test('aceita o mesmo ano em outra rede', async () => {
     const primeira = await criarRede();
     const segunda = await criarRede();
-    await criarAnoLetivo({ redeId: primeira.id, ano: 2027 });
+    await criarAnoLetivo({ networkId: primeira.id, year: 2027 });
 
     const resultado = await academico.definirAnoLetivo({
       redeId: segunda.id, ano: 2027, dataInicio: '2027-02-01', dataFim: '2027-12-15',
@@ -109,9 +109,9 @@ describe('definirAnoLetivo', () => {
 
   test('lista os anos letivos do mais recente para o mais antigo', async () => {
     const rede = await criarRede();
-    await criarAnoLetivo({ redeId: rede.id, ano: 2025 });
-    await criarAnoLetivo({ redeId: rede.id, ano: 2027 });
-    await criarAnoLetivo({ redeId: rede.id, ano: 2026 });
+    await criarAnoLetivo({ networkId: rede.id, year: 2025 });
+    await criarAnoLetivo({ networkId: rede.id, year: 2027 });
+    await criarAnoLetivo({ networkId: rede.id, year: 2026 });
 
     const anos = await academico.listarAnosLetivos(rede.id);
 
@@ -132,7 +132,7 @@ describe('cadastrarDisciplina', () => {
 
   test('recusa disciplina com nome repetido na rede', async () => {
     const rede = await criarRede();
-    await criarDisciplina({ redeId: rede.id, nome: 'Matemática' });
+    await criarDisciplina({ networkId: rede.id, name: 'Matemática' });
 
     const resultado = await academico.cadastrarDisciplina({ redeId: rede.id, nome: 'Matemática' });
 
@@ -149,7 +149,7 @@ describe('cadastrarDisciplina', () => {
   test('aceita a mesma disciplina em outra rede', async () => {
     const primeira = await criarRede();
     const segunda = await criarRede();
-    await criarDisciplina({ redeId: primeira.id, nome: 'Matemática' });
+    await criarDisciplina({ networkId: primeira.id, name: 'Matemática' });
 
     const resultado = await academico.cadastrarDisciplina({ redeId: segunda.id, nome: 'Matemática' });
 
@@ -168,33 +168,33 @@ describe('cadastrarDisciplina', () => {
 describe('cadastrarTurma', () => {
   test('grava a turma da unidade no ano letivo', async () => {
     const rede = await criarRede();
-    const unidade = await criarUnidade({ redeId: rede.id });
-    const anoLetivo = await criarAnoLetivo({ redeId: rede.id });
+    const unidade = await criarUnidade({ networkId: rede.id });
+    const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
 
     const resultado = await academico.cadastrarTurma({
       redeId: rede.id, unidadeId: unidade.id, anoLetivoId: anoLetivo.id,
-      nome: '6º A', serie: '6º ano', turno: 'matutino',
+      nome: '6º A', serie: '6º ano', turno: 'morning',
     });
 
     const turma = valorDe(resultado);
     expect(turma).toEqual({
       id: turma.id, redeId: rede.id, unidadeId: unidade.id, anoLetivoId: anoLetivo.id,
-      nome: '6º A', serie: '6º ano', turno: 'matutino',
+      nome: '6º A', serie: '6º ano', turno: 'morning',
     });
     expect(await academico.turmaPorId(rede.id, turma.id)).toEqual(turma);
   });
 
   test('recusa turma com o mesmo nome na mesma unidade e ano letivo', async () => {
     const rede = await criarRede();
-    const unidade = await criarUnidade({ redeId: rede.id });
-    const anoLetivo = await criarAnoLetivo({ redeId: rede.id });
+    const unidade = await criarUnidade({ networkId: rede.id });
+    const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
     await criarTurma({
-      redeId: rede.id, unidadeId: unidade.id, anoLetivoId: anoLetivo.id, nome: '6º A',
+      networkId: rede.id, schoolId: unidade.id, academicYearId: anoLetivo.id, name: '6º A',
     });
 
     const resultado = await academico.cadastrarTurma({
       redeId: rede.id, unidadeId: unidade.id, anoLetivoId: anoLetivo.id,
-      nome: '6º A', serie: '6º ano', turno: 'vespertino',
+      nome: '6º A', serie: '6º ano', turno: 'afternoon',
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -209,16 +209,16 @@ describe('cadastrarTurma', () => {
 
   test('aceita o mesmo nome de turma em outra unidade da mesma rede', async () => {
     const rede = await criarRede();
-    const centro = await criarUnidade({ redeId: rede.id });
-    const praia = await criarUnidade({ redeId: rede.id });
-    const anoLetivo = await criarAnoLetivo({ redeId: rede.id });
+    const centro = await criarUnidade({ networkId: rede.id });
+    const praia = await criarUnidade({ networkId: rede.id });
+    const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
     await criarTurma({
-      redeId: rede.id, unidadeId: centro.id, anoLetivoId: anoLetivo.id, nome: '6º A',
+      networkId: rede.id, schoolId: centro.id, academicYearId: anoLetivo.id, name: '6º A',
     });
 
     const resultado = await academico.cadastrarTurma({
       redeId: rede.id, unidadeId: praia.id, anoLetivoId: anoLetivo.id,
-      nome: '6º A', serie: '6º ano', turno: 'matutino',
+      nome: '6º A', serie: '6º ano', turno: 'morning',
     });
 
     expect(resultado.ok).toBe(true);
@@ -226,16 +226,16 @@ describe('cadastrarTurma', () => {
 
   test('aceita o mesmo nome de turma na mesma unidade em outro ano letivo', async () => {
     const rede = await criarRede();
-    const unidade = await criarUnidade({ redeId: rede.id });
-    const esteAno = await criarAnoLetivo({ redeId: rede.id, ano: ANO_PADRAO });
-    const proximoAno = await criarAnoLetivo({ redeId: rede.id, ano: ANO_PADRAO + 1 });
+    const unidade = await criarUnidade({ networkId: rede.id });
+    const esteAno = await criarAnoLetivo({ networkId: rede.id, year: ANO_PADRAO });
+    const proximoAno = await criarAnoLetivo({ networkId: rede.id, year: ANO_PADRAO + 1 });
     await criarTurma({
-      redeId: rede.id, unidadeId: unidade.id, anoLetivoId: esteAno.id, nome: '6º A',
+      networkId: rede.id, schoolId: unidade.id, academicYearId: esteAno.id, name: '6º A',
     });
 
     const resultado = await academico.cadastrarTurma({
       redeId: rede.id, unidadeId: unidade.id, anoLetivoId: proximoAno.id,
-      nome: '6º A', serie: '6º ano', turno: 'matutino',
+      nome: '6º A', serie: '6º ano', turno: 'morning',
     });
 
     expect(resultado.ok).toBe(true);
@@ -243,8 +243,8 @@ describe('cadastrarTurma', () => {
 
   test('recusa turno que o domínio não conhece', async () => {
     const rede = await criarRede();
-    const unidade = await criarUnidade({ redeId: rede.id });
-    const anoLetivo = await criarAnoLetivo({ redeId: rede.id });
+    const unidade = await criarUnidade({ networkId: rede.id });
+    const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
 
     const resultado = await academico.cadastrarTurma({
       redeId: rede.id, unidadeId: unidade.id, anoLetivoId: anoLetivo.id,
@@ -257,12 +257,12 @@ describe('cadastrarTurma', () => {
   test('recusa unidade de outra rede', async () => {
     const nossa = await criarRede();
     const alheia = await criarRede();
-    const unidadeAlheia = await criarUnidade({ redeId: alheia.id });
-    const anoLetivo = await criarAnoLetivo({ redeId: nossa.id });
+    const unidadeAlheia = await criarUnidade({ networkId: alheia.id });
+    const anoLetivo = await criarAnoLetivo({ networkId: nossa.id });
 
     const resultado = await academico.cadastrarTurma({
       redeId: nossa.id, unidadeId: unidadeAlheia.id, anoLetivoId: anoLetivo.id,
-      nome: '6º A', serie: '6º ano', turno: 'matutino',
+      nome: '6º A', serie: '6º ano', turno: 'morning',
     });
 
     expect(errosDe(resultado)).toEqual([
@@ -277,12 +277,12 @@ describe('cadastrarTurma', () => {
   test('recusa ano letivo de outra rede', async () => {
     const nossa = await criarRede();
     const alheia = await criarRede();
-    const unidade = await criarUnidade({ redeId: nossa.id });
-    const anoLetivoAlheio = await criarAnoLetivo({ redeId: alheia.id });
+    const unidade = await criarUnidade({ networkId: nossa.id });
+    const anoLetivoAlheio = await criarAnoLetivo({ networkId: alheia.id });
 
     const resultado = await academico.cadastrarTurma({
       redeId: nossa.id, unidadeId: unidade.id, anoLetivoId: anoLetivoAlheio.id,
-      nome: '6º A', serie: '6º ano', turno: 'matutino',
+      nome: '6º A', serie: '6º ano', turno: 'morning',
     });
 
     expect(errosDe(resultado)[0]?.codigo).toBe('ano_letivo_nao_encontrado');
@@ -383,7 +383,7 @@ describe('cadastrarResponsavel', () => {
 
   test('recusa e-mail já cadastrado na rede', async () => {
     const rede = await criarRede();
-    await criarResponsavel({ redeId: rede.id, email: 'carla@familia.br' });
+    await criarResponsavel({ networkId: rede.id, email: 'carla@familia.br' });
 
     const resultado = await academico.cadastrarResponsavel({
       redeId: rede.id, nome: 'Outra Carla', email: 'carla@familia.br',
@@ -402,7 +402,7 @@ describe('cadastrarResponsavel', () => {
   test('aceita o mesmo e-mail de responsável em outra rede', async () => {
     const primeira = await criarRede();
     const segunda = await criarRede();
-    await criarResponsavel({ redeId: primeira.id, email: 'carla@familia.br' });
+    await criarResponsavel({ networkId: primeira.id, email: 'carla@familia.br' });
 
     const resultado = await academico.cadastrarResponsavel({
       redeId: segunda.id, nome: 'Carla Dias', email: 'carla@familia.br',
@@ -483,9 +483,9 @@ describe('cadastrarResponsavel', () => {
 describe('vincularResponsavel', () => {
   test('liga o responsável ao aluno com o parentesco informado', async () => {
     const rede = await criarRede();
-    const aluno = await criarAluno({ redeId: rede.id });
+    const aluno = await criarAluno({ networkId: rede.id });
     const responsavel = await criarResponsavel({
-      redeId: rede.id, nome: 'Carla Dias', email: 'carla@familia.br',
+      networkId: rede.id, name: 'Carla Dias', email: 'carla@familia.br',
     });
 
     const resultado = await academico.vincularResponsavel({
@@ -504,10 +504,10 @@ describe('vincularResponsavel', () => {
 
   test('recusa o mesmo vínculo duas vezes', async () => {
     const rede = await criarRede();
-    const aluno = await criarAluno({ redeId: rede.id });
-    const responsavel = await criarResponsavel({ redeId: rede.id });
+    const aluno = await criarAluno({ networkId: rede.id });
+    const responsavel = await criarResponsavel({ networkId: rede.id });
     await vincularAlunoResponsavel({
-      redeId: rede.id, alunoId: aluno.id, responsavelId: responsavel.id,
+      networkId: rede.id, studentId: aluno.id, guardianId: responsavel.id,
     });
 
     const resultado = await academico.vincularResponsavel({
@@ -528,8 +528,8 @@ describe('vincularResponsavel', () => {
   test('recusa aluno de outra rede', async () => {
     const nossa = await criarRede();
     const alheia = await criarRede();
-    const alunoAlheio = await criarAluno({ redeId: alheia.id });
-    const responsavel = await criarResponsavel({ redeId: nossa.id });
+    const alunoAlheio = await criarAluno({ networkId: alheia.id });
+    const responsavel = await criarResponsavel({ networkId: nossa.id });
 
     const resultado = await academico.vincularResponsavel({
       redeId: nossa.id, alunoId: alunoAlheio.id, responsavelId: responsavel.id,
@@ -542,8 +542,8 @@ describe('vincularResponsavel', () => {
   test('recusa responsável de outra rede', async () => {
     const nossa = await criarRede();
     const alheia = await criarRede();
-    const aluno = await criarAluno({ redeId: nossa.id });
-    const responsavelAlheio = await criarResponsavel({ redeId: alheia.id });
+    const aluno = await criarAluno({ networkId: nossa.id });
+    const responsavelAlheio = await criarResponsavel({ networkId: alheia.id });
 
     const resultado = await academico.vincularResponsavel({
       redeId: nossa.id, alunoId: aluno.id, responsavelId: responsavelAlheio.id,
@@ -555,8 +555,8 @@ describe('vincularResponsavel', () => {
 
   test('recusa vínculo sem parentesco', async () => {
     const rede = await criarRede();
-    const aluno = await criarAluno({ redeId: rede.id });
-    const responsavel = await criarResponsavel({ redeId: rede.id });
+    const aluno = await criarAluno({ networkId: rede.id });
+    const responsavel = await criarResponsavel({ networkId: rede.id });
 
     const resultado = await academico.vincularResponsavel({
       redeId: rede.id, alunoId: aluno.id, responsavelId: responsavel.id,
@@ -571,7 +571,7 @@ describe('alocarProfessor', () => {
   test('aloca a disciplina na turma com o professor da unidade', async () => {
     const cenario = await cenarioCompleto();
     const [, turmaVazia] = cenario.turmas;
-    const disciplina = await criarDisciplina({ redeId: cenario.rede.id, nome: 'Geografia' });
+    const disciplina = await criarDisciplina({ networkId: cenario.rede.id, name: 'Geografia' });
 
     const resultado = await academico.alocarProfessor({
       redeId: cenario.rede.id, turmaId: turmaVazia.id,
@@ -590,7 +590,7 @@ describe('alocarProfessor', () => {
   test('recusa quem não tem papel de professor na unidade da turma', async () => {
     const cenario = await cenarioCompleto();
     const [, turmaVazia] = cenario.turmas;
-    const disciplina = await criarDisciplina({ redeId: cenario.rede.id });
+    const disciplina = await criarDisciplina({ networkId: cenario.rede.id });
 
     const resultado = await academico.alocarProfessor({
       redeId: cenario.rede.id, turmaId: turmaVazia.id,
@@ -611,9 +611,9 @@ describe('alocarProfessor', () => {
     const cenario = await cenarioCompleto();
     const [, outraUnidade] = cenario.unidades;
     const turmaDaOutraUnidade = await criarTurma({
-      redeId: cenario.rede.id, unidadeId: outraUnidade.id, anoLetivoId: cenario.anoLetivo.id,
+      networkId: cenario.rede.id, schoolId: outraUnidade.id, academicYearId: cenario.anoLetivo.id,
     });
-    const disciplina = await criarDisciplina({ redeId: cenario.rede.id });
+    const disciplina = await criarDisciplina({ networkId: cenario.rede.id });
 
     const resultado = await academico.alocarProfessor({
       redeId: cenario.rede.id, turmaId: turmaDaOutraUnidade.id,
@@ -626,7 +626,7 @@ describe('alocarProfessor', () => {
   test('recusa professor de outra rede', async () => {
     const { a, b } = await duasRedes();
     const [, turmaVazia] = a.turmas;
-    const disciplina = await criarDisciplina({ redeId: a.rede.id });
+    const disciplina = await criarDisciplina({ networkId: a.rede.id });
 
     const resultado = await academico.alocarProfessor({
       redeId: a.rede.id, turmaId: turmaVazia.id,
@@ -673,7 +673,7 @@ describe('alocarProfessor', () => {
 
   test('recusa turma de outra rede', async () => {
     const { a, b } = await duasRedes();
-    const disciplina = await criarDisciplina({ redeId: a.rede.id });
+    const disciplina = await criarDisciplina({ networkId: a.rede.id });
 
     const resultado = await academico.alocarProfessor({
       redeId: a.rede.id, turmaId: b.turmas[1].id,

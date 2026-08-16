@@ -472,6 +472,43 @@ export const APRESENTACAO = {
   preenchimentoDeDigito: '0',
 } as const;
 
+const ETIQUETA = {
+  ativa: 'etiqueta--ativa',
+  transferida: 'etiqueta--transferida',
+  cancelada: 'etiqueta--cancelada',
+  concluida: 'etiqueta--concluida',
+  aprovado: 'etiqueta--aprovado',
+  reprovado: 'etiqueta--reprovado',
+  emCurso: 'etiqueta--em-curso',
+  semModificador: '',
+} as const;
+
+export const CLASSE_DA_ETIQUETA = {
+  situacaoDeMatricula: {
+    active: ETIQUETA.ativa,
+    transferred: ETIQUETA.transferida,
+    cancelled: ETIQUETA.cancelada,
+    completed: ETIQUETA.concluida,
+  },
+  matriculaDoResponsavel: {
+    active: ETIQUETA.ativa,
+    transferred: ETIQUETA.transferida,
+    cancelled: ETIQUETA.semModificador,
+    completed: ETIQUETA.semModificador,
+  },
+  situacaoFinal: {
+    passed: ETIQUETA.aprovado,
+    failed: ETIQUETA.reprovado,
+    in_progress: ETIQUETA.emCurso,
+  },
+  presenca: {
+    presente: ETIQUETA.ativa,
+    faltaJustificada: ETIQUETA.transferida,
+    falta: ETIQUETA.reprovado,
+  },
+  fechamento: { fechado: ETIQUETA.aprovado, aberto: ETIQUETA.emCurso },
+} as const;
+
 export const SUFIXOS_DE_ID = { ajuda: '-ajuda', erro: '-erro' } as const;
 
 export const PREFIXOS_DE_ID = { erroDeCelula: 'erro-', pendencia: 'pendencia-' } as const;

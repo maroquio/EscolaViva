@@ -7,14 +7,14 @@ export async function porTurma(
   redeId: string,
   turmaId: string,
 ): Promise<FechamentoBimestre[]> {
-  const linhas: { bimestre: number; fechado_em: string }[] = await sql`
-    SELECT bimestre,
-           to_char(fechado_em AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS fechado_em
-      FROM fechamento_bimestre
-     WHERE rede_id = ${redeId}
-       AND turma_id = ${turmaId}
-     ORDER BY bimestre`;
-  return linhas.map((linha) => ({ bimestre: linha.bimestre, fechadoEm: linha.fechado_em }));
+  const linhas: { term: number; closed_at: string }[] = await sql`
+    SELECT term,
+           to_char(closed_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS closed_at
+      FROM term_closing
+     WHERE network_id = ${redeId}
+       AND class_group_id = ${turmaId}
+     ORDER BY term`;
+  return linhas.map((linha) => ({ bimestre: linha.term, fechadoEm: linha.closed_at }));
 }
 
 export async function estaFechado(
@@ -23,12 +23,12 @@ export async function estaFechado(
   turmaId: string,
   bimestre: number,
 ): Promise<boolean> {
-  const linhas: { fechado: number }[] = await sql`
-    SELECT 1 AS fechado
-      FROM fechamento_bimestre
-     WHERE rede_id = ${redeId}
-       AND turma_id = ${turmaId}
-       AND bimestre = ${bimestre}`;
+  const linhas: { closed: number }[] = await sql`
+    SELECT 1 AS closed
+      FROM term_closing
+     WHERE network_id = ${redeId}
+       AND class_group_id = ${turmaId}
+       AND term = ${bimestre}`;
   return linhas.length > 0;
 }
 
@@ -37,7 +37,7 @@ export async function registrar(
   fechamento: { redeId: string; turmaId: string; bimestre: number; fechadoPor: string },
 ): Promise<void> {
   await sql`
-    INSERT INTO fechamento_bimestre (id, rede_id, turma_id, bimestre, fechado_por)
+    INSERT INTO term_closing (id, network_id, class_group_id, term, closed_by)
     VALUES (${idGeneratorUuid.novo()}, ${fechamento.redeId}, ${fechamento.turmaId},
             ${fechamento.bimestre}, ${fechamento.fechadoPor})`;
 }

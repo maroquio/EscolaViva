@@ -266,13 +266,13 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
 
     const resposta = await enviar('/rede/usuarios', {
       nome: 'Mãe do Aluno', email: 'mae@escolaviva.test', cpf: gerarCpf(987_654),
-      responsavelId: responsavel.id, 'unidade[]': cenario.unidades[0].id, 'papel[]': 'responsavel',
+      responsavelId: responsavel.id, 'unidade[]': cenario.unidades[0].id, 'papel[]': 'guardian',
     }, cookie);
     const html = await resposta.text();
 
     expect(resposta.status).toBe(200);
     expect(html).toContain('id="cpf-erro"');
-    expect(html).toContain(responsavel.nome);
+    expect(html).toContain(responsavel.name);
     expect(html).not.toContain(responsavel.cpf);
   });
 
@@ -296,7 +296,7 @@ describe('o formulário recusado volta para o formulário, não para a lista', (
 
     const resposta = await enviar('/rede/usuarios', {
       nome: 'Sem Cadastro', email: 'sem.cadastro@escolaviva.test', cpf: gerarCpf(987_655),
-      responsavelId: 'nao-e-uuid', 'unidade[]': cenario.unidades[0].id, 'papel[]': 'secretaria',
+      responsavelId: 'nao-e-uuid', 'unidade[]': cenario.unidades[0].id, 'papel[]': 'registrar',
     }, cookie);
     const html = await resposta.text();
 

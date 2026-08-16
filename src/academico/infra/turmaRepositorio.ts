@@ -11,28 +11,28 @@ import {
 
 type LinhaDeTurma = {
   id: string;
-  rede_id: string;
-  unidade_id: string;
-  ano_letivo_id: string;
-  nome: string;
-  serie: string;
-  turno: string;
+  network_id: string;
+  school_id: string;
+  academic_year_id: string;
+  name: string;
+  grade_level: string;
+  shift: string;
 };
 
 type LinhaDeTurmaDisciplina = {
   id: string;
-  rede_id: string;
-  turma_id: string;
-  disciplina_id: string;
-  disciplina_nome: string;
-  professor_usuario_id: string;
+  network_id: string;
+  class_group_id: string;
+  subject_id: string;
+  subject_name: string;
+  teacher_user_id: string;
 };
 
 type LinhaDeTurmaDisciplinaDoProfessor = LinhaDeTurmaDisciplina & {
-  turma_nome: string;
-  serie: string;
-  turno: string;
-  unidade_id: string;
+  class_group_name: string;
+  grade_level: string;
+  shift: string;
+  school_id: string;
 };
 
 function paraTurno(valor: string): Turno {
@@ -42,48 +42,48 @@ function paraTurno(valor: string): Turno {
 
 const paraTurma = (linha: LinhaDeTurma): Turma => ({
   id: linha.id,
-  redeId: linha.rede_id,
-  unidadeId: linha.unidade_id,
-  anoLetivoId: linha.ano_letivo_id,
-  nome: linha.nome,
-  serie: linha.serie,
-  turno: paraTurno(linha.turno),
+  redeId: linha.network_id,
+  unidadeId: linha.school_id,
+  anoLetivoId: linha.academic_year_id,
+  nome: linha.name,
+  serie: linha.grade_level,
+  turno: paraTurno(linha.shift),
 });
 
 const paraTurmaDisciplina = (linha: LinhaDeTurmaDisciplina): TurmaDisciplina => ({
   id: linha.id,
-  redeId: linha.rede_id,
-  turmaId: linha.turma_id,
-  disciplinaId: linha.disciplina_id,
-  disciplinaNome: linha.disciplina_nome,
-  professorUsuarioId: linha.professor_usuario_id,
+  redeId: linha.network_id,
+  turmaId: linha.class_group_id,
+  disciplinaId: linha.subject_id,
+  disciplinaNome: linha.subject_name,
+  professorUsuarioId: linha.teacher_user_id,
 });
 
 const paraTurmaDisciplinaDoProfessor = (
   linha: LinhaDeTurmaDisciplinaDoProfessor,
 ): TurmaDisciplinaDoProfessor => ({
   ...paraTurmaDisciplina(linha),
-  turmaNome: linha.turma_nome,
-  serie: linha.serie,
-  turno: paraTurno(linha.turno),
-  unidadeId: linha.unidade_id,
+  turmaNome: linha.class_group_name,
+  serie: linha.grade_level,
+  turno: paraTurno(linha.shift),
+  unidadeId: linha.school_id,
 });
 
 export async function inserir(sql: Conexao, turma: Turma): Promise<boolean> {
   const criadas: { id: string }[] = await sql`
-    INSERT INTO turma (id, rede_id, unidade_id, ano_letivo_id, nome, serie, turno)
+    INSERT INTO class_group (id, network_id, school_id, academic_year_id, name, grade_level, shift)
     VALUES (${turma.id}, ${turma.redeId}, ${turma.unidadeId}, ${turma.anoLetivoId},
             ${turma.nome}, ${turma.serie}, ${turma.turno})
-    ON CONFLICT ON CONSTRAINT turma_unica DO NOTHING
+    ON CONFLICT ON CONSTRAINT class_group_unique DO NOTHING
     RETURNING id`;
   return criadas.length === 1;
 }
 
 export async function porId(sql: Conexao, redeId: string, id: string): Promise<Turma | null> {
   const linhas: LinhaDeTurma[] = await sql`
-    SELECT id, rede_id, unidade_id, ano_letivo_id, nome, serie, turno
-      FROM turma
-     WHERE rede_id = ${redeId} AND id = ${id}`;
+    SELECT id, network_id, school_id, academic_year_id, name, grade_level, shift
+      FROM class_group
+     WHERE network_id = ${redeId} AND id = ${id}`;
   const linha = linhas[0];
   return linha === undefined ? null : paraTurma(linha);
 }
@@ -110,13 +110,13 @@ export async function listar(
   const { unidadeId, unidadeIds, anoLetivoId } = condicoesDoFiltro(sql, filtro);
   const { limite, deslocamento } = recorte(faixa);
   const linhas: LinhaDeTurma[] = await sql`
-    SELECT id, rede_id, unidade_id, ano_letivo_id, nome, serie, turno
-      FROM turma
-     WHERE rede_id = ${redeId}
-       AND (${unidadeId}::uuid IS NULL OR unidade_id = ${unidadeId}::uuid)
-       AND (${unidadeIds}::uuid[] IS NULL OR unidade_id = ANY(${unidadeIds}::uuid[]))
-       AND (${anoLetivoId}::uuid IS NULL OR ano_letivo_id = ${anoLetivoId}::uuid)
-     ORDER BY serie, nome
+    SELECT id, network_id, school_id, academic_year_id, name, grade_level, shift
+      FROM class_group
+     WHERE network_id = ${redeId}
+       AND (${unidadeId}::uuid IS NULL OR school_id = ${unidadeId}::uuid)
+       AND (${unidadeIds}::uuid[] IS NULL OR school_id = ANY(${unidadeIds}::uuid[]))
+       AND (${anoLetivoId}::uuid IS NULL OR academic_year_id = ${anoLetivoId}::uuid)
+     ORDER BY grade_level, name
      LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map(paraTurma);
 }
@@ -129,11 +129,11 @@ export async function contar(
   const { unidadeId, unidadeIds, anoLetivoId } = condicoesDoFiltro(sql, filtro);
   const linhas: { total: number }[] = await sql`
     SELECT count(*)::int AS total
-      FROM turma
-     WHERE rede_id = ${redeId}
-       AND (${unidadeId}::uuid IS NULL OR unidade_id = ${unidadeId}::uuid)
-       AND (${unidadeIds}::uuid[] IS NULL OR unidade_id = ANY(${unidadeIds}::uuid[]))
-       AND (${anoLetivoId}::uuid IS NULL OR ano_letivo_id = ${anoLetivoId}::uuid)`;
+      FROM class_group
+     WHERE network_id = ${redeId}
+       AND (${unidadeId}::uuid IS NULL OR school_id = ${unidadeId}::uuid)
+       AND (${unidadeIds}::uuid[] IS NULL OR school_id = ANY(${unidadeIds}::uuid[]))
+       AND (${anoLetivoId}::uuid IS NULL OR academic_year_id = ${anoLetivoId}::uuid)`;
   return linhas[0]?.total ?? 0;
 }
 
@@ -143,13 +143,13 @@ export async function contarPorUnidade(
   unidadeIds: readonly string[],
 ): Promise<Map<string, number>> {
   if (unidadeIds.length === 0) return new Map<string, number>();
-  const linhas: { unidade_id: string; total: number }[] = await sql`
-    SELECT unidade_id, count(*)::int AS total
-      FROM turma
-     WHERE rede_id = ${redeId}
-       AND unidade_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
-     GROUP BY unidade_id`;
-  return new Map(linhas.map((linha): [string, number] => [linha.unidade_id, linha.total]));
+  const linhas: { school_id: string; total: number }[] = await sql`
+    SELECT school_id, count(*)::int AS total
+      FROM class_group
+     WHERE network_id = ${redeId}
+       AND school_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
+     GROUP BY school_id`;
+  return new Map(linhas.map((linha): [string, number] => [linha.school_id, linha.total]));
 }
 
 export async function inserirDisciplina(
@@ -157,10 +157,10 @@ export async function inserirDisciplina(
   alocacao: TurmaDisciplina,
 ): Promise<boolean> {
   const criadas: { id: string }[] = await sql`
-    INSERT INTO turma_disciplina (id, rede_id, turma_id, disciplina_id, professor_usuario_id)
+    INSERT INTO class_group_subject (id, network_id, class_group_id, subject_id, teacher_user_id)
     VALUES (${alocacao.id}, ${alocacao.redeId}, ${alocacao.turmaId}, ${alocacao.disciplinaId},
             ${alocacao.professorUsuarioId})
-    ON CONFLICT ON CONSTRAINT disciplina_unica_na_turma DO NOTHING
+    ON CONFLICT ON CONSTRAINT subject_unique_in_class_group DO NOTHING
     RETURNING id`;
   return criadas.length === 1;
 }
@@ -171,11 +171,11 @@ export async function disciplinaPorId(
   id: string,
 ): Promise<TurmaDisciplina | null> {
   const linhas: LinhaDeTurmaDisciplina[] = await sql`
-    SELECT td.id, td.rede_id, td.turma_id, td.disciplina_id, d.nome AS disciplina_nome,
-           td.professor_usuario_id
-      FROM turma_disciplina td
-      JOIN disciplina d ON d.id = td.disciplina_id AND d.rede_id = td.rede_id
-     WHERE td.rede_id = ${redeId} AND td.id = ${id}`;
+    SELECT td.id, td.network_id, td.class_group_id, td.subject_id, d.name AS subject_name,
+           td.teacher_user_id
+      FROM class_group_subject td
+      JOIN subject d ON d.id = td.subject_id AND d.network_id = td.network_id
+     WHERE td.network_id = ${redeId} AND td.id = ${id}`;
   const linha = linhas[0];
   return linha === undefined ? null : paraTurmaDisciplina(linha);
 }
@@ -188,12 +188,12 @@ export async function listarDisciplinas(
 ): Promise<TurmaDisciplina[]> {
   const { limite, deslocamento } = recorte(faixa);
   const linhas: LinhaDeTurmaDisciplina[] = await sql`
-    SELECT td.id, td.rede_id, td.turma_id, td.disciplina_id, d.nome AS disciplina_nome,
-           td.professor_usuario_id
-      FROM turma_disciplina td
-      JOIN disciplina d ON d.id = td.disciplina_id AND d.rede_id = td.rede_id
-     WHERE td.rede_id = ${redeId} AND td.turma_id = ${turmaId}
-     ORDER BY d.nome
+    SELECT td.id, td.network_id, td.class_group_id, td.subject_id, d.name AS subject_name,
+           td.teacher_user_id
+      FROM class_group_subject td
+      JOIN subject d ON d.id = td.subject_id AND d.network_id = td.network_id
+     WHERE td.network_id = ${redeId} AND td.class_group_id = ${turmaId}
+     ORDER BY d.name
      LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map(paraTurmaDisciplina);
 }
@@ -205,8 +205,8 @@ export async function contarDisciplinas(
 ): Promise<number> {
   const linhas: { total: number }[] = await sql`
     SELECT count(*)::int AS total
-      FROM turma_disciplina
-     WHERE rede_id = ${redeId} AND turma_id = ${turmaId}`;
+      FROM class_group_subject
+     WHERE network_id = ${redeId} AND class_group_id = ${turmaId}`;
   return linhas[0]?.total ?? 0;
 }
 
@@ -216,13 +216,13 @@ export async function disciplinasDoProfessor(
   professorUsuarioId: string,
 ): Promise<TurmaDisciplinaDoProfessor[]> {
   const linhas: LinhaDeTurmaDisciplinaDoProfessor[] = await sql`
-    SELECT td.id, td.rede_id, td.turma_id, td.disciplina_id, d.nome AS disciplina_nome,
-           td.professor_usuario_id, t.nome AS turma_nome, t.serie, t.turno, t.unidade_id
-      FROM turma_disciplina td
-      JOIN disciplina d ON d.id = td.disciplina_id AND d.rede_id = td.rede_id
-      JOIN turma t ON t.id = td.turma_id AND t.rede_id = td.rede_id
-     WHERE td.rede_id = ${redeId} AND td.professor_usuario_id = ${professorUsuarioId}
-     ORDER BY t.serie, t.nome, d.nome`;
+    SELECT td.id, td.network_id, td.class_group_id, td.subject_id, d.name AS subject_name,
+           td.teacher_user_id, t.name AS class_group_name, t.grade_level, t.shift, t.school_id
+      FROM class_group_subject td
+      JOIN subject d ON d.id = td.subject_id AND d.network_id = td.network_id
+      JOIN class_group t ON t.id = td.class_group_id AND t.network_id = td.network_id
+     WHERE td.network_id = ${redeId} AND td.teacher_user_id = ${professorUsuarioId}
+     ORDER BY t.grade_level, t.name, d.name`;
   return linhas.map(paraTurmaDisciplinaDoProfessor);
 }
 
@@ -232,10 +232,11 @@ export async function doProfessor(
   professorUsuarioId: string,
 ): Promise<Turma[]> {
   const linhas: LinhaDeTurma[] = await sql`
-    SELECT DISTINCT t.id, t.rede_id, t.unidade_id, t.ano_letivo_id, t.nome, t.serie, t.turno
-      FROM turma t
-      JOIN turma_disciplina td ON td.turma_id = t.id AND td.rede_id = t.rede_id
-     WHERE t.rede_id = ${redeId} AND td.professor_usuario_id = ${professorUsuarioId}
-     ORDER BY t.serie, t.nome`;
+    SELECT DISTINCT t.id, t.network_id, t.school_id, t.academic_year_id, t.name, t.grade_level,
+           t.shift
+      FROM class_group t
+      JOIN class_group_subject td ON td.class_group_id = t.id AND td.network_id = t.network_id
+     WHERE t.network_id = ${redeId} AND td.teacher_user_id = ${professorUsuarioId}
+     ORDER BY t.grade_level, t.name`;
   return linhas.map(paraTurma);
 }

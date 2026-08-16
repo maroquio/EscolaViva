@@ -51,7 +51,7 @@ describe('recorte na tela de responsáveis', () => {
   const umaPaginaEUmaSobra = async (): Promise<Cenario> => {
     const cenario = await cenarioCompleto();
     for (let i = 1; i <= TAMANHO; i += 1) {
-      await criarResponsavel({ redeId: cenario.rede.id, nome: nomeNumerado(i) });
+      await criarResponsavel({ networkId: cenario.rede.id, name: nomeNumerado(i) });
     }
     return cenario;
   };
@@ -116,7 +116,7 @@ describe('o resto da query sobrevive à navegação', () => {
   test('o termo da busca continua nos links de página', async () => {
     const cenario = await cenarioCompleto();
     for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
-      await criarAluno({ redeId: cenario.rede.id, nome: `Silva ${String(i).padStart(3, '0')}` });
+      await criarAluno({ networkId: cenario.rede.id, name: `Silva ${String(i).padStart(3, '0')}` });
     }
 
     const pagina = await html('/secretaria/alunos?q=Silva', await entrarComoSecretaria(cenario));
@@ -128,7 +128,7 @@ describe('o resto da query sobrevive à navegação', () => {
   test('voltar à primeira página tira o parâmetro da URL em vez de escrever p=1', async () => {
     const cenario = await cenarioCompleto();
     for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
-      await criarResponsavel({ redeId: cenario.rede.id, nome: nomeNumerado(i) });
+      await criarResponsavel({ networkId: cenario.rede.id, name: nomeNumerado(i) });
     }
 
     const pagina = await html('/secretaria/responsaveis?p=2', await entrarComoSecretaria(cenario));
@@ -144,10 +144,10 @@ describe('duas tabelas na mesma tela', () => {
     const [turma] = cenario.turmas;
     // As matrículas do cenário mais uma página inteira: a turma passa a ter duas páginas de alunos.
     for (let i = 1; i <= TAMANHO; i += 1) {
-      const aluno = await criarAluno({ redeId: cenario.rede.id, nome: nomeNumerado(i) });
+      const aluno = await criarAluno({ networkId: cenario.rede.id, name: nomeNumerado(i) });
       await criarMatricula({
-        redeId: cenario.rede.id, alunoId: aluno.id, turmaId: turma.id,
-        anoLetivoId: cenario.anoLetivo.id,
+        networkId: cenario.rede.id, studentId: aluno.id, classGroupId: turma.id,
+        academicYearId: cenario.anoLetivo.id,
       });
     }
 
@@ -167,14 +167,14 @@ describe('portal do responsável', () => {
     const [responsavel] = cenario.responsaveis;
     // Um por ler e um já lido: cada metade do mural precisa ter o que contar.
     await criarComunicado({
-      redeId: cenario.rede.id, unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      destinatarios: [{ responsavelId: responsavel.id }],
+      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      destinatarios: [{ guardianId: responsavel.id }],
     });
     await criarComunicado({
-      redeId: cenario.rede.id, unidadeId: cenario.unidades[0].id,
-      autorUsuarioId: cenario.secretaria.id,
-      destinatarios: [{ responsavelId: responsavel.id, lidoEm: new Date() }],
+      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id,
+      authorUserId: cenario.secretaria.id,
+      destinatarios: [{ guardianId: responsavel.id, readAt: new Date() }],
     });
 
     const pagina = await html('/responsavel/mural', await entrarComoResponsavel(cenario));
@@ -205,7 +205,7 @@ describe('a ajuda da busca de alunos promete o recorte que a tela entrega', () =
   test('o único número da ajuda é o número de linhas que a página traz', async () => {
     const cenario = await cenarioCompleto();
     for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
-      await criarAluno({ redeId: cenario.rede.id, nome: `Silva ${String(i).padStart(3, '0')}` });
+      await criarAluno({ networkId: cenario.rede.id, name: `Silva ${String(i).padStart(3, '0')}` });
     }
 
     const pagina = await html('/secretaria/alunos?q=Silva', await entrarComoSecretaria(cenario));
@@ -217,7 +217,7 @@ describe('a ajuda da busca de alunos promete o recorte que a tela entrega', () =
   test('a ajuda não promete um teto: a paginação alcança todos os encontrados', async () => {
     const cenario = await cenarioCompleto();
     for (let i = 1; i <= TAMANHO + SOBRA; i += 1) {
-      await criarAluno({ redeId: cenario.rede.id, nome: `Silva ${String(i).padStart(3, '0')}` });
+      await criarAluno({ networkId: cenario.rede.id, name: `Silva ${String(i).padStart(3, '0')}` });
     }
     const cookie = await entrarComoSecretaria(cenario);
 

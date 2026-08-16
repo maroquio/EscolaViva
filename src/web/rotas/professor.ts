@@ -1,5 +1,5 @@
 import { Hono, type Context } from 'hono';
-import { academico } from '../../academico';
+import { VOCABULARIO_DO_ACADEMICO, academico } from '../../academico';
 import {
   BIMESTRES,
   LIMITES_DA_AVALIACAO,
@@ -10,6 +10,7 @@ import {
 import { PAPEL } from '../../identidade';
 import {
   FORMATOS,
+  LOCALE,
   TAMANHO_DA_DATA_ISO,
   TEMPO,
   VARIAVEIS_DE_CONTEXTO,
@@ -81,6 +82,11 @@ const SEPARADORES = {
 };
 const PREFIXOS = { prefixos: PREFIXOS_DE_ID };
 
+const NOME_DO_TURNO: Record<string, string> = VOCABULARIO_DO_ACADEMICO.turno;
+
+const turnoNaFrase = (turno: string): string =>
+  (NOME_DO_TURNO[turno] ?? turno).toLocaleLowerCase(LOCALE);
+
 const NOTA_INVALIDA = NOTA_FORA_DA_FAIXA(
   LIMITES_DA_AVALIACAO.nota.minimo,
   LIMITES_DA_AVALIACAO.nota.maximo,
@@ -141,7 +147,7 @@ function agruparPorTurma(alocacoes: readonly Alocacao[]): TurmaDoProfessor[] {
   for (const { id, disciplinaNome, turmaId, turmaNome, serie, turno } of alocacoes) {
     const anteriores = turmas.get(turmaId)?.disciplinas ?? [];
     const disciplinas = [...anteriores, { id, disciplinaNome }];
-    turmas.set(turmaId, { turmaId, turmaNome, serie, turno, disciplinas });
+    turmas.set(turmaId, { turmaId, turmaNome, serie, turno: turnoNaFrase(turno), disciplinas });
   }
   return [...turmas.values()];
 }
@@ -214,7 +220,7 @@ async function telaDeNotas(
     ...SEPARADORES,
     ...PREFIXOS,
     titulo: TITULOS.professor.notas(alocacao.disciplinaNome, alocacao.turmaNome),
-    alocacao,
+    alocacao: { ...alocacao, turno: turnoNaFrase(alocacao.turno) },
     bimestre,
     bimestres: BIMESTRES,
     fechado: estados.some((estado) => estado.bimestre === bimestre && estado.fechado),

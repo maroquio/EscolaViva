@@ -141,8 +141,8 @@ describe('fecharBimestre', () => {
     });
     const mensagem = mensagemDe(resultado);
     expect(mensagem).toContain('Faltam 10 notas para fechar o bimestre');
-    expect(mensagem).toContain(`${cenario.disciplinas[1].nome} (5)`);
-    expect(mensagem).toContain(`${cenario.disciplinas[2].nome} (5)`);
+    expect(mensagem).toContain(`${cenario.disciplinas[1].name} (5)`);
+    expect(mensagem).toContain(`${cenario.disciplinas[2].name} (5)`);
   });
 
   test('a recusa por uma única nota faltando fica no singular e aponta a disciplina', async () => {
@@ -158,7 +158,7 @@ describe('fecharBimestre', () => {
     const resultado = await fechar(1);
 
     expect(mensagemDe(resultado)).toBe(
-      `Falta 1 nota para fechar o bimestre: ${cenario.disciplinas[2].nome} (1).`,
+      `Falta 1 nota para fechar o bimestre: ${cenario.disciplinas[2].name} (1).`,
     );
   });
 
@@ -230,10 +230,10 @@ describe('fecharBimestre', () => {
 
   test('o fechamento de uma turma não fecha o bimestre da turma vizinha', async () => {
     await criarTurmaDisciplina({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[1].id,
-      disciplinaId: cenario.disciplinas[0].id,
-      professorUsuarioId: cenario.professor.id,
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[1].id,
+      subjectId: cenario.disciplinas[0].id,
+      teacherUserId: cenario.professor.id,
     });
     await lancarTudo(1);
     await fechar(1);
@@ -257,7 +257,7 @@ describe('fecharBimestre', () => {
       });
     }
     await sqlDeTeste()`
-      UPDATE matricula SET situacao = 'transferida' WHERE id = ${transferida.id}`;
+      UPDATE enrollment SET status = 'transferred' WHERE id = ${transferida.id}`;
 
     const resultado = await fechar(1);
 
@@ -275,10 +275,10 @@ describe('fecharBimestre', () => {
 
   test('recusa turma sem matrícula ativa', async () => {
     await criarTurmaDisciplina({
-      redeId: cenario.rede.id,
-      turmaId: cenario.turmas[1].id,
-      disciplinaId: cenario.disciplinas[0].id,
-      professorUsuarioId: cenario.professor.id,
+      networkId: cenario.rede.id,
+      classGroupId: cenario.turmas[1].id,
+      subjectId: cenario.disciplinas[0].id,
+      teacherUserId: cenario.professor.id,
     });
 
     const resultado = await fechar(1, cenario.turmas[1].id);

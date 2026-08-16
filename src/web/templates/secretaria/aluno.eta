@@ -4,6 +4,8 @@ const vinculos = it.vinculos ?? [];
 const matriculas = it.matriculas ?? [];
 const ativa = it.ativa ?? null;
 const separadorAoFimDaLinha = it.apresentacao.separador.trimEnd();
+
+const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.situacaoDeMatricula;
 %>
 <div class="pagina__cabecalho">
   <div>
@@ -146,7 +148,7 @@ const separadorAoFimDaLinha = it.apresentacao.separador.trimEnd();
             <td class="numero"><%= matricula.ano %></td>
             <td class="numero"><%= it.formatarData(matricula.dataMatricula) %></td>
             <td>
-              <span class="etiqueta etiqueta--<%= matricula.situacao %>"><%= matricula.situacaoNome %></span>
+              <span class="etiqueta <%= CLASSE_DA_SITUACAO[matricula.situacao] %>"><%= matricula.situacaoNome %></span>
             </td>
           </tr>
           <% }) %>

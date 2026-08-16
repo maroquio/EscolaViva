@@ -85,7 +85,7 @@ export const MENSAGENS = {
 } as const;
 
 export const VOCABULARIO = {
-  situacaoFinal: { aprovado: 'Aprovado', reprovado: 'Reprovado', em_curso: 'Em curso' },
+  situacaoFinal: { passed: 'Aprovado', failed: 'Reprovado', in_progress: 'Em curso' },
   presenca: { presente: 'Presente', faltaJustificada: 'Falta justificada', falta: 'Falta' },
   fechamento: { fechado: 'Fechado', aberto: 'Aberto' },
 } as const;

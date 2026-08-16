@@ -108,34 +108,34 @@ function emailDe(nome: string, indice: number): string {
 const UNIDADES = ['Escola Central', 'Escola Bairro Novo'];
 const DISCIPLINAS = ['Português', 'Matemática', 'História', 'Geografia', 'Ciências', 'Arte'];
 const TURMAS: readonly Omit<Turma, 'id'>[] = [
-  { unidadeIndice: 0, nome: '6º A', turno: 'matutino', idade: 11 },
-  { unidadeIndice: 0, nome: '7º A', turno: 'matutino', idade: 12 },
-  { unidadeIndice: 0, nome: '8º A', turno: 'vespertino', idade: 13 },
-  { unidadeIndice: 1, nome: '6º B', turno: 'vespertino', idade: 11 },
-  { unidadeIndice: 1, nome: '9º A', turno: 'matutino', idade: 14 },
-  { unidadeIndice: 1, nome: '9º B', turno: 'integral', idade: 14 },
+  { unidadeIndice: 0, nome: '6º A', turno: 'morning', idade: 11 },
+  { unidadeIndice: 0, nome: '7º A', turno: 'morning', idade: 12 },
+  { unidadeIndice: 0, nome: '8º A', turno: 'afternoon', idade: 13 },
+  { unidadeIndice: 1, nome: '6º B', turno: 'afternoon', idade: 11 },
+  { unidadeIndice: 1, nome: '9º A', turno: 'morning', idade: 14 },
+  { unidadeIndice: 1, nome: '9º B', turno: 'full_time', idade: 14 },
 ];
 
 const SERIE = { digitosDoNome: 2, sufixo: ' ano' } as const;
 
 const TABELA = {
-  unidade: 'unidade',
-  usuario: 'usuario',
-  papelUsuario: 'papel_usuario',
-  sessao: 'sessao',
-  anoLetivo: 'ano_letivo',
-  disciplina: 'disciplina',
-  turma: 'turma',
-  turmaDisciplina: 'turma_disciplina',
-  aluno: 'aluno',
-  responsavel: 'responsavel',
-  alunoResponsavel: 'aluno_responsavel',
-  matricula: 'matricula',
-  nota: 'nota',
-  frequencia: 'frequencia',
-  fechamentoBimestre: 'fechamento_bimestre',
-  comunicado: 'comunicado',
-  comunicadoDestinatario: 'comunicado_destinatario',
+  unidade: 'school',
+  usuario: 'app_user',
+  papelUsuario: 'user_role',
+  sessao: 'session',
+  anoLetivo: 'academic_year',
+  disciplina: 'subject',
+  turma: 'class_group',
+  turmaDisciplina: 'class_group_subject',
+  aluno: 'student',
+  responsavel: 'guardian',
+  alunoResponsavel: 'student_guardian',
+  matricula: 'enrollment',
+  nota: 'grade',
+  frequencia: 'attendance',
+  fechamentoBimestre: 'term_closing',
+  comunicado: 'announcement',
+  comunicadoDestinatario: 'announcement_recipient',
 } as const;
 
 async function inserir(sql: Conexao, tabela: string, linhas: readonly Linha[]): Promise<void> {
@@ -153,12 +153,12 @@ const APAGAR_EM_ORDEM = [
 
 async function apagarRedeDeDemonstracao(sql: Conexao, redeId: string): Promise<void> {
   await sql`
-    DELETE FROM requisicao_idempotente
-     WHERE usuario_id IN (SELECT id FROM usuario WHERE rede_id = ${redeId})`;
+    DELETE FROM idempotent_request
+     WHERE user_id IN (SELECT id FROM app_user WHERE network_id = ${redeId})`;
   for (const tabela of APAGAR_EM_ORDEM) {
-    await sql`DELETE FROM ${sql(tabela)} WHERE rede_id = ${redeId}`;
+    await sql`DELETE FROM ${sql(tabela)} WHERE network_id = ${redeId}`;
   }
-  await sql`DELETE FROM rede WHERE id = ${redeId}`;
+  await sql`DELETE FROM network WHERE id = ${redeId}`;
 }
 
 type Estrutura = {
@@ -179,21 +179,21 @@ async function criarEstrutura(sql: Conexao, ano: number): Promise<Estrutura> {
   const disciplinas = DISCIPLINAS.map((nome) => ({ id: novoId(), nome }));
   const turmas = TURMAS.map((turma) => ({ ...turma, id: novoId() }));
 
-  await sql`INSERT INTO rede (id, nome, slug, status)
+  await sql`INSERT INTO network (id, name, slug, status)
             VALUES (${redeId}, ${REDE}, ${SLUG}, ${REDE_ATIVA})`;
   await inserir(sql, TABELA.unidade, unidades.map((u) => ({
-    id: u.id, rede_id: redeId, nome: u.nome,
+    id: u.id, network_id: redeId, name: u.nome,
   })));
-  await sql`INSERT INTO ano_letivo (id, rede_id, ano, data_inicio, data_fim)
+  await sql`INSERT INTO academic_year (id, network_id, year, start_date, end_date)
             VALUES (${anoLetivoId}, ${redeId}, ${ano},
                     ${CALENDARIO.inicioDoAnoLetivo(ano)}, ${CALENDARIO.fimDoAnoLetivo(ano)})`;
   await inserir(sql, TABELA.disciplina, disciplinas.map((d) => ({
-    id: d.id, rede_id: redeId, nome: d.nome,
+    id: d.id, network_id: redeId, name: d.nome,
   })));
   await inserir(sql, TABELA.turma, turmas.map((turma) => ({
-    id: turma.id, rede_id: redeId, unidade_id: unidades[turma.unidadeIndice]?.id ?? '',
-    ano_letivo_id: anoLetivoId, nome: turma.nome, turno: turma.turno,
-    serie: `${turma.nome.slice(0, SERIE.digitosDoNome)}${SERIE.sufixo}`,
+    id: turma.id, network_id: redeId, school_id: unidades[turma.unidadeIndice]?.id ?? '',
+    academic_year_id: anoLetivoId, name: turma.nome, shift: turma.turno,
+    grade_level: `${turma.nome.slice(0, SERIE.digitosDoNome)}${SERIE.sufixo}`,
   })));
   return { redeId, unidades, anoLetivoId, ano, disciplinas, turmas };
 }
@@ -222,10 +222,10 @@ async function criarEquipe(sql: Conexao, e: Estrutura, hash: string): Promise<Eq
     indice += 1;
     const cpf = gerarCpf(indice);
     usuarios.push({
-      id, rede_id: e.redeId, email, senha_hash: hash, nome, responsavel_id: null, cpf,
+      id, network_id: e.redeId, email, password_hash: hash, name: nome, guardian_id: null, cpf,
     });
     for (const unidade of unidades) {
-      papeis.push({ rede_id: e.redeId, usuario_id: id, unidade_id: unidade.id, papel });
+      papeis.push({ network_id: e.redeId, user_id: id, school_id: unidade.id, role: papel });
     }
     credenciais.push({
       email, cpf, papel, onde: unidades.map((u) => u.nome).join(SEPARADOR_DE_UNIDADES),
@@ -293,7 +293,7 @@ async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<P
         .padStart(DOIS_DIGITOS.casas, DOIS_DIGITOS.preenchimento);
       const nascimento = `${e.ano - turma.idade}-${mes}-${dia}`;
       alunos.push({
-        id: alunoId, rede_id: e.redeId, nome: nomeDePessoa(), data_nascimento: nascimento,
+        id: alunoId, network_id: e.redeId, name: nomeDePessoa(), birth_date: nascimento,
       });
       const quantosResponsaveis = aleatorio() < TAXA_DE_DOIS_RESPONSAVEIS
         ? RESPONSAVEIS_POR_ALUNO.maximo
@@ -307,18 +307,20 @@ async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<P
         const cpf = gerarCpf(semente);
         const bloco = (): number => entre(TELEFONE.primeiroDoBloco, TELEFONE.ultimoDoBloco);
         const telefone = `${TELEFONE.prefixo}${bloco()}${TELEFONE.separador}${bloco()}`;
-        responsaveis.push({ id: respId, rede_id: e.redeId, nome, email, telefone, cpf });
+        responsaveis.push({
+          id: respId, network_id: e.redeId, name: nome, email, phone: telefone, cpf,
+        });
         vinculos.push({
-          rede_id: e.redeId, aluno_id: alunoId, responsavel_id: respId,
-          parentesco: umDe(PARENTESCOS), financeiro: r === 0,
+          network_id: e.redeId, student_id: alunoId, guardian_id: respId,
+          relationship: umDe(PARENTESCOS), financially_responsible: r === 0,
         });
         usuarios.push({
-          id: usuarioId, rede_id: e.redeId, email, senha_hash: hash, nome,
-          responsavel_id: respId, cpf,
+          id: usuarioId, network_id: e.redeId, email, password_hash: hash, name: nome,
+          guardian_id: respId, cpf,
         });
         papeis.push({
-          rede_id: e.redeId, usuario_id: usuarioId, unidade_id: unidade.id,
-          papel: PAPEL.responsavel,
+          network_id: e.redeId, user_id: usuarioId, school_id: unidade.id,
+          role: PAPEL.responsavel,
         });
         responsaveisPorUnidade[turma.unidadeIndice]?.push(respId);
         contas.push({ email, cpf });
@@ -326,9 +328,9 @@ async function criarPessoas(sql: Conexao, e: Estrutura, hash: string): Promise<P
       const matriculaId = novoId();
       matriculas.push({ id: matriculaId, turmaIndice });
       linhasDeMatricula.push({
-        id: matriculaId, rede_id: e.redeId, aluno_id: alunoId, turma_id: turma.id,
-        ano_letivo_id: e.anoLetivoId, data_matricula: CALENDARIO.diaDaMatricula(e.ano),
-        situacao: MATRICULA_ATIVA,
+        id: matriculaId, network_id: e.redeId, student_id: alunoId, class_group_id: turma.id,
+        academic_year_id: e.anoLetivoId, enrollment_date: CALENDARIO.diaDaMatricula(e.ano),
+        status: MATRICULA_ATIVA,
       });
     }
   });
@@ -353,8 +355,8 @@ async function alocar(sql: Conexao, e: Estrutura, professores: string[]): Promis
       const id = novoId();
       porTurma[t]?.push(id);
       linhas.push({
-        id, rede_id: e.redeId, turma_id: turma.id,
-        disciplina_id: disciplina.id, professor_usuario_id: professor,
+        id, network_id: e.redeId, class_group_id: turma.id,
+        subject_id: disciplina.id, teacher_user_id: professor,
       });
     });
   });
@@ -385,9 +387,9 @@ async function lancarNotas(
       const bimestres = bimestresDe(d);
       for (const bimestre of bimestres) {
         linhas.push({
-          id: novoId(), rede_id: e.redeId, matricula_id: matricula.id, lancada_por: lancador,
-          turma_disciplina_id: turmaDisciplinaId, bimestre,
-          valor: entre(NOTA.minimoDobrado, NOTA.maximoDobrado) / NOTA.divisor,
+          id: novoId(), network_id: e.redeId, enrollment_id: matricula.id, posted_by: lancador,
+          class_group_subject_id: turmaDisciplinaId, term: bimestre,
+          value: entre(NOTA.minimoDobrado, NOTA.maximoDobrado) / NOTA.divisor,
         });
       }
     });
@@ -416,8 +418,9 @@ async function registrarFrequencia(sql: Conexao, e: Estrutura, povoado: Povoamen
       const presente = aleatorio() >= TAXA_DE_FALTA;
       const justificar = !presente && aleatorio() < TAXA_DE_JUSTIFICATIVA;
       linhas.push({
-        id: novoId(), rede_id: e.redeId, matricula_id: matricula.id, data, presente,
-        justificativa: justificar ? umDe(JUSTIFICATIVAS) : null,
+        id: novoId(), network_id: e.redeId, enrollment_id: matricula.id,
+        attendance_date: data, present: presente,
+        excuse: justificar ? umDe(JUSTIFICATIVAS) : null,
       });
     }
   }
@@ -448,10 +451,10 @@ async function publicarComunicados(
     }
     const id = novoId();
     comunicados.push({
-      id, rede_id: e.redeId, unidade_id: unidade.id, titulo: comunicado.titulo,
-      corpo: CORPO_DO_COMUNICADO(comunicado.titulo, unidade.nome),
-      autor_usuario_id: autor,
-      publicado_em: new Date(Date.now() - comunicado.dias * TEMPO.msPorDia).toISOString(),
+      id, network_id: e.redeId, school_id: unidade.id, title: comunicado.titulo,
+      body: CORPO_DO_COMUNICADO(comunicado.titulo, unidade.nome),
+      author_user_id: autor,
+      published_at: new Date(Date.now() - comunicado.dias * TEMPO.msPorDia).toISOString(),
     });
     const daUnidade = povoado.responsaveisPorUnidade[unidadeIndice] ?? [];
     const quantosLeram = Math.round(daUnidade.length * TAXA_DE_LEITURA);
@@ -460,8 +463,8 @@ async function publicarComunicados(
       const lido = acumulado(posicao) < acumulado(posicao + 1);
       const quando = new Date(Date.now() - entre(1, comunicado.dias) * TEMPO.msPorDia);
       destinatarios.push({
-        rede_id: e.redeId, comunicado_id: id, responsavel_id: responsavelId,
-        lido_em: lido ? quando.toISOString() : null,
+        network_id: e.redeId, announcement_id: id, guardian_id: responsavelId,
+        read_at: lido ? quando.toISOString() : null,
       });
     });
   });
@@ -499,7 +502,7 @@ async function imprimirResumo(sql: Conexao, redeId: string): Promise<void> {
   console.log(SAIDA.resumoPorTabela);
   for (const tabela of TABELAS_DO_RESUMO) {
     const linhas: { total: number }[] = await sql`
-      SELECT count(*)::int AS total FROM ${sql(tabela)} WHERE rede_id = ${redeId}`;
+      SELECT count(*)::int AS total FROM ${sql(tabela)} WHERE network_id = ${redeId}`;
     console.log(
       `  ${tabela.padEnd(COLUNAS.tabela)} `
         + `${String(linhas[0]?.total ?? 0).padStart(COLUNAS.total)}`,
@@ -540,7 +543,7 @@ async function semear(): Promise<void> {
   const hash = await Bun.password.hash(SENHA);
   const inicio = Date.now();
   const { redeId, equipe, responsaveis } = await unidadeDeTrabalho(async ({ sql }) => {
-    const existente: { id: string }[] = await sql`SELECT id FROM rede WHERE slug = ${SLUG}`;
+    const existente: { id: string }[] = await sql`SELECT id FROM network WHERE slug = ${SLUG}`;
     if (existente[0] !== undefined) await apagarRedeDeDemonstracao(sql, existente[0].id);
     const estrutura = await criarEstrutura(sql, ano);
     const equipeCriada = await criarEquipe(sql, estrutura, hash);

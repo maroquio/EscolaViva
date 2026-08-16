@@ -2,12 +2,7 @@
 const matriculas = it.matriculas;
 const naoLidos = it.naoLidos;
 
-const CLASSE_DA_SITUACAO = {
-  ativa: 'etiqueta--ativa',
-  transferida: 'etiqueta--transferida',
-  cancelada: '',
-  concluida: '',
-};
+const CLASSE_DA_SITUACAO = it.classeDaEtiqueta.matriculaDoResponsavel;
 
 const ROTULO_DA_SITUACAO = it.rotuloDaSituacao;
 %>

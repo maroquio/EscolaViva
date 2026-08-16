@@ -188,49 +188,49 @@ describe('situacaoFinal', () => {
   test('reprova a média 5,9 mesmo com frequência integral', () => {
     const situacao = situacaoFinal(5.9, 100, true);
 
-    expect(situacao).toBe('reprovado');
+    expect(situacao).toBe('failed');
   });
 
   test('aprova a média 6,0 exata', () => {
     const situacao = situacaoFinal(6, 100, true);
 
-    expect(situacao).toBe('aprovado');
+    expect(situacao).toBe('passed');
   });
 
   test('reprova a frequência de 74,9 % mesmo com média 8,0', () => {
     const situacao = situacaoFinal(8, 74.9, true);
 
-    expect(situacao).toBe('reprovado');
+    expect(situacao).toBe('failed');
   });
 
   test('aprova na fronteira inclusiva: média 6,0 e frequência 75,0 %', () => {
     const situacao = situacaoFinal(6, 75, true);
 
-    expect(situacao).toBe('aprovado');
+    expect(situacao).toBe('passed');
   });
 
   test('reprova a média 5,995 porque ela vale 5,99 e não 6,00', () => {
     const situacao = situacaoFinal(5.995, 100, true);
 
-    expect(situacao).toBe('reprovado');
+    expect(situacao).toBe('failed');
   });
 
   test('deixa em curso enquanto algum bimestre está aberto, mesmo com média alta', () => {
     const situacao = situacaoFinal(9.5, 100, false);
 
-    expect(situacao).toBe('em_curso');
+    expect(situacao).toBe('in_progress');
   });
 
   test('deixa em curso quando falta nota, nunca reprovado', () => {
     const situacao = situacaoFinal(null, 100, true);
 
-    expect(situacao).toBe('em_curso');
+    expect(situacao).toBe('in_progress');
   });
 
   test('deixa em curso quando falta nota, mesmo com frequência abaixo do mínimo', () => {
     const situacao = situacaoFinal(null, 40, true);
 
-    expect(situacao).toBe('em_curso');
+    expect(situacao).toBe('in_progress');
   });
 });
 
@@ -244,7 +244,7 @@ describe('regra pedagógica de ponta a ponta', () => {
 
     expect(media).toBeNull();
     expect(geral).toBeNull();
-    expect(situacao).toBe('em_curso');
+    expect(situacao).toBe('in_progress');
   });
 
   test('aprova o aluno que fecha o ano em 6,0 com 75 % de presença', () => {
@@ -256,7 +256,7 @@ describe('regra pedagógica de ponta a ponta', () => {
 
     expect(geral).toBe(6);
     expect(frequencia).toBe(75);
-    expect(situacao).toBe('aprovado');
+    expect(situacao).toBe('passed');
   });
 
   test('reprova por frequência o aluno de média 8,0 que faltou demais', () => {
@@ -268,6 +268,6 @@ describe('regra pedagógica de ponta a ponta', () => {
 
     expect(geral).toBe(8);
     expect(frequencia).toBe(74.5);
-    expect(situacao).toBe('reprovado');
+    expect(situacao).toBe('failed');
   });
 });

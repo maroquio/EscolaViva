@@ -51,18 +51,18 @@ async function rodarComOutroBanco(codigo: string, databaseUrl: string): Promise<
 }
 
 async function existeRede(id: string): Promise<boolean> {
-  const linhas = await sqlDeTeste()<{ id: string }[]>`SELECT id FROM rede WHERE id = ${id}`;
+  const linhas = await sqlDeTeste()<{ id: string }[]>`SELECT id FROM network WHERE id = ${id}`;
   return linhas.length === 1;
 }
 
 async function existeUnidade(id: string): Promise<boolean> {
-  const linhas = await sqlDeTeste()<{ id: string }[]>`SELECT id FROM unidade WHERE id = ${id}`;
+  const linhas = await sqlDeTeste()<{ id: string }[]>`SELECT id FROM school WHERE id = ${id}`;
   return linhas.length === 1;
 }
 
 async function nomeDaRede(id: string): Promise<string | null> {
-  const linhas = await sqlDeTeste()<{ nome: string }[]>`SELECT nome FROM rede WHERE id = ${id}`;
-  return linhas[0]?.nome ?? null;
+  const linhas = await sqlDeTeste()<{ name: string }[]>`SELECT name FROM network WHERE id = ${id}`;
+  return linhas[0]?.name ?? null;
 }
 
 /** Devolve o erro que a função lançou; falha o teste se ela tiver funcionado. */
@@ -104,11 +104,11 @@ describe('leitura e escrita', () => {
   });
 
   test('escrita() enxerga o que a suíte gravou no banco', async () => {
-    const rede = await criarRede({ nome: 'Rede da Conexão' });
+    const rede = await criarRede({ name: 'Rede da Conexão' });
 
-    const linhas = await escrita()<{ nome: string }[]>`SELECT nome FROM rede WHERE id = ${rede.id}`;
+    const linhas = await escrita()<{ name: string }[]>`SELECT name FROM network WHERE id = ${rede.id}`;
 
-    expect(linhas[0]?.nome).toBe('Rede da Conexão');
+    expect(linhas[0]?.name).toBe('Rede da Conexão');
   });
 });
 
@@ -162,14 +162,14 @@ describe('unidadeDeTrabalho — caminho feliz', () => {
     const redeId = crypto.randomUUID();
 
     await unidadeDeTrabalho(async ({ sql }) => {
-      await sql`INSERT INTO rede (id, nome, slug) VALUES (${redeId}, 'Rede Comitada', 'rede-comitada')`;
+      await sql`INSERT INTO network (id, name, slug) VALUES (${redeId}, 'Rede Comitada', 'rede-comitada')`;
     });
 
     expect(await existeRede(redeId)).toBe(true);
   });
 
   test('devolve o valor produzido pela função', async () => {
-    const esperado = { matriculaId: 'm-1', situacao: 'ativa' };
+    const esperado = { matriculaId: 'm-1', situacao: 'active' };
 
     const devolvido = await unidadeDeTrabalho(async () => esperado);
 
@@ -181,8 +181,8 @@ describe('unidadeDeTrabalho — caminho feliz', () => {
     const unidadeId = crypto.randomUUID();
 
     await unidadeDeTrabalho(async ({ sql }) => {
-      await sql`INSERT INTO rede (id, nome, slug) VALUES (${redeId}, 'Rede Dupla', 'rede-dupla')`;
-      await sql`INSERT INTO unidade (id, rede_id, nome) VALUES (${unidadeId}, ${redeId}, 'Escola Central')`;
+      await sql`INSERT INTO network (id, name, slug) VALUES (${redeId}, 'Rede Dupla', 'rede-dupla')`;
+      await sql`INSERT INTO school (id, network_id, name) VALUES (${unidadeId}, ${redeId}, 'Escola Central')`;
     });
 
     expect(await existeRede(redeId)).toBe(true);
@@ -194,7 +194,7 @@ describe('unidadeDeTrabalho — caminho feliz', () => {
     let visivelDuranteATransacao = true;
 
     await unidadeDeTrabalho(async ({ sql }) => {
-      await sql`INSERT INTO rede (id, nome, slug) VALUES (${redeId}, 'Rede em Voo', 'rede-em-voo')`;
+      await sql`INSERT INTO network (id, name, slug) VALUES (${redeId}, 'Rede em Voo', 'rede-em-voo')`;
       visivelDuranteATransacao = await existeRede(redeId);
     });
 
@@ -210,8 +210,8 @@ describe('unidadeDeTrabalho — rollback', () => {
 
     const erro = await capturarErro(() =>
       unidadeDeTrabalho(async ({ sql }) => {
-        await sql`INSERT INTO rede (id, nome, slug) VALUES (${redeId}, 'Rede Desfeita', 'rede-desfeita')`;
-        await sql`INSERT INTO unidade (id, rede_id, nome) VALUES (${unidadeId}, ${redeId}, 'Escola Desfeita')`;
+        await sql`INSERT INTO network (id, name, slug) VALUES (${redeId}, 'Rede Desfeita', 'rede-desfeita')`;
+        await sql`INSERT INTO school (id, network_id, name) VALUES (${unidadeId}, ${redeId}, 'Escola Desfeita')`;
         throw new Error('falhou depois de escrever nas duas tabelas');
       }),
     );
@@ -222,13 +222,13 @@ describe('unidadeDeTrabalho — rollback', () => {
   });
 
   test('desfaz também a alteração de linha que já existia antes da transação', async () => {
-    const rede = await criarRede({ nome: 'Nome Original' });
+    const rede = await criarRede({ name: 'Nome Original' });
     const unidadeId = crypto.randomUUID();
 
     await capturarErro(() =>
       unidadeDeTrabalho(async ({ sql }) => {
-        await sql`UPDATE rede SET nome = 'Nome Trocado' WHERE id = ${rede.id}`;
-        await sql`INSERT INTO unidade (id, rede_id, nome) VALUES (${unidadeId}, ${rede.id}, 'Escola Nova')`;
+        await sql`UPDATE network SET name = 'Nome Trocado' WHERE id = ${rede.id}`;
+        await sql`INSERT INTO school (id, network_id, name) VALUES (${unidadeId}, ${rede.id}, 'Escola Nova')`;
         throw new Error('falhou depois do update e do insert');
       }),
     );
@@ -255,12 +255,12 @@ describe('unidadeDeTrabalho — rollback', () => {
 
     const erro = await capturarErro(() =>
       unidadeDeTrabalho(async ({ sql }) => {
-        await sql`INSERT INTO rede (id, nome, slug) VALUES (${redeId}, 'Rede Nova', 'rede-nova')`;
-        await sql`INSERT INTO rede (id, nome, slug) VALUES (${crypto.randomUUID()}, 'Rede Repetida', ${existente.slug})`;
+        await sql`INSERT INTO network (id, name, slug) VALUES (${redeId}, 'Rede Nova', 'rede-nova')`;
+        await sql`INSERT INTO network (id, name, slug) VALUES (${crypto.randomUUID()}, 'Rede Repetida', ${existente.slug})`;
       }),
     );
 
-    expect(erro.message).toContain('rede_slug_unico');
+    expect(erro.message).toContain('network_slug_unique');
     expect(await existeRede(redeId)).toBe(false);
   });
 
@@ -269,11 +269,11 @@ describe('unidadeDeTrabalho — rollback', () => {
     const desfeita = crypto.randomUUID();
 
     await unidadeDeTrabalho(async ({ sql }) => {
-      await sql`INSERT INTO rede (id, nome, slug) VALUES (${comitada}, 'Rede Firme', 'rede-firme')`;
+      await sql`INSERT INTO network (id, name, slug) VALUES (${comitada}, 'Rede Firme', 'rede-firme')`;
     });
     await capturarErro(() =>
       unidadeDeTrabalho(async ({ sql }) => {
-        await sql`INSERT INTO rede (id, nome, slug) VALUES (${desfeita}, 'Rede Frágil', 'rede-fragil')`;
+        await sql`INSERT INTO network (id, name, slug) VALUES (${desfeita}, 'Rede Frágil', 'rede-fragil')`;
         throw new Error('falhou depois da outra transação ter comitado');
       }),
     );

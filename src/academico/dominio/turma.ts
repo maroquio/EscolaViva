@@ -1,4 +1,4 @@
-export const TURNOS = ['matutino', 'vespertino', 'noturno', 'integral'] as const;
+export const TURNOS = ['morning', 'afternoon', 'evening', 'full_time'] as const;
 
 export type Turno = (typeof TURNOS)[number];
 

@@ -5,11 +5,7 @@ const faltas = boletim.totalDias - boletim.presencas;
 
 const ROTULO_DA_PRESENCA = it.rotuloDaPresenca;
 
-const CLASSE_DA_PRESENCA = {
-  presente: 'etiqueta--ativa',
-  faltaJustificada: 'etiqueta--transferida',
-  falta: 'etiqueta--reprovado',
-};
+const CLASSE_DA_PRESENCA = it.classeDaEtiqueta.presenca;
 
 const SEM_VALOR = it.semValor;
 

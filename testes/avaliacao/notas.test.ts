@@ -31,26 +31,26 @@ beforeEach(async () => {
 /** Quantas linhas de nota existem na rede — a contagem que separa "atualizou" de "duplicou". */
 async function contarNotas(redeId: string): Promise<number> {
   const linhas = await sqlDeTeste()<{ total: number }[]>`
-    SELECT count(*)::int AS total FROM nota WHERE rede_id = ${redeId}`;
+    SELECT count(*)::int AS total FROM grade WHERE network_id = ${redeId}`;
   return linhas[0]?.total ?? 0;
 }
 
 /** Uma matrícula ativa em uma rede completamente separada, para o teste de isolamento. */
 async function matriculaDeOutraRede(): Promise<string> {
   const rede = await criarRede({});
-  const unidade = await criarUnidade({ redeId: rede.id });
-  const anoLetivo = await criarAnoLetivo({ redeId: rede.id });
+  const unidade = await criarUnidade({ networkId: rede.id });
+  const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
   const turma = await criarTurma({
-    redeId: rede.id,
-    unidadeId: unidade.id,
-    anoLetivoId: anoLetivo.id,
+    networkId: rede.id,
+    schoolId: unidade.id,
+    academicYearId: anoLetivo.id,
   });
-  const aluno = await criarAluno({ redeId: rede.id });
+  const aluno = await criarAluno({ networkId: rede.id });
   const matricula = await criarMatricula({
-    redeId: rede.id,
-    alunoId: aluno.id,
-    turmaId: turma.id,
-    anoLetivoId: anoLetivo.id,
+    networkId: rede.id,
+    studentId: aluno.id,
+    classGroupId: turma.id,
+    academicYearId: anoLetivo.id,
   });
   return matricula.id;
 }
@@ -266,12 +266,12 @@ describe('lancarNotas', () => {
   });
 
   test('recusa o lote com matrícula de outra turma', async () => {
-    const aluno = await criarAluno({ redeId: cenario.rede.id });
+    const aluno = await criarAluno({ networkId: cenario.rede.id });
     const forasteira = await criarMatricula({
-      redeId: cenario.rede.id,
-      alunoId: aluno.id,
-      turmaId: cenario.turmas[1].id,
-      anoLetivoId: cenario.anoLetivo.id,
+      networkId: cenario.rede.id,
+      studentId: aluno.id,
+      classGroupId: cenario.turmas[1].id,
+      academicYearId: cenario.anoLetivo.id,
     });
 
     const resultado = await avaliacao.lancarNotas({
@@ -369,8 +369,8 @@ describe('constraints da tabela nota', () => {
     const sql = sqlDeTeste();
     return (async () => {
       await sql`
-        INSERT INTO nota (id, rede_id, matricula_id, turma_disciplina_id,
-                          bimestre, valor, lancada_por)
+        INSERT INTO grade (id, network_id, enrollment_id, class_group_subject_id,
+                          term, value, posted_by)
         VALUES (${crypto.randomUUID()}, ${cenario.rede.id}, ${cenario.matriculas[0].id},
                 ${cenario.turmaDisciplinas[0].id}, ${bimestre}, ${valor},
                 ${cenario.professor.id})`;
@@ -378,19 +378,19 @@ describe('constraints da tabela nota', () => {
   }
 
   test('o banco barra nota acima de 10 mesmo por INSERT direto', async () => {
-    await expect(inserirNotaCrua(1, 11)).rejects.toThrow(/valor_valido/);
+    await expect(inserirNotaCrua(1, 11)).rejects.toThrow(/value_valid/);
 
     expect(await contarNotas(cenario.rede.id)).toBe(0);
   });
 
   test('o banco barra nota negativa mesmo por INSERT direto', async () => {
-    await expect(inserirNotaCrua(1, -1)).rejects.toThrow(/valor_valido/);
+    await expect(inserirNotaCrua(1, -1)).rejects.toThrow(/value_valid/);
 
     expect(await contarNotas(cenario.rede.id)).toBe(0);
   });
 
   test('o banco barra bimestre fora de 1 a 4 mesmo por INSERT direto', async () => {
-    await expect(inserirNotaCrua(5, 7)).rejects.toThrow(/bimestre_valido/);
+    await expect(inserirNotaCrua(5, 7)).rejects.toThrow(/term_valid/);
 
     expect(await contarNotas(cenario.rede.id)).toBe(0);
   });
@@ -398,7 +398,7 @@ describe('constraints da tabela nota', () => {
   test('o banco barra a segunda nota do mesmo aluno na mesma disciplina e bimestre', async () => {
     await inserirNotaCrua(1, 7);
 
-    await expect(inserirNotaCrua(1, 8)).rejects.toThrow(/nota_unica/);
+    await expect(inserirNotaCrua(1, 8)).rejects.toThrow(/grade_unique/);
 
     expect(await contarNotas(cenario.rede.id)).toBe(1);
   });
@@ -418,7 +418,7 @@ describe('constraints da tabela nota', () => {
       1,
     );
 
-    expect(cenario.anoLetivo.ano).toBe(ANO_PADRAO);
+    expect(cenario.anoLetivo.year).toBe(ANO_PADRAO);
     expect(deOutraRede.size).toBe(0);
   });
 });

@@ -22,7 +22,7 @@ function issuesDe(schema: z.ZodTypeAny, entrada: unknown): z.ZodIssue[] {
 
 describe('sucesso', () => {
   test('marca ok como verdadeiro e carrega o valor', () => {
-    const valor = { id: 'm1', situacao: 'ativa' };
+    const valor = { id: 'm1', situacao: 'active' };
 
     const resultado = sucesso(valor);
 

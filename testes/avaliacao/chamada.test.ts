@@ -1,7 +1,7 @@
 /*
  * A frequência do EscolaViva é POR DIA — nunca por aula. Este arquivo prova as duas consequências
  * disso: reenviar a chamada de uma data corrige a linha existente em vez de criar uma segunda, e a
- * constraint `frequencia_unica_por_dia` sustenta a mesma regra no banco.
+ * constraint `attendance_unique_per_day` sustenta a mesma regra no banco.
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
@@ -35,25 +35,25 @@ beforeEach(async () => {
 
 async function contarFrequencias(redeId: string): Promise<number> {
   const linhas = await sqlDeTeste()<{ total: number }[]>`
-    SELECT count(*)::int AS total FROM frequencia WHERE rede_id = ${redeId}`;
+    SELECT count(*)::int AS total FROM attendance WHERE network_id = ${redeId}`;
   return linhas[0]?.total ?? 0;
 }
 
 async function matriculaDeOutraRede(): Promise<string> {
   const rede = await criarRede({});
-  const unidade = await criarUnidade({ redeId: rede.id });
-  const anoLetivo = await criarAnoLetivo({ redeId: rede.id });
+  const unidade = await criarUnidade({ networkId: rede.id });
+  const anoLetivo = await criarAnoLetivo({ networkId: rede.id });
   const turma = await criarTurma({
-    redeId: rede.id,
-    unidadeId: unidade.id,
-    anoLetivoId: anoLetivo.id,
+    networkId: rede.id,
+    schoolId: unidade.id,
+    academicYearId: anoLetivo.id,
   });
-  const aluno = await criarAluno({ redeId: rede.id });
+  const aluno = await criarAluno({ networkId: rede.id });
   const matricula = await criarMatricula({
-    redeId: rede.id,
-    alunoId: aluno.id,
-    turmaId: turma.id,
-    anoLetivoId: anoLetivo.id,
+    networkId: rede.id,
+    studentId: aluno.id,
+    classGroupId: turma.id,
+    academicYearId: anoLetivo.id,
   });
   return matricula.id;
 }
@@ -222,8 +222,8 @@ describe('registrarChamada', () => {
     });
 
     const mensagem = resultado.ok ? '' : (resultado.erros[0]?.mensagem ?? '');
-    expect(mensagem).toContain(cenario.anoLetivo.dataInicio);
-    expect(mensagem).toContain(cenario.anoLetivo.dataFim);
+    expect(mensagem).toContain(cenario.anoLetivo.startDate);
+    expect(mensagem).toContain(cenario.anoLetivo.endDate);
   });
 
   test('recusa data que não existe no calendário', async () => {
@@ -276,12 +276,12 @@ describe('registrarChamada', () => {
   });
 
   test('recusa a chamada com matrícula de outra turma', async () => {
-    const aluno = await criarAluno({ redeId: cenario.rede.id });
+    const aluno = await criarAluno({ networkId: cenario.rede.id });
     const forasteira = await criarMatricula({
-      redeId: cenario.rede.id,
-      alunoId: aluno.id,
-      turmaId: cenario.turmas[1].id,
-      anoLetivoId: cenario.anoLetivo.id,
+      networkId: cenario.rede.id,
+      studentId: aluno.id,
+      classGroupId: cenario.turmas[1].id,
+      academicYearId: cenario.anoLetivo.id,
     });
 
     const resultado = await avaliacao.registrarChamada({
@@ -400,13 +400,13 @@ describe('constraint frequencia_unica_por_dia', () => {
     const sql = sqlDeTeste();
     const inserir = async (): Promise<void> => {
       await sql`
-        INSERT INTO frequencia (id, rede_id, matricula_id, data, presente)
+        INSERT INTO attendance (id, network_id, enrollment_id, attendance_date, present)
         VALUES (${crypto.randomUUID()}, ${cenario.rede.id}, ${cenario.matriculas[0].id},
                 ${DIA_LETIVO}, true)`;
     };
     await inserir();
 
-    await expect(inserir()).rejects.toThrow(/frequencia_unica_por_dia/);
+    await expect(inserir()).rejects.toThrow(/attendance_unique_per_day/);
 
     expect(await contarFrequencias(cenario.rede.id)).toBe(1);
   });

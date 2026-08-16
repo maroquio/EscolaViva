@@ -1,6 +1,6 @@
 /*
  * Matricular e transferir — as duas escritas do acadêmico que o banco protege sozinho.
- * O índice único parcial `matricula_ativa_unica_por_ano` é a regra; o caso de uso existe para
+ * O índice único parcial `active_enrollment_unique_per_year` é a regra; o caso de uso existe para
  * traduzi-la em erro de campo legível em vez de deixar a violação do PostgreSQL chegar à tela.
  */
 
@@ -33,9 +33,9 @@ function errosDe(resultado: Resultado<unknown>): ErroDeAplicacao[] {
 }
 
 async function situacoesDoAluno(alunoId: string): Promise<string[]> {
-  const linhas = await sqlDeTeste()<{ situacao: string }[]>`
-    SELECT situacao FROM matricula WHERE aluno_id = ${alunoId} ORDER BY situacao, criado_em`;
-  return linhas.map((linha) => linha.situacao);
+  const linhas = await sqlDeTeste()<{ status: string }[]>`
+    SELECT status FROM enrollment WHERE student_id = ${alunoId} ORDER BY status, created_at`;
+  return linhas.map((linha) => linha.status);
 }
 
 beforeEach(limparBanco);
@@ -43,7 +43,7 @@ beforeEach(limparBanco);
 describe('matricular', () => {
   test('cria a matrícula ativa do aluno na turma do ano letivo', async () => {
     const cenario = await cenarioCompleto();
-    const aluno = await criarAluno({ redeId: cenario.rede.id, nome: 'Ana Souza' });
+    const aluno = await criarAluno({ networkId: cenario.rede.id, name: 'Ana Souza' });
     const [, turmaVazia] = cenario.turmas;
 
     const resultado = await academico.matricular({
@@ -61,12 +61,12 @@ describe('matricular', () => {
       alunoId: aluno.id,
       alunoNome: 'Ana Souza',
       turmaId: turmaVazia.id,
-      turmaNome: turmaVazia.nome,
-      unidadeId: turmaVazia.unidadeId,
+      turmaNome: turmaVazia.name,
+      unidadeId: turmaVazia.schoolId,
       anoLetivoId: cenario.anoLetivo.id,
       ano: ANO_PADRAO,
       dataMatricula: DATA_DE_MATRICULA,
-      situacao: 'ativa',
+      situacao: 'active',
     });
     const naTurma = await academico.matriculasAtivasDaTurma(cenario.rede.id, turmaVazia.id);
     expect(naTurma.map((linha) => linha.id)).toEqual([matricula.id]);
@@ -74,7 +74,7 @@ describe('matricular', () => {
 
   test('a matrícula recém-criada é recuperável por id', async () => {
     const cenario = await cenarioCompleto();
-    const aluno = await criarAluno({ redeId: cenario.rede.id });
+    const aluno = await criarAluno({ networkId: cenario.rede.id });
     const [, turmaVazia] = cenario.turmas;
 
     const criada = valorDe(
@@ -110,7 +110,7 @@ describe('matricular', () => {
         mensagem: 'Este aluno já tem matrícula ativa neste ano letivo.',
       },
     ]);
-    expect(await situacoesDoAluno(jaMatriculado.id)).toEqual(['ativa']);
+    expect(await situacoesDoAluno(jaMatriculado.id)).toEqual(['active']);
   });
 
   test('a recusa da matrícula duplicada é mensagem de negócio, não erro cru do banco', async () => {
@@ -134,9 +134,9 @@ describe('matricular', () => {
   test('o mesmo aluno pode se matricular em outro ano letivo', async () => {
     const cenario = await cenarioCompleto();
     const [jaMatriculado] = cenario.alunos;
-    const proximoAno = await criarAnoLetivo({ redeId: cenario.rede.id, ano: ANO_PADRAO + 1 });
+    const proximoAno = await criarAnoLetivo({ networkId: cenario.rede.id, year: ANO_PADRAO + 1 });
     const turmaDoProximoAno = await criarTurma({
-      redeId: cenario.rede.id, unidadeId: cenario.unidades[0].id, anoLetivoId: proximoAno.id,
+      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id, academicYearId: proximoAno.id,
     });
 
     const resultado = await academico.matricular({
@@ -148,7 +148,7 @@ describe('matricular', () => {
     });
 
     expect(valorDe(resultado).ano).toBe(ANO_PADRAO + 1);
-    expect(await situacoesDoAluno(jaMatriculado.id)).toEqual(['ativa', 'ativa']);
+    expect(await situacoesDoAluno(jaMatriculado.id)).toEqual(['active', 'active']);
   });
 
   test('aluno de outra rede é recusado', async () => {
@@ -173,7 +173,7 @@ describe('matricular', () => {
 
   test('turma de outra rede é recusada', async () => {
     const { a, b } = await duasRedes();
-    const aluno = await criarAluno({ redeId: a.rede.id });
+    const aluno = await criarAluno({ networkId: a.rede.id });
 
     const resultado = await academico.matricular({
       redeId: a.rede.id,
@@ -194,7 +194,7 @@ describe('matricular', () => {
 
   test('ano letivo de outra rede é recusado', async () => {
     const { a, b } = await duasRedes();
-    const aluno = await criarAluno({ redeId: a.rede.id });
+    const aluno = await criarAluno({ networkId: a.rede.id });
 
     const resultado = await academico.matricular({
       redeId: a.rede.id,
@@ -209,10 +209,10 @@ describe('matricular', () => {
 
   test('turma de outro ano letivo da mesma rede é recusada', async () => {
     const cenario = await cenarioCompleto();
-    const aluno = await criarAluno({ redeId: cenario.rede.id });
-    const outroAno = await criarAnoLetivo({ redeId: cenario.rede.id, ano: ANO_PADRAO + 1 });
+    const aluno = await criarAluno({ networkId: cenario.rede.id });
+    const outroAno = await criarAnoLetivo({ networkId: cenario.rede.id, year: ANO_PADRAO + 1 });
     const turmaDoOutroAno = await criarTurma({
-      redeId: cenario.rede.id, unidadeId: cenario.unidades[0].id, anoLetivoId: outroAno.id,
+      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id, academicYearId: outroAno.id,
     });
 
     const resultado = await academico.matricular({
@@ -234,7 +234,7 @@ describe('matricular', () => {
 
   test('data de matrícula fora do formato é recusada antes de escrever', async () => {
     const cenario = await cenarioCompleto();
-    const aluno = await criarAluno({ redeId: cenario.rede.id });
+    const aluno = await criarAluno({ networkId: cenario.rede.id });
 
     const resultado = await academico.matricular({
       redeId: cenario.rede.id,
@@ -278,12 +278,12 @@ describe('transferir', () => {
 
     const nova = valorDe(resultado);
     expect(nova.turmaId).toBe(turmaDeDestino.id);
-    expect(nova.situacao).toBe('ativa');
-    expect(nova.alunoId).toBe(origem.alunoId);
-    expect(nova.anoLetivoId).toBe(origem.anoLetivoId);
+    expect(nova.situacao).toBe('active');
+    expect(nova.alunoId).toBe(origem.studentId);
+    expect(nova.anoLetivoId).toBe(origem.academicYearId);
     expect(nova.dataMatricula).toBe(DATA_DE_TRANSFERENCIA);
     const antiga = await academico.matriculaPorId(cenario.rede.id, origem.id);
-    expect(antiga?.situacao).toBe('transferida');
+    expect(antiga?.situacao).toBe('transferred');
     expect(antiga?.turmaId).toBe(turmaDeOrigem.id);
   });
 
@@ -298,11 +298,11 @@ describe('transferir', () => {
       data: DATA_DE_TRANSFERENCIA,
     });
 
-    const linhas = await sqlDeTeste()<{ situacao: string }[]>`
-      SELECT situacao FROM matricula
-       WHERE aluno_id = ${origem.alunoId} AND ano_letivo_id = ${origem.anoLetivoId}
-       ORDER BY situacao`;
-    expect(linhas.map((linha) => linha.situacao)).toEqual(['ativa', 'transferida']);
+    const linhas = await sqlDeTeste()<{ status: string }[]>`
+      SELECT status FROM enrollment
+       WHERE student_id = ${origem.studentId} AND academic_year_id = ${origem.academicYearId}
+       ORDER BY status`;
+    expect(linhas.map((linha) => linha.status)).toEqual(['active', 'transferred']);
   });
 
   test('a turma de origem perde o aluno e a de destino ganha', async () => {
@@ -319,8 +319,8 @@ describe('transferir', () => {
 
     const naOrigem = await academico.matriculasAtivasDaTurma(cenario.rede.id, turmaDeOrigem.id);
     const noDestino = await academico.matriculasAtivasDaTurma(cenario.rede.id, turmaDeDestino.id);
-    expect(naOrigem.map((linha) => linha.alunoId)).not.toContain(origem.alunoId);
-    expect(noDestino.map((linha) => linha.alunoId)).toEqual([origem.alunoId]);
+    expect(naOrigem.map((linha) => linha.alunoId)).not.toContain(origem.studentId);
+    expect(noDestino.map((linha) => linha.alunoId)).toEqual([origem.studentId]);
   });
 
   test('transferir para a mesma turma é recusado e nada muda', async () => {
@@ -330,7 +330,7 @@ describe('transferir', () => {
     const resultado = await academico.transferir({
       redeId: cenario.rede.id,
       matriculaId: origem.id,
-      turmaDestinoId: origem.turmaId,
+      turmaDestinoId: origem.classGroupId,
       data: DATA_DE_TRANSFERENCIA,
     });
 
@@ -341,7 +341,7 @@ describe('transferir', () => {
         mensagem: 'A turma de destino é a mesma turma da matrícula atual.',
       },
     ]);
-    expect(await situacoesDoAluno(origem.alunoId)).toEqual(['ativa']);
+    expect(await situacoesDoAluno(origem.studentId)).toEqual(['active']);
   });
 
   test('transferir matrícula já transferida é recusado', async () => {
@@ -369,7 +369,7 @@ describe('transferir', () => {
         mensagem: 'Apenas uma matrícula ativa pode ser transferida.',
       },
     ]);
-    expect(await situacoesDoAluno(origem.alunoId)).toEqual(['ativa', 'transferida']);
+    expect(await situacoesDoAluno(origem.studentId)).toEqual(['active', 'transferred']);
   });
 
   test('a matrícula pode ser transferida de novo a partir da turma nova', async () => {
@@ -394,17 +394,17 @@ describe('transferir', () => {
 
     expect(valorDe(segunda).turmaId).toBe(turmaDeOrigem.id);
     const ativas = await sqlDeTeste()<{ total: number }[]>`
-      SELECT count(*)::int AS total FROM matricula
-       WHERE aluno_id = ${origem.alunoId} AND situacao = 'ativa'`;
+      SELECT count(*)::int AS total FROM enrollment
+       WHERE student_id = ${origem.studentId} AND status = 'active'`;
     expect(ativas[0]?.total).toBe(1);
   });
 
   test('transferir para turma de outro ano letivo é recusado', async () => {
     const cenario = await cenarioCompleto();
     const [origem] = cenario.matriculas;
-    const outroAno = await criarAnoLetivo({ redeId: cenario.rede.id, ano: ANO_PADRAO + 1 });
+    const outroAno = await criarAnoLetivo({ networkId: cenario.rede.id, year: ANO_PADRAO + 1 });
     const turmaDoOutroAno = await criarTurma({
-      redeId: cenario.rede.id, unidadeId: cenario.unidades[0].id, anoLetivoId: outroAno.id,
+      networkId: cenario.rede.id, schoolId: cenario.unidades[0].id, academicYearId: outroAno.id,
     });
 
     const resultado = await academico.transferir({
@@ -421,7 +421,7 @@ describe('transferir', () => {
         mensagem: 'A turma de destino pertence a outro ano letivo.',
       },
     ]);
-    expect(await situacoesDoAluno(origem.alunoId)).toEqual(['ativa']);
+    expect(await situacoesDoAluno(origem.studentId)).toEqual(['active']);
   });
 
   test('transferir para turma de outra rede é recusado', async () => {
@@ -436,7 +436,7 @@ describe('transferir', () => {
     });
 
     expect(errosDe(resultado)[0]?.codigo).toBe('turma_nao_encontrada');
-    expect(await situacoesDoAluno(origem.alunoId)).toEqual(['ativa']);
+    expect(await situacoesDoAluno(origem.studentId)).toEqual(['active']);
   });
 
   test('matrícula de outra rede não é alcançável pelo id', async () => {
@@ -456,7 +456,7 @@ describe('transferir', () => {
         mensagem: 'Matrícula não encontrada nesta rede.',
       },
     ]);
-    expect(await situacoesDoAluno(b.matriculas[0].alunoId)).toEqual(['ativa']);
+    expect(await situacoesDoAluno(b.matriculas[0].studentId)).toEqual(['active']);
   });
 
   test('matrícula inexistente é recusada', async () => {
@@ -484,6 +484,6 @@ describe('transferir', () => {
     });
 
     expect(errosDe(resultado)[0]?.campo).toBe('data');
-    expect(await situacoesDoAluno(origem.alunoId)).toEqual(['ativa']);
+    expect(await situacoesDoAluno(origem.studentId)).toEqual(['active']);
   });
 });

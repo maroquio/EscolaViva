@@ -59,13 +59,13 @@ describe('o painel da rede', () => {
     const pagina = await resposta.text();
 
     expect(resposta.status).toBe(200);
-    expect(pagina).toContain(`<h1 class="pagina__titulo">${cenario.rede.nome}</h1>`);
+    expect(pagina).toContain(`<h1 class="pagina__titulo">${cenario.rede.name}</h1>`);
     expect(numeroDoCartao(pagina, 'Unidades')).toBe(String(cenario.unidades.length));
     // As quatro contas do cenário: administração, secretaria, professor e responsável.
     expect(numeroDoCartao(pagina, 'Usuários')).toBe('4');
     expect(numeroDoCartao(pagina, 'Turmas')).toBe(String(cenario.turmas.length));
     expect(numeroDoCartao(pagina, 'Matriculados')).toBe(String(cenario.matriculas.length));
-    expect(pagina).toContain(`<dd class="numero">${cenario.anoLetivo.ano}</dd>`);
+    expect(pagina).toContain(`<dd class="numero">${cenario.anoLetivo.year}</dd>`);
   });
 
   /**
@@ -74,10 +74,10 @@ describe('o painel da rede', () => {
    */
   test('sem ano letivo definido, conta zero turmas e aponta o próximo passo', async () => {
     const rede = await criarRede();
-    const unidade = await criarUnidade({ redeId: rede.id });
+    const unidade = await criarUnidade({ networkId: rede.id });
     const admin = await criarUsuario({
-      redeId: rede.id,
-      papeis: [{ unidadeId: unidade.id, papel: 'admin_rede' }],
+      networkId: rede.id,
+      papeis: [{ schoolId: unidade.id, role: 'network_admin' }],
     });
     const cookie = await entrar({ redeSlug: rede.slug, cpf: admin.cpf, senha: SENHA_PADRAO });
 
@@ -106,8 +106,8 @@ describe('as unidades da rede', () => {
     expect(pagina).toContain('<caption>Unidades cadastradas</caption>');
     expect(pagina).toContain('<th scope="col">Código INEP</th>');
     expect(pagina).toContain('<th scope="col">Situação</th>');
-    expect(pagina).toContain(`<th scope="row">${cenario.unidades[0].nome}</th>`);
-    expect(pagina).toContain(`<th scope="row">${cenario.unidades[1].nome}</th>`);
+    expect(pagina).toContain(`<th scope="row">${cenario.unidades[0].name}</th>`);
+    expect(pagina).toContain(`<th scope="row">${cenario.unidades[1].name}</th>`);
     expect(pagina).toContain(`>${cenario.unidades.length} no total<`);
   });
 
@@ -150,10 +150,10 @@ describe('os usuários da rede', () => {
     expect(pagina).toContain('<caption>Usuários da rede</caption>');
     expect(pagina).toContain('<th scope="col">CPF</th>');
     expect(pagina).toContain('<th scope="col">Papéis</th>');
-    expect(pagina).toContain(`<th scope="row">${cenario.admin.nome}</th>`);
+    expect(pagina).toContain(`<th scope="row">${cenario.admin.name}</th>`);
     expect(pagina).toContain(cenario.secretaria.email);
     // O papel aparece traduzido para o nome de tela, e sempre colado à unidade em que vale.
-    expect(pagina).toContain(`Administração da rede · ${cenario.unidades[0].nome}`);
+    expect(pagina).toContain(`Administração da rede · ${cenario.unidades[0].name}`);
   });
 
   /**
@@ -172,7 +172,7 @@ describe('os usuários da rede', () => {
         email: 'nova.secretaria@escolaviva.test',
         cpf: gerarCpf(424_242),
         'unidade[]': cenario.unidades[0].id,
-        'papel[]': 'secretaria',
+        'papel[]': 'registrar',
       },
       sessao,
     );
@@ -216,8 +216,8 @@ describe('os usuários da rede', () => {
     expect(pagina).toContain('id="unidade-2"');
     expect(pagina).not.toContain('id="unidade-3"');
     // Nem a lista de unidades nem a de responsáveis é recortada: escolher exige ver tudo.
-    expect(pagina).toContain(`>${cenario.unidades[1].nome}</option>`);
-    expect(pagina).toContain(cenario.responsaveis[4].nome);
+    expect(pagina).toContain(`>${cenario.unidades[1].name}</option>`);
+    expect(pagina).toContain(cenario.responsaveis[4].name);
   });
 });
 
@@ -235,7 +235,7 @@ describe('os anos letivos da rede', () => {
     expect(pagina).toContain('<caption>Calendário letivo da rede</caption>');
     expect(pagina).toContain('<th scope="col">Início</th>');
     expect(pagina).toContain('<th scope="col">Término</th>');
-    expect(pagina).toContain(`<th scope="row" class="numero">${cenario.anoLetivo.ano}</th>`);
+    expect(pagina).toContain(`<th scope="row" class="numero">${cenario.anoLetivo.year}</th>`);
   });
 
   test('a lista lê o código do redirecionamento e mostra a frase da definição', async () => {

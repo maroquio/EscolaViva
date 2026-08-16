@@ -5,16 +5,16 @@ import { situacaoValida, type Matricula, type SituacaoMatricula } from '../domin
 
 type LinhaDeMatricula = {
   id: string;
-  rede_id: string;
-  aluno_id: string;
-  aluno_nome: string;
-  turma_id: string;
-  turma_nome: string;
-  unidade_id: string;
-  ano_letivo_id: string;
-  ano: number;
-  data_matricula: string;
-  situacao: string;
+  network_id: string;
+  student_id: string;
+  student_name: string;
+  class_group_id: string;
+  class_group_name: string;
+  school_id: string;
+  academic_year_id: string;
+  year: number;
+  enrollment_date: string;
+  status: string;
 };
 
 function paraSituacao(valor: string): SituacaoMatricula {
@@ -24,24 +24,25 @@ function paraSituacao(valor: string): SituacaoMatricula {
 
 const paraMatricula = (linha: LinhaDeMatricula): Matricula => ({
   id: linha.id,
-  redeId: linha.rede_id,
-  alunoId: linha.aluno_id,
-  alunoNome: linha.aluno_nome,
-  turmaId: linha.turma_id,
-  turmaNome: linha.turma_nome,
-  unidadeId: linha.unidade_id,
-  anoLetivoId: linha.ano_letivo_id,
-  ano: linha.ano,
-  dataMatricula: linha.data_matricula,
-  situacao: paraSituacao(linha.situacao),
+  redeId: linha.network_id,
+  alunoId: linha.student_id,
+  alunoNome: linha.student_name,
+  turmaId: linha.class_group_id,
+  turmaNome: linha.class_group_name,
+  unidadeId: linha.school_id,
+  anoLetivoId: linha.academic_year_id,
+  ano: linha.year,
+  dataMatricula: linha.enrollment_date,
+  situacao: paraSituacao(linha.status),
 });
 
 export async function inserir(sql: Conexao, matricula: Matricula): Promise<boolean> {
   const criadas: { id: string }[] = await sql`
-    INSERT INTO matricula (id, rede_id, aluno_id, turma_id, ano_letivo_id, data_matricula, situacao)
+    INSERT INTO enrollment (id, network_id, student_id, class_group_id, academic_year_id,
+                            enrollment_date, status)
     VALUES (${matricula.id}, ${matricula.redeId}, ${matricula.alunoId}, ${matricula.turmaId},
             ${matricula.anoLetivoId}, ${matricula.dataMatricula}, ${matricula.situacao})
-    ON CONFLICT (aluno_id, ano_letivo_id) WHERE situacao = 'ativa' DO NOTHING
+    ON CONFLICT (student_id, academic_year_id) WHERE status = 'active' DO NOTHING
     RETURNING id`;
   return criadas.length === 1;
 }
@@ -52,23 +53,23 @@ export async function marcarComoTransferida(
   id: string,
 ): Promise<boolean> {
   const atualizadas: { id: string }[] = await sql`
-    UPDATE matricula
-       SET situacao = 'transferida'
-     WHERE rede_id = ${redeId} AND id = ${id} AND situacao = 'ativa'
+    UPDATE enrollment
+       SET status = 'transferred'
+     WHERE network_id = ${redeId} AND id = ${id} AND status = 'active'
      RETURNING id`;
   return atualizadas.length === 1;
 }
 
 export async function porId(sql: Conexao, redeId: string, id: string): Promise<Matricula | null> {
   const linhas: LinhaDeMatricula[] = await sql`
-    SELECT m.id, m.rede_id, m.aluno_id, a.nome AS aluno_nome, m.turma_id, t.nome AS turma_nome,
-           t.unidade_id, m.ano_letivo_id, al.ano,
-           to_char(m.data_matricula, 'YYYY-MM-DD') AS data_matricula, m.situacao
-      FROM matricula m
-      JOIN aluno a ON a.id = m.aluno_id AND a.rede_id = m.rede_id
-      JOIN turma t ON t.id = m.turma_id AND t.rede_id = m.rede_id
-      JOIN ano_letivo al ON al.id = m.ano_letivo_id AND al.rede_id = m.rede_id
-     WHERE m.rede_id = ${redeId} AND m.id = ${id}`;
+    SELECT m.id, m.network_id, m.student_id, a.name AS student_name, m.class_group_id,
+           t.name AS class_group_name, t.school_id, m.academic_year_id, al.year,
+           to_char(m.enrollment_date, 'YYYY-MM-DD') AS enrollment_date, m.status
+      FROM enrollment m
+      JOIN student a ON a.id = m.student_id AND a.network_id = m.network_id
+      JOIN class_group t ON t.id = m.class_group_id AND t.network_id = m.network_id
+      JOIN academic_year al ON al.id = m.academic_year_id AND al.network_id = m.network_id
+     WHERE m.network_id = ${redeId} AND m.id = ${id}`;
   const linha = linhas[0];
   return linha === undefined ? null : paraMatricula(linha);
 }
@@ -81,15 +82,15 @@ export async function ativasDaTurma(
 ): Promise<Matricula[]> {
   const { limite, deslocamento } = recorte(faixa);
   const linhas: LinhaDeMatricula[] = await sql`
-    SELECT m.id, m.rede_id, m.aluno_id, a.nome AS aluno_nome, m.turma_id, t.nome AS turma_nome,
-           t.unidade_id, m.ano_letivo_id, al.ano,
-           to_char(m.data_matricula, 'YYYY-MM-DD') AS data_matricula, m.situacao
-      FROM matricula m
-      JOIN aluno a ON a.id = m.aluno_id AND a.rede_id = m.rede_id
-      JOIN turma t ON t.id = m.turma_id AND t.rede_id = m.rede_id
-      JOIN ano_letivo al ON al.id = m.ano_letivo_id AND al.rede_id = m.rede_id
-     WHERE m.rede_id = ${redeId} AND m.turma_id = ${turmaId} AND m.situacao = 'ativa'
-     ORDER BY a.nome
+    SELECT m.id, m.network_id, m.student_id, a.name AS student_name, m.class_group_id,
+           t.name AS class_group_name, t.school_id, m.academic_year_id, al.year,
+           to_char(m.enrollment_date, 'YYYY-MM-DD') AS enrollment_date, m.status
+      FROM enrollment m
+      JOIN student a ON a.id = m.student_id AND a.network_id = m.network_id
+      JOIN class_group t ON t.id = m.class_group_id AND t.network_id = m.network_id
+      JOIN academic_year al ON al.id = m.academic_year_id AND al.network_id = m.network_id
+     WHERE m.network_id = ${redeId} AND m.class_group_id = ${turmaId} AND m.status = 'active'
+     ORDER BY a.name
      LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map(paraMatricula);
 }
@@ -101,8 +102,8 @@ export async function contarAtivasDaTurma(
 ): Promise<number> {
   const linhas: { total: number }[] = await sql`
     SELECT count(*)::int AS total
-      FROM matricula
-     WHERE rede_id = ${redeId} AND turma_id = ${turmaId} AND situacao = 'ativa'`;
+      FROM enrollment
+     WHERE network_id = ${redeId} AND class_group_id = ${turmaId} AND status = 'active'`;
   return linhas[0]?.total ?? 0;
 }
 
@@ -116,17 +117,17 @@ export async function doAlunoNasUnidades(
   if (unidadeIds.length === 0) return [];
   const { limite, deslocamento } = recorte(faixa);
   const linhas: LinhaDeMatricula[] = await sql`
-    SELECT m.id, m.rede_id, m.aluno_id, a.nome AS aluno_nome, m.turma_id, t.nome AS turma_nome,
-           t.unidade_id, m.ano_letivo_id, al.ano,
-           to_char(m.data_matricula, 'YYYY-MM-DD') AS data_matricula, m.situacao
-      FROM matricula m
-      JOIN aluno a ON a.id = m.aluno_id AND a.rede_id = m.rede_id
-      JOIN turma t ON t.id = m.turma_id AND t.rede_id = m.rede_id
-      JOIN ano_letivo al ON al.id = m.ano_letivo_id AND al.rede_id = m.rede_id
-     WHERE m.rede_id = ${redeId}
-       AND m.aluno_id = ${alunoId}
-       AND t.unidade_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
-     ORDER BY al.ano DESC, m.data_matricula DESC
+    SELECT m.id, m.network_id, m.student_id, a.name AS student_name, m.class_group_id,
+           t.name AS class_group_name, t.school_id, m.academic_year_id, al.year,
+           to_char(m.enrollment_date, 'YYYY-MM-DD') AS enrollment_date, m.status
+      FROM enrollment m
+      JOIN student a ON a.id = m.student_id AND a.network_id = m.network_id
+      JOIN class_group t ON t.id = m.class_group_id AND t.network_id = m.network_id
+      JOIN academic_year al ON al.id = m.academic_year_id AND al.network_id = m.network_id
+     WHERE m.network_id = ${redeId}
+       AND m.student_id = ${alunoId}
+       AND t.school_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
+     ORDER BY al.year DESC, m.enrollment_date DESC
      LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map(paraMatricula);
 }
@@ -140,11 +141,11 @@ export async function contarDoAlunoNasUnidades(
   if (unidadeIds.length === 0) return 0;
   const linhas: { total: number }[] = await sql`
     SELECT count(*)::int AS total
-      FROM matricula m
-      JOIN turma t ON t.id = m.turma_id AND t.rede_id = m.rede_id
-     WHERE m.rede_id = ${redeId}
-       AND m.aluno_id = ${alunoId}
-       AND t.unidade_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])`;
+      FROM enrollment m
+      JOIN class_group t ON t.id = m.class_group_id AND t.network_id = m.network_id
+     WHERE m.network_id = ${redeId}
+       AND m.student_id = ${alunoId}
+       AND t.school_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])`;
   return linhas[0]?.total ?? 0;
 }
 
@@ -155,8 +156,8 @@ export async function temAlgumaMatricula(
 ): Promise<boolean> {
   const linhas: { existe: number }[] = await sql`
     SELECT 1 AS existe
-      FROM matricula
-     WHERE rede_id = ${redeId} AND aluno_id = ${alunoId}
+      FROM enrollment
+     WHERE network_id = ${redeId} AND student_id = ${alunoId}
      LIMIT 1`;
   return linhas.length > 0;
 }
@@ -167,15 +168,15 @@ export async function contarAtivasPorUnidade(
   unidadeIds: readonly string[],
 ): Promise<Map<string, number>> {
   if (unidadeIds.length === 0) return new Map<string, number>();
-  const linhas: { unidade_id: string; total: number }[] = await sql`
-    SELECT t.unidade_id, count(*)::int AS total
-      FROM matricula m
-      JOIN turma t ON t.id = m.turma_id AND t.rede_id = m.rede_id
-     WHERE m.rede_id = ${redeId}
-       AND m.situacao = 'ativa'
-       AND t.unidade_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
-     GROUP BY t.unidade_id`;
-  return new Map(linhas.map((linha): [string, number] => [linha.unidade_id, linha.total]));
+  const linhas: { school_id: string; total: number }[] = await sql`
+    SELECT t.school_id, count(*)::int AS total
+      FROM enrollment m
+      JOIN class_group t ON t.id = m.class_group_id AND t.network_id = m.network_id
+     WHERE m.network_id = ${redeId}
+       AND m.status = 'active'
+       AND t.school_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
+     GROUP BY t.school_id`;
+  return new Map(linhas.map((linha): [string, number] => [linha.school_id, linha.total]));
 }
 
 export async function ativasDosAlunos(
@@ -186,18 +187,18 @@ export async function ativasDosAlunos(
 ): Promise<Matricula[]> {
   if (alunoIds.length === 0 || unidadeIds.length === 0) return [];
   const linhas: LinhaDeMatricula[] = await sql`
-    SELECT m.id, m.rede_id, m.aluno_id, a.nome AS aluno_nome, m.turma_id, t.nome AS turma_nome,
-           t.unidade_id, m.ano_letivo_id, al.ano,
-           to_char(m.data_matricula, 'YYYY-MM-DD') AS data_matricula, m.situacao
-      FROM matricula m
-      JOIN aluno a ON a.id = m.aluno_id AND a.rede_id = m.rede_id
-      JOIN turma t ON t.id = m.turma_id AND t.rede_id = m.rede_id
-      JOIN ano_letivo al ON al.id = m.ano_letivo_id AND al.rede_id = m.rede_id
-     WHERE m.rede_id = ${redeId}
-       AND m.situacao = 'ativa'
-       AND m.aluno_id = ANY(${sql.array([...alunoIds], 'TEXT')}::uuid[])
-       AND t.unidade_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
-     ORDER BY al.ano DESC`;
+    SELECT m.id, m.network_id, m.student_id, a.name AS student_name, m.class_group_id,
+           t.name AS class_group_name, t.school_id, m.academic_year_id, al.year,
+           to_char(m.enrollment_date, 'YYYY-MM-DD') AS enrollment_date, m.status
+      FROM enrollment m
+      JOIN student a ON a.id = m.student_id AND a.network_id = m.network_id
+      JOIN class_group t ON t.id = m.class_group_id AND t.network_id = m.network_id
+      JOIN academic_year al ON al.id = m.academic_year_id AND al.network_id = m.network_id
+     WHERE m.network_id = ${redeId}
+       AND m.status = 'active'
+       AND m.student_id = ANY(${sql.array([...alunoIds], 'TEXT')}::uuid[])
+       AND t.school_id = ANY(${sql.array([...unidadeIds], 'TEXT')}::uuid[])
+     ORDER BY al.year DESC`;
   return linhas.map(paraMatricula);
 }
 
@@ -209,16 +210,16 @@ export async function doResponsavel(
 ): Promise<Matricula[]> {
   const { limite, deslocamento } = recorte(faixa);
   const linhas: LinhaDeMatricula[] = await sql`
-    SELECT m.id, m.rede_id, m.aluno_id, a.nome AS aluno_nome, m.turma_id, t.nome AS turma_nome,
-           t.unidade_id, m.ano_letivo_id, al.ano,
-           to_char(m.data_matricula, 'YYYY-MM-DD') AS data_matricula, m.situacao
-      FROM matricula m
-      JOIN aluno a ON a.id = m.aluno_id AND a.rede_id = m.rede_id
-      JOIN turma t ON t.id = m.turma_id AND t.rede_id = m.rede_id
-      JOIN ano_letivo al ON al.id = m.ano_letivo_id AND al.rede_id = m.rede_id
-      JOIN aluno_responsavel av ON av.aluno_id = m.aluno_id AND av.rede_id = m.rede_id
-     WHERE m.rede_id = ${redeId} AND av.responsavel_id = ${responsavelId}
-     ORDER BY al.ano DESC, a.nome
+    SELECT m.id, m.network_id, m.student_id, a.name AS student_name, m.class_group_id,
+           t.name AS class_group_name, t.school_id, m.academic_year_id, al.year,
+           to_char(m.enrollment_date, 'YYYY-MM-DD') AS enrollment_date, m.status
+      FROM enrollment m
+      JOIN student a ON a.id = m.student_id AND a.network_id = m.network_id
+      JOIN class_group t ON t.id = m.class_group_id AND t.network_id = m.network_id
+      JOIN academic_year al ON al.id = m.academic_year_id AND al.network_id = m.network_id
+      JOIN student_guardian av ON av.student_id = m.student_id AND av.network_id = m.network_id
+     WHERE m.network_id = ${redeId} AND av.guardian_id = ${responsavelId}
+     ORDER BY al.year DESC, a.name
      LIMIT ${limite}::int OFFSET ${deslocamento}::int`;
   return linhas.map(paraMatricula);
 }
@@ -230,8 +231,8 @@ export async function contarDoResponsavel(
 ): Promise<number> {
   const linhas: { total: number }[] = await sql`
     SELECT count(*)::int AS total
-      FROM matricula m
-      JOIN aluno_responsavel av ON av.aluno_id = m.aluno_id AND av.rede_id = m.rede_id
-     WHERE m.rede_id = ${redeId} AND av.responsavel_id = ${responsavelId}`;
+      FROM enrollment m
+      JOIN student_guardian av ON av.student_id = m.student_id AND av.network_id = m.network_id
+     WHERE m.network_id = ${redeId} AND av.guardian_id = ${responsavelId}`;
   return linhas[0]?.total ?? 0;
 }
