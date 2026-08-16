@@ -8,25 +8,25 @@ const fields = it.fields.user;
 const { errorFor, describedBy } = it;
 const overline = `${it.areas.network}${it.presentation.separator}${it.titles.network.users}`;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= overline %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= overline %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       A senha provisória é gerada agora e aparece uma única vez na lista, logo depois de criar.
       Tenha onde anotá-la antes de enviar o formulário.
     </p>
   </div>
 </div>
 
-<div class="quadro">
-  <form class="formulario formulario--largo" method="post" action="<%= it.routes.network.users() %>">
+<div class="panel">
+  <form class="form form--wide" method="post" action="<%= it.routes.network.users() %>">
     <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
-    <div class="formulario__linha">
-      <div class="campo">
-        <label class="campo__rotulo" for="name">
-          <%= it.labels.name %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="name">
+          <%= it.labels.name %> <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="name"
@@ -39,13 +39,13 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
           <% if (errorFor(fields.name) !== '') { %>aria-invalid="true"<% } %>
           <% if (describedBy(fields.name) !== '') { %>aria-describedby="<%= describedBy(fields.name) %>"<% } %>>
         <% if (errorFor(fields.name) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.name) %>"><%= errorFor(fields.name) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.name) %>"><%= errorFor(fields.name) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="cpf">
-          <%= it.labels.cpf %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="cpf">
+          <%= it.labels.cpf %> <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="cpf"
@@ -57,15 +57,15 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
           value="<%= values.cpf %>"
           <% if (errorFor(fields.cpf) !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= describedBy(fields.cpf, true) %>">
-        <p class="campo__ajuda" id="<%= it.helpId(fields.cpf) %>">É por ele que a pessoa entra. Com ou sem pontos.</p>
+        <p class="field__help" id="<%= it.helpId(fields.cpf) %>">É por ele que a pessoa entra. Com ou sem pontos.</p>
         <% if (errorFor(fields.cpf) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.cpf) %>"><%= errorFor(fields.cpf) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.cpf) %>"><%= errorFor(fields.cpf) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="email">
-          <%= it.labels.email %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="email">
+          <%= it.labels.email %> <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="email"
@@ -78,9 +78,9 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
           value="<%= values.email %>"
           <% if (errorFor(fields.email) !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= describedBy(fields.email, true) %>">
-        <p class="campo__ajuda" id="<%= it.helpId(fields.email) %>">Contato. Não é usado para entrar.</p>
+        <p class="field__help" id="<%= it.helpId(fields.email) %>">Contato. Não é usado para entrar.</p>
         <% if (errorFor(fields.email) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.email) %>"><%= errorFor(fields.email) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.email) %>"><%= errorFor(fields.email) %></p>
         <% } %>
       </div>
     </div>
@@ -88,14 +88,14 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
     <fieldset <% if (errorFor(fields.roleAssignments) !== '') { %>aria-describedby="<%= it.errorId(fields.roleAssignments) %>"<% } %>>
       <legend>Atribuições</legend>
       <% if (errorFor(fields.roleAssignments) !== '') { %>
-      <p class="campo__erro" id="<%= it.errorId(fields.roleAssignments) %>"><%= errorFor(fields.roleAssignments) %></p>
+      <p class="field__error" id="<%= it.errorId(fields.roleAssignments) %>"><%= errorFor(fields.roleAssignments) %></p>
       <% } %>
 
-      <div class="pilha">
+      <div class="stack">
         <% rows.forEach((row, index) => { %>
-        <div class="formulario__linha">
-          <div class="campo">
-            <label class="campo__rotulo" for="school-<%= index %>"><%= it.labels.school %> <%= index + 1 %></label>
+        <div class="form__row">
+          <div class="field">
+            <label class="field__label" for="school-<%= index %>"><%= it.labels.school %> <%= index + 1 %></label>
             <select id="school-<%= index %>" name="<%= fields.schools %>">
               <option value="">Sem atribuição</option>
               <% schools.forEach((school) => { %>
@@ -104,8 +104,8 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
             </select>
           </div>
 
-          <div class="campo">
-            <label class="campo__rotulo" for="role-<%= index %>">Papel <%= index + 1 %></label>
+          <div class="field">
+            <label class="field__label" for="role-<%= index %>">Papel <%= index + 1 %></label>
             <select id="role-<%= index %>" name="<%= fields.roles %>">
               <option value="">Sem atribuição</option>
               <% roles.forEach((option) => { %>
@@ -118,8 +118,8 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
       </div>
     </fieldset>
 
-    <div class="campo">
-      <label class="campo__rotulo" for="guardianId">Cadastro de responsável</label>
+    <div class="field">
+      <label class="field__label" for="guardianId">Cadastro de responsável</label>
       <select
         id="guardianId"
         name="<%= fields.guardianId %>"
@@ -130,18 +130,18 @@ const overline = `${it.areas.network}${it.presentation.separator}${it.titles.net
         <option value="<%= guardian.id %>" <% if (guardian.id === values.guardianId) { %>selected<% } %>><%= guardian.name %> — <%= guardian.email %></option>
         <% }) %>
       </select>
-      <p class="campo__ajuda" id="<%= it.helpId(fields.guardianId) %>">
+      <p class="field__help" id="<%= it.helpId(fields.guardianId) %>">
         Obrigatório quando alguma atribuição acima for Responsável: é esse cadastro que liga a
         conta aos alunos. A secretaria cria o cadastro antes do convite.
       </p>
       <% if (errorFor(fields.guardianId) !== '') { %>
-      <p class="campo__erro" id="<%= it.errorId(fields.guardianId) %>"><%= errorFor(fields.guardianId) %></p>
+      <p class="field__error" id="<%= it.errorId(fields.guardianId) %>"><%= errorFor(fields.guardianId) %></p>
       <% } %>
     </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit">Criar usuário</button>
-      <a class="botao botao--discreto" href="<%= it.routes.network.users() %>"><%= it.actions.cancel %></a>
+    <div class="actions">
+      <button class="button button--primary" type="submit">Criar usuário</button>
+      <a class="button button--quiet" href="<%= it.routes.network.users() %>"><%= it.actions.cancel %></a>
     </div>
   </form>
 </div>

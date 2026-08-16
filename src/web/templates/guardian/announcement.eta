@@ -2,40 +2,40 @@
 const announcement = it.announcement;
 const readAt = it.readAt;
 %>
-<header class="pagina__cabecalho">
+<header class="page__header">
   <div>
-    <p class="sobretitulo">Comunicado</p>
-    <h1 class="pagina__titulo"><%= announcement.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline">Comunicado</p>
+    <h1 class="page__title"><%= announcement.title %></h1>
+    <p class="page__summary">
       Publicado por <%= announcement.authorName %> em
       <time datetime="<%= announcement.publishedAt %>">
         <%= it.formatDateTime(announcement.publishedAt) %>
       </time>
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="<%= it.routes.guardian.board() %>"><%= it.actions.backTo.board %></a>
+  <p class="page__actions">
+    <a class="button button--quiet" href="<%= it.routes.guardian.board() %>"><%= it.actions.backTo.board %></a>
   </p>
 </header>
 
-<article class="pilha">
-  <div class="quadro leitura">
-    <p class="texto-corrido"><%= announcement.body %></p>
+<article class="stack">
+  <div class="panel reading">
+    <p class="running-text"><%= announcement.body %></p>
   </div>
 
-  <footer class="acoes">
+  <footer class="actions">
     <% if (readAt === null) { %>
     <form method="post" action="<%= it.routes.guardian.announcementRead({ announcementId: announcement.id }) %>">
       <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
-      <button class="botao botao--primario" type="submit">Marcar como lido</button>
+      <button class="button button--primary" type="submit">Marcar como lido</button>
     </form>
-    <p class="suave">
+    <p class="muted">
       Marcar como lido avisa a escola de que a mensagem chegou até você.
     </p>
     <% } else { %>
-    <p class="linha">
-      <span class="etiqueta etiqueta--aprovado">Lido</span>
-      <span class="suave">
+    <p class="row">
+      <span class="tag tag--passed">Lido</span>
+      <span class="muted">
         em <time datetime="<%= readAt %>"><%= it.formatDateTime(readAt) %></time>
       </span>
     </p>

@@ -29,35 +29,35 @@ const studentRecord = it.routes.registrar.student({ id: student.id });
 const classGroupLabel = (classGroup) =>
   [classGroup.name, classGroup.gradeLevel, classGroup.shiftName, classGroup.schoolName].join(it.presentation.separator);
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= student.name %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %><%= it.presentation.separator %><%= student.name %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       Um aluno tem, no máximo, uma matrícula ativa por ano letivo.
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= studentRecord %>"><%= it.actions.backTo.record %></a>
+  <div class="page__actions">
+    <a class="button button--secondary" href="<%= studentRecord %>"><%= it.actions.backTo.record %></a>
   </div>
 </div>
 
-<div class="quadro">
+<div class="panel">
   <% if (classGroups.length === 0 || academicYears.length === 0) { %>
-  <p class="suave leitura">Não há turma disponível nas suas unidades.</p>
-  <div class="acoes">
-    <a class="botao botao--primario" href="<%= it.routes.registrar.classGroupNew() %>"><%= it.titles.registrar.classGroupNew %></a>
-    <a class="botao botao--discreto" href="<%= studentRecord %>"><%= it.actions.backTo.record %></a>
+  <p class="muted reading">Não há turma disponível nas suas unidades.</p>
+  <div class="actions">
+    <a class="button button--primary" href="<%= it.routes.registrar.classGroupNew() %>"><%= it.titles.registrar.classGroupNew %></a>
+    <a class="button button--quiet" href="<%= studentRecord %>"><%= it.actions.backTo.record %></a>
   </div>
   <% } else { %>
-  <form class="formulario" method="post" action="<%= it.routes.registrar.enrollments() %>">
+  <form class="form" method="post" action="<%= it.routes.registrar.enrollments() %>">
     <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
     <input type="hidden" name="<%= fields.studentId %>" value="<%= student.id %>">
 
-    <div class="formulario__linha">
-      <div class="campo">
-        <label class="campo__rotulo" for="classGroupId">
-          <%= it.labels.classGroup %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="classGroupId">
+          <%= it.labels.classGroup %> <span class="field__required" aria-hidden="true">*</span>
         </label>
         <select
           id="classGroupId"
@@ -77,13 +77,13 @@ const classGroupLabel = (classGroup) =>
           <% }) %>
         </select>
         <% if (errorFor(fields.classGroupId) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.classGroupId) %>"><%= errorFor(fields.classGroupId) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.classGroupId) %>"><%= errorFor(fields.classGroupId) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="academicYearId">
-          <%= it.labels.academicYear %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="academicYearId">
+          <%= it.labels.academicYear %> <span class="field__required" aria-hidden="true">*</span>
         </label>
         <select
           id="academicYearId"
@@ -98,17 +98,17 @@ const classGroupLabel = (classGroup) =>
           </option>
           <% }) %>
         </select>
-        <p class="campo__ajuda" id="<%= it.helpId(fields.academicYearId) %>">
+        <p class="field__help" id="<%= it.helpId(fields.academicYearId) %>">
           Precisa ser o mesmo ano da turma escolhida — o servidor recusa o par que não fecha.
         </p>
         <% if (errorFor(fields.academicYearId) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.academicYearId) %>"><%= errorFor(fields.academicYearId) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.academicYearId) %>"><%= errorFor(fields.academicYearId) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="enrollmentDate">
-          Data da matrícula <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="enrollmentDate">
+          Data da matrícula <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="enrollmentDate"
@@ -119,14 +119,14 @@ const classGroupLabel = (classGroup) =>
           <% if (errorFor(fields.enrollmentDate) !== '') { %>aria-invalid="true"<% } %>
           <% if (describedBy(fields.enrollmentDate) !== '') { %>aria-describedby="<%= describedBy(fields.enrollmentDate) %>"<% } %>>
         <% if (errorFor(fields.enrollmentDate) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.enrollmentDate) %>"><%= errorFor(fields.enrollmentDate) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.enrollmentDate) %>"><%= errorFor(fields.enrollmentDate) %></p>
         <% } %>
       </div>
     </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit">Matricular</button>
-      <a class="botao botao--discreto" href="<%= studentRecord %>"><%= it.actions.cancel %></a>
+    <div class="actions">
+      <button class="button button--primary" type="submit">Matricular</button>
+      <a class="button button--quiet" href="<%= studentRecord %>"><%= it.actions.cancel %></a>
     </div>
   </form>
   <% } %>

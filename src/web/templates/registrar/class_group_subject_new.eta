@@ -8,23 +8,23 @@ const fields = it.fields.teachingAssignment;
 const canAssign = subjects.length > 0 && teachers.length > 0;
 const classGroupPage = it.routes.registrar.classGroup({ id: classGroup.id });
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.classGroup(classGroup.name) %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.classGroup(classGroup.name) %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       <%= classGroup.gradeLevel %><%= it.presentation.separator %><%= classGroup.shiftName %><%= it.presentation.separator %><%= classGroup.schoolName %><%= it.presentation.separator %>ano letivo
-      <span class="numero"><%= classGroup.year === null ? it.missingValue : classGroup.year %></span>
+      <span class="number"><%= classGroup.year === null ? it.missingValue : classGroup.year %></span>
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= classGroupPage %>"><%= it.actions.backTo.classGroup %></a>
+  <div class="page__actions">
+    <a class="button button--secondary" href="<%= classGroupPage %>"><%= it.actions.backTo.classGroup %></a>
   </div>
 </div>
 
-<div class="quadro">
+<div class="panel">
   <% if (!canAssign) { %>
-  <p class="suave leitura">
+  <p class="muted reading">
     <% if (subjects.length === 0) { %>
     Esta rede ainda não tem disciplina cadastrada.
     <% } else { %>
@@ -32,20 +32,20 @@ const classGroupPage = it.routes.registrar.classGroup({ id: classGroup.id });
     rede para atribuir o papel antes de alocar.
     <% } %>
   </p>
-  <div class="acoes">
+  <div class="actions">
     <% if (subjects.length === 0) { %>
-    <a class="botao botao--primario" href="<%= it.routes.registrar.subjectNew() %>"><%= it.titles.registrar.subjectNew %></a>
+    <a class="button button--primary" href="<%= it.routes.registrar.subjectNew() %>"><%= it.titles.registrar.subjectNew %></a>
     <% } %>
-    <a class="botao botao--discreto" href="<%= classGroupPage %>"><%= it.actions.backTo.classGroup %></a>
+    <a class="button button--quiet" href="<%= classGroupPage %>"><%= it.actions.backTo.classGroup %></a>
   </div>
   <% } else { %>
-  <form class="formulario" method="post" action="<%= it.routes.registrar.classGroupSubjects({ id: classGroup.id }) %>">
+  <form class="form" method="post" action="<%= it.routes.registrar.classGroupSubjects({ id: classGroup.id }) %>">
     <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
-    <div class="formulario__linha">
-      <div class="campo">
-        <label class="campo__rotulo" for="subjectId">
-          <%= it.labels.subject %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="subjectId">
+          <%= it.labels.subject %> <span class="field__required" aria-hidden="true">*</span>
         </label>
         <select
           id="subjectId"
@@ -60,17 +60,17 @@ const classGroupPage = it.routes.registrar.classGroup({ id: classGroup.id });
           </option>
           <% }) %>
         </select>
-        <p class="campo__ajuda" id="<%= it.helpId(fields.subjectId) %>">
+        <p class="field__help" id="<%= it.helpId(fields.subjectId) %>">
           Cada disciplina entra uma única vez por turma.
         </p>
         <% if (errorFor(fields.subjectId) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.subjectId) %>"><%= errorFor(fields.subjectId) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.subjectId) %>"><%= errorFor(fields.subjectId) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="teacherUserId">
-          Professor <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="teacherUserId">
+          Professor <span class="field__required" aria-hidden="true">*</span>
         </label>
         <select
           id="teacherUserId"
@@ -85,18 +85,18 @@ const classGroupPage = it.routes.registrar.classGroup({ id: classGroup.id });
           </option>
           <% }) %>
         </select>
-        <p class="campo__ajuda" id="<%= it.helpId(fields.teacherUserId) %>">
+        <p class="field__help" id="<%= it.helpId(fields.teacherUserId) %>">
           Somente quem tem papel de professor em <%= classGroup.schoolName %>.
         </p>
         <% if (errorFor(fields.teacherUserId) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.teacherUserId) %>"><%= errorFor(fields.teacherUserId) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.teacherUserId) %>"><%= errorFor(fields.teacherUserId) %></p>
         <% } %>
       </div>
     </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit">Alocar</button>
-      <a class="botao botao--discreto" href="<%= classGroupPage %>"><%= it.actions.cancel %></a>
+    <div class="actions">
+      <button class="button button--primary" type="submit">Alocar</button>
+      <a class="button button--quiet" href="<%= classGroupPage %>"><%= it.actions.cancel %></a>
     </div>
   </form>
   <% } %>

@@ -2,21 +2,21 @@
 const announcements = it.announcements;
 const summary = it.summary;
 %>
-<header class="pagina__cabecalho">
+<header class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.communication %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.communication %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       O que foi enviado ao mural dos responsáveis, com quantos receberam e quantos leram.
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.routes.announcements.new() %>"><%= it.titles.announcements.new %></a>
+  <p class="page__actions">
+    <a class="button button--primary" href="<%= it.routes.announcements.new() %>"><%= it.titles.announcements.new %></a>
   </p>
 </header>
 
-<form class="filtro" method="get" action="<%= it.routes.announcements.list() %>">
-  <label class="campo__rotulo" for="school-filter"><%= it.labels.school %></label>
+<form class="filter" method="get" action="<%= it.routes.announcements.list() %>">
+  <label class="field__label" for="school-filter"><%= it.labels.school %></label>
   <select id="school-filter" name="<%= it.schoolField %>">
     <% if (it.seesWholeNetwork) { %>
     <option value=""<% if (it.currentSchool === '') { %> selected<% } %>>Toda a rede</option>
@@ -27,37 +27,37 @@ const summary = it.summary;
     </option>
     <% }) %>
   </select>
-  <button class="botao botao--secundario" type="submit">Filtrar</button>
+  <button class="button button--secondary" type="submit">Filtrar</button>
 </form>
 
-<section class="secao" aria-labelledby="audience-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="audience-title">
+  <div class="section__header">
     <h2 id="audience-title">Alcance da comunicação</h2>
-    <p class="secao__nota">Soma dos comunicados listados abaixo</p>
+    <p class="section__note">Soma dos comunicados listados abaixo</p>
   </div>
 
-  <div class="pilha">
-    <div class="painel">
-      <div class="cartao">
-        <p class="cartao__rotulo">Taxa de leitura</p>
-        <p class="cartao__numero"><%= it.formatRate(summary.rate) %></p>
-        <p class="cartao__detalhe">Leituras sobre destinatários alcançados</p>
+  <div class="stack">
+    <div class="dashboard">
+      <div class="card">
+        <p class="card__label">Taxa de leitura</p>
+        <p class="card__number"><%= it.formatRate(summary.rate) %></p>
+        <p class="card__detail">Leituras sobre destinatários alcançados</p>
       </div>
 
-      <div class="cartao">
-        <p class="cartao__rotulo"><%= it.labels.recipients %></p>
-        <p class="cartao__numero"><%= summary.recipients %></p>
-        <p class="cartao__detalhe">Responsáveis que receberam algum comunicado</p>
+      <div class="card">
+        <p class="card__label"><%= it.labels.recipients %></p>
+        <p class="card__number"><%= summary.recipients %></p>
+        <p class="card__detail">Responsáveis que receberam algum comunicado</p>
       </div>
 
-      <div class="cartao">
-        <p class="cartao__rotulo">Leituras</p>
-        <p class="cartao__numero"><%= summary.reads %></p>
-        <p class="cartao__detalhe">Marcadas pelo próprio responsável no mural</p>
+      <div class="card">
+        <p class="card__label">Leituras</p>
+        <p class="card__number"><%= summary.reads %></p>
+        <p class="card__detail">Marcadas pelo próprio responsável no mural</p>
       </div>
     </div>
 
-    <p class="suave">
+    <p class="muted">
       A leitura é registrada quando o responsável abre o comunicado no portal e marca que leu.
       Comunicado publicado que ninguém marcou continua contando como enviado e não como lido — é
       essa distância entre os dois números que diz quanto da comunicação da escola chega ao destino.
@@ -65,10 +65,10 @@ const summary = it.summary;
   </div>
 </section>
 
-<section class="secao" aria-labelledby="published-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="published-title">
+  <div class="section__header">
     <h2 id="published-title">Publicados</h2>
-    <p class="secao__nota">Do mais recente para o mais antigo</p>
+    <p class="section__note">Do mais recente para o mais antigo</p>
   </div>
 
   <% if (announcements.length === 0) { %>
@@ -78,8 +78,8 @@ const summary = it.summary;
       action: { href: it.routes.announcements.new(), text: 'Publicar o primeiro comunicado' },
     }) %>
   <% } else { %>
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Comunicados e leituras</caption>
       <thead>
         <tr>
@@ -93,22 +93,22 @@ const summary = it.summary;
       <tbody>
         <% announcements.forEach((item) => { %>
         <tr>
-          <td class="celula-texto"><%= item.title %></td>
-          <td class="numero">
+          <td class="cell-text"><%= item.title %></td>
+          <td class="number">
             <time datetime="<%= item.publishedAt %>"><%= it.formatDate(item.publishedAt) %></time>
           </td>
-          <td class="numero"><%= item.recipients %></td>
-          <td class="numero"><%= item.reads %></td>
-          <td class="numero"><%= it.formatRate(item.rate) %></td>
+          <td class="number"><%= item.recipients %></td>
+          <td class="number"><%= item.reads %></td>
+          <td class="number"><%= it.formatRate(item.rate) %></td>
         </tr>
         <% }) %>
       </tbody>
       <tfoot>
         <tr>
-          <td class="celula-texto" colspan="2">Total do recorte</td>
-          <td class="numero"><%= summary.recipients %></td>
-          <td class="numero"><%= summary.reads %></td>
-          <td class="numero"><%= it.formatRate(summary.rate) %></td>
+          <td class="cell-text" colspan="2">Total do recorte</td>
+          <td class="number"><%= summary.recipients %></td>
+          <td class="number"><%= summary.reads %></td>
+          <td class="number"><%= it.formatRate(summary.rate) %></td>
         </tr>
       </tfoot>
     </table>

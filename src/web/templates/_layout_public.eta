@@ -14,19 +14,19 @@ const stylesheet = it.routes.public
   <%~ include(it.partials.icon) %>
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#<%= it.document.contentId %>">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#<%= it.document.contentId %>">Pular para o conteúdo</a>
 
-  <div class="publico">
-    <main class="publico__cartao" id="<%= it.document.contentId %>" tabindex="-1">
+  <div class="public">
+    <main class="public__card" id="<%= it.document.contentId %>" tabindex="-1">
       <header>
-        <span class="marca publico__marca"><%~ it.presentation.brand %></span>
-        <p class="publico__titulo"><%= it.presentation.publicSubtitle %></p>
+        <span class="brand public__brand"><%~ it.presentation.brand %></span>
+        <p class="public__title"><%= it.presentation.publicSubtitle %></p>
       </header>
 
       <%~ include(it.partials.messages, it) %>
       <%~ it.body %>
 
-      <p class="publico__rodape">
+      <p class="public__footer">
         <%= it.presentation.publicFooter %>
 
       </p>

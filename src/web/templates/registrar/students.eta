@@ -5,46 +5,46 @@ const searched = it.searched === true;
 
 const STATUS_CLASS = it.tagClass.enrollmentStatus;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       Procure pelo nome para abrir a ficha, matricular, transferir ou vincular um responsável.
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.routes.registrar.studentNew() %>"><%= it.titles.registrar.studentNew %></a>
+  <div class="page__actions">
+    <a class="button button--primary" href="<%= it.routes.registrar.studentNew() %>"><%= it.titles.registrar.studentNew %></a>
   </div>
 </div>
 
-<div class="quadro">
-  <form class="formulario" method="get" action="<%= it.routes.registrar.students() %>" role="search" aria-label="<%= it.actions.searchStudent %>">
-    <div class="campo">
-      <label class="campo__rotulo" for="q">Nome do aluno</label>
+<div class="panel">
+  <form class="form" method="get" action="<%= it.routes.registrar.students() %>" role="search" aria-label="<%= it.actions.searchStudent %>">
+    <div class="field">
+      <label class="field__label" for="q">Nome do aluno</label>
       <input id="q" name="<%= it.searchField %>" type="search" value="<%= term %>" autocomplete="off"
              maxlength="<%= it.nameLimit %>" aria-describedby="q<%= it.suffixes.help %>">
-      <p class="campo__ajuda" id="q<%= it.suffixes.help %>">
+      <p class="field__help" id="q<%= it.suffixes.help %>">
         Encontra qualquer trecho do nome, sem diferenciar maiúsculas. Lista em ordem alfabética,
         <%= it.rowsPerPage %> por página.
       </p>
     </div>
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit">Buscar</button>
+    <div class="actions">
+      <button class="button button--primary" type="submit">Buscar</button>
       <% if (term !== '') { %>
-      <a class="botao botao--discreto" href="<%= it.routes.registrar.students() %>">Limpar busca</a>
+      <a class="button button--quiet" href="<%= it.routes.registrar.students() %>">Limpar busca</a>
       <% } %>
     </div>
   </form>
 </div>
 
-<section class="secao" aria-labelledby="result">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="result">
+  <div class="section__header">
     <h2 id="result">Resultado</h2>
     <% if (searched) { %>
     <% const found = it.pagination === undefined ? students.length : it.pagination.total; %>
-    <p class="secao__nota">
-      <span class="numero"><%= found %></span>
+    <p class="section__note">
+      <span class="number"><%= found %></span>
       <%= found === 1 ? 'aluno encontrado' : 'alunos encontrados' %>
     </p>
     <% } %>
@@ -62,37 +62,37 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
     action: { href: it.routes.registrar.studentNew(), text: it.titles.registrar.studentNew }
   }) %>
   <% } else { %>
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Alunos encontrados para “<%= term %>”</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-elastica"><%= it.labels.student %></th>
-          <th scope="col" class="celula-centro">Nascimento</th>
-          <th scope="col" class="celula-centro"><%= it.labels.classGroup %></th>
-          <th scope="col" class="celula-centro"><%= it.labels.year %></th>
-          <th scope="col" class="celula-centro"><%= it.labels.enrollment %></th>
-          <th scope="col" class="celula-centro"><%= it.labels.actions %></th>
+          <th scope="col" class="cell-elastic"><%= it.labels.student %></th>
+          <th scope="col" class="cell-center">Nascimento</th>
+          <th scope="col" class="cell-center"><%= it.labels.classGroup %></th>
+          <th scope="col" class="cell-center"><%= it.labels.year %></th>
+          <th scope="col" class="cell-center"><%= it.labels.enrollment %></th>
+          <th scope="col" class="cell-center"><%= it.labels.actions %></th>
         </tr>
       </thead>
       <tbody>
         <% students.forEach((student) => { %>
         <tr>
-          <th scope="row" class="celula-elastica"><%= student.name %></th>
-          <td class="numero celula-centro"><%= it.formatDate(student.birthDate) %></td>
-          <td class="celula-centro"><%= student.classGroupName === null ? it.missingValue : student.classGroupName %></td>
-          <td class="numero celula-centro"><%= student.year === null ? it.missingValue : student.year %></td>
-          <td class="celula-centro">
+          <th scope="row" class="cell-elastic"><%= student.name %></th>
+          <td class="number cell-center"><%= it.formatDate(student.birthDate) %></td>
+          <td class="cell-center"><%= student.classGroupName === null ? it.missingValue : student.classGroupName %></td>
+          <td class="number cell-center"><%= student.year === null ? it.missingValue : student.year %></td>
+          <td class="cell-center">
             <% if (student.status === null) { %>
-                        <span class="etiqueta">Sem matrícula</span>
+                        <span class="tag">Sem matrícula</span>
             <% } else { %>
-            <span class="etiqueta <%= STATUS_CLASS[student.status] %>"><%= it.statusLabel[student.status] %></span>
+            <span class="tag <%= STATUS_CLASS[student.status] %>"><%= it.statusLabel[student.status] %></span>
             <% } %>
           </td>
-          <td class="celula-centro">
-            <div class="tabela__acoes">
-              <a class="botao botao--secundario botao--miudo" href="<%= it.routes.registrar.student({ id: student.id }) %>">
-                Abrir ficha<span class="visualmente-oculto"> de <%= student.name %></span>
+          <td class="cell-center">
+            <div class="table__actions">
+              <a class="button button--secondary button--small" href="<%= it.routes.registrar.student({ id: student.id }) %>">
+                Abrir ficha<span class="visually-hidden"> de <%= student.name %></span>
               </a>
             </div>
           </td>

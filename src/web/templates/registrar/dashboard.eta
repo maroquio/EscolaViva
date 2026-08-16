@@ -19,18 +19,18 @@ const shortcuts = [
     detail: 'Quem recebe comunicado e responde pelo aluno.' },
 ];
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       Matrícula, transferência, turma e disciplina em um lugar só. Os números abaixo consideram
       apenas as unidades em que você tem o papel de secretaria.
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.routes.registrar.studentNew() %>"><%= it.titles.registrar.studentNew %></a>
-    <a class="botao botao--secundario" href="<%= it.routes.registrar.students() %>"><%= it.actions.searchStudent %></a>
+  <div class="page__actions">
+    <a class="button button--primary" href="<%= it.routes.registrar.studentNew() %>"><%= it.titles.registrar.studentNew %></a>
+    <a class="button button--secondary" href="<%= it.routes.registrar.students() %>"><%= it.actions.searchStudent %></a>
   </div>
 </div>
 
@@ -41,39 +41,39 @@ const shortcuts = [
 }) %>
 <% } else { %>
 
-<section class="secao" aria-labelledby="numbers">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="numbers">
+  <div class="section__header">
     <h2 id="numbers">Hoje</h2>
-    <p class="secao__nota">
+    <p class="section__note">
       <% if (currentYear === null) { %>
         Nenhum ano letivo definido nesta rede
       <% } else { %>
-        Ano letivo mais recente: <span class="numero"><%= currentYear.year %></span>
+        Ano letivo mais recente: <span class="number"><%= currentYear.year %></span>
         (<%= it.formatDate(currentYear.startDate) %> a <%= it.formatDate(currentYear.endDate) %>)
       <% } %>
     </p>
   </div>
 
-  <div class="painel">
-    <div class="cartao">
-      <p class="cartao__rotulo"><%= it.labels.activeEnrollments %></p>
-      <p class="cartao__numero"><%= totals.enrollments %></p>
-      <p class="cartao__detalhe">alunos com matrícula ativa nas suas turmas</p>
+  <div class="dashboard">
+    <div class="card">
+      <p class="card__label"><%= it.labels.activeEnrollments %></p>
+      <p class="card__number"><%= totals.enrollments %></p>
+      <p class="card__detail">alunos com matrícula ativa nas suas turmas</p>
     </div>
-    <div class="cartao">
-      <p class="cartao__rotulo">Turmas</p>
-      <p class="cartao__numero"><%= totals.classGroups %></p>
-      <p class="cartao__detalhe">em todos os anos letivos das suas unidades</p>
+    <div class="card">
+      <p class="card__label">Turmas</p>
+      <p class="card__number"><%= totals.classGroups %></p>
+      <p class="card__detail">em todos os anos letivos das suas unidades</p>
     </div>
-    <div class="cartao">
-      <p class="cartao__rotulo">Responsáveis</p>
-      <p class="cartao__numero"><%= totals.guardians %></p>
-      <p class="cartao__detalhe">com aluno matriculado nas suas unidades</p>
+    <div class="card">
+      <p class="card__label">Responsáveis</p>
+      <p class="card__number"><%= totals.guardians %></p>
+      <p class="card__detail">com aluno matriculado nas suas unidades</p>
     </div>
-    <div class="cartao">
-      <p class="cartao__rotulo">Disciplinas</p>
-      <p class="cartao__numero"><%= totals.subjects %></p>
-      <p class="cartao__detalhe">cadastradas na rede, disponíveis para alocar</p>
+    <div class="card">
+      <p class="card__label">Disciplinas</p>
+      <p class="card__number"><%= totals.subjects %></p>
+      <p class="card__detail">cadastradas na rede, disponíveis para alocar</p>
     </div>
   </div>
 </section>
@@ -82,19 +82,19 @@ const shortcuts = [
 const schoolCount = it.pagination === undefined ? schools.length : it.pagination.total;
 %>
 <% if (schoolCount > 1) { %>
-<section class="secao" aria-labelledby="by-school">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="by-school">
+  <div class="section__header">
     <h2 id="by-school">Por unidade</h2>
-    <p class="secao__nota">
+    <p class="section__note">
       Você responde por
-      <span class="numero"><%= schoolCount %></span>
+      <span class="number"><%= schoolCount %></span>
       <%= it.nouns.school.plural %>
 
     </p>
   </div>
 
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Números de cada unidade sob sua secretaria</caption>
       <thead>
         <tr>
@@ -108,9 +108,9 @@ const schoolCount = it.pagination === undefined ? schools.length : it.pagination
         <% schools.forEach((school) => { %>
         <tr>
           <th scope="row"><%= school.name %></th>
-          <td class="numero"><%= school.classGroups %></td>
-          <td class="numero"><%= school.enrollments %></td>
-          <td class="numero"><%= school.guardians %></td>
+          <td class="number"><%= school.classGroups %></td>
+          <td class="number"><%= school.enrollments %></td>
+          <td class="number"><%= school.guardians %></td>
         </tr>
         <% }) %>
       </tbody>
@@ -120,17 +120,17 @@ const schoolCount = it.pagination === undefined ? schools.length : it.pagination
 </section>
 <% } %>
 
-<section class="secao" aria-labelledby="shortcuts">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="shortcuts">
+  <div class="section__header">
     <h2 id="shortcuts">Atalhos do dia</h2>
   </div>
 
-  <div class="painel">
+  <div class="dashboard">
     <% shortcuts.forEach((shortcut) => { %>
-    <a class="cartao" href="<%= shortcut.href %>">
-      <p class="cartao__rotulo"><%= shortcut.label %></p>
+    <a class="card" href="<%= shortcut.href %>">
+      <p class="card__label"><%= shortcut.label %></p>
       <h3><%= shortcut.title %></h3>
-      <p class="cartao__detalhe"><%= shortcut.detail %></p>
+      <p class="card__detail"><%= shortcut.detail %></p>
     </a>
     <% }) %>
   </div>

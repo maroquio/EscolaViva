@@ -28,40 +28,40 @@ const groupByYear = (items) => {
 const groups = groupByYear(classGroups);
 const studentRecord = it.routes.registrar.student({ id: student.id });
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= student.name %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %><%= it.presentation.separator %><%= student.name %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       Matrícula ativa em <strong><%= active.classGroupName %></strong>, ano letivo
-      <span class="numero"><%= active.year %></span>.
+      <span class="number"><%= active.year %></span>.
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= studentRecord %>"><%= actions.backTo.record %></a>
+  <div class="page__actions">
+    <a class="button button--secondary" href="<%= studentRecord %>"><%= actions.backTo.record %></a>
   </div>
 </div>
 
-<div class="quadro">
+<div class="panel">
   <% if (groups.length === 0) { %>
-  <p class="suave leitura">Não há outra turma nas suas unidades para receber esta matrícula.</p>
-  <div class="acoes">
-    <a class="botao botao--primario" href="<%= it.routes.registrar.classGroupNew() %>"><%= it.titles.registrar.classGroupNew %></a>
-    <a class="botao botao--discreto" href="<%= studentRecord %>"><%= actions.backTo.record %></a>
+  <p class="muted reading">Não há outra turma nas suas unidades para receber esta matrícula.</p>
+  <div class="actions">
+    <a class="button button--primary" href="<%= it.routes.registrar.classGroupNew() %>"><%= it.titles.registrar.classGroupNew %></a>
+    <a class="button button--quiet" href="<%= studentRecord %>"><%= actions.backTo.record %></a>
   </div>
   <% } else { %>
-  <p class="suave leitura">
+  <p class="muted reading">
     A matrícula em <strong><%= active.classGroupName %></strong> passa a <em>transferida</em> e uma nova
     matrícula ativa é aberta na turma de destino — as duas escritas na mesma transação.
   </p>
 
-  <form class="formulario" method="post" action="<%= it.routes.registrar.enrollmentTransfer({ id: active.id }) %>">
+  <form class="form" method="post" action="<%= it.routes.registrar.enrollmentTransfer({ id: active.id }) %>">
     <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
-    <div class="formulario__linha">
-      <div class="campo">
-        <label class="campo__rotulo" for="targetClassGroupId">
-          Turma de destino <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="targetClassGroupId">
+          Turma de destino <span class="field__required" aria-hidden="true">*</span>
         </label>
         <select
           id="targetClassGroupId"
@@ -80,17 +80,17 @@ const studentRecord = it.routes.registrar.student({ id: student.id });
           </optgroup>
           <% }) %>
         </select>
-        <p class="campo__ajuda" id="<%= it.helpId(fields.targetClassGroupId) %>">
+        <p class="field__help" id="<%= it.helpId(fields.targetClassGroupId) %>">
           Precisa pertencer ao mesmo ano letivo da matrícula atual.
         </p>
         <% if (errorFor(fields.targetClassGroupId) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.targetClassGroupId) %>"><%= errorFor(fields.targetClassGroupId) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.targetClassGroupId) %>"><%= errorFor(fields.targetClassGroupId) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="date">
-          Data da transferência <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="date">
+          Data da transferência <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="date"
@@ -101,14 +101,14 @@ const studentRecord = it.routes.registrar.student({ id: student.id });
           <% if (errorFor(fields.date) !== '') { %>aria-invalid="true"<% } %>
           <% if (describedBy(fields.date) !== '') { %>aria-describedby="<%= describedBy(fields.date) %>"<% } %>>
         <% if (errorFor(fields.date) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.date) %>"><%= errorFor(fields.date) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.date) %>"><%= errorFor(fields.date) %></p>
         <% } %>
       </div>
     </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit">Transferir matrícula</button>
-      <a class="botao botao--discreto" href="<%= studentRecord %>"><%= actions.cancel %></a>
+    <div class="actions">
+      <button class="button button--primary" type="submit">Transferir matrícula</button>
+      <a class="button button--quiet" href="<%= studentRecord %>"><%= actions.cancel %></a>
     </div>
   </form>
   <% } %>

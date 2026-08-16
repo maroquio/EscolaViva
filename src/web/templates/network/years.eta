@@ -1,24 +1,24 @@
 <%
 const years = it.years ?? [];
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.network %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.network %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       O ano letivo delimita as matrículas: um aluno tem uma matrícula ativa por ano, e é esse
       recorte que o boletim e a frequência usam.
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.routes.network.academicYearNew() %>"><%= it.titles.network.yearNew %></a>
+  <div class="page__actions">
+    <a class="button button--primary" href="<%= it.routes.network.academicYearNew() %>"><%= it.titles.network.yearNew %></a>
   </div>
 </div>
 
-<section class="secao" aria-labelledby="years-list-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="years-list-title">
+  <div class="section__header">
     <h2 id="years-list-title">Anos definidos</h2>
-    <p class="secao__nota">Do mais recente para o mais antigo</p>
+    <p class="section__note">Do mais recente para o mais antigo</p>
   </div>
 
   <% if (years.length === 0) { %>
@@ -28,8 +28,8 @@ const years = it.years ?? [];
       action: { href: it.routes.network.academicYearNew(), text: it.titles.network.yearNew }
     }) %>
   <% } else { %>
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Calendário letivo da rede</caption>
       <thead>
         <tr>
@@ -41,9 +41,9 @@ const years = it.years ?? [];
       <tbody>
         <% years.forEach((academicYear) => { %>
         <tr>
-          <th scope="row" class="numero"><%= academicYear.year %></th>
-          <td class="numero"><%= it.formatDate(academicYear.startDate) %></td>
-          <td class="numero"><%= it.formatDate(academicYear.endDate) %></td>
+          <th scope="row" class="number"><%= academicYear.year %></th>
+          <td class="number"><%= it.formatDate(academicYear.startDate) %></td>
+          <td class="number"><%= it.formatDate(academicYear.endDate) %></td>
         </tr>
         <% }) %>
       </tbody>

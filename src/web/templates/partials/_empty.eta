@@ -1,12 +1,12 @@
 <%
 const action = it.action ?? null;
 %>
-<div class="vazio">
-  <p class="vazio__titulo"><%= it.title %></p>
+<div class="empty">
+  <p class="empty__title"><%= it.title %></p>
   <% if (it.text) { %>
-  <p class="vazio__texto"><%= it.text %></p>
+  <p class="empty__text"><%= it.text %></p>
   <% } %>
   <% if (action !== null) { %>
-  <a class="botao botao--secundario" href="<%= action.href %>"><%= action.text %></a>
+  <a class="button button--secondary" href="<%= action.href %>"><%= action.text %></a>
   <% } %>
 </div>

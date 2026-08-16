@@ -6,43 +6,43 @@ const STATUS_CLASS = it.tagClass.guardianEnrollment;
 
 const STATUS_LABEL = it.statusLabel;
 %>
-<header class="pagina__cabecalho">
+<header class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.monitoring %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.monitoring %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       Boletim, frequência e comunicados dos alunos sob sua responsabilidade.
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.routes.guardian.board() %>">Abrir o mural</a>
+  <p class="page__actions">
+    <a class="button button--secondary" href="<%= it.routes.guardian.board() %>">Abrir o mural</a>
   </p>
 </header>
 
-<section class="secao" aria-labelledby="summary-title">
-  <h2 class="visualmente-oculto" id="summary-title">Resumo</h2>
+<section class="section" aria-labelledby="summary-title">
+  <h2 class="visually-hidden" id="summary-title">Resumo</h2>
 
-  <div class="painel">
-    <div class="cartao">
-      <p class="cartao__rotulo">Alunos acompanhados</p>
-      <p class="cartao__numero"><%= it.pagination === undefined ? enrollments.length : it.pagination.total %></p>
-      <p class="cartao__detalhe">Matrículas ligadas ao seu cadastro</p>
+  <div class="dashboard">
+    <div class="card">
+      <p class="card__label">Alunos acompanhados</p>
+      <p class="card__number"><%= it.pagination === undefined ? enrollments.length : it.pagination.total %></p>
+      <p class="card__detail">Matrículas ligadas ao seu cadastro</p>
     </div>
 
-    <a class="cartao" href="<%= it.routes.guardian.board() %>">
-      <span class="cartao__rotulo">Comunicados não lidos</span>
-      <span class="cartao__numero"><%= it.unreadTotal %></span>
-      <span class="cartao__detalhe">
+    <a class="card" href="<%= it.routes.guardian.board() %>">
+      <span class="card__label">Comunicados não lidos</span>
+      <span class="card__number"><%= it.unreadTotal %></span>
+      <span class="card__detail">
         <%= it.boardTotal %> <%= it.pluralize(it.boardTotal, it.nouns.announcement) %> no mural
       </span>
     </a>
   </div>
 </section>
 
-<section class="secao" aria-labelledby="students-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="students-title">
+  <div class="section__header">
     <h2 id="students-title">Alunos</h2>
-    <p class="secao__nota">Uma matrícula por ano letivo</p>
+    <p class="section__note">Uma matrícula por ano letivo</p>
   </div>
 
   <% if (enrollments.length === 0) { %>
@@ -51,38 +51,38 @@ const STATUS_LABEL = it.statusLabel;
       text: 'O vínculo entre você e o aluno é feito pela secretaria da unidade. Enquanto ele não existir, esta tela fica vazia — procure a secretaria da escola para conferir seu cadastro.',
     }) %>
   <% } else { %>
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Matrículas sob sua responsabilidade</caption>
       <thead>
         <tr>
-          <th class="celula-elastica" scope="col"><%= it.labels.student %></th>
-          <th class="celula-centro" scope="col"><%= it.labels.classGroup %></th>
-          <th class="celula-centro" scope="col"><%= it.labels.year %></th>
-          <th class="celula-centro" scope="col"><%= it.labels.enrollment %></th>
-          <th class="celula-centro" scope="col">Acompanhar</th>
+          <th class="cell-elastic" scope="col"><%= it.labels.student %></th>
+          <th class="cell-center" scope="col"><%= it.labels.classGroup %></th>
+          <th class="cell-center" scope="col"><%= it.labels.year %></th>
+          <th class="cell-center" scope="col"><%= it.labels.enrollment %></th>
+          <th class="cell-center" scope="col">Acompanhar</th>
         </tr>
       </thead>
       <tbody>
         <% enrollments.forEach((enrollment) => { %>
         <tr>
-          <th class="celula-elastica" scope="row"><%= enrollment.studentName %></th>
-          <td class="celula-centro"><%= enrollment.classGroupName %></td>
-          <td class="numero celula-centro"><%= enrollment.year %></td>
-          <td class="celula-centro">
-            <span class="etiqueta <%= STATUS_CLASS[enrollment.status] %>">
+          <th class="cell-elastic" scope="row"><%= enrollment.studentName %></th>
+          <td class="cell-center"><%= enrollment.classGroupName %></td>
+          <td class="number cell-center"><%= enrollment.year %></td>
+          <td class="cell-center">
+            <span class="tag <%= STATUS_CLASS[enrollment.status] %>">
               <%= STATUS_LABEL[enrollment.status] %>
             </span>
           </td>
-          <td class="celula-centro">
-            <span class="tabela__acoes">
-                            <a class="botao botao--secundario botao--miudo"
+          <td class="cell-center">
+            <span class="table__actions">
+                            <a class="button button--secondary button--small"
                  href="<%= it.routes.guardian.reportCard({ id: enrollment.id }) %>">
-                Boletim<span class="visualmente-oculto"> de <%= enrollment.studentName %></span></a>
-              <a class="botao botao--secundario botao--miudo"
+                Boletim<span class="visually-hidden"> de <%= enrollment.studentName %></span></a>
+              <a class="button button--secondary button--small"
                  href="<%= it.routes.guardian.attendance({ id: enrollment.id }) %>">
 <% // magic-values: permitido — rótulo do link que abre a tela de frequência, par do "Boletim" da linha acima; não é `LABELS.attendance`, que nomeia a TAXA no cartão do boletim %>
-                Frequência<span class="visualmente-oculto"> de <%= enrollment.studentName %></span></a>
+                Frequência<span class="visually-hidden"> de <%= enrollment.studentName %></span></a>
             </span>
           </td>
         </tr>
@@ -94,10 +94,10 @@ const STATUS_LABEL = it.statusLabel;
   <% } %>
 </section>
 
-<section class="secao" aria-labelledby="unread-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="unread-title">
+  <div class="section__header">
     <h2 id="unread-title">Comunicados não lidos</h2>
-    <p class="secao__nota"><a href="<%= it.routes.guardian.board() %>">Ver o mural completo</a></p>
+    <p class="section__note"><a href="<%= it.routes.guardian.board() %>">Ver o mural completo</a></p>
   </div>
 
   <% if (unread.length === 0) { %>
@@ -107,18 +107,18 @@ const STATUS_LABEL = it.statusLabel;
       action: { href: it.routes.guardian.board(), text: 'Ver comunicados anteriores' },
     }) %>
   <% } else { %>
-  <ul class="pilha">
+  <ul class="stack">
     <% unread.forEach((item) => { %>
-    <li class="quadro">
-      <div class="linha linha--entre">
+    <li class="panel">
+      <div class="row row--between">
         <h3>
           <a href="<%= it.routes.guardian.announcement({ announcementId: item.announcementId }) %>"><%= item.title %></a>
         </h3>
-        <span class="linha">
-          <time class="suave" datetime="<%= item.publishedAt %>">
+        <span class="row">
+          <time class="muted" datetime="<%= item.publishedAt %>">
             <%= it.formatDateTime(item.publishedAt) %>
           </time>
-          <span class="etiqueta etiqueta--em-curso">Não lido</span>
+          <span class="tag tag--in-progress">Não lido</span>
         </span>
       </div>
     </li>

@@ -1,27 +1,27 @@
 <%
 const subjects = it.subjects ?? [];
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       Cadastradas uma vez para toda a rede. Cada turma recebe as suas na tela da turma, sempre com
       o professor responsável.
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.routes.registrar.classGroups() %>"><%= it.titles.registrar.classGroups %></a>
-    <a class="botao botao--primario" href="<%= it.routes.registrar.subjectNew() %>"><%= it.titles.registrar.subjectNew %></a>
+  <div class="page__actions">
+    <a class="button button--secondary" href="<%= it.routes.registrar.classGroups() %>"><%= it.titles.registrar.classGroups %></a>
+    <a class="button button--primary" href="<%= it.routes.registrar.subjectNew() %>"><%= it.titles.registrar.subjectNew %></a>
   </div>
 </div>
 
-<section class="secao" aria-labelledby="registered">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="registered">
+  <div class="section__header">
     <h2 id="registered">Cadastradas na rede</h2>
-    <p class="secao__nota">
+    <p class="section__note">
       <% const count = it.pagination === undefined ? subjects.length : it.pagination.total; %>
-      <span class="numero"><%= count %></span>
+      <span class="number"><%= count %></span>
       <%= it.pluralize(count, it.nouns.subject) %>
     </p>
   </div>
@@ -33,8 +33,8 @@ const subjects = it.subjects ?? [];
     action: { href: it.routes.registrar.subjectNew(), text: it.titles.registrar.subjectNew }
   }) %>
   <% } else { %>
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Disciplinas disponíveis para alocar nas turmas</caption>
       <thead>
         <tr>

@@ -5,32 +5,32 @@ const enrollments = it.enrollments ?? [];
 
 const STATUS_CLASS = it.tagClass.enrollmentStatus;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.labels.classGroup %></p>
-    <h1 class="pagina__titulo"><%= classGroup.name %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.labels.classGroup %></p>
+    <h1 class="page__title"><%= classGroup.name %></h1>
+    <p class="page__summary">
       <%= classGroup.gradeLevel %><%= it.presentation.separator %><%= classGroup.shiftName %><%= it.presentation.separator %><%= classGroup.schoolName %><%= it.presentation.separator %>ano letivo
-      <span class="numero"><%= classGroup.year === null ? it.missingValue : classGroup.year %></span>
+      <span class="number"><%= classGroup.year === null ? it.missingValue : classGroup.year %></span>
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.routes.registrar.classGroups() %>"><%= it.actions.backTo.classGroups %></a>
+  <div class="page__actions">
+    <a class="button button--secondary" href="<%= it.routes.registrar.classGroups() %>"><%= it.actions.backTo.classGroups %></a>
   </div>
 </div>
 
-<section class="secao" aria-labelledby="assignments">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="assignments">
+  <div class="section__header">
     <h2 id="assignments">Disciplinas alocadas</h2>
     <% const assignmentCount =
          it.assignmentsPagination === undefined ? assignments.length : it.assignmentsPagination.total; %>
-    <p class="secao__nota">
-      <span class="numero"><%= assignmentCount %></span>
+    <p class="section__note">
+      <span class="number"><%= assignmentCount %></span>
       <%= it.pluralize(assignmentCount, it.nouns.subject) %>
     </p>
   </div>
 
-  <div class="pilha pilha--larga">
+  <div class="stack stack--wide">
     <% if (assignments.length === 0) { %>
     <%~ include(it.partials.empty, {
       title: 'Nenhuma disciplina alocada',
@@ -41,20 +41,20 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
       }
     }) %>
     <% } else { %>
-    <div class="tabela-rolagem">
-      <table class="tabela">
+    <div class="table-scroll">
+      <table class="table">
         <caption>Quem leciona o quê nesta turma</caption>
         <thead>
           <tr>
             <th scope="col"><%= it.labels.subject %></th>
-            <th scope="col" class="celula-texto">Professor</th>
+            <th scope="col" class="cell-text">Professor</th>
           </tr>
         </thead>
         <tbody>
           <% assignments.forEach((assignment) => { %>
           <tr>
             <th scope="row"><%= assignment.subjectName %></th>
-            <td class="celula-texto"><%= assignment.teacherName %></td>
+            <td class="cell-text"><%= assignment.teacherName %></td>
           </tr>
           <% }) %>
         </tbody>
@@ -64,8 +64,8 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
       pagination: it.assignmentsPagination, label: 'disciplinas alocadas'
     }) %>
 
-    <div class="acoes">
-      <a class="botao botao--primario" href="<%= it.routes.registrar.classGroupSubjectNew({ id: classGroup.id }) %>">
+    <div class="actions">
+      <a class="button button--primary" href="<%= it.routes.registrar.classGroupSubjectNew({ id: classGroup.id }) %>">
         <%= it.titles.registrar.assign %>
 
       </a>
@@ -74,13 +74,13 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
   </div>
 </section>
 
-<section class="secao" aria-labelledby="enrolled">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="enrolled">
+  <div class="section__header">
     <h2 id="enrolled"><%= it.labels.activeEnrollments %></h2>
     <% const studentCount =
          it.enrollmentsPagination === undefined ? enrollments.length : it.enrollmentsPagination.total; %>
-    <p class="secao__nota">
-      <span class="numero"><%= studentCount %></span>
+    <p class="section__note">
+      <span class="number"><%= studentCount %></span>
       <%= it.pluralize(studentCount, it.nouns.student) %>
     </p>
   </div>
@@ -92,30 +92,30 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
     action: { href: it.routes.registrar.students(), text: it.actions.searchStudent }
   }) %>
   <% } else { %>
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Alunos com matrícula ativa nesta turma</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-elastica"><%= it.labels.student %></th>
-          <th scope="col" class="celula-centro">Matriculado em</th>
+          <th scope="col" class="cell-elastic"><%= it.labels.student %></th>
+          <th scope="col" class="cell-center">Matriculado em</th>
 <% // magic-values: permitido — a cabeça da coluna não é um rótulo de `LABELS` %>
-          <th scope="col" class="celula-centro">Situação</th>
-          <th scope="col" class="celula-centro"><%= it.labels.actions %></th>
+          <th scope="col" class="cell-center">Situação</th>
+          <th scope="col" class="cell-center"><%= it.labels.actions %></th>
         </tr>
       </thead>
       <tbody>
         <% enrollments.forEach((enrollment) => { %>
         <tr>
-          <th scope="row" class="celula-elastica"><%= enrollment.studentName %></th>
-          <td class="numero celula-centro"><%= it.formatDate(enrollment.enrollmentDate) %></td>
-          <td class="celula-centro">
-            <span class="etiqueta <%= STATUS_CLASS[enrollment.status] %>"><%= it.statusLabel[enrollment.status] %></span>
+          <th scope="row" class="cell-elastic"><%= enrollment.studentName %></th>
+          <td class="number cell-center"><%= it.formatDate(enrollment.enrollmentDate) %></td>
+          <td class="cell-center">
+            <span class="tag <%= STATUS_CLASS[enrollment.status] %>"><%= it.statusLabel[enrollment.status] %></span>
           </td>
-          <td class="celula-centro">
-            <div class="tabela__acoes">
-              <a class="botao botao--secundario botao--miudo" href="<%= it.routes.registrar.student({ id: enrollment.studentId }) %>">
-                Abrir ficha<span class="visualmente-oculto"> de <%= enrollment.studentName %></span>
+          <td class="cell-center">
+            <div class="table__actions">
+              <a class="button button--secondary button--small" href="<%= it.routes.registrar.student({ id: enrollment.studentId }) %>">
+                Abrir ficha<span class="visually-hidden"> de <%= enrollment.studentName %></span>
               </a>
             </div>
           </td>

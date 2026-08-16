@@ -62,7 +62,7 @@ describe('recorte na tela de responsáveis', () => {
     const page = await html('/registrar/guardians', await signInAsRegistrar(scenario));
 
     expect(tableRows(page)).toBe(PAGE_SIZE);
-    expect(page).toContain('class="paginacao"');
+    expect(page).toContain('class="pagination"');
     expect(page).toContain('href="/registrar/guardians?p=2"');
   });
 
@@ -107,8 +107,8 @@ describe('recorte na tela de responsáveis', () => {
 
     const page = await html('/registrar/guardians', await signInAsRegistrar(scenario));
 
-    expect(page).toContain('class="paginacao"');
-    expect(page).not.toContain('paginacao__lista');
+    expect(page).toContain('class="pagination"');
+    expect(page).not.toContain('pagination__list');
   });
 });
 

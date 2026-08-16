@@ -7,54 +7,54 @@ const academicYearInWords = 'ano letivo';
 const yearInLabel =
   academicYear === null ? 'sem ' + academicYearInWords : academicYearInWords + ' ' + academicYear.year;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.network %></p>
-    <h1 class="pagina__titulo"><%= network %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.network %></p>
+    <h1 class="page__title"><%= network %></h1>
+    <p class="page__summary">
       A rede é o contorno de tudo o que este sistema mostra: nenhuma consulta atravessa para outra
       rede, e é daqui que saem as unidades, os acessos e o calendário que a secretaria usa.
     </p>
   </div>
 </div>
 
-<section class="secao" aria-labelledby="numbers-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="numbers-title">
+  <div class="section__header">
     <h2 id="numbers-title">Onde a rede está hoje</h2>
-    <p class="secao__nota">Contagem no momento em que esta página foi aberta.</p>
+    <p class="section__note">Contagem no momento em que esta página foi aberta.</p>
   </div>
 
-  <div class="painel">
-    <a class="cartao" href="<%= it.routes.network.schools() %>">
-      <span class="cartao__rotulo"><%= it.titles.network.schools %></span>
-      <span class="cartao__numero"><%= counts.schools %></span>
-      <span class="cartao__detalhe">Escolas ativas e inativas da rede</span>
+  <div class="dashboard">
+    <a class="card" href="<%= it.routes.network.schools() %>">
+      <span class="card__label"><%= it.titles.network.schools %></span>
+      <span class="card__number"><%= counts.schools %></span>
+      <span class="card__detail">Escolas ativas e inativas da rede</span>
     </a>
 
-    <a class="cartao" href="<%= it.routes.network.users() %>">
-      <span class="cartao__rotulo"><%= it.titles.network.users %></span>
-      <span class="cartao__numero"><%= counts.users %></span>
-      <span class="cartao__detalhe">Pessoas com acesso, somando todos os papéis</span>
+    <a class="card" href="<%= it.routes.network.users() %>">
+      <span class="card__label"><%= it.titles.network.users %></span>
+      <span class="card__number"><%= counts.users %></span>
+      <span class="card__detail">Pessoas com acesso, somando todos os papéis</span>
     </a>
 
-    <div class="cartao">
-      <span class="cartao__rotulo">Turmas</span>
-      <span class="cartao__numero"><%= counts.classGroups %></span>
-      <span class="cartao__detalhe">Abertas no <%= yearInLabel %></span>
+    <div class="card">
+      <span class="card__label">Turmas</span>
+      <span class="card__number"><%= counts.classGroups %></span>
+      <span class="card__detail">Abertas no <%= yearInLabel %></span>
     </div>
 
-    <div class="cartao">
-      <span class="cartao__rotulo">Matriculados</span>
-      <span class="cartao__numero"><%= counts.enrolled %></span>
-      <span class="cartao__detalhe">Matrículas ativas no <%= yearInLabel %></span>
+    <div class="card">
+      <span class="card__label">Matriculados</span>
+      <span class="card__number"><%= counts.enrolled %></span>
+      <span class="card__detail">Matrículas ativas no <%= yearInLabel %></span>
     </div>
   </div>
 </section>
 
-<section class="secao" aria-labelledby="year-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="year-title">
+  <div class="section__header">
     <h2 id="year-title">Ano letivo em vigor</h2>
-    <p class="secao__nota">
+    <p class="section__note">
       <%= it.definedYears %> ano(s) definido(s) nesta rede.
     </p>
   </div>
@@ -66,14 +66,14 @@ const yearInLabel =
       action: { href: it.routes.network.academicYears(), text: it.titles.network.yearNew }
     }) %>
   <% } else { %>
-  <div class="quadro">
-    <dl class="lista-definicoes">
+  <div class="panel">
+    <dl class="definition-list">
       <dt><%= it.labels.year %></dt>
-      <dd class="numero"><%= academicYear.year %></dd>
+      <dd class="number"><%= academicYear.year %></dd>
       <dt><%= it.labels.start %></dt>
-      <dd class="numero"><%= it.formatDate(academicYear.startDate) %></dd>
+      <dd class="number"><%= it.formatDate(academicYear.startDate) %></dd>
       <dt><%= it.labels.end %></dt>
-      <dd class="numero"><%= it.formatDate(academicYear.endDate) %></dd>
+      <dd class="number"><%= it.formatDate(academicYear.endDate) %></dd>
     </dl>
   </div>
   <% } %>

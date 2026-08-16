@@ -3,24 +3,24 @@ const values = it.values ?? {};
 const { errorFor, describedBy } = it;
 const fields = it.fields.student;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.students %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.students %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       O aluno pertence à rede, não a uma unidade: é a matrícula que o coloca numa turma. Depois de
       cadastrar, a ficha abre com os caminhos para vincular um responsável e para matricular.
     </p>
   </div>
 </div>
 
-<div class="quadro">
-  <form class="formulario" method="post" action="<%= it.routes.registrar.students() %>">
+<div class="panel">
+  <form class="form" method="post" action="<%= it.routes.registrar.students() %>">
     <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
-    <div class="campo">
-      <label class="campo__rotulo" for="<%= fields.name %>">
-        Nome completo <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="field">
+      <label class="field__label" for="<%= fields.name %>">
+        Nome completo <span class="field__required" aria-hidden="true">*</span>
       </label>
       <input
         id="<%= fields.name %>"
@@ -32,15 +32,15 @@ const fields = it.fields.student;
         value="<%= values.name ?? '' %>"
         <% if (errorFor(fields.name) !== '') { %>aria-invalid="true"<% } %>
         aria-describedby="<%= describedBy(fields.name, true) %>">
-      <p class="campo__ajuda" id="<%= it.helpId(fields.name) %>">Como consta no documento do aluno.</p>
+      <p class="field__help" id="<%= it.helpId(fields.name) %>">Como consta no documento do aluno.</p>
       <% if (errorFor(fields.name) !== '') { %>
-      <p class="campo__erro" id="<%= it.errorId(fields.name) %>"><%= errorFor(fields.name) %></p>
+      <p class="field__error" id="<%= it.errorId(fields.name) %>"><%= errorFor(fields.name) %></p>
       <% } %>
     </div>
 
-    <div class="campo">
-      <label class="campo__rotulo" for="<%= fields.birthDate %>">
-        Data de nascimento <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="field">
+      <label class="field__label" for="<%= fields.birthDate %>">
+        Data de nascimento <span class="field__required" aria-hidden="true">*</span>
       </label>
       <input
         id="<%= fields.birthDate %>"
@@ -50,17 +50,17 @@ const fields = it.fields.student;
         value="<%= values.birthDate ?? '' %>"
         <% if (errorFor(fields.birthDate) !== '') { %>aria-invalid="true"<% } %>
         aria-describedby="<%= describedBy(fields.birthDate, true) %>">
-      <p class="campo__ajuda" id="<%= it.helpId(fields.birthDate) %>">
+      <p class="field__help" id="<%= it.helpId(fields.birthDate) %>">
         Não pode estar no futuro.
       </p>
       <% if (errorFor(fields.birthDate) !== '') { %>
-      <p class="campo__erro" id="<%= it.errorId(fields.birthDate) %>"><%= errorFor(fields.birthDate) %></p>
+      <p class="field__error" id="<%= it.errorId(fields.birthDate) %>"><%= errorFor(fields.birthDate) %></p>
       <% } %>
     </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit"><%= it.titles.registrar.studentNew %></button>
-      <a class="botao botao--discreto" href="<%= it.routes.registrar.students() %>"><%= it.actions.cancel %></a>
+    <div class="actions">
+      <button class="button button--primary" type="submit"><%= it.titles.registrar.studentNew %></button>
+      <a class="button button--quiet" href="<%= it.routes.registrar.students() %>"><%= it.actions.cancel %></a>
     </div>
   </form>
 </div>

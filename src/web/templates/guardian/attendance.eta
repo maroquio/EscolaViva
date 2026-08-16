@@ -24,55 +24,55 @@ const dayStatus = (day) => {
   return { className: ATTENDANCE_CLASS.absence, label: ATTENDANCE_LABEL.absence };
 };
 %>
-<header class="pagina__cabecalho">
+<header class="page__header">
   <div>
-    <p class="sobretitulo">Frequência</p>
-    <h1 class="pagina__titulo"><%= it.enrollment.studentName %></h1>
-    <p class="pagina__resumo">
+    <p class="overline">Frequência</p>
+    <h1 class="page__title"><%= it.enrollment.studentName %></h1>
+    <p class="page__summary">
       Turma <%= it.enrollment.classGroupName %><%= it.presentation.separator %>ano letivo
-      <span class="numero"><%= it.enrollment.year %></span>
+      <span class="number"><%= it.enrollment.year %></span>
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--secundario"
+  <p class="page__actions">
+    <a class="button button--secondary"
        href="<%= it.routes.guardian.reportCard({ id: it.enrollment.id }) %>">Ver boletim</a>
-    <a class="botao botao--discreto" href="<%= it.routes.guardian.dashboard() %>"><%= it.actions.backTo.students %></a>
+    <a class="button button--quiet" href="<%= it.routes.guardian.dashboard() %>"><%= it.actions.backTo.students %></a>
   </p>
 </header>
 
-<section class="secao" aria-labelledby="tally-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="tally-title">
+  <div class="section__header">
     <h2 id="tally-title">Apuração do ano</h2>
-    <p class="secao__nota">São necessários <%= CRITERIA.attendance %> de presença para aprovação</p>
+    <p class="section__note">São necessários <%= CRITERIA.attendance %> de presença para aprovação</p>
   </div>
 
-  <div class="painel">
-    <div class="cartao">
-      <p class="cartao__rotulo"><%= it.labels.attendance %></p>
-      <p class="cartao__numero"><%= it.formatPercent(reportCard.attendanceRate) %></p>
-      <p class="cartao__detalhe">Presenças sobre dias com chamada</p>
+  <div class="dashboard">
+    <div class="card">
+      <p class="card__label"><%= it.labels.attendance %></p>
+      <p class="card__number"><%= it.formatPercent(reportCard.attendanceRate) %></p>
+      <p class="card__detail">Presenças sobre dias com chamada</p>
     </div>
 
-    <div class="cartao">
-      <p class="cartao__rotulo">Presenças</p>
-      <p class="cartao__numero"><%= reportCard.presentDays %></p>
-      <p class="cartao__detalhe">
-        de <span class="numero"><%= reportCard.totalDays %></span> dias registrados
+    <div class="card">
+      <p class="card__label">Presenças</p>
+      <p class="card__number"><%= reportCard.presentDays %></p>
+      <p class="card__detail">
+        de <span class="number"><%= reportCard.totalDays %></span> dias registrados
       </p>
     </div>
 
-    <div class="cartao">
-      <p class="cartao__rotulo">Faltas</p>
-      <p class="cartao__numero"><%= absences %></p>
-      <p class="cartao__detalhe">Justificadas e não justificadas</p>
+    <div class="card">
+      <p class="card__label">Faltas</p>
+      <p class="card__number"><%= absences %></p>
+      <p class="card__detail">Justificadas e não justificadas</p>
     </div>
   </div>
 </section>
 
-<section class="secao" aria-labelledby="days-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="days-title">
+  <div class="section__header">
     <h2 id="days-title">Dia a dia</h2>
-    <p class="secao__nota">Do dia mais recente para o mais antigo</p>
+    <p class="section__note">Do dia mais recente para o mais antigo</p>
   </div>
 
   <% if (days.length === 0) { %>
@@ -81,28 +81,28 @@ const dayStatus = (day) => {
       text: 'A frequência aparece aqui assim que o professor registrar a primeira chamada da turma.',
     }) %>
   <% } else { %>
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Chamada de <%= it.enrollment.studentName %></caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-centro">Data</th>
+          <th scope="col" class="cell-center">Data</th>
 <%
 // magic-values: permitido — cabeça genérica de cinco vocabulários de estado distintos; por isso não é membro de `it.labels`. %>
-          <th scope="col" class="celula-centro">Situação</th>
-          <th scope="col" class="celula-texto celula-elastica">Justificativa</th>
+          <th scope="col" class="cell-center">Situação</th>
+          <th scope="col" class="cell-text cell-elastic">Justificativa</th>
         </tr>
       </thead>
       <tbody>
         <% days.forEach((day) => { const status = dayStatus(day); %>
         <tr>
-          <th scope="row" class="celula-centro">
+          <th scope="row" class="cell-center">
             <time datetime="<%= day.date %>"><%= it.formatDate(day.date) %></time>
           </th>
-          <td class="celula-centro">
-            <span class="etiqueta <%= status.className %>"><%= status.label %></span>
+          <td class="cell-center">
+            <span class="tag <%= status.className %>"><%= status.label %></span>
           </td>
-          <td class="celula-texto celula-elastica">
+          <td class="cell-text cell-elastic">
             <%= day.excuse ? day.excuse : MISSING %>
           </td>
         </tr>

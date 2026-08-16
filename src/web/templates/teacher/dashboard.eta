@@ -3,11 +3,11 @@ const classGroups = it.classGroups ?? [];
 
 const classGroupDomId = (classGroupId) => `class-group-${classGroupId}`;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo">Professor</p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline">Professor</p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       As turmas em que você leciona nesta rede. Cada disciplina abre o diário de notas; a chamada e o
       fechamento valem para a turma inteira.
     </p>
@@ -22,25 +22,25 @@ const classGroupDomId = (classGroupId) => `class-group-${classGroupId}`;
 <% } %>
 
 <% classGroups.forEach((classGroup) => { %>
-<section class="secao" aria-labelledby="<%= classGroupDomId(classGroup.classGroupId) %>">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="<%= classGroupDomId(classGroup.classGroupId) %>">
+  <div class="section__header">
     <h2 id="<%= classGroupDomId(classGroup.classGroupId) %>"><%= classGroup.classGroupName %></h2>
-    <p class="secao__nota"><%= classGroup.gradeLevel %><%= it.shiftSeparator %><%= classGroup.shift %></p>
+    <p class="section__note"><%= classGroup.gradeLevel %><%= it.shiftSeparator %><%= classGroup.shift %></p>
   </div>
 
-  <div class="painel">
+  <div class="dashboard">
     <% classGroup.subjects.forEach((subject) => { %>
-    <a class="cartao" href="<%= subject.gradesHref %>">
-      <span class="cartao__rotulo"><%= it.labels.subject %></span>
+    <a class="card" href="<%= subject.gradesHref %>">
+      <span class="card__label"><%= it.labels.subject %></span>
       <strong><%= subject.subjectName %></strong>
-      <span class="cartao__detalhe">Lançar notas do bimestre</span>
+      <span class="card__detail">Lançar notas do bimestre</span>
     </a>
     <% }) %>
   </div>
 
-  <div class="acoes">
-    <a class="botao botao--secundario" href="<%= classGroup.rollCallHref %>">Chamada do dia</a>
-    <a class="botao botao--secundario" href="<%= classGroup.closingHref %>">Fechamento de bimestre</a>
+  <div class="actions">
+    <a class="button button--secondary" href="<%= classGroup.rollCallHref %>">Chamada do dia</a>
+    <a class="button button--secondary" href="<%= classGroup.closingHref %>">Fechamento de bimestre</a>
   </div>
 </section>
 <% }) %>

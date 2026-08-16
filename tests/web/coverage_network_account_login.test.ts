@@ -43,7 +43,7 @@ const html = async (path: string, cookie = ''): Promise<string> =>
 /** O número que está no cartão daquele rótulo — e não um número qualquer da página. */
 const cardNumber = (page: string, label: string): string => {
   const pattern = new RegExp(
-    `<span class="cartao__rotulo">${label}</span>\\s*<span class="cartao__numero">(\\d+)</span>`,
+    `<span class="card__label">${label}</span>\\s*<span class="card__number">(\\d+)</span>`,
   );
   return pattern.exec(page)?.[1] ?? 'cartão ausente';
 };
@@ -59,13 +59,13 @@ describe('o painel da rede', () => {
     const page = await response.text();
 
     expect(response.status).toBe(200);
-    expect(page).toContain(`<h1 class="pagina__titulo">${scenario.network.name}</h1>`);
+    expect(page).toContain(`<h1 class="page__title">${scenario.network.name}</h1>`);
     expect(cardNumber(page, 'Unidades')).toBe(String(scenario.schools.length));
     // As quatro contas do cenário: administração, secretaria, professor e responsável.
     expect(cardNumber(page, 'Usuários')).toBe('4');
     expect(cardNumber(page, 'Turmas')).toBe(String(scenario.classGroups.length));
     expect(cardNumber(page, 'Matriculados')).toBe(String(scenario.enrollments.length));
-    expect(page).toContain(`<dd class="numero">${scenario.academicYear.year}</dd>`);
+    expect(page).toContain(`<dd class="number">${scenario.academicYear.year}</dd>`);
   });
 
   /**
@@ -117,7 +117,7 @@ describe('as unidades da rede', () => {
 
     const page = await html('/network/schools?ok=school-created', cookie);
 
-    expect(page).toContain('class="aviso aviso--sucesso"');
+    expect(page).toContain('class="notice notice--success"');
     expect(page).toContain('Unidade criada.');
   });
 
@@ -129,7 +129,7 @@ describe('as unidades da rede', () => {
     const page = await response.text();
 
     expect(response.status).toBe(200);
-    expect(page).toContain('<h1 class="pagina__titulo">Criar unidade</h1>');
+    expect(page).toContain('<h1 class="page__title">Criar unidade</h1>');
     expect(page).toContain('name="name"');
     expect(page).toContain('name="inepCode"');
     expect(page).not.toContain('<caption>Unidades cadastradas</caption>');
@@ -185,7 +185,7 @@ describe('os usuários da rede', () => {
     expect(response.status).toBe(200);
     expect(page).toContain('Usuário criado. A senha provisória está logo abaixo.');
     expect(page).toContain('Senha provisória de Nova Secretária');
-    expect(page).toContain('<code class="codigo">');
+    expect(page).toContain('<code class="code">');
     // Lida uma vez, a senha não pode continuar guardada no navegador para a próxima visita.
     expect(response.headers.get('Set-Cookie') ?? '').toContain('ev_convite=;');
   });
@@ -197,7 +197,7 @@ describe('os usuários da rede', () => {
     const page = await html('/network/users', cookie);
 
     expect(page).not.toContain('Senha provisória de');
-    expect(page).not.toContain('<code class="codigo">');
+    expect(page).not.toContain('<code class="code">');
   });
 
   test('a página do convite traz as três linhas de atribuição e as duas listas inteiras', async () => {
@@ -208,7 +208,7 @@ describe('os usuários da rede', () => {
     const page = await response.text();
 
     expect(response.status).toBe(200);
-    expect(page).toContain('<h1 class="pagina__titulo">Convidar usuário</h1>');
+    expect(page).toContain('<h1 class="page__title">Convidar usuário</h1>');
     expect(page).toContain('name="schools[]"');
     expect(page).toContain('name="roles[]"');
     expect(page).toContain('name="guardianId"');
@@ -235,7 +235,7 @@ describe('os anos letivos da rede', () => {
     expect(page).toContain('<caption>Calendário letivo da rede</caption>');
     expect(page).toContain('<th scope="col">Início</th>');
     expect(page).toContain('<th scope="col">Término</th>');
-    expect(page).toContain(`<th scope="row" class="numero">${scenario.academicYear.year}</th>`);
+    expect(page).toContain(`<th scope="row" class="number">${scenario.academicYear.year}</th>`);
   });
 
   test('a lista lê o código do redirecionamento e mostra a frase da definição', async () => {
@@ -244,7 +244,7 @@ describe('os anos letivos da rede', () => {
 
     const page = await html('/network/academic-years?ok=year-defined', cookie);
 
-    expect(page).toContain('class="aviso aviso--sucesso"');
+    expect(page).toContain('class="notice notice--success"');
     expect(page).toContain('Ano letivo definido.');
   });
 
@@ -256,7 +256,7 @@ describe('os anos letivos da rede', () => {
     const page = await response.text();
 
     expect(response.status).toBe(200);
-    expect(page).toContain('<h1 class="pagina__titulo">Definir ano letivo</h1>');
+    expect(page).toContain('<h1 class="page__title">Definir ano letivo</h1>');
     expect(page).toContain('name="year"');
     expect(page).toContain('name="startDate"');
     expect(page).toContain('name="endDate"');
@@ -275,7 +275,7 @@ describe('a troca da própria senha', () => {
     const page = await response.text();
 
     expect(response.status).toBe(200);
-    expect(page).toContain('<h1 class="pagina__titulo">Trocar senha</h1>');
+    expect(page).toContain('<h1 class="page__title">Trocar senha</h1>');
     expect(page).toContain('name="currentPassword"');
     expect(page).toContain('name="newPassword"');
     expect(page).toContain('name="passwordConfirmation"');
@@ -289,7 +289,7 @@ describe('a troca da própria senha', () => {
     const page = await response.text();
 
     expect(response.status).toBe(200);
-    expect(page).toContain('class="aviso aviso--sucesso"');
+    expect(page).toContain('class="notice notice--success"');
     expect(page).toContain('Senha alterada. Use a senha nova no próximo acesso.');
     expect(page).not.toContain('>password-changed<');
   });
@@ -314,7 +314,7 @@ describe('a tela de entrada', () => {
     const page = await response.text();
 
     expect(response.status).toBe(200);
-    expect(page).toContain('class="aviso aviso--sucesso"');
+    expect(page).toContain('class="notice notice--success"');
     expect(page).toContain('Sessão encerrada.');
   });
 });

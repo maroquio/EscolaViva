@@ -428,7 +428,7 @@ describe('rota autenticada responde `Cache-Control: private, no-store`', () => {
   });
 
   test('o arquivo publicado, cujo nome carrega o hash, pode ser guardado para sempre', async () => {
-    const response = await open('/public/app.2a17037a.css');
+    const response = await open('/public/app.0b878f01.css');
 
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
   });

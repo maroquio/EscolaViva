@@ -7,26 +7,26 @@ const filtering = filter.schoolId !== '' || filter.academicYearId !== '';
 const classGroupList = it.routes.registrar.classGroups();
 const classGroupForm = it.routes.registrar.classGroupNew();
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       A turma pertence a uma unidade e a um ano letivo. É nela que se alocam as disciplinas com seus
       professores, e é para ela que os alunos são matriculados.
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.routes.registrar.subjects() %>"><%= it.titles.registrar.subjects %></a>
-    <a class="botao botao--primario" href="<%= classGroupForm %>"><%= it.titles.registrar.classGroupNew %></a>
+  <div class="page__actions">
+    <a class="button button--secondary" href="<%= it.routes.registrar.subjects() %>"><%= it.titles.registrar.subjects %></a>
+    <a class="button button--primary" href="<%= classGroupForm %>"><%= it.titles.registrar.classGroupNew %></a>
   </div>
 </div>
 
-<div class="quadro">
-  <form class="formulario" method="get" action="<%= classGroupList %>">
-    <div class="formulario__linha">
-      <div class="campo">
-        <label class="campo__rotulo" for="school"><%= it.labels.school %></label>
+<div class="panel">
+  <form class="form" method="get" action="<%= classGroupList %>">
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="school"><%= it.labels.school %></label>
         <select id="school" name="<%= it.schoolField %>">
           <option value="">Todas as suas unidades</option>
           <% schools.forEach((school) => { %>
@@ -37,8 +37,8 @@ const classGroupForm = it.routes.registrar.classGroupNew();
         </select>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="year"><%= it.labels.academicYear %></label>
+      <div class="field">
+        <label class="field__label" for="year"><%= it.labels.academicYear %></label>
         <select id="year" name="<%= it.yearField %>">
           <option value="">Todos os anos</option>
           <% academicYears.forEach((academicYear) => { %>
@@ -50,21 +50,21 @@ const classGroupForm = it.routes.registrar.classGroupNew();
       </div>
     </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit">Filtrar</button>
+    <div class="actions">
+      <button class="button button--primary" type="submit">Filtrar</button>
       <% if (filtering) { %>
-      <a class="botao botao--discreto" href="<%= classGroupList %>">Limpar filtro</a>
+      <a class="button button--quiet" href="<%= classGroupList %>">Limpar filtro</a>
       <% } %>
     </div>
   </form>
 </div>
 
-<section class="secao" aria-labelledby="list">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="list">
+  <div class="section__header">
     <h2 id="list">Turmas</h2>
     <% const count = it.pagination === undefined ? classGroups.length : it.pagination.total; %>
-    <p class="secao__nota">
-      <span class="numero"><%= count %></span>
+    <p class="section__note">
+      <span class="number"><%= count %></span>
       <%= it.pluralize(count, it.nouns.classGroup) %><%= filtering ? ' no filtro atual' : '' %>
     </p>
   </div>
@@ -82,32 +82,32 @@ const classGroupForm = it.routes.registrar.classGroupNew();
         action: { href: classGroupForm, text: it.titles.registrar.classGroupNew }
       }) %>
   <% } else { %>
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Turmas das unidades sob sua secretaria</caption>
       <thead>
         <tr>
-          <th scope="col" class="celula-centro"><%= it.labels.classGroup %></th>
-          <th scope="col" class="celula-centro">Série</th>
-          <th scope="col" class="celula-centro">Turno</th>
-          <th scope="col" class="celula-centro"><%= it.labels.school %></th>
-          <th scope="col" class="celula-centro"><%= it.labels.year %></th>
-          <th scope="col" class="celula-centro"><%= it.labels.actions %></th>
+          <th scope="col" class="cell-center"><%= it.labels.classGroup %></th>
+          <th scope="col" class="cell-center">Série</th>
+          <th scope="col" class="cell-center">Turno</th>
+          <th scope="col" class="cell-center"><%= it.labels.school %></th>
+          <th scope="col" class="cell-center"><%= it.labels.year %></th>
+          <th scope="col" class="cell-center"><%= it.labels.actions %></th>
         </tr>
       </thead>
       <tbody>
         <% classGroups.forEach((classGroup) => { %>
         <tr>
-          <th scope="row" class="celula-centro"><%= classGroup.name %></th>
-          <td class="celula-centro"><%= classGroup.gradeLevel %></td>
-          <td class="celula-centro"><%= classGroup.shiftName %></td>
-          <td class="celula-centro"><%= classGroup.schoolName %></td>
-          <td class="numero celula-centro"><%= classGroup.year === null ? it.missingValue : classGroup.year %></td>
-          <td class="celula-centro">
-            <div class="tabela__acoes">
-              <a class="botao botao--secundario botao--miudo" href="<%= it.routes.registrar.classGroup({ id: classGroup.id }) %>">
+          <th scope="row" class="cell-center"><%= classGroup.name %></th>
+          <td class="cell-center"><%= classGroup.gradeLevel %></td>
+          <td class="cell-center"><%= classGroup.shiftName %></td>
+          <td class="cell-center"><%= classGroup.schoolName %></td>
+          <td class="number cell-center"><%= classGroup.year === null ? it.missingValue : classGroup.year %></td>
+          <td class="cell-center">
+            <div class="table__actions">
+              <a class="button button--secondary button--small" href="<%= it.routes.registrar.classGroup({ id: classGroup.id }) %>">
 <% // magic-values: permitido — não é NOUNS.classGroup.singular, o substantivo que vem DEPOIS DE UM NÚMERO %>
-                Abrir<span class="visualmente-oculto"> turma <%= classGroup.name %></span>
+                Abrir<span class="visually-hidden"> turma <%= classGroup.name %></span>
               </a>
             </div>
           </td>

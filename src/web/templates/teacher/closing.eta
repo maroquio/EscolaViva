@@ -5,50 +5,50 @@ const subjects = classGroup.subjects ?? [];
 const CLOSING_LABEL = it.closingLabel;
 const CLOSING_CLASS = it.tagClass.closing;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= classGroup.gradeLevel %><%= it.shiftSeparator %><%= classGroup.shift %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= classGroup.gradeLevel %><%= it.shiftSeparator %><%= classGroup.shift %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       Fechar um bimestre confere as notas de todos os alunos em todas as disciplinas da turma antes
       de gravar. A página só responde quando a conferência termina — em turmas grandes isso leva
       alguns segundos, e o bimestre fechado bloqueia qualquer alteração de nota daquele período.
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="<%= classGroup.rollCallHref %>">Chamada</a>
-    <a class="botao botao--discreto" href="<%= it.routes.teacher.dashboard() %>"><%= it.titles.teacher.dashboard %></a>
+  <p class="page__actions">
+    <a class="button button--quiet" href="<%= classGroup.rollCallHref %>">Chamada</a>
+    <a class="button button--quiet" href="<%= it.routes.teacher.dashboard() %>"><%= it.titles.teacher.dashboard %></a>
   </p>
 </div>
 
-<ol class="pilha pilha--larga">
+<ol class="stack stack--wide">
   <% states.forEach((state) => { %>
-  <li class="quadro">
-    <div class="secao__cabecalho">
+  <li class="panel">
+    <div class="section__header">
       <h2><%= it.termLabel(state.term) %></h2>
-      <span class="etiqueta <%= state.closed ? CLOSING_CLASS.closed : CLOSING_CLASS.open %>">
+      <span class="tag <%= state.closed ? CLOSING_CLASS.closed : CLOSING_CLASS.open %>">
         <%= state.closed ? CLOSING_LABEL.closed : CLOSING_LABEL.open %>
       </span>
     </div>
 
     <% if (state.closed) { %>
-    <dl class="lista-definicoes">
+    <dl class="definition-list">
       <dt>Fechado em</dt>
-      <dd><time class="numero" datetime="<%= state.closedAt %>"><%= it.formatDateTime(state.closedAt) %></time></dd>
+      <dd><time class="number" datetime="<%= state.closedAt %>"><%= it.formatDateTime(state.closedAt) %></time></dd>
     </dl>
-    <p class="suave">As notas deste bimestre não podem mais ser alteradas.</p>
+    <p class="muted">As notas deste bimestre não podem mais ser alteradas.</p>
     <% } else { %>
 
     <% if (it.rejectedTerm === state.term) { %>
-    <p class="campo__erro" id="<%= it.prefixes.pending %><%= state.term %>">
+    <p class="field__error" id="<%= it.prefixes.pending %><%= state.term %>">
       Este bimestre não foi fechado: o aviso no topo da página diz quantas notas faltam e em quais
       disciplinas.
     </p>
     <% } %>
 
     <% if (subjects.length > 0) { %>
-    <p class="suave">Minhas disciplinas nesta turma:</p>
-    <ul class="linha">
+    <p class="muted">Minhas disciplinas nesta turma:</p>
+    <ul class="row">
       <% subjects.forEach((subject) => { %>
       <li>
         <a href="<%= subject.gradesHref %>?<%= it.termParam %>=<%= state.term %>"><%= subject.subjectName %></a>
@@ -57,15 +57,15 @@ const CLOSING_CLASS = it.tagClass.closing;
     </ul>
     <% } %>
 
-    <form class="acoes" method="post" action="<%= it.formAction %>">
+    <form class="actions" method="post" action="<%= it.formAction %>">
       <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
       <input type="hidden" name="<%= it.termField %>" value="<%= state.term %>">
-      <button class="botao botao--primario" type="submit"
+      <button class="button button--primary" type="submit"
               <% if (it.rejectedTerm === state.term) { %>aria-describedby="<%= it.prefixes.pending %><%= state.term %>"<% } %>>
         Fechar <%= it.termLabel(state.term) %>
 
       </button>
-      <span class="suave">A conferência é feita agora, com a página aberta.</span>
+      <span class="muted">A conferência é feita agora, com a página aberta.</span>
     </form>
 
     <% } %>

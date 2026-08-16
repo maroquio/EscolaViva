@@ -2,13 +2,13 @@
 const user = it.user;
 const schools = user === null ? [] : [...new Set(user.roles.map((p) => p.schoolName))];
 %>
-<header class="cabecalho">
-  <a class="marca cabecalho__marca" href="<%= it.routes.public.dashboard() %>"><%~ it.presentation.brand %></a>
+<header class="header">
+  <a class="brand header__brand" href="<%= it.routes.public.dashboard() %>"><%~ it.presentation.brand %></a>
 
   <% if (user !== null) { %>
-  <div class="cabecalho__contexto">
-    <span class="cabecalho__rede"><%= user.networkName %></span>
-    <span class="cabecalho__unidade">
+  <div class="header__context">
+    <span class="header__network"><%= user.networkName %></span>
+    <span class="header__school">
       <% if (schools.length === 0) { %>
         sem unidade atribuída
       <% } else if (schools.length === 1) { %>
@@ -20,11 +20,11 @@ const schools = user === null ? [] : [...new Set(user.roles.map((p) => p.schoolN
     </span>
   </div>
 
-  <div class="cabecalho__usuario">
-    <span class="cabecalho__nome" title="<%= user.email %>"><%= user.name %></span>
-    <form class="cabecalho__sair" method="post" action="<%= it.routes.public.logout() %>">
+  <div class="header__user">
+    <span class="header__name" title="<%= user.email %>"><%= user.name %></span>
+    <form class="header__signout" method="post" action="<%= it.routes.public.logout() %>">
       <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
-      <button class="botao botao--discreto botao--miudo" type="submit">Sair</button>
+      <button class="button button--quiet button--small" type="submit">Sair</button>
     </form>
   </div>
   <% } %>

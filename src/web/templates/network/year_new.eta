@@ -3,25 +3,25 @@ const values = it.values ?? { year: '', startDate: '', endDate: '' };
 const fields = it.fields.academicYear;
 const { errorFor, describedBy } = it;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.network %><%= it.presentation.separator %><%= it.titles.network.years %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.network %><%= it.presentation.separator %><%= it.titles.network.years %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       O período define o que conta como "este ano" para matrícula, boletim e frequência. Não pode
       haver dois anos iguais na mesma rede.
     </p>
   </div>
 </div>
 
-<div class="quadro">
-  <form class="formulario" method="post" action="<%= it.routes.network.academicYears() %>">
+<div class="panel">
+  <form class="form" method="post" action="<%= it.routes.network.academicYears() %>">
     <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
-    <div class="formulario__linha">
-      <div class="campo">
-        <label class="campo__rotulo" for="year">
-          <%= it.labels.year %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="year">
+          <%= it.labels.year %> <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="year"
@@ -36,13 +36,13 @@ const { errorFor, describedBy } = it;
           <% if (errorFor(fields.year) !== '') { %>aria-invalid="true"<% } %>
           <% if (describedBy(fields.year) !== '') { %>aria-describedby="<%= describedBy(fields.year) %>"<% } %>>
         <% if (errorFor(fields.year) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.year) %>"><%= errorFor(fields.year) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.year) %>"><%= errorFor(fields.year) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="startDate">
-          <%= it.labels.start %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="startDate">
+          <%= it.labels.start %> <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="startDate"
@@ -53,13 +53,13 @@ const { errorFor, describedBy } = it;
           <% if (errorFor(fields.startDate) !== '') { %>aria-invalid="true"<% } %>
           <% if (describedBy(fields.startDate) !== '') { %>aria-describedby="<%= describedBy(fields.startDate) %>"<% } %>>
         <% if (errorFor(fields.startDate) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.startDate) %>"><%= errorFor(fields.startDate) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.startDate) %>"><%= errorFor(fields.startDate) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="endDate">
-          <%= it.labels.end %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="endDate">
+          <%= it.labels.end %> <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="endDate"
@@ -69,16 +69,16 @@ const { errorFor, describedBy } = it;
           value="<%= values.endDate %>"
           <% if (errorFor(fields.endDate) !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= describedBy(fields.endDate, true) %>">
-        <p class="campo__ajuda" id="<%= it.helpId(fields.endDate) %>">Precisa ser posterior à data de início.</p>
+        <p class="field__help" id="<%= it.helpId(fields.endDate) %>">Precisa ser posterior à data de início.</p>
         <% if (errorFor(fields.endDate) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.endDate) %>"><%= errorFor(fields.endDate) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.endDate) %>"><%= errorFor(fields.endDate) %></p>
         <% } %>
       </div>
     </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit"><%= it.titles.network.yearNew %></button>
-      <a class="botao botao--discreto" href="<%= it.routes.network.academicYears() %>"><%= it.actions.cancel %></a>
+    <div class="actions">
+      <button class="button button--primary" type="submit"><%= it.titles.network.yearNew %></button>
+      <a class="button button--quiet" href="<%= it.routes.network.academicYears() %>"><%= it.actions.cancel %></a>
     </div>
   </form>
 </div>

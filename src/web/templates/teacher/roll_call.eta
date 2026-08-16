@@ -4,39 +4,39 @@ const date = it.date;
 const classGroup = it.classGroup;
 const caption = `Chamada de ${it.formatDate(date)}${it.separator}${classGroup.classGroupName}`;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= classGroup.gradeLevel %><%= it.shiftSeparator %><%= classGroup.shift %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= classGroup.gradeLevel %><%= it.shiftSeparator %><%= classGroup.shift %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       Presença de um dia inteiro. A justificativa é o que o responsável informou sobre a falta, e
       aparece depois no acompanhamento de frequência do aluno.
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="<%= classGroup.closingHref %>">Fechamento</a>
-    <a class="botao botao--discreto" href="<%= it.routes.teacher.dashboard() %>"><%= it.titles.teacher.dashboard %></a>
+  <p class="page__actions">
+    <a class="button button--quiet" href="<%= classGroup.closingHref %>">Fechamento</a>
+    <a class="button button--quiet" href="<%= it.routes.teacher.dashboard() %>"><%= it.titles.teacher.dashboard %></a>
   </p>
 </div>
 
-<div class="acoes">
-  <nav class="linha" aria-label="Dia da chamada">
-    <a class="botao botao--secundario" rel="prev"
+<div class="actions">
+  <nav class="row" aria-label="Dia da chamada">
+    <a class="button button--secondary" rel="prev"
        href="<%= it.formAction %>?<%= it.dateParam %>=<%= it.previousDay %>">
-      Dia anterior<%= it.separator %><time class="numero" datetime="<%= it.previousDay %>"><%= it.formatDate(it.previousDay) %></time>
+      Dia anterior<%= it.separator %><time class="number" datetime="<%= it.previousDay %>"><%= it.formatDate(it.previousDay) %></time>
     </a>
-    <a class="botao botao--secundario" rel="next"
+    <a class="button button--secondary" rel="next"
        href="<%= it.formAction %>?<%= it.dateParam %>=<%= it.nextDay %>">
-      Dia seguinte<%= it.separator %><time class="numero" datetime="<%= it.nextDay %>"><%= it.formatDate(it.nextDay) %></time>
+      Dia seguinte<%= it.separator %><time class="number" datetime="<%= it.nextDay %>"><%= it.formatDate(it.nextDay) %></time>
     </a>
   </nav>
 
-  <form class="linha" method="get" action="<%= it.formAction %>">
-    <label class="campo__rotulo" for="go-to-day">Ir para o dia</label>
-    <span class="campo">
+  <form class="row" method="get" action="<%= it.formAction %>">
+    <label class="field__label" for="go-to-day">Ir para o dia</label>
+    <span class="field">
       <input type="date" id="go-to-day" name="<%= it.dateParam %>" value="<%= date %>">
     </span>
-    <button class="botao botao--secundario" type="submit">Abrir</button>
+    <button class="button button--secondary" type="submit">Abrir</button>
   </form>
 </div>
 
@@ -47,12 +47,12 @@ const caption = `Chamada de ${it.formatDate(date)}${it.separator}${classGroup.cl
 }) %>
 <% } else { %>
 
-<form class="formulario formulario--largo" method="post" action="<%= it.formAction %>">
+<form class="form form--wide" method="post" action="<%= it.formAction %>">
   <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
   <input type="hidden" name="<%= it.dateField %>" value="<%= date %>">
 
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption><%= caption %></caption>
       <thead>
         <tr>
@@ -66,7 +66,7 @@ const caption = `Chamada de ${it.formatDate(date)}${it.separator}${classGroup.cl
         <tr>
           <th scope="row"><%= row.studentName %></th>
           <td>
-            <label class="visualmente-oculto" for="<%= it.presentPrefix %><%= row.enrollmentId %>">
+            <label class="visually-hidden" for="<%= it.presentPrefix %><%= row.enrollmentId %>">
               <%= row.studentName %> esteve presente em <%= it.formatDate(date) %>
             </label>
             <input type="checkbox"
@@ -74,8 +74,8 @@ const caption = `Chamada de ${it.formatDate(date)}${it.separator}${classGroup.cl
                    name="<%= it.presentPrefix %><%= row.enrollmentId %>"
                    <% if (row.present) { %>checked<% } %>>
           </td>
-          <td class="celula-texto">
-            <label class="visualmente-oculto" for="<%= it.excusePrefix %><%= row.enrollmentId %>">
+          <td class="cell-text">
+            <label class="visually-hidden" for="<%= it.excusePrefix %><%= row.enrollmentId %>">
               Justificativa da falta de <%= row.studentName %>
             </label>
             <input type="text"
@@ -91,9 +91,9 @@ const caption = `Chamada de ${it.formatDate(date)}${it.separator}${classGroup.cl
     </table>
   </div>
 
-  <div class="acoes">
-    <button class="botao botao--primario" type="submit">Salvar chamada</button>
-    <span class="suave">Todos começam presentes: desmarque quem faltou.</span>
+  <div class="actions">
+    <button class="button button--primary" type="submit">Salvar chamada</button>
+    <span class="muted">Todos começam presentes: desmarque quem faltou.</span>
   </div>
 </form>
 

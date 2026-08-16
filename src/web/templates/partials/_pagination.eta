@@ -5,21 +5,21 @@ const nav = it.pagination ?? null;
 const label = it.label ?? DEFAULT_LABEL;
 %>
 <% if (nav !== null && nav.total > 0) { %>
-<nav class="paginacao" aria-label="Paginação de <%= label %>">
-  <p class="paginacao__contagem">
-    <span class="numero"><%= nav.first %>–<%= nav.last %></span>
-    de <span class="numero"><%= nav.total %></span> <%= label %>
+<nav class="pagination" aria-label="Paginação de <%= label %>">
+  <p class="pagination__count">
+    <span class="number"><%= nav.first %>–<%= nav.last %></span>
+    de <span class="number"><%= nav.total %></span> <%= label %>
   </p>
 
   <% if (nav.many) { %>
-  <ul class="paginacao__lista">
+  <ul class="pagination__list">
     <li>
       <% if (nav.previous !== null) { %>
-      <a class="paginacao__passo" href="<%= nav.previous %>" rel="prev">
+      <a class="pagination__step" href="<%= nav.previous %>" rel="prev">
         <span aria-hidden="true">&lsaquo;</span> Anterior
       </a>
       <% } else { %>
-      <span class="paginacao__passo paginacao__passo--inerte" aria-hidden="true">
+      <span class="pagination__step pagination__step--inert" aria-hidden="true">
         &lsaquo; Anterior
       </span>
       <% } %>
@@ -28,11 +28,11 @@ const label = it.label ?? DEFAULT_LABEL;
     <% nav.links.forEach((link) => { %>
     <li>
       <% if (link.current) { %>
-      <span class="paginacao__numero paginacao__numero--atual" aria-current="page">
+      <span class="pagination__number pagination__number--current" aria-current="page">
         <%= link.number %>
       </span>
       <% } else { %>
-      <a class="paginacao__numero" href="<%= link.href %>" aria-label="Página <%= link.number %>">
+      <a class="pagination__number" href="<%= link.href %>" aria-label="Página <%= link.number %>">
         <%= link.number %>
       </a>
       <% } %>
@@ -41,11 +41,11 @@ const label = it.label ?? DEFAULT_LABEL;
 
     <li>
       <% if (nav.next !== null) { %>
-      <a class="paginacao__passo" href="<%= nav.next %>" rel="next">
+      <a class="pagination__step" href="<%= nav.next %>" rel="next">
         Próxima <span aria-hidden="true">&rsaquo;</span>
       </a>
       <% } else { %>
-      <span class="paginacao__passo paginacao__passo--inerte" aria-hidden="true">
+      <span class="pagination__step pagination__step--inert" aria-hidden="true">
         Próxima &rsaquo;
       </span>
       <% } %>

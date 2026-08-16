@@ -10,40 +10,40 @@ const chosenGuardian = values.guardianId ?? '';
 const relationship = values.relationship ?? '';
 const financiallyResponsible = values.financiallyResponsible === true;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= student.name %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %><%= it.presentation.separator %><%= student.name %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       O responsável é quem recebe comunicado e acompanha boletim e frequência deste aluno.
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.routes.registrar.student({ id: student.id }) %>"><%= it.actions.backTo.record %></a>
+  <div class="page__actions">
+    <a class="button button--secondary" href="<%= it.routes.registrar.student({ id: student.id }) %>"><%= it.actions.backTo.record %></a>
   </div>
 </div>
 
-<div class="quadro">
+<div class="panel">
   <% if (available.length === 0) { %>
-  <p class="suave leitura">
+  <p class="muted reading">
     <% if (!hasGuardians) { %>
     Nenhum responsável cadastrado nesta rede ainda.
     <% } else { %>
     Todos os responsáveis cadastrados já estão vinculados a este aluno.
     <% } %>
   </p>
-  <div class="acoes">
-    <a class="botao botao--primario" href="<%= it.routes.registrar.guardianNew() %>"><%= it.titles.registrar.guardianNew %></a>
-    <a class="botao botao--discreto" href="<%= it.routes.registrar.student({ id: student.id }) %>"><%= it.actions.backTo.record %></a>
+  <div class="actions">
+    <a class="button button--primary" href="<%= it.routes.registrar.guardianNew() %>"><%= it.titles.registrar.guardianNew %></a>
+    <a class="button button--quiet" href="<%= it.routes.registrar.student({ id: student.id }) %>"><%= it.actions.backTo.record %></a>
   </div>
   <% } else { %>
-  <form class="formulario" method="post" action="<%= it.routes.registrar.studentGuardians({ id: student.id }) %>">
+  <form class="form" method="post" action="<%= it.routes.registrar.studentGuardians({ id: student.id }) %>">
     <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
-    <div class="formulario__linha">
-      <div class="campo">
-        <label class="campo__rotulo" for="guardianId">
-          Responsável <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="guardianId">
+          Responsável <span class="field__required" aria-hidden="true">*</span>
         </label>
         <select
           id="guardianId"
@@ -59,13 +59,13 @@ const financiallyResponsible = values.financiallyResponsible === true;
           <% }) %>
         </select>
         <% if (errorFor(fields.guardianId) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.guardianId) %>"><%= errorFor(fields.guardianId) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.guardianId) %>"><%= errorFor(fields.guardianId) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="relationship">
-          Parentesco <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="relationship">
+          Parentesco <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="relationship"
@@ -76,15 +76,15 @@ const financiallyResponsible = values.financiallyResponsible === true;
           value="<%= relationship %>"
           <% if (errorFor(fields.relationship) !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= describedBy(fields.relationship, true) %>">
-        <p class="campo__ajuda" id="<%= it.helpId(fields.relationship) %>">Mãe, pai, avó, tutor legal.</p>
+        <p class="field__help" id="<%= it.helpId(fields.relationship) %>">Mãe, pai, avó, tutor legal.</p>
         <% if (errorFor(fields.relationship) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.relationship) %>"><%= errorFor(fields.relationship) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.relationship) %>"><%= errorFor(fields.relationship) %></p>
         <% } %>
       </div>
     </div>
 
-    <div class="campo">
-      <div class="campo campo--opcao">
+    <div class="field">
+      <div class="field field--choice">
         <input
           id="financiallyResponsible"
           name="<%= fields.financiallyResponsible %>"
@@ -92,17 +92,17 @@ const financiallyResponsible = values.financiallyResponsible === true;
           value="<%= it.checkedValue %>"
           <%= financiallyResponsible ? 'checked' : '' %>
           aria-describedby="<%= it.helpId(fields.financiallyResponsible) %>">
-        <label class="campo__rotulo" for="financiallyResponsible">Responsável financeiro</label>
+        <label class="field__label" for="financiallyResponsible">Responsável financeiro</label>
       </div>
-      <p class="campo__ajuda" id="<%= it.helpId(fields.financiallyResponsible) %>">
+      <p class="field__help" id="<%= it.helpId(fields.financiallyResponsible) %>">
         Marque quem responde pela cobrança. O aluno pode ter mais de um responsável, e apenas um
         deles precisa ser o financeiro.
       </p>
     </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit"><%= it.titles.registrar.linkGuardian %></button>
-      <a class="botao botao--discreto" href="<%= it.routes.registrar.student({ id: student.id }) %>"><%= it.actions.cancel %></a>
+    <div class="actions">
+      <button class="button button--primary" type="submit"><%= it.titles.registrar.linkGuardian %></button>
+      <a class="button button--quiet" href="<%= it.routes.registrar.student({ id: student.id }) %>"><%= it.actions.cancel %></a>
     </div>
   </form>
   <% } %>

@@ -1,14 +1,14 @@
 <% if (it.message) { %>
-<p class="aviso aviso--sucesso" role="status"><%= it.message %></p>
+<p class="notice notice--success" role="status"><%= it.message %></p>
 <% } %>
 
 <% if (it.error) { %>
-<p class="aviso aviso--erro" role="alert"><%= it.error %></p>
+<p class="notice notice--error" role="alert"><%= it.error %></p>
 <% } %>
 
 <% if (Array.isArray(it.errors) && it.errors.length > 0) { %>
-<div class="aviso aviso--erro" role="alert">
-  <p class="aviso__titulo">Não foi possível concluir</p>
+<div class="notice notice--error" role="alert">
+  <p class="notice__title">Não foi possível concluir</p>
   <ul>
     <% it.errors.forEach((problem) => { %>
     <li><%= problem.mensagem %></li>

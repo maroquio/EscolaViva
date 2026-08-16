@@ -7,57 +7,57 @@ const STATUS_CLASS = it.tagClass.finalStatus;
 
 const STATUS_LABEL = it.statusLabel;
 %>
-<header class="pagina__cabecalho">
+<header class="page__header">
   <div>
-    <p class="sobretitulo">Boletim</p>
-    <h1 class="pagina__titulo"><%= reportCard.studentName %></h1>
-    <p class="pagina__resumo">
-      <%= it.labels.classGroup %> <%= reportCard.classGroupName %><%= it.presentation.separator %>ano letivo <span class="numero"><%= reportCard.year %></span>
+    <p class="overline">Boletim</p>
+    <h1 class="page__title"><%= reportCard.studentName %></h1>
+    <p class="page__summary">
+      <%= it.labels.classGroup %> <%= reportCard.classGroupName %><%= it.presentation.separator %>ano letivo <span class="number"><%= reportCard.year %></span>
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--secundario"
+  <p class="page__actions">
+    <a class="button button--secondary"
        href="<%= it.routes.guardian.attendance({ id: it.enrollmentId }) %>">Ver frequência</a>
-    <a class="botao botao--discreto" href="<%= it.routes.guardian.dashboard() %>"><%= it.actions.backTo.students %></a>
+    <a class="button button--quiet" href="<%= it.routes.guardian.dashboard() %>"><%= it.actions.backTo.students %></a>
   </p>
 </header>
 
-<section class="secao" aria-labelledby="result-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="result-title">
+  <div class="section__header">
     <h2 id="result-title">Resultado do ano</h2>
-    <p class="secao__nota">Apurado a cada leitura, a partir das notas e da chamada</p>
+    <p class="section__note">Apurado a cada leitura, a partir das notas e da chamada</p>
   </div>
 
-  <div class="pilha">
-    <div class="painel">
-      <div class="cartao">
-        <p class="cartao__rotulo">Média geral</p>
-        <p class="cartao__numero"><%= it.formatGrade(reportCard.overallAverage) %></p>
-        <p class="cartao__detalhe">Média simples das disciplinas cursadas</p>
+  <div class="stack">
+    <div class="dashboard">
+      <div class="card">
+        <p class="card__label">Média geral</p>
+        <p class="card__number"><%= it.formatGrade(reportCard.overallAverage) %></p>
+        <p class="card__detail">Média simples das disciplinas cursadas</p>
       </div>
 
-      <div class="cartao">
-        <p class="cartao__rotulo"><%= it.labels.attendance %></p>
-        <p class="cartao__numero"><%= it.formatPercent(reportCard.attendanceRate) %></p>
-        <p class="cartao__detalhe">
-          <span class="numero"><%= reportCard.presentDays %></span> de
-          <span class="numero"><%= reportCard.totalDays %></span> dias com chamada registrada
+      <div class="card">
+        <p class="card__label"><%= it.labels.attendance %></p>
+        <p class="card__number"><%= it.formatPercent(reportCard.attendanceRate) %></p>
+        <p class="card__detail">
+          <span class="number"><%= reportCard.presentDays %></span> de
+          <span class="number"><%= reportCard.totalDays %></span> dias com chamada registrada
         </p>
       </div>
 
-      <div class="cartao">
+      <div class="card">
 <% // magic-values: permitido — substantivo genérico que encabeça cinco vocabulários de estado distintos; não é o rótulo de um dado só, e por isso não entra em LABELS %>
-        <p class="cartao__rotulo">Situação</p>
+        <p class="card__label">Situação</p>
         <p>
-          <span class="etiqueta <%= STATUS_CLASS[reportCard.status] %>">
+          <span class="tag <%= STATUS_CLASS[reportCard.status] %>">
             <%= STATUS_LABEL[reportCard.status] %>
           </span>
         </p>
-        <p class="cartao__detalhe">Critério: média <%= criteria.average %> e frequência <%= criteria.attendance %></p>
+        <p class="card__detail">Critério: média <%= criteria.average %> e frequência <%= criteria.attendance %></p>
       </div>
     </div>
 
-    <p class="suave">
+    <p class="muted">
       A situação sai destes dois números: é aprovado quem termina o ano com média final de
       <strong><%= criteria.average %> ou mais</strong> e frequência de <strong><%= criteria.attendance %> ou mais</strong> — as duas
       condições ao mesmo tempo. Enquanto algum bimestre não estiver fechado, ou faltar nota em
@@ -67,10 +67,10 @@ const STATUS_LABEL = it.statusLabel;
   </div>
 </section>
 
-<section class="secao" aria-labelledby="grades-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="grades-title">
+  <div class="section__header">
     <h2 id="grades-title">Notas por disciplina</h2>
-    <p class="secao__nota">O travessão marca bimestre sem nota lançada</p>
+    <p class="section__note">O travessão marca bimestre sem nota lançada</p>
   </div>
 
   <% if (reportCard.rows.length === 0) { %>
@@ -79,16 +79,16 @@ const STATUS_LABEL = it.statusLabel;
       text: 'A turma ainda não tem professor alocado em nenhuma disciplina, então não há nota a mostrar. A secretaria da unidade faz essa alocação.',
     }) %>
   <% } else { %>
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Notas de <%= reportCard.studentName %> em <%= reportCard.year %></caption>
       <thead>
         <tr>
           <th scope="col"><%= it.labels.subject %></th>
           <% it.terms.forEach((term) => { %>
-          <th scope="col" class="celula-centro"><%= it.termLabel(term) %></th>
+          <th scope="col" class="cell-center"><%= it.termLabel(term) %></th>
           <% }) %>
-          <th scope="col" class="celula-centro">Média anual</th>
+          <th scope="col" class="cell-center">Média anual</th>
         </tr>
       </thead>
       <tbody>
@@ -96,9 +96,9 @@ const STATUS_LABEL = it.statusLabel;
         <tr>
           <th scope="row"><%= row.subjectName %></th>
           <% row.grades.forEach((grade) => { %>
-          <td class="numero celula-centro"><%= it.formatGrade(grade) %></td>
+          <td class="number cell-center"><%= it.formatGrade(grade) %></td>
           <% }) %>
-          <td class="numero celula-centro"><%= it.formatGrade(row.average) %></td>
+          <td class="number cell-center"><%= it.formatGrade(row.average) %></td>
         </tr>
         <% }) %>
       </tbody>
@@ -106,9 +106,9 @@ const STATUS_LABEL = it.statusLabel;
         <tr>
           <th scope="row">Médias</th>
           <% reportCard.termAverages.forEach((termAverage) => { %>
-          <td class="numero celula-centro"><%= it.formatGrade(termAverage) %></td>
+          <td class="number cell-center"><%= it.formatGrade(termAverage) %></td>
           <% }) %>
-          <td class="numero celula-centro"><%= it.formatGrade(reportCard.overallAverage) %></td>
+          <td class="number cell-center"><%= it.formatGrade(reportCard.overallAverage) %></td>
         </tr>
       </tfoot>
     </table>

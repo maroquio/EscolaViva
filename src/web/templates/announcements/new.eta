@@ -7,25 +7,25 @@ const audiences = it.audiences;
 const separatorBeforeBreak = it.presentation.separator.trimEnd();
 const { errorFor, describedBy, errorId, helpId } = it;
 %>
-<header class="pagina__cabecalho">
+<header class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.communication %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.communication %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       O comunicado aparece no mural dos responsáveis escolhidos, e a leitura de cada um passa a ser
       medida a partir da publicação.
     </p>
   </div>
-  <p class="pagina__acoes">
-    <a class="botao botao--discreto" href="<%= it.routes.announcements.list() %>"><%= it.actions.backTo.announcements %></a>
+  <p class="page__actions">
+    <a class="button button--quiet" href="<%= it.routes.announcements.list() %>"><%= it.actions.backTo.announcements %></a>
   </p>
 </header>
 
 <% if (it.school === null) { %>
-<section class="secao" aria-labelledby="school-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="school-title">
+  <div class="section__header">
     <h2 id="school-title">Passo 1<%= it.presentation.separator %>Unidade</h2>
-    <p class="secao__nota">A lista de destinatários é a dos responsáveis desta unidade</p>
+    <p class="section__note">A lista de destinatários é a dos responsáveis desta unidade</p>
   </div>
 
   <% if (it.schools.length === 0) { %>
@@ -34,10 +34,10 @@ const { errorFor, describedBy, errorId, helpId } = it;
       text: 'Comunicado é sempre de uma unidade para os responsáveis dela. Peça ao administrador da rede uma unidade ativa com o seu papel.',
     }) %>
   <% } else { %>
-  <form class="formulario" method="get" action="<%= it.routes.announcements.new() %>">
-    <div class="campo">
-      <label class="campo__rotulo" for="schoolId">
-        <%= it.labels.school %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+  <form class="form" method="get" action="<%= it.routes.announcements.new() %>">
+    <div class="field">
+      <label class="field__label" for="schoolId">
+        <%= it.labels.school %> <span class="field__required" aria-hidden="true">*</span>
       </label>
       <select id="schoolId" name="<%= it.schoolField %>" required
               aria-describedby="<%= describedBy(fields.schoolId, true) %>"
@@ -47,93 +47,93 @@ const { errorFor, describedBy, errorId, helpId } = it;
         <option value="<%= school.id %>"><%= school.name %></option>
         <% }) %>
       </select>
-      <p class="campo__ajuda" id="<%= helpId(fields.schoolId) %>">
+      <p class="field__help" id="<%= helpId(fields.schoolId) %>">
         Só aparecem as unidades ativas em que você tem papel.
       </p>
       <% if (errorFor(fields.schoolId) !== '') { %>
-      <p class="campo__erro" id="<%= errorId(fields.schoolId) %>"><%= errorFor(fields.schoolId) %></p>
+      <p class="field__error" id="<%= errorId(fields.schoolId) %>"><%= errorFor(fields.schoolId) %></p>
       <% } %>
     </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit">Continuar</button>
+    <div class="actions">
+      <button class="button button--primary" type="submit">Continuar</button>
     </div>
   </form>
   <% } %>
 </section>
 <% } else { %>
-<section class="secao" aria-labelledby="message-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="message-title">
+  <div class="section__header">
     <h2 id="message-title">Passo 2<%= it.presentation.separator %>Mensagem</h2>
-    <p class="secao__nota">
+    <p class="section__note">
       <%= it.labels.school %> <strong><%= it.school.name %></strong><%= separatorBeforeBreak %>
 
       <a href="<%= it.routes.announcements.new() %>">trocar unidade</a>
     </p>
   </div>
 
-  <form class="formulario formulario--largo" method="post" action="<%= it.routes.announcements.new() %>">
+  <form class="form form--wide" method="post" action="<%= it.routes.announcements.new() %>">
     <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
     <input type="hidden" name="<%= fields.schoolId %>" value="<%= it.school.id %>">
 
-    <div class="campo leitura">
-      <label class="campo__rotulo" for="title">
-        Título <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="field reading">
+      <label class="field__label" for="title">
+        Título <span class="field__required" aria-hidden="true">*</span>
       </label>
       <input type="text" id="title" name="<%= fields.title %>" required
              value="<%= values.title %>"
              aria-describedby="<%= describedBy(fields.title, true) %>"
              <% if (errorFor(fields.title) !== '') { %>aria-invalid="true"<% } %>>
-      <p class="campo__ajuda" id="<%= helpId(fields.title) %>">
+      <p class="field__help" id="<%= helpId(fields.title) %>">
         É a linha que o responsável vê na lista do mural.
       </p>
       <% if (errorFor(fields.title) !== '') { %>
-      <p class="campo__erro" id="<%= errorId(fields.title) %>"><%= errorFor(fields.title) %></p>
+      <p class="field__error" id="<%= errorId(fields.title) %>"><%= errorFor(fields.title) %></p>
       <% } %>
     </div>
 
-    <div class="campo leitura">
-      <label class="campo__rotulo" for="body">
-        Mensagem <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="field reading">
+      <label class="field__label" for="body">
+        Mensagem <span class="field__required" aria-hidden="true">*</span>
       </label>
       <textarea id="body" name="<%= fields.body %>" required rows="<%= it.messageRows %>"
                 <% if (errorFor(fields.body) !== '') { %>aria-invalid="true"<% } %>
                 aria-describedby="<%= describedBy(fields.body, true) %>"><%= values.body %></textarea>
-      <p class="campo__ajuda" id="<%= helpId(fields.body) %>">
+      <p class="field__help" id="<%= helpId(fields.body) %>">
         O texto aparece como foi digitado, com as quebras de linha preservadas.
       </p>
       <% if (errorFor(fields.body) !== '') { %>
-      <p class="campo__erro" id="<%= errorId(fields.body) %>"><%= errorFor(fields.body) %></p>
+      <p class="field__error" id="<%= errorId(fields.body) %>"><%= errorFor(fields.body) %></p>
       <% } %>
     </div>
 
     <fieldset aria-describedby="<%= describedBy(fields.recipients, true) %>">
       <legend><%= it.labels.recipients %></legend>
 
-      <div class="pilha">
-        <div class="campo campo--opcao">
+      <div class="stack">
+        <div class="field field--choice">
           <input type="radio" id="audience-school" name="<%= fields.audience %>" value="<%= audiences.school %>"
                  <% if (values.audience === audiences.school) { %>checked<% } %>>
-          <label class="campo__rotulo" for="audience-school">
+          <label class="field__label" for="audience-school">
             Todos os responsáveis da unidade
-            (<span class="numero"><%= guardians.length %></span>)
+            (<span class="number"><%= guardians.length %></span>)
           </label>
         </div>
 
-        <div class="campo campo--opcao">
+        <div class="field field--choice">
           <input type="radio" id="audience-selected" name="<%= fields.audience %>" value="<%= audiences.selected %>"
                  <% if (values.audience === audiences.selected) { %>checked<% } %>>
-          <label class="campo__rotulo" for="audience-selected">
+          <label class="field__label" for="audience-selected">
             Apenas os responsáveis marcados abaixo
           </label>
         </div>
 
-        <p class="campo__ajuda" id="<%= helpId(fields.recipients) %>">
+        <p class="field__help" id="<%= helpId(fields.recipients) %>">
           Enviar para toda a unidade alcança quem tiver aluno com matrícula ativa no dia do envio.
         </p>
 
         <% if (errorFor(fields.recipients) !== '') { %>
-        <p class="campo__erro" id="<%= errorId(fields.recipients) %>"><%= errorFor(fields.recipients) %></p>
+        <p class="field__error" id="<%= errorId(fields.recipients) %>"><%= errorFor(fields.recipients) %></p>
         <% } %>
 
         <% if (guardians.length === 0) { %>
@@ -142,18 +142,18 @@ const { errorFor, describedBy, errorId, helpId } = it;
             text: 'Só recebe comunicado quem está vinculado a um aluno com matrícula ativa aqui. A secretaria faz esse vínculo na ficha do aluno.',
           }) %>
         <% } else { %>
-                <p class="linha">
-          <button class="botao botao--secundario botao--miudo" type="button"
+                <p class="row">
+          <button class="button button--secondary button--small" type="button"
                   id="select-all" hidden>Selecionar todos</button>
         </p>
 
-        <ul class="grade-opcoes">
+        <ul class="options-grid">
           <% guardians.forEach((guardian) => { %>
-          <li class="campo campo--opcao">
+          <li class="field field--choice">
             <input type="checkbox" id="guardian-<%= guardian.id %>"
                    name="<%= fields.guardians %>" value="<%= guardian.id %>"
                    <% if (selected.has(guardian.id)) { %>checked<% } %>>
-            <label class="campo__rotulo" for="guardian-<%= guardian.id %>">
+            <label class="field__label" for="guardian-<%= guardian.id %>">
               <%= guardian.name %>
             </label>
           </li>
@@ -163,9 +163,9 @@ const { errorFor, describedBy, errorId, helpId } = it;
       </div>
     </fieldset>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit">Publicar comunicado</button>
-      <a class="botao botao--discreto" href="<%= it.routes.announcements.list() %>"><%= it.actions.cancel %></a>
+    <div class="actions">
+      <button class="button button--primary" type="submit">Publicar comunicado</button>
+      <a class="button button--quiet" href="<%= it.routes.announcements.list() %>"><%= it.actions.cancel %></a>
     </div>
   </form>
 </section>

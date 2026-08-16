@@ -4,26 +4,26 @@ const schools = it.schools ?? [];
 const STATUS_LABEL = it.statusLabel;
 const MISSING = it.missing;
 
-const STATUS_CLASS = { yes: 'etiqueta etiqueta--ativa', no: 'etiqueta' };
+const STATUS_CLASS = { yes: 'tag tag--active', no: 'tag' };
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.network %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.network %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       Cada escola da rede é uma unidade. Papéis, turmas e comunicados existem sempre dentro de
       uma — ninguém é "professor da rede".
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.routes.network.schoolNew() %>"><%= it.titles.network.schoolNew %></a>
+  <div class="page__actions">
+    <a class="button button--primary" href="<%= it.routes.network.schoolNew() %>"><%= it.titles.network.schoolNew %></a>
   </div>
 </div>
 
-<section class="secao" aria-labelledby="schools-list-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="schools-list-title">
+  <div class="section__header">
     <h2 id="schools-list-title">Unidades da rede</h2>
-    <p class="secao__nota"><%= it.pagination === undefined ? schools.length : it.pagination.total %> no total</p>
+    <p class="section__note"><%= it.pagination === undefined ? schools.length : it.pagination.total %> no total</p>
   </div>
 
   <% if (schools.length === 0) { %>
@@ -33,8 +33,8 @@ const STATUS_CLASS = { yes: 'etiqueta etiqueta--ativa', no: 'etiqueta' };
       action: { href: it.routes.network.schoolNew(), text: it.titles.network.schoolNew }
     }) %>
   <% } else { %>
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Unidades cadastradas</caption>
       <thead>
         <tr>
@@ -48,7 +48,7 @@ const STATUS_CLASS = { yes: 'etiqueta etiqueta--ativa', no: 'etiqueta' };
         <% schools.forEach((school) => { %>
         <tr>
           <th scope="row"><%= school.name %></th>
-          <td class="numero"><%= school.inepCode === null ? MISSING : school.inepCode %></td>
+          <td class="number"><%= school.inepCode === null ? MISSING : school.inepCode %></td>
           <td>
             <span class="<%= school.active ? STATUS_CLASS.yes : STATUS_CLASS.no %>"><%= school.active ? STATUS_LABEL.yes : STATUS_LABEL.no %></span>
           </td>

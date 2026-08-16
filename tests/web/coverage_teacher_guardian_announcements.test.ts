@@ -47,7 +47,7 @@ const screen = async (path: string, cookie: string): Promise<{ status: number; h
  * aparecem na navegação de toda tela do papel: sem a classe, a asserção passaria com qualquer
  * página do professor no lugar do painel dele.
  */
-const pageTitle = (text: string): string => `<h1 class="pagina__titulo">${text}</h1>`;
+const pageTitle = (text: string): string => `<h1 class="page__title">${text}</h1>`;
 
 /** O `form` de escrita da tela, e não o de sair da conta que o cabeçalho traz em toda página. */
 const formFor = (target: string): string => `method="post" action="${target}"`;
@@ -352,7 +352,7 @@ describe('as telas do portal do responsável', () => {
 
     expect(status).toBe(200);
     expect(html).toContain(pageTitle(announcement.title));
-    expect(html).toContain('etiqueta--aprovado');
+    expect(html).toContain('tag--passed');
     expect(html).not.toContain('Marcar como lido');
     expect(html).not.toContain(formFor(`/guardian/board/${announcement.id}/read`));
   });

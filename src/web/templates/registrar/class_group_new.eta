@@ -8,20 +8,20 @@ const { errorFor, describedBy } = it;
 
 const classGroupList = it.routes.registrar.classGroups();
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.classGroups %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.classGroups %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       É na turma que se alocam as disciplinas com seus professores, e é para ela que os alunos são
       matriculados.
     </p>
   </div>
 </div>
 
-<div class="quadro">
+<div class="panel">
   <% if (schools.length === 0 || academicYears.length === 0) { %>
-  <p class="suave leitura">
+  <p class="muted reading">
     <% if (schools.length === 0) { %>
     Você ainda não tem o papel de secretaria em nenhuma unidade.
     <% } else { %>
@@ -29,17 +29,17 @@ const classGroupList = it.routes.registrar.classGroups();
     antes de cadastrar turmas.
     <% } %>
   </p>
-  <div class="acoes">
-    <a class="botao botao--discreto" href="<%= classGroupList %>"><%= it.actions.backTo.classGroups %></a>
+  <div class="actions">
+    <a class="button button--quiet" href="<%= classGroupList %>"><%= it.actions.backTo.classGroups %></a>
   </div>
   <% } else { %>
-  <form class="formulario formulario--largo" method="post" action="<%= classGroupList %>">
+  <form class="form form--wide" method="post" action="<%= classGroupList %>">
     <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
-    <div class="formulario__linha">
-      <div class="campo">
-        <label class="campo__rotulo" for="name">
-          Nome da turma <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="name">
+          Nome da turma <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="name"
@@ -51,15 +51,15 @@ const classGroupList = it.routes.registrar.classGroups();
           value="<%= values.name ?? '' %>"
           <% if (errorFor(fields.name) !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= describedBy(fields.name, true) %>">
-        <p class="campo__ajuda" id="<%= it.helpId(fields.name) %>">Único na unidade dentro do mesmo ano letivo.</p>
+        <p class="field__help" id="<%= it.helpId(fields.name) %>">Único na unidade dentro do mesmo ano letivo.</p>
         <% if (errorFor(fields.name) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.name) %>"><%= errorFor(fields.name) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.name) %>"><%= errorFor(fields.name) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="gradeLevel">
-          Série <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="gradeLevel">
+          Série <span class="field__required" aria-hidden="true">*</span>
         </label>
         <input
           id="gradeLevel"
@@ -71,15 +71,15 @@ const classGroupList = it.routes.registrar.classGroups();
           value="<%= values.gradeLevel ?? '' %>"
           <% if (errorFor(fields.gradeLevel) !== '') { %>aria-invalid="true"<% } %>
           aria-describedby="<%= describedBy(fields.gradeLevel, true) %>">
-        <p class="campo__ajuda" id="<%= it.helpId(fields.gradeLevel) %>">Como a rede chama: 6º ano, 1ª série, Maternal II.</p>
+        <p class="field__help" id="<%= it.helpId(fields.gradeLevel) %>">Como a rede chama: 6º ano, 1ª série, Maternal II.</p>
         <% if (errorFor(fields.gradeLevel) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.gradeLevel) %>"><%= errorFor(fields.gradeLevel) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.gradeLevel) %>"><%= errorFor(fields.gradeLevel) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="shift">
-          Turno <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="shift">
+          Turno <span class="field__required" aria-hidden="true">*</span>
         </label>
         <select
           id="shift"
@@ -95,15 +95,15 @@ const classGroupList = it.routes.registrar.classGroups();
           <% }) %>
         </select>
         <% if (errorFor(fields.shift) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.shift) %>"><%= errorFor(fields.shift) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.shift) %>"><%= errorFor(fields.shift) %></p>
         <% } %>
       </div>
     </div>
 
-    <div class="formulario__linha">
-      <div class="campo">
-        <label class="campo__rotulo" for="schoolId">
-          <%= it.labels.school %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="form__row">
+      <div class="field">
+        <label class="field__label" for="schoolId">
+          <%= it.labels.school %> <span class="field__required" aria-hidden="true">*</span>
         </label>
         <select
           id="schoolId"
@@ -119,13 +119,13 @@ const classGroupList = it.routes.registrar.classGroups();
           <% }) %>
         </select>
         <% if (errorFor(fields.schoolId) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.schoolId) %>"><%= errorFor(fields.schoolId) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.schoolId) %>"><%= errorFor(fields.schoolId) %></p>
         <% } %>
       </div>
 
-      <div class="campo">
-        <label class="campo__rotulo" for="academicYearId">
-          <%= it.labels.academicYear %> <span class="campo__obrigatorio" aria-hidden="true">*</span>
+      <div class="field">
+        <label class="field__label" for="academicYearId">
+          <%= it.labels.academicYear %> <span class="field__required" aria-hidden="true">*</span>
         </label>
         <select
           id="academicYearId"
@@ -141,14 +141,14 @@ const classGroupList = it.routes.registrar.classGroups();
           <% }) %>
         </select>
         <% if (errorFor(fields.academicYearId) !== '') { %>
-        <p class="campo__erro" id="<%= it.errorId(fields.academicYearId) %>"><%= errorFor(fields.academicYearId) %></p>
+        <p class="field__error" id="<%= it.errorId(fields.academicYearId) %>"><%= errorFor(fields.academicYearId) %></p>
         <% } %>
       </div>
     </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit"><%= it.titles.registrar.classGroupNew %></button>
-      <a class="botao botao--discreto" href="<%= classGroupList %>"><%= it.actions.cancel %></a>
+    <div class="actions">
+      <button class="button button--primary" type="submit"><%= it.titles.registrar.classGroupNew %></button>
+      <a class="button button--quiet" href="<%= classGroupList %>"><%= it.actions.cancel %></a>
     </div>
   </form>
   <% } %>

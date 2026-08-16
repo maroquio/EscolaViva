@@ -41,19 +41,19 @@ describe('folha de estilo', () => {
   });
 
   test('o seletor de uma regra conhecida é lido como o arquivo o escreve', () => {
-    const ofTheStylesheet = rules.filter((rule) => rule.selectors.includes('.botao'));
+    const ofTheStylesheet = rules.filter((rule) => rule.selectors.includes('.button'));
 
     expect(ofTheStylesheet).toHaveLength(1);
-    expect(propertyValue('.botao', 'cursor')).toBe('pointer');
+    expect(propertyValue('.button', 'cursor')).toBe('pointer');
   });
 
   test('campo e botão dividem a mesma altura de controle', () => {
     const fieldHeight = propertyValue('input', 'min-block-size');
 
-    const buttonHeight = propertyValue('.botao', 'min-block-size');
+    const buttonHeight = propertyValue('.button', 'min-block-size');
 
-    expect(fieldHeight).toBe('var(--controle-altura)');
-    expect(buttonHeight).toBe('var(--controle-altura)');
+    expect(fieldHeight).toBe('var(--control-height)');
+    expect(buttonHeight).toBe('var(--control-height)');
   });
 
   test('a caixa de marcar não herda a altura de controle dos demais campos', () => {
@@ -77,33 +77,33 @@ describe('folha de estilo', () => {
   test('o foco visível nunca é removido', () => {
     const outline = propertyValue(':focus-visible', 'outline');
 
-    expect(outline).toContain('var(--marca)');
+    expect(outline).toContain('var(--brand)');
     expect(stylesheet).not.toMatch(/outline\s*:\s*(?:none|0)\s*[;}]/);
   });
 
   test('a rolagem lateral da tabela declara os dois eixos', () => {
-    const horizontal = propertyValue('.tabela-rolagem', 'overflow-x');
+    const horizontal = propertyValue('.table-scroll', 'overflow-x');
 
-    const vertical = propertyValue('.tabela-rolagem', 'overflow-y');
+    const vertical = propertyValue('.table-scroll', 'overflow-y');
 
     expect(horizontal).toBe('auto');
     expect(vertical).toBe('hidden');
   });
 
   test('a coluna-âncora grudada tem fundo próprio em toda linha que a contém', () => {
-    const anchor = propertyValue(".tabela th[scope='row']", 'position');
+    const anchor = propertyValue(".table th[scope='row']", 'position');
 
     expect(anchor).toBe('sticky');
-    expect(propertyValue(".tabela th[scope='row']", 'background')).toBe('inherit');
-    expect(propertyValue('.tabela tbody tr', 'background')).toBeDefined();
-    expect(propertyValue('.tabela tfoot tr', 'background')).toBeDefined();
+    expect(propertyValue(".table th[scope='row']", 'background')).toBe('inherit');
+    expect(propertyValue('.table tbody tr', 'background')).toBeDefined();
+    expect(propertyValue('.table tfoot tr', 'background')).toBeDefined();
   });
 
   test('o ícone do botão respira por margem, e não por gap', () => {
-    const breathingRoom = propertyValue('.botao > svg', 'margin-inline-end');
+    const breathingRoom = propertyValue('.button > svg', 'margin-inline-end');
 
-    expect(breathingRoom).toBe('var(--e2)');
-    expect(propertyValue('.botao', 'gap')).toBeUndefined();
+    expect(breathingRoom).toBe('var(--s2)');
+    expect(propertyValue('.button', 'gap')).toBeUndefined();
   });
 
   test('a página não rola de lado: o eixo horizontal pertence ao contêiner da tabela', () => {

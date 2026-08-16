@@ -7,62 +7,62 @@ const separatorAtLineEnd = it.presentation.separator.trimEnd();
 
 const STATUS_CLASS = it.tagClass.enrollmentStatus;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.student %></p>
-    <h1 class="pagina__titulo"><%= student.name %></h1>
-    <p class="pagina__resumo">
-      Nascimento em <span class="numero"><%= it.formatDate(student.birthDate) %></span>.
+    <p class="overline"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.student %></p>
+    <h1 class="page__title"><%= student.name %></h1>
+    <p class="page__summary">
+      Nascimento em <span class="number"><%= it.formatDate(student.birthDate) %></span>.
       <% if (active === null) { %>
         Sem matrícula ativa nas suas unidades.
       <% } else { %>
-        Matriculado na turma <%= active.classGroupName %>, ano letivo <span class="numero"><%= active.year %></span>.
+        Matriculado na turma <%= active.classGroupName %>, ano letivo <span class="number"><%= active.year %></span>.
       <% } %>
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--secundario" href="<%= it.routes.registrar.students() %>"><%= it.actions.backTo.search %></a>
+  <div class="page__actions">
+    <a class="button button--secondary" href="<%= it.routes.registrar.students() %>"><%= it.actions.backTo.search %></a>
   </div>
 </div>
 
-<section class="secao" aria-labelledby="data">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="data">
+  <div class="section__header">
     <h2 id="data">Dados do aluno</h2>
   </div>
 
-  <div class="quadro">
-    <dl class="lista-definicoes">
+  <div class="panel">
+    <dl class="definition-list">
       <dt><%= it.labels.name %></dt>
       <dd><%= student.name %></dd>
       <dt>Nascimento</dt>
-      <dd class="numero"><%= it.formatDate(student.birthDate) %></dd>
+      <dd class="number"><%= it.formatDate(student.birthDate) %></dd>
       <dt>Matrícula ativa</dt>
       <dd>
         <% if (active === null) { %>
-        <span class="suave">nenhuma</span>
+        <span class="muted">nenhuma</span>
         <% } else { %>
-        <span class="etiqueta etiqueta--ativa"><%= it.statusLabel[active.status] %></span>
-        <%= active.classGroupName %><%= it.presentation.separator %>ano letivo <span class="numero"><%= active.year %></span><%= separatorAtLineEnd %>
+        <span class="tag tag--active"><%= it.statusLabel[active.status] %></span>
+        <%= active.classGroupName %><%= it.presentation.separator %>ano letivo <span class="number"><%= active.year %></span><%= separatorAtLineEnd %>
 
-        matriculado em <span class="numero"><%= it.formatDate(active.enrollmentDate) %></span>
+        matriculado em <span class="number"><%= it.formatDate(active.enrollmentDate) %></span>
         <% } %>
       </dd>
     </dl>
   </div>
 </section>
 
-<section class="secao" aria-labelledby="guardians">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="guardians">
+  <div class="section__header">
     <h2 id="guardians">Responsáveis vinculados</h2>
     <% const linkCount =
          it.guardianLinksPagination === undefined ? guardianLinks.length : it.guardianLinksPagination.total; %>
-    <p class="secao__nota">
-      <span class="numero"><%= linkCount %></span>
+    <p class="section__note">
+      <span class="number"><%= linkCount %></span>
       <%= it.pluralize(linkCount, it.nouns.guardian) %>
     </p>
   </div>
 
-  <div class="pilha pilha--larga">
+  <div class="stack stack--wide">
     <% if (guardianLinks.length === 0) { %>
     <%~ include(it.partials.empty, {
       title: 'Nenhum responsável vinculado',
@@ -73,8 +73,8 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
       }
     }) %>
     <% } else { %>
-    <div class="tabela-rolagem">
-      <table class="tabela">
+    <div class="table-scroll">
+      <table class="table">
         <caption>Quem responde por este aluno</caption>
         <thead>
           <tr>
@@ -88,8 +88,8 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
           <% guardianLinks.forEach((link) => { %>
           <tr>
             <th scope="row"><%= link.name %></th>
-            <td class="celula-texto"><%= link.relationship %></td>
-            <td class="celula-texto"><%= link.email %></td>
+            <td class="cell-text"><%= link.relationship %></td>
+            <td class="cell-text"><%= link.email %></td>
             <td><%= link.financiallyResponsible ? 'Sim' : 'Não' %></td>
           </tr>
           <% }) %>
@@ -100,8 +100,8 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
       pagination: it.guardianLinksPagination, label: 'responsáveis vinculados'
     }) %>
 
-    <div class="acoes">
-      <a class="botao botao--primario" href="<%= it.routes.registrar.studentGuardianNew({ id: student.id }) %>">
+    <div class="actions">
+      <a class="button button--primary" href="<%= it.routes.registrar.studentGuardianNew({ id: student.id }) %>">
         <%= it.titles.registrar.linkGuardian %>
 
       </a>
@@ -110,18 +110,18 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
   </div>
 </section>
 
-<section class="secao" aria-labelledby="enrollments">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="enrollments">
+  <div class="section__header">
     <h2 id="enrollments">Matrículas</h2>
     <% const recordCount =
          it.enrollmentsPagination === undefined ? enrollments.length : it.enrollmentsPagination.total; %>
-    <p class="secao__nota">
-      <span class="numero"><%= recordCount %></span>
+    <p class="section__note">
+      <span class="number"><%= recordCount %></span>
       <%= recordCount === 1 ? 'registro' : 'registros' %> nas suas unidades
     </p>
   </div>
 
-  <div class="pilha pilha--larga">
+  <div class="stack stack--wide">
     <% if (enrollments.length === 0) { %>
     <%~ include(it.partials.empty, {
       title: 'Nenhuma matrícula registrada',
@@ -129,8 +129,8 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
       action: { href: it.routes.registrar.studentEnroll({ id: student.id }), text: 'Matricular' }
     }) %>
     <% } else { %>
-    <div class="tabela-rolagem">
-      <table class="tabela">
+    <div class="table-scroll">
+      <table class="table">
         <caption>Histórico de matrículas deste aluno</caption>
         <thead>
           <tr>
@@ -145,10 +145,10 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
           <% enrollments.forEach((enrollment) => { %>
           <tr>
             <th scope="row"><%= enrollment.classGroupName %></th>
-            <td class="numero"><%= enrollment.year %></td>
-            <td class="numero"><%= it.formatDate(enrollment.enrollmentDate) %></td>
+            <td class="number"><%= enrollment.year %></td>
+            <td class="number"><%= it.formatDate(enrollment.enrollmentDate) %></td>
             <td>
-              <span class="etiqueta <%= STATUS_CLASS[enrollment.status] %>"><%= it.statusLabel[enrollment.status] %></span>
+              <span class="tag <%= STATUS_CLASS[enrollment.status] %>"><%= it.statusLabel[enrollment.status] %></span>
             </td>
           </tr>
           <% }) %>
@@ -159,18 +159,18 @@ const STATUS_CLASS = it.tagClass.enrollmentStatus;
       pagination: it.enrollmentsPagination, label: it.nouns.enrollment.plural
     }) %>
 
-    <div class="acoes">
-      <a class="botao botao--primario" href="<%= it.routes.registrar.studentEnroll({ id: student.id }) %>">
+    <div class="actions">
+      <a class="button button--primary" href="<%= it.routes.registrar.studentEnroll({ id: student.id }) %>">
         <%= it.titles.registrar.enroll %>
 
       </a>
       <% if (active !== null) { %>
-      <a class="botao botao--secundario" href="<%= it.routes.registrar.enrollmentTransfer({ id: active.id }) %>">
+      <a class="button button--secondary" href="<%= it.routes.registrar.enrollmentTransfer({ id: active.id }) %>">
         <%= it.titles.registrar.transfer %>
 
       </a>
       <% } %>
-      <p class="secao__nota">Um aluno tem, no máximo, uma matrícula ativa por ano letivo.</p>
+      <p class="section__note">Um aluno tem, no máximo, uma matrícula ativa por ano letivo.</p>
     </div>
     <% } %>
   </div>

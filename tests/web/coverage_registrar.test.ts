@@ -49,7 +49,7 @@ const html = async (path: string, cookie: string): Promise<string> =>
   await (await open(path, cookie)).text();
 
 /** O `h1` da tela — o que distingue uma página da outra dentro do mesmo layout. */
-const screenTitle = (title: string): string => `<h1 class="pagina__titulo">${title}</h1>`;
+const screenTitle = (title: string): string => `<h1 class="page__title">${title}</h1>`;
 
 /* ------------------------------------------------------------------------- */
 
@@ -220,7 +220,7 @@ describe('a busca de alunos tem três estados, e todos são GET', () => {
 describe('o painel conta o que está ao alcance de quem abriu', () => {
   /** Os quatro cartões, na ordem em que a tela os desenha. */
   const cardNumbers = (page: string): number[] =>
-    [...page.matchAll(/cartao__numero">(\d+)</g)].map(([, number]) => Number(number));
+    [...page.matchAll(/card__number">(\d+)</g)].map(([, number]) => Number(number));
 
   test('os cartões trazem os números da unidade em que a pessoa é secretaria', async () => {
     const scenario = await fullScenario();

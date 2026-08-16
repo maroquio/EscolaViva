@@ -3,24 +3,24 @@ const values = it.values ?? {};
 const fields = it.fields.subject;
 const { errorFor, describedBy } = it;
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.subjects %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.registrar %><%= it.presentation.separator %><%= it.titles.registrar.subjects %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       A disciplina vale para toda a rede. Depois de cadastrar, aloque-a nas turmas com o professor
       responsável.
     </p>
   </div>
 </div>
 
-<div class="quadro">
-  <form class="formulario" method="post" action="<%= it.routes.registrar.subjects() %>">
+<div class="panel">
+  <form class="form" method="post" action="<%= it.routes.registrar.subjects() %>">
     <input type="hidden" name="<%= it.keyField %>" value="<%= it.key %>">
 
-    <div class="campo">
-      <label class="campo__rotulo" for="name">
-        Nome da disciplina <span class="campo__obrigatorio" aria-hidden="true">*</span>
+    <div class="field">
+      <label class="field__label" for="name">
+        Nome da disciplina <span class="field__required" aria-hidden="true">*</span>
       </label>
       <input
         id="name"
@@ -32,15 +32,15 @@ const { errorFor, describedBy } = it;
         value="<%= values.name ?? '' %>"
         <% if (errorFor(fields.name) !== '') { %>aria-invalid="true"<% } %>
         aria-describedby="<%= describedBy(fields.name, true) %>">
-      <p class="campo__ajuda" id="<%= it.helpId(fields.name) %>">Único na rede: não há duas “Matemática”.</p>
+      <p class="field__help" id="<%= it.helpId(fields.name) %>">Único na rede: não há duas “Matemática”.</p>
       <% if (errorFor(fields.name) !== '') { %>
-      <p class="campo__erro" id="<%= it.errorId(fields.name) %>"><%= errorFor(fields.name) %></p>
+      <p class="field__error" id="<%= it.errorId(fields.name) %>"><%= errorFor(fields.name) %></p>
       <% } %>
     </div>
 
-    <div class="acoes">
-      <button class="botao botao--primario" type="submit"><%= it.titles.registrar.subjectNew %></button>
-      <a class="botao botao--discreto" href="<%= it.routes.registrar.subjects() %>"><%= it.actions.cancel %></a>
+    <div class="actions">
+      <button class="button button--primary" type="submit"><%= it.titles.registrar.subjectNew %></button>
+      <a class="button button--quiet" href="<%= it.routes.registrar.subjects() %>"><%= it.actions.cancel %></a>
     </div>
   </form>
 </div>

@@ -11,26 +11,26 @@ const roleLabel = (value) => {
 
 const STATUS_LABEL = it.statusLabel;
 
-const STATUS_CLASS = { yes: 'etiqueta etiqueta--ativa', no: 'etiqueta' };
+const STATUS_CLASS = { yes: 'tag tag--active', no: 'tag' };
 %>
-<div class="pagina__cabecalho">
+<div class="page__header">
   <div>
-    <p class="sobretitulo"><%= it.areas.network %></p>
-    <h1 class="pagina__titulo"><%= it.title %></h1>
-    <p class="pagina__resumo">
+    <p class="overline"><%= it.areas.network %></p>
+    <h1 class="page__title"><%= it.title %></h1>
+    <p class="page__summary">
       Todo acesso nasce aqui. O papel decide o que a pessoa vê, e ele existe sempre dentro de uma
       unidade: a mesma pessoa pode ser secretária em uma escola e responsável em outra.
     </p>
   </div>
-  <div class="pagina__acoes">
-    <a class="botao botao--primario" href="<%= it.routes.network.userNew() %>"><%= it.titles.network.userNew %></a>
+  <div class="page__actions">
+    <a class="button button--primary" href="<%= it.routes.network.userNew() %>"><%= it.titles.network.userNew %></a>
   </div>
 </div>
 
 <% if (invite !== null && invited !== null) { %>
-<div class="aviso aviso--atencao" role="status">
-  <p class="aviso__titulo">Senha provisória de <%= invited.name %></p>
-  <p><code class="codigo"><%= invite.password %></code></p>
+<div class="notice notice--warning" role="status">
+  <p class="notice__title">Senha provisória de <%= invited.name %></p>
+  <p><code class="code"><%= invite.password %></code></p>
   <p>
     Anote agora: esta senha aparece uma única vez e não pode ser recuperada depois que você sair
     desta página. Entregue-a pessoalmente ou por um canal que vocês já usem — o envio automático
@@ -40,10 +40,10 @@ const STATUS_CLASS = { yes: 'etiqueta etiqueta--ativa', no: 'etiqueta' };
 </div>
 <% } %>
 
-<section class="secao" aria-labelledby="users-list-title">
-  <div class="secao__cabecalho">
+<section class="section" aria-labelledby="users-list-title">
+  <div class="section__header">
     <h2 id="users-list-title">Quem tem acesso</h2>
-    <p class="secao__nota"><%= it.pagination === undefined ? users.length : it.pagination.total %> no total</p>
+    <p class="section__note"><%= it.pagination === undefined ? users.length : it.pagination.total %> no total</p>
   </div>
 
   <% if (users.length === 0) { %>
@@ -53,8 +53,8 @@ const STATUS_CLASS = { yes: 'etiqueta etiqueta--ativa', no: 'etiqueta' };
       action: { href: it.routes.network.userNew(), text: it.titles.network.userNew }
     }) %>
   <% } else { %>
-  <div class="tabela-rolagem">
-    <table class="tabela">
+  <div class="table-scroll">
+    <table class="table">
       <caption>Usuários da rede</caption>
       <thead>
         <tr>
@@ -70,11 +70,11 @@ const STATUS_CLASS = { yes: 'etiqueta etiqueta--ativa', no: 'etiqueta' };
         <% users.forEach((user) => { %>
         <tr>
           <th scope="row"><%= user.name %></th>
-          <td class="celula-texto"><%= it.formatCpf(user.cpf ?? '') %></td>
-          <td class="celula-texto"><%= user.email %></td>
-          <td class="celula-texto">
+          <td class="cell-text"><%= it.formatCpf(user.cpf ?? '') %></td>
+          <td class="cell-text"><%= user.email %></td>
+          <td class="cell-text">
             <% if (user.roles.length === 0) { %>
-            <span class="suave"><%= it.noRole %></span>
+            <span class="muted"><%= it.noRole %></span>
             <% } else { %>
             <% user.roles.forEach((assignment) => { %>
             <div><%= roleLabel(assignment.role) %><%= it.presentation.separator %><%= assignment.schoolName %></div>

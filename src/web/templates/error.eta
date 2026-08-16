@@ -1,28 +1,28 @@
 <%
 const correlationId = it.correlationId ?? '';
 %>
-<div class="erro">
+<div class="error">
   <div>
-    <p class="erro__status">Erro <%= it.status %></p>
+    <p class="error__status">Erro <%= it.status %></p>
     <h1><%= it.title %></h1>
   </div>
 
-  <p class="leitura"><%= it.detail %></p>
+  <p class="reading"><%= it.detail %></p>
 
   <% if (correlationId !== '') { %>
-  <div class="erro__ocorrencia">
-    <dl class="lista-definicoes">
+  <div class="error__occurrence">
+    <dl class="definition-list">
       <dt>Ocorrência</dt>
-      <dd><code class="codigo"><%= correlationId %></code></dd>
+      <dd><code class="code"><%= correlationId %></code></dd>
     </dl>
-    <p class="erro__instrucao">
+    <p class="error__instruction">
       Informe este código ao pedir ajuda: ele localiza exatamente esta ocorrência no registro do sistema.
     </p>
   </div>
   <% } %>
 
-  <p class="linha">
-    <a class="botao botao--secundario" href="<%= it.routes.public.dashboard() %>"><%= it.actions.backTo.dashboard %></a>
-    <a class="botao botao--discreto" href="<%= it.routes.public.login() %>">Entrar novamente</a>
+  <p class="row">
+    <a class="button button--secondary" href="<%= it.routes.public.dashboard() %>"><%= it.actions.backTo.dashboard %></a>
+    <a class="button button--quiet" href="<%= it.routes.public.login() %>">Entrar novamente</a>
   </p>
 </div>

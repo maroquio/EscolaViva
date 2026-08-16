@@ -14,13 +14,13 @@ const stylesheet = it.routes.public
   <%~ include(it.partials.icon) %>
 </head>
 <body>
-  <a class="pular-para-conteudo" href="#<%= it.document.contentId %>">Pular para o conteúdo</a>
+  <a class="skip-to-content" href="#<%= it.document.contentId %>">Pular para o conteúdo</a>
 
-  <div class="aplicacao">
+  <div class="app">
     <%~ include(it.partials.header, it) %>
     <%~ include(it.partials.navigation, it) %>
 
-    <main class="conteudo" id="<%= it.document.contentId %>" tabindex="-1">
+    <main class="content" id="<%= it.document.contentId %>" tabindex="-1">
       <%~ include(it.partials.messages, it) %>
       <%~ it.body %>
     </main>

@@ -533,13 +533,13 @@ export const PRESENTATION = {
 } as const;
 
 const TAG = {
-  active: 'etiqueta--ativa',
-  transferred: 'etiqueta--transferida',
-  cancelled: 'etiqueta--cancelada',
-  completed: 'etiqueta--concluida',
-  passed: 'etiqueta--aprovado',
-  failed: 'etiqueta--reprovado',
-  inProgress: 'etiqueta--em-curso',
+  active: 'tag--active',
+  transferred: 'tag--transferred',
+  cancelled: 'tag--cancelled',
+  completed: 'tag--completed',
+  passed: 'tag--passed',
+  failed: 'tag--failed',
+  inProgress: 'tag--in-progress',
   noModifier: '',
 } as const;
 
