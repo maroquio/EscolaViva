@@ -40,9 +40,9 @@ const HTTP_STATUSES = new Set([
 
 const NEUTRAL_NUMBERS = new Set([0, 1]);
 
-const SUPPRESSION = /\/\/\s*magic-values:\s*permitido\s*[—-]\s*(\S.*)$/;
+const SUPPRESSION = /\/\/\s*magic-values:\s*allowed\s*[—-]\s*(\S.*)$/;
 
-const SUPPRESSION_MARKER = /magic-values:\s*permitido\s*[—-]\s*\S/;
+const SUPPRESSION_MARKER = /magic-values:\s*allowed\s*[—-]\s*\S/;
 
 const COMMENT_LINE = /^\s*\/\//;
 
@@ -625,7 +625,7 @@ type Context = { readonly declaration: boolean; readonly path: string };
 
 const TREE_ROOT: Context = { declaration: false, path: '' };
 
-const URL_REASON = 'endereço escrito à mão — use `ROUTES` (web/constants.ts)';
+const URL_REASON = 'address written by hand — use `ROUTES` (web/constants.ts)';
 
 function analyzeTypeScript(file: string, source: string): Finding[] {
   const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.ESNext, true);
@@ -679,7 +679,7 @@ function analyzeTypeScript(file: string, source: string): Finding[] {
       return URL_REASON;
     }
     const owner = duplicateOwner(node, path, file);
-    return owner === undefined ? undefined : `mesmo valor de ${owner.path} (${owner.file})`;
+    return owner === undefined ? undefined : `same value as ${owner.path} (${owner.file})`;
   };
 
   const check = (node: ts.Node, context: Context): void => {
@@ -832,7 +832,7 @@ const isUrlInAttribute = (text: string): boolean =>
   text === SLASH || ROUTE_WITH_SEGMENT.test(text);
 
 const TEMPLATE_URL_REASON =
-  'endereço escrito à mão — use `it.routes` (ROUTES, em web/constants.ts)';
+  'address written by hand — use `it.routes` (ROUTES, in web/constants.ts)';
 
 type Position = { readonly line: number; readonly column: number };
 
@@ -1117,8 +1117,8 @@ function analyzeTemplate(file: string, source: string): Finding[] {
     record(
       index,
       text,
-      `limite redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
-        'passe o valor pelo handler, via `it`',
+      `limit redeclared — ${owner.path} (${owner.file}) already owns it; ` +
+        'pass the value through the handler, via `it`',
       String(value),
     );
   };
@@ -1143,8 +1143,8 @@ function analyzeTemplate(file: string, source: string): Finding[] {
       record(
         start + run.index + run[0].search(NON_SPACE),
         drawn,
-        `separador redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
-          'passe o valor pelo handler, via `it`',
+        `separator redeclared — ${owner.path} (${owner.file}) already owns it; ` +
+          'pass the value through the handler, via `it`',
       );
     }
   };
@@ -1156,7 +1156,7 @@ function analyzeTemplate(file: string, source: string): Finding[] {
     record(
       index,
       snippet,
-      `texto composto — ${owners.join(' + ')}; ` + 'componha no handler e passe via `it`',
+      `composed text — ${owners.join(' + ')}; ` + 'compose it in the handler and pass it via `it`',
       text,
     );
     return true;
@@ -1176,8 +1176,8 @@ function analyzeTemplate(file: string, source: string): Finding[] {
       record(
         index,
         snippet,
-        `texto redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
-          'passe o valor pelo handler, via `it`',
+        `text redeclared — ${owner.path} (${owner.file}) already owns it; ` +
+          'pass the value through the handler, via `it`',
         text,
       );
       return;
@@ -1207,8 +1207,8 @@ function analyzeTemplate(file: string, source: string): Finding[] {
     record(
       index,
       text,
-      `texto redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
-        'passe o valor pelo handler, via `it`',
+      `text redeclared — ${owner.path} (${owner.file}) already owns it; ` +
+        'pass the value through the handler, via `it`',
     );
   }
 
@@ -1221,8 +1221,8 @@ function analyzeTemplate(file: string, source: string): Finding[] {
     record(
       attribute.index,
       attribute[0],
-      `valor redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
-        'passe o valor pelo handler, via `it`',
+      `value redeclared — ${owner.path} (${owner.file}) already owns it; ` +
+        'pass the value through the handler, via `it`',
       value,
     );
   }
@@ -1239,8 +1239,8 @@ function analyzeTemplate(file: string, source: string): Finding[] {
       record(
         index,
         attribute[0],
-        `texto redeclarado — ${owner.path} (${owner.file}) já é o dono; ` +
-          'passe o valor pelo handler, via `it`',
+        `text redeclared — ${owner.path} (${owner.file}) already owns it; ` +
+          'pass the value through the handler, via `it`',
         slice.text,
       );
     }
@@ -1312,7 +1312,7 @@ function analyzeTemplate(file: string, source: string): Finding[] {
   return findings;
 }
 
-const summaryOnly = Bun.argv.includes('--resumo');
+const summaryOnly = Bun.argv.includes('--summary');
 
 const targets = await targetFiles();
 
@@ -1322,14 +1322,14 @@ for (const file of indexed) {
   indexDeclarations(file, await Bun.file(join(ROOT, file)).text());
 }
 
-const coverage = `${targets.length} arquivo(s) varrido(s), ${indexed.length} indexado(s)`;
+const coverage = `${targets.length} file(s) swept, ${indexed.length} indexed`;
 
 if (targets.length === 0) {
   process.stdout.write(
-    `✖ ${coverage} — nenhum glob casou nada.\n` +
-      'Um repositório sem literais e um verificador que não varreu arquivo nenhum imprimem\n' +
-      'a mesma coisa; por isso a varredura vazia é falha, não sucesso. Confira ALVOS contra\n' +
-      'os caminhos reais.\n',
+    `✖ ${coverage} — no glob matched anything.\n` +
+      'A repository with no literals and a checker that swept no file at all print the same\n' +
+      'thing; that is why an empty sweep is a failure, not a success. Check TARGETS against\n' +
+      'the real paths.\n',
   );
   process.exit(1);
 }
@@ -1389,9 +1389,9 @@ for (const [, list] of [...silencedByLine].sort()) {
       column: muted.column,
       snippet: JSON.stringify(muted.value).slice(0, 72),
       reason:
-        `supressão que confessa — a justificativa cita \`${citation}\` ` +
-        `(${target.path}, em ${target.file}), que vale exatamente este literal; ` +
-        'a regra 2 pede qual constante o valor NÃO é',
+        `suppression that confesses — the justification cites \`${citation}\` ` +
+        `(${target.path}, in ${target.file}), which is worth exactly this literal; ` +
+        'rule 2 asks which constant the value is NOT',
     });
     break;
   }
@@ -1429,9 +1429,9 @@ for (const entry of liveSilenced) {
     column,
     snippet: JSON.stringify(value).slice(0, 72),
     reason:
-      'supressão que contradiz — este mesmo literal é CONSUMIDO da constante em ' +
+      'suppression that contradicts — this same literal is CONSUMED from the constant at ' +
       `${pair.file}:${pair.line} (\`${pair.path}\`); ` +
-      'a mesma forma não pode ser cópia lá e decisão própria aqui',
+      'the same form cannot be a copy there and a decision of its own here',
   });
 }
 
@@ -1448,8 +1448,8 @@ for (const { file, line, column, snippet } of markers) {
     column,
     snippet,
     reason:
-      'supressão morta — não cala nada, aqui nem na linha de baixo; apague o marcador, ' +
-      'que promete uma exceção de máquina que nenhuma regra pede (a prosa pode ficar)',
+      'dead suppression — it silences nothing, neither here nor on the line below; delete the ' +
+      'marker, which promises a machine exception no rule asks for (the prose may stay)',
   });
 }
 
@@ -1478,13 +1478,13 @@ for (const [, list] of ownerlessRepeats) {
       line: occurrence.line,
       column: occurrence.column,
       snippet: occurrence.snippet,
-      reason: `repetido ${list.length}× e sem dono — nenhum \`constants.ts\` declara este texto`,
+      reason: `repeated ${list.length}× and ownerless — no \`constants.ts\` declares this text`,
     });
   }
 }
 
 if (findings.length === 0) {
-  process.stdout.write(`✔ nenhum literal solto fora das exceções da regra 6 — ${coverage}\n`);
+  process.stdout.write(`✔ no loose literal outside the exceptions of rule 6 — ${coverage}\n`);
   process.exit(0);
 }
 
@@ -1516,14 +1516,14 @@ if (ownerlessRepeats.length > 0) {
     ];
   });
   process.stdout.write(
-    `\nRepetição sem dono — ${ownerlessRepeats.length} texto(s) com ` +
-      `${OCCURRENCES_TO_REPORT}+ cópias e nenhuma constante:\n${repeatLines.join('\n')}\n`,
+    `\nOwnerless repetition — ${ownerlessRepeats.length} text(s) with ` +
+      `${OCCURRENCES_TO_REPORT}+ copies and no constant:\n${repeatLines.join('\n')}\n`,
   );
 }
 
 process.stdout.write(
-  `\n✖ ${findings.length} literal(is) solto(s) em ${byFile.size} arquivo(s) — ${coverage}.\n` +
-    'Mova cada um para o `constants.ts` do módulo dono, ou justifique com\n' +
-    '`// magic-values: permitido — <motivo>` na linha do literal.\n',
+  `\n✖ ${findings.length} loose literal(s) in ${byFile.size} file(s) — ${coverage}.\n` +
+    'Move each one to the `constants.ts` of the owning module, or justify it with\n' +
+    '`// magic-values: allowed — <reason>` on the line of the literal.\n',
 );
 process.exit(1);

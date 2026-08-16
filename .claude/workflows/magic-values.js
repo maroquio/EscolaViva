@@ -243,7 +243,7 @@ Passos:
    normalização precisa ser agressiva o bastante para o teste ser determinístico e
    conservadora o bastante para ainda detectar um href trocado ou um rótulo perdido.
    Rode o teste DUAS vezes seguidas para provar que é determinístico.
-5. Crie scripts/golden.ts com a flag --regravar, que regrava os arquivos golden
+5. Crie scripts/golden.ts com a flag --rewrite, que regrava os arquivos golden
    quando a mudança for intencional. Adicione o script "golden" ao package.json.
 6. Grave os 55 arquivos golden e confirme que o teste passa.
 

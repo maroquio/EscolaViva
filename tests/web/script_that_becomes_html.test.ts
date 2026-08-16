@@ -28,7 +28,7 @@ const HANDWRITTEN_URL_THE_CHECKER_FLAGS =
 const EXEMPTION_STANDS = 'o corpo do <script> fica fora do alcance do verificador';
 
 const EXEMPTION_FELL =
-  `a entrada de TEMPLATES_CUJO_SCRIPT_VIRA_HTML para ${PARTIAL_PATH} sumiu de ` +
+  `a entrada de TEMPLATES_WHOSE_SCRIPT_BECOMES_HTML para ${PARTIAL_PATH} sumiu de ` +
   `${CHECKER_PATH}. O verificador voltou a ler o corpo de um <script> que viaja ` +
   'verbatim para o navegador em toda tela com documento: extrair esses literais para constantes ' +
   'acrescenta interpolação ao HTML de todas elas, e o golden muda de uma vez. Reponha a entrada.';

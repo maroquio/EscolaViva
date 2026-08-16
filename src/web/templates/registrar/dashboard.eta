@@ -14,7 +14,7 @@ const shortcuts = [
     title: 'Turmas e professores',
     detail: 'Abra a turma para alocar disciplina e professor da unidade.' },
   { href: it.routes.registrar.guardians(), label: it.labels.guardian,
-    // magic-values: permitido — this is neither `TITLES.registrar.guardianNew` nor `TITLES.registrar.guardians`
+    // magic-values: allowed — this is neither `TITLES.registrar.guardianNew` nor `TITLES.registrar.guardians`
     title: 'Cadastrar responsável',
     detail: 'Quem recebe comunicado e responde pelo aluno.' },
 ];

@@ -46,7 +46,7 @@ const STATUS_LABEL = it.statusLabel;
       </div>
 
       <div class="card">
-<% // magic-values: permitido — a generic noun heading five distinct state vocabularies; it is not the label of a single datum, and for that reason it does not belong in LABELS %>
+<% // magic-values: allowed — a generic noun heading five distinct state vocabularies; it is not the label of a single datum, and for that reason it does not belong in LABELS %>
         <p class="card__label">Situação</p>
         <p>
           <span class="tag <%= STATUS_CLASS[reportCard.status] %>">

@@ -65,7 +65,7 @@ REGRAS:
 1. NÃO EDITE ARQUIVO NENHUM. Você mede e relata.
 2. Trabalhe em cópia no scratchpad para qualquer sonda ou mutação, e APAGUE ao terminar.
    O working tree do repositório precisa ficar exatamente como você o encontrou.
-3. NUNCA rode comando de git que escreva, nem \`golden --regravar\`.
+3. NUNCA rode comando de git que escreva, nem \`golden --rewrite\`.
 4. Cite arquivo:linha em todo achado. Achado sem localização não é achado.
 5. Distinga o que você MEDIU do que você SUPÕE. Suposição vai marcada como tal.
 `;
@@ -189,7 +189,7 @@ comentário. Se o defeito exigir um aviso, ele vira NOME ou TESTE. Teste não é
 não pode divergir do código, porque quebra.
 
 COMPORTAMENTO NÃO MUDA: as 75 telas do golden saem byte a byte idênticas. JAMAIS
-\`golden --regravar\`.
+\`golden --rewrite\`.
 
 Ao terminar:
   env -u FORCE_COLOR bunx tsc --noEmit

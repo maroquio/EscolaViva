@@ -26,7 +26,7 @@ limpo, golden de 75 telas com diff zero, \`scripts/magic-values.ts\` limpo.
 
 O GOLDEN É A LINHA VERMELHA. Diff nele = você mudou uma tela. O texto renderizado sai
 BYTE A BYTE idêntico: troca-se a ORIGEM do valor, nunca o valor.
-JAMAIS rode \`bun run golden --regravar\`.
+JAMAIS rode \`bun run golden --rewrite\`.
 
 ARMADILHAS DO ETA, já pagas por outros agentes:
   - \`autoTrim: [false, 'nl']\` come a quebra de linha logo após \`%>\`. Valor em linha
@@ -43,7 +43,7 @@ REGRAS:
 
 2. MERGE POR CONCEITO, NUNCA POR VALOR. Só una quando os dois usos mudam juntos por
    definição. Ao decidir NÃO unir, escreva
-   \`// magic-values: permitido — <motivo>\` dizendo qual constante o valor NÃO é e por quê.
+   \`// magic-values: allowed — <reason>\` dizendo qual constante o valor NÃO é e por quê.
    Justificativa genérica não serve.
 
 3. FORA DO ESCOPO: status HTTP, nomes de tabela/coluna SQL, quantificadores de regex,
@@ -56,7 +56,7 @@ REGRAS:
    pior de ler que o literal, NÃO force: relate em \`pendencias\`. A quinta passada já
    deixou \`id=\`/\`for=\` como literal por esse motivo, e foi a decisão certa.
 
-6. NUNCA rode git add, git commit, git push, git checkout nem \`golden --regravar\`.
+6. NUNCA rode git add, git commit, git push, git checkout nem \`golden --rewrite\`.
 
 7. NÃO edite arquivo fora do seu escopo.
 `;
@@ -189,7 +189,7 @@ const encanamento = await agent(
   `${CONTEXTO}
 
 DEFEITO: a quinta passada suprimiu quatro achados em
-src/web/templates/comunicados/novo.eta com \`// magic-values: permitido\`, e o agente que
+src/web/templates/comunicados/novo.eta com \`// magic-values: allowed\`, e o agente que
 os suprimiu registrou por escrito que NÃO SÃO FALSO POSITIVO. Ele não conseguiu fechá-los
 porque \`ALCANCE\` (src/comunicacao/constantes.ts) simplesmente não chega ao template:
 \`it.campos.comunicado\` leva os NOMES de campo, nunca os VALORES do enum.

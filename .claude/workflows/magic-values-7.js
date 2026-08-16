@@ -32,7 +32,7 @@ diff zero, \`scripts/magic-values.ts\` limpo.
   scripts/magic-values.ts   o verificador, dentro do \`bun run verify\`
 
 O GOLDEN É A LINHA VERMELHA. Diff nele = você mudou uma tela. O texto renderizado sai
-BYTE A BYTE idêntico. JAMAIS rode \`bun run golden --regravar\`.
+BYTE A BYTE idêntico. JAMAIS rode \`bun run golden --rewrite\`.
 
 ARMADILHAS DO ETA:
   - \`autoTrim: [false, 'nl']\` come a quebra de linha após \`%>\`; valor em linha própria
@@ -47,7 +47,7 @@ REGRAS:
 1. FONTE ÚNICA POR MÓDULO. Um módulo só enxerga outro pelo index.ts dele.
 
 2. MERGE POR CONCEITO, NUNCA POR VALOR. Ao decidir NÃO unir, escreva
-   \`// magic-values: permitido — <motivo>\` dizendo qual constante o valor NÃO é e por quê.
+   \`// magic-values: allowed — <reason>\` dizendo qual constante o valor NÃO é e por quê.
 
 3. FORA DO ESCOPO: status HTTP, SQL, quantificador de regex, 0 e 1, dados de seed,
    testes/** inteiro, e o corpo do <script> de parciais/_script_avisos.eta.
@@ -57,7 +57,7 @@ REGRAS:
 5. LEGIBILIDADE É REQUISITO. Repositório didático. Se consumir a constante deixar a linha
    pior de ler, NÃO force: relate em \`pendencias\`.
 
-6. NUNCA rode comando de git, nem \`golden --regravar\`.
+6. NUNCA rode comando de git, nem \`golden --rewrite\`.
 
 7. NÃO edite arquivo fora do seu escopo.
 `;
@@ -200,7 +200,7 @@ const fechamentos = await parallel([
 DEFEITO ESPECÍFICO: a passada anterior criou uma contradição. ${CONTRADICAO} passou a ler
 \`it.contagem.anoLetivo.singular\` para o substantivo minúsculo em frase corrida — e cinco
 outras telas escrevem o MESMO substantivo minúsculo em frase corrida e o SUPRIMEM com
-\`// magic-values: permitido\` afirmando que ele NÃO tem dono. Uma delas
+\`// magic-values: allowed\` afirmando que ele NÃO tem dono. Uma delas
 (responsavel/boletim.eta:53) justifica-se dizendo "é o substantivo lido em voz corrida,
 minúsculo, com o número dentro de um span" — que é a definição exata de CONTAGEM.
 
@@ -314,7 +314,7 @@ irrelevantes custa o mesmo e ainda desgasta o critério.
    desta passada. Procure classes NOVAS, e verifique se a regra de composição criou
    falsos positivos que alguém suprimiu em vez de consertar.
 
-4. Audite TODAS as supressões \`// magic-values: permitido\` do repositório: alguma está na
+4. Audite TODAS as supressões \`// magic-values: allowed\` do repositório: alguma está na
    linha errada, morta, ou com justificativa que não se sustenta? Alguma contradiz outra —
    duas telas com o mesmo caso, uma consumindo e outra suprimindo? Foi assim que a passada
    anterior errou.

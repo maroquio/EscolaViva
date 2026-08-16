@@ -34,13 +34,13 @@ const newId = (): string => uuidIdGenerator.next();
 function seededRandom(seed: number): () => number {
   let state = seed >>> 0;
   return () => {
-    // magic-values: permitido — the mulberry32 increment, fixed by the algorithm
+    // magic-values: allowed — the mulberry32 increment, fixed by the algorithm
     state = (state + 0x6d2b79f5) >>> 0;
-    // magic-values: permitido — the mulberry32 shift, fixed by the algorithm
+    // magic-values: allowed — the mulberry32 shift, fixed by the algorithm
     let t = Math.imul(state ^ (state >>> 15), 1 | state);
-    // magic-values: permitido — the mulberry32 shift and multiplier
+    // magic-values: allowed — the mulberry32 shift and multiplier
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    // magic-values: permitido — 2^32, the divisor that normalizes mulberry32 into [0, 1)
+    // magic-values: allowed — 2^32, the divisor that normalizes mulberry32 into [0, 1)
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }

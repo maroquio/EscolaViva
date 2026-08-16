@@ -7,7 +7,7 @@ const CODE_DIRECTORIES = ['src', 'scripts'] as const;
 
 const CODE_FILES = '**/*.{ts,eta,css,sh}';
 
-const MAGIC_VALUES_DIRECTIVE = /magic-values:\s*permitido\s*[—-]\s*\S/;
+const MAGIC_VALUES_DIRECTIVE = /magic-values:\s*allowed\s*[—-]\s*\S/;
 
 const SCRIPT_OPENING = '<script>';
 const SCRIPT_CLOSING = '</script>';

@@ -38,7 +38,7 @@ SAI:
 FICA — e isto NÃO é negociação da decisão, é constatação de que estes não são comentário
 na função que exercem, e removê-los quebra o build:
 
-  1. \`// magic-values: permitido — <motivo>\` é DIRETIVA. \`scripts/magic-values.ts\` a lê e a
+  1. \`// magic-values: allowed — <reason>\` é DIRETIVA. \`scripts/magic-values.ts\` a lê e a
      parseia; removê-la reabre o achado que ela suprime e deixa \`bun run verify\`
      vermelho. Preserve o marcador E o texto do motivo na mesma linha, porque a regra de
      auditoria confere esse texto. Se a prosa explicativa em volta dele for comentário
@@ -53,7 +53,7 @@ CUIDADO QUE CUSTA A TELA — a armadilha do Eta:
   \`autoTrim: [false, 'nl']\` come a quebra de linha logo após \`%>\`. Vários templates têm
   comentário posicionado justamente para compensar isso. REMOVER UM BLOCO DE COMENTÁRIO
   PODE MUDAR O HTML. O golden de 75 telas é a prova: se ele acusar, você mexeu na tela.
-  Ajuste o espaçamento até o diff zerar; NUNCA rode \`golden --regravar\`.
+  Ajuste o espaçamento até o diff zerar; NUNCA rode \`golden --rewrite\`.
 
 CUIDADO COM TIPO: em TypeScript, remover um docblock não muda tipo, mas se houver
 \`@type\` ou \`@satisfies\` em JSDoc dentro de \`.js\`, ele É tipo. \`.claude/workflows/*.js\` está
@@ -66,7 +66,7 @@ REGRAS:
 1. COMPORTAMENTO NÃO MUDA. Nenhum byte de HTML, nenhuma asserção de teste, nenhum tipo.
 2. NÃO reescreva código para "compensar" a saída do comentário. Nada de renomear variável,
    extrair função ou mudar estrutura. Esta passada só REMOVE.
-3. NUNCA rode comando de git, nem \`golden --regravar\`.
+3. NUNCA rode comando de git, nem \`golden --rewrite\`.
 4. NÃO edite arquivo fora do seu escopo — outros agentes trabalham em paralelo.
 5. Se remover um comentário exigir mudar código para o arquivo continuar compilando ou
    renderizando igual, PARE e relate em \`pendencias\` em vez de improvisar.
@@ -167,7 +167,7 @@ Na ordem:
 4. Golden das 75 telas com diff ZERO. É aqui que a armadilha do \`autoTrim\` aparece: se
    acusar, um comentário removido estava compensando espaçamento. Ajuste o espaçamento —
    JAMAIS regrave o golden.
-5. \`bun scripts/magic-values.ts\` — as diretivas \`// magic-values: permitido\` precisam ter
+5. \`bun scripts/magic-values.ts\` — as diretivas \`// magic-values: allowed\` precisam ter
    sobrevivido. Se algum agente removeu uma, o achado reabriu: reponha a diretiva com o
    motivo, não o comentário em volta.
 6. \`bun run verify\` exit 0.
@@ -192,7 +192,7 @@ A remoção terminou. Você é o CRÍTICO. NÃO edite arquivo. Meça, não confi
    arquivo:linha de tudo que sobrou e classifique: diretiva legítima, ou comentário que
    escapou.
 
-2. Alguma diretiva \`// magic-values: permitido\` foi removida por engano? Compare com o
+2. Alguma diretiva \`// magic-values: allowed\` foi removida por engano? Compare com o
    estado anterior: eram 16 vivas. Se alguma sumiu, o verificador estaria vermelho — mas
    confira também se alguma foi mantida com o motivo truncado.
 

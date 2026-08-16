@@ -24,7 +24,7 @@ A infraestrutura existe:
 O GOLDEN É A LINHA VERMELHA. testes/web/golden.test.ts compara o HTML das 75 telas com o
 congelado. Diff = você mudou uma tela, o que este trabalho proíbe. O texto renderizado
 precisa sair BYTE A BYTE idêntico — você está trocando a origem do texto, não o texto.
-JAMAIS rode \`bun run golden --regravar\`.
+JAMAIS rode \`bun run golden --rewrite\`.
 `;
 
 const DEFEITO = `
@@ -72,7 +72,7 @@ REGRAS:
 
 4. COMPORTAMENTO NÃO MUDA. Um byte diferente no HTML é falha, não melhoria.
 
-5. NUNCA rode git add, git commit, git push, git checkout nem \`golden --regravar\`.
+5. NUNCA rode git add, git commit, git push, git checkout nem \`golden --rewrite\`.
 
 6. NÃO edite arquivo fora do seu escopo — outros agentes trabalham em paralelo agora.
 

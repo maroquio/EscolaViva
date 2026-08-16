@@ -28,7 +28,7 @@ sondou 47 células da matriz {texto, número, composição, marca} × posição 
 célula que cala NÃO tem caso real no repositório, e ligar as quatro cegas juntas produz
 UM falso positivo e ZERO verdadeiros. Não mexa nelas.
 
-O GOLDEN É A LINHA VERMELHA. JAMAIS \`golden --regravar\`.
+O GOLDEN É A LINHA VERMELHA. JAMAIS \`golden --rewrite\`.
 
 ARMADILHAS DO ETA:
   - \`autoTrim: [false, 'nl']\` come a quebra de linha após \`%>\`.
@@ -42,7 +42,7 @@ REGRAS:
 
 1. FONTE ÚNICA POR MÓDULO. Um módulo só enxerga outro pelo index.ts dele.
 
-2. A justificativa \`// magic-values: permitido — <motivo>\` diz QUAL CONSTANTE O VALOR NÃO
+2. A justificativa \`// magic-values: allowed — <reason>\` diz QUAL CONSTANTE O VALOR NÃO
    É e por quê. Dizer qual ele É é confissão. Dizer que a constante está morta é um TODO,
    não uma justificativa.
 
@@ -54,7 +54,7 @@ REGRAS:
 5. LEGIBILIDADE É REQUISITO, e nesta passada ela é ALVO, não só limite. Material
    didático: comentário maior que a tela que explica não ensina, atrapalha.
 
-6. NUNCA rode comando de git, nem \`golden --regravar\`.
+6. NUNCA rode comando de git, nem \`golden --rewrite\`.
 
 7. NÃO edite arquivo fora do seu escopo.
 `;
@@ -144,7 +144,7 @@ folhas dos cinco arquivos de constantes — varridas contra src/, testes/ e scri
 ignorando comentários. E a supressão que a protege é a única justificativa que não se
 sustenta (parciais/_paginacao.eta:40):
 
-  // magic-values: permitido — este 'itens' não é PAGINACAO.rotuloPadrao: aquela
+  // magic-values: allowed — este 'itens' não é PAGINACAO.rotuloPadrao: aquela
   // declaração não tem consumidor nenhum, e a fonte do que a barra imprime é esta linha.
 
 Ela passa pelo portão da regra só pela palavra "não", mas não distingue conceito nenhum: o

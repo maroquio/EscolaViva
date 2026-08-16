@@ -29,7 +29,7 @@ arquivos, nada commitado). Ele criou a infraestrutura de constantes:
 ESTADO ATUAL: \`bun run verify\` sai 0 — 714 testes verdes, depcruise limpo, golden
 de 75 telas sem diff. NÃO PODE REGREDIR. Seu trabalho não pode mudar nenhuma tela:
 o teste golden em testes/web/golden.test.ts compara o HTML de todas elas com o que foi
-congelado. Diff no golden = você quebrou algo. JAMAIS rode \`bun run golden --regravar\`.
+congelado. Diff no golden = você quebrou algo. JAMAIS rode \`bun run golden --rewrite\`.
 `;
 
 const REGRAS = `
@@ -397,7 +397,7 @@ Na ordem, consertando antes de seguir:
 3. \`bun test\` — 714 testes eram verdes antes desta rodada. Toda falha é regressão
    introduzida agora: conserte o CÓDIGO, jamais afrouxe o teste.
 4. O golden de 75 telas precisa dar diff zero. Diff = uma tela mudou, o que este
-   refactor proibiu. JAMAIS rode \`bun run golden --regravar\`.
+   refactor proibiu. JAMAIS rode \`bun run golden --rewrite\`.
 5. \`bun scripts/magic-values.ts\` — agora com as três correções da fase anterior
    (varre .eta, detecta duplicação, restringe a isenção de status HTTP). Precisa sair
    limpo. Se acusar literal legítimo, extraia-o para o dono. Se acusar falso positivo,

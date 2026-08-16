@@ -26,7 +26,7 @@ verdes, depcruise limpo, golden de 75 telas com diff zero, lint limpo.
 
 O GOLDEN É A LINHA VERMELHA. testes/web/golden.test.ts compara o HTML das 75 telas com o
 congelado. Diff = você mudou uma tela. O texto renderizado sai BYTE A BYTE idêntico: você
-troca a ORIGEM do texto, nunca o texto. JAMAIS rode \`bun run golden --regravar\`.
+troca a ORIGEM do texto, nunca o texto. JAMAIS rode \`bun run golden --rewrite\`.
 
 ARMADILHAS DO ETA já pagas por outros agentes — leia antes de editar template:
   - \`autoTrim: [false, 'nl']\` come a quebra de linha logo após \`%>\`. Rótulo em linha
@@ -44,7 +44,7 @@ REGRAS:
 
 2. MERGE POR CONCEITO, NUNCA POR VALOR. Só una quando os dois usos mudam juntos por
    definição. Texto igual com sentido diferente são duas constantes. Quando decidir NÃO
-   unir, deixe a justificativa na linha com \`// magic-values: permitido — <motivo>\`.
+   unir, deixe a justificativa na linha com \`// magic-values: allowed — <reason>\`.
 
 3. FORA DO ESCOPO: status HTTP, nomes de tabela/coluna SQL, quantificadores de regex,
    0 e 1, dados de seed, testes/** inteiro, e o corpo do <script> de
@@ -58,7 +58,7 @@ REGRAS:
    \`pendencias\` com o trecho, e siga. Trocar um problema de duplicação por um de leitura
    não é progresso, e um aluno precisa conseguir ler o template.
 
-6. NUNCA rode git add, git commit, git push, git checkout nem \`golden --regravar\`.
+6. NUNCA rode git add, git commit, git push, git checkout nem \`golden --rewrite\`.
 
 7. NÃO edite arquivo fora do seu escopo — outros agentes trabalham em paralelo agora.
 `;
@@ -229,7 +229,7 @@ TAREFA:
 
 3. NÃO crie constante sem consumidor previsto. Se um valor da lista não deve ter dono —
    porque as ocorrências são conceitos diferentes que coincidem —, diga isso no resumo,
-   e a próxima fase deixa o literal com a justificativa \`// magic-values: permitido\`.
+   e a próxima fase deixa o literal com a justificativa \`// magic-values: allowed\`.
 
 4. Sobre os ~204 nomes de campo escritos à mão nos .eta (id=, name=, for=, erroDe('x')):
    CAMPOS já é o dono nos 4 módulos. Avalie se dá para consumi-lo no template SEM
@@ -276,7 +276,7 @@ ${JSON.stringify(arquivos.find((a) => a.arquivo === arquivo)?.achados ?? [], nul
 
 Feche cada achado consumindo o dono. Onde o achado for conceito diferente que coincide
 por valor (regra 2), deixe o literal e escreva a justificativa na linha com
-\`// magic-values: permitido — <motivo>\`. Justificativa genérica não serve: diga qual
+\`// magic-values: allowed — <reason>\`. Justificativa genérica não serve: diga qual
 constante o valor NÃO é, e por quê.
 
 ${REGRAS}
@@ -326,7 +326,7 @@ Na ordem, consertando antes de seguir:
    CÓDIGO, jamais afrouxe o teste.
 4. Golden das 75 telas com diff zero. JAMAIS regrave.
 5. \`bun scripts/magic-values.ts\` — precisa sair limpo. Todo achado que sobrou: ou consome
-   o dono, ou ganha \`// magic-values: permitido — <motivo>\` com justificativa específica.
+   o dono, ou ganha \`// magic-values: allowed — <reason>\` com justificativa específica.
    Se for falso positivo, corrija a REGRA, nunca crie exceção pontual.
 6. \`bun run verify\` inteiro, exit 0.
 
@@ -367,7 +367,7 @@ dentro de \`<% %>\` e a repetição sem dono. NÃO CONFIRA UMA LISTA. Meça.
    HTML no lugar do caractere, maiúscula/minúscula diferente, espaço não-quebrável.
    Procure casos reais, não hipóteses.
 
-4. Alguma constante ficou órfã? Alguma supressão \`// magic-values: permitido\` está morta
+4. Alguma constante ficou órfã? Alguma supressão \`// magic-values: allowed\` está morta
    (na linha errada) ou com justificativa que não se sustenta?
 
 5. A LEGIBILIDADE piorou? Este é um repositório didático. Aponte cada linha em que a

@@ -81,7 +81,7 @@ const STATUS_LABEL = it.statusLabel;
                 Boletim<span class="visually-hidden"> de <%= enrollment.studentName %></span></a>
               <a class="button button--secondary button--small"
                  href="<%= it.routes.guardian.attendance({ id: enrollment.id }) %>">
-<% // magic-values: permitido — the label of the link that opens the attendance screen, twin of the "Boletim" on the line above; it is not `LABELS.attendance`, which names the RATE on the report card %>
+<% // magic-values: allowed — the label of the link that opens the attendance screen, twin of the "Boletim" on the line above; it is not `LABELS.attendance`, which names the RATE on the report card %>
                 Frequência<span class="visually-hidden"> de <%= enrollment.studentName %></span></a>
             </span>
           </td>

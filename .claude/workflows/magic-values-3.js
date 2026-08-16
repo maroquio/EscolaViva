@@ -26,7 +26,7 @@ golden de 75 telas com diff zero. NÃO PODE REGREDIR.
 
 O GOLDEN É A LINHA VERMELHA. testes/web/golden.test.ts compara o HTML de todas as 75
 telas com o que foi congelado antes do refactor. Diff = você mudou uma tela, o que este
-trabalho proíbe. JAMAIS rode \`bun run golden --regravar\`.
+trabalho proíbe. JAMAIS rode \`bun run golden --rewrite\`.
 `;
 
 const REGRAS = `
@@ -46,7 +46,7 @@ REGRAS:
 
 4. COMPORTAMENTO NÃO MUDA. Refactor puro. Um byte diferente no HTML é falha, não melhoria.
 
-5. NUNCA rode git add, git commit, git push, git checkout nem \`golden --regravar\`.
+5. NUNCA rode git add, git commit, git push, git checkout nem \`golden --rewrite\`.
 
 6. NÃO edite arquivo fora do seu escopo — outros agentes trabalham em paralelo agora.
    Ler qualquer arquivo é permitido e recomendado.

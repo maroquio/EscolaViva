@@ -9,7 +9,7 @@
  *
  * When the change is intentional, the files are rewritten on purpose:
  *
- *     bun run golden --regravar
+ *     bun run golden --rewrite
  *
  * and the `git` diff becomes the review of the refactor: every changed line under
  * `tests/web/golden/` is a change in behaviour someone has to look at and accept. Rewriting without
@@ -32,11 +32,11 @@ import {
   type GoldenScreen,
 } from './golden';
 
-/** Switched on by `scripts/golden.ts --regravar`: instead of comparing, every file is rewritten. */
+/** Switched on by `scripts/golden.ts --rewrite`: instead of comparing, every file is rewritten. */
 const REWRITING = Bun.env['GOLDEN_REWRITE'] === '1';
 
 const NO_FILE =
-  '(nenhum arquivo golden gravado — rode `bun run golden --regravar` para criar a linha de base)';
+  '(no golden file written — run `bun run golden --rewrite` to create the baseline)';
 
 /** How many divergences are printed in full before the message turns into a list of names. */
 const DETAILS_IN_REPORT = 3;
@@ -53,7 +53,7 @@ beforeAll(async () => {
 
 const screenNamed = (name: string): GoldenScreen => {
   const found = screens.find((candidate) => candidate.name === name);
-  if (found === undefined) throw new Error(`tela "${name}" não está na lista`);
+  if (found === undefined) throw new Error(`screen "${name}" is not on the list`);
   return found;
 };
 
@@ -78,7 +78,7 @@ test('no screen of the system changed its HTML', async () => {
   }
 
   if (REWRITING) {
-    console.log(`golden: ${rewritten} telas gravadas em ${GOLDEN_DIR}`);
+    console.log(`golden: ${rewritten} screens written to ${GOLDEN_DIR}`);
     expect(rewritten).toBe(screens.length);
     return;
   }
@@ -161,12 +161,12 @@ function difference(expected: string, actual: string): string {
   for (let index = 0; index < total; index += 1) {
     if (before[index] === after[index]) continue;
     if (lines.length >= LINE_LIMIT * 3) {
-      lines.push('  … (restante omitido)');
+      lines.push('  … (rest omitted)');
       break;
     }
-    lines.push(`  linha ${index + 1}`);
-    lines.push(`  - ${before[index] ?? '(ausente)'}`);
-    lines.push(`  + ${after[index] ?? '(ausente)'}`);
+    lines.push(`  line ${index + 1}`);
+    lines.push(`  - ${before[index] ?? '(absent)'}`);
+    lines.push(`  + ${after[index] ?? '(absent)'}`);
   }
 
   return lines.join('\n');
@@ -174,8 +174,8 @@ function difference(expected: string, actual: string): string {
 
 function report(divergent: readonly Divergence[], total: number): string {
   const header =
-    `${divergent.length} de ${total} tela(s) divergem do golden.\n` +
-    'Se a mudança for intencional: bun run golden --regravar (e leia o diff antes de commitar).\n';
+    `${divergent.length} of ${total} screen(s) diverge from the golden.\n` +
+    'If the change is intentional: bun run golden --rewrite (and read the diff before committing).\n';
 
   const names = divergent.map(({ screen }) => `  · ${screen.name} (${screen.path})`).join('\n');
 

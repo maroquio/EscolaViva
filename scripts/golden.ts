@@ -1,4 +1,4 @@
-const REWRITE_FLAG = '--regravar';
+const REWRITE_FLAG = '--rewrite';
 const TEST_FILE = 'tests/web/golden.test.ts';
 
 const args = Bun.argv.slice(2);
@@ -6,15 +6,15 @@ const rewrite = args.includes(REWRITE_FLAG);
 
 const unknown = args.filter((argument) => argument !== REWRITE_FLAG);
 if (unknown.length > 0) {
-  console.error(`argumento não reconhecido: ${unknown.join(', ')}`);
-  console.error(`uso: bun run golden [${REWRITE_FLAG}]`);
+  console.error(`unrecognized argument: ${unknown.join(', ')}`);
+  console.error(`usage: bun run golden [${REWRITE_FLAG}]`);
   process.exit(2);
 }
 
 console.log(
   rewrite
-    ? 'golden: regravando a linha de base das telas…'
-    : 'golden: verificando as telas contra a linha de base…',
+    ? 'golden: rewriting the baseline of the screens…'
+    : 'golden: checking the screens against the baseline…',
 );
 
 const child = Bun.spawn([process.execPath, 'test', TEST_FILE], {
@@ -27,7 +27,7 @@ const child = Bun.spawn([process.execPath, 'test', TEST_FILE], {
 const exitCode = await child.exited;
 
 if (exitCode === 0 && rewrite) {
-  console.log('\ngolden: leia `git diff tests/web/golden/` — cada linha alterada é uma tela que mudou.');
+  console.log('\ngolden: read `git diff tests/web/golden/` — every changed line is a screen that changed.');
 }
 
 process.exit(exitCode);

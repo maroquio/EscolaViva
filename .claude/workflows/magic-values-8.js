@@ -29,7 +29,7 @@ SITUAÇÃO: sete passadas de refactor de magic values, 15 commits. \`bun run ver
                       it.areas, it.apresentacao, it.parciais, it.sufixos, it.campos…
   scripts/magic-values.ts   o verificador, dentro do \`bun run verify\`
 
-O GOLDEN É A LINHA VERMELHA. Diff = você mudou uma tela. JAMAIS \`golden --regravar\`.
+O GOLDEN É A LINHA VERMELHA. Diff = você mudou uma tela. JAMAIS \`golden --rewrite\`.
 
 ARMADILHAS DO ETA:
   - \`autoTrim: [false, 'nl']\` come a quebra de linha após \`%>\`.
@@ -44,7 +44,7 @@ REGRAS:
 1. FONTE ÚNICA POR MÓDULO. Um módulo só enxerga outro pelo index.ts dele.
 
 2. MERGE POR CONCEITO, NUNCA POR VALOR. Ao decidir NÃO unir, a justificativa
-   \`// magic-values: permitido — <motivo>\` precisa dizer QUAL CONSTANTE O VALOR NÃO É e
+   \`// magic-values: allowed — <reason>\` precisa dizer QUAL CONSTANTE O VALOR NÃO É e
    por quê. Dizer qual constante ele É não é justificativa: é confissão.
 
 3. FORA DO ESCOPO: status HTTP, SQL, quantificador de regex, 0 e 1, dados de seed,
@@ -55,7 +55,7 @@ REGRAS:
 5. LEGIBILIDADE É REQUISITO. Repositório didático. Se consumir a constante deixar a linha
    pior de ler, NÃO force: relate em \`pendencias\`.
 
-6. NUNCA rode comando de git, nem \`golden --regravar\`.
+6. NUNCA rode comando de git, nem \`golden --rewrite\`.
 
 7. NÃO edite arquivo fora do seu escopo.
 `;
