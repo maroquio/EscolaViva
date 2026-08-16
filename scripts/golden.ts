@@ -1,5 +1,5 @@
 const FLAG_REGRAVAR = '--regravar';
-const ARQUIVO_DE_TESTE = 'testes/web/golden.test.ts';
+const ARQUIVO_DE_TESTE = 'tests/web/golden.test.ts';
 
 const argumentos = Bun.argv.slice(2);
 const regravar = argumentos.includes(FLAG_REGRAVAR);
@@ -27,7 +27,7 @@ const processo = Bun.spawn([process.execPath, 'test', ARQUIVO_DE_TESTE], {
 const codigo = await processo.exited;
 
 if (codigo === 0 && regravar) {
-  console.log('\ngolden: leia `git diff testes/web/golden/` — cada linha alterada é uma tela que mudou.');
+  console.log('\ngolden: leia `git diff tests/web/golden/` — cada linha alterada é uma tela que mudou.');
 }
 
 process.exit(codigo);

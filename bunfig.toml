@@ -14,4 +14,4 @@ coverageReporter = ["text"]
 
 # Sobe as migrações no banco de teste e prepara o truncamento entre casos antes de qualquer
 # arquivo de teste ser importado.
-preload = ["./testes/apoio/preload.ts"]
+preload = ["./tests/support/preload.ts"]
