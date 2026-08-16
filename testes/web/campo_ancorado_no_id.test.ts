@@ -21,7 +21,7 @@
 
 import { describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
-import { CAMPOS } from '../../src/web/constantes';
+import { CAMPOS } from '../../src/web/constants';
 import { firstExistingPath } from '../apoio/paths';
 
 const RAIZ_DO_PROJETO = join(import.meta.dir, '..', '..');

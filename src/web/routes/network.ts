@@ -35,8 +35,8 @@ import {
   TEMPLATES,
   TITULOS,
   VALORES_INICIAIS,
-} from '../constantes';
-import { navegacao, paginaDaQuery } from '../paginacao';
+} from '../constants';
+import { navegacao, paginaDaQuery } from '../pagination';
 import { renderizar, type DadosDeTemplate } from '../render';
 
 const MENSAGENS: Record<string, string> = {

@@ -642,7 +642,7 @@ type Contexto = { readonly declaracao: boolean; readonly caminho: string };
 
 const RAIZ_DA_ARVORE: Contexto = { declaracao: false, caminho: '' };
 
-const MOTIVO_DE_ENDERECO = 'endereço escrito à mão — use `ROTAS` (web/constantes.ts)';
+const MOTIVO_DE_ENDERECO = 'endereço escrito à mão — use `ROTAS` (web/constants.ts)';
 
 function analisarTypeScript(arquivo: string, fonte: string): Achado[] {
   const origem = ts.createSourceFile(arquivo, fonte, ts.ScriptTarget.ESNext, true);
@@ -847,7 +847,7 @@ const ehEnderecoNoAtributo = (texto: string): boolean =>
   texto === BARRA || ROTA_COM_SEGMENTO.test(texto);
 
 const MOTIVO_DE_ENDERECO_NO_TEMPLATE =
-  'endereço escrito à mão — use `it.rotas` (ROTAS, em web/constantes.ts)';
+  'endereço escrito à mão — use `it.rotas` (ROTAS, em web/constants.ts)';
 
 type Posicao = { readonly linha: number; readonly coluna: number };
 

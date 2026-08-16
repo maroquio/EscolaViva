@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { checkDatabase } from '../shared/db';
 import type { Variables } from '../shared/http';
 import { HEADERS, PROBE_TIMEOUT_MS } from '../shared/constants';
-import { CORPO_DE_SAUDE, ROTAS, SEM_CACHE_NA_SAUDE } from './constantes';
+import { CORPO_DE_SAUDE, ROTAS, SEM_CACHE_NA_SAUDE } from './constants';
 
 export const rotasSaude = new Hono<{ Variables: Variables }>();
 

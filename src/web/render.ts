@@ -33,7 +33,7 @@ import {
   TEMPLATES,
   TITULOS,
   type SubstantivoContavel,
-} from './constantes';
+} from './constants';
 
 const RAIZ = join(import.meta.dir, '..', '..');
 const CAMINHO_DO_MANIFESTO = join(RAIZ, ASSETS.directory, ASSETS.manifest);

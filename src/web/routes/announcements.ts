@@ -25,8 +25,8 @@ import {
   SEM_SELECAO_NO_ENVIO,
   TEMPLATES,
   TITULOS,
-} from '../constantes';
-import { navegacao, paginaDaQuery } from '../paginacao';
+} from '../constants';
+import { navegacao, paginaDaQuery } from '../pagination';
 import { renderizar } from '../render';
 
 type ValoresDoComunicado = {

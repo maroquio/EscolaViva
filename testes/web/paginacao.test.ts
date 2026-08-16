@@ -17,7 +17,7 @@ import {
   type Cenario,
 } from '../apoio/fabricas';
 import { DEFAULT_PAGE_SIZE } from '../../src/shared/pagination';
-import { PARAMETROS } from '../../src/web/constantes';
+import { PARAMETROS } from '../../src/web/constants';
 import { idDaAjuda } from '../../src/web/render';
 import { abrir, entrar } from './apoio';
 

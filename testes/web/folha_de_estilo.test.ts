@@ -6,7 +6,7 @@ const CAMINHO_DA_FOLHA = join(
   import.meta.dir,
   '..',
   '..',
-  await firstExistingPath('src/web/publico/app.css', 'src/web/public/app.css'),
+  await firstExistingPath('src/web/public/app.css', 'src/web/public/app.css'),
 );
 
 const REGRA = /([^{}]+)\{([^{}]*)\}/g;

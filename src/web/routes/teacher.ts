@@ -34,9 +34,9 @@ import {
   ROTAS,
   TEMPLATES,
   TITULOS,
-} from '../constantes';
+} from '../constants';
 import { formatarData, renderizar, type DadosDeTemplate } from '../render';
-import type { Params } from './mapa';
+import type { Params } from './routeMap';
 
 type ContextoWeb = Context<{ Variables: Variables }>;
 

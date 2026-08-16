@@ -27,8 +27,8 @@ import {
   ROTAS,
   TEMPLATES,
   TITULOS,
-} from '../constantes';
-import { navegacao, paginaDaQuery } from '../paginacao';
+} from '../constants';
+import { navegacao, paginaDaQuery } from '../pagination';
 import { formatarNota, renderizar } from '../render';
 
 export const rotasResponsavel = new Hono<{ Variables: Variables }>();

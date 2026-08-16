@@ -4,7 +4,7 @@ import { ASSETS } from '../src/shared/constants';
 
 const RAIZ = join(import.meta.dir, '..');
 
-const ORIGEM = join(RAIZ, 'src', 'web', 'publico', 'app.css');
+const ORIGEM = join(RAIZ, 'src', 'web', 'public', 'app.css');
 
 const DESTINO = join(RAIZ, ASSETS.directory);
 

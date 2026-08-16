@@ -1,13 +1,13 @@
 import type { Hono } from 'hono';
 import { idempotencyMiddleware, type Variables } from '../../shared/http';
-import { GRUPOS_DE_ESCRITA, ROTAS, curingaDe } from '../constantes';
-import { rotasComunicados } from './comunicados';
-import { rotasConta } from './conta';
+import { GRUPOS_DE_ESCRITA, ROTAS, curingaDe } from '../constants';
+import { rotasComunicados } from './announcements';
+import { rotasConta } from './account';
 import { rotasLogin } from './login';
-import { rotasProfessor } from './professor';
-import { rotasRede } from './rede';
-import { rotasResponsavel } from './responsavel';
-import { rotasSecretaria } from './secretaria';
+import { rotasProfessor } from './teacher';
+import { rotasRede } from './network';
+import { rotasResponsavel } from './guardian';
+import { rotasSecretaria } from './registrar';
 
 export type AplicacaoWeb = Hono<{ Variables: Variables }>;
 

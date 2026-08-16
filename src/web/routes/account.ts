@@ -14,7 +14,7 @@ import {
   ROTAS,
   TEMPLATES,
   TITULOS,
-} from '../constantes';
+} from '../constants';
 import { renderizar } from '../render';
 
 const MENSAGENS: Record<string, string> = {

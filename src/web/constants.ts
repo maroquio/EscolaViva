@@ -3,7 +3,7 @@ import { ASSESSMENT_FIELDS, TERM_LABEL } from '../assessment';
 import { COMMUNICATION_FIELDS } from '../communication';
 import { IDENTITY_FIELDS, ROLE } from '../identity';
 import { ASSETS, ENTRY_PATHS, HEALTH_PATHS, MISSING_VALUE } from '../shared/constants';
-import { grupo } from './rotas/mapa';
+import { grupo } from './routes/routeMap';
 
 export { ASSETS, ERROR_TITLES, MISSING_VALUE } from '../shared/constants';
 
@@ -99,66 +99,66 @@ export const PAINEL_POR_PAPEL = [
 
 export const TEMPLATES = {
   layout: '/_layout',
-  layoutPublico: '/_layout_publico',
-  erro: '/erro',
+  layoutPublico: '/_layout_public',
+  erro: '/error',
   login: '/login',
 
   parciais: {
-    icone: '/parciais/_icone',
-    cabecalho: '/parciais/_cabecalho',
-    navegacao: '/parciais/_navegacao',
-    mensagens: '/parciais/_mensagens',
-    scriptAvisos: '/parciais/_script_avisos',
-    paginacao: '/parciais/_paginacao',
-    vazio: '/parciais/_vazio',
+    icone: '/partials/_icon',
+    cabecalho: '/partials/_header',
+    navegacao: '/partials/_navigation',
+    mensagens: '/partials/_messages',
+    scriptAvisos: '/partials/_notices_script',
+    paginacao: '/partials/_pagination',
+    vazio: '/partials/_empty',
   },
 
-  conta: { senha: '/conta/senha' },
+  conta: { senha: '/account/password' },
 
   rede: {
-    painel: '/rede/painel',
-    unidades: '/rede/unidades',
-    unidadeNova: '/rede/unidade_nova',
-    usuarios: '/rede/usuarios',
-    usuarioNovo: '/rede/usuario_novo',
-    anos: '/rede/anos',
-    anoNovo: '/rede/ano_novo',
+    painel: '/network/dashboard',
+    unidades: '/network/schools',
+    unidadeNova: '/network/school_new',
+    usuarios: '/network/users',
+    usuarioNovo: '/network/user_new',
+    anos: '/network/years',
+    anoNovo: '/network/year_new',
   },
 
   secretaria: {
-    painel: '/secretaria/painel',
-    alunos: '/secretaria/alunos',
-    alunoNovo: '/secretaria/aluno_novo',
-    aluno: '/secretaria/aluno',
-    alunoResponsavelNovo: '/secretaria/aluno_responsavel_novo',
-    alunoMatriculaNova: '/secretaria/aluno_matricula_nova',
-    matriculaTransferencia: '/secretaria/matricula_transferencia',
-    responsaveis: '/secretaria/responsaveis',
-    responsavelNovo: '/secretaria/responsavel_novo',
-    turmas: '/secretaria/turmas',
-    turmaNova: '/secretaria/turma_nova',
-    turma: '/secretaria/turma',
-    turmaDisciplinaNova: '/secretaria/turma_disciplina_nova',
-    disciplinas: '/secretaria/disciplinas',
-    disciplinaNova: '/secretaria/disciplina_nova',
+    painel: '/registrar/dashboard',
+    alunos: '/registrar/students',
+    alunoNovo: '/registrar/student_new',
+    aluno: '/registrar/student',
+    alunoResponsavelNovo: '/registrar/student_guardian_new',
+    alunoMatriculaNova: '/registrar/student_enrollment_new',
+    matriculaTransferencia: '/registrar/enrollment_transfer',
+    responsaveis: '/registrar/guardians',
+    responsavelNovo: '/registrar/guardian_new',
+    turmas: '/registrar/class_groups',
+    turmaNova: '/registrar/class_group_new',
+    turma: '/registrar/class_group',
+    turmaDisciplinaNova: '/registrar/class_group_subject_new',
+    disciplinas: '/registrar/subjects',
+    disciplinaNova: '/registrar/subject_new',
   },
 
   professor: {
-    painel: '/professor/painel',
-    notas: '/professor/notas',
-    chamada: '/professor/chamada',
-    fechamento: '/professor/fechamento',
+    painel: '/teacher/dashboard',
+    notas: '/teacher/grades',
+    chamada: '/teacher/roll_call',
+    fechamento: '/teacher/closing',
   },
 
   responsavel: {
-    painel: '/responsavel/painel',
-    boletim: '/responsavel/boletim',
-    frequencia: '/responsavel/frequencia',
-    mural: '/responsavel/mural',
-    comunicado: '/responsavel/comunicado',
+    painel: '/guardian/dashboard',
+    boletim: '/guardian/report_card',
+    frequencia: '/guardian/attendance',
+    mural: '/guardian/board',
+    comunicado: '/guardian/announcement',
   },
 
-  comunicados: { lista: '/comunicados/lista', novo: '/comunicados/novo' },
+  comunicados: { lista: '/announcements/list', novo: '/announcements/new' },
 
   diretorio: 'templates',
 } as const;

@@ -42,10 +42,10 @@ import {
   TEMPLATES,
   TITULOS,
   VALORES_INICIAIS,
-} from '../constantes';
-import { navegacao, paginaDaQuery } from '../paginacao';
+} from '../constants';
+import { navegacao, paginaDaQuery } from '../pagination';
 import { renderizar, renderizarErro } from '../render';
-import type { Params } from './mapa';
+import type { Params } from './routeMap';
 
 type Contexto = Context<{ Variables: Variables }>;
 type Valores = Record<string, string | boolean>;

@@ -24,10 +24,10 @@ import {
   ROTAS,
   TIPOS_DE_ASSET,
   TIPO_DE_ASSET_PADRAO,
-} from './constantes';
+} from './constants';
 import { rotasSaude } from './health';
 import { renderizarErro } from './render';
-import { montarRotas } from './rotas';
+import { montarRotas } from './routes';
 
 const PASTA_PUBLICO = join(import.meta.dir, '..', '..', ASSETS.directory);
 

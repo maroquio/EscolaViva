@@ -11,7 +11,7 @@
 import { describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TEMPLATES } from '../../src/web/constantes';
+import { TEMPLATES } from '../../src/web/constants';
 
 const EXTENSAO = '.eta';
 

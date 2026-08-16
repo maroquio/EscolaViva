@@ -22,7 +22,7 @@ import {
   TEMPLATES,
   TITULOS,
   VALORES_INICIAIS,
-} from '../constantes';
+} from '../constants';
 import { renderizar } from '../render';
 
 const DESTINO_APOS_ENTRAR = ROTAS.publicas.painel();

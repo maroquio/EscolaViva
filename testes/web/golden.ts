@@ -368,7 +368,7 @@ export async function montarCenarioGolden(): Promise<CenarioGolden> {
 /* --- As telas --------------------------------------------------------------- */
 
 /**
- * Toda rota GET registrada em `src/web/app.ts`, `src/web/health.ts` e `src/web/rotas/*.ts`, mais as
+ * Toda rota GET registrada em `src/web/app.ts`, `src/web/health.ts` e `src/web/routes/*.ts`, mais as
  * variações de estado que são telas diferentes com o mesmo caminho: a lista com e sem busca, o
  * formulário com e sem unidade escolhida, a página com e sem aviso de sucesso, a segunda página de
  * uma tabela paginada e o 404 de quem pede o registro de outra unidade.
