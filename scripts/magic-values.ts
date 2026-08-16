@@ -12,9 +12,10 @@ const ALVOS: readonly string[] = [
   'scripts/seed-volume.ts',
 ];
 
-const ARQUIVOS_DE_CONSTANTES = /(?:^|\/)constantes\.ts$/;
+const ARQUIVOS_DE_CONSTANTES = /(?:^|\/)(?:constantes|constants)\.ts$/;
 
-const ARQUIVOS_INDEXADOS = /(?:^|\/)constantes\.ts$|(?:^|\/)web\/rotas\/mapa\.ts$/;
+const ARQUIVOS_INDEXADOS =
+  /(?:^|\/)(?:constantes|constants)\.ts$|(?:^|\/)web\/(?:rotas|routes)\/(?:mapa|routeMap)\.ts$/;
 
 const ESTE_ARQUIVO = 'scripts/magic-values.ts';
 
@@ -22,6 +23,7 @@ const EXTENSAO_DE_TEMPLATE = '.eta';
 
 const TEMPLATES_CUJO_SCRIPT_VIRA_HTML: ReadonlySet<string> = new Set([
   'src/web/templates/parciais/_script_avisos.eta',
+  'src/web/templates/partials/_notices_script.eta',
 ]);
 
 const BLOCO_DE_SCRIPT = /(<script\b[^>]*>)([\s\S]*?)(<\/script>)/gi;
@@ -255,7 +257,12 @@ const CONSTRUTORES_DE_RESPOSTA: ReadonlySet<string> = new Set([
   'newResponse',
 ]);
 
-const RENDERIZADORES_DE_ERRO: ReadonlySet<string> = new Set(['renderizarErro', 'paginaDeErro']);
+const RENDERIZADORES_DE_ERRO: ReadonlySet<string> = new Set([
+  'renderizarErro',
+  'paginaDeErro',
+  'renderError',
+  'errorPage',
+]);
 
 const POSICAO_DO_STATUS_NA_RESPOSTA = 1;
 
@@ -402,6 +409,17 @@ const PALAVRAS_VAZIAS: ReadonlySet<string> = new Set([
   'e',
   'o',
   'a',
+  'of',
+  'the',
+  'in',
+  'on',
+  'to',
+  'for',
+  'and',
+  'an',
+  'by',
+  'with',
+  'from',
 ]);
 
 const SEPARADOR_DE_CAIXA = /([a-z0-9])([A-Z])/g;
@@ -421,10 +439,10 @@ const palavrasDoCaminho = (caminho: string): string[] =>
     .filter((palavra) => palavra !== '' && !PALAVRAS_VAZIAS.has(palavra))
     .map(singular);
 
-const PALAVRA_DE_LIMITE = 'limite';
+const PALAVRAS_DE_LIMITE: ReadonlySet<string> = new Set(['limite', 'limit']);
 
 const ehNomeDeLimite = (caminho: string): boolean =>
-  palavrasDoCaminho(caminho).includes(PALAVRA_DE_LIMITE);
+  palavrasDoCaminho(caminho).some((palavra) => PALAVRAS_DE_LIMITE.has(palavra));
 
 const contemTodas = (conjunto: ReadonlySet<string>, palavras: readonly string[]): boolean =>
   palavras.length > 0 && palavras.every((palavra) => conjunto.has(palavra));
@@ -470,6 +488,12 @@ const NEGACOES: ReadonlySet<string> = new Set([
   'nenhuma',
   'jamais',
   'tampouco',
+  'not',
+  'never',
+  'without',
+  'none',
+  'neither',
+  'nor',
 ]);
 
 const FIM_DE_ORACAO = /[,;:()\n—]/;

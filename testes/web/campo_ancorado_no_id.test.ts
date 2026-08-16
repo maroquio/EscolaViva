@@ -22,10 +22,15 @@
 import { describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { CAMPOS } from '../../src/web/constantes';
+import { firstExistingPath } from '../apoio/paths';
 
 const RAIZ_DO_PROJETO = join(import.meta.dir, '..', '..');
 
-const TEMPLATE = 'src/web/templates/secretaria/aluno_novo.eta';
+const TEMPLATE = () =>
+  firstExistingPath(
+    'src/web/templates/secretaria/aluno_novo.eta',
+    'src/web/templates/registrar/student_new.eta',
+  );
 
 const TELA_CONGELADA = join(import.meta.dir, 'golden', 'secretaria-aluno-novo.txt');
 
@@ -35,7 +40,8 @@ const ANCORA = /\b(id|for)\s*=\s*"([^"]*)"/g;
 
 const BLOCO_DO_ETA = /<%[\s\S]*?%>/g;
 
-const fonteDoTemplate = (): Promise<string> => Bun.file(join(RAIZ_DO_PROJETO, TEMPLATE)).text();
+const fonteDoTemplate = async (): Promise<string> =>
+  Bun.file(join(RAIZ_DO_PROJETO, await TEMPLATE())).text();
 
 type Ancora = { readonly atributo: string; readonly valor: string };
 

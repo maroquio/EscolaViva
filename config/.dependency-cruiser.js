@@ -10,16 +10,28 @@
  *
  * @type {import('dependency-cruiser').IConfiguration}
  */
+/*
+ * Durante a conversão do repositório para inglês, cada pasta de módulo existe sob dois nomes
+ * em momentos diferentes. As regras casam caminho por regex: se a alternância só conhecesse
+ * um dos nomes, renomear a pasta desligaria a regra em silêncio — o depcruise continuaria
+ * imprimindo "no dependency violations found" por não enxergar mais nada. Por isso as duas
+ * grafias convivem aqui até a fase de contração, e o checklist planta violação nos quatro
+ * módulos para provar que cada alternativa ainda tem dente.
+ */
+const MODULOS = '(?:identidade|identity|academico|academics|avaliacao|assessment|comunicacao|communication)';
+
+const DOMINIO = '(?:dominio|domain)';
+
 const configuracao = {
   forbidden: [
     {
-      name: 'sem-atalho-entre-modulos',
+      name: 'no-cross-module-shortcut',
       comment:
         'Um módulo só enxerga outro pelo seu `index.ts`. Caminho interno (dominio/, aplicacao/, ' +
         'infra/) é privado. Protege a resposta para "o que mais mexe nisso?": quando `cobranca/` ' +
         'for extraído no Estágio 14, a lista de dependentes é exatamente quem importa o index — ' +
         'sem essa regra a extração vira reescrita. `from.pathNot` tira `src/shared/` do alcance ' +
-        'desta regra porque `shared-nao-conhece-dominio` já proíbe qualquer seta saindo dali, e ' +
+        'desta regra porque `shared-knows-no-domain` já proíbe qualquer seta saindo dali, e ' +
         'relatar a mesma violação duas vezes só confunde quem vai corrigir.',
       severity: 'error',
       from: {
@@ -29,15 +41,12 @@ const configuracao = {
         pathNot: '^src/shared/',
       },
       to: {
-        path: '^src/(?:identidade|academico|avaliacao|comunicacao)/',
-        pathNot: [
-          '^src/$1/',
-          '^src/(?:identidade|academico|avaliacao|comunicacao)/index\\.ts$',
-        ],
+        path: `^src/${MODULOS}/`,
+        pathNot: ['^src/$1/', `^src/${MODULOS}/index\\.ts$`],
       },
     },
     {
-      name: 'dominio-puro',
+      name: 'pure-domain',
       comment:
         'O domínio não sabe que existe banco, HTTP, log, agendador ou biblioteca de terceiro. ' +
         'Só pode alcançar `src/shared/ports/`, `src/shared/resultado.ts` e `src/shared/documento/` — ' +
@@ -46,11 +55,11 @@ const configuracao = {
         'compartilhá-la. É o que torna o teste de regra pedagógica um teste puro, e o que destrava ' +
         'I3: quando o `Mailer` entrar no Estágio 04, `ports/` será o único lugar onde ele cabe.',
       severity: 'error',
-      from: { path: '^src/[^/]+/dominio/' },
+      from: { path: `^src/[^/]+/${DOMINIO}/` },
       to: { path: ['^src/shared/(?:db|http|log|jobs)/', 'node_modules'] },
     },
     {
-      name: 'shared-nao-conhece-dominio',
+      name: 'shared-knows-no-domain',
       comment:
         'A dependência é sempre de fora para dentro: `src/shared/` é infraestrutura sem regra de ' +
         'negócio e não pode importar identidade, academico, avaliacao nem comunicacao. Por isso ' +
@@ -58,7 +67,7 @@ const configuracao = {
         'Sem essa regra, extrair um módulo no Estágio 14 arrastaria o `shared/` inteiro junto.',
       severity: 'error',
       from: { path: '^src/shared/' },
-      to: { path: '^src/(?:identidade|academico|avaliacao|comunicacao)/' },
+      to: { path: `^src/${MODULOS}/` },
     },
   ],
   options: {

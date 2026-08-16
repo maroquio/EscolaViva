@@ -471,14 +471,19 @@ export function telasDoSistema(ids: CenarioGolden['ids']): readonly Tela[] {
 /* --- Normalização ----------------------------------------------------------- */
 
 const UUID = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g;
-const CHAVE_DE_IDEMPOTENCIA = /(name="_chave" value=")[^"]*(")/g;
+/**
+ * As duas grafias do campo convivem enquanto o repositório é convertido para inglês. Se a
+ * regex ficasse só com a antiga, o campo renomeado deixaria de ser normalizado e os 57
+ * fixtures que o carregam passariam a divergir a cada execução, com um UUID novo por vez.
+ */
+const CHAVE_DE_IDEMPOTENCIA = /(name="_(?:chave|key)" value=")[^"]*(")/g;
 /**
  * O nome publicado do CSS (I10) e o nome cru que `asset()` devolve quando ainda não houve
  * `bun run build:assets` viram o mesmo marcador. São a mesma linha da tela; congelar o hash faria
  * 71 arquivos mudarem a cada ajuste de folha de estilo, e um clone novo, sem manifesto, reprovaria
  * um refactor que não encostou em CSS nenhum.
  */
-const ASSET_VERSIONADO = /\/publico\/app\.(?:[0-9a-f]{6,}\.)?css/g;
+const ASSET_VERSIONADO = /\/(?:publico|public)\/app\.(?:[0-9a-f]{6,}\.)?css/g;
 /** `Tue Mar 10 2026 09:00:00 GMT-0300 (Brasilia Standard Time)` — o `toString` de um `Date`. */
 const DATA_DO_JAVASCRIPT =
   /[A-Z][a-z]{2} [A-Z][a-z]{2} \d{2} \d{4} \d{2}:\d{2}:\d{2} GMT[+-]\d{4}(?: \([^)]*\))?/g;

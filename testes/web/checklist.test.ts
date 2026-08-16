@@ -68,21 +68,21 @@ describe('`bun run check` falha se um módulo importar arquivo interno de outro'
 
   const VIOLACOES: readonly Violacao[] = MODULOS.flatMap((modulo) => [
     {
-      regra: 'sem-atalho-entre-modulos',
+      regra: 'no-cross-module-shortcut',
       caminho: `src/${modulo}/_violacao_de_teste.ts`,
       conteudo:
         `import type * as Interno from '../${ALVO_INTERNO[modulo]}';\n` +
         'export type Atalho = keyof typeof Interno;\n',
     },
     {
-      regra: 'dominio-puro',
+      regra: 'pure-domain',
       caminho: `src/${modulo}/dominio/_violacao_de_teste.ts`,
       conteudo:
         "import { leitura } from '../../shared/db';\n" +
         'export const conexao = (): unknown => leitura();\n',
     },
     {
-      regra: 'shared-nao-conhece-dominio',
+      regra: 'shared-knows-no-domain',
       caminho: `src/shared/_violacao_de_teste_${modulo}.ts`,
       conteudo:
         `import { ${modulo} } from '../${modulo}';\n` +

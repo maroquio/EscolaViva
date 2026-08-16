@@ -24,7 +24,7 @@ REGRAS DO REFACTOR (decididas com o usuário — não reinterprete):
    src/avaliacao/constantes.ts, src/comunicacao/constantes.ts,
    src/web/constantes.ts, src/shared/constantes.ts.
    NÃO existe arquivo global único. Um módulo só enxerga o outro pelo index.ts
-   (regra 'sem-atalho-entre-modulos' do .dependency-cruiser.js) — o que for
+   (regra 'no-cross-module-shortcut' do .dependency-cruiser.js) — o que for
    consumido de fora precisa ser reexportado pelo index.ts do módulo dono.
 
 2. MERGE POR CONCEITO, NUNCA POR VALOR. Dois literais só viram a mesma constante
@@ -95,11 +95,11 @@ REGRAS DO REFACTOR (decididas com o usuário — não reinterprete):
 
 const ARQUITETURA = `
 RESTRIÇÕES DE ARQUITETURA (verificadas por 'bun run check'):
-- 'sem-atalho-entre-modulos': um módulo só importa outro pelo index.ts dele.
-- 'dominio-puro': src/*/dominio/ não alcança shared/db, shared/http, shared/log,
+- 'no-cross-module-shortcut': um módulo só importa outro pelo index.ts dele.
+- 'pure-domain': src/*/dominio/ não alcança shared/db, shared/http, shared/log,
   shared/jobs nem node_modules. Pode alcançar shared/ports, shared/resultado e
   shared/documento.
-- 'shared-nao-conhece-dominio': src/shared/ não importa identidade, academico,
+- 'shared-knows-no-domain': src/shared/ não importa identidade, academico,
   avaliacao nem comunicacao. Logo src/shared/constantes.ts só pode conter valores
   de infraestrutura (tempo, prazos, limites técnicos) — nunca regra de negócio.
 `;

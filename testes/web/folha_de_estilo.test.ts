@@ -1,7 +1,13 @@
 import { beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
+import { firstExistingPath } from '../apoio/paths';
 
-const CAMINHO_DA_FOLHA = join(import.meta.dir, '..', '..', 'src', 'web', 'publico', 'app.css');
+const CAMINHO_DA_FOLHA = join(
+  import.meta.dir,
+  '..',
+  '..',
+  await firstExistingPath('src/web/publico/app.css', 'src/web/public/app.css'),
+);
 
 const REGRA = /([^{}]+)\{([^{}]*)\}/g;
 

@@ -36,7 +36,7 @@ const REGRAS = `
 REGRAS (decididas com o usuário — não reinterprete):
 
 1. FONTE ÚNICA POR MÓDULO. Um módulo só enxerga outro pelo index.ts dele
-   (regra 'sem-atalho-entre-modulos'). O que for consumido de fora precisa estar
+   (regra 'no-cross-module-shortcut'). O que for consumido de fora precisa estar
    reexportado pelo index.ts do módulo dono.
 
 2. MERGE POR CONCEITO, NUNCA POR VALOR. Dois literais só viram a mesma constante
@@ -227,7 +227,7 @@ em src/shared/constantes.ts:
 Você PODE editar src/shared/constantes.ts para os itens (c) e (d) — é o único agente
 desta fase autorizado a isso. Não toque em nenhum outro *constantes.ts.
 
-Respeite as fronteiras: 'shared-nao-conhece-dominio' proíbe src/shared/ de importar
+Respeite as fronteiras: 'shared-knows-no-domain' proíbe src/shared/ de importar
 identidade, academico, avaliacao ou comunicacao.`,
   },
   {

@@ -33,7 +33,7 @@ const REGRAS = `
 REGRAS:
 
 1. FONTE ÚNICA POR MÓDULO. Um módulo só enxerga outro pelo index.ts dele
-   (regra 'sem-atalho-entre-modulos' do dependency-cruiser). O que atravessa a
+   (regra 'no-cross-module-shortcut' do dependency-cruiser). O que atravessa a
    fronteira precisa estar reexportado pelo index.ts do dono.
 
 2. MERGE POR CONCEITO, NUNCA POR VALOR. Dois literais só viram a mesma constante quando

@@ -170,10 +170,10 @@ avaliacao ────┼──▶ academico ──▶ identidade
 [`config/.dependency-cruiser.js`](config/.dependency-cruiser.js) declara três regras, todas com
 severidade de erro:
 
-1. `sem-atalho-entre-modulos` — um módulo só enxerga outro pelo `index.ts`.
-2. `dominio-puro` — `*/dominio/` não alcança `shared/db`, `shared/http`, `shared/log`,
+1. `no-cross-module-shortcut` — um módulo só enxerga outro pelo `index.ts`.
+2. `pure-domain` — `*/dominio/` não alcança `shared/db`, `shared/http`, `shared/log`,
    `shared/jobs` nem `node_modules`. O domínio não sabe que existe banco, HTTP ou fornecedor.
-3. `shared-nao-conhece-dominio` — `shared/` não importa nenhum módulo de domínio. A dependência é
+3. `shared-knows-no-domain` — `shared/` não importa nenhum módulo de domínio. A dependência é
    sempre de fora para dentro.
 
 O motivo é o Estágio 14: quando `cobranca/` for extraído, a pergunta "o que mais mexe nisso?" já

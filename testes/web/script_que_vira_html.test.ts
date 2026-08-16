@@ -3,9 +3,13 @@ import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { RAIZ_DO_PROJETO } from './apoio';
+import { firstExistingPath } from '../apoio/paths';
 import { PASTA_GOLDEN } from './golden';
 
-const CAMINHO_DO_PARCIAL = 'src/web/templates/parciais/_script_avisos.eta';
+const CAMINHO_DO_PARCIAL = await firstExistingPath(
+  'src/web/templates/parciais/_script_avisos.eta',
+  'src/web/templates/partials/_notices_script.eta',
+);
 
 const CAMINHO_DO_VERIFICADOR = 'scripts/magic-values.ts';
 
