@@ -17,7 +17,7 @@
  */
 
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { generateCpf } from '../../src/shared/document';
+import { formatCpf, generateCpf } from '../../src/shared/document';
 import { clearDatabase } from '../support/database';
 import {
   DEFAULT_PASSWORD,
@@ -188,6 +188,9 @@ describe('the users of the network', () => {
     expect(page).toContain('Usuário criado. A senha provisória está logo abaixo.');
     expect(page).toContain('Senha provisória de Nova Secretária');
     expect(page).toContain('<code class="code">');
+    // ADR 0004: the CPF is what signs in. The panel used to point at the e-mail, which the
+    // login screen stopped accepting — it told whoever received the password the wrong door.
+    expect(page).toContain(`entre com o CPF\n    <strong>${formatCpf(generateCpf(424_242))}</strong>`);
     // Once read, the password must not stay tucked away in the browser for the next visit.
     expect(response.headers.get('Set-Cookie') ?? '').toContain('ev_invite=;');
   });

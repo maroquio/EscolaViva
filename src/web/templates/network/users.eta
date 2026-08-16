@@ -34,8 +34,8 @@ const STATUS_CLASS = { yes: 'tag tag--active', no: 'tag' };
   <p>
     Anote agora: esta senha aparece uma única vez e não pode ser recuperada depois que você sair
     desta página. Entregue-a pessoalmente ou por um canal que vocês já usem — o envio automático
-    por e-mail entra no Estágio 04. Peça que a pessoa entre com
-    <strong><%= invited.email %></strong> e troque a senha no primeiro acesso.
+    por e-mail entra no Estágio 04. Peça que a pessoa entre com o CPF
+    <strong><%= it.formatCpf(invited.cpf ?? '') %></strong> e troque a senha no primeiro acesso.
   </p>
 </div>
 <% } %>
