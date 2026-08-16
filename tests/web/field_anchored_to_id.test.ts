@@ -24,15 +24,11 @@
 import { describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { FIELDS } from '../../src/web/constants';
-import { firstExistingPath } from '../support/paths';
+import { existingPath } from '../support/paths';
 
 const PROJECT_ROOT = join(import.meta.dir, '..', '..');
 
-const TEMPLATE = () =>
-  firstExistingPath(
-    'src/web/templates/secretaria/aluno_novo.eta',
-    'src/web/templates/registrar/student_new.eta',
-  );
+const TEMPLATE = () => existingPath('src/web/templates/registrar/student_new.eta');
 
 const FROZEN_SCREEN = join(import.meta.dir, 'golden', 'secretaria-aluno-novo.txt');
 

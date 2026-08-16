@@ -227,7 +227,7 @@ guardianRoutes.post(ROUTES.guardian.announcementRead.pattern, async (c) => {
     guardianId,
   });
   if (!result.ok) {
-    const message = result.erros[0]?.mensagem ?? NOTICES.readNotRecorded;
+    const message = result.errors[0]?.message ?? NOTICES.readNotRecorded;
     return c.redirect(
       withNotice(ROUTES.guardian.announcement({ announcementId }), {
         [PARAMS.error]: message,

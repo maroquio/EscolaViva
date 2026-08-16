@@ -55,7 +55,7 @@ accountRoutes.post(ROUTES.account.password.pattern, async (c) => {
     currentPassword: password(body, FIELDS.password.currentPassword),
     newPassword,
   });
-  if (!result.ok) return passwordScreen(c, result.erros);
+  if (!result.ok) return passwordScreen(c, result.errors);
 
   logger.info({ user_id: user.id }, LOG_EVENTS.passwordChanged);
   return c.redirect(

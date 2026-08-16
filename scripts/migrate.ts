@@ -61,9 +61,9 @@ async function appliedVersions(sql: SQL): Promise<Map<string, Date>> {
   if (control[0]?.present !== true) {
     return new Map();
   }
-  const rows: { versao: string; aplicada_em: Date }[] =
-    await sql`SELECT versao, aplicada_em FROM schema_migrations ORDER BY versao`;
-  return new Map(rows.map((row) => [row.versao, row.aplicada_em]));
+  const rows: { version: string; applied_at: Date }[] =
+    await sql`SELECT versao AS version, aplicada_em AS applied_at FROM schema_migrations ORDER BY versao`;
+  return new Map(rows.map((row) => [row.version, row.applied_at]));
 }
 
 async function apply(sql: SQL, version: string): Promise<void> {

@@ -21,8 +21,8 @@ const schema = z.object({
 });
 
 const INVALID_CREDENTIALS = {
-  codigo: CODES.invalidCredentials,
-  mensagem: MESSAGES.login.invalidCredentials,
+  code: CODES.invalidCredentials,
+  message: MESSAGES.login.invalidCredentials,
 };
 
 async function createSession(networkId: string, userId: string, ip: string): Promise<Session> {

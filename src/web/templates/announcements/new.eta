@@ -172,27 +172,27 @@ const { errorFor, describedBy, errorId, helpId } = it;
 
 <script>
   (() => {
-    const botao = document.getElementById('select-all');
-    const caixas = Array.from(document.querySelectorAll('input[name="<%= fields.guardians %>"]'));
-    const alcanceSelecionados = document.getElementById('audience-selected');
-    if (botao === null || caixas.length === 0) return;
+    const button = document.getElementById('select-all');
+    const checkboxes = Array.from(document.querySelectorAll('input[name="<%= fields.guardians %>"]'));
+    const selectedAudience = document.getElementById('audience-selected');
+    if (button === null || checkboxes.length === 0) return;
 
-    const todasMarcadas = () => caixas.every((caixa) => caixa.checked);
-    const atualizarRotulo = () => {
-      botao.textContent = todasMarcadas() ? 'Desmarcar todos' : 'Selecionar todos';
+    const allChecked = () => checkboxes.every((checkbox) => checkbox.checked);
+    const updateLabel = () => {
+      button.textContent = allChecked() ? 'Desmarcar todos' : 'Selecionar todos';
     };
 
-    botao.addEventListener('click', () => {
-      const marcar = !todasMarcadas();
-      caixas.forEach((caixa) => { caixa.checked = marcar; });
-      if (marcar && alcanceSelecionados !== null) alcanceSelecionados.checked = true;
-      atualizarRotulo();
+    button.addEventListener('click', () => {
+      const shouldCheck = !allChecked();
+      checkboxes.forEach((checkbox) => { checkbox.checked = shouldCheck; });
+      if (shouldCheck && selectedAudience !== null) selectedAudience.checked = true;
+      updateLabel();
     });
 
-    caixas.forEach((caixa) => caixa.addEventListener('change', atualizarRotulo));
+    checkboxes.forEach((checkbox) => checkbox.addEventListener('change', updateLabel));
 
-    atualizarRotulo();
-    botao.hidden = false;
+    updateLabel();
+    button.hidden = false;
   })();
 </script>
 <% } %>

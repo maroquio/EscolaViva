@@ -33,7 +33,7 @@ import {
 } from './golden';
 
 /** Switched on by `scripts/golden.ts --regravar`: instead of comparing, every file is rewritten. */
-const REWRITING = Bun.env['GOLDEN_REGRAVAR'] === '1';
+const REWRITING = Bun.env['GOLDEN_REWRITE'] === '1';
 
 const NO_FILE =
   '(nenhum arquivo golden gravado — rode `bun run golden --regravar` para criar a linha de base)';

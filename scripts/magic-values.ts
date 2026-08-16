@@ -12,17 +12,15 @@ const TARGETS: readonly string[] = [
   'scripts/seed-volume.ts',
 ];
 
-const CONSTANTS_FILES = /(?:^|\/)(?:constantes|constants)\.ts$/;
+const CONSTANTS_FILES = /(?:^|\/)constants\.ts$/;
 
-const INDEXED_FILES =
-  /(?:^|\/)(?:constantes|constants)\.ts$|(?:^|\/)web\/(?:rotas|routes)\/(?:mapa|routeMap)\.ts$/;
+const INDEXED_FILES = /(?:^|\/)constants\.ts$|(?:^|\/)web\/routes\/routeMap\.ts$/;
 
 const THIS_FILE = 'scripts/magic-values.ts';
 
 const TEMPLATE_EXTENSION = '.eta';
 
 const TEMPLATES_WHOSE_SCRIPT_BECOMES_HTML: ReadonlySet<string> = new Set([
-  'src/web/templates/parciais/_script_avisos.eta',
   'src/web/templates/partials/_notices_script.eta',
 ]);
 
@@ -268,12 +266,7 @@ const RESPONSE_BUILDERS: ReadonlySet<string> = new Set([
   'newResponse',
 ]);
 
-const ERROR_RENDERERS: ReadonlySet<string> = new Set([
-  'renderizarErro',
-  'paginaDeErro',
-  'renderError',
-  'errorPage',
-]);
+const ERROR_RENDERERS: ReadonlySet<string> = new Set(['renderError', 'errorPage']);
 
 const STATUS_POSITION_IN_RESPONSE = 1;
 
@@ -404,33 +397,19 @@ const isSentence = (node: ts.Node): boolean =>
   TWO_WORDS_IN_A_ROW.test(node.text);
 
 const STOP_WORDS: ReadonlySet<string> = new Set([
-  'de',
-  'do',
-  'da',
-  'dos',
-  'das',
-  'em',
-  'no',
-  'na',
-  'ao',
-  'aos',
-  'com',
-  'por',
-  'para',
-  'e',
-  'o',
   'a',
-  'of',
-  'the',
-  'in',
-  'on',
-  'to',
-  'for',
-  'and',
   'an',
+  'and',
   'by',
-  'with',
+  'for',
   'from',
+  'in',
+  'no',
+  'of',
+  'on',
+  'the',
+  'to',
+  'with',
 ]);
 
 const CASE_BOUNDARY = /([a-z0-9])([A-Z])/g;
@@ -450,7 +429,7 @@ const pathWords = (path: string): string[] =>
     .filter((word) => word !== '' && !STOP_WORDS.has(word))
     .map(singular);
 
-const LIMIT_WORDS: ReadonlySet<string> = new Set(['limite', 'limit']);
+const LIMIT_WORDS: ReadonlySet<string> = new Set(['limit']);
 
 const isLimitName = (path: string): boolean =>
   pathWords(path).some((word) => LIMIT_WORDS.has(word));
@@ -646,7 +625,7 @@ type Context = { readonly declaration: boolean; readonly path: string };
 
 const TREE_ROOT: Context = { declaration: false, path: '' };
 
-const URL_REASON = 'endereço escrito à mão — use `ROTAS` (web/constants.ts)';
+const URL_REASON = 'endereço escrito à mão — use `ROUTES` (web/constants.ts)';
 
 function analyzeTypeScript(file: string, source: string): Finding[] {
   const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.ESNext, true);
@@ -853,7 +832,7 @@ const isUrlInAttribute = (text: string): boolean =>
   text === SLASH || ROUTE_WITH_SEGMENT.test(text);
 
 const TEMPLATE_URL_REASON =
-  'endereço escrito à mão — use `it.rotas` (ROTAS, em web/constants.ts)';
+  'endereço escrito à mão — use `it.routes` (ROUTES, em web/constants.ts)';
 
 type Position = { readonly line: number; readonly column: number };
 
@@ -1499,7 +1478,7 @@ for (const [, list] of ownerlessRepeats) {
       line: occurrence.line,
       column: occurrence.column,
       snippet: occurrence.snippet,
-      reason: `repetido ${list.length}× e sem dono — nenhum \`constantes.ts\` declara este texto`,
+      reason: `repetido ${list.length}× e sem dono — nenhum \`constants.ts\` declara este texto`,
     });
   }
 }
@@ -1544,7 +1523,7 @@ if (ownerlessRepeats.length > 0) {
 
 process.stdout.write(
   `\n✖ ${findings.length} literal(is) solto(s) em ${byFile.size} arquivo(s) — ${coverage}.\n` +
-    'Mova cada um para o `constantes.ts` do módulo dono, ou justifique com\n' +
+    'Mova cada um para o `constants.ts` do módulo dono, ou justifique com\n' +
     '`// magic-values: permitido — <motivo>` na linha do literal.\n',
 );
 process.exit(1);

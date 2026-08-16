@@ -12,7 +12,7 @@ const NAME_CHARACTERS = ACADEMIC_LIMITS.student.name;
 const numberedName = (position: number): string => `Pessoa ${String(position).padStart(3, '0')}`;
 
 const fieldsWithError = <T>(result: Result<T>): string[] =>
-  result.ok ? [] : result.erros.map((error) => error.campo ?? '');
+  result.ok ? [] : result.errors.map((error) => error.field ?? '');
 
 describe('LIMITS.student.searchRows counts ROWS handed back', () => {
   test('a search with no range gives back at most that many rows', async () => {

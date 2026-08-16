@@ -167,7 +167,7 @@ const initialValues = (schoolId: string): AnnouncementValues => ({
 
 const NO_SELECTION: ApplicationError = {
   ...FORM_ERRORS.noSelection,
-  mensagem: NO_SELECTION_ON_SEND,
+  message: NO_SELECTION_ON_SEND,
 };
 
 const checkRecipients = (
@@ -210,7 +210,7 @@ announcementRoutes.post(ROUTES.announcements.new.pattern, async (c) => {
         ? []
         : values.selected.map((guardianId) => ({ guardianId })),
   });
-  if (!result.ok) return sendPage(c, context, values, result.erros);
+  if (!result.ok) return sendPage(c, context, values, result.errors);
 
   const target = new URLSearchParams({
     [PARAMS.schoolId]: context.school.id,

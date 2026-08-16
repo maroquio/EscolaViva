@@ -89,7 +89,7 @@ const INVALID_GRADE = GRADE_OUT_OF_RANGE(
 
 const INVALID_GRADES_SUMMARY: ApplicationError = {
   ...FORM_ERRORS.invalidGrade,
-  mensagem: GRADE_OUT_OF_RANGE_SUMMARY(
+  message: GRADE_OUT_OF_RANGE_SUMMARY(
     ASSESSMENT_LIMITS.grade.minimum,
     ASSESSMENT_LIMITS.grade.maximum,
   ),
@@ -378,11 +378,11 @@ teacherRoutes.post(ROUTES.teacher.grades.pattern, async (c) => {
     postedBy: currentUser(c).id,
     grades,
   });
-  if (!result.ok) return await reject(result.erros);
+  if (!result.ok) return await reject(result.errors);
 
   const params = {
     [PARAMS.term]: String(term),
-    [PARAMS.ok]: gradesMessage(result.valor),
+    [PARAMS.ok]: gradesMessage(result.value),
   };
   return c.redirect(
     withParams(ROUTES.teacher.grades({ classGroupSubjectId: assignment.id }), params),
@@ -430,7 +430,7 @@ teacherRoutes.post(ROUTES.teacher.rollCall.pattern, async (c) => {
   if (!result.ok) {
     const screen = await rollCallScreen(c, classGroup, date, {
       reported,
-      problems: result.erros,
+      problems: result.errors,
     });
     return render(c, TEMPLATES.teacher.rollCall, screen);
   }
@@ -478,7 +478,7 @@ teacherRoutes.post(ROUTES.teacher.closing.pattern, async (c) => {
     return render(
       c,
       TEMPLATES.teacher.closing,
-      closingScreen(classGroup, states, result.erros, term),
+      closingScreen(classGroup, states, result.errors, term),
     );
   }
 

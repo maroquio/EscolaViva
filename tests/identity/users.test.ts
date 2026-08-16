@@ -23,14 +23,14 @@ import {
 
 function valueOfResult<T>(result: Result<T>): T {
   if (!result.ok) {
-    throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(result.erros)}`);
+    throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(result.errors)}`);
   }
-  return result.valor;
+  return result.value;
 }
 
 function errorsOf(result: Result<unknown>): ApplicationError[] {
   if (result.ok) throw new Error('esperava recusa da aplicação, veio sucesso');
-  return result.erros;
+  return result.errors;
 }
 
 beforeEach(clearDatabase);
@@ -129,9 +129,9 @@ describe('inviteUser', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'email',
-        codigo: 'email_em_uso',
-        mensagem: 'já existe usuário com este e-mail na rede',
+        field: 'email',
+        code: 'email_em_uso',
+        message: 'já existe usuário com este e-mail na rede',
       },
     ]);
     expect(await identity.listUsers(network.id)).toHaveLength(1);
@@ -150,7 +150,7 @@ describe('inviteUser', () => {
       roleAssignments: [{ schoolId: school.id, role: 'teacher' }],
     });
 
-    expect(errorsOf(result)[0]?.codigo).toBe('email_em_uso');
+    expect(errorsOf(result)[0]?.code).toBe('email_em_uso');
   });
 
   test('accepts the same e-mail in a different network: uniqueness is per network', async () => {
@@ -188,9 +188,9 @@ describe('inviteUser', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'guardianId',
-        codigo: 'responsavel_obrigatorio',
-        mensagem:
+        field: 'guardianId',
+        code: 'responsavel_obrigatorio',
+        message:
           'quem entra como responsável precisa estar ligado a um cadastro de responsável',
       },
     ]);
@@ -235,9 +235,9 @@ describe('inviteUser', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'roleAssignments',
-        codigo: 'unidade_de_outra_rede',
-        mensagem: 'unidade não pertence a esta rede',
+        field: 'roleAssignments',
+        code: 'unidade_de_outra_rede',
+        message: 'unidade não pertence a esta rede',
       },
     ]);
     expect(await identity.listUsers(ours.id)).toHaveLength(0);
@@ -254,7 +254,7 @@ describe('inviteUser', () => {
       roleAssignments: [],
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('roleAssignments');
+    expect(errorsOf(result)[0]?.field).toBe('roleAssignments');
   });
 
   test('an invalid e-mail is refused before the database is touched', async () => {
@@ -269,7 +269,7 @@ describe('inviteUser', () => {
       roleAssignments: [{ schoolId: school.id, role: 'teacher' }],
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('email');
+    expect(errorsOf(result)[0]?.field).toBe('email');
     expect(await identity.listUsers(network.id)).toHaveLength(0);
   });
 
@@ -308,7 +308,7 @@ describe('inviteUser', () => {
     });
 
     expect(invitation.ok).toBe(false);
-    if (!invitation.ok) expect(invitation.erros[0]?.campo).toBe('cpf');
+    if (!invitation.ok) expect(invitation.errors[0]?.field).toBe('cpf');
   });
 
   test('refuses a CPF already used by another user of the same network', async () => {
@@ -325,7 +325,7 @@ describe('inviteUser', () => {
     });
 
     expect(invitation.ok).toBe(false);
-    if (!invitation.ok) expect(invitation.erros[0]?.campo).toBe('cpf');
+    if (!invitation.ok) expect(invitation.errors[0]?.field).toBe('cpf');
   });
 
   test('the same CPF in another network is accepted — uniqueness is per tenant', async () => {
@@ -363,9 +363,9 @@ describe('inviteUser', () => {
 
     expect(invitation.ok).toBe(false);
     if (!invitation.ok) {
-      expect(invitation.erros[0]?.campo).toBe('cpf');
-      expect(invitation.erros[0]?.mensagem).toContain(guardian.name);
-      expect(invitation.erros[0]?.mensagem).not.toContain(guardian.cpf);
+      expect(invitation.errors[0]?.field).toBe('cpf');
+      expect(invitation.errors[0]?.message).toContain(guardian.name);
+      expect(invitation.errors[0]?.message).not.toContain(guardian.cpf);
     }
   });
 
@@ -406,7 +406,7 @@ describe('inviteUser', () => {
     // test would be scope nobody asked for. `checklist.test.ts` already states "the row landed in
     // the database" in exactly this way.
     const rows = await testSql()<{ cpf: string }[]>`
-      SELECT cpf FROM app_user WHERE id = ${invitation.valor.userId}`;
+      SELECT cpf FROM app_user WHERE id = ${invitation.value.userId}`;
 
     expect(rows[0]?.cpf).toBe('52998224725');
   });
@@ -453,9 +453,9 @@ describe('the schools of the network', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'name',
-        codigo: 'nome_em_uso',
-        mensagem: 'já existe unidade com este nome na rede',
+        field: 'name',
+        code: 'nome_em_uso',
+        message: 'já existe unidade com este nome na rede',
       },
     ]);
     expect(await identity.listSchools(network.id)).toHaveLength(1);
@@ -476,7 +476,7 @@ describe('the schools of the network', () => {
 
     const result = await identity.createSchool({ networkId: network.id, name: '   ' });
 
-    expect(errorsOf(result)[0]?.campo).toBe('name');
+    expect(errorsOf(result)[0]?.field).toBe('name');
   });
 
   test('schoolById gives back the network\'s school, and null for an unknown id', async () => {

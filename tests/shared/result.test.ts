@@ -26,7 +26,7 @@ describe('success', () => {
 
     const result = success(value);
 
-    expect(result).toEqual({ ok: true, valor: value });
+    expect(result).toEqual({ ok: true, value: value });
   });
 
   test('takes void as the value, for the use case that gives nothing back', () => {
@@ -34,18 +34,18 @@ describe('success', () => {
 
     const result = success(nothing);
 
-    expect(result).toEqual({ ok: true, valor: undefined });
+    expect(result).toEqual({ ok: true, value: undefined });
   });
 });
 
 describe('failure', () => {
   test('marks ok as false and carries the errors in the order received', () => {
-    const first: ApplicationError = { codigo: 'nota_invalida', mensagem: 'nota fora de 0 a 10' };
-    const second: ApplicationError = { codigo: 'bimestre_fechado', mensagem: 'bimestre fechado' };
+    const first: ApplicationError = { code: 'nota_invalida', message: 'nota fora de 0 a 10' };
+    const second: ApplicationError = { code: 'bimestre_fechado', message: 'bimestre fechado' };
 
     const result = failure(first, second);
 
-    expect(result).toEqual({ ok: false, erros: [first, second] });
+    expect(result).toEqual({ ok: false, errors: [first, second] });
   });
 
   test('with no argument at all it gives back an empty list of errors', () => {
@@ -53,7 +53,7 @@ describe('failure', () => {
 
     const result = failure(...withoutErrors);
 
-    expect(result).toEqual({ ok: false, erros: [] });
+    expect(result).toEqual({ ok: false, errors: [] });
   });
 });
 
@@ -65,7 +65,7 @@ describe('fieldFailure', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [{ campo: 'email', codigo: 'email_em_uso', mensagem: 'já existe usuário com este e-mail' }],
+      errors: [{ field: 'email', code: 'email_em_uso', message: 'já existe usuário com este e-mail' }],
     });
   });
 });
@@ -76,7 +76,7 @@ describe('schemaErrors', () => {
 
     const errors = schemaErrors(issuesOf(schema, { nome: 'Jo' }));
 
-    expect(errors).toEqual([{ codigo: 'too_small', mensagem: 'nome curto demais', campo: 'nome' }]);
+    expect(errors).toEqual([{ code: 'too_small', message: 'nome curto demais', field: 'nome' }]);
   });
 
   test('preserves the full path of a nested field, array index included', () => {
@@ -86,7 +86,7 @@ describe('schemaErrors', () => {
 
     const errors = schemaErrors(issuesOf(schema, { notas: [{ valor: 8 }, { valor: 11 }] }));
 
-    expect(errors).toEqual([{ codigo: 'too_big', mensagem: 'nota acima de dez', campo: 'notas.1.valor' }]);
+    expect(errors).toEqual([{ code: 'too_big', message: 'nota acima de dez', field: 'notas.1.valor' }]);
   });
 
   test('converts every issue at once, not just the first', () => {
@@ -97,18 +97,18 @@ describe('schemaErrors', () => {
 
     const errors = schemaErrors(issuesOf(schema, { nome: 'Jo', ano: 2026.5 }));
 
-    expect(errors.map((error) => error.campo)).toEqual(['nome', 'ano']);
+    expect(errors.map((error) => error.field)).toEqual(['nome', 'ano']);
   });
 
-  test('omits the `campo` key when the error belongs to the schema root', () => {
+  test('omits the `field` key when the error belongs to the schema root', () => {
     const schema = z
       .object({ dataInicio: z.string(), dataFim: z.string() })
       .refine((value) => value.dataFim > value.dataInicio, 'fim antes do início');
 
     const errors = schemaErrors(issuesOf(schema, { dataInicio: '2026-12-15', dataFim: '2026-02-01' }));
 
-    expect(errors).toEqual([{ codigo: 'custom', mensagem: 'fim antes do início' }]);
-    expect(Object.hasOwn(errors[0] ?? {}, 'campo')).toBe(false);
+    expect(errors).toEqual([{ code: 'custom', message: 'fim antes do início' }]);
+    expect(Object.hasOwn(errors[0] ?? {}, 'field')).toBe(false);
   });
 
   test('an empty list of issues becomes an empty list of errors', () => {

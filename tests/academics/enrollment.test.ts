@@ -22,14 +22,14 @@ const TRANSFER_DATE = `${DEFAULT_YEAR}-06-01`;
 
 function valueOfResult<T>(result: Result<T>): T {
   if (!result.ok) {
-    throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(result.erros)}`);
+    throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(result.errors)}`);
   }
-  return result.valor;
+  return result.value;
 }
 
 function errorsOf(result: Result<unknown>): ApplicationError[] {
   if (result.ok) throw new Error('esperava recusa da aplicação, veio sucesso');
-  return result.erros;
+  return result.errors;
 }
 
 async function studentStatuses(studentId: string): Promise<string[]> {
@@ -105,9 +105,9 @@ describe('enroll', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'studentId',
-        codigo: 'matricula_ativa_duplicada',
-        mensagem: 'Este aluno já tem matrícula ativa neste ano letivo.',
+        field: 'studentId',
+        code: 'matricula_ativa_duplicada',
+        message: 'Este aluno já tem matrícula ativa neste ano letivo.',
       },
     ]);
     expect(await studentStatuses(alreadyEnrolled.id)).toEqual(['active']);
@@ -126,7 +126,7 @@ describe('enroll', () => {
       enrollmentDate: ENROLLMENT_DATE,
     });
 
-    const message = errorsOf(result)[0]?.mensagem ?? '';
+    const message = errorsOf(result)[0]?.message ?? '';
     expect(message).not.toMatch(/duplicate key|23505|constraint|unique index/i);
     expect(message).toMatch(/matrícula ativa/i);
   });
@@ -164,9 +164,9 @@ describe('enroll', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'studentId',
-        codigo: 'aluno_nao_encontrado',
-        mensagem: 'Aluno não encontrado nesta rede.',
+        field: 'studentId',
+        code: 'aluno_nao_encontrado',
+        message: 'Aluno não encontrado nesta rede.',
       },
     ]);
   });
@@ -185,9 +185,9 @@ describe('enroll', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'classGroupId',
-        codigo: 'turma_nao_encontrada',
-        mensagem: 'Turma não encontrada nesta rede.',
+        field: 'classGroupId',
+        code: 'turma_nao_encontrada',
+        message: 'Turma não encontrada nesta rede.',
       },
     ]);
   });
@@ -204,7 +204,7 @@ describe('enroll', () => {
       enrollmentDate: ENROLLMENT_DATE,
     });
 
-    expect(errorsOf(result)[0]?.codigo).toBe('ano_letivo_nao_encontrado');
+    expect(errorsOf(result)[0]?.code).toBe('ano_letivo_nao_encontrado');
   });
 
   test('a class group from another academic year of the same network is refused', async () => {
@@ -225,9 +225,9 @@ describe('enroll', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'classGroupId',
-        codigo: 'turma_de_outro_ano',
-        mensagem: 'A turma não pertence ao ano letivo informado.',
+        field: 'classGroupId',
+        code: 'turma_de_outro_ano',
+        message: 'A turma não pertence ao ano letivo informado.',
       },
     ]);
   });
@@ -244,7 +244,7 @@ describe('enroll', () => {
       enrollmentDate: '10/02/2026',
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('enrollmentDate');
+    expect(errorsOf(result)[0]?.field).toBe('enrollmentDate');
     expect(await studentStatuses(student.id)).toEqual([]);
   });
 
@@ -259,7 +259,7 @@ describe('enroll', () => {
       enrollmentDate: ENROLLMENT_DATE,
     });
 
-    expect(errorsOf(result).map((error) => error.campo)).toEqual(['studentId', 'classGroupId']);
+    expect(errorsOf(result).map((error) => error.field)).toEqual(['studentId', 'classGroupId']);
   });
 });
 
@@ -336,9 +336,9 @@ describe('transfer', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'targetClassGroupId',
-        codigo: 'mesma_turma',
-        mensagem: 'A turma de destino é a mesma turma da matrícula atual.',
+        field: 'targetClassGroupId',
+        code: 'mesma_turma',
+        message: 'A turma de destino é a mesma turma da matrícula atual.',
       },
     ]);
     expect(await studentStatuses(source.studentId)).toEqual(['active']);
@@ -364,9 +364,9 @@ describe('transfer', () => {
 
     expect(errorsOf(secondTime)).toEqual([
       {
-        campo: 'enrollmentId',
-        codigo: 'matricula_nao_ativa',
-        mensagem: 'Apenas uma matrícula ativa pode ser transferida.',
+        field: 'enrollmentId',
+        code: 'matricula_nao_ativa',
+        message: 'Apenas uma matrícula ativa pode ser transferida.',
       },
     ]);
     expect(await studentStatuses(source.studentId)).toEqual(['active', 'transferred']);
@@ -416,9 +416,9 @@ describe('transfer', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'targetClassGroupId',
-        codigo: 'turma_de_outro_ano',
-        mensagem: 'A turma de destino pertence a outro ano letivo.',
+        field: 'targetClassGroupId',
+        code: 'turma_de_outro_ano',
+        message: 'A turma de destino pertence a outro ano letivo.',
       },
     ]);
     expect(await studentStatuses(source.studentId)).toEqual(['active']);
@@ -435,7 +435,7 @@ describe('transfer', () => {
       date: TRANSFER_DATE,
     });
 
-    expect(errorsOf(result)[0]?.codigo).toBe('turma_nao_encontrada');
+    expect(errorsOf(result)[0]?.code).toBe('turma_nao_encontrada');
     expect(await studentStatuses(source.studentId)).toEqual(['active']);
   });
 
@@ -451,9 +451,9 @@ describe('transfer', () => {
 
     expect(errorsOf(result)).toEqual([
       {
-        campo: 'enrollmentId',
-        codigo: 'matricula_nao_encontrada',
-        mensagem: 'Matrícula não encontrada nesta rede.',
+        field: 'enrollmentId',
+        code: 'matricula_nao_encontrada',
+        message: 'Matrícula não encontrada nesta rede.',
       },
     ]);
     expect(await studentStatuses(b.enrollments[0].studentId)).toEqual(['active']);
@@ -469,7 +469,7 @@ describe('transfer', () => {
       date: TRANSFER_DATE,
     });
 
-    expect(errorsOf(result)[0]?.codigo).toBe('matricula_nao_encontrada');
+    expect(errorsOf(result)[0]?.code).toBe('matricula_nao_encontrada');
   });
 
   test('a transfer date outside the format is refused', async () => {
@@ -483,7 +483,7 @@ describe('transfer', () => {
       date: '01-06-2026',
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('date');
+    expect(errorsOf(result)[0]?.field).toBe('date');
     expect(await studentStatuses(source.studentId)).toEqual(['active']);
   });
 });

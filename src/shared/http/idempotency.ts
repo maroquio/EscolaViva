@@ -36,7 +36,7 @@ export const idempotencyMiddleware: MiddlewareHandler = async (c, next) => {
 
   const key = body[KEY_FIELD];
   if (typeof key !== 'string' || !FORMATS.idempotencyKey.test(key)) {
-    const fields = { rota: c.req.path, user_id: user.id };
+    const fields = { route: c.req.path, user_id: user.id };
     logger.warn(redact(fields), INTERNAL_REASONS.writeWithoutKey);
     return c.html(errorPage(400), 400);
   }

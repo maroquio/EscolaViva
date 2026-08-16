@@ -52,13 +52,13 @@ const errorStatus = (error: unknown): ErrorStatus => {
 const logFailure = (c: Context, status: ErrorStatus, error: unknown): void => {
   const base = {
     status,
-    metodo: c.req.method,
-    rota: c.req.path,
-    tipo: error instanceof Error ? error.constructor.name : typeof error,
-    mensagem: error instanceof Error ? error.message : String(error),
+    method: c.req.method,
+    route: c.req.path,
+    type: error instanceof Error ? error.constructor.name : typeof error,
+    message: error instanceof Error ? error.message : String(error),
   };
   const fields = redact(
-    status === 500 && error instanceof Error ? { ...base, pilha: error.stack } : base,
+    status === 500 && error instanceof Error ? { ...base, stack: error.stack } : base,
   );
   if (status === 500) {
     logger.error(fields, HTTP_LOG_EVENTS.requestFailed);

@@ -6,90 +6,90 @@ import { startScheduler, type Job } from './shared/jobs';
 import { logger } from './shared/log';
 import { app } from './web/app';
 
-const DESFECHO_DA_DRENAGEM = { drenou: 'drenou', expirou: 'expirou' } as const;
+const DRAIN_OUTCOME = { drained: 'drained', timedOut: 'timedOut' } as const;
 
-const expurgoDeSessoes: Job = {
+const sessionPurge: Job = {
   name: SESSION_PURGE.name,
   lockKey: LOCK_KEYS.sessionPurge,
   intervalMs: SESSION_PURGE.intervalInMinutes * MINUTE_MS,
   async run(): Promise<void> {
-    const removidas = await identity.purgeExpiredSessions();
+    const removed = await identity.purgeExpiredSessions();
     logger.info(
-      { job: SESSION_PURGE.name, removidas },
+      { job: SESSION_PURGE.name, removed },
       IDENTITY_LOG_EVENTS.expiredSessionsRemoved,
     );
   },
 };
 
-const ociosidadeEmSegundos = (timeoutMs: number): number =>
+const idleSeconds = (timeoutMs: number): number =>
   Math.min(
     Math.max(1, Math.ceil(timeoutMs / TIME.msPerSecond)),
     SERVER.maxIdleSeconds,
   );
 
-const servidor = Bun.serve({
+const server = Bun.serve({
   port: config.port,
-  idleTimeout: ociosidadeEmSegundos(config.httpTimeoutMs),
+  idleTimeout: idleSeconds(config.httpTimeoutMs),
   fetch: app.fetch,
 });
 
-const agendador = startScheduler([expurgoDeSessoes]);
+const scheduler = startScheduler([sessionPurge]);
 
 logger.info(
   {
-    porta: servidor.port,
-    ambiente: config.environment,
-    ociosidade_s: ociosidadeEmSegundos(config.httpTimeoutMs),
-    jobs: [expurgoDeSessoes.name],
+    port: server.port,
+    environment: config.environment,
+    idle_s: idleSeconds(config.httpTimeoutMs),
+    jobs: [sessionPurge.name],
   },
   PROCESS_MESSAGES.up,
 );
 
-async function aguardarDrenagem(drenagem: Promise<void>): Promise<void> {
-  const prazo = config.httpTimeoutMs + SERVER.drainGraceMs;
-  let temporizador: ReturnType<typeof setTimeout> | undefined;
-  const expirou = new Promise<typeof DESFECHO_DA_DRENAGEM.expirou>((resolver) => {
-    temporizador = setTimeout(() => resolver(DESFECHO_DA_DRENAGEM.expirou), prazo);
+async function awaitDrain(drain: Promise<void>): Promise<void> {
+  const deadline = config.httpTimeoutMs + SERVER.drainGraceMs;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<typeof DRAIN_OUTCOME.timedOut>((resolve) => {
+    timer = setTimeout(() => resolve(DRAIN_OUTCOME.timedOut), deadline);
   });
 
   try {
-    const desfecho = await Promise.race([
-      drenagem.then(() => DESFECHO_DA_DRENAGEM.drenou),
-      expirou,
+    const outcome = await Promise.race([
+      drain.then(() => DRAIN_OUTCOME.drained),
+      timedOut,
     ]);
-    if (desfecho === DESFECHO_DA_DRENAGEM.drenou) return;
+    if (outcome === DRAIN_OUTCOME.drained) return;
   } finally {
-    clearTimeout(temporizador);
+    clearTimeout(timer);
   }
 
   logger.warn(
-    { pendentes: servidor.pendingRequests, prazo_ms: prazo },
+    { pending: server.pendingRequests, deadline_ms: deadline },
     PROCESS_MESSAGES.drainTimedOut,
   );
-  await servidor.stop(true);
+  await server.stop(true);
 }
 
-let desligando = false;
+let shuttingDown = false;
 
-async function desligar(sinal: string): Promise<void> {
-  if (desligando) return;
-  desligando = true;
+async function shutdown(signal: string): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
   logger.info(
-    { sinal, pendentes: servidor.pendingRequests },
+    { signal, pending: server.pendingRequests },
     PROCESS_MESSAGES.shutdownStarted,
   );
 
-  const drenagem = servidor.stop(false);
-  agendador.stop();
-  await aguardarDrenagem(drenagem);
+  const drain = server.stop(false);
+  scheduler.stop();
+  await awaitDrain(drain);
   await closeDatabase();
 
-  logger.info({ sinal }, PROCESS_MESSAGES.shutdownCompleted);
+  logger.info({ signal }, PROCESS_MESSAGES.shutdownCompleted);
   process.exit(0);
 }
 
-for (const sinal of SERVER.shutdownSignals) {
-  process.on(sinal, () => {
-    void desligar(sinal);
+for (const signal of SERVER.shutdownSignals) {
+  process.on(signal, () => {
+    void shutdown(signal);
   });
 }

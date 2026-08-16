@@ -49,8 +49,8 @@ function close(term: number, classGroupId = scenario.classGroups[0].id): ReturnT
 }
 
 function messageOf(result: { ok: boolean } & Record<string, unknown>): string {
-  const errors = result.ok ? [] : ((result.erros ?? []) as { mensagem: string }[]);
-  return errors[0]?.mensagem ?? '';
+  const errors = result.ok ? [] : ((result.errors ?? []) as { message: string }[]);
+  return errors[0]?.message ?? '';
 }
 
 describe('termClosing (domain)', () => {
@@ -137,7 +137,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'term', codigo: 'fechamento_incompleto' })],
+      errors: [expect.objectContaining({ field: 'term', code: 'fechamento_incompleto' })],
     });
     const message = messageOf(result);
     expect(message).toContain('Faltam 10 notas para fechar o bimestre');
@@ -167,7 +167,7 @@ describe('closeTerm', () => {
 
     const result = await close(1);
 
-    expect(result).toEqual({ ok: true, valor: undefined });
+    expect(result).toEqual({ ok: true, value: undefined });
     const states = await assessment.closingState(scenario.network.id, scenario.classGroups[0].id);
     expect(states[0]).toEqual({
       term: 1,
@@ -185,7 +185,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'term', codigo: 'ja_fechado' })],
+      errors: [expect.objectContaining({ field: 'term', code: 'ja_fechado' })],
     });
   });
 
@@ -203,7 +203,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'term', codigo: 'bimestre_fechado' })],
+      errors: [expect.objectContaining({ field: 'term', code: 'bimestre_fechado' })],
     });
     const grades = await assessment.classGroupSubjectGrades(
       scenario.network.id,
@@ -225,7 +225,7 @@ describe('closeTerm', () => {
       grades: [{ enrollmentId: scenario.enrollments[0].id, value: 9 }],
     });
 
-    expect(result).toEqual({ ok: true, valor: 1 });
+    expect(result).toEqual({ ok: true, value: 1 });
   });
 
   test('closing one class group does not close the term of the class group next door', async () => {
@@ -261,7 +261,7 @@ describe('closeTerm', () => {
 
     const result = await close(1);
 
-    expect(result).toEqual({ ok: true, valor: undefined });
+    expect(result).toEqual({ ok: true, value: undefined });
   });
 
   test('refuses a class group with no subject allocated', async () => {
@@ -269,7 +269,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'classGroupId', codigo: 'sem_disciplina' })],
+      errors: [expect.objectContaining({ field: 'classGroupId', code: 'sem_disciplina' })],
     });
   });
 
@@ -285,7 +285,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'classGroupId', codigo: 'sem_matricula_ativa' })],
+      errors: [expect.objectContaining({ field: 'classGroupId', code: 'sem_matricula_ativa' })],
     });
   });
 
@@ -296,7 +296,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'classGroupId', codigo: 'nao_encontrada' })],
+      errors: [expect.objectContaining({ field: 'classGroupId', code: 'nao_encontrada' })],
     });
   });
 
@@ -305,7 +305,7 @@ describe('closeTerm', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'term' })],
+      errors: [expect.objectContaining({ field: 'term' })],
     });
   });
 

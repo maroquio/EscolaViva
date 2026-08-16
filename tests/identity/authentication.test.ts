@@ -23,14 +23,14 @@ const NEW_PASSWORD = 'nova-senha-2026';
 
 function valueOfResult<T>(result: Result<T>): T {
   if (!result.ok) {
-    throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(result.erros)}`);
+    throw new Error(`esperava sucesso, vieram erros: ${JSON.stringify(result.errors)}`);
   }
-  return result.valor;
+  return result.value;
 }
 
 function errorsOf(result: Result<unknown>): ApplicationError[] {
   if (result.ok) throw new Error('esperava recusa da aplicação, veio sucesso');
-  return result.erros;
+  return result.errors;
 }
 
 async function countSessions(userId: string): Promise<number> {
@@ -119,14 +119,14 @@ describe('authenticate', () => {
       }),
     ]);
 
-    const genericRejection = [{ codigo: 'credenciais_invalidas', mensagem: 'CPF ou senha inválidos' }];
+    const genericRejection = [{ code: 'credenciais_invalidas', message: 'CPF ou senha inválidos' }];
     expect(errorsOf(wrongPassword)).toEqual(genericRejection);
     expect(errorsOf(nonexistentCpf)).toEqual(genericRejection);
     expect(errorsOf(inactiveUser)).toEqual(genericRejection);
-    // With no `campo`, the screen cannot highlight the identifier input and give away which of the three it is.
+    // With no `field`, the screen cannot highlight the identifier input and give away which of the three it is.
     const pointAtField = [wrongPassword, nonexistentCpf, inactiveUser]
       .flatMap(errorsOf)
-      .some((error) => Object.hasOwn(error, 'campo'));
+      .some((error) => Object.hasOwn(error, 'field'));
     expect(pointAtField).toBe(false);
   });
 
@@ -166,9 +166,9 @@ describe('authenticate', () => {
     // working" support ticket.
     const networkRejection = [
       {
-        campo: 'networkSlug',
-        codigo: 'rede_indisponivel',
-        mensagem: 'rede não encontrada ou fora de operação',
+        field: 'networkSlug',
+        code: 'rede_indisponivel',
+        message: 'rede não encontrada ou fora de operação',
       },
     ];
     expect(errorsOf(suspendedNetwork)).toEqual(networkRejection);
@@ -183,7 +183,7 @@ describe('authenticate', () => {
       networkSlug: 'cancelada', loginIdentifier: user.cpf, password: DEFAULT_PASSWORD, ip: '',
     });
 
-    expect(errorsOf(result)[0]?.codigo).toBe('rede_indisponivel');
+    expect(errorsOf(result)[0]?.code).toBe('rede_indisponivel');
     expect(await countSessions(user.id)).toBe(0);
   });
 
@@ -195,7 +195,7 @@ describe('authenticate', () => {
       networkSlug: '', loginIdentifier: '', password: '', ip: '',
     });
 
-    const fields = errorsOf(result).map((error) => error.campo);
+    const fields = errorsOf(result).map((error) => error.field);
     expect(fields).toEqual(['networkSlug', 'cpf', 'password']);
   });
 
@@ -270,7 +270,7 @@ describe('authenticate', () => {
     expect(nonexistent.ok).toBe(false);
     expect(wrongPassword.ok).toBe(false);
     if (!nonexistent.ok && !wrongPassword.ok) {
-      expect(nonexistent.erros).toEqual(wrongPassword.erros);
+      expect(nonexistent.errors).toEqual(wrongPassword.errors);
     }
   });
 });
@@ -427,7 +427,7 @@ describe('changePassword', () => {
     });
 
     expect(errorsOf(result)).toEqual([
-      { campo: 'currentPassword', codigo: 'senha_incorreta', mensagem: 'a senha atual não confere' },
+      { field: 'currentPassword', code: 'senha_incorreta', message: 'a senha atual não confere' },
     ]);
   });
 
@@ -439,7 +439,7 @@ describe('changePassword', () => {
       userId: user.id, currentPassword: DEFAULT_PASSWORD, newPassword: 'curta123',
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('newPassword');
+    expect(errorsOf(result)[0]?.field).toBe('newPassword');
   });
 
   test('the new password starts authenticating and the old one stops working', async () => {
@@ -458,7 +458,7 @@ describe('changePassword', () => {
       networkSlug: 'troca', loginIdentifier: user.cpf, password: DEFAULT_PASSWORD, ip: '',
     });
     expect(withTheNewOne.ok).toBe(true);
-    expect(errorsOf(withTheOldOne)[0]?.codigo).toBe('credenciais_invalidas');
+    expect(errorsOf(withTheOldOne)[0]?.code).toBe('credenciais_invalidas');
   });
 
   test('changing one user\'s password does not touch another user\'s in the same network', async () => {
@@ -485,7 +485,7 @@ describe('changePassword', () => {
     });
 
     expect(errorsOf(result)).toEqual([
-      { codigo: 'usuario_inexistente', mensagem: 'usuário não encontrado' },
+      { code: 'usuario_inexistente', message: 'usuário não encontrado' },
     ]);
   });
 
@@ -497,6 +497,6 @@ describe('changePassword', () => {
       userId: 'nao-e-uuid', currentPassword: DEFAULT_PASSWORD, newPassword: NEW_PASSWORD,
     });
 
-    expect(errorsOf(result)[0]?.campo).toBe('userId');
+    expect(errorsOf(result)[0]?.field).toBe('userId');
   });
 });

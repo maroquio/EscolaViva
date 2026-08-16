@@ -88,7 +88,7 @@ describe('postGrades', () => {
       grades,
     });
 
-    expect(result).toEqual({ ok: true, valor: 5 });
+    expect(result).toEqual({ ok: true, value: 5 });
     const saved = await assessment.classGroupSubjectGrades(
       scenario.network.id,
       scenario.classGroupSubjects[0].id,
@@ -116,7 +116,7 @@ describe('postGrades', () => {
       grades: [{ enrollmentId: scenario.enrollments[0].id, value: 9.5 }],
     });
 
-    expect(result).toEqual({ ok: true, valor: 1 });
+    expect(result).toEqual({ ok: true, value: 1 });
     expect(await countGrades(scenario.network.id)).toBe(1);
     const saved = await assessment.classGroupSubjectGrades(
       scenario.network.id,
@@ -149,7 +149,7 @@ describe('postGrades', () => {
       ],
     });
 
-    expect(result).toEqual({ ok: true, valor: 1 });
+    expect(result).toEqual({ ok: true, value: 1 });
     const saved = await assessment.classGroupSubjectGrades(
       scenario.network.id,
       scenario.classGroupSubjects[0].id,
@@ -176,7 +176,7 @@ describe('postGrades', () => {
       grades: [{ enrollmentId: scenario.enrollments[0].id, value: null }],
     });
 
-    expect(result).toEqual({ ok: true, valor: 0 });
+    expect(result).toEqual({ ok: true, value: 0 });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });
 
@@ -191,7 +191,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ mensagem: 'A nota precisa ficar entre 0 e 10.' })],
+      errors: [expect.objectContaining({ message: 'A nota precisa ficar entre 0 e 10.' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });
@@ -207,7 +207,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ mensagem: 'A nota precisa ficar entre 0 e 10.' })],
+      errors: [expect.objectContaining({ message: 'A nota precisa ficar entre 0 e 10.' })],
     });
   });
 
@@ -224,11 +224,11 @@ describe('postGrades', () => {
 
     expect(fifth).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'term' })],
+      errors: [expect.objectContaining({ field: 'term' })],
     });
     expect(zero).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'term' })],
+      errors: [expect.objectContaining({ field: 'term' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });
@@ -244,7 +244,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ mensagem: 'Nenhuma nota foi enviada.' })],
+      errors: [expect.objectContaining({ message: 'Nenhuma nota foi enviada.' })],
     });
   });
 
@@ -261,7 +261,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'classGroupSubjectId', codigo: 'nao_encontrada' })],
+      errors: [expect.objectContaining({ field: 'classGroupSubjectId', code: 'nao_encontrada' })],
     });
   });
 
@@ -287,7 +287,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'grades', codigo: 'matricula_fora_da_turma' })],
+      errors: [expect.objectContaining({ field: 'grades', code: 'matricula_fora_da_turma' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });
@@ -308,7 +308,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'grades', codigo: 'matricula_fora_da_turma' })],
+      errors: [expect.objectContaining({ field: 'grades', code: 'matricula_fora_da_turma' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });
@@ -327,7 +327,7 @@ describe('postGrades', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'grades', codigo: 'matricula_repetida' })],
+      errors: [expect.objectContaining({ field: 'grades', code: 'matricula_repetida' })],
     });
     expect(await countGrades(scenario.network.id)).toBe(0);
   });

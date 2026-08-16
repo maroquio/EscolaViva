@@ -3,13 +3,10 @@ import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { PROJECT_ROOT } from './support';
-import { firstExistingPath } from '../support/paths';
+import { existingPath } from '../support/paths';
 import { GOLDEN_DIR } from './golden';
 
-const PARTIAL_PATH = await firstExistingPath(
-  'src/web/templates/parciais/_script_avisos.eta',
-  'src/web/templates/partials/_notices_script.eta',
-);
+const PARTIAL_PATH = await existingPath('src/web/templates/partials/_notices_script.eta');
 
 const CHECKER_PATH = 'scripts/magic-values.ts';
 

@@ -416,37 +416,37 @@ export const FOUR_DIGIT_YEAR = /^\d{4}$/;
 
 export const FORM_ERRORS = {
   confirmationMismatch: {
-    campo: FIELDS.password.passwordConfirmation,
-    codigo: 'confirmacao_diferente',
-    mensagem: 'A confirmação não confere com a senha nova.',
+    field: FIELDS.password.passwordConfirmation,
+    code: 'confirmacao_diferente',
+    message: 'A confirmação não confere com a senha nova.',
   },
   invalidYear: {
-    campo: FIELDS.academicYear.year,
-    codigo: 'ano_invalido',
-    mensagem: 'Informe o ano com quatro dígitos.',
+    field: FIELDS.academicYear.year,
+    code: 'ano_invalido',
+    message: 'Informe o ano com quatro dígitos.',
   },
   incompleteRoleAssignment: {
-    campo: FIELDS.user.roleAssignments,
-    codigo: 'atribuicao_incompleta',
-    mensagem: 'Cada atribuição precisa de uma unidade e de um papel.',
+    field: FIELDS.user.roleAssignments,
+    code: 'atribuicao_incompleta',
+    message: 'Cada atribuição precisa de uma unidade e de um papel.',
   },
   invalidGrade: {
-    campo: FIELDS.grades,
-    codigo: 'nota_invalida',
+    field: FIELDS.grades,
+    code: 'nota_invalida',
   },
   noSelection: {
-    campo: FIELDS.announcement.recipients,
-    codigo: 'sem_selecao',
+    field: FIELDS.announcement.recipients,
+    code: 'sem_selecao',
   },
   recipientOutsideSchool: {
-    campo: FIELDS.announcement.recipients,
-    codigo: 'destinatario_fora_da_unidade',
-    mensagem: 'Um dos responsáveis marcados não pertence à unidade escolhida.',
+    field: FIELDS.announcement.recipients,
+    code: 'destinatario_fora_da_unidade',
+    message: 'Um dos responsáveis marcados não pertence à unidade escolhida.',
   },
   missingSchool: {
-    campo: FIELDS.announcement.schoolId,
-    codigo: 'unidade_ausente',
-    mensagem: 'Escolha a unidade que vai enviar o comunicado.',
+    field: FIELDS.announcement.schoolId,
+    code: 'unidade_ausente',
+    message: 'Escolha a unidade que vai enviar o comunicado.',
   },
 } as const;
 

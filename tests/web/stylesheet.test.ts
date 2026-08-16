@@ -1,12 +1,12 @@
 import { beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
-import { firstExistingPath } from '../support/paths';
+import { existingPath } from '../support/paths';
 
 const STYLESHEET_PATH = join(
   import.meta.dir,
   '..',
   '..',
-  await firstExistingPath('src/web/public/app.css', 'src/web/public/app.css'),
+  await existingPath('src/web/public/app.css'),
 );
 
 const CSS_RULE = /([^{}]+)\{([^{}]*)\}/g;

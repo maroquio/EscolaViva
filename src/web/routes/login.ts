@@ -82,10 +82,10 @@ loginRoutes.post(ROUTES.public.login.pattern, async (c) => {
       { network_slug: networkSlug, result: LOG_EVENTS.rejected, ip },
       LOG_EVENTS.signInAttempt,
     );
-    return signInScreen(c, { values: { networkSlug, cpf }, errors: result.erros });
+    return signInScreen(c, { values: { networkSlug, cpf }, errors: result.errors });
   }
 
-  await openSession(c, result.valor.sessionId);
+  await openSession(c, result.value.sessionId);
   logger.info(
     { network_slug: networkSlug, result: LOG_EVENTS.success, ip },
     LOG_EVENTS.signInAttempt,

@@ -4,11 +4,8 @@ node_modules/
 .env
 
 # Gerado por `bun run build:assets` (I10) — o nome carrega o hash do conteúdo.
-# A barra inicial importa: sem ela o padrão casaria também `src/web/publico/`,
-# que é a fonte do CSS e precisa estar versionada. As duas grafias convivem
-# enquanto o repositório é convertido para inglês: um ignore que deixa de casar
-# não avisa ninguém, só passa a versionar o que não devia.
-/publico/
+# A barra inicial importa: sem ela o padrão casaria também `src/web/public/`,
+# que é a fonte do CSS e precisa estar versionada.
 /public/
 
 coverage/

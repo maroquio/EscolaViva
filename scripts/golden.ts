@@ -19,7 +19,7 @@ console.log(
 
 const child = Bun.spawn([process.execPath, 'test', TEST_FILE], {
   cwd: new URL('..', import.meta.url).pathname,
-  env: { ...Bun.env, ...(rewrite ? { GOLDEN_REGRAVAR: '1' } : {}) },
+  env: { ...Bun.env, ...(rewrite ? { GOLDEN_REWRITE: '1' } : {}) },
   stdout: 'inherit',
   stderr: 'inherit',
 });

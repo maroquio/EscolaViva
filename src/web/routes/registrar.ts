@@ -252,11 +252,11 @@ registrarRoutes.post(ROUTES.registrar.students.pattern, async (c) => {
   if (result.ok) {
     return finish(
       c,
-      ROUTES.registrar.student({ id: result.valor.id }),
+      ROUTES.registrar.student({ id: result.value.id }),
       NOTICES.studentRegistered,
     );
   }
-  return studentForm(c, values, result.erros);
+  return studentForm(c, values, result.errors);
 });
 
 const studentInScope = async (c: WebContext, studentId: string): Promise<Student | null> => {
@@ -361,7 +361,7 @@ registrarRoutes.post(ROUTES.registrar.studentGuardians.pattern, async (c) => {
   if (result.ok) {
     return finish(c, ROUTES.registrar.student({ id: student.id }), NOTICES.guardianLinked);
   }
-  return await guardianLinkForm(c, student, values, result.erros);
+  return await guardianLinkForm(c, student, values, result.errors);
 });
 
 const classGroupOptions = async (
@@ -431,7 +431,7 @@ registrarRoutes.post(ROUTES.registrar.enrollments.pattern, async (c) => {
   if (result.ok) {
     return finish(c, ROUTES.registrar.student({ id: student.id }), NOTICES.enrollmentRecorded);
   }
-  return await enrollmentForm(c, student, values, result.erros);
+  return await enrollmentForm(c, student, values, result.errors);
 });
 
 const transferInScope = async (
@@ -502,7 +502,7 @@ registrarRoutes.post(ROUTES.registrar.enrollmentTransfer.pattern, async (c) => {
       NOTICES.transferCompleted,
     );
   }
-  return await transferForm(c, target.enrollment, target.student, values, result.erros);
+  return await transferForm(c, target.enrollment, target.student, values, result.errors);
 });
 
 const guardiansScreen = async (c: WebContext): Promise<Response> => {
@@ -550,7 +550,7 @@ registrarRoutes.post(ROUTES.registrar.guardians.pattern, async (c) => {
   if (result.ok) {
     return finish(c, ROUTES.registrar.guardians(), NOTICES.guardianRegistered);
   }
-  return guardianForm(c, values, result.erros);
+  return guardianForm(c, values, result.errors);
 });
 
 const classGroupsScreen = async (c: WebContext): Promise<Response> => {
@@ -635,11 +635,11 @@ registrarRoutes.post(ROUTES.registrar.classGroups.pattern, async (c) => {
   if (result.ok) {
     return finish(
       c,
-      ROUTES.registrar.classGroup({ id: result.valor.id }),
+      ROUTES.registrar.classGroup({ id: result.value.id }),
       NOTICES.classGroupRegistered,
     );
   }
-  return classGroupForm(c, values, result.erros);
+  return classGroupForm(c, values, result.errors);
 });
 
 const toClassGroupRow = async (
@@ -742,7 +742,7 @@ registrarRoutes.post(ROUTES.registrar.classGroupSubjects.pattern, async (c) => {
       NOTICES.subjectAssigned,
     );
   }
-  return await assignmentForm(c, classGroup, values, result.erros);
+  return await assignmentForm(c, classGroup, values, result.errors);
 });
 
 const subjectsScreen = async (c: WebContext): Promise<Response> => {
@@ -778,5 +778,5 @@ registrarRoutes.post(ROUTES.registrar.subjects.pattern, async (c) => {
   if (result.ok) {
     return finish(c, ROUTES.registrar.subjects(), NOTICES.subjectRegistered);
   }
-  return subjectForm(c, values, result.erros);
+  return subjectForm(c, values, result.errors);
 });

@@ -185,7 +185,7 @@ const helpers = {
   pluralize,
 } as const;
 
-type Problem = { readonly campo: string; readonly mensagem: string };
+type Problem = { readonly field: string; readonly message: string };
 
 const problemsOf = (data: TemplateData): readonly Problem[] => {
   const errors = data[CONTEXT_KEYS.errors];
@@ -198,7 +198,7 @@ const errorHelpers = (data: TemplateData) => {
   const problems = problemsOf(data);
 
   const errorFor = (field: string): string =>
-    problems.find((problem) => problem.campo === field)?.mensagem ?? '';
+    problems.find((problem) => problem.field === field)?.message ?? '';
 
   const describedBy = (field: string, hasHelp = false): string =>
     [hasHelp ? helpId(field) : '', errorFor(field) === '' ? '' : errorId(field)]

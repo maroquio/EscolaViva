@@ -87,7 +87,7 @@ export async function publishAnnouncement(
 
   const data = parsed.data;
   const text = checkText(data);
-  if (!text.ok) return failure(...text.erros);
+  if (!text.ok) return failure(...text.errors);
 
   const [school, names] = await Promise.all([
     identity.schoolById(data.networkId, data.schoolId),

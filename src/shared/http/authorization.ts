@@ -33,7 +33,7 @@ export function requireRole(...roles: SessionRole[]): MiddlewareHandler {
     if (user === null) return rejectAnonymous(c);
 
     if (!roles.some((role) => hasRole(user, role))) {
-      const fields = { rota: c.req.path, user_id: user.id, papeis_exigidos: roles };
+      const fields = { route: c.req.path, user_id: user.id, required_roles: roles };
       logger.warn(redact(fields), INTERNAL_REASONS.accessDeniedByRole);
       return c.html(errorPage(403), 403);
     }

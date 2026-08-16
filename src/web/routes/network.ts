@@ -153,9 +153,9 @@ networkRoutes.post(ROUTES.network.schools.pattern, async (c) => {
     name: values.name,
     inepCode: values.inepCode,
   });
-  if (!result.ok) return schoolForm(c, { values, errors: result.erros });
+  if (!result.ok) return schoolForm(c, { values, errors: result.errors });
 
-  logger.info({ network_id: networkId, school_id: result.valor.id }, LOG_EVENTS.schoolCreated);
+  logger.info({ network_id: networkId, school_id: result.value.id }, LOG_EVENTS.schoolCreated);
   return c.redirect(
     `${ROUTES.network.schools()}?${PARAMS.ok}=${NOTICE_CODES.schoolCreated}`,
     303,
@@ -290,17 +290,17 @@ networkRoutes.post(ROUTES.network.users.pattern, async (c) => {
     roleAssignments,
     guardianId: values.guardianId === '' ? null : values.guardianId,
   });
-  if (!result.ok) return await userForm(c, { values, rows, errors: result.erros });
+  if (!result.ok) return await userForm(c, { values, rows, errors: result.errors });
 
   logger.info(
     {
       network_id: networkId,
-      user_id: result.valor.userId,
+      user_id: result.value.userId,
       role_assignments: roleAssignments.length,
     },
     LOG_EVENTS.userInvited,
   );
-  await storeInvite(c, result.valor.userId, result.valor.temporaryPassword);
+  await storeInvite(c, result.value.userId, result.value.temporaryPassword);
   return c.redirect(
     `${ROUTES.network.users()}?${PARAMS.ok}=${NOTICE_CODES.userInvited}`,
     303,
@@ -354,10 +354,10 @@ networkRoutes.post(ROUTES.network.academicYears.pattern, async (c) => {
     startDate: values.startDate,
     endDate: values.endDate,
   });
-  if (!result.ok) return yearForm(c, { values, errors: result.erros });
+  if (!result.ok) return yearForm(c, { values, errors: result.errors });
 
   logger.info(
-    { network_id: networkId, academic_year_id: result.valor.id },
+    { network_id: networkId, academic_year_id: result.value.id },
     LOG_EVENTS.academicYearDefined,
   );
   return c.redirect(

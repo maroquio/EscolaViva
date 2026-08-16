@@ -25,8 +25,8 @@ export async function changePassword(input: {
   const credentials = await userRepository.credentialsById(reader(), data.userId);
   if (credentials === null) {
     return failure({
-      codigo: CODES.userNotFound,
-      mensagem: MESSAGES.password.userNotFound,
+      code: CODES.userNotFound,
+      message: MESSAGES.password.userNotFound,
     });
   }
 

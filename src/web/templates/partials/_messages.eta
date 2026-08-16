@@ -11,7 +11,7 @@
   <p class="notice__title">Não foi possível concluir</p>
   <ul>
     <% it.errors.forEach((problem) => { %>
-    <li><%= problem.mensagem %></li>
+    <li><%= problem.message %></li>
     <% }) %>
   </ul>
 </div>

@@ -108,7 +108,7 @@ describe('recordRollCall', () => {
       rows,
     });
 
-    expect(result).toEqual({ ok: true, valor: 5 });
+    expect(result).toEqual({ ok: true, value: 5 });
     expect(await countAttendances(scenario.network.id)).toBe(5);
   });
 
@@ -130,7 +130,7 @@ describe('recordRollCall', () => {
       ],
     });
 
-    expect(result).toEqual({ ok: true, valor: 1 });
+    expect(result).toEqual({ ok: true, value: 1 });
     expect(await countAttendances(scenario.network.id)).toBe(1);
     const recorded = await assessment.rollCallForDate(
       scenario.network.id,
@@ -195,7 +195,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'date', codigo: 'data_fora_do_ano_letivo' })],
+      errors: [expect.objectContaining({ field: 'date', code: 'data_fora_do_ano_letivo' })],
     });
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
@@ -210,7 +210,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'date', codigo: 'data_fora_do_ano_letivo' })],
+      errors: [expect.objectContaining({ field: 'date', code: 'data_fora_do_ano_letivo' })],
     });
   });
 
@@ -222,7 +222,7 @@ describe('recordRollCall', () => {
       rows: [{ enrollmentId: scenario.enrollments[0].id, present: true }],
     });
 
-    const message = result.ok ? '' : (result.erros[0]?.mensagem ?? '');
+    const message = result.ok ? '' : (result.errors[0]?.message ?? '');
     expect(message).toContain(scenario.academicYear.startDate);
     expect(message).toContain(scenario.academicYear.endDate);
   });
@@ -237,10 +237,10 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [
+      errors: [
         expect.objectContaining({
-          campo: 'date',
-          mensagem: 'Informe uma data válida no formato AAAA-MM-DD.',
+          field: 'date',
+          message: 'Informe uma data válida no formato AAAA-MM-DD.',
         }),
       ],
     });
@@ -256,7 +256,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'date' })],
+      errors: [expect.objectContaining({ field: 'date' })],
     });
   });
 
@@ -272,7 +272,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'classGroupId', codigo: 'nao_encontrada' })],
+      errors: [expect.objectContaining({ field: 'classGroupId', code: 'nao_encontrada' })],
     });
   });
 
@@ -297,7 +297,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'rows', codigo: 'matricula_fora_da_turma' })],
+      errors: [expect.objectContaining({ field: 'rows', code: 'matricula_fora_da_turma' })],
     });
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
@@ -317,7 +317,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'rows', codigo: 'matricula_fora_da_turma' })],
+      errors: [expect.objectContaining({ field: 'rows', code: 'matricula_fora_da_turma' })],
     });
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });
@@ -335,7 +335,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'rows', codigo: 'matricula_repetida' })],
+      errors: [expect.objectContaining({ field: 'rows', code: 'matricula_repetida' })],
     });
   });
 
@@ -349,7 +349,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ mensagem: 'Nenhuma linha de chamada foi enviada.' })],
+      errors: [expect.objectContaining({ message: 'Nenhuma linha de chamada foi enviada.' })],
     });
   });
 
@@ -363,7 +363,7 @@ describe('recordRollCall', () => {
       rows: [{ enrollmentId: scenario.enrollments[0].id, present: false, excuse }],
     });
 
-    expect(result).toEqual({ ok: true, valor: 1 });
+    expect(result).toEqual({ ok: true, value: 1 });
     const recorded = await assessment.rollCallForDate(
       scenario.network.id,
       scenario.classGroups[0].id,
@@ -390,7 +390,7 @@ describe('recordRollCall', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ mensagem: 'A justificativa é longa demais.' })],
+      errors: [expect.objectContaining({ message: 'A justificativa é longa demais.' })],
     });
     expect(await countAttendances(scenario.network.id)).toBe(0);
   });

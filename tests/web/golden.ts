@@ -475,18 +475,17 @@ export function systemScreens(ids: GoldenScenario['ids']): readonly GoldenScreen
 
 const UUID = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g;
 /**
- * Both spellings of the field live side by side while the repository is converted to English. If
- * the regex kept only the old one, the renamed field would stop being normalized and the 57
- * fixtures that carry it would diverge on every run, with a fresh UUID each time.
+ * The idempotency key (`KEY_FIELD`, in `shared/constants.ts`) is a fresh UUID on every render: the
+ * 57 fixtures that carry the hidden field would diverge on every run if it were not normalized.
  */
-const IDEMPOTENCY_KEY_ATTR = /(name="_(?:chave|key)" value=")[^"]*(")/g;
+const IDEMPOTENCY_KEY_ATTR = /(name="_key" value=")[^"]*(")/g;
 /**
  * The published CSS name (I10) and the raw name `asset()` returns when `bun run build:assets` has
  * not run yet collapse into the same marker. They are the same line of the screen; freezing the
  * hash would make 71 files change on every stylesheet tweak, and a fresh clone, with no manifest,
  * would fail a refactor that never touched any CSS.
  */
-const VERSIONED_ASSET = /\/(?:publico|public)\/app\.(?:[0-9a-f]{6,}\.)?css/g;
+const VERSIONED_ASSET = /\/public\/app\.(?:[0-9a-f]{6,}\.)?css/g;
 /** `Tue Mar 10 2026 09:00:00 GMT-0300 (Brasilia Standard Time)` — the `toString` of a `Date`. */
 const JAVASCRIPT_DATE =
   /[A-Z][a-z]{2} [A-Z][a-z]{2} \d{2} \d{4} \d{2}:\d{2}:\d{2} GMT[+-]\d{4}(?: \([^)]*\))?/g;

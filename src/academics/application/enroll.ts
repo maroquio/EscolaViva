@@ -79,7 +79,7 @@ export async function enroll(input: {
     const found = await context(sql, { networkId, studentId, classGroupId, academicYearId });
     if (!found.ok) return found;
 
-    const { studentName, classGroup, year } = found.valor;
+    const { studentName, classGroup, year } = found.value;
     const enrollment: Enrollment = {
       id: uuidIdGenerator.next(),
       networkId,

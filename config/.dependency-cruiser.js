@@ -10,17 +10,9 @@
  *
  * @type {import('dependency-cruiser').IConfiguration}
  */
-/*
- * While the repository is converted to English, each module folder exists under two names at
- * different moments. The rules match paths by regex: if the alternation knew only one of the
- * names, renaming the folder would switch the rule off in silence — depcruise would go on printing
- * "no dependency violations found" simply because it no longer saw anything. That is why both
- * spellings live side by side here until the contraction phase, and the checklist plants a
- * violation in all four modules to prove each alternative still has teeth.
- */
-const MODULOS = '(?:identidade|identity|academico|academics|avaliacao|assessment|comunicacao|communication)';
+const MODULOS = '(?:identity|academics|assessment|communication)';
 
-const DOMINIO = '(?:dominio|domain)';
+const DOMINIO = 'domain';
 
 const configuracao = {
   forbidden: [

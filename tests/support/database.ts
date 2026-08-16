@@ -35,16 +35,16 @@ async function migrationFiles(): Promise<string[]> {
 }
 
 async function appliedVersions(sql: Connection): Promise<Set<string>> {
-  const rows = await sql<{ versao: string }[]>`SELECT versao FROM schema_migrations`;
-  return new Set(rows.map((row) => row.versao));
+  const rows = await sql<{ version: string }[]>`SELECT versao AS version FROM schema_migrations`;
+  return new Set(rows.map((row) => row.version));
 }
 
 /** One transaction per file: the DDL and the version record land together or not at all. */
-async function apply(sql: Connection, versao: string): Promise<void> {
-  const content = await Bun.file(join(MIGRATIONS_DIR, versao)).text();
+async function apply(sql: Connection, version: string): Promise<void> {
+  const content = await Bun.file(join(MIGRATIONS_DIR, version)).text();
   await sql.begin(async (tx) => {
     await tx.unsafe(content);
-    await tx`INSERT INTO schema_migrations (versao) VALUES (${versao})`;
+    await tx`INSERT INTO schema_migrations (versao) VALUES (${version})`;
   });
 }
 
@@ -64,9 +64,9 @@ async function applyMigrations(): Promise<void> {
         )
       `;
       const applied = await appliedVersions(sql);
-      for (const versao of await migrationFiles()) {
-        if (applied.has(versao)) continue;
-        await apply(sql, versao);
+      for (const version of await migrationFiles()) {
+        if (applied.has(version)) continue;
+        await apply(sql, version);
       }
     } finally {
       await sql`SELECT pg_advisory_unlock(${LOCK_KEY})`;

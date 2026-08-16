@@ -46,9 +46,9 @@ async function publish(input: {
     recipients: input.recipients ?? [],
   });
   if (!result.ok) {
-    throw new Error(`publicação recusada no arranjo: ${JSON.stringify(result.erros)}`);
+    throw new Error(`publicação recusada no arranjo: ${JSON.stringify(result.errors)}`);
   }
-  return result.valor;
+  return result.value;
 }
 
 async function recipientsOf(announcementId: string): Promise<string[]> {
@@ -172,7 +172,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'recipients', codigo: 'sem_destinatarios' })],
+      errors: [expect.objectContaining({ field: 'recipients', code: 'sem_destinatarios' })],
     });
   });
 
@@ -198,11 +198,11 @@ describe('publishAnnouncement', () => {
 
     expect(withoutTitle).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'title', codigo: 'titulo_invalido' })],
+      errors: [expect.objectContaining({ field: 'title', code: 'titulo_invalido' })],
     });
     expect(longTitle).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'title', codigo: 'titulo_invalido' })],
+      errors: [expect.objectContaining({ field: 'title', code: 'titulo_invalido' })],
     });
   });
 
@@ -218,7 +218,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'body', codigo: 'corpo_invalido' })],
+      errors: [expect.objectContaining({ field: 'body', code: 'corpo_invalido' })],
     });
   });
 
@@ -236,7 +236,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'schoolId', codigo: 'unidade_desconhecida' })],
+      errors: [expect.objectContaining({ field: 'schoolId', code: 'unidade_desconhecida' })],
     });
   });
 
@@ -254,7 +254,7 @@ describe('publishAnnouncement', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'authorUserId', codigo: 'autor_desconhecido' })],
+      errors: [expect.objectContaining({ field: 'authorUserId', code: 'autor_desconhecido' })],
     });
   });
 });
@@ -271,7 +271,7 @@ describe('markAsRead', () => {
       guardianId: scenario.guardians[0].id,
     });
 
-    expect(result).toEqual({ ok: true, valor: undefined });
+    expect(result).toEqual({ ok: true, value: undefined });
     expect(await readsOf(announcement.id, scenario.guardians[0].id)).not.toEqual([null]);
   });
 
@@ -303,7 +303,7 @@ describe('markAsRead', () => {
       guardianId: scenario.guardians[1].id,
     });
 
-    expect(result).toEqual({ ok: true, valor: undefined });
+    expect(result).toEqual({ ok: true, value: undefined });
     expect(await readsOf(announcement.id, scenario.guardians[1].id)).toEqual([]);
   });
 
@@ -330,7 +330,7 @@ describe('markAsRead', () => {
 
     expect(result).toEqual({
       ok: false,
-      erros: [expect.objectContaining({ campo: 'announcementId' })],
+      errors: [expect.objectContaining({ field: 'announcementId' })],
     });
   });
 });
