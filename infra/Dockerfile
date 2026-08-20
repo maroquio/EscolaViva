@@ -31,6 +31,13 @@ RUN bun install --frozen-lockfile --production
 # para dentro do bundle. Contrato é vocabulário além de forma, e o vocabulário viaja.
 FROM manifests AS front
 RUN bun install --frozen-lockfile
+# O `tsconfig.json` do front estende `../../tsconfig.base.json`, e o Vite resolve essa cadeia
+# durante o build (o esbuild precisa de `target` e `jsx` para transformar cada arquivo). Sem
+# esta linha o arquivo pai simplesmente não existe dentro do estágio e o build morre em
+# `failed to resolve "extends":"../../tsconfig.base.json"` — na máquina do desenvolvedor
+# funciona, porque lá a raiz do repositório inteira está presente. `packages/contracts`
+# estende o mesmo arquivo, então a cópia serve aos dois.
+COPY tsconfig.base.json ./
 COPY packages/contracts ./packages/contracts
 COPY apps/web ./apps/web
 RUN cd apps/web && bun run build

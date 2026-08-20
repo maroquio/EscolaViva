@@ -5,7 +5,7 @@
 # volume passaria a se chamar `infra_database_data`. Quem já tinha banco de desenvolvimento
 # não veria erro nenhum: veria um banco vazio, com os dados antigos parados num volume órfão.
 # Fixar o nome desacopla a identidade do projeto do lugar onde o arquivo mora.
-name: exemplo_saas
+name: escolaviva
 
 services:
   database:
