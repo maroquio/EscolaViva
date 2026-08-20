@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 820" width="1300" height="820">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1300" height="820" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Lifecycle of a class group's term</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/api/src/assessment/application/closeTerm.ts · application/postGrades.ts · domain/termClosing.ts · term_closing table</text>
+  <circle cx="315" cy="132" r="9" fill="#111827"/>
+  <path d="M 315,141 L 315,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="332" y="150" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">the class group comes into existence</text>
+  <rect x="190" y="195" width="250" height="110" rx="12" ry="12" fill="#f8fafc" stroke="#475569" stroke-width="1.8"/>
+  <text x="206" y="221" font-size="13.5" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">open</text>
+  <text x="206" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">there is NO row in term_closing</text>
+  <text x="206" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the state is the absence of the record</text>
+  <text x="206" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">grades and roll call are still accepted</text>
+  <rect x="700" y="195" width="250" height="110" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="716" y="221" font-size="13.5" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">closed</text>
+  <text x="716" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">one row: class group + term</text>
+  <text x="716" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">closed_by, closed_at</text>
+  <text x="716" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">no DELETE exists in the repository —</text>
+  <text x="716" y="283" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">there is no reopening at Stage 01</text>
+  <path d="M 440,250 L 698,250" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <text x="452" y="214" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">close / closeTerm(classGroup, term)</text>
+  <text x="452" y="227" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">[the five guards pass, the last two</text>
+  <text x="452" y="240" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">of them behind the advisory lock]</text>
+  <path d="M 250,305 L 250,352 L 380,352 L 380,309" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-dc2626)"/>
+  <text x="200" y="378" font-size="9.5" fill="#dc2626" font-weight="600" text-anchor="start">[any guard fails] / nothing is written, and the screen receives the error code</text>
+  <rect x="990" y="195" width="280" height="250" rx="10" ry="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1004" y="219" font-size="11.5" fill="#2563eb" font-weight="600" text-anchor="start">One rule, three mechanisms</text>
+  <text x="1004" y="239" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">1. isClosed() inside the transaction —</text>
+  <text x="1004" y="252" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">exists to produce a good message.</text>
+  <text x="1004" y="278" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">2. pg_advisory_xact_lock on the pair</text>
+  <text x="1004" y="291" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">(class group, term) — serialises the</text>
+  <text x="1004" y="304" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">writers that touch that term, and is</text>
+  <text x="1004" y="317" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">released by the commit, not by code.</text>
+  <text x="1004" y="343" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">3. UQ (class_group_id, term) — the</text>
+  <text x="1004" y="356" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">guarantee that survives a bug in the</text>
+  <text x="1004" y="369" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">two above.</text>
+  <text x="1004" y="395" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">None replaces the others: the check</text>
+  <text x="1004" y="408" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">gives the message, the lock gives the</text>
+  <text x="1004" y="421" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">order, the index gives the guarantee.</text>
+  <rect x="60" y="465" width="380" height="245" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="74" y="489" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">The five guards, in the order they run</text>
+  <text x="74" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">OUTSIDE the transaction — reads through the academics</text>
+  <text x="74" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">facade:</text>
+  <text x="74" y="535" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">1. classGroupNotFound</text>
+  <text x="74" y="548" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">2. noSubject — nothing assigned, so nothing to close</text>
+  <text x="74" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">3. noActiveEnrollment — no active student in it</text>
+  <text x="74" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">INSIDE the unitOfWork, after lockTermForWriting():</text>
+  <text x="74" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">4. alreadyClosed — re-queried here, not earlier: another</text>
+  <text x="74" y="613" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">closing fits between the read and the write</text>
+  <text x="74" y="626" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">5. incompleteClosing — closingPendingItems() compares,</text>
+  <text x="74" y="639" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">subject by subject, how many grades were posted against</text>
+  <text x="74" y="652" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the number of active enrollments. The message says what</text>
+  <text x="74" y="665" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">is missing, per subject, not a bare “you cannot”.</text>
+  <rect x="460" y="465" width="380" height="245" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="474" y="489" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">The open state does not exist in the database</text>
+  <text x="474" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">There is no column, flag or row saying “open”. There are</text>
+  <text x="474" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">rows saying “closed”; the rest is inferred:</text>
+  <text x="474" y="548" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">closingStates() takes the stored rows and expands the FOUR</text>
+  <text x="474" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">terms, marking closed: false wherever it found no record.</text>
+  <text x="474" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">The choice has a practical consequence: closing one term</text>
+  <text x="474" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">never has to create rows for the other three, and a term</text>
+  <text x="474" y="613" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">nobody touched takes up no space and needs no migration</text>
+  <text x="474" y="626" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">to come into being.</text>
+  <text x="474" y="652" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">It is the same idea as the enrollment's partial index:</text>
+  <text x="474" y="665" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">absence is information.</text>
+  <rect x="860" y="465" width="380" height="245" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="874" y="489" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Closing and posting stopped interleaving</text>
+  <text x="874" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">postGrades() takes the SAME advisory lock, on the same</text>
+  <text x="874" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">pair, as the first statement of its own transaction, and</text>
+  <text x="874" y="535" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">only then re-reads isClosed().</text>
+  <text x="874" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Without it the two transactions overlapped: a posting that</text>
+  <text x="874" y="574" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">had already read “open” could commit its grades after the</text>
+  <text x="874" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">closing committed, and the term ended up closed over a</text>
+  <text x="874" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">set of grades nobody had checked.</text>
+  <text x="874" y="626" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Roll call answers the same question one level up:</text>
+  <text x="874" y="639" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">recordRollCall() refuses when allTermsClosed() holds for</text>
+  <text x="874" y="652" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the class group — a year that is finished stops accepting</text>
+  <text x="874" y="665" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">attendance that would move the report card.</text>
+  <text x="36" y="800" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Read from apps/api/src/assessment/ and migrations/0001_initial_schema.sql. State of Stage 01.</text>
+</svg>

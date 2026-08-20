@@ -1,0 +1,504 @@
+/* EscolaViva — Estágio 1. Apresentação em HTML e CSS, sem JavaScript.
+   Cada slide é um bloco 16:10 exato, travado por scroll-snap.
+   As medidas de texto são em cqw: 1cqw = 1% da largura do slide, então a tipografia
+   escala junto com a projeção e o layout nunca depende do tamanho da tela. */
+
+:root {
+  --tinta: #111827;
+  --corpo: #374151;
+  --apagado: #6b7280;
+  --tenue: #9ca3af;
+  --linha: #e5e7eb;
+  --papel: #ffffff;
+  --fundo: #0b1020;
+  --grafite: #475569;
+
+  --identity: #7c3aed;
+  --academics: #2563eb;
+  --assessment: #16a34a;
+  --communication: #ea580c;
+  --ports: #0d9488;
+  --recusa: #dc2626;
+  --atencao: #f59e0b;
+
+  --identity-tenue: #faf5ff;
+  --academics-tenue: #eff6ff;
+  --assessment-tenue: #f0fdf4;
+  --communication-tenue: #fff7ed;
+  --ports-tenue: #f0fdfa;
+  --atencao-tenue: #fffbeb;
+  --palha: #fcfcfd;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: var(--corpo);
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+}
+
+/* ---- o slide -------------------------------------------------------------- */
+
+/* A seção é a área de rolagem que trava; o filho .slide-conteudo é a moldura 16:10.
+   Separar os dois é o que permite letterbox em projetor de proporção diferente. */
+.slide {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---- a moldura 16:10 ------------------------------------------------------ */
+
+.slide-conteudo {
+  width: min(100vw, 160vh);
+  aspect-ratio: 16 / 10;
+  container-type: inline-size;
+  background: var(--papel);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 4.2cqw 4.6cqw 3.4cqw;
+  overflow: hidden;
+  box-shadow: 0 1.6cqw 4cqw rgba(0, 0, 0, 0.35);
+}
+
+.slide-conteudo > h2 {
+  margin: 0 0 1.6cqw;
+  font-size: 2.9cqw;
+  line-height: 1.15;
+  font-weight: 600;
+  color: var(--tinta);
+  letter-spacing: -0.01em;
+}
+
+.slide-conteudo > h2::after {
+  content: '';
+  display: block;
+  width: 4.6cqw;
+  height: 0.28cqw;
+  margin-top: 1cqw;
+  background: var(--academics);
+  border-radius: 0.2cqw;
+}
+
+.lead {
+  margin: 0 0 1.4cqw;
+  font-size: 1.5cqw;
+  line-height: 1.45;
+  color: var(--apagado);
+  max-width: 78cqw;
+}
+
+.slide-conteudo p { font-size: 1.35cqw; line-height: 1.5; margin: 0 0 0.9cqw; }
+
+.slide-conteudo strong { color: var(--tinta); font-weight: 600; }
+
+.slide-conteudo code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.94em;
+  background: #f3f4f6;
+  padding: 0.1em 0.32em;
+  border-radius: 0.25em;
+  color: var(--tinta);
+}
+
+.fonte {
+  position: absolute;
+  left: 4.6cqw;
+  right: 4.6cqw;
+  bottom: 1.5cqw;
+  font-size: 0.95cqw;
+  color: var(--tenue);
+  font-style: italic;
+  border-top: 1px solid var(--linha);
+  padding-top: 0.7cqw;
+}
+
+/* ---- numeração e marca ---------------------------------------------------- */
+
+.slide-conteudo::after {
+  content: attr(data-n);
+  position: absolute;
+  right: 2.2cqw;
+  top: 1.8cqw;
+  font-size: 1.05cqw;
+  color: var(--tenue);
+  font-variant-numeric: tabular-nums;
+}
+
+.slide-conteudo::before {
+  content: 'EscolaViva · Estágio 1';
+  position: absolute;
+  left: 4.6cqw;
+  top: 1.8cqw;
+  font-size: 1.05cqw;
+  color: var(--tenue);
+  letter-spacing: 0.04em;
+}
+
+.slide-conteudo.capa::before,
+.slide-conteudo.capa::after { content: none; }
+
+/* ---- capa ----------------------------------------------------------------- */
+
+.capa {
+  justify-content: center;
+  background: linear-gradient(150deg, #0f172a 0%, #1e1b4b 55%, #312e81 100%);
+  color: #e5e7eb;
+  padding-left: 7cqw;
+}
+
+.capa h1 {
+  margin: 0 0 1.2cqw;
+  font-size: 5.4cqw;
+  line-height: 1.02;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.capa .sub { font-size: 2cqw; color: #a5b4fc; margin: 0 0 2.6cqw; }
+.capa .meta { font-size: 1.3cqw; color: #94a3b8; line-height: 1.8; }
+.capa .risca {
+  width: 9cqw; height: 0.36cqw; background: #6366f1;
+  border-radius: 0.2cqw; margin-bottom: 2.4cqw;
+}
+
+/* ---- índice --------------------------------------------------------------- */
+
+.indice { columns: 3; column-gap: 3cqw; font-size: 1.25cqw; line-height: 1.75; }
+.indice a { color: var(--corpo); text-decoration: none; display: block; break-inside: avoid; }
+.indice a:hover { color: var(--academics); }
+.indice a b { color: var(--tenue); font-variant-numeric: tabular-nums; margin-right: 0.6cqw; font-weight: 400; }
+.indice .grupo {
+  break-inside: avoid; break-after: avoid; margin: 0 0 0.5cqw;
+  font-size: 1.05cqw; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--tenue); font-weight: 600;
+}
+.indice .grupo:not(:first-child) { margin-top: 1.4cqw; }
+
+/* ---- colunas -------------------------------------------------------------- */
+
+.cols-2, .cols-3 {
+  display: grid; gap: 1.6cqw; min-height: 0;
+  align-content: start; align-items: start;
+}
+.cols-2.cheio, .cols-3.cheio { flex: 1; align-items: stretch; align-content: stretch; }
+.cols-2 { grid-template-columns: 1fr 1fr; }
+.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+.card {
+  background: var(--palha);
+  border: 1px solid var(--linha);
+  border-radius: 0.9cqw;
+  padding: 1.5cqw 1.7cqw;
+  min-height: 0;
+}
+.card h3 {
+  margin: 0 0 0.7cqw;
+  font-size: 1.45cqw;
+  font-weight: 600;
+  color: var(--grafite);
+}
+.card p, .card li { font-size: 1.18cqw; line-height: 1.45; }
+.card.identity { border-left: 0.36cqw solid var(--identity); }
+.card.academics { border-left: 0.36cqw solid var(--academics); }
+.card.assessment { border-left: 0.36cqw solid var(--assessment); }
+.card.communication { border-left: 0.36cqw solid var(--communication); }
+.card.atencao { background: var(--atencao-tenue); border-color: var(--atencao); }
+.card.recusa { background: #fef2f2; border-color: var(--recusa); }
+
+/* ---- listas --------------------------------------------------------------- */
+
+.lista, .passos { margin: 0 0 1cqw; padding-left: 1.8cqw; }
+.lista li, .passos li { font-size: 1.32cqw; line-height: 1.5; margin-bottom: 0.55cqw; }
+.lista { list-style: none; padding-left: 1.4cqw; }
+.lista li::before {
+  content: '·'; color: var(--academics); font-weight: 700;
+  display: inline-block; width: 1.1cqw; margin-left: -1.1cqw;
+}
+.passos li::marker { color: var(--academics); font-weight: 600; }
+
+/* Sub-item de lista: o nome real do módulo, com o que ele significa ao lado. */
+.lista li.dominio { margin-left: 1.1cqw; margin-bottom: 0.3cqw; }
+.lista li.dominio::before { content: none; }
+.lista li.dominio code { font-size: 0.98em; }
+
+/* ---- tabela --------------------------------------------------------------- */
+
+.tabela {
+  width: 100%; border-collapse: collapse; font-size: 1.12cqw; line-height: 1.4;
+}
+.tabela th {
+  text-align: left; font-weight: 600; color: var(--grafite);
+  border-bottom: 0.14cqw solid var(--linha); padding: 0.6cqw 0.8cqw 0.6cqw 0;
+  font-size: 1.05cqw; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.tabela td { padding: 0.55cqw 0.8cqw 0.55cqw 0; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+.tabela tbody tr:nth-child(even) { background: #fafafa; }
+.tabela td:first-child { color: var(--tinta); font-weight: 500; }
+.tabela.compacta { font-size: 0.98cqw; }
+.tabela.compacta td { padding: 0.36cqw 0.7cqw 0.36cqw 0; }
+
+/* ---- destaque e indicadores ----------------------------------------------- */
+
+.destaque {
+  font-size: 1.75cqw; line-height: 1.35; color: var(--tinta);
+  border-left: 0.32cqw solid var(--academics);
+  padding: 0.9cqw 0 0.9cqw 1.5cqw; margin: 1.2cqw 0;
+}
+
+.kpis { display: flex; gap: 3cqw; margin: 1.4cqw 0; flex-wrap: wrap; }
+/* Duas linhas flex separadas alinham cada uma pelo seu próprio conteúdo, e a segunda
+   coluna cai em x diferente em cada linha. A grade dá uma trilha só para todas. */
+.kpi-grade {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.6cqw 2.2cqw;
+  margin: 1.5cqw 0 1.2cqw;
+}
+.kpi { display: flex; flex-direction: column; }
+.kpi b { font-size: 3.4cqw; font-weight: 600; color: var(--tinta); line-height: 1; }
+.kpi span { font-size: 1.05cqw; color: var(--apagado); margin-top: 0.4cqw; }
+
+/* ---- código --------------------------------------------------------------- */
+
+.codigo {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1.02cqw;
+  line-height: 1.42;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 0.7cqw;
+  padding: 2.4cqw 1.6cqw 1.4cqw;
+  margin: 0;
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+  white-space: pre;
+  tab-size: 2;
+}
+.codigo.cheio { flex: 1; }
+.codigo[data-arquivo]::before {
+  content: attr(data-arquivo);
+  position: absolute; top: 0.75cqw; left: 1.6cqw;
+  font-size: 0.92cqw; color: #64748b; letter-spacing: 0.02em;
+}
+.codigo code { background: none; padding: 0; color: inherit; font-size: inherit; }
+.codigo.claro {
+  background: #f8fafc; color: var(--tinta);
+  border: 1px solid var(--linha);
+}
+.codigo.claro[data-arquivo]::before { color: var(--tenue); }
+.codigo.miudo { font-size: 0.86cqw; line-height: 1.38; }
+
+/* ---- figuras -------------------------------------------------------------- */
+
+.figura {
+  margin: 0; flex: 1; min-height: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.figura img, .figura svg, .figura object {
+  max-width: 100%; max-height: 100%;
+  width: auto; height: auto; object-fit: contain;
+  border-radius: 0.5cqw;
+}
+.figura.borda img, .figura.borda object { border: 1px solid var(--linha); }
+.figura figcaption {
+  font-size: 1.05cqw; color: var(--apagado); margin-top: 0.8cqw; text-align: center;
+}
+.figura.sangra { margin: -1cqw -2cqw 0; }
+
+.duas-telas { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4cqw; flex: 1; min-height: 0; }
+.duas-telas figure { margin: 0; display: flex; flex-direction: column; min-height: 0; }
+.duas-telas img { flex: 1; min-height: 0; object-fit: contain; border: 1px solid var(--linha); border-radius: 0.4cqw; }
+.duas-telas figcaption { font-size: 1cqw; color: var(--apagado); margin-top: 0.5cqw; text-align: center; }
+
+/* ---- seção divisória ------------------------------------------------------ */
+
+.divisor {
+  justify-content: center;
+  background: #0f172a;
+  color: #e2e8f0;
+  padding-left: 7cqw;
+}
+.divisor h2 { color: #ffffff; font-size: 4cqw; margin: 0; }
+.divisor h2::after { background: #6366f1; width: 6cqw; }
+.divisor .lead { color: #94a3b8; font-size: 1.6cqw; margin-top: 1.4cqw; max-width: 64cqw; }
+.divisor::before { color: #475569; }
+.divisor::after { color: #475569; }
+
+/* ---- impressão: um slide por página, 1280x800 paisagem --------------------- */
+
+@page { size: 1280px 800px; margin: 0; }
+
+@media print {
+  html, body { height: auto; overflow: visible; background: #fff; }
+  body { scroll-snap-type: none; }
+  section.slide {
+    height: auto; display: block;
+    break-after: page; page-break-after: always;
+  }
+  section.slide:last-child { break-after: auto; page-break-after: auto; }
+  .slide-conteudo {
+    width: 1280px; height: 800px; aspect-ratio: auto;
+    container-type: inline-size;
+    box-shadow: none;
+  }
+  .codigo { overflow: hidden; }
+}
+
+/* ---- slide de figura: cabeçalho compacto, figura manda ---------------------- */
+
+/* Um diagrama retrato num slide paisagem só pode ser tão alto quanto o slide.
+   Cada cqw que o cabeçalho devolve vira figura, então aqui ele encolhe. */
+.slide-conteudo.figurao { padding: 2.4cqw 3cqw 2.6cqw; }
+.slide-conteudo.figurao > h2 { font-size: 2.1cqw; margin-bottom: 0.5cqw; }
+.slide-conteudo.figurao > h2::after { display: none; }
+.slide-conteudo.figurao .lead { font-size: 1.15cqw; margin-bottom: 0.8cqw; max-width: 88cqw; }
+.slide-conteudo.figurao .figura { flex: 1; min-height: 0; overflow: hidden; }
+.slide-conteudo.figurao .figura figcaption { font-size: 0.95cqw; margin-top: 0.5cqw; }
+.slide-conteudo.figurao .fonte { display: none; }
+.slide-conteudo.figurao::before, .slide-conteudo.figurao::after { top: 1cqw; }
+.slide-conteudo.figurao::before { left: 3cqw; }
+.slide-conteudo.figurao::after { right: 1.4cqw; }
+
+/* ---- diagrama de projeção: bloco clicável e modal, sem JavaScript ---------- */
+
+/* O palco tem a proporção exata do viewBox da projeção, então a imagem o preenche
+   sem sobra — e é isso que deixa as áreas clicáveis, posicionadas em porcentagem,
+   caírem em cima do bloco certo. */
+/* O palco se molda à imagem, em vez de impor proporção: com `aspect-ratio` o
+   navegador tira a altura da largura e ignora o teto, e o slide transborda em
+   silêncio. Moldado assim, a caixa do palco É a caixa da imagem — que é o que
+   faz as áreas clicáveis, medidas em porcentagem, caírem no bloco certo. */
+.palco {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
+  min-height: 0;
+  line-height: 0;
+}
+.palco > a { display: block; }
+.palco img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+.pontos { position: absolute; inset: 0; }
+.pontos a {
+  position: absolute;
+  border: 0.22cqw solid transparent;
+  border-radius: 0.7cqw;
+  transition: background-color .12s, border-color .12s;
+}
+.pontos a::after {
+  content: '';
+  position: absolute; right: 0.5cqw; top: 0.5cqw;
+  width: 1.5cqw; height: 1.5cqw;
+  border-radius: 50%;
+  background: var(--academics);
+  opacity: 0.28;
+}
+.pontos a:hover, .pontos a:focus-visible {
+  background: rgba(37, 99, 235, 0.09);
+  border-color: var(--academics);
+  outline: none;
+}
+.pontos a:hover::after, .pontos a:focus-visible::after { opacity: 1; }
+
+.dica {
+  font-size: 1.05cqw;
+  color: var(--tenue);
+  text-align: center;
+  margin-top: 0.7cqw;
+}
+.dica b { color: var(--academics); font-weight: 600; }
+
+/* O modal: escondido até alguém apontar para ele pelo endereço. */
+.modal { display: none; }
+.modal:target {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(15, 23, 42, 0.88);
+  align-items: center;
+  justify-content: center;
+  padding: 3.5vmin;
+}
+.modal .quadro {
+  background: var(--papel);
+  border-radius: 1.2vmin;
+  padding: 2.4vmin 2.4vmin 1.8vmin;
+  max-width: 94vw;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4vmin;
+  box-shadow: 0 4vmin 9vmin rgba(0, 0, 0, .5);
+}
+.modal h3 {
+  margin: 0;
+  font-size: 2.4vmin;
+  font-weight: 600;
+  color: var(--tinta);
+  padding-right: 12vmin;
+}
+.modal img {
+  max-width: 100%;
+  max-height: 78vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 0.6vmin;
+}
+.modal .sair {
+  position: absolute;
+  top: 5vmin;
+  right: 6vmin;
+  font-size: 2vmin;
+  color: #e2e8f0;
+  text-decoration: none;
+  border: 1px solid #64748b;
+  border-radius: 0.8vmin;
+  padding: 0.8vmin 1.6vmin;
+}
+.modal .sair:hover { background: #1e293b; color: #fff; }
+.modal .fundo { position: absolute; inset: 0; }
+
+/* Na impressão o modal não pode depender de clique: cada um vira sua própria página,
+   logo depois do slide a que pertence. É o que mantém o PDF completo. */
+@media print {
+  /* Só o diagrama completo vira página. O modal de bloco é ferramenta de
+     projeção, e no papel ele seria a mesma coisa recortada 113 vezes. */
+  .modal { display: none; }
+  .modal.inteiro { display: block; break-before: page; page-break-before: always; }
+  .modal .quadro {
+    max-width: none; max-height: none; box-shadow: none;
+    width: 1280px; height: 800px; padding: 40px;
+    align-items: center; justify-content: center;
+  }
+  .modal h3 { font-size: 26px; padding: 0 0 12px; }
+  .modal img { max-height: 690px; }
+  .modal .sair, .modal .fundo { display: none; }
+  .pontos { display: none; }
+  .dica { display: none; }
+}

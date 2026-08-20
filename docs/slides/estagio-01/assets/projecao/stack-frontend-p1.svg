@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 0 1380 639" width="1380" height="639">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-0d9488" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0d9488"/>
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect x="8" y="0" width="1380" height="639" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Stack tecnológica do frontend</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/web · uma SPA React que a própria API entrega · cada escolha desta pilha é paga em bytes por quem abre a tela no celular</text>
+  <rect x="40" y="92" width="930" height="130" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="114" font-size="23.8" fill="#475569" font-weight="600" text-anchor="start">Build e desenvolvimento</text>
+  <rect x="55" y="124" width="292" height="87" rx="8" ry="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="69" y="143" font-size="20.9" fill="#475569" font-weight="600" text-anchor="start">Vite 7.3.6</text>
+  <rect x="359" y="124" width="292" height="87" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="373" y="143" font-size="20.9" fill="#1d4ed8" font-weight="600" text-anchor="start">TypeScript 5.9.3</text>
+  <rect x="663" y="124" width="292" height="87" rx="8" ry="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="677" y="143" font-size="20.9" fill="#475569" font-weight="600" text-anchor="start">build</text>
+  <rect x="40" y="231" width="930" height="141" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="253" font-size="23.8" fill="#6d28d9" font-weight="600" text-anchor="start">Runtime</text>
+  <rect x="55" y="263" width="292" height="98" rx="8" ry="8" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="69" y="282" font-size="15.8" fill="#6d28d9" font-weight="600" text-anchor="start">React 19.2.8 + react-dom 19.2.8</text>
+  <rect x="359" y="263" width="292" height="98" rx="8" ry="8" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="373" y="282" font-size="20.9" fill="#6d28d9" font-weight="600" text-anchor="start">React Router 7.18.2</text>
+  <rect x="663" y="263" width="292" height="98" rx="8" ry="8" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="677" y="282" font-size="20.9" fill="#6d28d9" font-weight="600" text-anchor="start">Guardas</text>
+  <rect x="40" y="381" width="930" height="141" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="403" font-size="23.8" fill="#1d4ed8" font-weight="600" text-anchor="start">Interface — Mantine 8, e o CSS que só funciona na ordem certa</text>
+  <rect x="55" y="413" width="292" height="98" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="69" y="432" font-size="20.9" fill="#1d4ed8" font-weight="600" text-anchor="start">@mantine/core 8.3.18</text>
+  <rect x="359" y="413" width="292" height="98" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="373" y="432" font-size="11.4" fill="#1d4ed8" font-weight="600" text-anchor="start">mantineSheetsInLoadOrder.css.ts — 33 folhas</text>
+  <rect x="663" y="413" width="292" height="98" rx="8" ry="8" fill="#fffbeb" stroke="#fde68a" stroke-width="1.4"/>
+  <text x="677" y="432" font-size="12.0" fill="#92400e" font-weight="600" text-anchor="start">@mantine/dates está instalado e fica fora</text>
+  <rect x="40" y="531" width="930" height="215" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="553" font-size="23.8" fill="#15803d" font-weight="600" text-anchor="start">Estado e dados</text>
+  <rect x="55" y="563" width="292" height="98" rx="8" ry="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <text x="69" y="582" font-size="20.9" fill="#15803d" font-weight="600" text-anchor="start">shared/api/client.ts</text>
+  <rect x="359" y="563" width="292" height="98" rx="8" ry="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <text x="373" y="582" font-size="20.9" fill="#15803d" font-weight="600" text-anchor="start">TanStack Query 5.101</text>
+  <rect x="663" y="563" width="292" height="98" rx="8" ry="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <text x="677" y="582" font-size="20.9" fill="#15803d" font-weight="600" text-anchor="start">Formulários</text>
+  <rect x="55" y="670" width="900" height="65" rx="8" ry="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <text x="69" y="689" font-size="20.9" fill="#15803d" font-weight="600" text-anchor="start">A página mora na URL, e o envio leva chave própria</text>
+  <rect x="40" y="755" width="930" height="119" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="777" font-size="23.8" fill="#0f766e" font-weight="600" text-anchor="start">Contrato</text>
+  <rect x="55" y="787" width="598" height="76" rx="8" ry="8" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.4"/>
+  <text x="69" y="806" font-size="20.9" fill="#0f766e" font-weight="600" text-anchor="start">@escolaviva/contracts</text>
+  <rect x="665" y="787" width="290" height="76" rx="8" ry="8" fill="#fef2f2" stroke="#fecaca" stroke-width="1.4"/>
+  <text x="679" y="806" font-size="20.9" fill="#b91c1c" font-weight="600" text-anchor="start"></text>
+  <circle cx="687" cy="802" r="7.5" fill="#ffffff" stroke="#dc2626" stroke-width="1.5"/>
+  <path d="M 682,797 L 692,807" fill="none" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="703" y="806" font-size="18.5" fill="#b91c1c" font-weight="600" text-anchor="start">O que o depcruise recusa</text>
+  <rect x="40" y="883" width="930" height="153" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="905" font-size="23.8" fill="#c2410c" font-weight="600" text-anchor="start">Testes</text>
+  <rect x="55" y="915" width="292" height="110" rx="8" ry="8" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.4"/>
+  <text x="69" y="934" font-size="11.0" fill="#c2410c" font-weight="600" text-anchor="start">Vitest 4.1.10 em jsdom 26 — 41 arquivos em tests/</text>
+  <rect x="359" y="915" width="292" height="110" rx="8" ry="8" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.4"/>
+  <text x="373" y="934" font-size="20.9" fill="#c2410c" font-weight="600" text-anchor="start">Testing Library 16.3</text>
+  <rect x="663" y="915" width="292" height="110" rx="8" ry="8" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.4"/>
+  <text x="677" y="934" font-size="20.9" fill="#c2410c" font-weight="600" text-anchor="start">Orçamento</text>
+  <rect x="40" y="1045" width="930" height="119" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="1067" font-size="23.8" fill="#475569" font-weight="600" text-anchor="start">Saída — apps/web/dist: o que a API entrega ao navegador</text>
+  <rect x="55" y="1077" width="598" height="76" rx="8" ry="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="69" y="1096" font-size="20.9" fill="#475569" font-weight="600" text-anchor="start">21 arquivos em dist/assets, todos com hash no nome</text>
+  <rect x="665" y="1077" width="290" height="76" rx="8" ry="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="679" y="1096" font-size="20.9" fill="#475569" font-weight="600" text-anchor="start">sourcemap: true</text>
+  <rect x="986" y="92" width="374" height="310" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+  <text x="1000" y="116" font-size="13.9" fill="#475569" font-weight="600" text-anchor="start">O caminho de um dado, do clique até o servidor</text>
+  <rect x="1000" y="132" width="300" height="28" rx="6" ry="6" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <path d="M 1014,160 L 1014,182" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#p-475569)"/>
+  <rect x="1000" y="182" width="300" height="28" rx="6" ry="6" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <path d="M 1014,210 L 1014,232" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#p-475569)"/>
+  <rect x="1000" y="232" width="300" height="28" rx="6" ry="6" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <path d="M 1014,260 L 1014,282" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#p-475569)"/>
+  <rect x="1000" y="282" width="300" height="28" rx="6" ry="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+  <path d="M 1014,310 L 1014,332" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#p-475569)"/>
+  <rect x="1000" y="332" width="300" height="28" rx="6" ry="6" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <path d="M 1300,346 L 1320,346 L 1320,146 L 1302,146" fill="none" stroke="#dc2626" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#p-dc2626)"/>
+  <rect x="986" y="414" width="374" height="152" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+  <text x="1000" y="438" font-size="21.8" fill="#475569" font-weight="600" text-anchor="start">O portão</text>
+  <rect x="1000" y="451" width="3" height="13" rx="1" ry="1" fill="#2563eb"/>
+  <rect x="1000" y="473" width="3" height="13" rx="1" ry="1" fill="#7c3aed"/>
+  <rect x="1000" y="495" width="3" height="13" rx="1" ry="1" fill="#ea580c"/>
+  <rect x="1000" y="517" width="3" height="13" rx="1" ry="1" fill="#16a34a"/>
+  <rect x="1000" y="539" width="3" height="13" rx="1" ry="1" fill="#dc2626"/>
+  <rect x="986" y="578" width="374" height="190" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+  <text x="1000" y="602" font-size="21.8" fill="#475569" font-weight="600" text-anchor="start">O front em números</text>
+  <text x="1000" y="636" font-size="38.0" fill="#111827" font-weight="600" text-anchor="start">149</text>
+  <text x="1184" y="636" font-size="38.0" fill="#111827" font-weight="600" text-anchor="start">41</text>
+  <text x="1000" y="686" font-size="38.0" fill="#111827" font-weight="600" text-anchor="start">5</text>
+  <text x="1184" y="686" font-size="38.0" fill="#111827" font-weight="600" text-anchor="start">185 KB</text>
+  <text x="1000" y="736" font-size="38.0" fill="#111827" font-weight="600" text-anchor="start">16</text>
+  <text x="1184" y="736" font-size="38.0" fill="#111827" font-weight="600" text-anchor="start">33</text>
+  <rect x="986" y="780" width="374" height="130" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+  <text x="1000" y="804" font-size="11.4" fill="#92400e" font-weight="600" text-anchor="start">Instalado no package.json e fora do bundle, de propósito</text>
+  <rect x="986" y="922" width="374" height="240" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+  <text x="1000" y="946" font-size="21.8" fill="#475569" font-weight="600" text-anchor="start">Legenda</text>
+  <path d="M 1004,966 L 1060,966" fill="none" stroke="#475569" stroke-width="1.8" marker-end="url(#p-475569)"/>
+  <path d="M 1004,992 L 1060,992" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-dc2626)"/>
+  <rect x="1004" y="1038" width="13" height="12" rx="3" ry="3" fill="#f8fafc" stroke="#475569" stroke-width="1.5"/>
+  <rect x="1004" y="1056" width="13" height="12" rx="3" ry="3" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <rect x="1004" y="1074" width="13" height="12" rx="3" ry="3" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <rect x="1004" y="1092" width="13" height="12" rx="3" ry="3" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <rect x="1004" y="1110" width="13" height="12" rx="3" ry="3" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <rect x="1004" y="1128" width="13" height="12" rx="3" ry="3" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+  <rect x="1004" y="1146" width="13" height="12" rx="3" ry="3" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+</svg>

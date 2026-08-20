@@ -1,0 +1,275 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1200" width="1400" height="1200">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-0d9488" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0d9488"/>
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1400" height="1200" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Stack tecnológica do frontend</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/web · uma SPA React que a própria API entrega · cada escolha desta pilha é paga em bytes por quem abre a tela no celular</text>
+  <rect x="40" y="92" width="930" height="130" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="114" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">Build e desenvolvimento — o que transforma TypeScript em bytes, e quem reprova antes disso</text>
+  <rect x="55" y="124" width="292" height="87" rx="8" ry="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="69" y="143" font-size="11" fill="#475569" font-weight="600" text-anchor="start">Vite 7.3.6 — servidor de dev na porta 5173</text>
+  <text x="69" y="160" font-size="9" fill="#111827" font-weight="400" text-anchor="start">proxy /api → localhost:3333: a porta sai do PORT do</text>
+  <text x="69" y="171.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">.env da raiz, e 3000 é só o default. O front não tem</text>
+  <text x="69" y="182.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">arquivo próprio de propósito — um lugar só decide a</text>
+  <text x="69" y="193.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">porta, e o proxy nunca discorda dela.</text>
+  <text x="69" y="204.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Só o que começa com VITE_ chega ao navegador.</text>
+  <rect x="359" y="124" width="292" height="87" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="373" y="143" font-size="11" fill="#1d4ed8" font-weight="600" text-anchor="start">TypeScript 5.9.3 — quem reprova não é o bundler</text>
+  <text x="373" y="160" font-size="9" fill="#111827" font-weight="400" text-anchor="start">Vite transpila e não checa tipo: um erro de tipo entra</text>
+  <text x="373" y="171.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">no bundle sem reclamar. Quem reprova é tsc --noEmit,</text>
+  <text x="373" y="182.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">nos cinco projetos do repositório, e é o primeiro</text>
+  <text x="373" y="193.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">passo do bun run verify — antes de qualquer teste.</text>
+  <text x="373" y="204.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">jsx: react-jsx · types: vite/client e jest-dom.</text>
+  <rect x="663" y="124" width="292" height="87" rx="8" ry="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="677" y="143" font-size="11" fill="#475569" font-weight="600" text-anchor="start">build — alvo es2022, sourcemap e manifest</text>
+  <text x="677" y="160" font-size="9" fill="#111827" font-weight="400" text-anchor="start">es2022 é o piso de navegador que o curso assume: sem</text>
+  <text x="677" y="171.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">transpilar para trás, o bundle não carrega polyfill</text>
+  <text x="677" y="182.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">que ninguém usa.</text>
+  <text x="677" y="193.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">manifest: true é o mapa de chunk para arquivo — sem</text>
+  <text x="677" y="204.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">ele o teste de orçamento não sabe o que pesar.</text>
+  <rect x="40" y="231" width="930" height="141" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="253" font-size="12.5" fill="#6d28d9" font-weight="600" text-anchor="start">Runtime — React 19 e React Router 7: a URL decide a tela, o papel decide a área, e a área só desce quando é pedida</text>
+  <rect x="55" y="263" width="292" height="98" rx="8" ry="8" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="69" y="282" font-size="11" fill="#6d28d9" font-weight="600" text-anchor="start">React 19.2.8 + react-dom 19.2.8</text>
+  <text x="69" y="299" font-size="9" fill="#111827" font-weight="400" text-anchor="start">createRoot em src/main.tsx, dentro de StrictMode.</text>
+  <text x="69" y="310.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">O primeiro import do arquivo é a folha de estilo, e</text>
+  <text x="69" y="321.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">não é descuido: a ordem do CSS é decidida ali, e a</text>
+  <text x="69" y="332.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">camada de baixo explica por que ela não pode mudar.</text>
+  <text x="69" y="343.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">MantineProvider → Notifications → QueryClientProvider</text>
+  <text x="69" y="355" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">→ ErrorBoundary → RouterProvider, nessa ordem.</text>
+  <rect x="359" y="263" width="292" height="98" rx="8" ry="8" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="373" y="282" font-size="11" fill="#6d28d9" font-weight="600" text-anchor="start">React Router 7.18.2 — createBrowserRouter(routes)</text>
+  <text x="373" y="299" font-size="9" fill="#111827" font-weight="400" text-anchor="start">Cinco áreas por papel, cada uma atrás do seu lazy():</text>
+  <text x="373" y="310.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">network · registrar · teacher · guardian ·</text>
+  <text x="373" y="321.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">announcements. lazy por área — um responsável nunca</text>
+  <text x="373" y="332.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">baixa as telas da secretaria. O dist confirma: cinco</text>
+  <text x="373" y="343.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">arquivos routes-&lt;hash&gt;.js, um por área.</text>
+  <text x="373" y="355" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">A última rota é * → NotFound, e não página em branco.</text>
+  <rect x="663" y="263" width="292" height="98" rx="8" ry="8" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="677" y="282" font-size="11" fill="#6d28d9" font-weight="600" text-anchor="start">Guardas — RequireLogin e RequireRole</text>
+  <text x="677" y="299" font-size="9" fill="#111827" font-weight="400" text-anchor="start">RequireLogin protege o Layout inteiro; RequireRole</text>
+  <text x="677" y="310.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">protege cada área pelo papel de quem entrou.</text>
+  <text x="677" y="321.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Toda área carregada sob demanda vem embrulhada em</text>
+  <text x="677" y="332.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">ErrorBoundary e Suspense próprios: a que falhar ao</text>
+  <text x="677" y="343.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">carregar não derruba o resto da aplicação.</text>
+  <text x="677" y="355" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Login e troca de senha também são lazy.</text>
+  <rect x="40" y="381" width="930" height="141" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="403" font-size="12.5" fill="#1d4ed8" font-weight="600" text-anchor="start">Interface — Mantine 8, e o CSS que só funciona na ordem certa</text>
+  <rect x="55" y="413" width="292" height="98" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="69" y="432" font-size="11" fill="#1d4ed8" font-weight="600" text-anchor="start">@mantine/core 8.3.18 · hooks · notifications</text>
+  <text x="69" y="449" font-size="9" fill="#111827" font-weight="400" text-anchor="start">MantineProvider recebe o theme do repositório: rampa</text>
+  <text x="69" y="460.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">da marca, defaultRadius 0 em todos os tamanhos e</text>
+  <text x="69" y="471.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">tipografia fluida. O tema é código, não folha avulsa —</text>
+  <text x="69" y="482.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">quem muda a identidade visual mexe em um arquivo só.</text>
+  <text x="69" y="493.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">PostCSS traduz os breakpoints usados nas media</text>
+  <text x="69" y="505" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">queries. Notifications é onde todo aviso aparece.</text>
+  <rect x="359" y="413" width="292" height="98" rx="8" ry="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="373" y="432" font-size="11" fill="#1d4ed8" font-weight="600" text-anchor="start">mantineSheetsInLoadOrder.css.ts — 33 folhas</text>
+  <text x="373" y="449" font-size="9" fill="#111827" font-weight="400" text-anchor="start">Não é a folha inteira do pacote, e não está em ordem</text>
+  <text x="373" y="460.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">alfabética: UnstyledButton.css tira borda, fundo e</text>
+  <text x="373" y="471.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">padding, e Button.css devolve os três na mesma</text>
+  <text x="373" y="482.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">especificidade. Ordenar por nome renderiza todo botão</text>
+  <text x="373" y="493.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">da aplicação como texto pelado — e há teste que compara</text>
+  <text x="373" y="505" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">a posição das duas classes no CSS construído.</text>
+  <rect x="663" y="413" width="292" height="98" rx="8" ry="8" fill="#fffbeb" stroke="#fde68a" stroke-width="1.4"/>
+  <text x="677" y="432" font-size="11" fill="#92400e" font-weight="600" text-anchor="start">@mantine/dates está instalado e fica fora</text>
+  <text x="677" y="449" font-size="9" fill="#111827" font-weight="400" text-anchor="start">Nenhum módulo de src/ nomeia o pacote: toda data na</text>
+  <text x="677" y="460.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">tela é um input type=&quot;date&quot;, e o calendário é o do</text>
+  <text x="677" y="471.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">próprio navegador, já traduzido e já acessível.</text>
+  <text x="677" y="482.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">O teste varre src/ atrás do nome do pacote e o CSS</text>
+  <text x="677" y="493.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">construído atrás de uma variável que só a folha dele</text>
+  <text x="677" y="505" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">declara. Calendário estilizado sai caro para pouca coisa.</text>
+  <rect x="40" y="531" width="930" height="215" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="553" font-size="12.5" fill="#15803d" font-weight="600" text-anchor="start">Estado e dados — de onde vem o que a tela mostra, e por onde sai o que ela envia</text>
+  <rect x="55" y="563" width="292" height="98" rx="8" ry="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <text x="69" y="582" font-size="11" fill="#15803d" font-weight="600" text-anchor="start">shared/api/client.ts — a única instância Axios</text>
+  <text x="69" y="599" font-size="9" fill="#111827" font-weight="400" text-anchor="start">Axios 1.19.0, baseURL /api/v1 e withCredentials: o</text>
+  <text x="69" y="610.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">cookie de sessão vai junto, e é ele que diz quem pede —</text>
+  <text x="69" y="621.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">não um token guardado no JavaScript.</text>
+  <text x="69" y="632.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Interceptor de escrita: X-Requested-By em POST, PUT,</text>
+  <text x="69" y="643.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">PATCH e DELETE; Idempotency-Key só no POST, e só se</text>
+  <text x="69" y="655" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">quem chamou não trouxe a sua. Ninguém mais chama fetch.</text>
+  <rect x="359" y="563" width="292" height="98" rx="8" ry="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <text x="373" y="582" font-size="11" fill="#15803d" font-weight="600" text-anchor="start">TanStack Query 5.101 — o cache do que é do servidor</text>
+  <text x="373" y="599" font-size="9" fill="#111827" font-weight="400" text-anchor="start">queries.ts e mutations.ts em cada área: a tela pede</text>
+  <text x="373" y="610.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">por chave e não guarda cópia própria do que veio.</text>
+  <text x="373" y="621.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">retry: false em query e em mutation — repetir um 422</text>
+  <text x="373" y="632.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">não muda a resposta, só gasta a paciência de quem</text>
+  <text x="373" y="643.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">está esperando.</text>
+  <text x="373" y="655" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">keepPreviousData nas listas: a página não pisca.</text>
+  <rect x="663" y="563" width="292" height="98" rx="8" ry="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <text x="677" y="582" font-size="11" fill="#15803d" font-weight="600" text-anchor="start">Formulários — react-hook-form 7.85 com zod 4.4</text>
+  <text x="677" y="599" font-size="9" fill="#111827" font-weight="400" text-anchor="start">standardSchemaResolver, de @hookform/resolvers 5.9,</text>
+  <text x="677" y="610.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">em 16 telas com formulário.</text>
+  <text x="677" y="621.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">O mesmo zod que valida no navegador tem irmão no</text>
+  <text x="677" y="632.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">servidor: daqui é gentileza — poupa uma ida à rede —,</text>
+  <text x="677" y="643.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">de lá é a regra. applyRefusal devolve a recusa do</text>
+  <text x="677" y="655" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">servidor ao campo que ela nomeia, não a um aviso solto.</text>
+  <rect x="55" y="670" width="900" height="65" rx="8" ry="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <text x="69" y="689" font-size="11" fill="#15803d" font-weight="600" text-anchor="start">A página mora na URL, e o envio leva chave própria</text>
+  <text x="69" y="706" font-size="9" fill="#111827" font-weight="400" text-anchor="start">usePage() lê o cursor na barra de endereço com useSearchParams: a página 3 sobrevive ao F5, cabe em um link colado na conversa e volta igual para quem abrir.</text>
+  <text x="69" y="717.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Cada listagem tem cursor com nome próprio (p, pGuardians, pEnrollments, pSubjects, pUnread, pRead), então duas tabelas na mesma tela paginam sozinhas.</text>
+  <text x="69" y="728.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">useSubmission() prende uma Idempotency-Key ao envio e só troca quando o servidor aceita: dois cliques no mesmo botão não matriculam a mesma criança duas vezes.</text>
+  <rect x="40" y="755" width="930" height="119" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="777" font-size="12.5" fill="#0f766e" font-weight="600" text-anchor="start">Contrato — packages/contracts é o único caminho deste repositório que o front pode importar</text>
+  <rect x="55" y="787" width="598" height="76" rx="8" ry="8" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.4"/>
+  <text x="69" y="806" font-size="11" fill="#0f766e" font-weight="600" text-anchor="start">@escolaviva/contracts — 13 arquivos, e nenhum import próprio</text>
+  <text x="69" y="823" font-size="9" fill="#111827" font-weight="400" text-anchor="start">Tipos e enumerações que os dois lados importam: a API produz a forma, o front consome a mesma, e nenhum importa o outro.</text>
+  <text x="69" y="834.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">A regra web-sees-only-contracts está escrita como permissão — apps/web pode importar packages/contracts e nada mais —</text>
+  <text x="69" y="845.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">e não como proibição a apps/api/src: proibição deixa caminho sem nome por onde escapar. Vale para src/ e para tests/.</text>
+  <text x="69" y="856.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Um arquivo de contrato não importa ninguém, então esta seta jamais arrasta o grafo do servidor para dentro do navegador.</text>
+  <rect x="665" y="787" width="290" height="76" rx="8" ry="8" fill="#fef2f2" stroke="#fecaca" stroke-width="1.4"/>
+  <text x="679" y="806" font-size="11" fill="#b91c1c" font-weight="600" text-anchor="start"></text>
+  <text x="679" y="823" font-size="9" fill="#111827" font-weight="400" text-anchor="start">apps/api/src, apps/api/tests, scripts/,</text>
+  <text x="679" y="834.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">migrations/, infra/ — nada disso roda</text>
+  <text x="679" y="845.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">em um navegador. bun run check reprova,</text>
+  <text x="679" y="856.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">e o check é passo do bun run verify.</text>
+  <circle cx="687" cy="802" r="7.5" fill="#ffffff" stroke="#dc2626" stroke-width="1.5"/>
+  <path d="M 682,797 L 692,807" fill="none" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="703" y="806" font-size="11" fill="#b91c1c" font-weight="600" text-anchor="start">O que o depcruise recusa</text>
+  <rect x="40" y="883" width="930" height="153" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="905" font-size="12.5" fill="#c2410c" font-weight="600" text-anchor="start">Testes — Vitest, Testing Library e MSW no dia a dia, mais o orçamento que pesa o bundle já construído</text>
+  <rect x="55" y="915" width="292" height="110" rx="8" ry="8" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.4"/>
+  <text x="69" y="934" font-size="11" fill="#c2410c" font-weight="600" text-anchor="start">Vitest 4.1.10 em jsdom 26 — 41 arquivos em tests/</text>
+  <text x="69" y="951" font-size="9" fill="#111827" font-weight="400" text-anchor="start">globals: true e setup em tests/testSetup.ts, que dá a</text>
+  <text x="69" y="962.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">jsdom o que ele não tem e o Mantine usa (matchMedia,</text>
+  <text x="69" y="973.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">ResizeObserver).</text>
+  <text x="69" y="984.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Os módulos de CSS são processados durante a suíte —</text>
+  <text x="69" y="995.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">sem isso uma regra some do documento e ninguém percebe:</text>
+  <text x="69" y="1007" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">foi assim que o skip link ficou visível na tela toda</text>
+  <text x="69" y="1018.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">com a suíte inteira verde. Cobertura mínima: 80/80/80.</text>
+  <rect x="359" y="915" width="292" height="110" rx="8" ry="8" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.4"/>
+  <text x="373" y="934" font-size="11" fill="#c2410c" font-weight="600" text-anchor="start">Testing Library 16.3 · user-event 14.6 · MSW 2.15</text>
+  <text x="373" y="951" font-size="9" fill="#111827" font-weight="400" text-anchor="start">O teste procura o que a pessoa vê — papel, rótulo,</text>
+  <text x="373" y="962.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">texto — e não o nome do componente.</text>
+  <text x="373" y="973.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">MSW responde no lugar da API, e onUnhandledRequest:</text>
+  <text x="373" y="984.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">'error' faz falhar alto o pedido que ninguém previu.</text>
+  <text x="373" y="995.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">O contraditório é real: um fixture que erra a forma do</text>
+  <text x="373" y="1007" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">dado deixa o defeito verde. A forma vem do servidor,</text>
+  <text x="373" y="1018.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">não da suposição de quem escreveu o teste.</text>
+  <rect x="663" y="915" width="292" height="110" rx="8" ry="8" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.4"/>
+  <text x="677" y="934" font-size="11" fill="#c2410c" font-weight="600" text-anchor="start">Orçamento — tests/budget.test.ts, com config à parte</text>
+  <text x="677" y="951" font-size="9" fill="#111827" font-weight="400" text-anchor="start">Ele lê dist/, que só existe depois do build:web; por</text>
+  <text x="677" y="962.2" font-size="9" fill="#111827" font-weight="400" text-anchor="start">isso mora fora da suíte comum, onde passaria justamente</text>
+  <text x="677" y="973.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">porque o arquivo que deveria pesar não está lá.</text>
+  <text x="677" y="984.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Teto de 185 KB gzip no caminho do responsável, e a</text>
+  <text x="677" y="995.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">medida de hoje dá 184 KB: menos de 1 KB de folga.</text>
+  <text x="677" y="1007" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Também cobra chunk próprio por área e a pilha de</text>
+  <text x="677" y="1018.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">formulário longe de quem só quer ver uma nota.</text>
+  <rect x="40" y="1045" width="930" height="119" rx="12" ry="12" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="55" y="1067" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">Saída — apps/web/dist: o que a API entrega ao navegador</text>
+  <rect x="55" y="1077" width="598" height="76" rx="8" ry="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="69" y="1096" font-size="11" fill="#475569" font-weight="600" text-anchor="start">21 arquivos em dist/assets, todos com hash no nome</text>
+  <text x="69" y="1113" font-size="9" fill="#111827" font-weight="400" text-anchor="start">index-&lt;hash&gt;.js e index-&lt;hash&gt;.css são a entrada; os cinco routes-&lt;hash&gt;.js são as áreas por papel; o resto são</text>
+  <text x="69" y="1124.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">pedaços que mais de uma tela usa (Table, TextInput, PasswordInput, Alert, Checkbox, Badge).</text>
+  <text x="69" y="1135.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">O nome carrega o conteúdo, então um Cache-Control imutável de um ano é seguro — e o index.html, que é quem nomeia</text>
+  <text x="69" y="1146.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">todos eles, é o único arquivo que nunca é cacheado.</text>
+  <rect x="665" y="1077" width="290" height="76" rx="8" ry="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="679" y="1096" font-size="11" fill="#475569" font-weight="600" text-anchor="start">sourcemap: true · manifest: true</text>
+  <text x="679" y="1113" font-size="9" fill="#111827" font-weight="400" text-anchor="start">O sourcemap sobe junto: um erro em</text>
+  <text x="679" y="1124.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">produção tem linha de verdade.</text>
+  <text x="679" y="1135.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">O manifest é o que o orçamento lê para</text>
+  <text x="679" y="1146.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">saber o que alguém de fato baixa.</text>
+  <rect x="986" y="92" width="374" height="310" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+  <text x="1000" y="116" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">O caminho de um dado, do clique até o servidor</text>
+  <rect x="1000" y="132" width="300" height="28" rx="6" ry="6" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="1012" y="150" font-size="9.2" fill="#6d28d9" font-weight="600" text-anchor="start">features/&lt;área&gt; — a tela</text>
+  <path d="M 1014,160 L 1014,182" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#p-475569)"/>
+  <text x="1024" y="175" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">useQuery / useMutation, sempre por chave</text>
+  <rect x="1000" y="182" width="300" height="28" rx="6" ry="6" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <text x="1012" y="200" font-size="9.2" fill="#15803d" font-weight="600" text-anchor="start">queries.ts · mutations.ts — TanStack Query</text>
+  <path d="M 1014,210 L 1014,232" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#p-475569)"/>
+  <text x="1024" y="225" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">cache do que é do servidor; retry: false</text>
+  <rect x="1000" y="232" width="300" height="28" rx="6" ry="6" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.4"/>
+  <text x="1012" y="250" font-size="9.2" fill="#15803d" font-weight="600" text-anchor="start">shared/api/client.ts — uma instância Axios</text>
+  <path d="M 1014,260 L 1014,282" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#p-475569)"/>
+  <text x="1024" y="275" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">carimba X-Requested-By e Idempotency-Key</text>
+  <rect x="1000" y="282" width="300" height="28" rx="6" ry="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="1012" y="300" font-size="9.2" fill="#475569" font-weight="600" text-anchor="start">dev: proxy do Vite, 5173 → 3333</text>
+  <path d="M 1014,310 L 1014,332" fill="none" stroke="#475569" stroke-width="1.4" marker-end="url(#p-475569)"/>
+  <text x="1024" y="325" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">mesma origem: o cookie de sessão vai junto</text>
+  <rect x="1000" y="332" width="300" height="28" rx="6" ry="6" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="1012" y="350" font-size="9.2" fill="#1d4ed8" font-weight="600" text-anchor="start">apps/api — /api/v1</text>
+  <path d="M 1300,346 L 1320,346 L 1320,146 L 1302,146" fill="none" stroke="#dc2626" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#p-dc2626)"/>
+  <text x="1334" y="246" font-size="8.2" fill="#dc2626" font-weight="600" text-anchor="middle" transform="rotate(-90 1334 246)">401 volta ao login</text>
+  <text x="1000" y="380" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">Um 401 que não veio de /session limpa o cache de todo mundo,</text>
+  <text x="1000" y="392" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">avisa a pessoa e a devolve ao login guardando de onde ela veio.</text>
+  <rect x="986" y="414" width="374" height="152" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+  <text x="1000" y="438" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">O portão — bun run verify, cinco passos e nenhum opcional</text>
+  <rect x="1000" y="451" width="3" height="13" rx="1" ry="1" fill="#2563eb"/>
+  <text x="1010" y="460" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">typecheck</text>
+  <text x="1078" y="460" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">tsc --noEmit nos cinco projetos do repositório</text>
+  <rect x="1000" y="473" width="3" height="13" rx="1" ry="1" fill="#7c3aed"/>
+  <text x="1010" y="482" font-size="9.5" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">check</text>
+  <text x="1078" y="482" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">depcruise nas três árvores; a regra do front mora lá</text>
+  <rect x="1000" y="495" width="3" height="13" rx="1" ry="1" fill="#ea580c"/>
+  <text x="1010" y="504" font-size="9.5" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">magic</text>
+  <text x="1078" y="504" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">literal sem dono reprova — em apps/web/src também</text>
+  <rect x="1000" y="517" width="3" height="13" rx="1" ry="1" fill="#16a34a"/>
+  <text x="1010" y="526" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">test</text>
+  <text x="1078" y="526" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">a suíte da API, a do projeto e os 41 arquivos do front</text>
+  <rect x="1000" y="539" width="3" height="13" rx="1" ry="1" fill="#dc2626"/>
+  <text x="1010" y="548" font-size="9.5" fill="#dc2626" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">budget</text>
+  <text x="1078" y="548" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">build:web e, em seguida, a balança em cima do dist/</text>
+  <rect x="986" y="578" width="374" height="190" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+  <text x="1000" y="602" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">O front em números</text>
+  <text x="1000" y="636" font-size="20" fill="#111827" font-weight="600" text-anchor="start">149</text>
+  <text x="1000" y="652" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">arquivos .ts e .tsx em src/</text>
+  <text x="1184" y="636" font-size="20" fill="#111827" font-weight="600" text-anchor="start">41</text>
+  <text x="1184" y="652" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">arquivos de teste em tests/</text>
+  <text x="1000" y="686" font-size="20" fill="#111827" font-weight="600" text-anchor="start">5</text>
+  <text x="1000" y="702" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">áreas com chunk próprio</text>
+  <text x="1184" y="686" font-size="20" fill="#111827" font-weight="600" text-anchor="start">185 KB</text>
+  <text x="1184" y="702" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">teto gzip do responsável</text>
+  <text x="1000" y="736" font-size="20" fill="#111827" font-weight="600" text-anchor="start">16</text>
+  <text x="1000" y="752" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">telas com formulário validado</text>
+  <text x="1184" y="736" font-size="20" fill="#111827" font-weight="600" text-anchor="start">33</text>
+  <text x="1184" y="752" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">folhas do Mantine, em ordem</text>
+  <rect x="986" y="780" width="374" height="130" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+  <text x="1000" y="804" font-size="11.5" fill="#92400e" font-weight="600" text-anchor="start">Instalado no package.json e fora do bundle, de propósito</text>
+  <text x="1000" y="824" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">@mantine/dates e dayjs — nenhuma tela os importa. Toda data é</text>
+  <text x="1000" y="835.6" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">um input type=&quot;date&quot;, e há teste varrendo src/ e o CSS pronto</text>
+  <text x="1000" y="847.2" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">atrás de qualquer resquício deles.</text>
+  <text x="1000" y="870.4" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">zustand — nenhum arquivo de src/ o importa. Estado de servidor</text>
+  <text x="1000" y="882" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">é do TanStack Query e estado de tela é useState; uma terceira</text>
+  <text x="1000" y="893.6" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">caixa de estado entra no dia em que alguma tela pedir.</text>
+  <rect x="986" y="922" width="374" height="240" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+  <text x="1000" y="946" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Legenda</text>
+  <path d="M 1004,966 L 1060,966" fill="none" stroke="#475569" stroke-width="1.8" marker-end="url(#p-475569)"/>
+  <text x="1072" y="970" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">chamada em tempo de execução</text>
+  <path d="M 1004,992 L 1060,992" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-dc2626)"/>
+  <text x="1072" y="989" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">recusa — o 401 que devolve ao login, e o</text>
+  <text x="1072" y="1000" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">import que o depcruise reprova</text>
+  <text x="1000" y="1024" font-size="9" fill="#111827" font-weight="600" text-anchor="start">As cores dizem a camada, não o pacote:</text>
+  <rect x="1004" y="1038" width="13" height="12" rx="3" ry="3" fill="#f8fafc" stroke="#475569" stroke-width="1.5"/>
+  <text x="1026" y="1048" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">ferramenta de build e artefato construído</text>
+  <rect x="1004" y="1056" width="13" height="12" rx="3" ry="3" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="1026" y="1066" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">runtime — React e o roteamento por papel</text>
+  <rect x="1004" y="1074" width="13" height="12" rx="3" ry="3" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1026" y="1084" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">interface — Mantine, tema e ordem do CSS</text>
+  <rect x="1004" y="1092" width="13" height="12" rx="3" ry="3" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="1026" y="1102" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">dados — Axios, TanStack Query, formulários</text>
+  <rect x="1004" y="1110" width="13" height="12" rx="3" ry="3" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="1026" y="1120" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">contrato — os tipos que cruzam a fronteira</text>
+  <rect x="1004" y="1128" width="13" height="12" rx="3" ry="3" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="1026" y="1138" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">testes e o orçamento de bytes</text>
+  <rect x="1004" y="1146" width="13" height="12" rx="3" ry="3" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="1026" y="1156" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">declarado e deliberadamente fora do bundle</text>
+  <text x="36" y="1180" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Levantado de apps/web/package.json, bun.lock, vite.config.ts, vitest.budget.config.ts, .dependency-cruiser.js, src/, tests/ e dist/. Estado do Estágio 01.</text>
+</svg>

@@ -1,0 +1,29 @@
+[
+ {
+  "id": "term-lifecycle--aberto",
+  "rotulo": "aberto",
+  "imagem": "assets/blocos/term-lifecycle--aberto.png",
+  "esquerda": 14.109,
+  "topo": 41.226,
+  "largura": 19.38,
+  "altura": 23.256
+ },
+ {
+  "id": "term-lifecycle--fechado",
+  "rotulo": "fechado",
+  "imagem": "assets/blocos/term-lifecycle--fechado.png",
+  "esquerda": 53.643,
+  "topo": 41.226,
+  "largura": 19.38,
+  "altura": 23.256
+ },
+ {
+  "id": "term-lifecycle--uma-regra-tr-s-mecanismos",
+  "rotulo": "Uma regra, três mecanismos",
+  "imagem": "assets/blocos/term-lifecycle--uma-regra-tr-s-mecanismos.png",
+  "esquerda": 76.124,
+  "topo": 41.226,
+  "largura": 21.705,
+  "altura": 52.854
+ }
+]

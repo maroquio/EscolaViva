@@ -1,0 +1,2390 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EscolaViva — Estágio 1</title>
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<section class="slide" id="capa" data-tipo="capa">
+  <div class="slide-conteudo capa" data-n="01">
+
+  <div class="risca"></div>
+  <h1>EscolaViva</h1>
+  <p class="sub">Estágio 1 — a secretaria que cabe em um repositório</p>
+  <p class="meta">TEES2 · Tópicos Especiais em Engenharia de Software II<br>Instituto Federal do Espírito Santo<br>20 de agosto de 2026</p>
+  </div>
+</section>
+<section class="slide" id="indice">
+  <div class="slide-conteudo" data-n="02">
+    <h2>O caminho de hoje</h2>
+    <nav class="indice">
+      <p class="grupo">O sistema</p>
+      <a href="#s02-abertura"><b>04</b>Que sistema é este</a>
+      <a href="#s03-estagio1"><b>05</b>O que o Estágio 1 é</a>
+      <a href="#s04-fora"><b>06</b>O que ficou de fora, de propósito</a>
+      <a href="#s05-timeline"><b>07</b>Onde o Estágio 1 mora</a>
+      <a href="#s06-dores"><b>08</b>As dores plantadas de propósito</a>
+      <a href="#s-rf-1"><b>09</b>Requisitos funcionais — acesso e rede</a>
+      <a href="#s-rf-2"><b>10</b>Requisitos funcionais — secretaria</a>
+      <a href="#s-rf-3"><b>11</b>Requisitos funcionais — professor, responsável e comunicação</a>
+      <a href="#s-rnf-1"><b>12</b>Requisitos não funcionais — e como cada um é verificado</a>
+      <a href="#s-rnf-2"><b>13</b>Requisitos não funcionais — manutenção e recuperação</a>
+      <p class="grupo">O domínio</p>
+      <a href="#casos-de-uso-p1"><b>15</b>Casos de uso (1 de 2)</a>
+      <a href="#casos-de-uso-p2"><b>16</b>Casos de uso (2 de 2)</a>
+      <a href="#invariantes"><b>19</b>Onde mora cada invariante</a>
+      <a href="#dominio"><b>22</b>A camada de domínio, bloco a bloco</a>
+      <a href="#er"><b>25</b>Modelo de dados</a>
+      <a href="#estado-matricula"><b>29</b>Ciclo de vida da matrícula</a>
+      <a href="#estado-sessao"><b>30</b>Ciclo de vida da sessão</a>
+      <a href="#estado-bimestre"><b>31</b>Ciclo de vida do bimestre</a>
+      <a href="#estado-escrita"><b>32</b>Ciclo de vida de uma escrita</a>
+      <p class="grupo">A arquitetura</p>
+      <a href="#arquitetura-p1"><b>34</b>Arquitetura da aplicação (1 de 2)</a>
+      <a href="#arquitetura-p2"><b>35</b>Arquitetura da aplicação (2 de 2)</a>
+      <a href="#sequencia-post-p1"><b>40</b>O caminho de um POST, do clique ao commit (1 de 2)</a>
+      <a href="#sequencia-post-p2"><b>41</b>O caminho de um POST, do clique ao commit (2 de 2)</a>
+      <a href="#s-stack-back"><b>42</b>Stack do backend</a>
+      <a href="#s-arvore-raiz"><b>43</b>A árvore do repositório</a>
+      <a href="#s-arvore-api"><b>44</b>A árvore do servidor</a>
+      <a href="#s-testes"><b>45</b>Onde mora cada teste, e que pergunta ele responde</a>
+      <p class="grupo">A fatia vertical</p>
+      <a href="#s-slice-anatomia"><b>47</b>A anatomia de uma fatia vertical</a>
+      <a href="#s-slice-fluxo"><b>48</b>O percurso, do clique à linha no banco</a>
+      <a href="#s-slice-01-form-a"><b>49</b>1. A tela — o formulário</a>
+      <a href="#s-slice-01-form-b"><b>50</b>1. A tela — react-hook-form e zod</a>
+      <a href="#s-slice-01-form-c"><b>51</b>1. A tela — a chave de idempotência</a>
+      <a href="#s-slice-02-contrato"><b>52</b>2. O contrato — a única costura entre os dois lados</a>
+      <a href="#s-slice-03-rota"><b>53</b>3. A rota — escopo, chamada e tradução</a>
+      <a href="#s-slice-04-schema"><b>54</b>4. O schema da borda — forma, não regra</a>
+      <a href="#s-slice-05-usecase-a"><b>55</b>5. O caso de uso — o que ele pode alcançar</a>
+      <a href="#s-slice-05-usecase-b"><b>56</b>5. O caso de uso — as três buscas</a>
+      <a href="#s-slice-05-usecase-c"><b>57</b>5. O caso de uso — a recusa que só ele percebe</a>
+      <a href="#s-slice-05-usecase-d"><b>58</b>5. O caso de uso — o coração da fatia</a>
+      <a href="#s-slice-06-dominio"><b>59</b>6. O domínio — vinte e sete linhas sem E/S</a>
+      <a href="#s-slice-07-infra"><b>60</b>7. O repositório — o INSERT que não pergunta</a>
+      <a href="#s-slice-08-banco"><b>61</b>8. O banco — a tabela e o índice parcial</a>
+      <a href="#s-slice-09-teste"><b>62</b>9. O teste — a recusa que prova o índice</a>
+      <a href="#s-slice-fecho"><b>63</b>O que esta fatia prova</a>
+      <p class="grupo">O frontend</p>
+      <a href="#stack-front-p1"><b>65</b>Stack do frontend (1 de 2)</a>
+      <a href="#stack-front-p2"><b>66</b>Stack do frontend (2 de 2)</a>
+      <a href="#componentes-react-p1"><b>67</b>Componentes React — como uma tela é montada (1 de 2)</a>
+      <a href="#componentes-react-p2"><b>68</b>Componentes React — como uma tela é montada (2 de 2)</a>
+      <a href="#s-arvore-web"><b>69</b>A árvore do front</a>
+      <a href="#telas-paineis-1"><b>71</b>Um painel por papel — rede e secretaria</a>
+      <a href="#telas-paineis-2"><b>72</b>Um painel por papel — professor e responsável</a>
+      <a href="#tela-slice-1"><b>73</b>A fatia na tela — buscar e abrir a ficha</a>
+      <a href="#tela-slice-2"><b>74</b>A fatia na tela — matricular</a>
+      <a href="#s-rodar"><b>75</b>Rodar na sua máquina</a>
+    </nav>
+  </div>
+</section>
+<section class="slide" id="d-sistema" data-tipo="divisor">
+  <div class="slide-conteudo divisor" data-n="03">
+
+  <h2>Que sistema é este, e por que ele é tão simples</h2>
+  <p class="lead">Um SaaS escolar multi-tenant no seu primeiro estágio: quarenta redes pagantes, duas pessoas, um servidor. Tudo o que não resolve uma dor de hoje ficou de fora de propósito.</p>
+  </div>
+</section>
+<section class="slide" id="s02-abertura">
+  <div class="slide-conteudo" data-n="04">
+
+  <h2>Que sistema é este</h2>
+  <p class="lead">Um SaaS escolar multi-tenant. Uma <strong>rede</strong> contrata; dentro dela existem escolas, turmas, alunos e as pessoas que respondem por eles.</p>
+  <div class="cols-2">
+    <div class="card"><h3>Quem usa, e para quê</h3>
+      <ul class="lista">
+        <li><strong>Administração da rede</strong> — cria escolas, convida gente, define o ano letivo</li>
+        <li><strong>Secretaria</strong> — cadastra aluno e responsável, matricula, transfere, monta turma</li>
+        <li><strong>Professor</strong> — lança nota, registra chamada, fecha o bimestre</li>
+        <li><strong>Responsável</strong> — acompanha boletim, frequência e mural</li>
+      </ul></div>
+    <div class="card"><h3>A escala de referência do Estágio 1</h3>
+      <div class="kpi-grade">
+        <div class="kpi"><b>40</b><span>redes pagantes</span></div>
+        <div class="kpi"><b>55</b><span>escolas</span></div>
+        <div class="kpi"><b>18k</b><span>alunos</span></div>
+        <div class="kpi"><b>2</b><span>pessoas no time</span></div>
+      </div>
+      <p>Um servidor. Três perguntas de suporte por semana.</p></div>
+  </div>
+  <div class="destaque">A secretaria trocou uma planilha compartilhada e um diário de papel por um lugar só.</div>
+  <footer class="fonte">De onde veio: docs/ESCOLAVIVA_STAGE_01.md</footer>
+  </div>
+</section>
+<section class="slide" id="s03-estagio1">
+  <div class="slide-conteudo" data-n="05">
+
+  <h2>O que o Estágio 1 é</h2>
+  <p class="lead">Um monólito modular atrás de uma API JSON. Nada dói ainda — e essa é exatamente a medida certa para o tamanho do problema de hoje.</p>
+  <div class="cols-3">
+    <div class="card academics"><h3>Código</h3>
+      <ul class="lista">
+        <li>quatro domínios:</li>
+        <li class="dominio"><code>identity</code> — quem entra, com que papel, em que escola</li>
+        <li class="dominio"><code>academics</code> — quem estuda, onde e com quem</li>
+        <li class="dominio"><code>assessment</code> — nota, frequência e o fechamento do bimestre</li>
+        <li class="dominio"><code>communication</code> — o que a escola diz às famílias</li>
+        <li>uma API JSON que esses domínios respondem</li>
+        <li>uma SPA React que consome</li>
+        <li>sessão em tabela, cookie carregando só o id</li>
+        <li>migrações versionadas</li>
+      </ul></div>
+    <div class="card assessment"><h3>Infraestrutura</h3>
+      <ul class="lista">
+        <li>um servidor de aplicação em contêiner</li>
+        <li>um PostgreSQL gerenciado, com <em>point-in-time recovery</em> — voltar o banco a qualquer instante</li>
+        <li>um domínio com TLS</li>
+      </ul></div>
+    <div class="card communication"><h3>Operação</h3>
+      <ul class="lista">
+        <li>deploy manual por comando — tolera 2 min fora do ar</li>
+        <li>backup diário, com ensaio de restauração toda semana</li>
+        <li>três métricas anotadas à mão, uma vez por semana</li>
+      </ul></div>
+  </div>
+  <p class="lead" style="margin-top:1.4cqw">O aluguel permanente: um servidor, um banco, um pipeline de migração — e a disciplina de manter a fronteira entre os quatro módulos.</p>
+  </div>
+</section>
+<section class="slide" id="s04-fora">
+  <div class="slide-conteudo" data-n="06">
+
+  <h2>O que ficou de fora, de propósito</h2>
+  <p class="lead">Nenhum deles resolve um problema que este sistema tem hoje. Cada um cobra aluguel permanente — deploy, monitoração, plantão — antes de pagar por si.</p>
+  <table class="tabela compacta">
+    <thead><tr><th>Ficou de fora</th><th>Por que não agora</th><th>Entra quando</th></tr></thead>
+    <tbody>
+      <tr><td>Gateway de pagamento</td><td>as redes pagam por transferência bancária</td><td>a primeira rede pedir cartão — S02</td></tr>
+      <tr><td>Object storage</td><td>a papelada da matrícula fica em papel, na secretaria</td><td>pedirem anexo na matrícula — S03</td></tr>
+      <tr><td>E-mail / mensageria</td><td>o comunicado vive no mural do portal</td><td>ficar provado que ninguém abre o mural — S04</td></tr>
+      <tr><td>Fila e worker</td><td>fechar bimestre é uma transação que termina rápido</td><td>o primeiro fechamento que travar a secretaria — S05</td></tr>
+      <tr><td>Réplica de leitura</td><td>um banco dá conta de 18 mil alunos</td><td>a leitura começar a disputar com a escrita — S08</td></tr>
+      <tr><td>Observabilidade</td><td>três métricas à mão bastam para ver a linha de base</td><td>a métrica à mão parar de explicar — S11</td></tr>
+      <tr><td>Busca dedicada</td><td>450 alunos por rede: a varredura é invisível</td><td>a varredura aparecer na medição — S13</td></tr>
+      <tr><td>Microsserviços</td><td>o produto ainda é CRUD com regra de negócio</td><td>extrair o primeiro módulo — S14</td></tr>
+      <tr><td>CDN · Cache · Balanceador · WAF · CI/CD</td><td>custo fixo sem dor correspondente</td><td>um de cada vez, com a dor descrita</td></tr>
+    </tbody>
+  </table>
+  <footer class="fonte">Também de fora: boletim em PDF, montagem de horário, recuperação, conselho de classe, chamada por aula, aplicativo móvel.</footer>
+  </div>
+</section>
+<section class="slide" id="s05-timeline">
+  <div class="slide-conteudo" data-n="07">
+
+  <h2>Onde o Estágio 1 mora</h2>
+  <p class="lead">Quatorze estágios, cada um entrando por uma dor demonstrada. Estes são os que o documento já nomeia — os demais chegam nas próximas aulas.</p>
+  <table class="tabela">
+    <thead><tr><th>Estágio</th><th>O que entra</th><th>A dor que o chama</th></tr></thead>
+    <tbody>
+      <tr><td><strong>S01 — hoje</strong></td><td>monólito modular, API JSON, SPA, PostgreSQL</td><td>nenhuma ainda: a planilha acabou</td></tr>
+      <tr><td>S02</td><td>gateway de pagamento</td><td>uma rede quer pagar com cartão</td></tr>
+      <tr><td>S03</td><td>object storage</td><td>a secretaria quer anexar documento à matrícula</td></tr>
+      <tr><td>S04</td><td>e-mail (a porta <code>Mailer</code> já está desenhada)</td><td>ninguém abre o mural, e agora há medição provando</td></tr>
+      <tr><td>S05</td><td>fila e worker</td><td>o fechamento do bimestre trava a secretaria</td></tr>
+      <tr><td>S08</td><td>réplica de leitura</td><td>relatório disputa banco com a escrita</td></tr>
+      <tr><td>S11</td><td>observabilidade</td><td>a métrica anotada à mão parou de explicar</td></tr>
+      <tr><td>S13</td><td>busca dedicada</td><td>a varredura do <code>ILIKE '%termo%'</code> aparece na medição</td></tr>
+      <tr><td>S14</td><td>extração de módulo</td><td>um contexto precisa de ciclo de vida próprio</td></tr>
+    </tbody>
+  </table>
+  <div class="destaque">O sinal de medição de hoje: p95 do lançamento de notas abaixo de 300 ms · CPU do banco abaixo de 20% · <code>attendance</code> com ~3,6 milhões de linhas por ano letivo.</div>
+  </div>
+</section>
+<section class="slide" id="s06-dores">
+  <div class="slide-conteudo" data-n="08">
+
+  <h2>As dores plantadas de propósito</h2>
+  <p class="lead">Simplicidade aqui não é atalho: é a decisão certa. Mas algumas escolhas já se sabe que vão doer — e saber onde é o que transforma a próxima refatoração em plano, não em susto.</p>
+  <div class="cols-2 cheio">
+    <div class="card recusa"><h3>A busca de aluno varre a tabela</h3>
+      <p>O índice <code>student_by_name</code> ordena e pagina a lista, mas <strong>não serve à caixa de busca</strong>: ela pergunta <code>name ILIKE '%termo%'</code>, e curinga à esquerda não é coisa que um btree procure.</p>
+      <p>A 450 alunos por rede isso é invisível, e foi deixado assim de propósito: é a medição que tem que justificar o Estágio 13.</p></div>
+    <div class="card recusa"><h3>Não há camada anticorrupção</h3>
+      <p><code>academics</code> importa <code>Role</code> de <code>identity</code> e usa o tipo como está; <code>assessment</code> consome <code>Enrollment</code> sem traduzir.</p>
+      <p>É relação Conformista sobre linguagem publicada. Barato agora — e é a conta que o Estágio 14 paga.</p></div>
+    <div class="card recusa"><h3>Nenhum evento de domínio</h3>
+      <p>Zero. <code>unitOfWork()</code> foi escrito como único ponto de commit exatamente para que o outbox, quando existir, caiba lá e em nenhum outro lugar. Mas ele não existe.</p></div>
+    <div class="card recusa"><h3>Deploy para e volta</h3>
+      <p>Dois minutos fora do ar, por comando, na mão. Ninguém reclamou ainda — e no dia em que reclamarem, a dor tem nome e estágio.</p></div>
+  </div>
+  </div>
+</section>
+<section class="slide" id="s-rf-1">
+  <div class="slide-conteudo" data-n="09">
+
+  <h2>Requisitos funcionais — acesso e rede</h2>
+  <p class="lead"><strong>Estes requisitos não existiam escritos.</strong> Foram reconstruídos a partir das rotas HTTP que o sistema expõe e dos casos de uso que os módulos publicam — são um retrato do que existe, não um documento que precedeu o código.</p>
+  <div class="cols-2">
+    <div class="card"><h3>Qualquer pessoa autenticada</h3>
+      <ul class="lista">
+        <li><strong>RF01</strong> Entrar informando rede, CPF e senha</li>
+        <li><strong>RF02</strong> Recuperar a sessão corrente a cada carga da página</li>
+        <li><strong>RF03</strong> Encerrar a própria sessão</li>
+        <li><strong>RF04</strong> Trocar a própria senha, com mínimo de 10 caracteres</li>
+      </ul></div>
+    <div class="card identity"><h3>Administração da rede</h3>
+      <ul class="lista">
+        <li><strong>RF05</strong> Ver o painel da rede com contagens de escolas e usuários</li>
+        <li><strong>RF06</strong> Cadastrar escola, única por nome dentro da rede</li>
+        <li><strong>RF07</strong> Listar as escolas da rede, paginadas</li>
+        <li><strong>RF08</strong> Definir ano letivo com início e fim, único por rede</li>
+        <li><strong>RF09</strong> Listar os anos letivos da rede</li>
+        <li><strong>RF10</strong> Convidar usuário atribuindo um ou mais pares (escola, papel)</li>
+        <li><strong>RF11</strong> Receber a senha provisória gerada no convite</li>
+        <li><strong>RF12</strong> Listar usuários da rede, filtrando por papel</li>
+      </ul></div>
+  </div>
+  <footer class="fonte">Derivado de: apps/api/src/http/routes/ e apps/api/src/*/index.ts</footer>
+  </div>
+</section>
+<section class="slide" id="s-rf-2">
+  <div class="slide-conteudo" data-n="10">
+
+  <h2>Requisitos funcionais — secretaria</h2>
+  <p class="lead">O papel com mais superfície no Estágio 1: quinze capacidades, todas escopadas às unidades sob responsabilidade de quem entrou.</p>
+  <div class="cols-2">
+    <div class="card academics"><h3>Pessoas</h3>
+      <ul class="lista">
+        <li><strong>RF13</strong> Ver o painel com totais das suas unidades</li>
+        <li><strong>RF14</strong> Buscar aluno por nome, com paginação</li>
+        <li><strong>RF15</strong> Cadastrar aluno com nome e data de nascimento</li>
+        <li><strong>RF16</strong> Ver a ficha do aluno: responsáveis e matrículas</li>
+        <li><strong>RF17</strong> Cadastrar responsável com acesso ao portal</li>
+        <li><strong>RF18</strong> Listar responsáveis da rede</li>
+        <li><strong>RF19</strong> Vincular responsável a aluno, com parentesco</li>
+        <li><strong>RF20</strong> Ver quais responsáveis ainda não estão vinculados</li>
+      </ul></div>
+    <div class="card academics"><h3>Matrícula e turma</h3>
+      <ul class="lista">
+        <li><strong>RF21</strong> Matricular aluno em turma de um ano letivo</li>
+        <li><strong>RF22</strong> Transferir matrícula ativa para outra turma</li>
+        <li><strong>RF23</strong> Cadastrar turma com nome, série e turno</li>
+        <li><strong>RF24</strong> Listar turmas por escola e ano letivo</li>
+        <li><strong>RF25</strong> Ver a ficha da turma: disciplinas e matriculados</li>
+        <li><strong>RF26</strong> Atribuir professor a disciplina da turma</li>
+        <li><strong>RF27</strong> Cadastrar e listar disciplinas da rede</li>
+      </ul></div>
+  </div>
+  </div>
+</section>
+<section class="slide" id="s-rf-3">
+  <div class="slide-conteudo" data-n="11">
+
+  <h2>Requisitos funcionais — professor, responsável e comunicação</h2>
+  <div class="cols-3">
+    <div class="card assessment"><h3>Professor</h3>
+      <ul class="lista">
+        <li><strong>RF28</strong> Ver as turmas e disciplinas em que leciona</li>
+        <li><strong>RF29</strong> Lançar notas de uma disciplina em um bimestre, em lote</li>
+        <li><strong>RF30</strong> Apagar uma nota já lançada, enviando valor nulo</li>
+        <li><strong>RF31</strong> Registrar a chamada de um dia, em lote</li>
+        <li><strong>RF32</strong> Ver o que falta para fechar o bimestre, por disciplina</li>
+        <li><strong>RF33</strong> Fechar o bimestre da turma</li>
+      </ul></div>
+    <div class="card ports"><h3>Responsável</h3>
+      <ul class="lista">
+        <li><strong>RF34</strong> Ver os alunos por quem responde</li>
+        <li><strong>RF35</strong> Ver o boletim de uma matrícula</li>
+        <li><strong>RF36</strong> Ver a frequência de uma matrícula</li>
+        <li><strong>RF37</strong> Ver o mural de comunicados</li>
+        <li><strong>RF38</strong> Abrir um comunicado</li>
+        <li><strong>RF39</strong> Marcar comunicado como lido</li>
+      </ul></div>
+    <div class="card communication"><h3>Comunicação</h3>
+      <ul class="lista">
+        <li><strong>RF40</strong> Publicar comunicado para os responsáveis de uma escola</li>
+        <li><strong>RF41</strong> Listar os comunicados publicados</li>
+        <li><strong>RF42</strong> Acompanhar a taxa de leitura de cada comunicado</li>
+      </ul>
+      <p style="margin-top:0.8cqw">Secretaria <em>e</em> administração da rede: são os dois únicos casos com dois atores primários.</p></div>
+  </div>
+  </div>
+</section>
+<section class="slide" id="s-rnf-1">
+  <div class="slide-conteudo" data-n="12">
+
+  <h2>Requisitos não funcionais — e como cada um é verificado</h2>
+  <p class="lead">Um requisito não funcional sem verificação declarada é uma intenção. A terceira coluna é o que separa os dois.</p>
+  <table class="tabela compacta">
+    <thead><tr><th>#</th><th>Requisito</th><th>Como é verificado hoje</th></tr></thead>
+    <tbody>
+      <tr><td>RNF01</td><td>Todo dado pertence a uma rede, e nenhuma consulta cruza esse limite</td><td><code>network_id</code> em 16 das 18 tabelas + escopo vindo da sessão</td></tr>
+      <tr><td>RNF02</td><td>Papéis são atribuídos por escola, não por rede</td><td>PK <code>(user_id, school_id, role)</code> em <code>user_role</code></td></tr>
+      <tr><td>RNF03</td><td>O processo não guarda estado: reiniciar não desconecta ninguém</td><td>sessão em tabela; jornada no navegador cobre o caminho</td></tr>
+      <tr><td>RNF04</td><td>Uma escrita repetida não cria dois registros</td><td>PK de <code>idempotent_request</code>, reservada dentro da transação</td></tr>
+      <tr><td>RNF05</td><td>Uma escrita só é aceita se vier da aplicação</td><td><code>X-Requested-By</code> exigido em <code>secureWrite</code></td></tr>
+      <tr><td>RNF06</td><td>Nenhuma escrita fica pela metade</td><td><code>unitOfWork()</code> é o único ponto de commit</td></tr>
+      <tr><td>RNF07</td><td>Fechar bimestre e lançar nota não se intercalam</td><td><code>pg_advisory_xact_lock</code> sobre (turma, bimestre)</td></tr>
+      <tr><td>RNF08</td><td>Senha nunca é guardada em texto claro</td><td><code>Bun.password.hash</code> — argon2id</td></tr>
+      <tr><td>RNF09</td><td>Segredo e dado sensível não vazam no log</td><td>redação em <code>shared/log/redaction.ts</code>, com teste</td></tr>
+      <tr><td>RNF10</td><td>p95 do lançamento de notas abaixo de 300 ms</td><td><strong>medido à mão, uma vez por semana</strong>, com <code>pg_stat_statements</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+<section class="slide" id="s-rnf-2">
+  <div class="slide-conteudo" data-n="13">
+
+  <h2>Requisitos não funcionais — manutenção e recuperação</h2>
+  <table class="tabela compacta">
+    <thead><tr><th>#</th><th>Requisito</th><th>Como é verificado hoje</th></tr></thead>
+    <tbody>
+      <tr><td>RNF11</td><td>Um módulo só enxerga outro pela porta da frente</td><td>regra <code>no-cross-module-shortcut</code> — o build quebra</td></tr>
+      <tr><td>RNF12</td><td>O domínio não conhece banco, HTTP, log nem biblioteca de terceiro</td><td>regra <code>pure-domain</code></td></tr>
+      <tr><td>RNF13</td><td>Um caso de uso só pode citar um pacote externo: zod</td><td>regra <code>no-sdk-in-application</code></td></tr>
+      <tr><td>RNF14</td><td>O núcleo compartilhado não importa contexto nenhum</td><td>regra <code>shared-knows-no-domain</code></td></tr>
+      <tr><td>RNF15</td><td>O front só enxerga o servidor por um pacote de tipos</td><td>regra <code>web-sees-only-contracts</code></td></tr>
+      <tr><td>RNF16</td><td>O bundle que um responsável baixa tem teto de tamanho</td><td><code>bun run budget</code>, contra o manifesto do Vite</td></tr>
+      <tr><td>RNF17</td><td>Toda entrada externa é validada antes de tocar a regra</td><td>zod em 18 casos de uso, na borda</td></tr>
+      <tr><td>RNF18</td><td>Uma falha esperada é resposta, não exceção</td><td><code>Result&lt;T&gt;</code> em 17 arquivos, 52 pontos de recusa</td></tr>
+      <tr><td>RNF19</td><td>Backup diário, com ensaio de restauração semanal</td><td><code>scripts/backup.sh</code> e <code>scripts/restore-test.sh</code></td></tr>
+      <tr><td>RNF20</td><td>Uma migração não comprime a janela de compatibilidade</td><td><code>tests/migration_window.test.ts</code> lê cada arquivo</td></tr>
+      <tr><td>RNF21</td><td>Sessão expirada é recolhida sem intervenção</td><td>job a cada 15 min, sob lock consultivo</td></tr>
+      <tr><td>RNF22</td><td>O desligamento não derruba requisição em curso</td><td>SIGTERM: para de aceitar → drena → fecha o pool</td></tr>
+    </tbody>
+  </table>
+  <footer class="fonte">Derivado das 23 invariantes do documento do estágio e dos portões que <code>bun run verify</code> executa.</footer>
+  </div>
+</section>
+<section class="slide" id="d-dominio" data-tipo="divisor">
+  <div class="slide-conteudo divisor" data-n="14">
+
+  <h2>O que o sistema faz, e que regras ele guarda</h2>
+  <p class="lead">Casos de uso, invariantes, entidades, dados e ciclos de vida. Cinco vistas do mesmo domínio, cada uma respondendo a uma pergunta diferente.</p>
+  </div>
+</section>
+<section class="slide" id="casos-de-uso-p1" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="15">
+
+  <h2>Casos de uso (1 de 2)</h2>
+  <p class="lead">Cinco atores, seis áreas. O que cada papel consegue fazer — derivado das rotas HTTP que existem, não de um documento de requisitos que ninguém escreveu.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#use-cases--inteiro"><img src="assets/projecao/use-cases-p1.svg" alt="Diagrama UML de casos de uso do EscolaViva"></a>
+      <div class="pontos">
+        <a href="#use-cases--sistema-escolaviva-saas-escolar-multi-" style="left:16.757%;top:13.569%;width:81.335%;height:170.963%" aria-label="Ver Sistema EscolaViva — SaaS escolar multi-inquilino em detalhe"></a>
+        <a href="#use-cases--acesso-e-conta-qualquer-usu-rio-autent" style="left:18.733%;top:17.639%;width:74.728%;height:16.283%" aria-label="Ver Acesso e conta — qualquer usuário autenticado em detalhe"></a>
+        <a href="#use-cases--administra-o-da-rede" style="left:18.733%;top:37.178%;width:74.728%;height:26.594%" aria-label="Ver Administração da rede em detalhe"></a>
+        <a href="#use-cases--comunica-o-com-as-fam-lias" style="left:18.733%;top:67.029%;width:74.728%;height:16.283%" aria-label="Ver Comunicação com as famílias em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>Elipse tracejada é caso incluído ou estendido: nunca começa sozinho.</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#use-cases--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<section class="slide" id="casos-de-uso-p2" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="16">
+
+  <h2>Casos de uso (2 de 2)</h2>
+  <p class="lead">Cinco atores, seis áreas. O que cada papel consegue fazer — derivado das rotas HTTP que existem, não de um documento de requisitos que ninguém escreveu.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#use-cases--inteiro"><img src="assets/projecao/use-cases-p2.svg" alt="Diagrama UML de casos de uso do EscolaViva"></a>
+      <div class="pontos">
+        <a href="#use-cases--secretaria-acad-mica" style="left:18.733%;top:-15.208%;width:74.728%;height:41.783%" aria-label="Ver Secretaria acadêmica em detalhe"></a>
+        <a href="#use-cases--di-rio-do-professor" style="left:18.733%;top:30.261%;width:74.728%;height:30.107%" aria-label="Ver Diário do professor em detalhe"></a>
+        <a href="#use-cases--acompanhamento-familiar" style="left:18.733%;top:64.055%;width:74.728%;height:30.107%" aria-label="Ver Acompanhamento familiar em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>continuação</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#use-cases--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="use-cases--inteiro">
+  <a class="fundo" href="#casos-de-uso-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Casos de uso — diagrama completo</h3>
+  <img src="assets/diagramas/use-cases.svg" alt="Diagrama UML de casos de uso do EscolaViva"></div>
+  <a class="sair" href="#casos-de-uso-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="use-cases--sistema-escolaviva-saas-escolar-multi-">
+  <a class="fundo" href="#casos-de-uso-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Casos de uso — Sistema EscolaViva — SaaS escolar multi-inquilino</h3>
+  <img src="assets/blocos/use-cases--sistema-escolaviva-saas-escolar-multi-.png" alt="Sistema EscolaViva — SaaS escolar multi-inquilino"></div>
+  <a class="sair" href="#casos-de-uso-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="use-cases--acesso-e-conta-qualquer-usu-rio-autent">
+  <a class="fundo" href="#casos-de-uso-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Casos de uso — Acesso e conta — qualquer usuário autenticado</h3>
+  <img src="assets/blocos/use-cases--acesso-e-conta-qualquer-usu-rio-autent.png" alt="Acesso e conta — qualquer usuário autenticado"></div>
+  <a class="sair" href="#casos-de-uso-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="use-cases--administra-o-da-rede">
+  <a class="fundo" href="#casos-de-uso-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Casos de uso — Administração da rede</h3>
+  <img src="assets/blocos/use-cases--administra-o-da-rede.png" alt="Administração da rede"></div>
+  <a class="sair" href="#casos-de-uso-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="use-cases--comunica-o-com-as-fam-lias">
+  <a class="fundo" href="#casos-de-uso-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Casos de uso — Comunicação com as famílias</h3>
+  <img src="assets/blocos/use-cases--comunica-o-com-as-fam-lias.png" alt="Comunicação com as famílias"></div>
+  <a class="sair" href="#casos-de-uso-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="use-cases--secretaria-acad-mica">
+  <a class="fundo" href="#casos-de-uso-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Casos de uso — Secretaria acadêmica</h3>
+  <img src="assets/blocos/use-cases--secretaria-acad-mica.png" alt="Secretaria acadêmica"></div>
+  <a class="sair" href="#casos-de-uso-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="use-cases--di-rio-do-professor">
+  <a class="fundo" href="#casos-de-uso-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Casos de uso — Diário do professor</h3>
+  <img src="assets/blocos/use-cases--di-rio-do-professor.png" alt="Diário do professor"></div>
+  <a class="sair" href="#casos-de-uso-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="use-cases--acompanhamento-familiar">
+  <a class="fundo" href="#casos-de-uso-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Casos de uso — Acompanhamento familiar</h3>
+  <img src="assets/blocos/use-cases--acompanhamento-familiar.png" alt="Acompanhamento familiar"></div>
+  <a class="sair" href="#casos-de-uso-p1">Fechar ✕</a>
+</div>
+<section class="slide" id="casos-secretaria" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="17">
+
+  <h2>Casos de uso — a secretaria</h2>
+  <p class="lead">Quinze casos: é o papel com mais superfície no Estágio 1, e o que vamos abrir por inteiro mais adiante.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/casos-secretaria.png" alt="Recorte dos casos de uso da secretaria">
+    <figcaption>Transferir matrícula inclui fechar a matrícula de origem — sempre, na mesma transação.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="casos-professor" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="18">
+
+  <h2>Casos de uso — professor e responsável</h2>
+  <p class="lead">O professor escreve; o responsável só lê. Marcar comunicado como lido é a única escrita do lado da família.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/casos-professor-responsavel.png" alt="Recorte dos casos de uso do professor e do responsável">
+    <figcaption>«extend» é comportamento opcional: limpar uma nota já lançada estende o lançamento.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="invariantes" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="19">
+
+  <h2>Onde mora cada invariante</h2>
+  <p class="lead">Vinte e seis regras, e três lugares possíveis para cada uma: a função pura no domínio, a restrição no banco, e o zod na borda. A mesma regra escrita duas vezes não é duplicação.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#where-the-invariant-lives--inteiro"><img src="assets/projecao/where-the-invariant-lives.svg" alt="Tabela de invariantes do domínio"></a>
+      <div class="pontos">
+
+      </div>
+    </div>
+    <figcaption>A coluna do domínio dá a MENSAGEM; a do banco dá a GARANTIA. Nenhuma substitui a outra.</figcaption>
+  </figure>
+  <p class="dica"><a href="#where-the-invariant-lives--inteiro">Clique para ver o diagrama completo</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="where-the-invariant-lives--inteiro">
+  <a class="fundo" href="#invariantes" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Onde mora cada invariante — diagrama completo</h3>
+  <img src="assets/diagramas/where-the-invariant-lives.svg" alt="Tabela de invariantes do domínio"></div>
+  <a class="sair" href="#invariantes">Fechar ✕</a>
+</div>
+<section class="slide" id="invariantes-base" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="20">
+
+  <h2>Invariantes — o que só o domínio sabe</h2>
+  <p class="lead">Aprovado por média e frequência nunca vira coluna. É calculado na leitura, e por isso não envelhece.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/invariantes-base.png" alt="Segunda metade da tabela de invariantes">
+    <figcaption>Guardar o resultado criaria uma segunda verdade, que fica velha na primeira correção de nota.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="invariantes-topo" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="21">
+
+  <h2>Invariantes — conjuntos fechados e unicidade</h2>
+  <p class="lead">As quatro primeiras são conjuntos fechados: existe predicado, existe CHECK, e o zod nem precisa opinar.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/invariantes-topo.png" alt="Primeira metade da tabela de invariantes">
+    <figcaption>Repare nas linhas com travessão na coluna do domínio: unicidade não sobrevive à concorrência no código.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="dominio" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="22">
+
+  <h2>A camada de domínio, bloco a bloco</h2>
+  <p class="lead">Dezessete arquivos, quatro contextos delimitados. Nenhum deles importa banco, HTTP, log, agendador ou biblioteca de terceiro — e isso é verificado por ferramenta, não por combinado.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#domain-blocks--inteiro"><img src="assets/projecao/domain-blocks.svg" alt="Diagrama da camada de domínio"></a>
+      <div class="pontos">
+        <a href="#domain-blocks--identity" style="left:1.786%;top:9.137%;width:23.438%;height:35.956%" aria-label="Ver identity em detalhe"></a>
+        <a href="#domain-blocks--academics" style="left:26.339%;top:9.137%;width:23.438%;height:35.956%" aria-label="Ver academics em detalhe"></a>
+        <a href="#domain-blocks--assessment" style="left:50.893%;top:9.137%;width:23.438%;height:35.956%" aria-label="Ver assessment em detalhe"></a>
+        <a href="#domain-blocks--communication" style="left:75.446%;top:9.137%;width:23.438%;height:35.956%" aria-label="Ver communication em detalhe"></a>
+        <a href="#domain-blocks--n-cleo-compartilhado-as-quatro-coisas-" style="left:1.786%;top:47.462%;width:65.848%;height:16.582%" aria-label="Ver Núcleo compartilhado — as quatro coisas que o domínio pode alcançar, e nada além em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>Registro anêmico mais função pura: canTransfer(enrollment), nunca enrollment.canTransfer().</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#domain-blocks--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="domain-blocks--inteiro">
+  <a class="fundo" href="#dominio" aria-label="Fechar"></a>
+  <div class="quadro"><h3>A camada de domínio, bloco a bloco — diagrama completo</h3>
+  <img src="assets/diagramas/domain-blocks.svg" alt="Diagrama da camada de domínio"></div>
+  <a class="sair" href="#dominio">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="domain-blocks--identity">
+  <a class="fundo" href="#dominio" aria-label="Fechar"></a>
+  <div class="quadro"><h3>A camada de domínio, bloco a bloco — identity</h3>
+  <img src="assets/blocos/domain-blocks--identity.png" alt="identity"></div>
+  <a class="sair" href="#dominio">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="domain-blocks--academics">
+  <a class="fundo" href="#dominio" aria-label="Fechar"></a>
+  <div class="quadro"><h3>A camada de domínio, bloco a bloco — academics</h3>
+  <img src="assets/blocos/domain-blocks--academics.png" alt="academics"></div>
+  <a class="sair" href="#dominio">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="domain-blocks--assessment">
+  <a class="fundo" href="#dominio" aria-label="Fechar"></a>
+  <div class="quadro"><h3>A camada de domínio, bloco a bloco — assessment</h3>
+  <img src="assets/blocos/domain-blocks--assessment.png" alt="assessment"></div>
+  <a class="sair" href="#dominio">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="domain-blocks--communication">
+  <a class="fundo" href="#dominio" aria-label="Fechar"></a>
+  <div class="quadro"><h3>A camada de domínio, bloco a bloco — communication</h3>
+  <img src="assets/blocos/domain-blocks--communication.png" alt="communication"></div>
+  <a class="sair" href="#dominio">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="domain-blocks--n-cleo-compartilhado-as-quatro-coisas-">
+  <a class="fundo" href="#dominio" aria-label="Fechar"></a>
+  <div class="quadro"><h3>A camada de domínio, bloco a bloco — Núcleo compartilhado — as quatro coisas que o domínio pode alcançar, e nada além</h3>
+  <img src="assets/blocos/domain-blocks--n-cleo-compartilhado-as-quatro-coisas-.png" alt="Núcleo compartilhado — as quatro coisas que o domínio pode alcançar, e nada além"></div>
+  <a class="sair" href="#dominio">Fechar ✕</a>
+</div>
+<section class="slide" id="dominio-kernel" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="23">
+
+  <h2>Domínio — as quatro coisas que ele pode alcançar</h2>
+  <p class="lead">A permissão é escrita como lista do que PODE, não do que não pode. Uma lista de proibições só proíbe o que alguém lembrou de nomear.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/dominio-kernel.png" alt="Recorte do núcleo compartilhado">
+    <figcaption>ports/ está lá para o Clock e o IdGenerator, mesmo sem nenhum arquivo de domínio usando ainda.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="dominio-assessment" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="24">
+
+  <h2>Domínio — assessment por dentro</h2>
+  <p class="lead">O módulo com mais regra pura do sistema: média por disciplina, média do bimestre, percentual de frequência e o status final saem daqui, todos como função sem efeito.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/dominio-assessment.png" alt="Recorte do módulo assessment no diagrama de domínio">
+    <figcaption>closingStates() transforma AUSÊNCIA de registro em estado: não existe coluna dizendo “aberto”.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="er" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="25">
+
+  <h2>Modelo de dados</h2>
+  <p class="lead">Dezoito tabelas, quarenta chaves estrangeiras. Dezesseis das dezoito carregam network_id: o inquilino não é uma coluna qualquer, é o escopo de tudo.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#data-model--inteiro"><img src="assets/projecao/data-model.svg" alt="Diagrama entidade-relacionamento do EscolaViva"></a>
+      <div class="pontos">
+        <a href="#data-model--network" style="left:3.456%;top:13.591%;width:14.977%;height:7.797%" aria-label="Ver network em detalhe"></a>
+        <a href="#data-model--school" style="left:21.889%;top:27.539%;width:14.977%;height:8.87%" aria-label="Ver school em detalhe"></a>
+        <a href="#data-model--academic-year" style="left:21.889%;top:51.001%;width:14.977%;height:9.8%" aria-label="Ver academic_year em detalhe"></a>
+        <a href="#data-model--student" style="left:21.889%;top:62.661%;width:14.977%;height:7.797%" aria-label="Ver student em detalhe"></a>
+        <a href="#data-model--subject" style="left:21.889%;top:72.318%;width:14.977%;height:6.724%" aria-label="Ver subject em detalhe"></a>
+        <a href="#data-model--app-user" style="left:41.935%;top:34.478%;width:14.977%;height:13.019%" aria-label="Ver app_user em detalhe"></a>
+        <a href="#data-model--class-group" style="left:41.935%;top:49.356%;width:14.977%;height:11.946%" aria-label="Ver class_group em detalhe"></a>
+        <a href="#data-model--student-guardian" style="left:41.935%;top:63.162%;width:14.977%;height:8.87%" aria-label="Ver student_guardian em detalhe"></a>
+        <a href="#data-model--announcement" style="left:63.364%;top:13.591%;width:14.977%;height:11.016%" aria-label="Ver announcement em detalhe"></a>
+        <a href="#data-model--user-role" style="left:63.364%;top:26.466%;width:14.977%;height:8.727%" aria-label="Ver user_role em detalhe"></a>
+        <a href="#data-model--session" style="left:63.364%;top:37.053%;width:14.977%;height:8.87%" aria-label="Ver session em detalhe"></a>
+        <a href="#data-model--idempotent-request" style="left:63.364%;top:47.783%;width:14.977%;height:9.8%" aria-label="Ver idempotent_request em detalhe"></a>
+        <a href="#data-model--term-closing" style="left:63.364%;top:58.512%;width:14.977%;height:9.943%" aria-label="Ver term_closing em detalhe"></a>
+        <a href="#data-model--enrollment" style="left:63.364%;top:70.315%;width:14.977%;height:12.876%" aria-label="Ver enrollment em detalhe"></a>
+        <a href="#data-model--class-group-subject" style="left:63.364%;top:84.12%;width:14.977%;height:8.87%" aria-label="Ver class_group_subject em detalhe"></a>
+        <a href="#data-model--announcement-recipient" style="left:83.41%;top:13.591%;width:14.977%;height:7.797%" aria-label="Ver announcement_recipient em detalhe"></a>
+        <a href="#data-model--attendance" style="left:83.41%;top:65.808%;width:14.977%;height:9.943%" aria-label="Ver attendance em detalhe"></a>
+        <a href="#data-model--grade" style="left:83.41%;top:77.611%;width:14.977%;height:13.019%" aria-label="Ver grade em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>Pé-de-galinha toca a tabela filha, a que guarda a chave estrangeira.</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#data-model--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="data-model--inteiro">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — diagrama completo</h3>
+  <img src="assets/diagramas/data-model.svg" alt="Diagrama entidade-relacionamento do EscolaViva"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--network">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — network</h3>
+  <img src="assets/blocos/data-model--network.png" alt="network"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--school">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — school</h3>
+  <img src="assets/blocos/data-model--school.png" alt="school"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--academic-year">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — academic_year</h3>
+  <img src="assets/blocos/data-model--academic-year.png" alt="academic_year"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--student">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — student</h3>
+  <img src="assets/blocos/data-model--student.png" alt="student"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--subject">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — subject</h3>
+  <img src="assets/blocos/data-model--subject.png" alt="subject"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--app-user">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — app_user</h3>
+  <img src="assets/blocos/data-model--app-user.png" alt="app_user"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--class-group">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — class_group</h3>
+  <img src="assets/blocos/data-model--class-group.png" alt="class_group"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--student-guardian">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — student_guardian</h3>
+  <img src="assets/blocos/data-model--student-guardian.png" alt="student_guardian"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--announcement">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — announcement</h3>
+  <img src="assets/blocos/data-model--announcement.png" alt="announcement"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--user-role">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — user_role</h3>
+  <img src="assets/blocos/data-model--user-role.png" alt="user_role"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--session">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — session</h3>
+  <img src="assets/blocos/data-model--session.png" alt="session"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--idempotent-request">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — idempotent_request</h3>
+  <img src="assets/blocos/data-model--idempotent-request.png" alt="idempotent_request"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--term-closing">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — term_closing</h3>
+  <img src="assets/blocos/data-model--term-closing.png" alt="term_closing"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--enrollment">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — enrollment</h3>
+  <img src="assets/blocos/data-model--enrollment.png" alt="enrollment"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--class-group-subject">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — class_group_subject</h3>
+  <img src="assets/blocos/data-model--class-group-subject.png" alt="class_group_subject"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--announcement-recipient">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — announcement_recipient</h3>
+  <img src="assets/blocos/data-model--announcement-recipient.png" alt="announcement_recipient"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--attendance">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — attendance</h3>
+  <img src="assets/blocos/data-model--attendance.png" alt="attendance"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="data-model--grade">
+  <a class="fundo" href="#er" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Modelo de dados — grade</h3>
+  <img src="assets/blocos/data-model--grade.png" alt="grade"></div>
+  <a class="sair" href="#er">Fechar ✕</a>
+</div>
+<section class="slide" id="er-identity" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="26">
+
+  <h2>Modelo de dados — identity</h2>
+  <p class="lead">A rede é o inquilino. O CPF é o identificador de acesso e é único dentro da rede; o e-mail não é único, porque uma família compartilha um endereço.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/er-identity.png" alt="Recorte das tabelas de identity">
+    <figcaption>app_user é a pessoa, não a credencial: não existe tabela separada de responsável.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="er-academics" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="27">
+
+  <h2>Modelo de dados — academics</h2>
+  <p class="lead">student_guardian aponta de academics para identity — a mesma direção do professor. Nenhuma chave sai de identity, o que faz dela uma folha também no banco.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/er-academics.png" alt="Recorte das tabelas de academics">
+    <figcaption>enrollment carrega os dois índices parciais com WHERE status = 'active'.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="er-assessment" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="28">
+
+  <h2>Modelo de dados — assessment</h2>
+  <p class="lead">Média, percentual e status não estão aqui. attendance é a maior tabela do sistema: uma linha por aluno por dia, cerca de 3,6 milhões por ano letivo na escala de referência.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/er-assessment.png" alt="Recorte das tabelas de assessment">
+    <figcaption>term_closing só guarda o que foi FECHADO. O aberto é a ausência da linha.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="estado-matricula" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="29">
+
+  <h2>Ciclo de vida da matrícula</h2>
+  <p class="lead">Nasce ativa, e a única transição escrita em código é a transferência. cancelled e completed existem no CHECK e nenhum caso de uso escreve neles.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#enrollment-lifecycle--inteiro"><img src="assets/projecao/enrollment-lifecycle.svg" alt="Ciclo de vida da matrícula"></a>
+      <div class="pontos">
+        <a href="#enrollment-lifecycle--active" style="left:18.763%;top:43.333%;width:25.773%;height:24.444%" aria-label="Ver active em detalhe"></a>
+        <a href="#enrollment-lifecycle--transferred" style="left:71.34%;top:43.333%;width:25.773%;height:24.444%" aria-label="Ver transferred em detalhe"></a>
+        <a href="#enrollment-lifecycle--cancelled" style="left:18.763%;top:80.0%;width:25.773%;height:13.778%" aria-label="Ver cancelled em detalhe"></a>
+        <a href="#enrollment-lifecycle--completed" style="left:71.34%;top:80.0%;width:25.773%;height:13.778%" aria-label="Ver completed em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>Transferir é uma transição composta: fecha a origem e cria a nova, na mesma transação.</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#enrollment-lifecycle--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="enrollment-lifecycle--inteiro">
+  <a class="fundo" href="#estado-matricula" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida da matrícula — diagrama completo</h3>
+  <img src="assets/diagramas/enrollment-lifecycle.svg" alt="Ciclo de vida da matrícula"></div>
+  <a class="sair" href="#estado-matricula">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="enrollment-lifecycle--active">
+  <a class="fundo" href="#estado-matricula" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida da matrícula — active</h3>
+  <img src="assets/blocos/enrollment-lifecycle--active.png" alt="active"></div>
+  <a class="sair" href="#estado-matricula">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="enrollment-lifecycle--transferred">
+  <a class="fundo" href="#estado-matricula" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida da matrícula — transferred</h3>
+  <img src="assets/blocos/enrollment-lifecycle--transferred.png" alt="transferred"></div>
+  <a class="sair" href="#estado-matricula">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="enrollment-lifecycle--cancelled">
+  <a class="fundo" href="#estado-matricula" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida da matrícula — cancelled</h3>
+  <img src="assets/blocos/enrollment-lifecycle--cancelled.png" alt="cancelled"></div>
+  <a class="sair" href="#estado-matricula">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="enrollment-lifecycle--completed">
+  <a class="fundo" href="#estado-matricula" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida da matrícula — completed</h3>
+  <img src="assets/blocos/enrollment-lifecycle--completed.png" alt="completed"></div>
+  <a class="sair" href="#estado-matricula">Fechar ✕</a>
+</div>
+<section class="slide" id="estado-sessao" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="30">
+
+  <h2>Ciclo de vida da sessão</h2>
+  <p class="lead">Expirar não é uma escrita: é o relógio passando. A linha continua no banco até a purga varrer.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#session-lifecycle--inteiro"><img src="assets/projecao/session-lifecycle.svg" alt="Ciclo de vida da sessão"></a>
+      <div class="pontos">
+        <a href="#session-lifecycle--v-lida" style="left:14.444%;top:38.614%;width:19.841%;height:21.386%" aria-label="Ver válida em detalhe"></a>
+        <a href="#session-lifecycle--expirada" style="left:50.952%;top:38.614%;width:19.841%;height:21.386%" aria-label="Ver expirada em detalhe"></a>
+        <a href="#session-lifecycle--v-lida-na-tabela-aceita-na-requisi-o" style="left:50.952%;top:68.317%;width:46.825%;height:26.139%" aria-label="Ver válida na tabela ≠ aceita na requisição em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>Válida na tabela não quer dizer aceita na requisição — são quatro recusas independentes.</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#session-lifecycle--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="session-lifecycle--inteiro">
+  <a class="fundo" href="#estado-sessao" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida da sessão — diagrama completo</h3>
+  <img src="assets/diagramas/session-lifecycle.svg" alt="Ciclo de vida da sessão"></div>
+  <a class="sair" href="#estado-sessao">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="session-lifecycle--v-lida">
+  <a class="fundo" href="#estado-sessao" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida da sessão — válida</h3>
+  <img src="assets/blocos/session-lifecycle--v-lida.png" alt="válida"></div>
+  <a class="sair" href="#estado-sessao">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="session-lifecycle--expirada">
+  <a class="fundo" href="#estado-sessao" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida da sessão — expirada</h3>
+  <img src="assets/blocos/session-lifecycle--expirada.png" alt="expirada"></div>
+  <a class="sair" href="#estado-sessao">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="session-lifecycle--v-lida-na-tabela-aceita-na-requisi-o">
+  <a class="fundo" href="#estado-sessao" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida da sessão — válida na tabela ≠ aceita na requisição</h3>
+  <img src="assets/blocos/session-lifecycle--v-lida-na-tabela-aceita-na-requisi-o.png" alt="válida na tabela ≠ aceita na requisição"></div>
+  <a class="sair" href="#estado-sessao">Fechar ✕</a>
+</div>
+<section class="slide" id="estado-bimestre" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="31">
+
+  <h2>Ciclo de vida do bimestre</h2>
+  <p class="lead">Aberto é a ausência de linha em term_closing. Fechar escreve; reabrir não existe no Estágio 1.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#term-lifecycle--inteiro"><img src="assets/projecao/term-lifecycle.svg" alt="Ciclo de vida do bimestre"></a>
+      <div class="pontos">
+        <a href="#term-lifecycle--aberto" style="left:14.109%;top:41.226%;width:19.38%;height:23.256%" aria-label="Ver aberto em detalhe"></a>
+        <a href="#term-lifecycle--fechado" style="left:53.643%;top:41.226%;width:19.38%;height:23.256%" aria-label="Ver fechado em detalhe"></a>
+        <a href="#term-lifecycle--uma-regra-tr-s-mecanismos" style="left:76.124%;top:41.226%;width:21.705%;height:52.854%" aria-label="Ver Uma regra, três mecanismos em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>Uma regra, três mecanismos: a checagem dá a mensagem, o lock dá a ordem, o índice dá a garantia.</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#term-lifecycle--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="term-lifecycle--inteiro">
+  <a class="fundo" href="#estado-bimestre" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida do bimestre — diagrama completo</h3>
+  <img src="assets/diagramas/term-lifecycle.svg" alt="Ciclo de vida do bimestre"></div>
+  <a class="sair" href="#estado-bimestre">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="term-lifecycle--aberto">
+  <a class="fundo" href="#estado-bimestre" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida do bimestre — aberto</h3>
+  <img src="assets/blocos/term-lifecycle--aberto.png" alt="aberto"></div>
+  <a class="sair" href="#estado-bimestre">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="term-lifecycle--fechado">
+  <a class="fundo" href="#estado-bimestre" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida do bimestre — fechado</h3>
+  <img src="assets/blocos/term-lifecycle--fechado.png" alt="fechado"></div>
+  <a class="sair" href="#estado-bimestre">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="term-lifecycle--uma-regra-tr-s-mecanismos">
+  <a class="fundo" href="#estado-bimestre" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida do bimestre — Uma regra, três mecanismos</h3>
+  <img src="assets/blocos/term-lifecycle--uma-regra-tr-s-mecanismos.png" alt="Uma regra, três mecanismos"></div>
+  <a class="sair" href="#estado-bimestre">Fechar ✕</a>
+</div>
+<section class="slide" id="estado-escrita" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="32">
+
+  <h2>Ciclo de vida de uma escrita</h2>
+  <p class="lead">A reserva da Idempotency-Key é a primeira instrução da transação que faz a escrita. Se der rollback, some junto — não há DELETE de compensação.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#submission-lifecycle--inteiro"><img src="assets/projecao/submission-lifecycle.svg" alt="Ciclo de vida de uma escrita"></a>
+      <div class="pontos">
+        <a href="#submission-lifecycle--reservada" style="left:11.36%;top:33.621%;width:20.8%;height:20.69%" aria-label="Ver reservada em detalhe"></a>
+        <a href="#submission-lifecycle--comitada" style="left:44.16%;top:33.621%;width:20.8%;height:20.69%" aria-label="Ver comitada em detalhe"></a>
+        <a href="#submission-lifecycle--conclu-da" style="left:76.96%;top:33.621%;width:20.8%;height:20.69%" aria-label="Ver concluída em detalhe"></a>
+        <a href="#submission-lifecycle--nunca-existiu" style="left:11.36%;top:72.414%;width:20.8%;height:18.103%" aria-label="Ver nunca existiu em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>Duas requisições idênticas: uma insere, a outra recebe conflito e responde do que já está lá.</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#submission-lifecycle--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="submission-lifecycle--inteiro">
+  <a class="fundo" href="#estado-escrita" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida de uma escrita — diagrama completo</h3>
+  <img src="assets/diagramas/submission-lifecycle.svg" alt="Ciclo de vida de uma escrita"></div>
+  <a class="sair" href="#estado-escrita">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="submission-lifecycle--reservada">
+  <a class="fundo" href="#estado-escrita" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida de uma escrita — reservada</h3>
+  <img src="assets/blocos/submission-lifecycle--reservada.png" alt="reservada"></div>
+  <a class="sair" href="#estado-escrita">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="submission-lifecycle--comitada">
+  <a class="fundo" href="#estado-escrita" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida de uma escrita — comitada</h3>
+  <img src="assets/blocos/submission-lifecycle--comitada.png" alt="comitada"></div>
+  <a class="sair" href="#estado-escrita">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="submission-lifecycle--conclu-da">
+  <a class="fundo" href="#estado-escrita" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida de uma escrita — concluída</h3>
+  <img src="assets/blocos/submission-lifecycle--conclu-da.png" alt="concluída"></div>
+  <a class="sair" href="#estado-escrita">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="submission-lifecycle--nunca-existiu">
+  <a class="fundo" href="#estado-escrita" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Ciclo de vida de uma escrita — nunca existiu</h3>
+  <img src="assets/blocos/submission-lifecycle--nunca-existiu.png" alt="nunca existiu"></div>
+  <a class="sair" href="#estado-escrita">Fechar ✕</a>
+</div>
+<section class="slide" id="d-arquitetura" data-tipo="divisor">
+  <div class="slide-conteudo divisor" data-n="33">
+
+  <h2>Como o código está arrumado</h2>
+  <p class="lead">Três árvores, um processo. Monólito modular atrás de uma API JSON, com a dependência sempre apontando para dentro — e a fronteira cobrada por ferramenta.</p>
+  </div>
+</section>
+<section class="slide" id="arquitetura-p1" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="34">
+
+  <h2>Arquitetura da aplicação (1 de 2)</h2>
+  <p class="lead">Da tela React até a tabela, passando pela composição, pela borda HTTP, pelos quatro módulos e pelo núcleo compartilhado.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#architecture--inteiro"><img src="assets/projecao/architecture-p1.svg" alt="Diagrama de arquitetura do EscolaViva"></a>
+      <div class="pontos">
+        <a href="#architecture--artefato-1" style="left:3.667%;top:15.048%;width:94.0%;height:20.69%" aria-label="Ver Artefato 1 em detalhe"></a>
+        <a href="#architecture--app" style="left:5.0%;top:20.69%;width:28.667%;height:12.852%" aria-label="Ver app/ em detalhe"></a>
+        <a href="#architecture--features" style="left:36.333%;top:20.69%;width:28.667%;height:12.852%" aria-label="Ver features/ em detalhe"></a>
+        <a href="#architecture--shared-api" style="left:67.667%;top:20.69%;width:28.667%;height:12.852%" aria-label="Ver shared/api em detalhe"></a>
+        <a href="#architecture--artefato-3" style="left:57.667%;top:37.618%;width:38.667%;height:10.658%" aria-label="Ver Artefato 3 em detalhe"></a>
+        <a href="#architecture--artefato-2-apps-api-src-main-ts-raiz-d" style="left:5.0%;top:49.844%;width:91.333%;height:15.048%" aria-label="Ver Artefato 2 — apps/api/src/main.ts : raiz de composição em detalhe"></a>
+        <a href="#architecture--interface-entrega" style="left:3.667%;top:67.397%;width:94.0%;height:29.78%" aria-label="Ver Interface (entrega) em detalhe"></a>
+        <a href="#architecture--http-app-ts" style="left:5.0%;top:74.607%;width:28.667%;height:20.062%" aria-label="Ver http/app.ts em detalhe"></a>
+        <a href="#architecture--http-routes" style="left:36.333%;top:74.607%;width:28.667%;height:20.062%" aria-label="Ver http/routes/ em detalhe"></a>
+        <a href="#architecture--http-static-ts" style="left:67.667%;top:74.607%;width:28.667%;height:20.062%" aria-label="Ver http/static.ts em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>As cores dizem a camada, não o módulo.</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#architecture--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<section class="slide" id="arquitetura-p2" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="35">
+
+  <h2>Arquitetura da aplicação (2 de 2)</h2>
+  <p class="lead">Da tela React até a tabela, passando pela composição, pela borda HTTP, pelos quatro módulos e pelo núcleo compartilhado.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#architecture--inteiro"><img src="assets/projecao/architecture-p2.svg" alt="Diagrama de arquitetura do EscolaViva"></a>
+      <div class="pontos">
+        <a href="#architecture--identity" style="left:3.667%;top:-0.245%;width:94.0%;height:49.632%" aria-label="Ver identity em detalhe"></a>
+        <a href="#architecture--m-dulos" style="left:4.333%;top:0.492%;width:76.0%;height:5.651%" aria-label="Ver Módulos em detalhe"></a>
+        <a href="#architecture--n-cleo-compartilhado" style="left:3.667%;top:55.282%;width:94.0%;height:24.57%" aria-label="Ver Núcleo compartilhado em detalhe"></a>
+        <a href="#architecture--ports" style="left:5.0%;top:59.95%;width:31.667%;height:18.182%" aria-label="Ver ports/ em detalhe"></a>
+        <a href="#architecture--db" style="left:38.333%;top:59.95%;width:58.0%;height:18.182%" aria-label="Ver db/ em detalhe"></a>
+        <a href="#architecture--infraestrutura" style="left:3.667%;top:81.818%;width:94.0%;height:14.741%" aria-label="Ver Infraestrutura em detalhe"></a>
+        <a href="#architecture--postgresql" style="left:5.0%;top:85.996%;width:58.333%;height:9.09%" aria-label="Ver PostgreSQL em detalhe"></a>
+        <a href="#architecture--apps-web-dist" style="left:65.0%;top:85.996%;width:31.333%;height:9.09%" aria-label="Ver apps/web/dist em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>continuação</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#architecture--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="architecture--inteiro">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — diagrama completo</h3>
+  <img src="assets/diagramas/architecture.svg" alt="Diagrama de arquitetura do EscolaViva"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--artefato-1">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — Artefato 1</h3>
+  <img src="assets/blocos/architecture--artefato-1.png" alt="Artefato 1"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--app">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — app/</h3>
+  <img src="assets/blocos/architecture--app.png" alt="app/"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--features">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — features/</h3>
+  <img src="assets/blocos/architecture--features.png" alt="features/"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--shared-api">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — shared/api</h3>
+  <img src="assets/blocos/architecture--shared-api.png" alt="shared/api"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--artefato-3">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — Artefato 3</h3>
+  <img src="assets/blocos/architecture--artefato-3.png" alt="Artefato 3"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--artefato-2-apps-api-src-main-ts-raiz-d">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — Artefato 2 — apps/api/src/main.ts : raiz de composição</h3>
+  <img src="assets/blocos/architecture--artefato-2-apps-api-src-main-ts-raiz-d.png" alt="Artefato 2 — apps/api/src/main.ts : raiz de composição"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--interface-entrega">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — Interface (entrega)</h3>
+  <img src="assets/blocos/architecture--interface-entrega.png" alt="Interface (entrega)"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--http-app-ts">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — http/app.ts</h3>
+  <img src="assets/blocos/architecture--http-app-ts.png" alt="http/app.ts"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--http-routes">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — http/routes/</h3>
+  <img src="assets/blocos/architecture--http-routes.png" alt="http/routes/"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--http-static-ts">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — http/static.ts</h3>
+  <img src="assets/blocos/architecture--http-static-ts.png" alt="http/static.ts"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--identity">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — identity</h3>
+  <img src="assets/blocos/architecture--identity.png" alt="identity"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--m-dulos">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — Módulos</h3>
+  <img src="assets/blocos/architecture--m-dulos.png" alt="Módulos"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--n-cleo-compartilhado">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — Núcleo compartilhado</h3>
+  <img src="assets/blocos/architecture--n-cleo-compartilhado.png" alt="Núcleo compartilhado"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--ports">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — ports/</h3>
+  <img src="assets/blocos/architecture--ports.png" alt="ports/"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--db">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — db/</h3>
+  <img src="assets/blocos/architecture--db.png" alt="db/"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--infraestrutura">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — Infraestrutura</h3>
+  <img src="assets/blocos/architecture--infraestrutura.png" alt="Infraestrutura"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--postgresql">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — PostgreSQL</h3>
+  <img src="assets/blocos/architecture--postgresql.png" alt="PostgreSQL"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="architecture--apps-web-dist">
+  <a class="fundo" href="#arquitetura-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Arquitetura da aplicação — apps/web/dist</h3>
+  <img src="assets/blocos/architecture--apps-web-dist.png" alt="apps/web/dist"></div>
+  <a class="sair" href="#arquitetura-p1">Fechar ✕</a>
+</div>
+<section class="slide" id="arq-modulos" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="36">
+
+  <h2>Arquitetura — os quatro módulos</h2>
+  <p class="lead">Cada módulo tem a mesma forma: uma porta (index.ts), casos de uso, regras puras e repositórios. http/ só entra pela porta.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/arquitetura-modulos.png" alt="Recorte dos quatro módulos no diagrama de arquitetura">
+    <figcaption>A seta laranja aponta para cima: infra/ serve o domínio, nunca o contrário.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="arq-regras" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="37">
+
+  <h2>Arquitetura — o que o portão recusa</h2>
+  <p class="lead">Seis regras, três cruzeiros. Não é convenção nem revisão de código: é o build que quebra.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/arquitetura-regras.png" alt="Recorte das regras do dependency-cruiser">
+    <figcaption>web-sees-only-contracts é escrita como permissão — nada fica sem nome para escapar.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="arq-kernel" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="38">
+
+  <h2>Arquitetura — o núcleo compartilhado</h2>
+  <p class="lead">Infraestrutura sem regra de negócio. A seta nunca sobe daqui para dentro de um módulo — e é por isso que extrair um módulo no Estágio 14 não arrasta o shared junto.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/arquitetura-kernel.png" alt="Recorte do núcleo compartilhado">
+    <figcaption>unitOfWork() é o único ponto de commit da aplicação.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="arq-numeros" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="39">
+
+  <h2>O sistema em números</h2>
+  <p class="lead">Estes oito números não são decoração: existe um teste que os compara com o repositório e reprova a suíte quando divergem.</p>
+  <figure class="figura borda">
+    <img src="assets/recortes/arquitetura-numeros.png" alt="Recorte do painel de números">
+    <figcaption>Um número que ninguém remede para de ser medição e vira história sobre o passado.</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="sequencia-post-p1" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="40">
+
+  <h2>O caminho de um POST, do clique ao commit (1 de 2)</h2>
+  <p class="lead">Este é o diagrama que costura os outros: mostra, em ordem, tudo por que uma matrícula passa entre o clique no formulário e a linha no banco.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#sequencia-post--inteiro"><img src="assets/projecao/sequencia-post-p1.svg" alt="Diagrama de sequência de um POST"></a>
+      <div class="pontos">
+        <a href="#sequencia-post--o-envelope-que-sobe" style="left:12.075%;top:40.171%;width:50.314%;height:8.029%" aria-label="Ver O envelope que sobe em detalhe"></a>
+        <a href="#sequencia-post--desvio-a-a-regra-recusa" style="left:74.969%;top:11.679%;width:23.27%;height:31.996%" aria-label="Ver Desvio A — a regra recusa em detalhe"></a>
+        <a href="#sequencia-post--a-cadeia-uma-a-uma" style="left:74.969%;top:81.996%;width:23.27%;height:28.832%" aria-label="Ver A cadeia, uma a uma em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>Repare onde a reserva da chave acontece: dentro da transação, não antes dela.</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#sequencia-post--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<section class="slide" id="sequencia-post-p2" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="41">
+
+  <h2>O caminho de um POST, do clique ao commit (2 de 2)</h2>
+  <p class="lead">Este é o diagrama que costura os outros: mostra, em ordem, tudo por que uma matrícula passa entre o clique no formulário e a linha no banco.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#sequencia-post--inteiro"><img src="assets/projecao/sequencia-post-p2.svg" alt="Diagrama de sequência de um POST"></a>
+      <div class="pontos">
+        <a href="#sequencia-post--begin-writer-begin" style="left:45.157%;top:-2.445%;width:28.428%;height:49.591%" aria-label="Ver BEGIN — writer().begin() em detalhe"></a>
+        <a href="#sequencia-post--tr-s-garantias-e-nenhuma-substitui-as-" style="left:74.969%;top:13.859%;width:23.27%;height:21.602%" aria-label="Ver Três garantias, e nenhuma substitui as outras em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>continuação</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#sequencia-post--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="sequencia-post--inteiro">
+  <a class="fundo" href="#sequencia-post-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>O caminho de um POST, do clique ao commit — diagrama completo</h3>
+  <img src="assets/diagramas/sequencia-post.svg" alt="Diagrama de sequência de um POST"></div>
+  <a class="sair" href="#sequencia-post-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="sequencia-post--o-envelope-que-sobe">
+  <a class="fundo" href="#sequencia-post-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>O caminho de um POST, do clique ao commit — O envelope que sobe</h3>
+  <img src="assets/blocos/sequencia-post--o-envelope-que-sobe.png" alt="O envelope que sobe"></div>
+  <a class="sair" href="#sequencia-post-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="sequencia-post--desvio-a-a-regra-recusa">
+  <a class="fundo" href="#sequencia-post-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>O caminho de um POST, do clique ao commit — Desvio A — a regra recusa</h3>
+  <img src="assets/blocos/sequencia-post--desvio-a-a-regra-recusa.png" alt="Desvio A — a regra recusa"></div>
+  <a class="sair" href="#sequencia-post-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="sequencia-post--a-cadeia-uma-a-uma">
+  <a class="fundo" href="#sequencia-post-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>O caminho de um POST, do clique ao commit — A cadeia, uma a uma</h3>
+  <img src="assets/blocos/sequencia-post--a-cadeia-uma-a-uma.png" alt="A cadeia, uma a uma"></div>
+  <a class="sair" href="#sequencia-post-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="sequencia-post--begin-writer-begin">
+  <a class="fundo" href="#sequencia-post-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>O caminho de um POST, do clique ao commit — BEGIN — writer().begin()</h3>
+  <img src="assets/blocos/sequencia-post--begin-writer-begin.png" alt="BEGIN — writer().begin()"></div>
+  <a class="sair" href="#sequencia-post-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="sequencia-post--tr-s-garantias-e-nenhuma-substitui-as-">
+  <a class="fundo" href="#sequencia-post-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>O caminho de um POST, do clique ao commit — Três garantias, e nenhuma substitui as outras</h3>
+  <img src="assets/blocos/sequencia-post--tr-s-garantias-e-nenhuma-substitui-as-.png" alt="Três garantias, e nenhuma substitui as outras"></div>
+  <a class="sair" href="#sequencia-post-p1">Fechar ✕</a>
+</div>
+<section class="slide" id="s-stack-back">
+  <div class="slide-conteudo" data-n="42">
+
+  <h2>Stack do backend</h2>
+  <p class="lead">Cada peça com uma linha dizendo por que ela está aqui — e, mais importante, o que ela <strong>não</strong> faz.</p>
+  <div class="cols-2">
+    <div class="card"><h3>Runtime e borda</h3>
+      <ul class="lista">
+        <li><strong>Bun</strong> — runtime, gerenciador de pacotes e executor de testes. Uma ferramenta no lugar de quatro.</li>
+        <li><strong>Hono</strong> — roteador e cadeia de middleware. Não tem opinião sobre camada nem sobre banco.</li>
+        <li><strong>zod</strong> — valida forma na borda. Não conhece regra de negócio: isso é do domínio.</li>
+      </ul></div>
+    <div class="card"><h3>Dados</h3>
+      <ul class="lista">
+        <li><strong>PostgreSQL</strong> — restrições, índices parciais e locks consultivos são parte do desenho, não detalhe.</li>
+        <li><strong>Bun.sql</strong> — SQL escrito à mão, com parâmetro. <strong>Não há ORM</strong>: o SQL desta escala é curto, e o ORM esconderia justamente o índice parcial que garante a regra.</li>
+      </ul></div>
+    <div class="card"><h3>Observação e disciplina</h3>
+      <ul class="lista">
+        <li><strong>pino</strong> — log estruturado, com redação de campo sensível.</li>
+        <li><strong>dependency-cruiser</strong> — três cruzeiros, seis regras. É o que faz a fronteira ser verificada e não combinada.</li>
+      </ul></div>
+    <div class="card"><h3>Verificação</h3>
+      <ul class="lista">
+        <li><strong>bun test</strong> — 95 arquivos de teste dos dois lados</li>
+        <li><strong>Playwright</strong> — 5 jornadas contra o servidor de verdade</li>
+        <li><strong>Vitest + MSW</strong> — o front, com a API dublada</li>
+      </ul></div>
+  </div>
+  </div>
+</section>
+<section class="slide" id="s-arvore-raiz">
+  <div class="slide-conteudo" data-n="43">
+
+  <h2>A árvore do repositório</h2>
+  <p class="lead">Três workspaces e cinco pastas de apoio. Cada uma com um dono claro — e nenhuma com dois.</p>
+  <pre class="codigo claro" data-arquivo="estrutura da raiz"><code>exemplo_saas/
+├── apps/
+│   ├── api/          o servidor: quatro módulos, borda HTTP, núcleo compartilhado
+│   └── web/          a SPA React: uma pasta por área, carregada sob demanda
+├── packages/
+│   └── contracts/    os tipos que atravessam a fronteira — e nada mais
+├── migrations/       0001_initial_schema.sql — o esquema inteiro, em um arquivo
+├── scripts/          migrate, seed, backup, restore-test, magic-values
+├── tests/            os portões do repositório: diagramas, tamanho, comentário, layout
+├── e2e/              5 jornadas no navegador, contra o servidor de verdade
+├── infra/            docker compose: os dois bancos do desenvolvimento
+└── docs/             o documento do estágio, os diagramas, estes slides</code></pre>
+  </div>
+</section>
+<section class="slide" id="s-arvore-api">
+  <div class="slide-conteudo" data-n="44">
+
+  <h2>A árvore do servidor</h2>
+  <p class="lead">A mesma forma repetida quatro vezes. Quem aprendeu um módulo, sabe navegar os outros três.</p>
+  <pre class="codigo claro" data-arquivo="apps/api/src"><code>apps/api/src/
+├── main.ts                 raiz de composição: valida ambiente, sobe, agenda, desliga
+├── identity/               7 casos de uso · 5 agregados · 4 repositórios
+│   ├── index.ts            a única porta — linguagem publicada
+│   ├── domain/             regras puras: network, school, user, role, session
+│   ├── application/        orquestra, valida com zod, abre unitOfWork()
+│   └── infra/              repositórios e o SQL
+├── academics/              18 · 6 · 6      quem estuda, onde e com quem
+├── assessment/              4 · 4 · 3      nota, frequência, fechamento
+├── communication/           3 · 2 · 0      o que a escola diz às famílias
+├── http/                   rotas, schemas, presenters, estáticos — nenhuma regra
+└── shared/                 infraestrutura sem regra de negócio
+    ├── db/  http/  log/  jobs/  config/  pagination/
+    └── ports/  document/  result.ts  constants.ts   ← o que o domínio alcança</code></pre>
+  </div>
+</section>
+<section class="slide" id="s-testes">
+  <div class="slide-conteudo" data-n="45">
+
+  <h2>Onde mora cada teste, e que pergunta ele responde</h2>
+  <p class="lead">Quatro lugares, quatro perguntas diferentes. O lugar do arquivo já diz o que ele tem direito de assumir.</p>
+  <table class="tabela">
+    <thead><tr><th>Onde</th><th>Quantos</th><th>Que pergunta responde</th></tr></thead>
+    <tbody>
+      <tr><td><code>apps/api/tests/</code></td><td>45</td><td>a regra está certa? — contra o banco de teste, de verdade</td></tr>
+      <tr><td><code>apps/web/tests/</code></td><td>41</td><td>a tela mostra o que devia? — com a API dublada por MSW</td></tr>
+      <tr><td><code>tests/</code></td><td>9</td><td>o repositório continua obedecendo a si mesmo?</td></tr>
+      <tr><td><code>e2e/</code></td><td>5</td><td>funciona de ponta a ponta, no navegador, com o servidor real?</td></tr>
+    </tbody>
+  </table>
+  <div class="cols-2" style="margin-top:1.2cqw">
+    <div class="card atencao"><h3>Os portões de <code>tests/</code> são incomuns</h3>
+      <ul class="lista">
+        <li><code>diagrams</code> — os números do diagrama batem com o repositório?</li>
+        <li><code>file_length</code> — nenhum arquivo passou de 180 linhas?</li>
+        <li><code>no_comments</code> — o código continua se explicando sem prosa?</li>
+        <li><code>migration_window</code> — nenhuma migração comprime a janela?</li>
+        <li><code>single_import_per_module</code>, <code>test_layout</code>, <code>stage_document</code>, <code>backup_and_restore</code>, <code>deployment_contract</code></li>
+      </ul></div>
+    <div class="card"><h3>Por que MSW não basta</h3>
+      <p>MSW responde o que o teste mandar responder. Três defeitos reais passaram verdes por essa fresta — o dublê concordava com a suposição errada.</p>
+      <p>É para isso que existem as 5 jornadas: elas atravessam o proxy do Vite, o cookie de primeira parte e o banco. Nenhum teste unitário prova isso.</p></div>
+  </div>
+  </div>
+</section>
+<section class="slide" id="d-fatia" data-tipo="divisor">
+  <div class="slide-conteudo divisor" data-n="46">
+
+  <h2>Uma fatia vertical, aberta por inteiro</h2>
+  <p class="lead">Matricular um aluno: do formulário React até o índice parcial que recusa a segunda matrícula ativa. Oito camadas, o código completo de cada uma, sem pular nenhuma.</p>
+  </div>
+</section>
+<section class="slide" id="s-slice-anatomia">
+  <div class="slide-conteudo" data-n="47">
+
+  <h2>A anatomia de uma fatia vertical</h2>
+  <p class="lead">Toda escrita deste sistema atravessa as mesmas oito camadas, de fora para dentro, e cada uma tem uma responsabilidade e uma proibição — é a proibição que mantém a fatia fina. Este é o mapa dos próximos slides.</p>
+  <table class="tabela">
+    <thead>
+      <tr><th>Camada</th><th>Do que ela é responsável</th><th>O que ela NÃO pode fazer</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>tela React</td><td>coletar os campos, mostrar a recusa e cunhar a chave do envio</td><td>decidir se a matrícula pode existir — ela não conhece regra nenhuma</td></tr>
+      <tr><td>tipo em <code>packages/contracts</code></td><td>declarar a forma do que atravessa a fronteira</td><td>ter comportamento: nem função, nem zod, nem import do servidor</td></tr>
+      <tr><td>rota em <code>http/</code></td><td>conferir escopo, chamar o caso de uso e traduzir o resultado em status</td><td>abrir transação ou escrever SQL — não conhece tabela alguma</td></tr>
+      <tr><td>schema zod da borda</td><td>recusar corpo malformado antes de qualquer consulta</td><td>consultar o banco: não sabe se o aluno existe nem de que ano é a turma</td></tr>
+      <tr><td>caso de uso em <code>application/</code></td><td>abrir a transação, buscar o contexto, montar a entidade, devolver <code>Result</code></td><td>escrever SQL à mão ou responder HTTP — não sabe o que é 201</td></tr>
+      <tr><td>regra em <code>domain/</code></td><td>tipos e funções puras: é quem dá a mensagem que a secretaria lê</td><td>importar <code>sql</code>, Hono, zod ou repositório — nenhuma E/S</td></tr>
+      <tr><td>repositório em <code>infra/</code></td><td>traduzir entidade em <code>INSERT</code> e <code>UPDATE</code>, devolvendo <code>boolean</code></td><td>escolher política: não decide mensagem nem qual campo culpar</td></tr>
+      <tr><td>tabela e restrição no banco</td><td>a garantia que sobrevive a dois pedidos simultâneos</td><td>explicar: devolve violação, nunca uma frase para a secretaria ler</td></tr>
+    </tbody>
+  </table>
+  <div class="destaque">A dependência aponta sempre para dentro: o de fora conhece o de dentro, nunca o contrário.</div>
+  <footer class="fonte">De onde veio: apps/web/src/features/, apps/api/src/academics/, migrations/0001_initial_schema.sql</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-fluxo">
+  <div class="slide-conteudo" data-n="48">
+
+  <h2>O percurso, do clique à linha no banco</h2>
+  <p class="lead">Nove passos, cada um em seu arquivo. Nenhum deles sabe como o outro funciona por dentro — só o que ele promete devolver.</p>
+  <ol class="passos">
+    <li>A secretaria escolhe turma e ano letivo e preenche a data, na ficha do aluno — <code>students/EnrollmentForm.tsx</code></li>
+    <li>O <code>handleSubmit</code> valida os três campos com zod ainda no navegador; faltando um, nada sai da máquina — <code>features/registrar/schemas.ts</code></li>
+    <li>A mutação envia <code>POST /api/v1/registrar/enrollments</code> com a chave do envio no cabeçalho <code>Idempotency-Key</code> — <code>features/registrar/mutations.ts</code></li>
+    <li><code>secureWriteMiddleware</code> exige a marca <code>X-Requested-By</code>; <code>jsonIdempotencyMiddleware</code> lê a chave e prepara a reserva, que só vira linha dentro da transação — <code>http/secureWrite.ts</code>, <code>shared/http/idempotency.ts</code></li>
+    <li>A rota confere a forma do corpo e o escopo: aluno e turma têm que estar sob as escolas daquela secretaria — <code>http/routes/registrar/enrollments.ts</code></li>
+    <li>O caso de uso abre a transação e busca aluno, turma e ano letivo; qualquer ausência vira recusa de campo — <code>academics/application/enroll.ts</code></li>
+    <li>A entidade é montada em memória com <code>status: ACTIVE_ENROLLMENT_STATUS</code> — <code>academics/domain/enrollment.ts</code></li>
+    <li>O repositório executa <code>INSERT ... ON CONFLICT ... DO NOTHING</code> e devolve apenas se a linha nasceu — <code>academics/infra/enrollmentRepository.ts</code></li>
+    <li>Nasceu: <code>201</code> com <code>Location</code> da ficha. Não nasceu: <code>422</code> com a mensagem no campo <code>studentId</code>, e a transação volta atrás — <code>http/response.ts</code></li>
+  </ol>
+  <footer class="fonte">De onde veio: apps/web/src/ e apps/api/src/http/routes/api.ts</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-01-form-a">
+  <div class="slide-conteudo" data-n="49">
+
+  <h2>1. A tela — o formulário</h2>
+  <p class="lead">Repare no que não está aqui: regra nenhuma. A tela sabe desenhar três campos e sabe onde pendurar a mensagem que voltar — <code>error</code> no campo, <code>Alert</code> no formulário.</p>
+  <pre class="codigo" data-arquivo="apps/web/src/features/registrar/students/EnrollmentForm.tsx"><code>      &lt;Paper p="lg" withBorder maw={FORM_WIDTH}&gt;
+        &lt;form onSubmit={form.submit} noValidate&gt;
+          &lt;Stack gap="md"&gt;
+            {form.warning !== undefined &amp;&amp; (
+              &lt;Alert color={REFUSAL_COLOUR} role={ALERT_ROLE}&gt;
+                {form.warning}
+              &lt;/Alert&gt;
+            )}
+
+            &lt;NativeSelect
+              label={CLASS_GROUP_LABEL}
+              withAsterisk
+              data={withPlaceholder(CHOOSE.classGroup, classGroupChoices(classGroups.data))}
+              error={form.errors.classGroupId?.message}
+              {...form.register(ENROLLMENT_FIELD.classGroupId)}
+            /&gt;
+
+            &lt;NativeSelect
+              label={ACADEMIC_YEAR_LABEL}
+              withAsterisk
+              data={withPlaceholder(CHOOSE.academicYear, academicYearChoices(academicYears.data))}
+              error={form.errors.academicYearId?.message}
+              {...form.register(ENROLLMENT_FIELD.academicYearId)}
+            /&gt;</code></pre>
+  <footer class="fonte">De onde veio: apps/web/src/features/registrar/students/EnrollmentForm.tsx — antes deste trecho, quinze linhas só decidem entre carregando, falhou e "nenhuma turma disponível"</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-01-form-b">
+  <div class="slide-conteudo" data-n="50">
+
+  <h2>1. A tela — react-hook-form e zod</h2>
+  <p class="lead">O zod do navegador só evita a viagem inútil; quando o servidor recusa mesmo assim, <code>applyRefusal</code> devolve a mensagem ao campo que a causou, em vez de a um alerta genérico.</p>
+  <pre class="codigo" data-arquivo="apps/web/src/features/registrar/students/useEnrollmentForm.ts"><code>export function useEnrollmentForm(studentId: string): NewEnrollment {
+  const navigate = useNavigate();
+  const notices = useNotices();
+  const enroll = useEnroll(studentId);
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm&lt;EnrollmentValues&gt;({
+    resolver: standardSchemaResolver(enrollmentSchema),
+    defaultValues: BLANK_ENROLLMENT,
+  });
+
+  const enrollStudent = handleSubmit((values) =&gt; {
+    enroll.mutate(values, {
+      onSuccess: () =&gt; {
+        notices.success(REGISTRAR_NOTICES.studentEnrolled);
+        void navigate(studentRecordAddress(studentId));
+      },
+      onError: (failure) =&gt; {
+        applyRefusal(failure, setError, ENROLLMENT_FIELDS);
+      },
+    });
+  });</code></pre>
+  <footer class="fonte">De onde veio: apps/web/src/features/registrar/students/useEnrollmentForm.ts — o retorno é <code>{ register, errors, warning, isEnrolling, submit }</code>, e <code>warning</code> é <code>errors.root?.message</code></footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-01-form-c">
+  <div class="slide-conteudo" data-n="51">
+
+  <h2>1. A tela — a chave de idempotência</h2>
+  <p class="lead">A chave nasce no navegador, uma por envio, e só é trocada em <code>submission.accepted()</code>: dois cliques no mesmo botão carregam a mesma chave, e o segundo não cria uma segunda matrícula.</p>
+  <pre class="codigo" data-arquivo="apps/web/src/features/registrar/mutations.ts"><code>export function useEnroll(studentId: string) {
+  const queries = useQueryClient();
+  const submission = useSubmission();
+  return useMutation&lt;Written&lt;CreatedRecord&gt;, ApiError, EnrollmentValues&gt;({
+    mutationFn: (values) =&gt;
+      client
+        .post&lt;Written&lt;CreatedRecord&gt;&gt;(
+          REGISTRAR_API.enrollments,
+          { ...values, studentId },
+          submission.attempt(),
+        )
+        .then((response) =&gt; response.data),
+    onSuccess: async () =&gt; {
+      submission.accepted();
+      await Promise.all([
+        refreshOneStudentRecord(queries, studentId),
+        refreshStudentSearches(queries),
+      ]);
+    },
+  });
+}</code></pre>
+  <footer class="fonte">De onde veio: apps/web/src/features/registrar/mutations.ts — <code>submission.attempt()</code> vem de apps/web/src/shared/api/submission.ts</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-02-contrato">
+  <div class="slide-conteudo" data-n="52">
+
+  <h2>2. O contrato — a única costura entre os dois lados</h2>
+  <p class="lead">Treze linhas para esta fatia inteira, e nenhuma função: o contrato diz só a forma do que atravessa a fronteira, e desaparece no build — se o servidor mudar um campo, o front para de compilar.</p>
+  <pre class="codigo" data-arquivo="packages/contracts/src/students.ts"><code>export type CreatedRecord = {
+  readonly id: string;
+};</code></pre>
+  <pre class="codigo" data-arquivo="packages/contracts/src/shared.ts"><code>export type EnrollmentInList = {
+  readonly id: string;
+  readonly studentId: string;
+  readonly studentName: string;
+  readonly classGroupId: string;
+  readonly classGroupName: string;
+  readonly year: number;
+  readonly status: EnrollmentStatus;
+};</code></pre>
+  <pre class="codigo" data-arquivo="packages/contracts/src/enumerations.ts"><code>export type EnrollmentStatus = (typeof ENROLLMENT_STATUSES)[number];</code></pre>
+  <div class="destaque"><code>ENROLLMENT_STATUSES</code> é repetido aqui de propósito, porque o pacote não pode importar o servidor — e um teste cobra que as duas listas continuem iguais.</div>
+  <footer class="fonte">De onde veio: packages/contracts/src/ — a comparação das listas está em apps/api/tests/http/contracts.test.ts</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-03-rota">
+  <div class="slide-conteudo" data-n="53">
+
+  <h2>3. A rota — escopo, chamada e tradução</h2>
+  <p class="lead">Vinte e quatro linhas e nenhuma regra de matrícula: a rota confere o escopo da secretaria, chama o caso de uso e traduz — recusa vira <code>422</code>, sucesso vira <code>201</code> com <code>Location</code>.</p>
+  <pre class="codigo" data-arquivo="apps/api/src/http/routes/registrar/enrollments.ts"><code>export const enrollmentRoutes = new Hono&lt;{ Variables: Variables }&gt;();
+
+enrollmentRoutes.post(REGISTRAR_ROUTES.enrollments, async (c) =&gt; {
+  const input = parse(enrollmentSchema, c.get(CONTEXT_VARIABLES.jsonBody));
+  if (!input.ok) return c.json(errorBody(input.errors), STATUS.invalidShape);
+
+  const student = await studentInScopeOrFail(c, input.value.studentId);
+  const { classGroupId, academicYearId, enrollmentDate } = input.value;
+  if (classGroupId !== '' &amp;&amp; (await classGroupInScope(c, classGroupId)) === null) {
+    throw new NotFound(RECORD_OUT_OF_SCOPE);
+  }
+
+  const result = await academics.enroll({
+    networkId: currentNetwork(c),
+    studentId: student.id,
+    classGroupId,
+    academicYearId,
+    enrollmentDate,
+  });
+  if (!result.ok) return c.json(errorBody(result.errors), STATUS.refused);
+
+  const body: CreatedRecord = { id: result.value.id };
+  return created(c, studentLocation(student.id), body);
+});</code></pre>
+  <footer class="fonte">De onde veio: apps/api/src/http/routes/registrar/enrollments.ts</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-04-schema">
+  <div class="slide-conteudo" data-n="54">
+
+  <h2>4. O schema da borda — forma, não regra</h2>
+  <p class="lead">Repare no que o schema da borda não faz: <code>z.string().trim()</code> e nada mais. Quem cobra uuid e data é o caso de uso — forma malformada é <code>400</code>, regra quebrada é <code>422</code>.</p>
+  <pre class="codigo" data-arquivo="apps/api/src/http/schemas/students.ts"><code>export const enrollmentSchema = z.object({
+  studentId: z.string().trim(),
+  classGroupId: z.string().trim(),
+  academicYearId: z.string().trim(),
+  enrollmentDate: z.string().trim(),
+});</code></pre>
+  <pre class="codigo" data-arquivo="apps/api/src/http/schemas/parse.ts"><code>export function parse&lt;T&gt;(schema: ZodType&lt;T&gt;, body: unknown): Result&lt;T&gt; {
+  const analysis = schema.safeParse(body);
+  if (analysis.success) return success(analysis.data);
+  return failure&lt;T&gt;(
+    ...schemaErrors(analysis.error.issues).map((problem) =&gt;
+      wroteItsOwn(problem.message)
+        ? problem
+        : {
+            ...problem,
+            code: ERROR_CODES.invalidRequest,
+            message: VALIDATION_MESSAGES.invalidShape,
+          },
+    ),
+  );
+}</code></pre>
+  <footer class="fonte">De onde veio: apps/api/src/http/schemas/students.ts e apps/api/src/http/schemas/parse.ts</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-05-usecase-a">
+  <div class="slide-conteudo" data-n="55">
+
+  <h2>5. O caso de uso — o que ele pode alcançar</h2>
+  <p class="lead">Os imports são o mapa do arquivo: <code>shared/</code>, o próprio <code>domain/</code> e os repositórios do módulo — nenhum Hono, nenhum <code>sql</code> escrito aqui. E é neste zod que aparece o que a borda não cobrou.</p>
+  <pre class="codigo miudo" data-arquivo="apps/api/src/academics/application/enroll.ts"><code>import { z } from 'zod';
+import { unitOfWork, type Connection } from '../../shared/db';
+import { uuidIdGenerator } from '../../shared/ports';
+import { failure, fieldFailure, schemaErrors, success, type Result } from '../../shared/result';
+import { CODES, FIELDS, MESSAGES } from '../constants';
+import { ACTIVE_ENROLLMENT_STATUS, type Enrollment } from '../domain/enrollment';
+import type { ClassGroup } from '../domain/classGroup';
+import * as students from '../infra/studentRepository';
+import * as academicYears from '../infra/academicYearRepository';
+import * as enrollments from '../infra/enrollmentRepository';
+import * as classGroups from '../infra/classGroupRepository';
+
+const schema = z.object({
+  networkId: z.string().uuid(),
+  studentId: z.string().uuid(MESSAGES.studentRequired),
+  classGroupId: z.string().uuid(MESSAGES.enrollment.classGroupRequired),
+  academicYearId: z.string().uuid(MESSAGES.academicYearRequired),
+  enrollmentDate: z.string().date(MESSAGES.enrollment.dateFormat),
+});
+
+type Target = {
+  networkId: string;
+  studentId: string;
+  classGroupId: string;
+  academicYearId: string;
+};
+type EnrollmentContext = { studentName: string; classGroup: ClassGroup; year: number };</code></pre>
+  <footer class="fonte">De onde veio: apps/api/src/academics/application/enroll.ts</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-05-usecase-b">
+  <div class="slide-conteudo" data-n="56">
+
+  <h2>5. O caso de uso — as três buscas</h2>
+  <p class="lead">Olhe o primeiro argumento de cada busca: é o <code>sql</code> da transação, não uma conexão nova — e cada ausência vira recusa no campo que a causou, com código e mensagem prontos.</p>
+  <pre class="codigo" data-arquivo="apps/api/src/academics/application/enroll.ts (continuação)"><code>async function context(sql: Connection, target: Target): Promise&lt;Result&lt;EnrollmentContext&gt;&gt; {
+  const student = await students.byId(sql, target.networkId, target.studentId);
+  if (student === null) {
+    return fieldFailure(
+      FIELDS.enrollment.studentId,
+      CODES.studentNotFound,
+      MESSAGES.studentNotFound,
+    );
+  }
+  const classGroup = await classGroups.byId(sql, target.networkId, target.classGroupId);
+  if (classGroup === null) {
+    return fieldFailure(
+      FIELDS.enrollment.classGroupId,
+      CODES.classGroupNotFound,
+      MESSAGES.classGroupNotFound,
+    );
+  }
+  const academicYear = await academicYears.byId(sql, target.networkId, target.academicYearId);
+  if (academicYear === null) {
+    return fieldFailure(
+      FIELDS.enrollment.academicYearId,
+      CODES.academicYearNotFound,
+      MESSAGES.academicYearNotFound,
+    );
+  }</code></pre>
+  <footer class="fonte">De onde veio: apps/api/src/academics/application/enroll.ts — toda busca recebe <code>networkId</code>, e é assim que uma rede nunca enxerga a outra</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-05-usecase-c">
+  <div class="slide-conteudo" data-n="57">
+
+  <h2>5. O caso de uso — a recusa que só ele percebe</h2>
+  <p class="lead">A quarta recusa não é ausência, é incoerência: a turma existe, mas pertence a outro ano letivo. Nenhuma restrição do banco cobre isso, porque as duas chaves são independentes na tabela.</p>
+  <pre class="codigo" data-arquivo="apps/api/src/academics/application/enroll.ts (continuação)"><code>  if (classGroup.academicYearId !== target.academicYearId) {
+    return fieldFailure(
+      FIELDS.enrollment.classGroupId,
+      CODES.enrollment.classGroupFromAnotherYear,
+      MESSAGES.enrollment.classGroupFromAnotherYear,
+    );
+  }
+  return success({ studentName: student.name, classGroup, year: academicYear.year });
+}
+
+export async function enroll(input: {
+  networkId: string;
+  studentId: string;
+  classGroupId: string;
+  academicYearId: string;
+  enrollmentDate: string;
+}): Promise&lt;Result&lt;Enrollment&gt;&gt; {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return failure(...schemaErrors(parsed.error.issues));
+  }
+
+  const { networkId, studentId, classGroupId, academicYearId, enrollmentDate } = parsed.data;</code></pre>
+  <footer class="fonte">De onde veio: apps/api/src/academics/application/enroll.ts</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-05-usecase-d">
+  <div class="slide-conteudo" data-n="58">
+
+  <h2>5. O caso de uso — o coração da fatia</h2>
+  <p class="lead">Repare que a recusa é <code>return</code>, não <code>throw</code> — e ainda assim a transação volta atrás: <code>unitOfWork</code> reconhece o <code>Result</code> recusado e desfaz o que já tinha sido escrito.</p>
+  <pre class="codigo miudo" data-arquivo="apps/api/src/academics/application/enroll.ts (continuação)"><code>  return unitOfWork(async ({ sql }): Promise&lt;Result&lt;Enrollment&gt;&gt; =&gt; {
+    const found = await context(sql, { networkId, studentId, classGroupId, academicYearId });
+    if (!found.ok) return found;
+
+    const { studentName, classGroup, year } = found.value;
+    const enrollment: Enrollment = {
+      id: uuidIdGenerator.next(),
+      networkId,
+      studentId,
+      studentName,
+      classGroupId,
+      classGroupName: classGroup.name,
+      schoolId: classGroup.schoolId,
+      academicYearId,
+      year,
+      enrollmentDate,
+      status: ACTIVE_ENROLLMENT_STATUS,
+    };
+    const created = await enrollments.insert(sql, enrollment);
+    if (!created) {
+      return fieldFailure(
+        FIELDS.enrollment.studentId,
+        CODES.enrollment.duplicateActive,
+        MESSAGES.enrollment.duplicateActive,
+      );
+    }
+    return success(enrollment);
+  });
+}</code></pre>
+  <footer class="fonte">De onde veio: apps/api/src/academics/application/enroll.ts</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-06-dominio">
+  <div class="slide-conteudo" data-n="59">
+
+  <h2>6. O domínio — vinte e sete linhas sem E/S</h2>
+  <p class="lead">O arquivo inteiro, e nenhum import: a lista fechada, o tipo da entidade e duas funções puras. <code>canTransfer</code> é a regra que dá a mensagem — e que o <code>UPDATE</code> vai repetir em SQL.</p>
+  <pre class="codigo miudo" data-arquivo="apps/api/src/academics/domain/enrollment.ts"><code>export const ENROLLMENT_STATUSES = ['active', 'transferred', 'cancelled', 'completed'] as const;
+
+export type EnrollmentStatus = (typeof ENROLLMENT_STATUSES)[number];
+
+export const ACTIVE_ENROLLMENT_STATUS: EnrollmentStatus = ENROLLMENT_STATUSES[0];
+
+export type Enrollment = {
+  id: string;
+  networkId: string;
+  studentId: string;
+  studentName: string;
+  classGroupId: string;
+  classGroupName: string;
+  schoolId: string;
+  academicYearId: string;
+  year: number;
+  enrollmentDate: string;
+  status: EnrollmentStatus;
+};
+
+export function isValidEnrollmentStatus(value: string): value is EnrollmentStatus {
+  return ENROLLMENT_STATUSES.some((status) =&gt; status === value);
+}
+
+export function canTransfer(enrollment: Enrollment): boolean {
+  return enrollment.status === ACTIVE_ENROLLMENT_STATUS;
+}</code></pre>
+  <footer class="fonte">De onde veio: apps/api/src/academics/domain/enrollment.ts</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-07-infra">
+  <div class="slide-conteudo" data-n="60">
+
+  <h2>7. O repositório — o <code>INSERT</code> que não pergunta</h2>
+  <p class="lead">Repare que o <code>INSERT</code> não consulta se já existe: ele deixa o índice parcial responder, e trata zero linhas como recusa em vez de exceção. O <code>UPDATE</code> faz o mesmo com <code>AND status = 'active'</code>.</p>
+  <pre class="codigo" data-arquivo="apps/api/src/academics/infra/enrollmentRepository.ts"><code>export async function insert(sql: Connection, enrollment: Enrollment): Promise&lt;boolean&gt; {
+  const created: { id: string }[] = await sql`
+    INSERT INTO enrollment (id, network_id, student_id, class_group_id, academic_year_id,
+                            enrollment_date, status)
+    VALUES (${enrollment.id}, ${enrollment.networkId}, ${enrollment.studentId},
+            ${enrollment.classGroupId},
+            ${enrollment.academicYearId}, ${enrollment.enrollmentDate}, ${enrollment.status})
+    ON CONFLICT (student_id, academic_year_id) WHERE status = 'active' DO NOTHING
+    RETURNING id`;
+  return created.length === 1;
+}
+
+export async function markAsTransferred(
+  sql: Connection,
+  networkId: string,
+  id: string,
+): Promise&lt;boolean&gt; {
+  const updated: { id: string }[] = await sql`
+    UPDATE enrollment
+       SET status = 'transferred'
+     WHERE network_id = ${networkId} AND id = ${id} AND status = 'active'
+     RETURNING id`;
+  return updated.length === 1;
+}</code></pre>
+  <footer class="fonte">De onde veio: apps/api/src/academics/infra/enrollmentRepository.ts</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-08-banco">
+  <div class="slide-conteudo" data-n="61">
+
+  <h2>8. O banco — a tabela e o índice parcial</h2>
+  <p class="lead">O comentário da migração é a decisão de projeto: a regra mora aqui porque unicidade não sobrevive à concorrência no código — dois pedidos simultâneos passam pelo mesmo <code>SELECT</code>, e só um <code>INSERT</code> sobrevive.</p>
+  <pre class="codigo miudo" data-arquivo="migrations/0001_initial_schema.sql"><code>CREATE TABLE enrollment (
+  id                uuid PRIMARY KEY,
+  network_id        uuid NOT NULL REFERENCES network(id),
+  student_id        uuid NOT NULL REFERENCES student(id),
+  class_group_id    uuid NOT NULL REFERENCES class_group(id),
+  academic_year_id  uuid NOT NULL REFERENCES academic_year(id),
+  enrollment_date   date NOT NULL,
+  status            text NOT NULL DEFAULT 'active',
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT status_valid CHECK (status IN ('active','transferred','cancelled','completed'))
+);
+
+CREATE TRIGGER enrollment_updated_at BEFORE UPDATE ON enrollment
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- A student may not hold two ACTIVE enrollments in the same academic year. The partial
+-- unique index guarantees it inside the database — the rule does not depend on the
+-- application remembering it (I8).
+CREATE UNIQUE INDEX active_enrollment_unique_per_year
+  ON enrollment (student_id, academic_year_id)
+  WHERE status = 'active';
+
+-- Roll call, report card and closing always start from the class group's list of active
+-- students.
+CREATE INDEX active_enrollment_by_class_group
+  ON enrollment (network_id, class_group_id)
+  WHERE status = 'active';</code></pre>
+  <footer class="fonte">De onde veio: migrations/0001_initial_schema.sql</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-09-teste">
+  <div class="slide-conteudo" data-n="62">
+
+  <h2>9. O teste — a recusa que prova o índice</h2>
+  <p class="lead">O teste não olha a exceção do PostgreSQL: ele cobra a mensagem em português no campo certo, e depois lê o banco direto para confirmar que continua existindo uma única matrícula ativa.</p>
+  <pre class="codigo" data-arquivo="apps/api/tests/academics/enrollment.test.ts"><code>  test('a second active enrollment for the same student in the same year is refused with a field error', async () =&gt; {
+    const scenario = await fullScenario();
+    const [alreadyEnrolled] = scenario.students;
+    const [, anotherClassGroup] = scenario.classGroups;
+
+    const result = await academics.enroll({
+      networkId: scenario.network.id,
+      studentId: alreadyEnrolled.id,
+      classGroupId: anotherClassGroup.id,
+      academicYearId: scenario.academicYear.id,
+      enrollmentDate: ENROLLMENT_DATE,
+    });
+
+    expect(errorsOf(result)).toEqual([
+      {
+        field: 'studentId',
+        code: 'duplicate_active_enrollment',
+        message: 'Este aluno já tem matrícula ativa neste ano letivo.',
+      },
+    ]);
+    expect(await studentStatuses(alreadyEnrolled.id)).toEqual(['active']);
+  });</code></pre>
+  <footer class="fonte">De onde veio: apps/api/tests/academics/enrollment.test.ts — <code>studentStatuses()</code> lê os status direto da tabela, sem passar pela aplicação</footer>
+  </div>
+</section>
+<section class="slide" id="s-slice-fecho">
+  <div class="slide-conteudo" data-n="63">
+
+  <h2>O que esta fatia prova</h2>
+  <p class="lead">Três coisas que só aparecem quando se abre a fatia inteira — e que nenhum diagrama de arquitetura mostra sozinho.</p>
+  <div class="cols-3">
+    <div class="card">
+      <h3>A mesma regra, dois lugares</h3>
+      <p><code>canTransfer()</code> no domínio dá a frase que a secretaria lê: <strong>"Apenas uma matrícula ativa pode ser transferida."</strong></p>
+      <p>O <code>AND status = 'active'</code> no <code>UPDATE</code> dá a garantia: sob dois pedidos simultâneos, só um fecha a matrícula de origem.</p>
+      <p>É a tabela de invariantes em ação — a coluna do domínio dá a MENSAGEM, a do banco dá a GARANTIA, e nenhuma substitui a outra.</p>
+    </div>
+    <div class="card">
+      <h3>A invariante que só o banco garante</h3>
+      <p><code>active_enrollment_unique_per_year</code> é parcial: só vale onde <code>status = 'active'</code>.</p>
+      <p>Por isso o mesmo aluno pode ter várias matrículas no histórico e uma única ativa por ano letivo.</p>
+      <p>Nenhum <code>SELECT</code> antes do <code>INSERT</code> daria essa garantia: dois pedidos simultâneos passariam pelos dois. É a invariante I8.</p>
+    </div>
+    <div class="card">
+      <h3>A recusa é valor, e mesmo assim faz rollback</h3>
+      <p>O caso de uso devolve o <code>Result</code> recusado com <code>return</code>; <code>unitOfWork</code> reconhece a recusa, desfaz a transação e entrega o valor a quem chamou.</p>
+      <p>Na transferência é isso que impede a matrícula de origem de ficar fechada quando a nova não pôde nascer.</p>
+    </div>
+  </div>
+  <div class="destaque">No ciclo de vida da matrícula, <code>active → transferred</code> é a única aresta que algum caso de uso escreve: <code>cancelled</code> e <code>completed</code> existem no <code>status_valid</code> e ninguém escreve neles — ainda.</div>
+  <footer class="fonte">De onde veio: apps/api/src/academics/ e migrations/0001_initial_schema.sql</footer>
+  </div>
+</section>
+<section class="slide" id="d-frontend" data-tipo="divisor">
+  <div class="slide-conteudo divisor" data-n="64">
+
+  <h2>O outro lado da fronteira</h2>
+  <p class="lead">Uma SPA React que não guarda regra nenhuma: ela pergunta, mostra e envia. E só enxerga o servidor através de um pacote de tipos.</p>
+  </div>
+</section>
+<section class="slide" id="stack-front-p1" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="65">
+
+  <h2>Stack do frontend (1 de 2)</h2>
+  <p class="lead">O que roda no navegador, o que roda só no build, e onde está a fronteira que o depcruise cobra.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#stack-frontend--inteiro"><img src="assets/projecao/stack-frontend-p1.svg" alt="Diagrama da stack tecnológica do frontend"></a>
+      <div class="pontos">
+        <a href="#stack-frontend--build-e-desenvolvimento" style="left:2.319%;top:14.397%;width:67.391%;height:20.344%" aria-label="Ver Build e desenvolvimento em detalhe"></a>
+        <a href="#stack-frontend--vite-7-3-6" style="left:3.406%;top:19.406%;width:21.159%;height:13.616%" aria-label="Ver Vite 7.3.6 em detalhe"></a>
+        <a href="#stack-frontend--typescript-5-9-3" style="left:25.435%;top:19.406%;width:21.159%;height:13.616%" aria-label="Ver TypeScript 5.9.3 em detalhe"></a>
+        <a href="#stack-frontend--build" style="left:47.464%;top:19.406%;width:21.159%;height:13.616%" aria-label="Ver build em detalhe"></a>
+        <a href="#stack-frontend--runtime" style="left:2.319%;top:36.15%;width:67.391%;height:22.066%" aria-label="Ver Runtime em detalhe"></a>
+        <a href="#stack-frontend--react-19-2-8-react-dom-19-2-8" style="left:3.406%;top:41.159%;width:21.159%;height:15.336%" aria-label="Ver React 19.2.8 + react-dom 19.2.8 em detalhe"></a>
+        <a href="#stack-frontend--react-router-7-18-2" style="left:25.435%;top:41.159%;width:21.159%;height:15.336%" aria-label="Ver React Router 7.18.2 em detalhe"></a>
+        <a href="#stack-frontend--guardas" style="left:47.464%;top:41.159%;width:21.159%;height:15.336%" aria-label="Ver Guardas em detalhe"></a>
+        <a href="#stack-frontend--interface-mantine-8-e-o-css-que-s-func" style="left:2.319%;top:59.624%;width:67.391%;height:22.066%" aria-label="Ver Interface — Mantine 8, e o CSS que só funciona na ordem certa em detalhe"></a>
+        <a href="#stack-frontend--mantine-core-8-3-18" style="left:3.406%;top:64.633%;width:21.159%;height:15.336%" aria-label="Ver @mantine/core 8.3.18 em detalhe"></a>
+        <a href="#stack-frontend--mantinesheetsinloadorder-css-ts-33-fol" style="left:25.435%;top:64.633%;width:21.159%;height:15.336%" aria-label="Ver mantineSheetsInLoadOrder.css.ts — 33 folhas em detalhe"></a>
+        <a href="#stack-frontend--mantine-dates-est-instalado-e-fica-for" style="left:47.464%;top:64.633%;width:21.159%;height:15.336%" aria-label="Ver @mantine/dates está instalado e fica fora em detalhe"></a>
+        <a href="#stack-frontend--estado-e-dados" style="left:2.319%;top:83.099%;width:67.391%;height:33.646%" aria-label="Ver Estado e dados em detalhe"></a>
+        <a href="#stack-frontend--shared-api-client-ts" style="left:3.406%;top:88.107%;width:21.159%;height:15.336%" aria-label="Ver shared/api/client.ts em detalhe"></a>
+        <a href="#stack-frontend--tanstack-query-5-101" style="left:25.435%;top:88.107%;width:21.159%;height:15.336%" aria-label="Ver TanStack Query 5.101 em detalhe"></a>
+        <a href="#stack-frontend--formul-rios" style="left:47.464%;top:88.107%;width:21.159%;height:15.336%" aria-label="Ver Formulários em detalhe"></a>
+        <a href="#stack-frontend--o-caminho-de-um-dado-do-clique-at-o-se" style="left:70.87%;top:14.397%;width:27.101%;height:48.514%" aria-label="Ver O caminho de um dado, do clique até o servidor em detalhe"></a>
+        <a href="#stack-frontend--o-port-o" style="left:70.87%;top:64.79%;width:27.101%;height:23.788%" aria-label="Ver O portão em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>@escolaviva/contracts é o único caminho do repositório que o front pode importar.</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#stack-frontend--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<section class="slide" id="stack-front-p2" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="66">
+
+  <h2>Stack do frontend (2 de 2)</h2>
+  <p class="lead">O que roda no navegador, o que roda só no build, e onde está a fronteira que o depcruise cobra.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#stack-frontend--inteiro"><img src="assets/projecao/stack-frontend-p2.svg" alt="Diagrama da stack tecnológica do frontend"></a>
+      <div class="pontos">
+        <a href="#stack-frontend--a-p-gina-mora-na-url-e-o-envio-leva-ch" style="left:3.406%;top:5.606%;width:65.217%;height:11.754%" aria-label="Ver A página mora na URL, e o envio leva chave própria em detalhe"></a>
+        <a href="#stack-frontend--contrato" style="left:2.319%;top:20.977%;width:67.391%;height:21.519%" aria-label="Ver Contrato em detalhe"></a>
+        <a href="#stack-frontend--escolaviva-contracts" style="left:3.406%;top:26.762%;width:43.333%;height:13.744%" aria-label="Ver @escolaviva/contracts em detalhe"></a>
+        <a href="#stack-frontend--testes" style="left:2.319%;top:44.123%;width:67.391%;height:27.668%" aria-label="Ver Testes em detalhe"></a>
+        <a href="#stack-frontend--vitest-4-1-10-em-jsdom-26-41-arquivos-" style="left:3.406%;top:49.91%;width:21.159%;height:19.891%" aria-label="Ver Vitest 4.1.10 em jsdom 26 — 41 arquivos em tests/ em detalhe"></a>
+        <a href="#stack-frontend--testing-library-16-3" style="left:25.435%;top:49.91%;width:21.159%;height:19.891%" aria-label="Ver Testing Library 16.3 em detalhe"></a>
+        <a href="#stack-frontend--or-amento" style="left:47.464%;top:49.91%;width:21.159%;height:19.891%" aria-label="Ver Orçamento em detalhe"></a>
+        <a href="#stack-frontend--sa-da-apps-web-dist-o-que-a-api-entreg" style="left:2.319%;top:73.418%;width:67.391%;height:21.519%" aria-label="Ver Saída — apps/web/dist: o que a API entrega ao navegador em detalhe"></a>
+        <a href="#stack-frontend--21-arquivos-em-dist-assets-todos-com-h" style="left:3.406%;top:79.204%;width:43.333%;height:13.744%" aria-label="Ver 21 arquivos em dist/assets, todos com hash no nome em detalhe"></a>
+        <a href="#stack-frontend--sourcemap-true" style="left:47.609%;top:79.204%;width:21.014%;height:13.744%" aria-label="Ver sourcemap: true em detalhe"></a>
+        <a href="#stack-frontend--149" style="left:70.87%;top:-11.031%;width:27.101%;height:34.359%" aria-label="Ver 149 em detalhe"></a>
+        <a href="#stack-frontend--instalado-no-package-json-e-fora-do-bu" style="left:70.87%;top:25.497%;width:27.101%;height:23.508%" aria-label="Ver Instalado no package.json e fora do bundle, de propósito em detalhe"></a>
+        <a href="#stack-frontend--legenda" style="left:70.87%;top:51.175%;width:27.101%;height:43.399%" aria-label="Ver Legenda em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>continuação</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#stack-frontend--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="stack-frontend--inteiro">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — diagrama completo</h3>
+  <img src="assets/diagramas/stack-frontend.svg" alt="Diagrama da stack tecnológica do frontend"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--build-e-desenvolvimento">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Build e desenvolvimento</h3>
+  <img src="assets/blocos/stack-frontend--build-e-desenvolvimento.png" alt="Build e desenvolvimento"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--vite-7-3-6">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Vite 7.3.6</h3>
+  <img src="assets/blocos/stack-frontend--vite-7-3-6.png" alt="Vite 7.3.6"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--typescript-5-9-3">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — TypeScript 5.9.3</h3>
+  <img src="assets/blocos/stack-frontend--typescript-5-9-3.png" alt="TypeScript 5.9.3"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--build">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — build</h3>
+  <img src="assets/blocos/stack-frontend--build.png" alt="build"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--runtime">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Runtime</h3>
+  <img src="assets/blocos/stack-frontend--runtime.png" alt="Runtime"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--react-19-2-8-react-dom-19-2-8">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — React 19.2.8 + react-dom 19.2.8</h3>
+  <img src="assets/blocos/stack-frontend--react-19-2-8-react-dom-19-2-8.png" alt="React 19.2.8 + react-dom 19.2.8"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--react-router-7-18-2">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — React Router 7.18.2</h3>
+  <img src="assets/blocos/stack-frontend--react-router-7-18-2.png" alt="React Router 7.18.2"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--guardas">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Guardas</h3>
+  <img src="assets/blocos/stack-frontend--guardas.png" alt="Guardas"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--interface-mantine-8-e-o-css-que-s-func">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Interface — Mantine 8, e o CSS que só funciona na ordem certa</h3>
+  <img src="assets/blocos/stack-frontend--interface-mantine-8-e-o-css-que-s-func.png" alt="Interface — Mantine 8, e o CSS que só funciona na ordem certa"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--mantine-core-8-3-18">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — @mantine/core 8.3.18</h3>
+  <img src="assets/blocos/stack-frontend--mantine-core-8-3-18.png" alt="@mantine/core 8.3.18"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--mantinesheetsinloadorder-css-ts-33-fol">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — mantineSheetsInLoadOrder.css.ts — 33 folhas</h3>
+  <img src="assets/blocos/stack-frontend--mantinesheetsinloadorder-css-ts-33-fol.png" alt="mantineSheetsInLoadOrder.css.ts — 33 folhas"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--mantine-dates-est-instalado-e-fica-for">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — @mantine/dates está instalado e fica fora</h3>
+  <img src="assets/blocos/stack-frontend--mantine-dates-est-instalado-e-fica-for.png" alt="@mantine/dates está instalado e fica fora"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--estado-e-dados">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Estado e dados</h3>
+  <img src="assets/blocos/stack-frontend--estado-e-dados.png" alt="Estado e dados"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--shared-api-client-ts">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — shared/api/client.ts</h3>
+  <img src="assets/blocos/stack-frontend--shared-api-client-ts.png" alt="shared/api/client.ts"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--tanstack-query-5-101">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — TanStack Query 5.101</h3>
+  <img src="assets/blocos/stack-frontend--tanstack-query-5-101.png" alt="TanStack Query 5.101"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--formul-rios">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Formulários</h3>
+  <img src="assets/blocos/stack-frontend--formul-rios.png" alt="Formulários"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--o-caminho-de-um-dado-do-clique-at-o-se">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — O caminho de um dado, do clique até o servidor</h3>
+  <img src="assets/blocos/stack-frontend--o-caminho-de-um-dado-do-clique-at-o-se.png" alt="O caminho de um dado, do clique até o servidor"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--o-port-o">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — O portão</h3>
+  <img src="assets/blocos/stack-frontend--o-port-o.png" alt="O portão"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--a-p-gina-mora-na-url-e-o-envio-leva-ch">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — A página mora na URL, e o envio leva chave própria</h3>
+  <img src="assets/blocos/stack-frontend--a-p-gina-mora-na-url-e-o-envio-leva-ch.png" alt="A página mora na URL, e o envio leva chave própria"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--contrato">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Contrato</h3>
+  <img src="assets/blocos/stack-frontend--contrato.png" alt="Contrato"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--escolaviva-contracts">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — @escolaviva/contracts</h3>
+  <img src="assets/blocos/stack-frontend--escolaviva-contracts.png" alt="@escolaviva/contracts"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--testes">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Testes</h3>
+  <img src="assets/blocos/stack-frontend--testes.png" alt="Testes"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--vitest-4-1-10-em-jsdom-26-41-arquivos-">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Vitest 4.1.10 em jsdom 26 — 41 arquivos em tests/</h3>
+  <img src="assets/blocos/stack-frontend--vitest-4-1-10-em-jsdom-26-41-arquivos-.png" alt="Vitest 4.1.10 em jsdom 26 — 41 arquivos em tests/"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--testing-library-16-3">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Testing Library 16.3</h3>
+  <img src="assets/blocos/stack-frontend--testing-library-16-3.png" alt="Testing Library 16.3"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--or-amento">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Orçamento</h3>
+  <img src="assets/blocos/stack-frontend--or-amento.png" alt="Orçamento"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--sa-da-apps-web-dist-o-que-a-api-entreg">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Saída — apps/web/dist: o que a API entrega ao navegador</h3>
+  <img src="assets/blocos/stack-frontend--sa-da-apps-web-dist-o-que-a-api-entreg.png" alt="Saída — apps/web/dist: o que a API entrega ao navegador"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--21-arquivos-em-dist-assets-todos-com-h">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — 21 arquivos em dist/assets, todos com hash no nome</h3>
+  <img src="assets/blocos/stack-frontend--21-arquivos-em-dist-assets-todos-com-h.png" alt="21 arquivos em dist/assets, todos com hash no nome"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--sourcemap-true">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — sourcemap: true</h3>
+  <img src="assets/blocos/stack-frontend--sourcemap-true.png" alt="sourcemap: true"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--149">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — 149</h3>
+  <img src="assets/blocos/stack-frontend--149.png" alt="149"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--instalado-no-package-json-e-fora-do-bu">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Instalado no package.json e fora do bundle, de propósito</h3>
+  <img src="assets/blocos/stack-frontend--instalado-no-package-json-e-fora-do-bu.png" alt="Instalado no package.json e fora do bundle, de propósito"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="stack-frontend--legenda">
+  <a class="fundo" href="#stack-front-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Stack do frontend — Legenda</h3>
+  <img src="assets/blocos/stack-frontend--legenda.png" alt="Legenda"></div>
+  <a class="sair" href="#stack-front-p1">Fechar ✕</a>
+</div>
+<section class="slide" id="componentes-react-p1" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="67">
+
+  <h2>Componentes React — como uma tela é montada (1 de 2)</h2>
+  <p class="lead">Da casca até o formulário de matrícula, passando pelos guardas de papel, pelas fronteiras de erro e pelos limites de carregamento sob demanda.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#componentes-react--inteiro"><img src="assets/projecao/componentes-react-p1.svg" alt="Diagrama da árvore de componentes React"></a>
+      <div class="pontos">
+        <a href="#componentes-react--src-main-tsx" style="left:3.191%;top:17.36%;width:79.787%;height:162.025%" aria-label="Ver src/main.tsx em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>Uma área por pasta, carregada sob demanda: um responsável nunca baixa as telas da secretaria.</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#componentes-react--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<section class="slide" id="componentes-react-p2" data-tipo="figura">
+  <div class="slide-conteudo figurao" data-n="68">
+
+  <h2>Componentes React — como uma tela é montada (2 de 2)</h2>
+  <p class="lead">Da casca até o formulário de matrícula, passando pelos guardas de papel, pelas fronteiras de erro e pelos limites de carregamento sob demanda.</p>
+  <figure class="figura">
+    <div class="palco">
+      <a href="#componentes-react--inteiro"><img src="assets/projecao/componentes-react-p2.svg" alt="Diagrama da árvore de componentes React"></a>
+      <div class="pontos">
+        <a href="#componentes-react--src-main-tsx-2" style="left:4.344%;top:-91.863%;width:77.482%;height:184.583%" aria-label="Ver src/main.tsx em detalhe"></a>
+        <a href="#componentes-react--src-app-routes-tsx" style="left:5.496%;top:-75.589%;width:75.177%;height:167.024%" aria-label="Ver src/app/routes.tsx em detalhe"></a>
+        <a href="#componentes-react--requirelogin" style="left:6.649%;top:-66.166%;width:72.872%;height:156.318%" aria-label="Ver RequireLogin em detalhe"></a>
+        <a href="#componentes-react--layout" style="left:7.801%;top:-56.746%;width:70.567%;height:145.611%" aria-label="Ver Layout em detalhe"></a>
+        <a href="#componentes-react--areanavigation" style="left:9.043%;top:-37.473%;width:13.475%;height:123.341%" aria-label="Ver AreaNavigation em detalhe"></a>
+        <a href="#componentes-react--appshell-main" style="left:23.404%;top:-37.473%;width:53.723%;height:123.341%" aria-label="Ver AppShell.Main em detalhe"></a>
+        <a href="#componentes-react--requirerole-role-registrar" style="left:24.468%;top:-28.481%;width:51.596%;height:113.063%" aria-label="Ver RequireRole role="registrar" em detalhe"></a>
+        <a href="#componentes-react--errorboundary" style="left:25.532%;top:-19.486%;width:49.468%;height:102.784%" aria-label="Ver ErrorBoundary em detalhe"></a>
+        <a href="#componentes-react--suspense-fallback-loading" style="left:26.596%;top:-10.492%;width:47.34%;height:92.505%" aria-label="Ver Suspense fallback={<Loading />} em detalhe"></a>
+        <a href="#componentes-react--registrararea" style="left:27.66%;top:-1.5%;width:45.213%;height:82.227%" aria-label="Ver RegistrarArea em detalhe"></a>
+        <a href="#componentes-react--errorboundary-suspense" style="left:28.723%;top:7.495%;width:43.085%;height:71.948%" aria-label="Ver ErrorBoundary + Suspense em detalhe"></a>
+        <a href="#componentes-react--errorboundary-suspense-2" style="left:29.078%;top:8.351%;width:42.376%;height:70.236%" aria-label="Ver ErrorBoundary + Suspense em detalhe"></a>
+        <a href="#componentes-react--routes" style="left:29.787%;top:16.489%;width:40.957%;height:61.67%" aria-label="Ver <Routes> em detalhe"></a>
+        <a href="#componentes-react--enrollmentform" style="left:30.851%;top:25.481%;width:38.83%;height:51.391%" aria-label="Ver EnrollmentForm em detalhe"></a>
+      </div>
+    </div>
+    <figcaption>continuação</figcaption>
+  </figure>
+  <p class="dica">Clique em <b>qualquer bloco</b> para ver a versão completa · <a href="#componentes-react--inteiro">ou o diagrama inteiro</a></p>
+  </div>
+</section>
+<div class="modal inteiro" id="componentes-react--inteiro">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — diagrama completo</h3>
+  <img src="assets/diagramas/componentes-react.svg" alt="Diagrama da árvore de componentes React"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--src-main-tsx">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — src/main.tsx</h3>
+  <img src="assets/blocos/componentes-react--src-main-tsx.png" alt="src/main.tsx"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--src-main-tsx-2">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — src/main.tsx</h3>
+  <img src="assets/blocos/componentes-react--src-main-tsx-2.png" alt="src/main.tsx"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--src-app-routes-tsx">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — src/app/routes.tsx</h3>
+  <img src="assets/blocos/componentes-react--src-app-routes-tsx.png" alt="src/app/routes.tsx"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--requirelogin">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — RequireLogin</h3>
+  <img src="assets/blocos/componentes-react--requirelogin.png" alt="RequireLogin"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--layout">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — Layout</h3>
+  <img src="assets/blocos/componentes-react--layout.png" alt="Layout"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--areanavigation">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — AreaNavigation</h3>
+  <img src="assets/blocos/componentes-react--areanavigation.png" alt="AreaNavigation"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--appshell-main">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — AppShell.Main</h3>
+  <img src="assets/blocos/componentes-react--appshell-main.png" alt="AppShell.Main"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--requirerole-role-registrar">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — RequireRole role="registrar"</h3>
+  <img src="assets/blocos/componentes-react--requirerole-role-registrar.png" alt="RequireRole role="registrar""></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--errorboundary">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — ErrorBoundary</h3>
+  <img src="assets/blocos/componentes-react--errorboundary.png" alt="ErrorBoundary"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--suspense-fallback-loading">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — Suspense fallback={<Loading />}</h3>
+  <img src="assets/blocos/componentes-react--suspense-fallback-loading.png" alt="Suspense fallback={<Loading />}"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--registrararea">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — RegistrarArea</h3>
+  <img src="assets/blocos/componentes-react--registrararea.png" alt="RegistrarArea"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--errorboundary-suspense">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — ErrorBoundary + Suspense</h3>
+  <img src="assets/blocos/componentes-react--errorboundary-suspense.png" alt="ErrorBoundary + Suspense"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--errorboundary-suspense-2">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — ErrorBoundary + Suspense</h3>
+  <img src="assets/blocos/componentes-react--errorboundary-suspense-2.png" alt="ErrorBoundary + Suspense"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--routes">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — <Routes></h3>
+  <img src="assets/blocos/componentes-react--routes.png" alt="<Routes>"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<div class="modal bloco" id="componentes-react--enrollmentform">
+  <a class="fundo" href="#componentes-react-p1" aria-label="Fechar"></a>
+  <div class="quadro"><h3>Componentes React — como uma tela é montada — EnrollmentForm</h3>
+  <img src="assets/blocos/componentes-react--enrollmentform.png" alt="EnrollmentForm"></div>
+  <a class="sair" href="#componentes-react-p1">Fechar ✕</a>
+</div>
+<section class="slide" id="s-arvore-web">
+  <div class="slide-conteudo" data-n="69">
+
+  <h2>A árvore do front</h2>
+  <p class="lead">Uma pasta por área. O carregamento sob demanda segue essa divisão: um responsável nunca baixa as telas da secretaria.</p>
+  <pre class="codigo claro" data-arquivo="apps/web/src"><code>apps/web/src/
+├── main.tsx                 provedores e o roteador
+├── app/                     a casca: Layout, AppHeader, AreaNavigation, guards, routes
+├── features/
+│   ├── session/             entrar e sair
+│   ├── account/             trocar a própria senha
+│   ├── network/             7 telas — administração da rede
+│   ├── registrar/          15 telas — secretaria (students, class-groups, guardians, subjects)
+│   ├── teacher/             4 telas — diário
+│   ├── guardian/            5 telas — acompanhamento
+│   └── announcements/       2 telas — comunicados
+└── shared/
+    ├── api/                 uma instância de Axios, e mais nada faz fetch
+    ├── ui/                  peças reusadas por toda área: Loading, Empty, LoadFailed, PageHeader
+    ├── labels/  format/  theme/</code></pre>
+  </div>
+</section>
+<section class="slide" id="tela-login">
+  <div class="slide-conteudo" data-n="70">
+
+  <h2>A porta de entrada</h2>
+  <p class="lead">Três campos: rede, CPF e senha. A rede é o inquilino — a mesma pessoa pode existir em duas redes com CPFs iguais e ser gente diferente em cada uma.</p>
+  <figure class="figura borda">
+    <img src="assets/telas/01-login.png" alt="Tela de entrada em 1280×800">
+    <figcaption>Tela de entrada em 1280×800</figcaption>
+  </figure>
+  </div>
+</section>
+<section class="slide" id="telas-paineis-1">
+  <div class="slide-conteudo" data-n="71">
+
+  <h2>Um painel por papel — rede e secretaria</h2>
+  <p class="lead">O menu e o painel mudam com o papel, e o papel vem da sessão. Ninguém escolhe em qual área entra.</p>
+  <div class="duas-telas">
+    <figure><img src="assets/telas/02-painel-rede.png" alt="Administração da rede"><figcaption>Administração da rede</figcaption></figure>
+    <figure><img src="assets/telas/03-painel-secretaria.png" alt="Secretaria"><figcaption>Secretaria</figcaption></figure>
+  </div>
+  </div>
+</section>
+<section class="slide" id="telas-paineis-2">
+  <div class="slide-conteudo" data-n="72">
+
+  <h2>Um painel por papel — professor e responsável</h2>
+  <p class="lead">O professor vê as turmas em que leciona; o responsável vê os filhos pelos quais responde. Os dois recortes saem da mesma consulta escopada por network_id.</p>
+  <div class="duas-telas">
+    <figure><img src="assets/telas/04-painel-professor.png" alt="Diário do professor"><figcaption>Diário do professor</figcaption></figure>
+    <figure><img src="assets/telas/05-painel-responsavel.png" alt="Acompanhamento do responsável"><figcaption>Acompanhamento do responsável</figcaption></figure>
+  </div>
+  </div>
+</section>
+<section class="slide" id="tela-slice-1">
+  <div class="slide-conteudo" data-n="73">
+
+  <h2>A fatia na tela — buscar e abrir a ficha</h2>
+  <p class="lead">O caminho começa na busca. A ficha do aluno mostra responsáveis vinculados e matrículas — e é de lá que a ação de matricular parte.</p>
+  <div class="duas-telas">
+    <figure><img src="assets/telas/06-alunos-busca.png" alt="Busca de alunos"><figcaption>Busca de alunos</figcaption></figure>
+    <figure><img src="assets/telas/07-aluno-ficha.png" alt="Ficha do aluno"><figcaption>Ficha do aluno</figcaption></figure>
+  </div>
+  </div>
+</section>
+<section class="slide" id="tela-slice-2">
+  <div class="slide-conteudo" data-n="74">
+
+  <h2>A fatia na tela — matricular</h2>
+  <p class="lead">O formulário preenchido, e a ficha depois que a matrícula existe. Entre uma tela e outra acontece tudo o que vamos abrir nos próximos slides.</p>
+  <div class="duas-telas">
+    <figure><img src="assets/telas/08-matricula-form.png" alt="Formulário de matrícula"><figcaption>Formulário de matrícula</figcaption></figure>
+    <figure><img src="assets/telas/09-aluno-ficha-com-matricula.png" alt="A ficha depois da matrícula"><figcaption>A ficha depois da matrícula</figcaption></figure>
+  </div>
+  </div>
+</section>
+<section class="slide" id="s-rodar">
+  <div class="slide-conteudo" data-n="75">
+
+  <h2>Rodar na sua máquina</h2>
+  <p class="lead">Cinco comandos. O <code>seed</code> imprime as credenciais no terminal — não precisa decorar nada.</p>
+  <div class="cols-2">
+    <div class="card"><h3>Do zero até a tela</h3>
+      <ol class="passos">
+        <li><code>docker compose --env-file .env -f infra/docker-compose.yml up -d</code><br><span style="color:var(--tenue)">sobe os dois bancos: desenvolvimento e teste</span></li>
+        <li><code>bun install</code></li>
+        <li><code>bun run migrate</code><br><span style="color:var(--tenue)">aplica <code>migrations/0001_initial_schema.sql</code></span></li>
+        <li><code>bun run seed</code><br><span style="color:var(--tenue)">cria a rede <strong>demo</strong> e imprime CPF e papel de cada pessoa</span></li>
+        <li><code>bun run dev</code><br><span style="color:var(--tenue)">API na 3333, front na 5173 com proxy para ela</span></li>
+      </ol>
+      <p><strong>Senha de todo mundo na rede demo:</strong> <code>escolaviva</code></p></div>
+    <div class="card atencao"><h3>Antes de dizer que terminou</h3>
+      <p><code>bun run verify</code> — e ele é a soma de cinco etapas, nenhuma opcional:</p>
+      <ol class="passos">
+        <li><code>typecheck</code> — os quatro tsconfig</li>
+        <li><code>check</code> — os três cruzeiros do dependency-cruiser</li>
+        <li><code>magic</code> — literal sem dono no código</li>
+        <li><code>test</code> — os 95 arquivos</li>
+        <li><code>budget</code> — o tamanho do bundle do navegador</li>
+      </ol>
+      <p>Se qualquer uma falhar, não terminou. É o mesmo comando que roda antes de cada entrega.</p></div>
+  </div>
+  </div>
+</section>
+<section class="slide" id="fim" data-tipo="divisor">
+  <div class="slide-conteudo divisor" data-n="76">
+
+  <h2>O Estágio 1 termina aqui</h2>
+  <p class="lead">Um monólito modular, um banco, um processo. Nada dói ainda — e essa é a medida certa para o tamanho do problema de hoje.<br><br>Nas próximas aulas, cada dor que este estágio plantou de propósito vira o estágio seguinte: o gateway quando a primeira rede pedir cartão, o storage quando a secretaria pedir anexo, o e-mail quando ficar provado que ninguém abre o mural, a fila no primeiro fechamento que travar a secretaria.</p>
+  </div>
+</section>
+</body>
+</html>

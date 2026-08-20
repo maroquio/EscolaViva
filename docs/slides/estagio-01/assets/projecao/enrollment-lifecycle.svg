@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 0 970 450" width="970" height="450">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+  </defs>
+  <rect x="8" y="0" width="970" height="450" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Ciclo da matrícula</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/api/src/academics/domain/enrollment.ts · application/enroll.ts · application/transfer.ts · CHECK status_valid na migração</text>
+  <circle cx="315" cy="132" r="9" fill="#111827"/>
+  <path d="M 315,141 L 315,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="332" y="146" font-size="16.1" fill="#475569" font-weight="600" text-anchor="start">enroll  ·  transfer (a nova, na turma de destino)</text>
+  <rect x="190" y="195" width="250" height="110" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="206" y="221" font-size="22.9" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">active</text>
+  <rect x="700" y="195" width="250" height="110" rx="12" ry="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="716" y="221" font-size="22.9" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">transferred</text>
+  <path d="M 440,250 L 698,250" fill="none" stroke="#ea580c" stroke-width="1.6" marker-end="url(#p-ea580c)"/>
+  <text x="452" y="208" font-size="16.1" fill="#ea580c" font-weight="600" text-anchor="start">transfer [canTransfer]</text>
+  <rect x="190" y="360" width="250" height="62" rx="12" ry="12" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="206" y="386" font-size="22.9" fill="#9ca3af" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">cancelled</text>
+  <rect x="700" y="360" width="250" height="62" rx="12" ry="12" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="716" y="386" font-size="22.9" fill="#9ca3af" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">completed</text>
+</svg>

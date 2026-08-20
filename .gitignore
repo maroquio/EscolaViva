@@ -1,0 +1,30 @@
+node_modules/
+
+# I18: o exemplo é versionado, o arquivo com segredo real nunca.
+.env
+
+# Gerado por `bun run build:assets` (I10) — o nome carrega o hash do conteúdo.
+# A barra inicial importa: sem ela o padrão casaria também `src/web/public/`,
+# que é a fonte do CSS e precisa estar versionada.
+/public/
+
+coverage/
+*.dump
+.DS_Store
+
+# Pastas de ferramenta local, sem nada que o repositório precise carregar.
+.lesson-bridge/
+.superpowers/
+
+# bun.lock é versionado de propósito: o Dockerfile instala com --frozen-lockfile,
+# então a imagem só é reprodutível se o lock estiver no repositório.
+
+# O build do front: gerado, nunca versionado.
+apps/web/dist
+
+# Saída do Playwright: capturas, vídeos e traces de execuções que falharam.
+# Um trace guarda a página inteira — incluindo qualquer dado do banco que estava
+# na tela no momento da falha — e nada disso pertence ao repositório.
+test-results/
+playwright-report/
+.playwright-mcp/

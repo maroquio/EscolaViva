@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1040" width="1440" height="1040">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+  </defs>
+  <rect x="0" y="0" width="1440" height="1040" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Componentes React: como uma tela é montada</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/web/src · da raiz do DOM até um campo do formulário de matrícula · cada moldura envolve a de dentro, e é a moldura que decide o que sobrevive a um erro</text>
+  <rect x="44" y="96" width="900" height="896" rx="10" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.5" data-graph-role="container"/>
+  <text x="60" y="116" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">src/main.tsx</text>
+  <text x="153.49" y="116" font-size="8.8" fill="#6b7280" font-weight="400" text-anchor="start">createRoot(#root).render(…) dentro de &lt;StrictMode&gt; — o único ponto em que a aplicação toca a página</text>
+  <rect x="57" y="124" width="874" height="862" rx="10" ry="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.4" data-graph-role="container"/>
+  <text x="73" y="144" font-size="11.5" fill="#6d28d9" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">src/app/App.tsx</text>
+  <text x="187.36" y="144" font-size="8.8" fill="#6b7280" font-weight="400" text-anchor="start">os provedores — o que a árvore inteira precisa enxergar, montado uma vez só</text>
+  <rect x="73" y="154" width="96.05" height="22" rx="5" ry="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+  <text x="121.02" y="168" font-size="8.6" fill="#475569" font-weight="600" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">MantineProvider</text>
+  <text x="178.05" y="169" font-size="10" fill="#9ca3af" font-weight="600" text-anchor="start">▸</text>
+  <rect x="191.05" y="154" width="85.64" height="22" rx="5" ry="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="4,3"/>
+  <text x="233.86" y="168" font-size="8.6" fill="#475569" font-weight="600" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Notifications</text>
+  <text x="285.68" y="169" font-size="10" fill="#9ca3af" font-weight="600" text-anchor="start">+</text>
+  <rect x="298.68" y="154" width="116.86" height="22" rx="5" ry="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+  <text x="357.11" y="168" font-size="8.6" fill="#475569" font-weight="600" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">QueryClientProvider</text>
+  <text x="424.54" y="169" font-size="10" fill="#9ca3af" font-weight="600" text-anchor="start">▸</text>
+  <rect x="437.54" y="154" width="85.64" height="22" rx="5" ry="5" fill="#fef2f2" stroke="#fecaca" stroke-width="1.3"/>
+  <text x="480.36" y="168" font-size="8.6" fill="#b91c1c" font-weight="600" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ErrorBoundary</text>
+  <text x="532.18" y="169" font-size="10" fill="#9ca3af" font-weight="600" text-anchor="start">▸</text>
+  <rect x="545.18" y="154" width="90.84" height="22" rx="5" ry="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+  <text x="590.6" y="168" font-size="8.6" fill="#475569" font-weight="600" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">RouterProvider</text>
+  <text x="73" y="192" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="start">▸ quer dizer “envolve”. Notifications é irmão, não pai: é a região onde todo aviso da aplicação aparece. Esta ErrorBoundary é a última rede — se ela pegar, tudo vira tela de erro.</text>
+  <rect x="70" y="200" width="848" height="780" rx="10" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.4" data-graph-role="container"/>
+  <text x="86" y="220" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">src/app/routes.tsx</text>
+  <text x="221.24" y="220" font-size="8.8" fill="#6b7280" font-weight="400" text-anchor="start">createBrowserRouter(routes) — a URL escolhe a filha; a moldura de fora não é remontada</text>
+  <text x="86" y="235" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="start">errorElement={&lt;UnexpectedError /&gt;} na rota-mãe: a barreira do roteador, para o erro que nenhuma barreira de dentro segurou.</text>
+  <rect x="83" y="244" width="822" height="730" rx="10" ry="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.4" data-graph-role="container"/>
+  <text x="99" y="264" font-size="11.5" fill="#6d28d9" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">RequireLogin</text>
+  <text x="192.49" y="264" font-size="8.8" fill="#6b7280" font-weight="400" text-anchor="start">app/guards.tsx — o portão da sessão</text>
+  <text x="99" y="279" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="start">isPending → &lt;Loading /&gt;   ·   sem sessão → &lt;Navigate to={APP_ROUTES.login} replace /&gt;   ·   com sessão → deixa passar</text>
+  <rect x="96" y="288" width="796" height="680" rx="10" ry="10" fill="#ffffff" stroke="#7c3aed" stroke-width="1.4" data-graph-role="container"/>
+  <text x="112" y="308" font-size="11.5" fill="#6d28d9" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Layout</text>
+  <text x="163.75" y="308" font-size="8.8" fill="#6b7280" font-weight="400" text-anchor="start">app/Layout.tsx — o AppShell do Mantine: cabeçalho, menu e conteúdo</text>
+  <text x="112" y="323" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="start">Enquanto useSession() não respondeu, o Layout inteiro é &lt;Loading /&gt;. O primeiro filho da árvore é o link “Pular para o conteúdo”.</text>
+  <rect x="110" y="332" width="768" height="38" rx="8" ry="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.4" data-graph-role="container"/>
+  <text x="124" y="350" font-size="10.5" fill="#6d28d9" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">AppHeader</text>
+  <text x="191.17" y="350" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">marca · rede e unidade · nome de quem entrou · botão Sair (useSignOut) · Burger que abre o menu no celular</text>
+  <text x="124" y="363" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">AppShell.Header, altura HEADER_HEIGHT — montado uma vez; trocar de tela não o remonta</text>
+  <rect x="110" y="378" width="152" height="576" rx="8" ry="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.4" data-graph-role="container"/>
+  <text x="124" y="398" font-size="10.5" fill="#6d28d9" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">AreaNavigation</text>
+  <text x="124" y="414" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">AppShell.Navbar, largura</text>
+  <text x="124" y="425.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">NAVBAR_WIDTH.</text>
+  <text x="124" y="448.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">areasOffered(user) filtra</text>
+  <text x="124" y="460" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">NAVIGATION_AREAS pelos</text>
+  <text x="124" y="471.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">papéis de quem entrou —</text>
+  <text x="124" y="483" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">o menu é consequência do</text>
+  <text x="124" y="494.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">papel, não uma lista fixa.</text>
+  <rect x="124" y="516" width="124" height="18" rx="5" ry="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+  <text x="186" y="528" font-size="8.2" fill="#475569" font-weight="600" text-anchor="middle">Rede</text>
+  <rect x="124" y="538" width="124" height="18" rx="5" ry="5" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.3"/>
+  <text x="186" y="550" font-size="8.2" fill="#1d4ed8" font-weight="600" text-anchor="middle">Secretaria</text>
+  <rect x="124" y="560" width="124" height="18" rx="5" ry="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+  <text x="186" y="572" font-size="8.2" fill="#475569" font-weight="600" text-anchor="middle">Docência</text>
+  <rect x="124" y="582" width="124" height="18" rx="5" ry="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+  <text x="186" y="594" font-size="8.2" fill="#475569" font-weight="600" text-anchor="middle">Acompanhamento</text>
+  <rect x="124" y="604" width="124" height="18" rx="5" ry="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+  <text x="186" y="616" font-size="8.2" fill="#475569" font-weight="600" text-anchor="middle">Comunicação</text>
+  <rect x="124" y="626" width="124" height="18" rx="5" ry="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+  <text x="186" y="638" font-size="8.2" fill="#475569" font-weight="600" text-anchor="middle">Conta</text>
+  <text x="124" y="668" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">A área aberta recebe active</text>
+  <text x="124" y="679.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">e aria-current=&quot;page&quot;: quem</text>
+  <text x="124" y="691" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">usa leitor de tela ouve onde</text>
+  <text x="124" y="702.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">está, não só quem enxerga</text>
+  <text x="124" y="714" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">o realce.</text>
+  <text x="124" y="737" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">currentHrefIn() escolhe o</text>
+  <text x="124" y="748.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">link mais fundo que casa</text>
+  <text x="124" y="760" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">com a URL — dentro de</text>
+  <text x="124" y="771.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">/registrar/students/:id o</text>
+  <text x="124" y="783" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">que acende é “Alunos”, e</text>
+  <text x="124" y="794.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">não o painel da secretaria.</text>
+  <text x="124" y="817.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">No celular esta coluna some</text>
+  <text x="124" y="829" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">e volta pelo Burger do</text>
+  <text x="124" y="840.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">cabeçalho: mesmo</text>
+  <text x="124" y="852" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">componente, outra caixa.</text>
+  <text x="124" y="875" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">O link “Pular para o</text>
+  <text x="124" y="886.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">conteúdo” salta esta coluna</text>
+  <text x="124" y="898" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">inteira e cai direto no</text>
+  <text x="124" y="909.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">AppShell.Main — quem usa</text>
+  <text x="124" y="921" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">só o teclado não atravessa</text>
+  <text x="124" y="932.5" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">o menu a cada tela.</text>
+  <rect x="272" y="378" width="606" height="576" rx="10" ry="10" fill="#f8fafc" stroke="#475569" stroke-width="1.3" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="286" y="398" font-size="10.5" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">AppShell.Main</text>
+  <text x="378.58" y="398" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">id={CONTENT_ID} tabIndex={-1}</text>
+  <text x="286" y="411" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">→ &lt;Outlet /&gt; — é daqui para dentro que a tela troca; nada acima desta borda é remontado</text>
+  <rect x="284" y="420" width="582" height="528" rx="10" ry="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.4" data-graph-role="container"/>
+  <text x="298" y="440" font-size="10.5" fill="#6d28d9" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">RequireRole role=&quot;registrar&quot;</text>
+  <text x="485.87" y="440" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">o portão do papel</text>
+  <text x="298" y="453" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">sem o papel → &lt;NoPermission /&gt; — e como isto está dentro do Layout, o menu continua na tela</text>
+  <rect x="296" y="462" width="558" height="480" rx="10" ry="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.4" data-graph-role="container"/>
+  <text x="310" y="482" font-size="10.5" fill="#b91c1c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ErrorBoundary</text>
+  <text x="402.58" y="482" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">routes.tsx · underItsOwnBoundary()</text>
+  <text x="840" y="482" font-size="7.8" fill="#b91c1c" font-weight="600" text-anchor="end">alcance: a área inteira — o Layout continua de pé</text>
+  <text x="310" y="495" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">getDerivedStateFromError + componentDidCatch: o que estourar daqui para dentro para nesta borda</text>
+  <rect x="308" y="504" width="534" height="432" rx="10" ry="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.4" data-graph-role="container"/>
+  <text x="322" y="524" font-size="10.5" fill="#b45309" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Suspense fallback={&lt;Loading /&gt;}</text>
+  <text x="828" y="524" font-size="7.8" fill="#b45309" font-weight="600" text-anchor="end">o fallback ocupa só este retângulo</text>
+  <text x="322" y="537" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">enquanto o chunk da área não chega, é aqui que aparece &lt;Loading /&gt; — e em nenhum outro lugar</text>
+  <rect x="320" y="546" width="510" height="384" rx="10" ry="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4" data-graph-role="container"/>
+  <text x="334" y="566" font-size="10.5" fill="#1d4ed8" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">RegistrarArea</text>
+  <text x="426.58" y="566" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">= lazy(() =&gt; import('../features/registrar/routes'))</text>
+  <text x="334" y="579" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">chunk próprio (routes-*.js): quem entra como responsável nunca baixa as telas da secretaria</text>
+  <rect x="332" y="588" width="486" height="336" rx="10" ry="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.4" data-graph-role="container"/>
+  <rect x="336" y="592" width="478" height="328" rx="8" ry="8" fill="none" stroke="#fde68a" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <text x="348" y="608" font-size="10.5" fill="#b91c1c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ErrorBoundary + Suspense</text>
+  <text x="510.46" y="608" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">features/registrar/routes.tsx</text>
+  <text x="804" y="608" font-size="7.8" fill="#b91c1c" font-weight="600" text-anchor="end">alcance: o conteúdo da secretaria</text>
+  <text x="348" y="621" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">o par de fora protege a chegada do módulo; este veio junto com ele e vale onde a área for montada</text>
+  <rect x="344" y="630" width="462" height="288" rx="10" ry="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.4" data-graph-role="container"/>
+  <text x="358" y="650" font-size="10.5" fill="#1d4ed8" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">&lt;Routes&gt;</text>
+  <text x="418.82" y="650" font-size="8.2" fill="#6b7280" font-weight="400" text-anchor="start">16 rotas filhas, todas sem barra inicial</text>
+  <text x="358" y="663" font-size="7.8" fill="#6b7280" font-weight="400" text-anchor="start">REGISTRAR_CHILD_ROUTES.enroll = 'students/:id/enroll' → &lt;EnrollmentForm /&gt;   ·   '*' → &lt;NotFound /&gt;</text>
+  <rect x="356" y="672" width="438" height="240" rx="10" ry="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2" data-graph-role="container"/>
+  <text x="370" y="692" font-size="10.5" fill="#1d4ed8" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">EnrollmentForm</text>
+  <text x="468.94" y="692" font-size="7.8" fill="#6b7280" font-weight="400" text-anchor="start">features/registrar/students/EnrollmentForm.tsx</text>
+  <rect x="370" y="699" width="150.13" height="16" rx="5" ry="5" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.3"/>
+  <text x="445.07" y="710" font-size="7.8" fill="#1d4ed8" font-weight="600" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">useEnrollmentForm(studentId)</text>
+  <text x="524" y="706" font-size="7.6" fill="#6b7280" font-weight="400" text-anchor="start">estado, validação com zod e envio moram no hook;</text>
+  <text x="524" y="716" font-size="7.6" fill="#6b7280" font-weight="400" text-anchor="start">o componente só descreve a tela — 114 linhas.</text>
+  <text x="370" y="734" font-size="8.2" fill="#111827" font-weight="600" text-anchor="start">Antes de montar, três saídas — e cada uma é uma peça de shared/ui:</text>
+  <rect x="370" y="740" width="74" height="15" rx="5" ry="5" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.3"/>
+  <text x="407" y="750.5" font-size="8" fill="#0f766e" font-weight="600" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Loading</text>
+  <text x="452" y="751" font-size="7.8" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">classGroups.isPending || academicYears.isPending</text>
+  <rect x="370" y="757" width="74" height="15" rx="5" ry="5" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.3"/>
+  <text x="407" y="767.5" font-size="8" fill="#0f766e" font-weight="600" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">LoadFailed</text>
+  <text x="452" y="768" font-size="7.8" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isError → a mensagem da API e “Tentar de novo”</text>
+  <rect x="370" y="774" width="74" height="15" rx="5" ry="5" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.3"/>
+  <text x="407" y="784.5" font-size="8" fill="#0f766e" font-weight="600" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Empty</text>
+  <text x="452" y="785" font-size="7.8" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">data.length === 0 → “Nenhuma turma disponível”</text>
+  <text x="370" y="806" font-size="8.2" fill="#111827" font-weight="600" text-anchor="start">Passadas as três, a árvore da tela:</text>
+  <path d="M 374,812 L 374,900" fill="none" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="382" y="820" font-size="7.6" fill="#0f766e" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">&lt;PageHeader /&gt;</text>
+  <text x="454.37" y="820" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">overline, título e o parágrafo que explica a tela</text>
+  <text x="382" y="831" font-size="7.6" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">&lt;Paper withBorder maw={FORM_WIDTH}&gt;</text>
+  <text x="392" y="842" font-size="7.6" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">&lt;form onSubmit={form.submit} noValidate&gt;</text>
+  <text x="402" y="853" font-size="7.6" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">&lt;Alert role={ALERT_ROLE}&gt;</text>
+  <text x="524.95" y="853" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">só quando form.warning existe</text>
+  <text x="402" y="864" font-size="7.6" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">&lt;NativeSelect&gt; × 2</text>
+  <text x="492.76" y="864" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">Turma e Ano letivo, com placeholder</text>
+  <text x="402" y="875" font-size="7.6" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">&lt;TextInput type=&quot;date&quot;&gt;</text>
+  <text x="515.75" y="875" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">Data da matrícula</text>
+  <text x="402" y="886" font-size="7.6" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">&lt;Button type={SUBMIT_BUTTON}&gt;</text>
+  <text x="543.34" y="886" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">Matricular</text>
+  <text x="402" y="897" font-size="7.6" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">&lt;Button variant={QUIET_BUTTON}&gt;</text>
+  <text x="552.54" y="897" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">Cancelar</text>
+  <rect x="968" y="96" width="436" height="180" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="982" y="120" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Legenda — três categorias, duas barreiras</text>
+  <rect x="984" y="132" width="15" height="13" rx="3" ry="3" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="1008" y="143" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">casca — app/ · montada uma vez; trocar de tela não a remonta</text>
+  <rect x="984" y="155" width="15" height="13" rx="3" ry="3" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1008" y="166" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">área — features/ · uma pasta por papel, cada uma em seu chunk</text>
+  <rect x="984" y="178" width="15" height="13" rx="3" ry="3" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="1008" y="189" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">compartilhado — shared/ui/ · oito peças que toda área reusa</text>
+  <rect x="984" y="201" width="15" height="13" rx="3" ry="3" fill="#f8fafc" stroke="#475569" stroke-width="1.5"/>
+  <text x="1008" y="212" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">infraestrutura — Mantine, React Router e o DOM da página</text>
+  <rect x="984" y="224" width="15" height="13" rx="3" ry="3" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="1008" y="235" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">fronteira de erro — ErrorBoundary e errorElement</text>
+  <rect x="984" y="247" width="15" height="13" rx="3" ry="3" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="1008" y="258" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start">limite de Suspense — o que aparece enquanto algo não chegou</text>
+  <rect x="968" y="290" width="436" height="270" rx="10" ry="10" fill="#fef2f2" stroke="#fecaca" stroke-width="1.3" data-graph-role="container"/>
+  <text x="982" y="314" font-size="11.5" fill="#dc2626" font-weight="600" text-anchor="start">Por que um erro numa tela não derruba o resto</text>
+  <text x="982" y="334" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ErrorBoundary é a única classe do front, e por obrigação: só classe</text>
+  <text x="982" y="347" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">implementa getDerivedStateFromError e componentDidCatch.</text>
+  <text x="982" y="373" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Ela pega erro de render dos filhos. Não pega erro de clique nem de</text>
+  <text x="982" y="386" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">promessa — esses chegam pelo TanStack Query e viram &lt;LoadFailed /&gt;.</text>
+  <text x="982" y="412" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Três barreiras, três alcances:</text>
+  <text x="982" y="425" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">· a de App.tsx troca a aplicação inteira — é a última rede;</text>
+  <text x="982" y="438" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">· a de routes.tsx troca a área e deixa cabeçalho e menu de pé;</text>
+  <text x="982" y="451" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">· a de features/registrar/routes.tsx troca o conteúdo da secretaria.</text>
+  <text x="982" y="477" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Quem está fora da moldura não fica sabendo do erro. É isso, e só isso,</text>
+  <text x="982" y="490" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">que mantém o menu clicável enquanto uma tela está quebrada.</text>
+  <text x="982" y="516" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O botão “Tentar de novo” zera o estado da barreira e manda montar</text>
+  <text x="982" y="529" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">de novo, sem recarregar a página.</text>
+  <rect x="968" y="574" width="436" height="200" rx="10" ry="10" fill="#fffbeb" stroke="#fde68a" stroke-width="1.3" data-graph-role="container"/>
+  <text x="982" y="598" font-size="11.5" fill="#f59e0b" font-weight="600" text-anchor="start">O Suspense marca o buraco, não a tela inteira</text>
+  <text x="982" y="618" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">lazy() devolve um componente que ainda não existe. Quem o usa</text>
+  <text x="982" y="631" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">precisa de um &lt;Suspense&gt; acima, senão o React reclama.</text>
+  <text x="982" y="657" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O fallback ocupa exatamente o retângulo do &lt;Suspense&gt;: por isso ele</text>
+  <text x="982" y="670" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">está dentro do Layout — quando a área desce, o menu não pisca.</text>
+  <text x="982" y="696" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Cinco áreas, cinco chunks. Quem entra como responsável nunca baixa</text>
+  <text x="982" y="709" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o formulário de matrícula — nem em bytes.</text>
+  <text x="982" y="735" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Suspense cobre o que ainda não chegou; ErrorBoundary cobre o que</text>
+  <text x="982" y="748" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">chegou e quebrou. Vêm em par porque baixar um módulo pode falhar.</text>
+  <rect x="968" y="788" width="436" height="204" rx="10" ry="10" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.3" data-graph-role="container"/>
+  <text x="982" y="812" font-size="11.5" fill="#7c3aed" font-weight="600" text-anchor="start">Fora desta árvore, de propósito</text>
+  <text x="982" y="832" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/login → SignInScreen é irmã da rota-mãe: não passa por</text>
+  <text x="982" y="845" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">RequireLogin e não tem Layout. Quem não entrou não vê menu nenhum</text>
+  <text x="982" y="858" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">— mas tem barreira e Suspense próprios, porque também é lazy.</text>
+  <text x="982" y="884" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/account/password → PasswordChange também é lazy, mas fica dentro</text>
+  <text x="982" y="897" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">do Layout: trocar a senha não tira a pessoa da casca.</text>
+  <text x="982" y="923" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ToDashboard não desenha nada: lê o papel mais amplo em</text>
+  <text x="982" y="936" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">DASHBOARD_BY_WIDEST_ROLE e redireciona.</text>
+  <text x="982" y="962" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">AccountWithoutRole · NoPermission · NotFound · UnexpectedError —</text>
+  <text x="982" y="975" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">quatro telas de recusa, todas na casca e com caminho de volta.</text>
+  <text x="36" y="1020" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Lido de apps/web/src/main.tsx, app/App.tsx, app/routes.tsx, app/guards.tsx, app/Layout.tsx, app/AppHeader.tsx, app/AreaNavigation.tsx, shared/ui/ e features/registrar/routes.tsx + students/EnrollmentForm.tsx. Estado do Estágio 01.</text>
+</svg>

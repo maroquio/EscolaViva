@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1736 1398" width="1736" height="1398">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="many-7c3aed" markerWidth="9" markerHeight="9" refX="0" refY="4.5" orient="auto">
+      <path d="M9,4.5 L0,0 M9,4.5 L0,4.5 M9,4.5 L0,9" fill="none" stroke="#7c3aed" stroke-width="1.2"/>
+    </marker>
+    <marker id="one-7c3aed" markerWidth="12" markerHeight="9" refX="12" refY="4.5" orient="auto">
+      <path d="M6,0.5 L6,8.5" fill="none" stroke="#7c3aed" stroke-width="1.4"/>
+    </marker>
+    <marker id="zeroum-7c3aed" markerWidth="18" markerHeight="10" refX="18" refY="5" orient="auto">
+      <path d="M11,1 L11,9" fill="none" stroke="#7c3aed" stroke-width="1.4"/>
+      <circle cx="6" cy="5" r="3.2" fill="#ffffff" stroke="#7c3aed" stroke-width="1.3"/>
+    </marker>
+    <marker id="many-2563eb" markerWidth="9" markerHeight="9" refX="0" refY="4.5" orient="auto">
+      <path d="M9,4.5 L0,0 M9,4.5 L0,4.5 M9,4.5 L0,9" fill="none" stroke="#2563eb" stroke-width="1.2"/>
+    </marker>
+    <marker id="one-2563eb" markerWidth="12" markerHeight="9" refX="12" refY="4.5" orient="auto">
+      <path d="M6,0.5 L6,8.5" fill="none" stroke="#2563eb" stroke-width="1.4"/>
+    </marker>
+    <marker id="zeroum-2563eb" markerWidth="18" markerHeight="10" refX="18" refY="5" orient="auto">
+      <path d="M11,1 L11,9" fill="none" stroke="#2563eb" stroke-width="1.4"/>
+      <circle cx="6" cy="5" r="3.2" fill="#ffffff" stroke="#2563eb" stroke-width="1.3"/>
+    </marker>
+    <marker id="many-16a34a" markerWidth="9" markerHeight="9" refX="0" refY="4.5" orient="auto">
+      <path d="M9,4.5 L0,0 M9,4.5 L0,4.5 M9,4.5 L0,9" fill="none" stroke="#16a34a" stroke-width="1.2"/>
+    </marker>
+    <marker id="one-16a34a" markerWidth="12" markerHeight="9" refX="12" refY="4.5" orient="auto">
+      <path d="M6,0.5 L6,8.5" fill="none" stroke="#16a34a" stroke-width="1.4"/>
+    </marker>
+    <marker id="zeroum-16a34a" markerWidth="18" markerHeight="10" refX="18" refY="5" orient="auto">
+      <path d="M11,1 L11,9" fill="none" stroke="#16a34a" stroke-width="1.4"/>
+      <circle cx="6" cy="5" r="3.2" fill="#ffffff" stroke="#16a34a" stroke-width="1.3"/>
+    </marker>
+    <marker id="many-ea580c" markerWidth="9" markerHeight="9" refX="0" refY="4.5" orient="auto">
+      <path d="M9,4.5 L0,0 M9,4.5 L0,4.5 M9,4.5 L0,9" fill="none" stroke="#ea580c" stroke-width="1.2"/>
+    </marker>
+    <marker id="one-ea580c" markerWidth="12" markerHeight="9" refX="12" refY="4.5" orient="auto">
+      <path d="M6,0.5 L6,8.5" fill="none" stroke="#ea580c" stroke-width="1.4"/>
+    </marker>
+    <marker id="zeroum-ea580c" markerWidth="18" markerHeight="10" refX="18" refY="5" orient="auto">
+      <path d="M11,1 L11,9" fill="none" stroke="#ea580c" stroke-width="1.4"/>
+      <circle cx="6" cy="5" r="3.2" fill="#ffffff" stroke="#ea580c" stroke-width="1.3"/>
+    </marker>
+    <marker id="many-475569" markerWidth="9" markerHeight="9" refX="0" refY="4.5" orient="auto">
+      <path d="M9,4.5 L0,0 M9,4.5 L0,4.5 M9,4.5 L0,9" fill="none" stroke="#475569" stroke-width="1.2"/>
+    </marker>
+    <marker id="one-475569" markerWidth="12" markerHeight="9" refX="12" refY="4.5" orient="auto">
+      <path d="M6,0.5 L6,8.5" fill="none" stroke="#475569" stroke-width="1.4"/>
+    </marker>
+    <marker id="zeroum-475569" markerWidth="18" markerHeight="10" refX="18" refY="5" orient="auto">
+      <path d="M11,1 L11,9" fill="none" stroke="#475569" stroke-width="1.4"/>
+      <circle cx="6" cy="5" r="3.2" fill="#ffffff" stroke="#475569" stroke-width="1.3"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1736" height="1398" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Modelo de dados (ER)</text>
+  <text x="36" y="70" font-size="13" fill="#6b7280" font-weight="400" text-anchor="start">As 18 tabelas da migração consolidada · 40 chaves estrangeiras, 16 delas o network_id do inquilino · notação pé-de-galinha</text>
+  <path d="M 1100.0,405 L 1016.4,405 L 1016.4,500 L 988.0,500" fill="none" stroke="#7c3aed" stroke-width="1.15" opacity="0.85" marker-start="url(#many-7c3aed)" marker-end="url(#one-7c3aed)"/>
+  <path d="M 1100.0,455 L 1022.5,455 L 1022.5,455 L 650.0,455 L 650.0,415 L 640.0,415" fill="none" stroke="#7c3aed" stroke-width="1.15" opacity="0.85" marker-start="url(#many-7c3aed)" marker-end="url(#one-7c3aed)"/>
+  <path d="M 1100.0,580 L 1028.7,580 L 1028.7,522 L 988.0,522" fill="none" stroke="#7c3aed" stroke-width="1.15" opacity="0.85" marker-start="url(#many-7c3aed)" marker-end="url(#one-7c3aed)"/>
+  <path d="M 728.0,740 L 677.2,740 L 677.2,447 L 640.0,447" fill="none" stroke="#2563eb" stroke-width="1.15" opacity="0.85" marker-start="url(#many-2563eb)" marker-end="url(#one-2563eb)"/>
+  <path d="M 728.0,800 L 684.0,800 L 684.0,750 L 640.0,750" fill="none" stroke="#2563eb" stroke-width="1.15" opacity="0.85" marker-start="url(#many-2563eb)" marker-end="url(#one-2563eb)"/>
+  <path d="M 1100.0,1210 L 1077.7,1210 L 1077.7,725 L 988.0,725" fill="none" stroke="#2563eb" stroke-width="1.15" opacity="0.85" marker-start="url(#many-2563eb)" marker-end="url(#one-2563eb)"/>
+  <path d="M 1100.0,1240 L 1083.9,1240 L 1083.9,1140 L 718.0,1140 L 718.0,1058 L 640.0,1058" fill="none" stroke="#2563eb" stroke-width="1.15" opacity="0.85" marker-start="url(#many-2563eb)" marker-end="url(#one-2563eb)"/>
+  <path d="M 1100.0,1270 L 1090.0,1270 L 1090.0,544 L 988.0,544" fill="none" stroke="#2563eb" stroke-width="1.15" opacity="0.85" marker-start="url(#many-2563eb)" marker-end="url(#one-2563eb)"/>
+  <path d="M 728.0,920 L 697.6,920 L 697.6,905 L 640.0,905" fill="none" stroke="#2563eb" stroke-width="1.15" opacity="0.85" marker-start="url(#many-2563eb)" marker-end="url(#one-2563eb)"/>
+  <path d="M 728.0,965 L 704.4,965 L 704.4,620 L 728.0,620" fill="none" stroke="#2563eb" stroke-width="1.15" opacity="0.85" marker-start="url(#many-2563eb)" marker-end="url(#one-2563eb)"/>
+  <path d="M 1100.0,1020 L 1053.2,1020 L 1053.2,770 L 988.0,770" fill="none" stroke="#2563eb" stroke-width="1.15" opacity="0.85" marker-start="url(#many-2563eb)" marker-end="url(#one-2563eb)"/>
+  <path d="M 1100.0,1065 L 1059.3,1065 L 1059.3,1030 L 711.2,1030 L 711.2,950 L 640.0,950" fill="none" stroke="#2563eb" stroke-width="1.15" opacity="0.85" marker-start="url(#many-2563eb)" marker-end="url(#one-2563eb)"/>
+  <path d="M 1100.0,1110 L 1065.5,1110 L 1065.5,870 L 690.8,870 L 690.8,800 L 640.0,800" fill="none" stroke="#2563eb" stroke-width="1.15" opacity="0.85" marker-start="url(#many-2563eb)" marker-end="url(#one-2563eb)"/>
+  <path d="M 1448.0,1125 L 1410.8,1125 L 1410.8,1030 L 1360.0,1030" fill="none" stroke="#16a34a" stroke-width="1.15" opacity="0.85" marker-start="url(#many-16a34a)" marker-end="url(#one-16a34a)"/>
+  <path d="M 1448.0,1175 L 1424.4,1175 L 1424.4,1235 L 1360.0,1235" fill="none" stroke="#16a34a" stroke-width="1.15" opacity="0.85" marker-start="url(#many-16a34a)" marker-end="url(#one-16a34a)"/>
+  <path d="M 1448.0,1225 L 1438.0,1225 L 1438.0,1163 L 1071.6,1163 L 1071.6,566 L 988.0,566" fill="none" stroke="#16a34a" stroke-width="1.15" opacity="0.85" marker-start="url(#many-16a34a)" marker-end="url(#one-16a34a)"/>
+  <path d="M 1448.0,990 L 1397.2,990 L 1397.2,1095 L 1360.0,1095" fill="none" stroke="#16a34a" stroke-width="1.15" opacity="0.85" marker-start="url(#many-16a34a)" marker-end="url(#one-16a34a)"/>
+  <path d="M 1100.0,855 L 1040.9,855 L 1040.9,815 L 988.0,815" fill="none" stroke="#16a34a" stroke-width="1.15" opacity="0.85" marker-start="url(#many-16a34a)" marker-end="url(#one-16a34a)"/>
+  <path d="M 1100.0,915 L 1047.1,915 L 1047.1,588 L 988.0,588" fill="none" stroke="#16a34a" stroke-width="1.15" opacity="0.85" marker-start="url(#many-16a34a)" marker-end="url(#one-16a34a)"/>
+  <path d="M 1100.0,245 L 998.0,245 L 998.0,465 L 656.8,465 L 656.8,479 L 640.0,479" fill="none" stroke="#ea580c" stroke-width="1.15" opacity="0.85" marker-start="url(#many-ea580c)" marker-end="url(#one-ea580c)"/>
+  <path d="M 1100.0,300 L 1004.1,300 L 1004.1,610 L 988.0,610" fill="none" stroke="#ea580c" stroke-width="1.15" opacity="0.85" marker-start="url(#many-ea580c)" marker-end="url(#one-ea580c)"/>
+  <path d="M 1448.0,225 L 1370.0,225 L 1370.0,265 L 1360.0,265" fill="none" stroke="#ea580c" stroke-width="1.15" opacity="0.85" marker-start="url(#many-ea580c)" marker-end="url(#one-ea580c)"/>
+  <path d="M 1448.0,262 L 1383.6,262 L 1383.6,357 L 1010.3,357 L 1010.3,475 L 663.6,475 L 663.6,540 L 728.0,540" fill="none" stroke="#ea580c" stroke-width="1.15" opacity="0.85" marker-start="url(#many-ea580c)" marker-end="url(#one-ea580c)"/>
+  <path d="M 1100.0,730 L 1034.8,730 L 1034.8,632 L 988.0,632" fill="none" stroke="#475569" stroke-width="1.15" opacity="0.85" marker-start="url(#many-475569)" marker-end="url(#one-475569)"/>
+  <rect x="60" y="190" width="260" height="109" rx="8" ry="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+  <rect x="61" y="191" width="258" height="25" rx="7" ry="7" fill="#faf5ff" stroke="#faf5ff" stroke-width="0"/>
+  <text x="70" y="208" font-size="24.0" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">network</text>
+  <path d="M 60,216 H 320" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+  <rect x="380" y="385" width="260" height="124" rx="8" ry="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+  <rect x="381" y="386" width="258" height="25" rx="7" ry="7" fill="#faf5ff" stroke="#faf5ff" stroke-width="0"/>
+  <text x="390" y="403" font-size="24.0" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">school</text>
+  <path d="M 380,411 H 640" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+  <rect x="380" y="713" width="260" height="137" rx="8" ry="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+  <rect x="381" y="714" width="258" height="25" rx="7" ry="7" fill="#eff6ff" stroke="#eff6ff" stroke-width="0"/>
+  <text x="390" y="731" font-size="24.0" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">academic_year</text>
+  <path d="M 380,739 H 640" stroke="#2563eb" stroke-width="1" opacity="0.5"/>
+  <rect x="380" y="876" width="260" height="109" rx="8" ry="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+  <rect x="381" y="877" width="258" height="25" rx="7" ry="7" fill="#eff6ff" stroke="#eff6ff" stroke-width="0"/>
+  <text x="390" y="894" font-size="24.0" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">student</text>
+  <path d="M 380,902 H 640" stroke="#2563eb" stroke-width="1" opacity="0.5"/>
+  <rect x="380" y="1011" width="260" height="94" rx="8" ry="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+  <rect x="381" y="1012" width="258" height="25" rx="7" ry="7" fill="#eff6ff" stroke="#eff6ff" stroke-width="0"/>
+  <text x="390" y="1029" font-size="24.0" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">subject</text>
+  <path d="M 380,1037 H 640" stroke="#2563eb" stroke-width="1" opacity="0.5"/>
+  <rect x="728" y="482" width="260" height="182" rx="8" ry="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+  <rect x="729" y="483" width="258" height="25" rx="7" ry="7" fill="#faf5ff" stroke="#faf5ff" stroke-width="0"/>
+  <text x="738" y="500" font-size="24.0" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">app_user</text>
+  <path d="M 728,508 H 988" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+  <rect x="728" y="690" width="260" height="167" rx="8" ry="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+  <rect x="729" y="691" width="258" height="25" rx="7" ry="7" fill="#eff6ff" stroke="#eff6ff" stroke-width="0"/>
+  <text x="738" y="708" font-size="24.0" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">class_group</text>
+  <path d="M 728,716 H 988" stroke="#2563eb" stroke-width="1" opacity="0.5"/>
+  <rect x="728" y="883" width="260" height="124" rx="8" ry="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+  <rect x="729" y="884" width="258" height="25" rx="7" ry="7" fill="#eff6ff" stroke="#eff6ff" stroke-width="0"/>
+  <text x="738" y="901" font-size="24.0" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">student_guardian</text>
+  <path d="M 728,909 H 988" stroke="#2563eb" stroke-width="1" opacity="0.5"/>
+  <rect x="1100" y="190" width="260" height="154" rx="8" ry="8" fill="#ffffff" stroke="#ea580c" stroke-width="1.6"/>
+  <rect x="1101" y="191" width="258" height="25" rx="7" ry="7" fill="#fff7ed" stroke="#fff7ed" stroke-width="0"/>
+  <text x="1110" y="208" font-size="24.0" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">announcement</text>
+  <path d="M 1100,216 H 1360" stroke="#ea580c" stroke-width="1" opacity="0.5"/>
+  <rect x="1100" y="370" width="260" height="122" rx="8" ry="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+  <rect x="1101" y="371" width="258" height="25" rx="7" ry="7" fill="#faf5ff" stroke="#faf5ff" stroke-width="0"/>
+  <text x="1110" y="388" font-size="24.0" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">user_role</text>
+  <path d="M 1100,396 H 1360" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+  <rect x="1100" y="518" width="260" height="124" rx="8" ry="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+  <rect x="1101" y="519" width="258" height="25" rx="7" ry="7" fill="#faf5ff" stroke="#faf5ff" stroke-width="0"/>
+  <text x="1110" y="536" font-size="24.0" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">session</text>
+  <path d="M 1100,544 H 1360" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
+  <rect x="1100" y="668" width="260" height="137" rx="8" ry="8" fill="#ffffff" stroke="#475569" stroke-width="1.6"/>
+  <rect x="1101" y="669" width="258" height="25" rx="7" ry="7" fill="#f8fafc" stroke="#f8fafc" stroke-width="0"/>
+  <text x="1110" y="686" font-size="24.0" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">idempotent_request</text>
+  <path d="M 1100,694 H 1360" stroke="#475569" stroke-width="1" opacity="0.5"/>
+  <rect x="1100" y="818" width="260" height="139" rx="8" ry="8" fill="#ffffff" stroke="#16a34a" stroke-width="1.6"/>
+  <rect x="1101" y="819" width="258" height="25" rx="7" ry="7" fill="#f0fdf4" stroke="#f0fdf4" stroke-width="0"/>
+  <text x="1110" y="836" font-size="24.0" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">term_closing</text>
+  <path d="M 1100,844 H 1360" stroke="#16a34a" stroke-width="1" opacity="0.5"/>
+  <rect x="1100" y="983" width="260" height="180" rx="8" ry="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+  <rect x="1101" y="984" width="258" height="25" rx="7" ry="7" fill="#eff6ff" stroke="#eff6ff" stroke-width="0"/>
+  <text x="1110" y="1001" font-size="24.0" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">enrollment</text>
+  <path d="M 1100,1009 H 1360" stroke="#2563eb" stroke-width="1" opacity="0.5"/>
+  <rect x="1100" y="1176" width="260" height="124" rx="8" ry="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+  <rect x="1101" y="1177" width="258" height="25" rx="7" ry="7" fill="#eff6ff" stroke="#eff6ff" stroke-width="0"/>
+  <text x="1110" y="1194" font-size="23.1" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">class_group_subject</text>
+  <path d="M 1100,1202 H 1360" stroke="#2563eb" stroke-width="1" opacity="0.5"/>
+  <rect x="1448" y="190" width="260" height="109" rx="8" ry="8" fill="#ffffff" stroke="#ea580c" stroke-width="1.6"/>
+  <rect x="1449" y="191" width="258" height="25" rx="7" ry="7" fill="#fff7ed" stroke="#fff7ed" stroke-width="0"/>
+  <text x="1458" y="208" font-size="19.9" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">announcement_recipient</text>
+  <path d="M 1448,216 H 1708" stroke="#ea580c" stroke-width="1" opacity="0.5"/>
+  <rect x="1448" y="920" width="260" height="139" rx="8" ry="8" fill="#ffffff" stroke="#16a34a" stroke-width="1.6"/>
+  <rect x="1449" y="921" width="258" height="25" rx="7" ry="7" fill="#f0fdf4" stroke="#f0fdf4" stroke-width="0"/>
+  <text x="1458" y="938" font-size="24.0" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">attendance</text>
+  <path d="M 1448,946 H 1708" stroke="#16a34a" stroke-width="1" opacity="0.5"/>
+  <rect x="1448" y="1085" width="260" height="182" rx="8" ry="8" fill="#ffffff" stroke="#16a34a" stroke-width="1.6"/>
+  <rect x="1449" y="1086" width="258" height="25" rx="7" ry="7" fill="#f0fdf4" stroke="#f0fdf4" stroke-width="0"/>
+  <text x="1458" y="1103" font-size="24.0" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">grade</text>
+  <path d="M 1448,1111 H 1708" stroke="#16a34a" stroke-width="1" opacity="0.5"/>
+  <rect x="60" y="336" width="260" height="216" rx="10" ry="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" data-graph-role="container"/>
+  <rect x="60" y="570" width="260" height="190" rx="10" ry="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" data-graph-role="container"/>
+  <rect x="60" y="778" width="260" height="300" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+  <path d="M 80,846 H 170" stroke="#2563eb" stroke-width="1.2" fill="none" marker-start="url(#many-2563eb)" marker-end="url(#one-2563eb)"/>
+  <path d="M 80,866 H 170" stroke="#7c3aed" stroke-width="1.9" fill="none" marker-start="url(#many-7c3aed)" marker-end="url(#zeroum-7c3aed)"/>
+  <rect x="80" y="930" width="12" height="11" rx="3" ry="3" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.3"/>
+  <rect x="80" y="948" width="12" height="11" rx="3" ry="3" fill="#eff6ff" stroke="#2563eb" stroke-width="1.3"/>
+  <rect x="80" y="966" width="12" height="11" rx="3" ry="3" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.3"/>
+  <rect x="80" y="984" width="12" height="11" rx="3" ry="3" fill="#fff7ed" stroke="#ea580c" stroke-width="1.3"/>
+  <rect x="80" y="1002" width="12" height="11" rx="3" ry="3" fill="#f8fafc" stroke="#475569" stroke-width="1.3"/>
+  <rect x="60" y="1096" width="260" height="118" rx="10" ry="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" data-graph-role="container"/>
+  <rect x="380" y="1155" width="680" height="215" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.2" data-graph-role="container"/>
+</svg>

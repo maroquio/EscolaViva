@@ -1,0 +1,47 @@
+[
+ {
+  "id": "domain-blocks--identity",
+  "rotulo": "identity",
+  "imagem": "assets/blocos/domain-blocks--identity.png",
+  "esquerda": 1.786,
+  "topo": 9.137,
+  "largura": 23.438,
+  "altura": 35.956
+ },
+ {
+  "id": "domain-blocks--academics",
+  "rotulo": "academics",
+  "imagem": "assets/blocos/domain-blocks--academics.png",
+  "esquerda": 26.339,
+  "topo": 9.137,
+  "largura": 23.438,
+  "altura": 35.956
+ },
+ {
+  "id": "domain-blocks--assessment",
+  "rotulo": "assessment",
+  "imagem": "assets/blocos/domain-blocks--assessment.png",
+  "esquerda": 50.893,
+  "topo": 9.137,
+  "largura": 23.438,
+  "altura": 35.956
+ },
+ {
+  "id": "domain-blocks--communication",
+  "rotulo": "communication",
+  "imagem": "assets/blocos/domain-blocks--communication.png",
+  "esquerda": 75.446,
+  "topo": 9.137,
+  "largura": 23.438,
+  "altura": 35.956
+ },
+ {
+  "id": "domain-blocks--n-cleo-compartilhado-as-quatro-coisas-",
+  "rotulo": "Núcleo compartilhado — as quatro coisas que o domínio pode alcançar, e nada além",
+  "imagem": "assets/blocos/domain-blocks--n-cleo-compartilhado-as-quatro-coisas-.png",
+  "esquerda": 1.786,
+  "topo": 47.462,
+  "largura": 65.848,
+  "altura": 16.582
+ }
+]

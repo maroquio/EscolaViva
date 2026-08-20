@@ -1,0 +1,128 @@
+[
+ {
+  "id": "componentes-react--src-main-tsx-2",
+  "rotulo": "src/main.tsx",
+  "imagem": "assets/blocos/componentes-react--src-main-tsx-2.png",
+  "esquerda": 4.344,
+  "topo": -91.863,
+  "largura": 77.482,
+  "altura": 184.583
+ },
+ {
+  "id": "componentes-react--src-app-routes-tsx",
+  "rotulo": "src/app/routes.tsx",
+  "imagem": "assets/blocos/componentes-react--src-app-routes-tsx.png",
+  "esquerda": 5.496,
+  "topo": -75.589,
+  "largura": 75.177,
+  "altura": 167.024
+ },
+ {
+  "id": "componentes-react--requirelogin",
+  "rotulo": "RequireLogin",
+  "imagem": "assets/blocos/componentes-react--requirelogin.png",
+  "esquerda": 6.649,
+  "topo": -66.166,
+  "largura": 72.872,
+  "altura": 156.318
+ },
+ {
+  "id": "componentes-react--layout",
+  "rotulo": "Layout",
+  "imagem": "assets/blocos/componentes-react--layout.png",
+  "esquerda": 7.801,
+  "topo": -56.746,
+  "largura": 70.567,
+  "altura": 145.611
+ },
+ {
+  "id": "componentes-react--areanavigation",
+  "rotulo": "AreaNavigation",
+  "imagem": "assets/blocos/componentes-react--areanavigation.png",
+  "esquerda": 9.043,
+  "topo": -37.473,
+  "largura": 13.475,
+  "altura": 123.341
+ },
+ {
+  "id": "componentes-react--appshell-main",
+  "rotulo": "AppShell.Main",
+  "imagem": "assets/blocos/componentes-react--appshell-main.png",
+  "esquerda": 23.404,
+  "topo": -37.473,
+  "largura": 53.723,
+  "altura": 123.341
+ },
+ {
+  "id": "componentes-react--requirerole-role-registrar",
+  "rotulo": "RequireRole role=\"registrar\"",
+  "imagem": "assets/blocos/componentes-react--requirerole-role-registrar.png",
+  "esquerda": 24.468,
+  "topo": -28.481,
+  "largura": 51.596,
+  "altura": 113.063
+ },
+ {
+  "id": "componentes-react--errorboundary",
+  "rotulo": "ErrorBoundary",
+  "imagem": "assets/blocos/componentes-react--errorboundary.png",
+  "esquerda": 25.532,
+  "topo": -19.486,
+  "largura": 49.468,
+  "altura": 102.784
+ },
+ {
+  "id": "componentes-react--suspense-fallback-loading",
+  "rotulo": "Suspense fallback={<Loading />}",
+  "imagem": "assets/blocos/componentes-react--suspense-fallback-loading.png",
+  "esquerda": 26.596,
+  "topo": -10.492,
+  "largura": 47.34,
+  "altura": 92.505
+ },
+ {
+  "id": "componentes-react--registrararea",
+  "rotulo": "RegistrarArea",
+  "imagem": "assets/blocos/componentes-react--registrararea.png",
+  "esquerda": 27.66,
+  "topo": -1.5,
+  "largura": 45.213,
+  "altura": 82.227
+ },
+ {
+  "id": "componentes-react--errorboundary-suspense",
+  "rotulo": "ErrorBoundary + Suspense",
+  "imagem": "assets/blocos/componentes-react--errorboundary-suspense.png",
+  "esquerda": 28.723,
+  "topo": 7.495,
+  "largura": 43.085,
+  "altura": 71.948
+ },
+ {
+  "id": "componentes-react--errorboundary-suspense-2",
+  "rotulo": "ErrorBoundary + Suspense",
+  "imagem": "assets/blocos/componentes-react--errorboundary-suspense-2.png",
+  "esquerda": 29.078,
+  "topo": 8.351,
+  "largura": 42.376,
+  "altura": 70.236
+ },
+ {
+  "id": "componentes-react--routes",
+  "rotulo": "<Routes>",
+  "imagem": "assets/blocos/componentes-react--routes.png",
+  "esquerda": 29.787,
+  "topo": 16.489,
+  "largura": 40.957,
+  "altura": 61.67
+ },
+ {
+  "id": "componentes-react--enrollmentform",
+  "rotulo": "EnrollmentForm",
+  "imagem": "assets/blocos/componentes-react--enrollmentform.png",
+  "esquerda": 30.851,
+  "topo": 25.481,
+  "largura": 38.83,
+  "altura": 51.391
+ }
+]

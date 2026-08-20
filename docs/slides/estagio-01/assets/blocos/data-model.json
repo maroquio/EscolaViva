@@ -1,0 +1,164 @@
+[
+ {
+  "id": "data-model--network",
+  "rotulo": "network",
+  "imagem": "assets/blocos/data-model--network.png",
+  "esquerda": 3.456,
+  "topo": 13.591,
+  "largura": 14.977,
+  "altura": 7.797
+ },
+ {
+  "id": "data-model--school",
+  "rotulo": "school",
+  "imagem": "assets/blocos/data-model--school.png",
+  "esquerda": 21.889,
+  "topo": 27.539,
+  "largura": 14.977,
+  "altura": 8.87
+ },
+ {
+  "id": "data-model--academic-year",
+  "rotulo": "academic_year",
+  "imagem": "assets/blocos/data-model--academic-year.png",
+  "esquerda": 21.889,
+  "topo": 51.001,
+  "largura": 14.977,
+  "altura": 9.8
+ },
+ {
+  "id": "data-model--student",
+  "rotulo": "student",
+  "imagem": "assets/blocos/data-model--student.png",
+  "esquerda": 21.889,
+  "topo": 62.661,
+  "largura": 14.977,
+  "altura": 7.797
+ },
+ {
+  "id": "data-model--subject",
+  "rotulo": "subject",
+  "imagem": "assets/blocos/data-model--subject.png",
+  "esquerda": 21.889,
+  "topo": 72.318,
+  "largura": 14.977,
+  "altura": 6.724
+ },
+ {
+  "id": "data-model--app-user",
+  "rotulo": "app_user",
+  "imagem": "assets/blocos/data-model--app-user.png",
+  "esquerda": 41.935,
+  "topo": 34.478,
+  "largura": 14.977,
+  "altura": 13.019
+ },
+ {
+  "id": "data-model--class-group",
+  "rotulo": "class_group",
+  "imagem": "assets/blocos/data-model--class-group.png",
+  "esquerda": 41.935,
+  "topo": 49.356,
+  "largura": 14.977,
+  "altura": 11.946
+ },
+ {
+  "id": "data-model--student-guardian",
+  "rotulo": "student_guardian",
+  "imagem": "assets/blocos/data-model--student-guardian.png",
+  "esquerda": 41.935,
+  "topo": 63.162,
+  "largura": 14.977,
+  "altura": 8.87
+ },
+ {
+  "id": "data-model--announcement",
+  "rotulo": "announcement",
+  "imagem": "assets/blocos/data-model--announcement.png",
+  "esquerda": 63.364,
+  "topo": 13.591,
+  "largura": 14.977,
+  "altura": 11.016
+ },
+ {
+  "id": "data-model--user-role",
+  "rotulo": "user_role",
+  "imagem": "assets/blocos/data-model--user-role.png",
+  "esquerda": 63.364,
+  "topo": 26.466,
+  "largura": 14.977,
+  "altura": 8.727
+ },
+ {
+  "id": "data-model--session",
+  "rotulo": "session",
+  "imagem": "assets/blocos/data-model--session.png",
+  "esquerda": 63.364,
+  "topo": 37.053,
+  "largura": 14.977,
+  "altura": 8.87
+ },
+ {
+  "id": "data-model--idempotent-request",
+  "rotulo": "idempotent_request",
+  "imagem": "assets/blocos/data-model--idempotent-request.png",
+  "esquerda": 63.364,
+  "topo": 47.783,
+  "largura": 14.977,
+  "altura": 9.8
+ },
+ {
+  "id": "data-model--term-closing",
+  "rotulo": "term_closing",
+  "imagem": "assets/blocos/data-model--term-closing.png",
+  "esquerda": 63.364,
+  "topo": 58.512,
+  "largura": 14.977,
+  "altura": 9.943
+ },
+ {
+  "id": "data-model--enrollment",
+  "rotulo": "enrollment",
+  "imagem": "assets/blocos/data-model--enrollment.png",
+  "esquerda": 63.364,
+  "topo": 70.315,
+  "largura": 14.977,
+  "altura": 12.876
+ },
+ {
+  "id": "data-model--class-group-subject",
+  "rotulo": "class_group_subject",
+  "imagem": "assets/blocos/data-model--class-group-subject.png",
+  "esquerda": 63.364,
+  "topo": 84.12,
+  "largura": 14.977,
+  "altura": 8.87
+ },
+ {
+  "id": "data-model--announcement-recipient",
+  "rotulo": "announcement_recipient",
+  "imagem": "assets/blocos/data-model--announcement-recipient.png",
+  "esquerda": 83.41,
+  "topo": 13.591,
+  "largura": 14.977,
+  "altura": 7.797
+ },
+ {
+  "id": "data-model--attendance",
+  "rotulo": "attendance",
+  "imagem": "assets/blocos/data-model--attendance.png",
+  "esquerda": 83.41,
+  "topo": 65.808,
+  "largura": 14.977,
+  "altura": 9.943
+ },
+ {
+  "id": "data-model--grade",
+  "rotulo": "grade",
+  "imagem": "assets/blocos/data-model--grade.png",
+  "esquerda": 83.41,
+  "topo": 77.611,
+  "largura": 14.977,
+  "altura": 13.019
+ }
+]

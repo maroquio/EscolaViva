@@ -1,0 +1,27 @@
+[test]
+# A suíte inteira roda com cobertura ligada: a meta de 80% é um portão, não um relatório
+# que alguém lembra de olhar. Abaixo disso, `bun test` sai com código de erro.
+#
+# A forma importa, e o Bun não avisa qual você escolheu: `coverageThreshold = 0.8` cobra 80% de
+# CADA ARQUIVO, enquanto a forma de tabela cobra 80% do PROJETO INTEIRO. A primeira reprovaria
+# uma suíte de 95% só porque um punhado de ramos de erro em rotas não é exercido — e a resposta
+# a esse tipo de portão é sempre escrever teste de fachada para subir número, não teste que
+# encontra defeito. O portão aqui é o do projeto.
+# O front tem seu próprio runner. `bun run test` chama `bun test apps/api/tests tests`, e o Bun trata
+# cada argumento como filtro de SUBSTRING do caminho — então `tests` casa também `apps/web/tests/`,
+# que é do Vitest. Sem esta linha, 256 casos do front entram no runner errado e falham em bloco, com
+# um relatório que parece regressão em massa e é só endereço trocado.
+#
+# A alternativa seria dar outro nome à pasta do front, e o nome não é o problema: o problema é o
+# filtro por substring. A exceção fica declarada aqui, onde o runner é configurado, em vez de virar
+# uma bandeira repetida na linha de comando.
+pathIgnorePatterns = ["**/apps/web/**"]
+
+coverage = true
+coverageThreshold = { line = 0.8, function = 0.8 }
+coverageSkipTestFiles = true
+coverageReporter = ["text"]
+
+# Sobe as migrações no banco de teste e prepara o truncamento entre casos antes de qualquer
+# arquivo de teste ser importado.
+preload = ["./apps/api/tests/support/preload.ts"]

@@ -1,0 +1,164 @@
+[
+ {
+  "id": "architecture--artefato-1",
+  "rotulo": "Artefato 1",
+  "imagem": "assets/blocos/architecture--artefato-1.png",
+  "esquerda": 3.667,
+  "topo": 6.612,
+  "largura": 94.0,
+  "altura": 9.091
+ },
+ {
+  "id": "architecture--app",
+  "rotulo": "app/",
+  "imagem": "assets/blocos/architecture--app.png",
+  "esquerda": 5.0,
+  "topo": 9.091,
+  "largura": 28.667,
+  "altura": 5.647
+ },
+ {
+  "id": "architecture--features",
+  "rotulo": "features/",
+  "imagem": "assets/blocos/architecture--features.png",
+  "esquerda": 36.333,
+  "topo": 9.091,
+  "largura": 28.667,
+  "altura": 5.647
+ },
+ {
+  "id": "architecture--shared-api",
+  "rotulo": "shared/api",
+  "imagem": "assets/blocos/architecture--shared-api.png",
+  "esquerda": 67.667,
+  "topo": 9.091,
+  "largura": 28.667,
+  "altura": 5.647
+ },
+ {
+  "id": "architecture--artefato-3",
+  "rotulo": "Artefato 3",
+  "imagem": "assets/blocos/architecture--artefato-3.png",
+  "esquerda": 57.667,
+  "topo": 16.529,
+  "largura": 38.667,
+  "altura": 4.683
+ },
+ {
+  "id": "architecture--artefato-2-apps-api-src-main-ts-raiz-d",
+  "rotulo": "Artefato 2 — apps/api/src/main.ts : raiz de composição",
+  "imagem": "assets/blocos/architecture--artefato-2-apps-api-src-main-ts-raiz-d.png",
+  "esquerda": 5.0,
+  "topo": 21.901,
+  "largura": 91.333,
+  "altura": 6.612
+ },
+ {
+  "id": "architecture--interface-entrega",
+  "rotulo": "Interface (entrega)",
+  "imagem": "assets/blocos/architecture--interface-entrega.png",
+  "esquerda": 3.667,
+  "topo": 29.614,
+  "largura": 94.0,
+  "altura": 13.085
+ },
+ {
+  "id": "architecture--http-app-ts",
+  "rotulo": "http/app.ts",
+  "imagem": "assets/blocos/architecture--http-app-ts.png",
+  "esquerda": 5.0,
+  "topo": 32.782,
+  "largura": 28.667,
+  "altura": 8.815
+ },
+ {
+  "id": "architecture--http-routes",
+  "rotulo": "http/routes/",
+  "imagem": "assets/blocos/architecture--http-routes.png",
+  "esquerda": 36.333,
+  "topo": 32.782,
+  "largura": 28.667,
+  "altura": 8.815
+ },
+ {
+  "id": "architecture--http-static-ts",
+  "rotulo": "http/static.ts",
+  "imagem": "assets/blocos/architecture--http-static-ts.png",
+  "esquerda": 67.667,
+  "topo": 32.782,
+  "largura": 28.667,
+  "altura": 8.815
+ },
+ {
+  "id": "architecture--identity",
+  "rotulo": "identity",
+  "imagem": "assets/blocos/architecture--identity.png",
+  "esquerda": 3.667,
+  "topo": 43.802,
+  "largura": 94.0,
+  "altura": 27.824
+ },
+ {
+  "id": "architecture--m-dulos",
+  "rotulo": "Módulos",
+  "imagem": "assets/blocos/architecture--m-dulos.png",
+  "esquerda": 4.333,
+  "topo": 44.215,
+  "largura": 76.0,
+  "altura": 3.168
+ },
+ {
+  "id": "architecture--n-cleo-compartilhado",
+  "rotulo": "Núcleo compartilhado",
+  "imagem": "assets/blocos/architecture--n-cleo-compartilhado.png",
+  "esquerda": 3.667,
+  "topo": 74.931,
+  "largura": 94.0,
+  "altura": 13.774
+ },
+ {
+  "id": "architecture--ports",
+  "rotulo": "ports/",
+  "imagem": "assets/blocos/architecture--ports.png",
+  "esquerda": 5.0,
+  "topo": 77.548,
+  "largura": 31.667,
+  "altura": 10.193
+ },
+ {
+  "id": "architecture--db",
+  "rotulo": "db/",
+  "imagem": "assets/blocos/architecture--db.png",
+  "esquerda": 38.333,
+  "topo": 77.548,
+  "largura": 58.0,
+  "altura": 10.193
+ },
+ {
+  "id": "architecture--infraestrutura",
+  "rotulo": "Infraestrutura",
+  "imagem": "assets/blocos/architecture--infraestrutura.png",
+  "esquerda": 3.667,
+  "topo": 89.807,
+  "largura": 94.0,
+  "altura": 8.264
+ },
+ {
+  "id": "architecture--postgresql",
+  "rotulo": "PostgreSQL",
+  "imagem": "assets/blocos/architecture--postgresql.png",
+  "esquerda": 5.0,
+  "topo": 92.149,
+  "largura": 58.333,
+  "altura": 5.096
+ },
+ {
+  "id": "architecture--apps-web-dist",
+  "rotulo": "apps/web/dist",
+  "imagem": "assets/blocos/architecture--apps-web-dist.png",
+  "esquerda": 65.0,
+  "topo": 92.149,
+  "largura": 31.333,
+  "altura": 5.096
+ }
+]

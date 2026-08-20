@@ -1,0 +1,35 @@
+{
+  "skill_name": "frontend-patterns",
+  "evals": [
+    {
+      "id": 0,
+      "name": "testes-de-layout",
+      "prompt": "Escreve os testes do Layout da aplicação — o cabeçalho, a navegação lateral e a área de conteúdo. Quero garantir que a estrutura da página não regrida quando mexerem no Mantine.",
+      "expected_output": "Asserções de relação e não de existência: contagem de landmarks, posição do skip link, nome acessível dos botões de ícone; getByRole com nome acessível preferido a getByLabelText.",
+      "assertions": [
+        "Afirma a QUANTIDADE de landmarks (ex.: exatamente um main, um nav por região), não apenas que existem",
+        "Verifica a POSIÇÃO do skip link em relação ao conteúdo que ele pula, não só que o link existe",
+        "Exige nome acessível dos botões de ícone (getByRole('button', {name: ...})), em vez de contar botões ou buscar por classe",
+        "Prefere getByRole com nome acessível a getByLabelText, e diz por quê",
+        "Não usa querySelector/container.querySelector nem asserção por className como verificação principal",
+        "Evita { hidden: true } nas consultas por role para fazer o teste passar"
+      ],
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "armadilhas-de-jsdom",
+      "prompt": "Dois testes meus estão quebrados e não entendo. No formulário de convite, getByLabelText('Nome') não acha o campo, mas ele está lá na tela. E no teste do filtro por escola, eu clico no Select do Mantine e getByRole('option') devolve zero — parece que a query nem carregou. Me ajuda?",
+      "expected_output": "Diagnóstico correto das duas causas: withAsterisk polui o textContent do label (nome acessível segue limpo), e floating-ui não posiciona em jsdom, deixando o dropdown display:none. Correções: getByRole por nome acessível; NativeSelect.",
+      "assertions": [
+        "Identifica que o asterisco de campo obrigatório entra no textContent do label e por isso getByLabelText falha",
+        "Corrige o primeiro caso com getByRole por nome acessível (ou regex de prefixo onde não há role)",
+        "Identifica que o dropdown do Select não abre em jsdom por falta de layout para o floating-ui, e não por falha de carregamento de dados",
+        "Recomenda NativeSelect (elemento select real) em vez de forçar a abertura com mouseDown/ArrowDown/Enter",
+        "Rejeita explicitamente { hidden: true } como conserto, por mascarar o problema em vez de resolvê-lo",
+        "Nomeia o padrão comum: o sintoma aponta onde a asserção falhou, não onde está a causa"
+      ],
+      "files": []
+    }
+  ]
+}

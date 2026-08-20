@@ -1,0 +1,11 @@
+{
+  "name": "@escolaviva/api",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@escolaviva/contracts": "workspace:*",
+    "hono": "^4",
+    "pino": "^9",
+    "zod": "^4"
+  }
+}

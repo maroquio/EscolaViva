@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 820" width="1300" height="820">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1300" height="820" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Ciclo do bimestre da turma</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/api/src/assessment/application/closeTerm.ts · application/postGrades.ts · domain/termClosing.ts · tabela term_closing</text>
+  <circle cx="315" cy="132" r="9" fill="#111827"/>
+  <path d="M 315,141 L 315,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="332" y="150" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">a turma passa a existir</text>
+  <rect x="190" y="195" width="250" height="110" rx="12" ry="12" fill="#f8fafc" stroke="#475569" stroke-width="1.8"/>
+  <text x="206" y="221" font-size="13.5" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">aberto</text>
+  <text x="206" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">NÃO há linha em term_closing</text>
+  <text x="206" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o estado é a ausência do registro</text>
+  <text x="206" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">notas e chamada ainda são aceitas</text>
+  <rect x="700" y="195" width="250" height="110" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="716" y="221" font-size="13.5" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">fechado</text>
+  <text x="716" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">uma linha: turma + bimestre</text>
+  <text x="716" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">closed_by, closed_at</text>
+  <text x="716" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">não existe DELETE no repositório —</text>
+  <text x="716" y="283" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">não há reabertura no Estágio 01</text>
+  <path d="M 440,250 L 698,250" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <text x="452" y="214" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">close / closeTerm(classGroup, term)</text>
+  <text x="452" y="227" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">[as cinco guardas passam, as duas</text>
+  <text x="452" y="240" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">últimas sob o lock consultivo]</text>
+  <path d="M 250,305 L 250,352 L 380,352 L 380,309" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-dc2626)"/>
+  <text x="200" y="378" font-size="9.5" fill="#dc2626" font-weight="600" text-anchor="start">[qualquer guarda falha] / nada é escrito, e a tela recebe o código do erro</text>
+  <rect x="990" y="195" width="280" height="250" rx="10" ry="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1004" y="219" font-size="11.5" fill="#2563eb" font-weight="600" text-anchor="start">Uma regra, três mecanismos</text>
+  <text x="1004" y="239" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">1. isClosed() dentro da transação —</text>
+  <text x="1004" y="252" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">existe para dar boa mensagem.</text>
+  <text x="1004" y="278" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">2. pg_advisory_xact_lock no par</text>
+  <text x="1004" y="291" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">(turma, bimestre) — serializa quem</text>
+  <text x="1004" y="304" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">escreve nesse bimestre, e é solto</text>
+  <text x="1004" y="317" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">pelo commit, não por código.</text>
+  <text x="1004" y="343" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">3. UQ (class_group_id, term) — a</text>
+  <text x="1004" y="356" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">garantia que sobrevive a um bug nos</text>
+  <text x="1004" y="369" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">dois acima.</text>
+  <text x="1004" y="395" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Nenhum substitui o outro: a checagem</text>
+  <text x="1004" y="408" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">dá a mensagem, o lock dá a ordem, o</text>
+  <text x="1004" y="421" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">índice dá a garantia.</text>
+  <rect x="60" y="465" width="380" height="245" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="74" y="489" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">As cinco guardas, na ordem em que rodam</text>
+  <text x="74" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">FORA da transação — leituras pela fachada de</text>
+  <text x="74" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">academics:</text>
+  <text x="74" y="535" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">1. classGroupNotFound</text>
+  <text x="74" y="548" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">2. noSubject — nada atribuído, nada a fechar</text>
+  <text x="74" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">3. noActiveEnrollment — nenhum aluno ativo nela</text>
+  <text x="74" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">DENTRO do unitOfWork, após lockTermForWriting():</text>
+  <text x="74" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">4. alreadyClosed — reconsultado aqui, não antes: outro</text>
+  <text x="74" y="613" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">fechamento cabe entre a leitura e a escrita</text>
+  <text x="74" y="626" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">5. incompleteClosing — closingPendingItems() compara,</text>
+  <text x="74" y="639" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">disciplina a disciplina, quantas notas foram lançadas</text>
+  <text x="74" y="652" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">contra o número de matrículas ativas. A mensagem diz o</text>
+  <text x="74" y="665" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">que falta, por disciplina, não um “não pode”.</text>
+  <rect x="460" y="465" width="380" height="245" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="474" y="489" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">O estado aberto não existe no banco</text>
+  <text x="474" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Não há coluna, flag ou linha dizendo “aberto”. Há linhas</text>
+  <text x="474" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">dizendo “fechado”; o resto é inferido:</text>
+  <text x="474" y="548" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">closingStates() pega as linhas gravadas e expande os QUATRO</text>
+  <text x="474" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">bimestres, marcando closed: false onde não achou registro.</text>
+  <text x="474" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">A escolha tem consequência prática: fechar um bimestre</text>
+  <text x="474" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">nunca precisa criar linha dos outros três, e um bimestre</text>
+  <text x="474" y="613" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">que ninguém tocou não ocupa espaço nem exige migração</text>
+  <text x="474" y="626" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">para existir.</text>
+  <text x="474" y="652" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">É a mesma ideia do índice parcial da matrícula:</text>
+  <text x="474" y="665" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a ausência é informação.</text>
+  <rect x="860" y="465" width="380" height="245" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="874" y="489" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Fechar e lançar deixaram de se cruzar</text>
+  <text x="874" y="509" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">postGrades() pega o MESMO lock consultivo, no mesmo par,</text>
+  <text x="874" y="522" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">como primeiro comando da própria transação, e só depois</text>
+  <text x="874" y="535" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">relê isClosed().</text>
+  <text x="874" y="561" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Sem ele as duas transações se sobrepunham: um lançamento</text>
+  <text x="874" y="574" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">que já tinha lido “aberto” podia comitar suas notas depois</text>
+  <text x="874" y="587" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">do fechamento, e o bimestre ficava fechado sobre um</text>
+  <text x="874" y="600" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">conjunto de notas não conferido.</text>
+  <text x="874" y="626" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">A chamada responde a mesma pergunta um nível acima:</text>
+  <text x="874" y="639" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">recordRollCall() recusa quando allTermsClosed() vale para</text>
+  <text x="874" y="652" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a turma — um ano terminado para de aceitar frequência</text>
+  <text x="874" y="665" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">que mexeria no boletim.</text>
+  <text x="36" y="800" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Lido de apps/api/src/assessment/ e migrations/0001_initial_schema.sql. Estado do Estágio 01.</text>
+</svg>

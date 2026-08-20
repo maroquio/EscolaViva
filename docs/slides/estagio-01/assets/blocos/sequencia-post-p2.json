@@ -1,0 +1,20 @@
+[
+ {
+  "id": "sequencia-post--begin-writer-begin",
+  "rotulo": "BEGIN — writer().begin()",
+  "imagem": "assets/blocos/sequencia-post--begin-writer-begin.png",
+  "esquerda": 45.157,
+  "topo": -2.445,
+  "largura": 28.428,
+  "altura": 49.591
+ },
+ {
+  "id": "sequencia-post--tr-s-garantias-e-nenhuma-substitui-as-",
+  "rotulo": "Três garantias, e nenhuma substitui as outras",
+  "imagem": "assets/blocos/sequencia-post--tr-s-garantias-e-nenhuma-substitui-as-.png",
+  "esquerda": 74.969,
+  "topo": 13.859,
+  "largura": 23.27,
+  "altura": 21.602
+ }
+]

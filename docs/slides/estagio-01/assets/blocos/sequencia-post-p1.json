@@ -1,0 +1,29 @@
+[
+ {
+  "id": "sequencia-post--o-envelope-que-sobe",
+  "rotulo": "O envelope que sobe",
+  "imagem": "assets/blocos/sequencia-post--o-envelope-que-sobe.png",
+  "esquerda": 12.075,
+  "topo": 40.171,
+  "largura": 50.314,
+  "altura": 8.029
+ },
+ {
+  "id": "sequencia-post--desvio-a-a-regra-recusa",
+  "rotulo": "Desvio A — a regra recusa",
+  "imagem": "assets/blocos/sequencia-post--desvio-a-a-regra-recusa.png",
+  "esquerda": 74.969,
+  "topo": 11.679,
+  "largura": 23.27,
+  "altura": 31.996
+ },
+ {
+  "id": "sequencia-post--a-cadeia-uma-a-uma",
+  "rotulo": "A cadeia, uma a uma",
+  "imagem": "assets/blocos/sequencia-post--a-cadeia-uma-a-uma.png",
+  "esquerda": 74.969,
+  "topo": 81.996,
+  "largura": 23.27,
+  "altura": 28.832
+ }
+]

@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 820" width="1300" height="820">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1300" height="820" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Ciclo da sessão</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/api/src/identity/domain/session.ts · application/authenticate.ts · application/queries.ts · application/purgeSessions.ts</text>
+  <circle cx="315" cy="132" r="9" fill="#111827"/>
+  <path d="M 315,141 L 315,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="332" y="146" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">authenticate / INSERT INTO session</text>
+  <text x="332" y="159" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">expires_at = sessionExpiration(now, config.sessionDurationHours)</text>
+  <text x="332" y="172" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o cookie assinado leva o id, nunca o usuário</text>
+  <rect x="190" y="195" width="250" height="108" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="206" y="221" font-size="13.5" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">válida</text>
+  <text x="206" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a linha existe e expires_at &gt; now()</text>
+  <text x="206" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">readerFresh() lê a cada requisição,</text>
+  <text x="206" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">com join em network e app_user</text>
+  <rect x="650" y="195" width="250" height="108" rx="12" ry="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="666" y="221" font-size="13.5" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">expirada</text>
+  <text x="666" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a linha AINDA está no banco</text>
+  <text x="666" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">nenhuma escrita marcou isso —</text>
+  <text x="666" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o relógio andou, ninguém agiu</text>
+  <path d="M 440,249 L 648,249" fill="none" stroke="#ea580c" stroke-width="1.6" marker-end="url(#p-ea580c)"/>
+  <text x="452" y="222" font-size="9.5" fill="#ea580c" font-weight="600" text-anchor="start">expires_at &lt; now()</text>
+  <text x="452" y="235" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">— só o tempo passa,</text>
+  <text x="452" y="248" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ninguém escreve</text>
+  <circle cx="1215" cy="249" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8"/>
+  <circle cx="1215" cy="249" r="7.5" fill="#111827"/>
+  <path d="M 900,249 L 1200,249" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="912" y="212" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">job expurgo-de-sessoes</text>
+  <text x="912" y="225" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ DELETE WHERE expires_at &lt; now()</text>
+  <text x="912" y="238" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a cada 15 min, sob lock consultivo</text>
+  <circle cx="315" cy="400" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8"/>
+  <circle cx="315" cy="400" r="7.5" fill="#111827"/>
+  <path d="M 315,303 L 315,385" fill="none" stroke="#dc2626" stroke-width="1.6" marker-end="url(#p-dc2626)"/>
+  <text x="332" y="330" font-size="9.5" fill="#dc2626" font-weight="600" text-anchor="start">logout / DELETE FROM session WHERE id = ?</text>
+  <text x="332" y="343" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">sair duas vezes dá o mesmo estado, então DELETE /session</text>
+  <text x="332" y="356" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">é uma escrita que a idempotência nunca reserva</text>
+  <rect x="650" y="345" width="590" height="132" rx="10" ry="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4" data-graph-role="container"/>
+  <text x="666" y="369" font-size="11.5" fill="#2563eb" font-weight="600" text-anchor="start">válida na tabela ≠ aceita na requisição</text>
+  <text x="666" y="389" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">validSession() recusa por quatro motivos independentes, e só o primeiro é estado da própria sessão:</text>
+  <text x="666" y="406" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">1. !isUuid(sessionId) — antes de tocar o banco</text>
+  <text x="666" y="419" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">2. hasSessionExpired(session, now)</text>
+  <text x="960" y="406" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">3. !isNetworkActive(network) — suspended ou cancelled</text>
+  <text x="960" y="419" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">4. !user.active</text>
+  <text x="666" y="445" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Os motivos 3 e 4 são estado de OUTRA entidade, lidos no mesmo SELECT que trouxe a sessão: a resposta a</text>
+  <text x="666" y="458" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">“esta sessão serve?” muda sem uma escrita na linha da sessão.</text>
+  <rect x="60" y="545" width="380" height="200" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="74" y="569" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">A recusa derruba o cookie, não a linha</text>
+  <text x="74" y="589" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Quando o loader responde null, o middleware de sessão chama</text>
+  <text x="74" y="602" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">closeSession(c): o cookie é apagado na saída.</text>
+  <text x="74" y="628" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">As duas metades se separam. A linha sobrevive — nada no</text>
+  <text x="74" y="641" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Estágio 01 escreve nela numa recusa — mas o navegador já</text>
+  <text x="74" y="654" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">jogou fora o ponteiro para ela.</text>
+  <text x="74" y="680" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Reativar uma rede suspensa, portanto, não devolve ninguém</text>
+  <text x="74" y="693" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ao sistema: as linhas voltam a valer e ficam inalcançáveis,</text>
+  <text x="74" y="706" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">e o expurgo as recolhe quando expiram.</text>
+  <rect x="460" y="545" width="380" height="200" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="474" y="569" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Dois portões sem quem abra ou feche</text>
+  <text x="474" y="589" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">network.status aceita active | suspended | cancelled.</text>
+  <text x="474" y="602" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">app_user.active é booleano.</text>
+  <text x="474" y="628" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Os dois são LIDOS para derrubar a sessão. Nenhum é ESCRITO</text>
+  <text x="474" y="641" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">por caso de uso do Estágio 01: em apps/api/src não há</text>
+  <text x="474" y="654" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">UPDATE de network.status nem de app_user.active.</text>
+  <text x="474" y="680" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Quem os define é o seed, ou SQL rodado na mão. Suspender</text>
+  <text x="474" y="693" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">rede inadimplente é de outro estágio; o gancho de leitura</text>
+  <text x="474" y="706" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">já está lá, esperando quem escreva.</text>
+  <rect x="860" y="545" width="380" height="200" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="874" y="569" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Por que a sessão vive numa tabela</text>
+  <text x="874" y="589" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O processo não guarda estado próprio: reiniciar o servidor</text>
+  <text x="874" y="602" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">não desloga ninguém, e seis instâncias veem a mesma sessão</text>
+  <text x="874" y="615" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">sem sticky routing nem memória comum.</text>
+  <text x="874" y="641" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O preço é um SELECT por requisição. Ele passa por</text>
+  <text x="874" y="654" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">readerFresh(), hoje o mesmo pool de reader() e o lugar</text>
+  <text x="874" y="667" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">declarado onde a réplica não pode responder (I15).</text>
+  <text x="874" y="693" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O expurgo roda sob pg_try_advisory_lock: com uma instância</text>
+  <text x="874" y="706" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o lock é redundante; com seis é ele que evita seis</text>
+  <text x="874" y="719" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">varreduras simultâneas. IX (expires_at) é o índice usado.</text>
+  <text x="36" y="800" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Lido de apps/api/src/identity/ e apps/api/src/shared/jobs/. Estado do Estágio 01.</text>
+</svg>

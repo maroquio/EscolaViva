@@ -1,0 +1,37 @@
+{
+  "name": "escolaviva",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run dev:api & bun run dev:web",
+    "dev:api": "bun --watch apps/api/src/main.ts",
+    "dev:web": "bun run --cwd apps/web dev",
+    "start": "bun apps/api/src/main.ts",
+    "build:web": "bun run --cwd apps/web build",
+    "migrate": "bun scripts/migrate.ts",
+    "migrate:status": "bun scripts/migrate.ts --status",
+    "seed": "bun scripts/seed.ts",
+    "seed:volume": "bun scripts/seed-volume.ts",
+    "check": "bunx depcruise apps/api/src --config apps/api/.dependency-cruiser.js && bunx depcruise apps/web/src apps/web/tests --config apps/web/.dependency-cruiser.js && bunx depcruise packages/contracts/src --config packages/contracts/.dependency-cruiser.js",
+    "magic": "bun scripts/magic-values.ts",
+    "typecheck": "bunx tsc --noEmit && bunx tsc --noEmit -p packages/contracts/tsconfig.json && bunx tsc --noEmit -p apps/api/tsconfig.json && bunx tsc --noEmit -p apps/web/tsconfig.json && bunx tsc --noEmit -p e2e/tsconfig.json",
+    "test": "bun test apps/api/tests && bun run test:project && bun run --cwd apps/web test",
+    "test:project": "bun test --config=bunfig.project.toml tests/",
+    "test:coverage": "bun test apps/api/tests --coverage",
+    "budget": "bun run build:web && bunx vitest run --root apps/web --config vitest.budget.config.ts",
+    "e2e": "bunx playwright test && bun run e2e:clean",
+    "e2e:clean": "bun scripts/e2e-clean.ts",
+    "verify": "bun run typecheck && bun run check && bun run magic && bun run test && bun run budget"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/bun": "latest",
+    "@types/node": "^26.2.0",
+    "dependency-cruiser": "^16",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,36 @@
+export const AUDIENCES = ['unidade', 'selecionados'] as const;
+
+export type Audience = (typeof AUDIENCES)[number];
+
+export const AUDIENCE = { school: 'unidade', selected: 'selecionados' } as const satisfies
+  Record<string, Audience>;
+
+export const FIELDS = {
+  title: 'title',
+  body: 'body',
+  schoolId: 'schoolId',
+  authorUserId: 'authorUserId',
+  recipients: 'recipients',
+  audience: 'audience',
+} as const;
+
+export const CODES = {
+  invalidTitle: 'invalid_title',
+  invalidBody: 'invalid_body',
+  unknownSchool: 'unknown_school',
+  unknownAuthor: 'unknown_author',
+  noRecipients: 'no_recipients',
+} as const;
+
+export const MESSAGES = {
+  invalidTitle: (maximum: number): string => `Informe um título de 1 a ${maximum} caracteres.`,
+  invalidBody: (maximum: number): string => `Informe um corpo de 1 a ${maximum} caracteres.`,
+  unknownSchool: 'Unidade não encontrada nesta rede.',
+  unknownAuthor: 'Autor não encontrado nesta rede.',
+  noRecipients: 'Não há responsável para receber este comunicado.',
+} as const;
+
+export const INTERNAL_ERRORS = {
+  authorOutsideNetwork: 'announcement whose author is outside the network',
+  insertWithoutPublishedAt: 'INSERT into announcement did not give back published_at',
+} as const;

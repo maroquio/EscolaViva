@@ -1,0 +1,74 @@
+[
+ {
+  "id": "architecture--identity",
+  "rotulo": "identity",
+  "imagem": "assets/blocos/architecture--identity.png",
+  "esquerda": 3.667,
+  "topo": -0.245,
+  "largura": 94.0,
+  "altura": 49.632
+ },
+ {
+  "id": "architecture--m-dulos",
+  "rotulo": "Módulos",
+  "imagem": "assets/blocos/architecture--m-dulos.png",
+  "esquerda": 4.333,
+  "topo": 0.492,
+  "largura": 76.0,
+  "altura": 5.651
+ },
+ {
+  "id": "architecture--n-cleo-compartilhado",
+  "rotulo": "Núcleo compartilhado",
+  "imagem": "assets/blocos/architecture--n-cleo-compartilhado.png",
+  "esquerda": 3.667,
+  "topo": 55.282,
+  "largura": 94.0,
+  "altura": 24.57
+ },
+ {
+  "id": "architecture--ports",
+  "rotulo": "ports/",
+  "imagem": "assets/blocos/architecture--ports.png",
+  "esquerda": 5.0,
+  "topo": 59.95,
+  "largura": 31.667,
+  "altura": 18.182
+ },
+ {
+  "id": "architecture--db",
+  "rotulo": "db/",
+  "imagem": "assets/blocos/architecture--db.png",
+  "esquerda": 38.333,
+  "topo": 59.95,
+  "largura": 58.0,
+  "altura": 18.182
+ },
+ {
+  "id": "architecture--infraestrutura",
+  "rotulo": "Infraestrutura",
+  "imagem": "assets/blocos/architecture--infraestrutura.png",
+  "esquerda": 3.667,
+  "topo": 81.818,
+  "largura": 94.0,
+  "altura": 14.741
+ },
+ {
+  "id": "architecture--postgresql",
+  "rotulo": "PostgreSQL",
+  "imagem": "assets/blocos/architecture--postgresql.png",
+  "esquerda": 5.0,
+  "topo": 85.996,
+  "largura": 58.333,
+  "altura": 9.09
+ },
+ {
+  "id": "architecture--apps-web-dist",
+  "rotulo": "apps/web/dist",
+  "imagem": "assets/blocos/architecture--apps-web-dist.png",
+  "esquerda": 65.0,
+  "topo": 85.996,
+  "largura": 31.333,
+  "altura": 9.09
+ }
+]

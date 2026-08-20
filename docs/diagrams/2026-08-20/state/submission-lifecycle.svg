@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 900" width="1300" height="900">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-2563eb" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1300" height="900" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Lifecycle of a write</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/api/src/shared/http/idempotency.ts · apps/api/src/shared/db/pendingWrite.ts · idempotent_request table · the client mints the key</text>
+  <circle cx="280" cy="132" r="9" fill="#111827"/>
+  <path d="M 280,141 L 280,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="297" y="146" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">POST with a well-formed Idempotency-Key</text>
+  <text x="297" y="159" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the middleware reserves nothing here: it puts a PendingWrite in an AsyncLocalStorage scope and calls next()</text>
+  <text x="297" y="172" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ claimPendingWriteInTransaction(sql) — INSERT ... ON CONFLICT DO NOTHING, the FIRST statement of unitOfWork()</text>
+  <rect x="150" y="195" width="260" height="120" rx="12" ry="12" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.8"/>
+  <text x="166" y="221" font-size="13.5" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">claimed</text>
+  <text x="166" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the row exists inside an OPEN</text>
+  <text x="166" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">transaction, invisible to everyone else</text>
+  <text x="166" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_hash = ''</text>
+  <text x="166" y="283" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the write it protects is in the same</text>
+  <text x="166" y="297" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">transaction, a few statements below</text>
+  <rect x="560" y="195" width="260" height="120" rx="12" ry="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+  <text x="576" y="221" font-size="13.5" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">committed</text>
+  <text x="576" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the claim and the rows it protects</text>
+  <text x="576" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">landed together</text>
+  <text x="576" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_hash still '' — the route has</text>
+  <text x="576" y="283" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">answered, but the destination has not</text>
+  <text x="576" y="297" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">been stored yet</text>
+  <rect x="970" y="195" width="260" height="120" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="986" y="221" font-size="13.5" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">completed</text>
+  <text x="986" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_location = the Location header</text>
+  <text x="986" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">(or '' when the route sets none)</text>
+  <text x="986" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_hash = sha256 of it</text>
+  <text x="986" y="283" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the row stays: it is the record that the</text>
+  <text x="986" y="297" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">key was spent</text>
+  <path d="M 410,255 L 558,255" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#p-2563eb)"/>
+  <text x="424" y="228" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">the handler returned</text>
+  <text x="424" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ COMMIT</text>
+  <path d="M 820,255 L 968,255" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <text x="834" y="222" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">any response under 400</text>
+  <text x="834" y="235" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ UPDATE response_location,</text>
+  <text x="834" y="248" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_hash</text>
+  <circle cx="1100" cy="372" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8"/>
+  <circle cx="1100" cy="372" r="7.5" fill="#111827"/>
+  <path d="M 1100,315 L 1100,357" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <rect x="150" y="420" width="260" height="105" rx="12" ry="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="166" y="446" font-size="13.5" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">never existed</text>
+  <text x="166" y="466" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ROLLBACK took the claim with the write</text>
+  <text x="166" y="480" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">there is no DELETE and nothing to</text>
+  <text x="166" y="494" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">compensate — the same key is usable</text>
+  <text x="166" y="508" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">again, by the same person</text>
+  <path d="M 280,315 L 280,418" fill="none" stroke="#ea580c" stroke-width="1.6" marker-end="url(#p-ea580c)"/>
+  <text x="297" y="340" font-size="9.5" fill="#ea580c" font-weight="600" text-anchor="start">a refusal (Result.ok === false), an exception,</text>
+  <text x="297" y="353" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">or any response from 400 up</text>
+  <text x="297" y="366" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ ROLLBACK — one statement, not two</text>
+  <path d="M 280,527 L 280,552 L 100,552 L 100,132 L 265,132" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-ea580c)"/>
+  <text x="300" y="546" font-size="9.5" fill="#ea580c" font-weight="600" text-anchor="start">the person corrects the form and sends the very same key</text>
+  <rect x="560" y="400" width="670" height="148" rx="10" ry="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.3" data-graph-role="container"/>
+  <text x="574" y="424" font-size="11.5" fill="#92400e" font-weight="600" text-anchor="start">What a second request with the same key finds</text>
+  <text x="574" y="444" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">The INSERT returns zero rows, RepeatedWrite is thrown, that transaction rolls back, and the middleware answers</text>
+  <text x="574" y="457" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">from the row that is already there — read with readerFresh(), scoped to the same key, user and route:</text>
+  <circle cx="582" cy="477.5" r="3.5" fill="#2563eb"/>
+  <text x="594" y="481" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">409 · idempotency key still finishing</text>
+  <text x="830" y="481" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the stored response_hash is '' — the first one has not answered yet</text>
+  <circle cx="582" cy="495.5" r="3.5" fill="#16a34a"/>
+  <text x="594" y="499" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">200 { repeated: true, location }</text>
+  <text x="830" y="499" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the same destination the first request returned</text>
+  <circle cx="582" cy="513.5" r="3.5" fill="#dc2626"/>
+  <text x="594" y="517" font-size="9.5" fill="#dc2626" font-weight="600" text-anchor="start">409 · key belongs to another request</text>
+  <text x="830" y="517" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">no row for this key AND this user AND this route: the key was minted elsewhere</text>
+  <rect x="60" y="580" width="380" height="280" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="74" y="604" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Why the claim moved into the transaction</text>
+  <text x="74" y="624" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">It used to be the middleware's job: INSERT before the</text>
+  <text x="74" y="637" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">handler, DELETE on failure. Two writes, and the second one</text>
+  <text x="74" y="650" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">was compensation — the pattern that fails when the process</text>
+  <text x="74" y="663" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">dies between them, leaving a key burnt over a write that</text>
+  <text x="74" y="676" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">never happened.</text>
+  <text x="74" y="702" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Now the claim is the first statement of the very</text>
+  <text x="74" y="715" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">transaction that performs the write. Exclusivity is still</text>
+  <text x="74" y="728" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the database's (PRIMARY KEY), and atomicity comes for free:</text>
+  <text x="74" y="741" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the claim commits with the rows it refers to, or it goes</text>
+  <text x="74" y="754" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">away with them.</text>
+  <text x="74" y="780" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">That is also why a business refusal has to roll back rather</text>
+  <text x="74" y="793" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">than merely return — see unitOfWork() and isRefusal().</text>
+  <rect x="460" y="580" width="380" height="280" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="474" y="604" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">What never reaches the claim</text>
+  <text x="474" y="624" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">GET — the middleware returns next() on its first line: no</text>
+  <text x="474" y="637" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">body to parse, no key to take.</text>
+  <text x="474" y="663" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">PUT, PATCH and DELETE — the body is parsed for the handler</text>
+  <text x="474" y="676" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">and the machine stops there. They already say what the</text>
+  <text x="474" y="689" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">state should BE, not what to add to it: posting the same</text>
+  <text x="474" y="702" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">grades twice leaves the same grades.</text>
+  <text x="474" y="728" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Anonymous POST — the table requires user_id, and the only</text>
+  <text x="474" y="741" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">write without a session is signing in. Repeating it only</text>
+  <text x="474" y="754" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">creates another session.</text>
+  <text x="474" y="780" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">POST with no key, or a malformed one — 400 and a warning in</text>
+  <text x="474" y="793" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">the log. Never tolerated in silence.</text>
+  <rect x="860" y="580" width="380" height="280" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="874" y="604" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">The guarantee does not come from the browser</text>
+  <text x="874" y="624" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Nothing here depends on the client being a screen this</text>
+  <text x="874" y="637" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">system rendered. The contract is: bring one unique key per</text>
+  <text x="874" y="650" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">intent, and prove the request came from the application</text>
+  <text x="874" y="663" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">(X-Requested-By, checked one middleware earlier).</text>
+  <text x="874" y="689" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">A webhook sending the same key gets the same treatment,</text>
+  <text x="874" y="702" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">without one line of change — and that is why the table is</text>
+  <text x="874" y="715" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a platform one, with no network_id. It is also why the key</text>
+  <text x="874" y="728" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">is scoped by user and route on the way out: a key minted</text>
+  <text x="874" y="741" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">for one person cannot replay another person's write.</text>
+  <text x="874" y="767" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">The response hash is stored beside the destination. It</text>
+  <text x="874" y="780" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">decides nothing today, and exists so that a repeat can</text>
+  <text x="874" y="793" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">later be compared instead of merely redirected.</text>
+  <text x="36" y="880" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Read from apps/api/src/shared/http/idempotency.ts and apps/api/src/shared/db/. State of Stage 01.</text>
+</svg>

@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1530 1215" width="1530" height="1215">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+  </defs>
+  <rect x="0" y="0" width="1530" height="1215" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Onde vive cada invariante</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">A mesma regra escrita em dois lugares não é duplicação: é a diferença entre uma boa mensagem e uma garantia. Só o banco garante sob concorrência.</text>
+  <rect x="56" y="118" width="1414" height="28" rx="6" ry="6" fill="#f3f4f6"/>
+  <text x="66" y="137" font-size="10" fill="#111827" font-weight="600" text-anchor="start">Invariante</text>
+  <text x="478" y="137" font-size="10" fill="#6b7280" font-weight="600" text-anchor="start">contexto</text>
+  <text x="590" y="137" font-size="10" fill="#16a34a" font-weight="600" text-anchor="start">Domínio — função pura</text>
+  <text x="942" y="137" font-size="10" fill="#2563eb" font-weight="600" text-anchor="start">Banco — o que resiste sob concorrência</text>
+  <text x="1310" y="137" font-size="10" fill="#7c3aed" font-weight="600" text-anchor="start">Borda — zod</text>
+  <text x="66" y="163" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Papel do usuário ∈ 4 valores</text>
+  <text x="478" y="163" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">identity</text>
+  <text x="590" y="163" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidRole() · toRole()</text>
+  <text x="942" y="163" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">CHECK role_valid</text>
+  <text x="1310" y="163" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <rect x="56" y="172" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="189" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Turno da turma ∈ 4 valores</text>
+  <text x="478" y="189" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">academics</text>
+  <text x="590" y="189" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidShift()</text>
+  <text x="942" y="189" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">CHECK shift_valid</text>
+  <text x="1310" y="189" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="66" y="215" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Status da matrícula ∈ 4 valores</text>
+  <text x="478" y="215" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">academics</text>
+  <text x="590" y="215" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidEnrollmentStatus()</text>
+  <text x="942" y="215" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">CHECK status_valid</text>
+  <text x="1310" y="215" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <rect x="56" y="224" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="241" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Status da rede ∈ 3 valores</text>
+  <text x="478" y="241" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">identity</text>
+  <text x="590" y="241" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">toNetworkStatus()</text>
+  <text x="942" y="241" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">CHECK network_status_valid</text>
+  <text x="1310" y="241" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="66" y="267" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Só matrícula ativa pode ser transferida</text>
+  <text x="478" y="267" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">academics</text>
+  <text x="590" y="267" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">canTransfer()</text>
+  <text x="942" y="267" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">AND status = 'active' no UPDATE</text>
+  <text x="1310" y="267" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <rect x="56" y="276" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="293" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Exatamente uma matrícula ativa por aluno e ano</text>
+  <text x="478" y="293" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">academics</text>
+  <text x="590" y="293" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="942" y="293" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">PARTIAL UNIQUE active_enrollment_unique_per_year</text>
+  <text x="1310" y="293" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="66" y="319" font-size="9" fill="#111827" font-weight="600" text-anchor="start">O ano letivo termina depois de começar</text>
+  <text x="478" y="319" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">academics</text>
+  <text x="590" y="319" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isCoherentPeriod()</text>
+  <text x="942" y="319" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">CHECK period_consistent</text>
+  <text x="1310" y="319" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="start">zod</text>
+  <rect x="56" y="328" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="345" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Bimestre entre 1 e 4</text>
+  <text x="478" y="345" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment</text>
+  <text x="590" y="345" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidTerm()</text>
+  <text x="942" y="345" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">CHECK term_valid</text>
+  <text x="1310" y="345" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="start">zod</text>
+  <text x="66" y="371" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Nota entre 0 e 10</text>
+  <text x="478" y="371" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment</text>
+  <text x="590" y="371" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidGradeValue()</text>
+  <text x="942" y="371" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">CHECK value_valid</text>
+  <text x="1310" y="371" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="start">zod</text>
+  <rect x="56" y="380" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="397" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Uma nota por matrícula, disciplina e bimestre</text>
+  <text x="478" y="397" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment</text>
+  <text x="590" y="397" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="942" y="397" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">UNIQUE grade_unique</text>
+  <text x="1310" y="397" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="66" y="423" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Uma frequência por matrícula e dia</text>
+  <text x="478" y="423" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment</text>
+  <text x="590" y="423" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="942" y="423" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">UNIQUE attendance_unique_per_day</text>
+  <text x="1310" y="423" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <rect x="56" y="432" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="449" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Um fechamento por turma e bimestre</text>
+  <text x="478" y="449" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment</text>
+  <text x="590" y="449" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isClosed() reconsultado na transação</text>
+  <text x="942" y="449" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">pg_advisory_xact_lock + UNIQUE term_closing_unique</text>
+  <text x="1310" y="449" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="66" y="475" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Bimestre fechado recusa lançar nota</text>
+  <text x="478" y="475" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment</text>
+  <text x="590" y="475" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="942" y="475" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">o mesmo lock consultivo, e isClosed() de novo</text>
+  <text x="1310" y="475" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <rect x="56" y="484" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="501" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Ano fechado recusa a chamada</text>
+  <text x="478" y="501" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment</text>
+  <text x="590" y="501" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">allTermsClosed(closingStates(rows))</text>
+  <text x="942" y="501" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="1310" y="501" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="66" y="527" font-size="9" fill="#111827" font-weight="600" text-anchor="start">O lote só nomeia matrículas ativas da turma, uma vez cada</text>
+  <text x="478" y="527" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment</text>
+  <text x="590" y="527" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">batchProblem() — shared/batch.ts</text>
+  <text x="942" y="527" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">UNIQUE por dia e por disciplina-e-bimestre</text>
+  <text x="1310" y="527" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <rect x="56" y="536" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="553" font-size="9" fill="#111827" font-weight="600" text-anchor="start">A data da chamada é um dia ISO que existe</text>
+  <text x="478" y="553" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment</text>
+  <text x="590" y="553" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidRollCallDate()</text>
+  <text x="942" y="553" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">coluna date</text>
+  <text x="1310" y="553" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="start">zod</text>
+  <text x="66" y="579" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Chamada dentro do ano letivo da turma</text>
+  <text x="478" y="579" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment</text>
+  <text x="590" y="579" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isDateWithinAcademicYear()</text>
+  <text x="942" y="579" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="1310" y="579" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <rect x="56" y="588" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="605" font-size="9" fill="#111827" font-weight="600" text-anchor="start">CPF: 11 dígitos com verificadores corretos</text>
+  <text x="478" y="605" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">núcleo compartilhado</text>
+  <text x="590" y="605" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidCpf()</text>
+  <text x="942" y="605" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">CHECK user_cpf_format — só a forma</text>
+  <text x="1310" y="605" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="66" y="631" font-size="9" fill="#111827" font-weight="600" text-anchor="start">CPF único dentro da rede</text>
+  <text x="478" y="631" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">identity</text>
+  <text x="590" y="631" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="942" y="631" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">UNIQUE user_cpf_unique_in_network</text>
+  <text x="1310" y="631" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <rect x="56" y="640" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="657" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Responsável responde por um aluno uma só vez</text>
+  <text x="478" y="657" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">academics</text>
+  <text x="590" y="657" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="942" y="657" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">PRIMARY KEY (student_id, user_id)</text>
+  <text x="1310" y="657" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="66" y="683" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Título 1..160 e corpo 1..8000</text>
+  <text x="478" y="683" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">communication</text>
+  <text x="590" y="683" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidTitle() · isValidBody()</text>
+  <text x="942" y="683" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="1310" y="683" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="start">zod</text>
+  <rect x="56" y="692" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="709" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Senha com pelo menos 10 caracteres</text>
+  <text x="478" y="709" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">identity</text>
+  <text x="590" y="709" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">MINIMUM_PASSWORD_LENGTH</text>
+  <text x="942" y="709" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="1310" y="709" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="start">zod</text>
+  <text x="66" y="735" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Aprovado = média ≥ mínima E frequência ≥ mínima</text>
+  <text x="478" y="735" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment</text>
+  <text x="590" y="735" font-size="9" fill="#16a34a" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">finalStatus()</text>
+  <text x="942" y="735" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="1310" y="735" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <rect x="56" y="744" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="761" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Uma escrita por Idempotency-Key</text>
+  <text x="478" y="761" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">plataforma</text>
+  <text x="590" y="761" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="942" y="761" font-size="9" fill="#2563eb" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">PRIMARY KEY idempotent_request, reservada na transação da escrita</text>
+  <text x="1310" y="761" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="66" y="787" font-size="9" fill="#111827" font-weight="600" text-anchor="start">A escrita carrega a marca do aplicativo</text>
+  <text x="478" y="787" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">plataforma</text>
+  <text x="590" y="787" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="942" y="787" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="1310" y="787" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="start">X-Requested-By (secureWrite)</text>
+  <rect x="56" y="796" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="813" font-size="9" fill="#111827" font-weight="600" text-anchor="start">Forma e tipo de toda entrada externa</text>
+  <text x="478" y="813" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="590" y="813" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="942" y="813" font-size="9" fill="#d1d5db" font-weight="400" text-anchor="start">—</text>
+  <text x="1310" y="813" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="start">zod em 18 casos de uso</text>
+  <text x="56" y="848" font-size="11" fill="#475569" font-weight="600" text-anchor="start">12 invariantes vivem nos dois lados · 7 só o banco garante · 5 só o domínio sabe · 2 só a borda enxerga</text>
+  <rect x="56" y="874" width="460" height="288" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="70" y="898" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Por que escrever a mesma regra duas vezes</text>
+  <text x="70" y="918" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Cada lado faz um trabalho diferente.</text>
+  <text x="70" y="943.2" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O predicado de domínio existe para dar uma MENSAGEM. Ele roda</text>
+  <text x="70" y="955.8" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">antes, sabe qual campo errou e devolve um Result que a tela mostra</text>
+  <text x="70" y="968.4" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ao lado do campo. Um CHECK violado devolve 23514 e um texto que</text>
+  <text x="70" y="981" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ninguém quer ler.</text>
+  <text x="70" y="1006.2" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O CHECK existe para dar uma GARANTIA. Ele vale para o seed, para a</text>
+  <text x="70" y="1018.8" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">migração, para o SQL que alguém roda no psql às duas da manhã e</text>
+  <text x="70" y="1031.4" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">para a versão do código que ainda não subiu. O predicado só vale</text>
+  <text x="70" y="1044" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">para quem passou por ele.</text>
+  <text x="70" y="1069.2" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Um não substitui o outro. Tirar o predicado piora a tela; tirar o</text>
+  <text x="70" y="1081.8" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">CHECK apaga a garantia.</text>
+  <text x="70" y="1107" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">A coluna Borda é um terceiro trabalho: zod não conhece a regra,</text>
+  <text x="70" y="1119.6" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">conhece a forma. É o que impede que um texto onde se esperava um</text>
+  <text x="70" y="1132.2" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">número chegue a um predicado que assume número.</text>
+  <rect x="533" y="874" width="460" height="288" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="547" y="898" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">O que SÓ o banco consegue garantir</text>
+  <text x="547" y="918" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">As linhas sem nada na coluna Domínio têm duas coisas em comum:</text>
+  <text x="547" y="930.6" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">unicidade e ordem. Nenhuma sobrevive à concorrência quando é</text>
+  <text x="547" y="943.2" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">conferida no código.</text>
+  <text x="547" y="968.4" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Entre o SELECT que diz “não existe” e o INSERT que cria, cabe uma</text>
+  <text x="547" y="981" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">transação inteira. Duas matrículas simultâneas do mesmo aluno</text>
+  <text x="547" y="993.6" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">passam nas duas conferências e criam as duas linhas.</text>
+  <text x="547" y="1018.8" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Por isso active_enrollment_unique_per_year é um índice e o INSERT</text>
+  <text x="547" y="1031.4" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">usa ON CONFLICT DO NOTHING: o choque é zero linha, não um</text>
+  <text x="547" y="1044" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">500.</text>
+  <text x="547" y="1069.2" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">A ordem é a metade mais nova. Fechar um bimestre e lançar nota</text>
+  <text x="547" y="1081.8" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">nele são duas transações que se sobrepunham; pg_advisory_xact_lock</text>
+  <text x="547" y="1094.4" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">em (class_group_id, term) faz uma esperar a outra, e quem solta é</text>
+  <text x="547" y="1107" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o commit, não um código que precisa lembrar.</text>
+  <text x="547" y="1132.2" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O mesmo raciocínio pôs a reserva do Idempotency-Key na transação da</text>
+  <text x="547" y="1144.8" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">escrita: exclusividade por PRIMARY KEY, atomicidade por ROLLBACK.</text>
+  <rect x="1010" y="874" width="460" height="288" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1024" y="898" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">O que SÓ o domínio sabe</text>
+  <text x="1024" y="918" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">isDateWithinAcademicYear — o banco guarda a data da chamada e as</text>
+  <text x="1024" y="930.6" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">datas do ano letivo em tabelas diferentes; comparar as duas é uma</text>
+  <text x="1024" y="943.2" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">regra, e regra vive em função pura.</text>
+  <text x="1024" y="968.4" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">allTermsClosed — “o ano acabou” também não é coluna. Isso se lê</text>
+  <text x="1024" y="981" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">de quatro linhas de fechamento e serve para recusar uma chamada</text>
+  <text x="1024" y="993.6" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">que mexeria num boletim que ninguém pode mais corrigir.</text>
+  <text x="1024" y="1018.8" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">finalStatus — aprovado ou reprovado NUNCA vira coluna (I5). Média,</text>
+  <text x="1024" y="1031.4" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">percentual de frequência e status são calculados na leitura, a</text>
+  <text x="1024" y="1044" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">partir das notas e das presenças. Guardar o resultado criaria uma</text>
+  <text x="1024" y="1056.6" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">segunda verdade que envelhece na primeira correção de nota.</text>
+  <text x="1024" y="1081.8" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Título e corpo do comunicado, e o tamanho mínimo de senha: limites</text>
+  <text x="1024" y="1094.4" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">de produto, que mudam por decisão e não por integridade. Uma</text>
+  <text x="1024" y="1107" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">migração para afrouxar um limite de texto é custo sem retorno.</text>
+  <text x="36" y="1195" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Invariantes lidos de apps/api/src/*/domain/, apps/api/src/shared/ e migrations/0001_initial_schema.sql. Estado do Estágio 01.</text>
+</svg>

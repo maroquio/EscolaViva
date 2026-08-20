@@ -1,0 +1,29 @@
+[
+ {
+  "id": "session-lifecycle--v-lida",
+  "rotulo": "válida",
+  "imagem": "assets/blocos/session-lifecycle--v-lida.png",
+  "esquerda": 14.444,
+  "topo": 38.614,
+  "largura": 19.841,
+  "altura": 21.386
+ },
+ {
+  "id": "session-lifecycle--expirada",
+  "rotulo": "expirada",
+  "imagem": "assets/blocos/session-lifecycle--expirada.png",
+  "esquerda": 50.952,
+  "topo": 38.614,
+  "largura": 19.841,
+  "altura": 21.386
+ },
+ {
+  "id": "session-lifecycle--v-lida-na-tabela-aceita-na-requisi-o",
+  "rotulo": "válida na tabela ≠ aceita na requisição",
+  "imagem": "assets/blocos/session-lifecycle--v-lida-na-tabela-aceita-na-requisi-o.png",
+  "esquerda": 50.952,
+  "topo": 68.317,
+  "largura": 46.825,
+  "altura": 26.139
+ }
+]

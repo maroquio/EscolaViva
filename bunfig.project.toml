@@ -1,0 +1,22 @@
+# Os testes cujo sujeito é o projeto — estrutura, convenções, empacotamento, documentação — leem
+# arquivos do disco e nada mais. Esta configuração existe para que eles possam dizer isso.
+#
+# O `bunfig.toml` da raiz carrega `preload`, que aplica as migrações e ABORTA quando o banco de
+# teste não responde. É o certo para os 1032 casos da API, que conversam com Postgres, e é carona
+# para estes oito: sem esta config, quem acabou de clonar o repositório não consegue conferir se a
+# estrutura está certa antes de instalar Docker.
+#
+# `pathIgnorePatterns` está aqui pelo mesmo motivo que está no outro arquivo: `bun test <arg>` filtra
+# por SUBSTRING de caminho, então `tests/` casaria `apps/api/tests/` também — e aqueles precisam do
+# preload que esta configuração justamente não tem.
+#
+# Sem cobertura, e não por esquecimento: estes casos não exercitam código de produção. O portão de
+# 80% vale sobre a suíte que o exercita, e ela o cumpre com folga (98,9% de funções) sem estes oito
+# no denominador.
+# A forma da bandeira importa e o Bun não avisa: `--config=arquivo` é lida, `--config arquivo` não —
+# nesta segunda o caminho vira mais um filtro de teste e a suíte inteira roda, com preload e tudo, em
+# 57 segundos em vez de 0,2. Passou despercebido uma vez porque o resultado foi verde: 1099 casos
+# passando parecem sucesso, e eram a suíte errada.
+[test]
+pathIgnorePatterns = ["**/apps/**"]
+preload = ["./tests/support/no-database.ts"]

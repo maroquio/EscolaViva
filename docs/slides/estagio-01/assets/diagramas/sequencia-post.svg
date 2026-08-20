@@ -1,0 +1,273 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1584" width="1600" height="1584">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-2563eb" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-0d9488" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0d9488"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1600" height="1584" fill="#ffffff"/>
+  <path d="M 152,154 L 152,1530.4" fill="none" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="4,6" opacity="0.55"/>
+  <path d="M 322,154 L 322,1530.4" fill="none" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="4,6" opacity="0.55"/>
+  <path d="M 500,154 L 500,1530.4" fill="none" stroke="#475569" stroke-width="1.2" stroke-dasharray="4,6" opacity="0.55"/>
+  <path d="M 666,154 L 666,1530.4" fill="none" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="4,6" opacity="0.55"/>
+  <path d="M 820,154 L 820,1530.4" fill="none" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="4,6" opacity="0.55"/>
+  <path d="M 966,154 L 966,1530.4" fill="none" stroke="#0d9488" stroke-width="1.2" stroke-dasharray="4,6" opacity="0.55"/>
+  <path d="M 1096,154 L 1096,1530.4" fill="none" stroke="#ea580c" stroke-width="1.2" stroke-dasharray="4,6" opacity="0.55"/>
+  <rect x="147" y="196" width="10" height="1295" rx="3" ry="3" fill="#ffffff" stroke="#7c3aed" stroke-width="1.2" data-graph-role="decoration"/>
+  <rect x="317" y="196" width="10" height="1295" rx="3" ry="3" fill="#ffffff" stroke="#7c3aed" stroke-width="1.2" data-graph-role="decoration"/>
+  <rect x="495" y="307.2" width="10" height="1136.4" rx="3" ry="3" fill="#ffffff" stroke="#475569" stroke-width="1.2" data-graph-role="decoration"/>
+  <rect x="661" y="562.2" width="10" height="736.4" rx="3" ry="3" fill="#ffffff" stroke="#2563eb" stroke-width="1.2" data-graph-role="decoration"/>
+  <rect x="815" y="720.8" width="10" height="377.2" rx="3" ry="3" fill="#ffffff" stroke="#16a34a" stroke-width="1.2" data-graph-role="decoration"/>
+  <rect x="961" y="780.6" width="10" height="419.2" rx="3" ry="3" fill="#ffffff" stroke="#0d9488" stroke-width="1.2" data-graph-role="decoration"/>
+  <rect x="1091" y="661" width="10" height="16" rx="3" ry="3" fill="#ffffff" stroke="#ea580c" stroke-width="1.2" data-graph-role="decoration"/>
+  <rect x="1091" y="828" width="10" height="311" rx="3" ry="3" fill="#ffffff" stroke="#ea580c" stroke-width="1.2" data-graph-role="decoration"/>
+  <rect x="1091" y="1333.6" width="10" height="16" rx="3" ry="3" fill="#ffffff" stroke="#ea580c" stroke-width="1.2" data-graph-role="decoration"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — O caminho de um POST, do clique ao commit</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">POST /api/v1/registrar/enrollments · submission.ts + client.ts · http/app.ts · routes/api.ts · shared/http/idempotency.ts · shared/db/unitOfWork.ts · academics/application/enroll.ts</text>
+  <rect x="77" y="96" width="150" height="58" rx="10" ry="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="152" y="117" font-size="11.5" fill="#7c3aed" font-weight="600" text-anchor="middle">Navegador</text>
+  <text x="152" y="133" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">EnrollmentForm.tsx</text>
+  <text x="152" y="145" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">o formulário do secretário</text>
+  <rect x="247" y="96" width="150" height="58" rx="10" ry="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="322" y="117" font-size="11.5" fill="#7c3aed" font-weight="600" text-anchor="middle">shared/api (Axios)</text>
+  <text x="322" y="133" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">client.ts · submission.ts</text>
+  <text x="322" y="145" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">uma instância, e mais nada</text>
+  <rect x="425" y="96" width="150" height="58" rx="10" ry="10" fill="#f8fafc" stroke="#475569" stroke-width="1.5"/>
+  <text x="500" y="117" font-size="11.5" fill="#475569" font-weight="600" text-anchor="middle">http/app.ts (cadeia)</text>
+  <text x="500" y="133" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">Hono · shared/http/</text>
+  <text x="500" y="145" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">a ordem é a semântica</text>
+  <rect x="604" y="96" width="124" height="58" rx="10" ry="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="666" y="117" font-size="11.5" fill="#2563eb" font-weight="600" text-anchor="middle">rota</text>
+  <text x="666" y="133" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">registrar/enrollments.ts</text>
+  <text x="666" y="145" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">zod, escopo e presenter</text>
+  <rect x="757" y="96" width="126" height="58" rx="10" ry="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="820" y="117" font-size="11.5" fill="#16a34a" font-weight="600" text-anchor="middle">caso de uso</text>
+  <text x="820" y="133" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">academics/enroll.ts</text>
+  <text x="820" y="145" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">a regra do módulo</text>
+  <rect x="908" y="96" width="116" height="58" rx="10" ry="10" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="966" y="117" font-size="11.5" fill="#0d9488" font-weight="600" text-anchor="middle">unitOfWork</text>
+  <text x="966" y="133" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">shared/db</text>
+  <text x="966" y="145" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">o único commit</text>
+  <rect x="1037" y="96" width="118" height="58" rx="10" ry="10" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="1096" y="117" font-size="11.5" fill="#ea580c" font-weight="600" text-anchor="middle">PostgreSQL</text>
+  <text x="1096" y="133" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">enrollment</text>
+  <text x="1096" y="145" font-size="8.4" fill="#6b7280" font-weight="400" text-anchor="middle">idempotent_request</text>
+  <text x="164" y="189" font-size="9.3" fill="#7c3aed" font-weight="600" text-anchor="start">submit do formulário — enroll.mutate(values)</text>
+  <path d="M 158,196 L 314,196" fill="none" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#p-7c3aed)"/>
+  <text x="164" y="210" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">useEnrollmentForm.ts: react-hook-form e zod validam no cliente; só então a mutation dispara.</text>
+  <circle cx="52" cy="196" r="11.5" fill="#7c3aed"/>
+  <text x="52" y="199.7" font-size="10.5" fill="#ffffff" font-weight="700" text-anchor="middle">1</text>
+  <path d="M 327,240.4 L 373,240.4 L 373,260.4 L 331,260.4" fill="none" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#p-7c3aed)"/>
+  <text x="386" y="243.4" font-size="9.3" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">submission.attempt()   +   interceptors.request</text>
+  <text x="386" y="261.4" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">A Idempotency-Key nasce aqui, no navegador: useRef(crypto.randomUUID()) em submission.ts. O interceptor</text>
+  <text x="386" y="273.8" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">acrescenta X-Requested-By e Content-Type, e só criaria uma chave se o chamador não tivesse trazido a dele.</text>
+  <text x="334" y="300.2" font-size="9.3" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">POST /api/v1/registrar/enrollments</text>
+  <path d="M 328,307.2 L 492,307.2" fill="none" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#p-7c3aed)"/>
+  <circle cx="52" cy="307.2" r="11.5" fill="#7c3aed"/>
+  <text x="52" y="310.9" font-size="10.5" fill="#ffffff" font-weight="700" text-anchor="middle">2</text>
+  <rect x="200" y="330.2" width="800" height="66" rx="10" ry="10" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.3" data-graph-role="container"/>
+  <text x="214" y="350.2" font-size="11" fill="#7c3aed" font-weight="600" text-anchor="start">O envelope que sobe</text>
+  <text x="214" y="369.2" font-size="8.8" fill="#475569" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">Idempotency-Key: 6b1f…   ·   X-Requested-By: escolaviva   ·   Content-Type: application/json</text>
+  <text x="214" y="382.2" font-size="8.8" fill="#475569" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">Cookie: ev_session (o client foi criado com withCredentials: true)   ·   { studentId, classGroupId, academicYearId, enrollmentDate }</text>
+  <rect x="380" y="406.2" width="796" height="134" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="394" y="427.2" font-size="11" fill="#475569" font-weight="600" text-anchor="start">A cadeia de middleware, na ordem em que ela é registrada</text>
+  <text x="394" y="447.2" font-size="8.8" fill="#475569" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">app.ts:   errorsMiddleware → correlationMiddleware → cacheControlMiddleware → createSessionMiddleware</text>
+  <text x="394" y="460.2" font-size="8.8" fill="#475569" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">routes/api.ts, já sob /api/v1:   createCorsMiddleware → secureWriteMiddleware → jsonIdempotencyMiddleware → requireRole(ROLE.registrar)</text>
+  <path d="M 394,472.19999999999993 L 1162,472.19999999999993" fill="none" stroke="#e5e7eb" stroke-width="1.2"/>
+  <text x="394" y="489.2" font-size="9.6" fill="#92400e" font-weight="600" text-anchor="start">E o middleware de idempotência não escreve nada aqui:</text>
+  <text x="394" y="504.2" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">pendingWrite(key, route, userId) é um objeto em AsyncLocalStorage, e withPendingWrite(pending, next) põe o resto do pedido dentro desse</text>
+  <text x="394" y="516.6" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">escopo. Nenhuma linha vai ao banco neste ponto: quem reserva a chave é a transação, mais abaixo — e é por isso que reserva e efeito caem</text>
+  <text x="394" y="529" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">juntos quando há rollback. Aqui ele só cobra o formato: chave fora do padrão uuid é 400, e corpo que não é JSON é 400 também.</text>
+  <circle cx="52" cy="436.2" r="11.5" fill="#475569"/>
+  <text x="52" y="439.9" font-size="10.5" fill="#ffffff" font-weight="700" text-anchor="middle">3</text>
+  <circle cx="52" cy="503.2" r="11.5" fill="#92400e"/>
+  <text x="52" y="506.9" font-size="10.5" fill="#ffffff" font-weight="700" text-anchor="middle">4</text>
+  <text x="512" y="555.2" font-size="9.3" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">next()   →   enrollmentRoutes.post(REGISTRAR_ROUTES.enrollments)</text>
+  <path d="M 506,562.2 L 658,562.2" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#p-475569)"/>
+  <text x="512" y="576.2" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">requireRole roda depois da idempotência: um 403 de papel não chega a reservar chave nenhuma.</text>
+  <path d="M 671,606.6 L 717,606.6 L 717,626.6 L 675,626.6" fill="none" stroke="#2563eb" stroke-width="1.5" marker-end="url(#p-2563eb)"/>
+  <text x="730" y="609.6" font-size="9.3" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">parse(enrollmentSchema, c.get('jsonBody'))</text>
+  <text x="730" y="627.6" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">zod valida a forma do corpo antes de qualquer leitura ou escrita — falhou, é 400.</text>
+  <circle cx="52" cy="614.6" r="11.5" fill="#2563eb"/>
+  <text x="52" y="618.3" font-size="10.5" fill="#ffffff" font-weight="700" text-anchor="middle">5</text>
+  <text x="678" y="654" font-size="9.3" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">studentInScopeOrFail()   ·   classGroupInScope()</text>
+  <path d="M 672,661 L 1088,661" fill="none" stroke="#2563eb" stroke-width="1.5" marker-end="url(#p-2563eb)"/>
+  <text x="678" y="675" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Leituras de autorização, fora da transação: aluno e turma têm de pertencer às escolas</text>
+  <text x="678" y="687.4" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">em que este usuário é registrar. Fora do escopo é 404, não 403.</text>
+  <text x="678" y="713.8" font-size="9.3" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">academics.enroll({ networkId, studentId, classGroupId, academicYearId, enrollmentDate })</text>
+  <path d="M 672,720.8 L 812,720.8" fill="none" stroke="#2563eb" stroke-width="1.5" marker-end="url(#p-2563eb)"/>
+  <text x="678" y="734.8" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">A fachada academics/index.ts é a única porta do módulo. Lá dentro, schema.safeParse(input)</text>
+  <text x="678" y="747.2" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">revalida com uuid e date: a rota garantiu a forma, o caso de uso garante o tipo.</text>
+  <circle cx="52" cy="720.8" r="11.5" fill="#2563eb"/>
+  <text x="52" y="724.5" font-size="10.5" fill="#ffffff" font-weight="700" text-anchor="middle">6</text>
+  <text x="832" y="773.6" font-size="9.3" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">unitOfWork(async ({ sql }) =&gt; …)</text>
+  <path d="M 826,780.6 L 958,780.6" fill="none" stroke="#16a34a" stroke-width="1.5" marker-end="url(#p-16a34a)"/>
+  <text x="832" y="794.6" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">O único ponto de commit da aplicação inteira.</text>
+  <text x="740" y="821" font-size="9.3" fill="#0d9488" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">BEGIN — writer().begin()</text>
+  <path d="M 972,828 L 1088,828" fill="none" stroke="#0d9488" stroke-width="1.5" marker-end="url(#p-0d9488)"/>
+  <text x="740" y="842" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Daqui até o COMMIT, tudo corre na mesma conexão (tx).</text>
+  <text x="740" y="868.4" font-size="9.3" fill="#0d9488" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">claimPendingWriteInTransaction(tx) — a primeira instrução da transação</text>
+  <path d="M 972,875.4 L 1088,875.4" fill="none" stroke="#0d9488" stroke-width="1.5" marker-end="url(#p-0d9488)"/>
+  <circle cx="52" cy="875.4" r="11.5" fill="#0d9488"/>
+  <text x="52" y="879.1" font-size="10.5" fill="#ffffff" font-weight="700" text-anchor="middle">7</text>
+  <rect x="130" y="857.4" width="560" height="78" rx="10" ry="10" fill="#ffffff" stroke="#99f6e4" stroke-width="1.3" data-graph-role="container"/>
+  <text x="144" y="877.4" font-size="8.8" fill="#475569" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">INSERT INTO idempotent_request (idempotency_key, route, user_id, response_hash, response_location)</text>
+  <text x="144" y="890.4" font-size="8.8" fill="#475569" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">VALUES (…, '', '')   ON CONFLICT (idempotency_key) DO NOTHING   RETURNING idempotency_key</text>
+  <text x="144" y="903.4" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">A reserva entra com o hash e o Location vazios: ela existe antes de a resposta existir. Zero</text>
+  <text x="144" y="916.4" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">linhas devolvidas quer dizer que a chave já é de um envio anterior — é o desvio B, ao lado.</text>
+  <path d="M 694,875.4 L 722,875.4" fill="none" stroke="#0d9488" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <text x="740" y="903.4" font-size="9.3" fill="#0d9488" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">fn({ sql: tx })</text>
+  <path d="M 960,910.4 L 828,910.4" fill="none" stroke="#0d9488" stroke-width="1.5" marker-end="url(#p-0d9488)"/>
+  <text x="740" y="924.4" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">O corpo do caso de uso roda dentro da transação, com a mesma conexão.</text>
+  <text x="740" y="950.8" font-size="9.3" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">context(sql): students.byId → classGroups.byId → academicYears.byId</text>
+  <path d="M 826,957.8 L 1088,957.8" fill="none" stroke="#16a34a" stroke-width="1.5" marker-end="url(#p-16a34a)"/>
+  <text x="740" y="971.8" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">A rota leu para autorizar; o caso de uso relê para decidir, agora sob a transação.</text>
+  <circle cx="52" cy="957.8" r="11.5" fill="#16a34a"/>
+  <text x="52" y="961.5" font-size="10.5" fill="#ffffff" font-weight="700" text-anchor="middle">8</text>
+  <text x="740" y="998.2" font-size="9.3" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">studentName, classGroup, year — ou fieldFailure de campo</text>
+  <path d="M 1090,1005.2 L 828,1005.2" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-ea580c)"/>
+  <text x="740" y="1031.2" font-size="9.3" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">enrollments.insert(sql, enrollment)</text>
+  <path d="M 826,1038.2 L 1088,1038.2" fill="none" stroke="#16a34a" stroke-width="1.5" marker-end="url(#p-16a34a)"/>
+  <text x="740" y="1052.2" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">id = uuidIdGenerator.next() e status = ACTIVE_ENROLLMENT_STATUS: a chave</text>
+  <text x="740" y="1064.6" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">primária nasce na aplicação, não no banco.</text>
+  <rect x="130" y="1020.2" width="560" height="117" rx="10" ry="10" fill="#ffffff" stroke="#bbf7d0" stroke-width="1.3" data-graph-role="container"/>
+  <text x="144" y="1040.2" font-size="8.8" fill="#475569" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">INSERT INTO enrollment (id, network_id, student_id, class_group_id,</text>
+  <text x="144" y="1053.2" font-size="8.8" fill="#475569" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">                        academic_year_id, enrollment_date, status)   VALUES (…)</text>
+  <text x="144" y="1066.2" font-size="8.8" fill="#475569" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">ON CONFLICT (student_id, academic_year_id) WHERE status = 'active' DO NOTHING</text>
+  <text x="144" y="1079.2" font-size="8.8" fill="#475569" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">RETURNING id</text>
+  <text x="144" y="1092.2" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">O ON CONFLICT é sobre active_enrollment_unique_per_year, o índice parcial que só existe</text>
+  <text x="144" y="1105.2" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">onde status = 'active'. Zero linhas devolvidas viram fieldFailure(duplicateActive): quem</text>
+  <text x="144" y="1118.2" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">recusa a segunda matrícula ativa do mesmo aluno, no mesmo ano, é o banco.</text>
+  <path d="M 694,1038.2 L 812,1038.2" fill="none" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <text x="740" y="1091" font-size="9.3" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">success(enrollment) — ou a recusa, que desfaz tudo</text>
+  <path d="M 826,1098 L 958,1098" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-16a34a)"/>
+  <text x="740" y="1124" font-size="9.3" fill="#0d9488" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">COMMIT</text>
+  <path d="M 972,1131 L 1088,1131" fill="none" stroke="#0d9488" stroke-width="1.5" marker-end="url(#p-0d9488)"/>
+  <text x="740" y="1145" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Reserva e matrícula entram juntas, ou não entra nenhuma.</text>
+  <text x="740" y="1157.4" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Só depois do commit é que markClaimSurvivedTheCommit() marca claimedByThisRequest.</text>
+  <circle cx="52" cy="1131" r="11.5" fill="#0d9488"/>
+  <text x="52" y="1134.7" font-size="10.5" fill="#ffffff" font-weight="700" text-anchor="middle">9</text>
+  <text x="678" y="1192.8" font-size="9.3" fill="#0d9488" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Result&lt;Enrollment&gt; — volta pelo caso de uso sem mudar de forma</text>
+  <path d="M 960,1199.8 L 674,1199.8" fill="none" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-0d9488)"/>
+  <path d="M 671,1231.8 L 717,1231.8 L 717,1251.8 L 675,1251.8" fill="none" stroke="#2563eb" stroke-width="1.5" marker-end="url(#p-2563eb)"/>
+  <text x="730" y="1234.8" font-size="9.3" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">created(c, studentLocation(student.id), { id })</text>
+  <text x="730" y="1252.8" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">201 Created e Location: /api/v1/registrar/students/&lt;id&gt; — a ficha do aluno, não a matrícula.</text>
+  <text x="730" y="1265.2" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Uma recusa do caso de uso viraria 422 aqui, com o erro por campo.</text>
+  <circle cx="52" cy="1239.8" r="11.5" fill="#2563eb"/>
+  <text x="52" y="1243.5" font-size="10.5" fill="#ffffff" font-weight="700" text-anchor="middle">10</text>
+  <text x="512" y="1291.6" font-size="9.3" fill="#2563eb" font-weight="600" text-anchor="start">a resposta sobe pela cadeia, na ordem inversa</text>
+  <path d="M 660,1298.6 L 508,1298.6" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-2563eb)"/>
+  <text x="512" y="1326.6" font-size="9.3" fill="#475569" font-weight="600" text-anchor="start">e só agora o middleware de idempotência escreve</text>
+  <path d="M 506,1333.6 L 1088,1333.6" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#p-475569)"/>
+  <rect x="512" y="1356.6" width="664" height="65" rx="10" ry="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" data-graph-role="container"/>
+  <text x="526" y="1376.6" font-size="8.8" fill="#475569" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">UPDATE idempotent_request SET response_location = ${location}, response_hash = ${hash} WHERE idempotency_key = ${key}</text>
+  <text x="526" y="1389.6" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">hash = sha256(Location) em hexadecimal, e fora da transação: se este UPDATE falhar, o log recebe replayDestinationNotStored e a</text>
+  <text x="526" y="1402.6" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">matrícula continua feita. Enquanto o hash estiver vazio, um reenvio da mesma chave recebe 409 idempotency_key_still_finishing.</text>
+  <text x="334" y="1436.6" font-size="9.3" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">201 Created</text>
+  <path d="M 494,1443.6 L 330,1443.6" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-475569)"/>
+  <text x="334" y="1457.6" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Location · x-correlation-id · Cache-Control privado e Vary: Cookie, postos na volta pelo cacheControlMiddleware.</text>
+  <text x="164" y="1484" font-size="9.3" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">onSuccess(response)</text>
+  <path d="M 316,1491 L 160,1491" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-7c3aed)"/>
+  <text x="164" y="1505" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">submission.accepted() gera uma chave nova para o próximo envio, as consultas do aluno são invalidadas e a tela navega para a ficha.</text>
+  <rect x="726" y="804" width="452" height="365" rx="12" ry="12" fill="none" stroke="#0d9488" stroke-width="1.4" stroke-dasharray="6,5" data-graph-role="container"/>
+  <text x="1166" y="817" font-size="9.5" fill="#0d9488" font-weight="600" text-anchor="end">uma só transação</text>
+  <rect x="1200" y="96" width="370" height="263" rx="10" ry="10" fill="#fef2f2" stroke="#fecaca" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1214" y="119" font-size="11.5" fill="#dc2626" font-weight="600" text-anchor="start">Desvio A — a regra recusa</text>
+  <text x="1214" y="139" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">O caso de uso devolve failure(…) de dentro do unitOfWork.</text>
+  <text x="1214" y="152" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">isRefusal() é verdadeiro, o unitOfWork lança RolledBackRefusal</text>
+  <text x="1214" y="165" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">e o begin() desfaz tudo — inclusive a reserva da chave, que</text>
+  <text x="1214" y="178" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">era a primeira instrução da transação.</text>
+  <text x="1214" y="204" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">markClaimSurvivedTheCommit() nunca chega a rodar, e a linha</text>
+  <text x="1214" y="217" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">de idempotent_request some junto com a matrícula que não houve.</text>
+  <text x="1214" y="243" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Consequência prática: a chave continua utilizável. O secretário</text>
+  <text x="1214" y="256" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">corrige o campo e reenvia com a MESMA Idempotency-Key — o</text>
+  <text x="1214" y="269" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">front só troca de chave em onSuccess, quando accepted() roda.</text>
+  <text x="1214" y="295" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">A rota transforma a recusa em 422 com o erro por campo, e o</text>
+  <text x="1214" y="308" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">middleware, vendo um 4xx, não grava response_location nem hash.</text>
+  <text x="1214" y="334" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Recusas possíveis aqui: studentNotFound, classGroupNotFound,</text>
+  <text x="1214" y="347" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">academicYearNotFound, classGroupFromAnotherYear, duplicateActive.</text>
+  <rect x="1200" y="372" width="370" height="289" rx="10" ry="10" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1214" y="395" font-size="11.5" fill="#92400e" font-weight="600" text-anchor="start">Desvio B — a chave repetida</text>
+  <text x="1214" y="415" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">O segundo envio com a mesma chave chega ao INSERT da reserva</text>
+  <text x="1214" y="428" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">e recebe zero linhas: ON CONFLICT (idempotency_key) DO NOTHING.</text>
+  <text x="1214" y="441" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">claimPendingWriteInTransaction marca claimedByAnEarlierRequest</text>
+  <text x="1214" y="454" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">e lança RepeatedWrite, que sobe pelo caso de uso e pela rota até</text>
+  <text x="1214" y="467" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">o middleware — o único lugar que o engole em vez de propagá-lo.</text>
+  <text x="1214" y="493" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Ali ele lê idempotent_request com readerFresh() e responde uma</text>
+  <text x="1214" y="506" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">de três coisas:</text>
+  <text x="1214" y="532" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">200 { repeated: true, location } — o envio anterior terminou, e o</text>
+  <text x="1214" y="545" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">navegador vai para o mesmo lugar da primeira vez.</text>
+  <text x="1214" y="571" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">409 idempotency_key_still_finishing — o response_hash ainda está</text>
+  <text x="1214" y="584" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">vazio: o primeiro envio não acabou. Tente de novo em instantes.</text>
+  <text x="1214" y="610" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">409 idempotency_key_of_another_request — a chave existe, mas</text>
+  <text x="1214" y="623" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">com outro user_id ou outra rota. Gere uma nova.</text>
+  <text x="1214" y="649" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Nenhum dos três caminhos escreve uma segunda matrícula.</text>
+  <rect x="1200" y="674" width="370" height="237" rx="10" ry="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1214" y="697" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">A cadeia, uma a uma</text>
+  <text x="1214" y="717" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">1  errorsMiddleware — envolve tudo; app.onError repete a mesma</text>
+  <text x="1214" y="730" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">função porque o Hono não deixa a exceção voltar pelo next().</text>
+  <text x="1214" y="743" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">2  correlationMiddleware — aceita ou cria o x-correlation-id,</text>
+  <text x="1214" y="756" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">devolve-o no cabeçalho e abre o AsyncLocalStorage do pedido.</text>
+  <text x="1214" y="769" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">3  cacheControlMiddleware — chama next() primeiro: quem recebe</text>
+  <text x="1214" y="782" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">o cabeçalho é a resposta, não o pedido.</text>
+  <text x="1214" y="795" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">4  createSessionMiddleware — lê o cookie assinado ev_session,</text>
+  <text x="1214" y="808" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">chama identity.validSession e põe o SessionUser no contexto.</text>
+  <text x="1214" y="821" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">5  createCorsMiddleware — só responde às origens declaradas.</text>
+  <text x="1214" y="834" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">6  secureWriteMiddleware — escrita sem X-Requested-By é 403;</text>
+  <text x="1214" y="847" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">POST sem application/json é 415.</text>
+  <text x="1214" y="860" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">7  jsonIdempotencyMiddleware — lê o corpo uma vez, faz JSON.parse</text>
+  <text x="1214" y="873" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">e o guarda em c.set('jsonBody').</text>
+  <text x="1214" y="886" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">8  requireRole(ROLE.registrar) — sem o papel, 403, e o handler</text>
+  <text x="1214" y="899" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">nem chega a rodar.</text>
+  <rect x="1200" y="924" width="370" height="159" rx="10" ry="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1214" y="947" font-size="11.5" fill="#2563eb" font-weight="600" text-anchor="start">Três garantias, e nenhuma substitui as outras</text>
+  <text x="1214" y="967" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">1. A chave fixa no navegador faz de dois cliques um envio só.</text>
+  <text x="1214" y="980" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">2. A reserva dentro da transação faz de dois pedidos simultâneos</text>
+  <text x="1214" y="993" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">com a mesma chave uma matrícula só — e cai junto no rollback.</text>
+  <text x="1214" y="1006" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">3. active_enrollment_unique_per_year, o índice parcial, impede a</text>
+  <text x="1214" y="1019" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">segunda matrícula ativa do mesmo aluno no mesmo ano, ainda que</text>
+  <text x="1214" y="1032" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">as duas chaves sejam diferentes.</text>
+  <text x="1214" y="1058" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">A primeira evita o trabalho, a segunda ordena a corrida, a</text>
+  <text x="1214" y="1071" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">terceira é a que sobrevive a um erro nas duas anteriores.</text>
+  <rect x="1200" y="1096" width="370" height="172" rx="10" ry="10" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1214" y="1119" font-size="11.5" fill="#0d9488" font-weight="600" text-anchor="start">Por que a reserva é a primeira instrução</text>
+  <text x="1214" y="1139" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Se ela fosse gravada pelo middleware, antes de abrir a transação,</text>
+  <text x="1214" y="1152" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">sobreviveria a um rollback: a chave ficaria queimada sem que</text>
+  <text x="1214" y="1165" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">nada tivesse sido escrito, e o reenvio honesto levaria 409 sempre.</text>
+  <text x="1214" y="1191" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Se fosse gravada depois do commit, dois pedidos simultâneos</text>
+  <text x="1214" y="1204" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">passariam pela reserva ao mesmo tempo e escreveriam duas</text>
+  <text x="1214" y="1217" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">matrículas.</text>
+  <text x="1214" y="1243" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">Sendo a primeira instrução da mesma transação, a chave e o efeito</text>
+  <text x="1214" y="1256" font-size="9.2" fill="#6b7280" font-weight="400" text-anchor="start">têm exatamente o mesmo destino: ou os dois existem, ou nenhum.</text>
+  <rect x="1200" y="1281" width="370" height="172" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1214" y="1304" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Legenda</text>
+  <path d="M 1218,1325 L 1266,1325" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#p-475569)"/>
+  <text x="1278" y="1328.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">chamada — quem pede espera a resposta</text>
+  <path d="M 1218,1348 L 1266,1348" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-475569)"/>
+  <text x="1278" y="1351.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">retorno — o valor que sobe de volta</text>
+  <path d="M 1218,1366 L 1252,1366 L 1252,1378 L 1222,1378" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#p-475569)"/>
+  <text x="1278" y="1374.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">trabalho no próprio participante</text>
+  <rect x="1218" y="1388" width="48" height="18" rx="5" ry="5" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3"/>
+  <text x="1278" y="1400.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">nota sobre as linhas de vida que cobre</text>
+  <rect x="1218" y="1414" width="48" height="18" rx="5" ry="5" fill="#ffffff" stroke="#0d9488" stroke-width="1.4" stroke-dasharray="5,4"/>
+  <text x="1278" y="1426.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">o que corre dentro da transação</text>
+  <circle cx="1232" cy="1448" r="11" fill="#475569"/>
+  <text x="1232" y="1451.6" font-size="10" fill="#ffffff" font-weight="700" text-anchor="middle">7</text>
+  <text x="1278" y="1452.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">os dez passos do caminho, em ordem</text>
+  <text x="36" y="1564" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Lido de apps/web/src/shared/api/, apps/api/src/http/, apps/api/src/shared/ e apps/api/src/academics/. Estado do Estágio 01.</text>
+</svg>

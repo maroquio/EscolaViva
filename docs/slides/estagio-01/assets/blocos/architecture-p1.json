@@ -1,0 +1,92 @@
+[
+ {
+  "id": "architecture--artefato-1",
+  "rotulo": "Artefato 1",
+  "imagem": "assets/blocos/architecture--artefato-1.png",
+  "esquerda": 3.667,
+  "topo": 15.048,
+  "largura": 94.0,
+  "altura": 20.69
+ },
+ {
+  "id": "architecture--app",
+  "rotulo": "app/",
+  "imagem": "assets/blocos/architecture--app.png",
+  "esquerda": 5.0,
+  "topo": 20.69,
+  "largura": 28.667,
+  "altura": 12.852
+ },
+ {
+  "id": "architecture--features",
+  "rotulo": "features/",
+  "imagem": "assets/blocos/architecture--features.png",
+  "esquerda": 36.333,
+  "topo": 20.69,
+  "largura": 28.667,
+  "altura": 12.852
+ },
+ {
+  "id": "architecture--shared-api",
+  "rotulo": "shared/api",
+  "imagem": "assets/blocos/architecture--shared-api.png",
+  "esquerda": 67.667,
+  "topo": 20.69,
+  "largura": 28.667,
+  "altura": 12.852
+ },
+ {
+  "id": "architecture--artefato-3",
+  "rotulo": "Artefato 3",
+  "imagem": "assets/blocos/architecture--artefato-3.png",
+  "esquerda": 57.667,
+  "topo": 37.618,
+  "largura": 38.667,
+  "altura": 10.658
+ },
+ {
+  "id": "architecture--artefato-2-apps-api-src-main-ts-raiz-d",
+  "rotulo": "Artefato 2 — apps/api/src/main.ts : raiz de composição",
+  "imagem": "assets/blocos/architecture--artefato-2-apps-api-src-main-ts-raiz-d.png",
+  "esquerda": 5.0,
+  "topo": 49.844,
+  "largura": 91.333,
+  "altura": 15.048
+ },
+ {
+  "id": "architecture--interface-entrega",
+  "rotulo": "Interface (entrega)",
+  "imagem": "assets/blocos/architecture--interface-entrega.png",
+  "esquerda": 3.667,
+  "topo": 67.397,
+  "largura": 94.0,
+  "altura": 29.78
+ },
+ {
+  "id": "architecture--http-app-ts",
+  "rotulo": "http/app.ts",
+  "imagem": "assets/blocos/architecture--http-app-ts.png",
+  "esquerda": 5.0,
+  "topo": 74.607,
+  "largura": 28.667,
+  "altura": 20.062
+ },
+ {
+  "id": "architecture--http-routes",
+  "rotulo": "http/routes/",
+  "imagem": "assets/blocos/architecture--http-routes.png",
+  "esquerda": 36.333,
+  "topo": 74.607,
+  "largura": 28.667,
+  "altura": 20.062
+ },
+ {
+  "id": "architecture--http-static-ts",
+  "rotulo": "http/static.ts",
+  "imagem": "assets/blocos/architecture--http-static-ts.png",
+  "esquerda": 67.667,
+  "topo": 74.607,
+  "largura": 28.667,
+  "altura": 20.062
+ }
+]

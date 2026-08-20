@@ -1,0 +1,38 @@
+[
+ {
+  "id": "use-cases--sistema-escolaviva-saas-escolar-multi-",
+  "rotulo": "Sistema EscolaViva — SaaS escolar multi-inquilino",
+  "imagem": "assets/blocos/use-cases--sistema-escolaviva-saas-escolar-multi-.png",
+  "esquerda": 16.757,
+  "topo": 13.569,
+  "largura": 81.335,
+  "altura": 170.963
+ },
+ {
+  "id": "use-cases--acesso-e-conta-qualquer-usu-rio-autent",
+  "rotulo": "Acesso e conta — qualquer usuário autenticado",
+  "imagem": "assets/blocos/use-cases--acesso-e-conta-qualquer-usu-rio-autent.png",
+  "esquerda": 18.733,
+  "topo": 17.639,
+  "largura": 74.728,
+  "altura": 16.283
+ },
+ {
+  "id": "use-cases--administra-o-da-rede",
+  "rotulo": "Administração da rede",
+  "imagem": "assets/blocos/use-cases--administra-o-da-rede.png",
+  "esquerda": 18.733,
+  "topo": 37.178,
+  "largura": 74.728,
+  "altura": 26.594
+ },
+ {
+  "id": "use-cases--comunica-o-com-as-fam-lias",
+  "rotulo": "Comunicação com as famílias",
+  "imagem": "assets/blocos/use-cases--comunica-o-com-as-fam-lias.png",
+  "esquerda": 18.733,
+  "topo": 67.029,
+  "largura": 74.728,
+  "altura": 16.283
+ }
+]

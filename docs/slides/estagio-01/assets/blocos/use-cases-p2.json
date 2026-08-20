@@ -1,0 +1,29 @@
+[
+ {
+  "id": "use-cases--secretaria-acad-mica",
+  "rotulo": "Secretaria acadêmica",
+  "imagem": "assets/blocos/use-cases--secretaria-acad-mica.png",
+  "esquerda": 18.733,
+  "topo": -15.208,
+  "largura": 74.728,
+  "altura": 41.783
+ },
+ {
+  "id": "use-cases--di-rio-do-professor",
+  "rotulo": "Diário do professor",
+  "imagem": "assets/blocos/use-cases--di-rio-do-professor.png",
+  "esquerda": 18.733,
+  "topo": 30.261,
+  "largura": 74.728,
+  "altura": 30.107
+ },
+ {
+  "id": "use-cases--acompanhamento-familiar",
+  "rotulo": "Acompanhamento familiar",
+  "imagem": "assets/blocos/use-cases--acompanhamento-familiar.png",
+  "esquerda": 18.733,
+  "topo": 64.055,
+  "largura": 74.728,
+  "altura": 30.107
+ }
+]

@@ -1,0 +1,281 @@
+[
+ {
+  "id": "stack-frontend--build-e-desenvolvimento",
+  "rotulo": "Build e desenvolvimento",
+  "imagem": "assets/blocos/stack-frontend--build-e-desenvolvimento.png",
+  "esquerda": 2.319,
+  "topo": 7.718,
+  "largura": 67.391,
+  "altura": 10.906
+ },
+ {
+  "id": "stack-frontend--vite-7-3-6",
+  "rotulo": "Vite 7.3.6",
+  "imagem": "assets/blocos/stack-frontend--vite-7-3-6.png",
+  "esquerda": 3.406,
+  "topo": 10.403,
+  "largura": 21.159,
+  "altura": 7.299
+ },
+ {
+  "id": "stack-frontend--typescript-5-9-3",
+  "rotulo": "TypeScript 5.9.3",
+  "imagem": "assets/blocos/stack-frontend--typescript-5-9-3.png",
+  "esquerda": 25.435,
+  "topo": 10.403,
+  "largura": 21.159,
+  "altura": 7.299
+ },
+ {
+  "id": "stack-frontend--build",
+  "rotulo": "build",
+  "imagem": "assets/blocos/stack-frontend--build.png",
+  "esquerda": 47.464,
+  "topo": 10.403,
+  "largura": 21.159,
+  "altura": 7.299
+ },
+ {
+  "id": "stack-frontend--runtime",
+  "rotulo": "Runtime",
+  "imagem": "assets/blocos/stack-frontend--runtime.png",
+  "esquerda": 2.319,
+  "topo": 19.379,
+  "largura": 67.391,
+  "altura": 11.829
+ },
+ {
+  "id": "stack-frontend--react-19-2-8-react-dom-19-2-8",
+  "rotulo": "React 19.2.8 + react-dom 19.2.8",
+  "imagem": "assets/blocos/stack-frontend--react-19-2-8-react-dom-19-2-8.png",
+  "esquerda": 3.406,
+  "topo": 22.064,
+  "largura": 21.159,
+  "altura": 8.221
+ },
+ {
+  "id": "stack-frontend--react-router-7-18-2",
+  "rotulo": "React Router 7.18.2",
+  "imagem": "assets/blocos/stack-frontend--react-router-7-18-2.png",
+  "esquerda": 25.435,
+  "topo": 22.064,
+  "largura": 21.159,
+  "altura": 8.221
+ },
+ {
+  "id": "stack-frontend--guardas",
+  "rotulo": "Guardas",
+  "imagem": "assets/blocos/stack-frontend--guardas.png",
+  "esquerda": 47.464,
+  "topo": 22.064,
+  "largura": 21.159,
+  "altura": 8.221
+ },
+ {
+  "id": "stack-frontend--interface-mantine-8-e-o-css-que-s-func",
+  "rotulo": "Interface — Mantine 8, e o CSS que só funciona na ordem certa",
+  "imagem": "assets/blocos/stack-frontend--interface-mantine-8-e-o-css-que-s-func.png",
+  "esquerda": 2.319,
+  "topo": 31.963,
+  "largura": 67.391,
+  "altura": 11.829
+ },
+ {
+  "id": "stack-frontend--mantine-core-8-3-18",
+  "rotulo": "@mantine/core 8.3.18",
+  "imagem": "assets/blocos/stack-frontend--mantine-core-8-3-18.png",
+  "esquerda": 3.406,
+  "topo": 34.648,
+  "largura": 21.159,
+  "altura": 8.221
+ },
+ {
+  "id": "stack-frontend--mantinesheetsinloadorder-css-ts-33-fol",
+  "rotulo": "mantineSheetsInLoadOrder.css.ts — 33 folhas",
+  "imagem": "assets/blocos/stack-frontend--mantinesheetsinloadorder-css-ts-33-fol.png",
+  "esquerda": 25.435,
+  "topo": 34.648,
+  "largura": 21.159,
+  "altura": 8.221
+ },
+ {
+  "id": "stack-frontend--mantine-dates-est-instalado-e-fica-for",
+  "rotulo": "@mantine/dates está instalado e fica fora",
+  "imagem": "assets/blocos/stack-frontend--mantine-dates-est-instalado-e-fica-for.png",
+  "esquerda": 47.464,
+  "topo": 34.648,
+  "largura": 21.159,
+  "altura": 8.221
+ },
+ {
+  "id": "stack-frontend--estado-e-dados",
+  "rotulo": "Estado e dados",
+  "imagem": "assets/blocos/stack-frontend--estado-e-dados.png",
+  "esquerda": 2.319,
+  "topo": 44.547,
+  "largura": 67.391,
+  "altura": 18.037
+ },
+ {
+  "id": "stack-frontend--shared-api-client-ts",
+  "rotulo": "shared/api/client.ts",
+  "imagem": "assets/blocos/stack-frontend--shared-api-client-ts.png",
+  "esquerda": 3.406,
+  "topo": 47.232,
+  "largura": 21.159,
+  "altura": 8.221
+ },
+ {
+  "id": "stack-frontend--tanstack-query-5-101",
+  "rotulo": "TanStack Query 5.101",
+  "imagem": "assets/blocos/stack-frontend--tanstack-query-5-101.png",
+  "esquerda": 25.435,
+  "topo": 47.232,
+  "largura": 21.159,
+  "altura": 8.221
+ },
+ {
+  "id": "stack-frontend--formul-rios",
+  "rotulo": "Formulários",
+  "imagem": "assets/blocos/stack-frontend--formul-rios.png",
+  "esquerda": 47.464,
+  "topo": 47.232,
+  "largura": 21.159,
+  "altura": 8.221
+ },
+ {
+  "id": "stack-frontend--a-p-gina-mora-na-url-e-o-envio-leva-ch",
+  "rotulo": "A página mora na URL, e o envio leva chave própria",
+  "imagem": "assets/blocos/stack-frontend--a-p-gina-mora-na-url-e-o-envio-leva-ch.png",
+  "esquerda": 3.406,
+  "topo": 56.208,
+  "largura": 65.217,
+  "altura": 5.453
+ },
+ {
+  "id": "stack-frontend--contrato",
+  "rotulo": "Contrato",
+  "imagem": "assets/blocos/stack-frontend--contrato.png",
+  "esquerda": 2.319,
+  "topo": 63.339,
+  "largura": 67.391,
+  "altura": 9.983
+ },
+ {
+  "id": "stack-frontend--escolaviva-contracts",
+  "rotulo": "@escolaviva/contracts",
+  "imagem": "assets/blocos/stack-frontend--escolaviva-contracts.png",
+  "esquerda": 3.406,
+  "topo": 66.023,
+  "largura": 43.333,
+  "altura": 6.376
+ },
+ {
+  "id": "stack-frontend--testes",
+  "rotulo": "Testes",
+  "imagem": "assets/blocos/stack-frontend--testes.png",
+  "esquerda": 2.319,
+  "topo": 74.077,
+  "largura": 67.391,
+  "altura": 12.836
+ },
+ {
+  "id": "stack-frontend--vitest-4-1-10-em-jsdom-26-41-arquivos-",
+  "rotulo": "Vitest 4.1.10 em jsdom 26 — 41 arquivos em tests/",
+  "imagem": "assets/blocos/stack-frontend--vitest-4-1-10-em-jsdom-26-41-arquivos-.png",
+  "esquerda": 3.406,
+  "topo": 76.762,
+  "largura": 21.159,
+  "altura": 9.228
+ },
+ {
+  "id": "stack-frontend--testing-library-16-3",
+  "rotulo": "Testing Library 16.3",
+  "imagem": "assets/blocos/stack-frontend--testing-library-16-3.png",
+  "esquerda": 25.435,
+  "topo": 76.762,
+  "largura": 21.159,
+  "altura": 9.228
+ },
+ {
+  "id": "stack-frontend--or-amento",
+  "rotulo": "Orçamento",
+  "imagem": "assets/blocos/stack-frontend--or-amento.png",
+  "esquerda": 47.464,
+  "topo": 76.762,
+  "largura": 21.159,
+  "altura": 9.228
+ },
+ {
+  "id": "stack-frontend--sa-da-apps-web-dist-o-que-a-api-entreg",
+  "rotulo": "Saída — apps/web/dist: o que a API entrega ao navegador",
+  "imagem": "assets/blocos/stack-frontend--sa-da-apps-web-dist-o-que-a-api-entreg.png",
+  "esquerda": 2.319,
+  "topo": 87.668,
+  "largura": 67.391,
+  "altura": 9.983
+ },
+ {
+  "id": "stack-frontend--21-arquivos-em-dist-assets-todos-com-h",
+  "rotulo": "21 arquivos em dist/assets, todos com hash no nome",
+  "imagem": "assets/blocos/stack-frontend--21-arquivos-em-dist-assets-todos-com-h.png",
+  "esquerda": 3.406,
+  "topo": 90.352,
+  "largura": 43.333,
+  "altura": 6.376
+ },
+ {
+  "id": "stack-frontend--sourcemap-true",
+  "rotulo": "sourcemap: true",
+  "imagem": "assets/blocos/stack-frontend--sourcemap-true.png",
+  "esquerda": 47.609,
+  "topo": 90.352,
+  "largura": 21.014,
+  "altura": 6.376
+ },
+ {
+  "id": "stack-frontend--o-caminho-de-um-dado-do-clique-at-o-se",
+  "rotulo": "O caminho de um dado, do clique até o servidor",
+  "imagem": "assets/blocos/stack-frontend--o-caminho-de-um-dado-do-clique-at-o-se.png",
+  "esquerda": 70.87,
+  "topo": 7.718,
+  "largura": 27.101,
+  "altura": 26.007
+ },
+ {
+  "id": "stack-frontend--o-port-o",
+  "rotulo": "O portão",
+  "imagem": "assets/blocos/stack-frontend--o-port-o.png",
+  "esquerda": 70.87,
+  "topo": 34.732,
+  "largura": 27.101,
+  "altura": 12.752
+ },
+ {
+  "id": "stack-frontend--149",
+  "rotulo": "149",
+  "imagem": "assets/blocos/stack-frontend--149.png",
+  "esquerda": 70.87,
+  "topo": 48.49,
+  "largura": 27.101,
+  "altura": 15.94
+ },
+ {
+  "id": "stack-frontend--instalado-no-package-json-e-fora-do-bu",
+  "rotulo": "Instalado no package.json e fora do bundle, de propósito",
+  "imagem": "assets/blocos/stack-frontend--instalado-no-package-json-e-fora-do-bu.png",
+  "esquerda": 70.87,
+  "topo": 65.436,
+  "largura": 27.101,
+  "altura": 10.906
+ },
+ {
+  "id": "stack-frontend--legenda",
+  "rotulo": "Legenda",
+  "imagem": "assets/blocos/stack-frontend--legenda.png",
+  "esquerda": 70.87,
+  "topo": 77.349,
+  "largura": 27.101,
+  "altura": 20.134
+ }
+]

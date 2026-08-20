@@ -1,0 +1,47 @@
+[
+ {
+  "id": "sequencia-post--o-envelope-que-sobe",
+  "rotulo": "O envelope que sobe",
+  "imagem": "assets/blocos/sequencia-post--o-envelope-que-sobe.png",
+  "esquerda": 12.075,
+  "topo": 21.194,
+  "largura": 50.314,
+  "altura": 4.236
+ },
+ {
+  "id": "sequencia-post--begin-writer-begin",
+  "rotulo": "BEGIN — writer().begin()",
+  "imagem": "assets/blocos/sequencia-post--begin-writer-begin.png",
+  "esquerda": 45.157,
+  "topo": 51.605,
+  "largura": 28.428,
+  "altura": 23.427
+ },
+ {
+  "id": "sequencia-post--desvio-a-a-regra-recusa",
+  "rotulo": "Desvio A — a regra recusa",
+  "imagem": "assets/blocos/sequencia-post--desvio-a-a-regra-recusa.png",
+  "esquerda": 74.969,
+  "topo": 6.162,
+  "largura": 23.27,
+  "altura": 16.881
+ },
+ {
+  "id": "sequencia-post--a-cadeia-uma-a-uma",
+  "rotulo": "A cadeia, uma a uma",
+  "imagem": "assets/blocos/sequencia-post--a-cadeia-uma-a-uma.png",
+  "esquerda": 74.969,
+  "topo": 43.261,
+  "largura": 23.27,
+  "altura": 15.212
+ },
+ {
+  "id": "sequencia-post--tr-s-garantias-e-nenhuma-substitui-as-",
+  "rotulo": "Três garantias, e nenhuma substitui as outras",
+  "imagem": "assets/blocos/sequencia-post--tr-s-garantias-e-nenhuma-substitui-as-.png",
+  "esquerda": 74.969,
+  "topo": 59.307,
+  "largura": 23.27,
+  "altura": 10.205
+ }
+]

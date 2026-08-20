@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 0 1490 880" width="1490" height="880">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+  </defs>
+  <rect x="8" y="0" width="1490" height="880" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Onde vive cada invariante</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">A mesma regra escrita em dois lugares não é duplicação: é a diferença entre uma boa mensagem e uma garantia. Só o banco garante sob concorrência.</text>
+  <rect x="56" y="118" width="1414" height="28" rx="6" ry="6" fill="#f3f4f6"/>
+  <text x="66" y="137" font-size="15.0" fill="#111827" font-weight="600" text-anchor="start">Invariante</text>
+  <text x="478" y="137" font-size="15.0" fill="#6b7280" font-weight="600" text-anchor="start">contexto</text>
+  <text x="590" y="137" font-size="15.0" fill="#16a34a" font-weight="600" text-anchor="start">Domínio — função pura</text>
+  <text x="942" y="137" font-size="15.0" fill="#2563eb" font-weight="600" text-anchor="start">Banco — o que resiste sob concorrência</text>
+  <text x="1310" y="137" font-size="15.0" fill="#7c3aed" font-weight="600" text-anchor="start">Borda — zod</text>
+  <text x="66" y="163" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Papel do usuário ∈ 4 valores</text>
+  <rect x="56" y="172" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="189" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Turno da turma ∈ 4 valores</text>
+  <text x="66" y="215" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Status da matrícula ∈ 4 valores</text>
+  <rect x="56" y="224" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="241" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Status da rede ∈ 3 valores</text>
+  <text x="66" y="267" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Só matrícula ativa pode ser transferida</text>
+  <rect x="56" y="276" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="293" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Exatamente uma matrícula ativa por aluno e ano</text>
+  <text x="66" y="319" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">O ano letivo termina depois de começar</text>
+  <rect x="56" y="328" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="345" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Bimestre entre 1 e 4</text>
+  <text x="66" y="371" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Nota entre 0 e 10</text>
+  <rect x="56" y="380" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="397" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Uma nota por matrícula, disciplina e bimestre</text>
+  <text x="66" y="423" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Uma frequência por matrícula e dia</text>
+  <rect x="56" y="432" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="449" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Um fechamento por turma e bimestre</text>
+  <text x="66" y="475" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Bimestre fechado recusa lançar nota</text>
+  <rect x="56" y="484" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="501" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Ano fechado recusa a chamada</text>
+  <text x="66" y="527" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">O lote só nomeia matrículas ativas da turma, uma vez cada</text>
+  <rect x="56" y="536" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="553" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">A data da chamada é um dia ISO que existe</text>
+  <text x="66" y="579" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Chamada dentro do ano letivo da turma</text>
+  <rect x="56" y="588" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="605" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">CPF: 11 dígitos com verificadores corretos</text>
+  <text x="66" y="631" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">CPF único dentro da rede</text>
+  <rect x="56" y="640" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="657" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Responsável responde por um aluno uma só vez</text>
+  <text x="66" y="683" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Título 1..160 e corpo 1..8000</text>
+  <rect x="56" y="692" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="709" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Senha com pelo menos 10 caracteres</text>
+  <text x="66" y="735" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Aprovado = média ≥ mínima E frequência ≥ mínima</text>
+  <rect x="56" y="744" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="761" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Uma escrita por Idempotency-Key</text>
+  <text x="66" y="787" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">A escrita carrega a marca do aplicativo</text>
+  <rect x="56" y="796" width="1414" height="26" rx="0" ry="0" fill="#f9fafb"/>
+  <text x="66" y="813" font-size="13.5" fill="#111827" font-weight="600" text-anchor="start">Forma e tipo de toda entrada externa</text>
+  <text x="56" y="848" font-size="16.5" fill="#475569" font-weight="600" text-anchor="start">12 invariantes vivem nos dois lados · 7 só o banco garante · 5 só o domínio sabe · 2 só a borda enxerga</text>
+</svg>

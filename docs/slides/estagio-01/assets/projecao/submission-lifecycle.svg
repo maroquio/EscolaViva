@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 0 1250 580" width="1250" height="580">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-2563eb" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+  </defs>
+  <rect x="8" y="0" width="1250" height="580" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Ciclo de uma escrita</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/api/src/shared/http/idempotency.ts · apps/api/src/shared/db/pendingWrite.ts · tabela idempotent_request · o cliente gera a chave</text>
+  <circle cx="280" cy="132" r="9" fill="#111827"/>
+  <path d="M 280,141 L 280,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="297" y="146" font-size="16.1" fill="#475569" font-weight="600" text-anchor="start">POST com Idempotency-Key bem formada</text>
+  <rect x="150" y="195" width="260" height="120" rx="12" ry="12" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.8"/>
+  <text x="166" y="221" font-size="22.9" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">reservada</text>
+  <rect x="560" y="195" width="260" height="120" rx="12" ry="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+  <text x="576" y="221" font-size="22.9" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">comitada</text>
+  <rect x="970" y="195" width="260" height="120" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="986" y="221" font-size="22.9" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">concluída</text>
+  <path d="M 410,255 L 558,255" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#p-2563eb)"/>
+  <text x="424" y="228" font-size="16.1" fill="#2563eb" font-weight="600" text-anchor="start">o handler retornou</text>
+  <path d="M 820,255 L 968,255" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <text x="834" y="222" font-size="16.1" fill="#16a34a" font-weight="600" text-anchor="start">resposta abaixo de 400</text>
+  <circle cx="1100" cy="372" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8"/>
+  <circle cx="1100" cy="372" r="7.5" fill="#111827"/>
+  <path d="M 1100,315 L 1100,357" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <rect x="150" y="420" width="260" height="105" rx="12" ry="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="166" y="446" font-size="22.9" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">nunca existiu</text>
+  <path d="M 280,315 L 280,418" fill="none" stroke="#ea580c" stroke-width="1.6" marker-end="url(#p-ea580c)"/>
+  <text x="297" y="340" font-size="16.1" fill="#ea580c" font-weight="600" text-anchor="start">uma recusa (Result.ok === false), uma exceção,</text>
+  <path d="M 280,527 L 280,552 L 100,552 L 100,132 L 265,132" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-ea580c)"/>
+  <text x="300" y="546" font-size="16.1" fill="#ea580c" font-weight="600" text-anchor="start">a pessoa corrige o formulário e manda a mesma chave</text>
+</svg>

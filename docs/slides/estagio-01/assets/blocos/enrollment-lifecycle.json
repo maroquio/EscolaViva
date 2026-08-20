@@ -1,0 +1,38 @@
+[
+ {
+  "id": "enrollment-lifecycle--active",
+  "rotulo": "active",
+  "imagem": "assets/blocos/enrollment-lifecycle--active.png",
+  "esquerda": 18.763,
+  "topo": 43.333,
+  "largura": 25.773,
+  "altura": 24.444
+ },
+ {
+  "id": "enrollment-lifecycle--transferred",
+  "rotulo": "transferred",
+  "imagem": "assets/blocos/enrollment-lifecycle--transferred.png",
+  "esquerda": 71.34,
+  "topo": 43.333,
+  "largura": 25.773,
+  "altura": 24.444
+ },
+ {
+  "id": "enrollment-lifecycle--cancelled",
+  "rotulo": "cancelled",
+  "imagem": "assets/blocos/enrollment-lifecycle--cancelled.png",
+  "esquerda": 18.763,
+  "topo": 80.0,
+  "largura": 25.773,
+  "altura": 13.778
+ },
+ {
+  "id": "enrollment-lifecycle--completed",
+  "rotulo": "completed",
+  "imagem": "assets/blocos/enrollment-lifecycle--completed.png",
+  "esquerda": 71.34,
+  "topo": 80.0,
+  "largura": 25.773,
+  "altura": 13.778
+ }
+]

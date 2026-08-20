@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 0 1290 473" width="1290" height="473">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect x="8" y="0" width="1290" height="473" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Ciclo do bimestre da turma</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/api/src/assessment/application/closeTerm.ts · application/postGrades.ts · domain/termClosing.ts · tabela term_closing</text>
+  <circle cx="315" cy="132" r="9" fill="#111827"/>
+  <path d="M 315,141 L 315,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="332" y="150" font-size="16.1" fill="#475569" font-weight="600" text-anchor="start">a turma passa a existir</text>
+  <rect x="190" y="195" width="250" height="110" rx="12" ry="12" fill="#f8fafc" stroke="#475569" stroke-width="1.8"/>
+  <text x="206" y="221" font-size="22.9" fill="#475569" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">aberto</text>
+  <rect x="700" y="195" width="250" height="110" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="716" y="221" font-size="22.9" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">fechado</text>
+  <path d="M 440,250 L 698,250" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <text x="452" y="214" font-size="16.1" fill="#16a34a" font-weight="600" text-anchor="start">close / closeTerm(classGroup, term)</text>
+  <path d="M 250,305 L 250,352 L 380,352 L 380,309" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-dc2626)"/>
+  <text x="200" y="378" font-size="16.1" fill="#dc2626" font-weight="600" text-anchor="start">[qualquer guarda falha] / nada é escrito, e a tela recebe o código do erro</text>
+  <rect x="990" y="195" width="280" height="250" rx="10" ry="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1004" y="219" font-size="18.0" fill="#2563eb" font-weight="600" text-anchor="start">Uma regra, três mecanismos</text>
+</svg>

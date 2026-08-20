@@ -1,0 +1,25 @@
+.skipToContent {
+  position: absolute;
+  inset-block-start: var(--mantine-spacing-sm);
+  inset-inline-start: var(--mantine-spacing-sm);
+  z-index: 10;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  background: var(--mantine-color-escola-filled);
+  color: var(--mantine-color-white);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 150ms ease-out;
+}
+
+.skipToContent:focus-visible {
+  transform: translateY(0);
+  color: var(--mantine-color-white);
+}
+
+@media (min-width: $mantine-breakpoint-md) {
+  .brandColumn {
+    width: var(--navbar-width);
+  }
+}

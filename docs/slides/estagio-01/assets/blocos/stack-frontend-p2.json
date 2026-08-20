@@ -1,0 +1,119 @@
+[
+ {
+  "id": "stack-frontend--a-p-gina-mora-na-url-e-o-envio-leva-ch",
+  "rotulo": "A página mora na URL, e o envio leva chave própria",
+  "imagem": "assets/blocos/stack-frontend--a-p-gina-mora-na-url-e-o-envio-leva-ch.png",
+  "esquerda": 3.406,
+  "topo": 5.606,
+  "largura": 65.217,
+  "altura": 11.754
+ },
+ {
+  "id": "stack-frontend--contrato",
+  "rotulo": "Contrato",
+  "imagem": "assets/blocos/stack-frontend--contrato.png",
+  "esquerda": 2.319,
+  "topo": 20.977,
+  "largura": 67.391,
+  "altura": 21.519
+ },
+ {
+  "id": "stack-frontend--escolaviva-contracts",
+  "rotulo": "@escolaviva/contracts",
+  "imagem": "assets/blocos/stack-frontend--escolaviva-contracts.png",
+  "esquerda": 3.406,
+  "topo": 26.762,
+  "largura": 43.333,
+  "altura": 13.744
+ },
+ {
+  "id": "stack-frontend--testes",
+  "rotulo": "Testes",
+  "imagem": "assets/blocos/stack-frontend--testes.png",
+  "esquerda": 2.319,
+  "topo": 44.123,
+  "largura": 67.391,
+  "altura": 27.668
+ },
+ {
+  "id": "stack-frontend--vitest-4-1-10-em-jsdom-26-41-arquivos-",
+  "rotulo": "Vitest 4.1.10 em jsdom 26 — 41 arquivos em tests/",
+  "imagem": "assets/blocos/stack-frontend--vitest-4-1-10-em-jsdom-26-41-arquivos-.png",
+  "esquerda": 3.406,
+  "topo": 49.91,
+  "largura": 21.159,
+  "altura": 19.891
+ },
+ {
+  "id": "stack-frontend--testing-library-16-3",
+  "rotulo": "Testing Library 16.3",
+  "imagem": "assets/blocos/stack-frontend--testing-library-16-3.png",
+  "esquerda": 25.435,
+  "topo": 49.91,
+  "largura": 21.159,
+  "altura": 19.891
+ },
+ {
+  "id": "stack-frontend--or-amento",
+  "rotulo": "Orçamento",
+  "imagem": "assets/blocos/stack-frontend--or-amento.png",
+  "esquerda": 47.464,
+  "topo": 49.91,
+  "largura": 21.159,
+  "altura": 19.891
+ },
+ {
+  "id": "stack-frontend--sa-da-apps-web-dist-o-que-a-api-entreg",
+  "rotulo": "Saída — apps/web/dist: o que a API entrega ao navegador",
+  "imagem": "assets/blocos/stack-frontend--sa-da-apps-web-dist-o-que-a-api-entreg.png",
+  "esquerda": 2.319,
+  "topo": 73.418,
+  "largura": 67.391,
+  "altura": 21.519
+ },
+ {
+  "id": "stack-frontend--21-arquivos-em-dist-assets-todos-com-h",
+  "rotulo": "21 arquivos em dist/assets, todos com hash no nome",
+  "imagem": "assets/blocos/stack-frontend--21-arquivos-em-dist-assets-todos-com-h.png",
+  "esquerda": 3.406,
+  "topo": 79.204,
+  "largura": 43.333,
+  "altura": 13.744
+ },
+ {
+  "id": "stack-frontend--sourcemap-true",
+  "rotulo": "sourcemap: true",
+  "imagem": "assets/blocos/stack-frontend--sourcemap-true.png",
+  "esquerda": 47.609,
+  "topo": 79.204,
+  "largura": 21.014,
+  "altura": 13.744
+ },
+ {
+  "id": "stack-frontend--149",
+  "rotulo": "149",
+  "imagem": "assets/blocos/stack-frontend--149.png",
+  "esquerda": 70.87,
+  "topo": -11.031,
+  "largura": 27.101,
+  "altura": 34.359
+ },
+ {
+  "id": "stack-frontend--instalado-no-package-json-e-fora-do-bu",
+  "rotulo": "Instalado no package.json e fora do bundle, de propósito",
+  "imagem": "assets/blocos/stack-frontend--instalado-no-package-json-e-fora-do-bu.png",
+  "esquerda": 70.87,
+  "topo": 25.497,
+  "largura": 27.101,
+  "altura": 23.508
+ },
+ {
+  "id": "stack-frontend--legenda",
+  "rotulo": "Legenda",
+  "imagem": "assets/blocos/stack-frontend--legenda.png",
+  "esquerda": 70.87,
+  "topo": 51.175,
+  "largura": 27.101,
+  "altura": 43.399
+ }
+]

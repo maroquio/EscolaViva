@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 900" width="1300" height="900">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-2563eb" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="p-16a34a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1300" height="900" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Ciclo de uma escrita</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/api/src/shared/http/idempotency.ts · apps/api/src/shared/db/pendingWrite.ts · tabela idempotent_request · o cliente gera a chave</text>
+  <circle cx="280" cy="132" r="9" fill="#111827"/>
+  <path d="M 280,141 L 280,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="297" y="146" font-size="9.5" fill="#475569" font-weight="600" text-anchor="start">POST com Idempotency-Key bem formada</text>
+  <text x="297" y="159" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o middleware não reserva nada aqui: põe um PendingWrite num escopo de AsyncLocalStorage e chama next()</text>
+  <text x="297" y="172" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ claimPendingWriteInTransaction(sql) — INSERT ... ON CONFLICT DO NOTHING, o PRIMEIRO comando de unitOfWork()</text>
+  <rect x="150" y="195" width="260" height="120" rx="12" ry="12" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.8"/>
+  <text x="166" y="221" font-size="13.5" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">reservada</text>
+  <text x="166" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a linha existe numa transação</text>
+  <text x="166" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ABERTA, invisível para os outros</text>
+  <text x="166" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_hash = ''</text>
+  <text x="166" y="283" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a escrita que ela protege está na mesma</text>
+  <text x="166" y="297" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">transação, poucos comandos abaixo</text>
+  <rect x="560" y="195" width="260" height="120" rx="12" ry="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+  <text x="576" y="221" font-size="13.5" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">comitada</text>
+  <text x="576" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a reserva e as linhas que ela protege</text>
+  <text x="576" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">entraram juntas</text>
+  <text x="576" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_hash ainda '' — a rota já</text>
+  <text x="576" y="283" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">respondeu, mas o destino ainda não</text>
+  <text x="576" y="297" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">foi gravado</text>
+  <rect x="970" y="195" width="260" height="120" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="986" y="221" font-size="13.5" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">concluída</text>
+  <text x="986" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_location = o header Location</text>
+  <text x="986" y="255" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">(ou '' se a rota não define)</text>
+  <text x="986" y="269" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_hash = sha256 dele</text>
+  <text x="986" y="283" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a linha fica: é o registro de que a</text>
+  <text x="986" y="297" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">chave foi gasta</text>
+  <path d="M 410,255 L 558,255" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#p-2563eb)"/>
+  <text x="424" y="228" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">o handler retornou</text>
+  <text x="424" y="241" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ COMMIT</text>
+  <path d="M 820,255 L 968,255" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <text x="834" y="222" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">resposta abaixo de 400</text>
+  <text x="834" y="235" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ UPDATE response_location,</text>
+  <text x="834" y="248" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">response_hash</text>
+  <circle cx="1100" cy="372" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8"/>
+  <circle cx="1100" cy="372" r="7.5" fill="#111827"/>
+  <path d="M 1100,315 L 1100,357" fill="none" stroke="#16a34a" stroke-width="1.6" marker-end="url(#p-16a34a)"/>
+  <rect x="150" y="420" width="260" height="105" rx="12" ry="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="166" y="446" font-size="13.5" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">nunca existiu</text>
+  <text x="166" y="466" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ROLLBACK levou a reserva e a escrita</text>
+  <text x="166" y="480" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">não há DELETE nem nada a</text>
+  <text x="166" y="494" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">compensar — a mesma chave serve de</text>
+  <text x="166" y="508" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">novo, para a mesma pessoa</text>
+  <path d="M 280,315 L 280,418" fill="none" stroke="#ea580c" stroke-width="1.6" marker-end="url(#p-ea580c)"/>
+  <text x="297" y="340" font-size="9.5" fill="#ea580c" font-weight="600" text-anchor="start">uma recusa (Result.ok === false), uma exceção,</text>
+  <text x="297" y="353" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">ou resposta de 400 para cima</text>
+  <text x="297" y="366" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">/ ROLLBACK — um comando, não dois</text>
+  <path d="M 280,527 L 280,552 L 100,552 L 100,132 L 265,132" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#p-ea580c)"/>
+  <text x="300" y="546" font-size="9.5" fill="#ea580c" font-weight="600" text-anchor="start">a pessoa corrige o formulário e manda a mesma chave</text>
+  <rect x="560" y="400" width="670" height="148" rx="10" ry="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.3" data-graph-role="container"/>
+  <text x="574" y="424" font-size="11.5" fill="#92400e" font-weight="600" text-anchor="start">O que a segunda chamada com a mesma chave acha</text>
+  <text x="574" y="444" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O INSERT devolve zero linhas, RepeatedWrite é lançado, essa transação faz rollback, e o middleware responde</text>
+  <text x="574" y="457" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">pela linha que já está lá — lida com readerFresh(), no escopo da mesma chave, usuário e rota:</text>
+  <circle cx="582" cy="477.5" r="3.5" fill="#2563eb"/>
+  <text x="594" y="481" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">409 · chave de idempotência em curso</text>
+  <text x="830" y="481" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o response_hash gravado é '' — a primeira ainda não respondeu</text>
+  <circle cx="582" cy="495.5" r="3.5" fill="#16a34a"/>
+  <text x="594" y="499" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">200 { repeated: true, location }</text>
+  <text x="830" y="499" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">o mesmo destino que a primeira devolveu</text>
+  <circle cx="582" cy="513.5" r="3.5" fill="#dc2626"/>
+  <text x="594" y="517" font-size="9.5" fill="#dc2626" font-weight="600" text-anchor="start">409 · chave é de outra requisição</text>
+  <text x="830" y="517" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">não há linha para esta chave E este usuário E esta rota: a chave veio de fora</text>
+  <rect x="60" y="580" width="380" height="280" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="74" y="604" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Por que a reserva foi para a transação</text>
+  <text x="74" y="624" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Antes era papel do middleware: INSERT antes do handler,</text>
+  <text x="74" y="637" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">DELETE na falha. Duas escritas, e a segunda era</text>
+  <text x="74" y="650" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">compensação — o padrão que falha quando o processo morre</text>
+  <text x="74" y="663" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">entre as duas, deixando chave queimada por uma escrita</text>
+  <text x="74" y="676" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">que nunca houve.</text>
+  <text x="74" y="702" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Agora a reserva é o primeiro comando da própria</text>
+  <text x="74" y="715" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">transação que faz a escrita. A exclusividade segue</text>
+  <text x="74" y="728" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">sendo do banco (PRIMARY KEY), e a atomicidade sai de graça:</text>
+  <text x="74" y="741" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">a reserva comita com as linhas a que se refere, ou some</text>
+  <text x="74" y="754" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">junto com elas.</text>
+  <text x="74" y="780" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">É também por isso que recusa de negócio faz rollback em vez</text>
+  <text x="74" y="793" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">de só retornar — veja unitOfWork() e isRefusal().</text>
+  <rect x="460" y="580" width="380" height="280" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="474" y="604" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">O que nunca chega à reserva</text>
+  <text x="474" y="624" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">GET — o middleware devolve next() na primeira linha: sem</text>
+  <text x="474" y="637" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">corpo a ler, sem chave a tomar.</text>
+  <text x="474" y="663" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">PUT, PATCH e DELETE — o corpo é lido para o handler e a</text>
+  <text x="474" y="676" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">máquina para aí. Eles já dizem qual deve SER o estado,</text>
+  <text x="474" y="689" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">não o que somar a ele: lançar as mesmas notas duas vezes</text>
+  <text x="474" y="702" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">deixa as mesmas notas.</text>
+  <text x="474" y="728" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">POST anônimo — a tabela exige user_id, e a única</text>
+  <text x="474" y="741" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">escrita sem sessão é o login. Repetir só cria outra</text>
+  <text x="474" y="754" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">sessão.</text>
+  <text x="474" y="780" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">POST sem chave, ou com chave malformada — 400 e aviso no</text>
+  <text x="474" y="793" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">log. Nunca tolerado em silêncio.</text>
+  <rect x="860" y="580" width="380" height="280" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="874" y="604" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">A garantia não vem do navegador</text>
+  <text x="874" y="624" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Nada aqui depende de o cliente ser uma tela deste</text>
+  <text x="874" y="637" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">sistema. O contrato é: traga uma chave única por intenção,</text>
+  <text x="874" y="650" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">e prove que a requisição veio da aplicação</text>
+  <text x="874" y="663" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">(X-Requested-By, checado um middleware antes).</text>
+  <text x="874" y="689" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Um webhook mandando a mesma chave recebe o mesmo trato,</text>
+  <text x="874" y="702" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">sem uma linha de mudança — e por isso a tabela é de</text>
+  <text x="874" y="715" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">plataforma, sem network_id. Também por isso a chave é</text>
+  <text x="874" y="728" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">escopada por usuário e rota na saída: chave gerada para</text>
+  <text x="874" y="741" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">uma pessoa não repete a escrita de outra.</text>
+  <text x="874" y="767" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">O hash da resposta fica ao lado do destino. Ele não</text>
+  <text x="874" y="780" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">decide nada hoje, e existe para que a repetição possa</text>
+  <text x="874" y="793" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">depois ser comparada, não só redirecionada.</text>
+  <text x="36" y="880" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Lido de apps/api/src/shared/http/idempotency.ts e apps/api/src/shared/db/. Estado do Estágio 01.</text>
+</svg>

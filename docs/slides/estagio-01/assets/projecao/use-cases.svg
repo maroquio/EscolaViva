@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1468 1388" width="1468" height="1388">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1468" height="1388" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Casos de Uso em UML</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">Funcionalidades derivadas das rotas HTTP em apps/api/src/http/routes e dos casos de uso de aplicação em apps/api/src/*/application</text>
+  <marker id="gen" markerWidth="14" markerHeight="12" refX="13" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 Z" fill="#ffffff" stroke="#111827" stroke-width="1.3"/></marker>
+  <rect x="246" y="100" width="1194" height="1260" rx="10" ry="10" fill="#ffffff" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="7,6" data-graph-role="container"/>
+  <text x="266" y="124" font-size="20.0" fill="#475569" font-weight="600" text-anchor="start">Sistema EscolaViva — SaaS escolar multi-inquilino</text>
+  <rect x="275" y="130" width="1097" height="120" rx="10" ry="10" fill="#f3f4f6" stroke-dasharray="5,5"/>
+  <text x="287" y="152" font-size="17.6" fill="#111827" font-weight="600" text-anchor="start">Acesso e conta — qualquer usuário autenticado</text>
+  <ellipse cx="388" cy="206" rx="101" ry="28" fill="#ffffff" stroke="#111827" stroke-width="1.5"/>
+  <text x="388" y="210" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Autenticar-se</text>
+  <ellipse cx="606" cy="206" rx="101" ry="28" fill="#ffffff" stroke="#111827" stroke-width="1.5"/>
+  <text x="606" y="203" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Recuperar a sessão</text>
+  <text x="606" y="217" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">atual</text>
+  <ellipse cx="824" cy="206" rx="101" ry="28" fill="#ffffff" stroke="#111827" stroke-width="1.5"/>
+  <text x="824" y="210" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Encerrar sessão</text>
+  <ellipse cx="1042" cy="206" rx="101" ry="28" fill="#ffffff" stroke="#111827" stroke-width="1.5"/>
+  <text x="1042" y="210" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Trocar a própria senha</text>
+  <rect x="275" y="274" width="1097" height="196" rx="10" ry="10" fill="#faf5ff" stroke-dasharray="5,5"/>
+  <text x="287" y="296" font-size="17.6" fill="#7c3aed" font-weight="600" text-anchor="start">Administração da rede</text>
+  <ellipse cx="388" cy="350" rx="101" ry="28" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="388" y="354" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Ver painel da rede</text>
+  <ellipse cx="606" cy="350" rx="101" ry="28" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="606" y="354" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Criar escola</text>
+  <ellipse cx="824" cy="350" rx="101" ry="28" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="824" y="354" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Definir o ano letivo</text>
+  <ellipse cx="1042" cy="350" rx="101" ry="28" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="1042" y="354" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Convidar usuário</text>
+  <ellipse cx="1042" cy="426" rx="101" ry="28" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="1042" y="423" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Gerar senha</text>
+  <text x="1042" y="437" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">provisória</text>
+  <rect x="275" y="494" width="1097" height="120" rx="10" ry="10" fill="#fff7ed" stroke-dasharray="5,5"/>
+  <text x="287" y="516" font-size="17.6" fill="#ea580c" font-weight="600" text-anchor="start">Comunicação com as famílias</text>
+  <ellipse cx="388" cy="570" rx="101" ry="28" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="388" y="574" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Publicar comunicado</text>
+  <ellipse cx="606" cy="570" rx="101" ry="28" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="606" y="567" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Acompanhar leituras</text>
+  <text x="606" y="581" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">do comunicado</text>
+  <rect x="275" y="638" width="1097" height="272" rx="10" ry="10" fill="#eff6ff" stroke-dasharray="5,5"/>
+  <text x="287" y="660" font-size="17.6" fill="#2563eb" font-weight="600" text-anchor="start">Secretaria acadêmica</text>
+  <ellipse cx="388" cy="714" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="388" y="711" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Painel da</text>
+  <text x="388" y="725" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">secretaria</text>
+  <ellipse cx="606" cy="714" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="606" y="718" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Cadastrar aluno</text>
+  <ellipse cx="824" cy="714" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="824" y="711" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Ver a ficha do</text>
+  <text x="824" y="725" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">aluno</text>
+  <ellipse cx="1042" cy="714" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1042" y="711" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Cadastrar responsável</text>
+  <text x="1042" y="725" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">com acesso ao portal</text>
+  <ellipse cx="1260" cy="714" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1260" y="711" font-size="11.0" fill="#111827" font-weight="400" text-anchor="middle">Vincular responsável</text>
+  <text x="1260" y="725" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">ao aluno</text>
+  <ellipse cx="388" cy="790" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="388" y="794" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Matricular aluno</text>
+  <ellipse cx="606" cy="790" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="606" y="794" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Transferir matrícula</text>
+  <ellipse cx="824" cy="790" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="824" y="794" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Cadastrar turma</text>
+  <ellipse cx="1042" cy="790" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1042" y="794" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Ver turma</text>
+  <ellipse cx="1260" cy="790" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1260" y="787" font-size="11.0" fill="#111827" font-weight="400" text-anchor="middle">Atribuir professor</text>
+  <text x="1260" y="801" font-size="15.8" fill="#111827" font-weight="400" text-anchor="middle">à disciplina</text>
+  <ellipse cx="388" cy="866" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="388" y="870" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Cadastrar disciplina</text>
+  <ellipse cx="606" cy="866" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="606" y="863" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Fechar a matrícula</text>
+  <text x="606" y="877" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">de origem</text>
+  <rect x="275" y="934" width="1097" height="196" rx="10" ry="10" fill="#f0fdf4" stroke-dasharray="5,5"/>
+  <text x="287" y="956" font-size="17.6" fill="#16a34a" font-weight="600" text-anchor="start">Diário do professor</text>
+  <ellipse cx="388" cy="1010" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="388" y="1007" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Painel do</text>
+  <text x="388" y="1021" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">professor</text>
+  <ellipse cx="606" cy="1010" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="606" y="1014" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Lançar notas</text>
+  <ellipse cx="824" cy="1010" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="824" y="1014" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Registrar chamada</text>
+  <ellipse cx="1042" cy="1010" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="1042" y="1014" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Fechar bimestre</text>
+  <ellipse cx="606" cy="1086" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="606" y="1090" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Limpar nota lançada</text>
+  <ellipse cx="1042" cy="1086" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="1042" y="1083" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Ver o que falta no</text>
+  <text x="1042" y="1097" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">bimestre</text>
+  <rect x="275" y="1154" width="1097" height="196" rx="10" ry="10" fill="#f0fdfa" stroke-dasharray="5,5"/>
+  <text x="287" y="1176" font-size="17.6" fill="#0d9488" font-weight="600" text-anchor="start">Acompanhamento familiar</text>
+  <ellipse cx="388" cy="1230" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="388" y="1227" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Painel do</text>
+  <text x="388" y="1241" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">responsável</text>
+  <ellipse cx="606" cy="1230" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="606" y="1234" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Ver o boletim</text>
+  <ellipse cx="824" cy="1230" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="824" y="1234" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Ver frequência</text>
+  <ellipse cx="1042" cy="1230" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="1042" y="1227" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">Ver o mural de</text>
+  <text x="1042" y="1241" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">comunicados</text>
+  <ellipse cx="1260" cy="1230" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="1260" y="1234" font-size="11.8" fill="#111827" font-weight="400" text-anchor="middle">Ler o comunicado</text>
+  <ellipse cx="1260" cy="1306" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="1260" y="1303" font-size="11.1" fill="#111827" font-weight="400" text-anchor="middle">Marcar comunicado</text>
+  <text x="1260" y="1317" font-size="16.8" fill="#111827" font-weight="400" text-anchor="middle">como lido</text>
+  <path d="M 181,206 L 265,206" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 265,164 L 265,206" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 265,164 L 1042,164" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 388,164 L 388,178" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 606,164 L 606,178" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 824,164 L 824,178" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 1042,164 L 1042,178" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 181,350 L 265,350" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 265,308 L 265,350" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 265,308 L 1042,308" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 388,308 L 388,322" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 606,308 L 606,322" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 824,308 L 824,322" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 1042,308 L 1042,322" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 181,714 L 265,714" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 265,672 L 265,824" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 265,672 L 1260,672" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 388,672 L 388,686" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 606,672 L 606,686" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 824,672 L 824,686" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 1042,672 L 1042,686" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 1260,672 L 1260,686" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 265,748 L 1260,748" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 388,748 L 388,762" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 606,748 L 606,762" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 824,748 L 824,762" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 1042,748 L 1042,762" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 1260,748 L 1260,762" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 265,824 L 388,824" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 388,824 L 388,838" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 181,1010 L 265,1010" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 265,968 L 265,1010" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 265,968 L 1042,968" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 388,968 L 388,982" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 606,968 L 606,982" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 824,968 L 824,982" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 1042,968 L 1042,982" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 181,1230 L 265,1230" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 265,1188 L 265,1230" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 265,1188 L 1260,1188" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 388,1188 L 388,1202" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 606,1188 L 606,1202" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 824,1188 L 824,1202" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 1042,1188 L 1042,1202" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 1260,1188 L 1260,1202" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 265,350 L 265,528" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 265,528 L 606,528" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 388,528 L 388,542" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 606,528 L 606,542" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 181,350 L 265,350" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 265,528 L 265,714" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 265,528 L 606,528" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 388,528 L 388,542" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 606,528 L 606,542" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 181,714 L 265,714" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <circle cx="159" cy="176" r="9" fill="#ffffff" stroke="#111827" stroke-width="1.6"/>
+  <path d="M 159,185 L 159,208" fill="none" stroke="#111827" stroke-width="1.6"/>
+  <path d="M 145,194 L 173,194" fill="none" stroke="#111827" stroke-width="1.6"/>
+  <path d="M 159,208 L 147,224" fill="none" stroke="#111827" stroke-width="1.6"/>
+  <path d="M 159,208 L 171,224" fill="none" stroke="#111827" stroke-width="1.6"/>
+  <text x="159" y="240" font-size="16.8" fill="#111827" font-weight="600" text-anchor="middle">Usuário</text>
+  <circle cx="159" cy="320" r="9" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+  <path d="M 159,329 L 159,352" fill="none" stroke="#7c3aed" stroke-width="1.6"/>
+  <path d="M 145,338 L 173,338" fill="none" stroke="#7c3aed" stroke-width="1.6"/>
+  <path d="M 159,352 L 147,368" fill="none" stroke="#7c3aed" stroke-width="1.6"/>
+  <path d="M 159,352 L 171,368" fill="none" stroke="#7c3aed" stroke-width="1.6"/>
+  <text x="159" y="384" font-size="16.8" fill="#111827" font-weight="600" text-anchor="middle">Admin. da rede</text>
+  <circle cx="159" cy="684" r="9" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+  <path d="M 159,693 L 159,716" fill="none" stroke="#2563eb" stroke-width="1.6"/>
+  <path d="M 145,702 L 173,702" fill="none" stroke="#2563eb" stroke-width="1.6"/>
+  <path d="M 159,716 L 147,732" fill="none" stroke="#2563eb" stroke-width="1.6"/>
+  <path d="M 159,716 L 171,732" fill="none" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="159" y="748" font-size="16.8" fill="#111827" font-weight="600" text-anchor="middle">Secretaria</text>
+  <circle cx="159" cy="980" r="9" fill="#ffffff" stroke="#16a34a" stroke-width="1.6"/>
+  <path d="M 159,989 L 159,1012" fill="none" stroke="#16a34a" stroke-width="1.6"/>
+  <path d="M 145,998 L 173,998" fill="none" stroke="#16a34a" stroke-width="1.6"/>
+  <path d="M 159,1012 L 147,1028" fill="none" stroke="#16a34a" stroke-width="1.6"/>
+  <path d="M 159,1012 L 171,1028" fill="none" stroke="#16a34a" stroke-width="1.6"/>
+  <text x="159" y="1044" font-size="16.8" fill="#111827" font-weight="600" text-anchor="middle">Professor</text>
+  <circle cx="159" cy="1200" r="9" fill="#ffffff" stroke="#0d9488" stroke-width="1.6"/>
+  <path d="M 159,1209 L 159,1232" fill="none" stroke="#0d9488" stroke-width="1.6"/>
+  <path d="M 145,1218 L 173,1218" fill="none" stroke="#0d9488" stroke-width="1.6"/>
+  <path d="M 159,1232 L 147,1248" fill="none" stroke="#0d9488" stroke-width="1.6"/>
+  <path d="M 159,1232 L 171,1248" fill="none" stroke="#0d9488" stroke-width="1.6"/>
+  <text x="159" y="1264" font-size="16.8" fill="#111827" font-weight="600" text-anchor="middle">Responsável</text>
+  <path d="M 66,206 L 66,1230" fill="none" stroke="#111827" stroke-width="1.2"/>
+  <path d="M 137,350 L 66,350" fill="none" stroke="#111827" stroke-width="1.2"/>
+  <path d="M 137,714 L 66,714" fill="none" stroke="#111827" stroke-width="1.2"/>
+  <path d="M 137,1010 L 66,1010" fill="none" stroke="#111827" stroke-width="1.2"/>
+  <path d="M 137,1230 L 66,1230" fill="none" stroke="#111827" stroke-width="1.2"/>
+  <path d="M 66,206 L 135,206" fill="none" stroke="#111827" stroke-width="1.2" marker-end="url(#gen)"/>
+  <path d="M 1042,378 L 1042,396" fill="none" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-7c3aed)"/>
+  <path d="M 606,818 L 606,836" fill="none" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-7c3aed)"/>
+  <path d="M 1042,1038 L 1042,1056" fill="none" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-7c3aed)"/>
+  <path d="M 606,1058 L 606,1040" fill="none" stroke="#ea580c" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-ea580c)"/>
+  <path d="M 1260,1278 L 1260,1260" fill="none" stroke="#ea580c" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-ea580c)"/>
+  <path d="M 1147,714 L 1147,626 L 1400,626 L 1400,426 L 1145,426" fill="none" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-7c3aed)"/>
+</svg>

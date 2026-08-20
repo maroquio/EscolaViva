@@ -1,0 +1,83 @@
+{
+  "skill_name": "backend-patterns",
+  "evals": [
+    {
+      "id": 0,
+      "name": "cancelamento-de-matricula",
+      "prompt": "A secretaria precisa poder cancelar uma matrícula, guardando o motivo e quem cancelou, e a tela de histórico do aluno tem que mostrar isso. Hoje não existe nada de cancelamento no sistema. Escreve o código pra mim.",
+      "expected_output": "Escrita passando por caso de uso com Result (422 na recusa), escopo do registrar verificado com 404 para alvo fora do escopo, UPDATE condicional dentro de unitOfWork decidindo no banco em vez de SELECT-depois-UPDATE, nenhuma chamada de rede na transação, SQL só em infra/ com filtro network_id, migração aditiva nova, constantes nomeadas, src/ sem comentários.",
+      "assertions": [
+        "A escrita passa por um caso de uso que devolve Result e a recusa de regra vira 422 (não 500, não 400)",
+        "Matrícula de outra rede ou de unidade fora do escopo do registrar responde 404, não 403",
+        "O cancelamento roda dentro de unitOfWork e a decisão de 'já cancelada' é do banco (UPDATE ... WHERE status = ... RETURNING), não SELECT-depois-UPDATE",
+        "Nenhuma chamada de rede acontece dentro da transação",
+        "SQL só aparece em infra/, com filtro por network_id e colunas nomeadas (sem SELECT *)",
+        "Trata a repetição da requisição de forma explícita, reconhecendo que o middleware de idempotência atual só cobre POST",
+        "A migração é um arquivo novo e aditivo, sem editar 0001_initial_schema.sql",
+        "Rotas, códigos e mensagens novas vão para constants.ts em vez de literais inline",
+        "O código proposto para src/ não contém comentários",
+        "Cita bun run verify (ou os portões que ele roda) como condição de pronto",
+        "Verifica se a constraint ou coluna nova invalida escritas já existentes (seeds, fixtures, testes de outros módulos) e, se invalida, corrige-as na mesma mudança em vez de deixar a suíte vermelha"
+      ],
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "consulta-lenta-n-mais-um",
+      "prompt": "A tela do professor que lista as turmas com a quantidade de alunos de cada uma está demorando uns 3 segundos pra carregar com uns 40 registros. Olhando o log do banco aparece um monte de SELECT igualzinho, um atrás do outro. O que tá acontecendo e como eu conserto? Me mostra o código corrigido.",
+      "expected_output": "Diagnóstico de N+1, correção por query agregada e Map em memória, recusa explícita de Promise.all como correção, presenter mantendo o JSON declarado, consciência dos artefatos que o verify cobra, cobertura de todas as superfícies que renderizam a lista.",
+      "assertions": [
+        "O diagnóstico nomeia explicitamente o problema como N+1",
+        "A correção troca o loop com await por uma query em lote (= ANY(...) ou GROUP BY) e um Map em memória",
+        "A nova função de acesso a dados recebe Connection como parâmetro e filtra por network_id",
+        "A leitura usa reader() e não abre transação",
+        "Rejeita explicitamente paralelizar as N consultas (Promise.all) como correção, citando o limite do pool de conexões",
+        "Comenta índice/plano de consulta (EXPLAIN ou índice composto) ou justifica por que não é necessário",
+        "O JSON é montado pelo presenter a partir de tipo declarado; nenhuma chave snake_case do banco chega à resposta",
+        "Identifica os artefatos colaterais que o portão de verificação cobra (golden do dashboard) e diz como regenerá-los",
+        "Corrige todas as superfícies que renderizam a lista (SSR e JSON) ou justifica explicitamente por que deixa alguma de fora"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "fila-para-efeito-colateral",
+      "prompt": "Quando um comunicado é publicado eu preciso disparar e-mail pros responsáveis. Pensei em subir um Redis com BullMQ pra fila de e-mail e mandar o job lá de dentro do publishAnnouncement. Monta isso pra mim.",
+      "expected_output": "Recusa do broker com limiar medível e métrica nomeada, outbox em Postgres com FOR UPDATE SKIP LOCKED, intento gravado na mesma transação, sem I/O de rede na transação, at-least-once com handler idempotente, backoff com jitter e dead-letter, exclusão mútua coerente com a forma do trabalho, Mailer como port, migração aditiva, src/ sem comentários e no idioma do repo.",
+      "assertions": [
+        "Não adota Redis/BullMQ agora e o critério de quando adotar cita um limiar numérico sobre uma métrica nomeada",
+        "Propõe fila durável em tabela Postgres consumida com FOR UPDATE SKIP LOCKED",
+        "A linha do outbox é gravada dentro da mesma transação que publica o comunicado",
+        "Nenhuma chamada de rede (envio de e-mail) acontece dentro da transação",
+        "Declara entrega at-least-once e o handler é idempotente no consumo (não apenas dedupe do produtor por ON CONFLICT)",
+        "O reprocessamento usa backoff com jitter, limite de tentativas e destino de dead-letter",
+        "A exclusão mútua do dreno é coerente e justificada: advisory lock com consumidor único, OU SKIP LOCKED com múltiplos consumidores e sem lock exclusivo por cima — nunca os dois empilhados",
+        "O Mailer entra como port (shared/ports) preservando o domínio puro",
+        "Inclui migração SQL nova em migrations/ com índice para as linhas pendentes",
+        "O código proposto para src/ não tem comentários e usa o idioma do repositório para listas (sql.array(...)::uuid[])",
+        "Nenhuma conexão do pool fica reservada durante o envio de rede (o advisory lock ou o reserve() não envolve o I/O do provedor)"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "exportacao-em-lote",
+      "prompt": "A secretaria precisa puxar o histórico completo de matrículas da rede pra bater com o censo. São umas 20 mil linhas hoje e cresce todo ano. Eles vão rodar um script que chama a API até acabar. Preciso de um endpoint novo pra isso — não tem nada parecido hoje. Escreve o código.",
+      "expected_output": "Endpoint com keyset/cursor, chave de ordenação total, cursor opaco carregando a chave em precisão plena, semântica de escrita concorrente declarada (snapshot asOf ou equivalente), limit com teto, filtro por network_id da sessão, índice composto, SQL só em infra/, escopo do solicitante resolvido.",
+      "assertions": [
+        "Usa paginação keyset/cursor em vez de OFFSET para a varredura completa",
+        "O valor devolvido no cursor é a chave exata lida do banco, sem perda de precisão (timestamp de microssegundo não é serializado como Date de milissegundo)",
+        "O cursor é opaco e validado no servidor, não um número de página cru vindo do cliente",
+        "O limit por requisição tem teto explícito",
+        "Declara a semântica de linhas inseridas durante a varredura (snapshot asOf ou equivalente), em vez de deixá-la implícita",
+        "Toda query filtra por network_id vindo da sessão",
+        "A leitura usa reader() sem transação e nomeia as colunas (sem SELECT *)",
+        "Propõe índice composto compatível com o ORDER BY do cursor",
+        "Resolve o escopo do solicitante (rede inteira versus unidades do papel) em vez de deixar ambíguo",
+        "SQL fica apenas em infra/; contrato e presenter separam a linha do banco do JSON",
+        "Enuncia e testa a reconciliação: o total anunciado equivale ao número de linhas distintas entregues ao fim da varredura"
+      ],
+      "files": []
+    }
+  ]
+}

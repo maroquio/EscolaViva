@@ -1,0 +1,164 @@
+[
+ {
+  "id": "stack-frontend--build-e-desenvolvimento",
+  "rotulo": "Build e desenvolvimento",
+  "imagem": "assets/blocos/stack-frontend--build-e-desenvolvimento.png",
+  "esquerda": 2.319,
+  "topo": 14.397,
+  "largura": 67.391,
+  "altura": 20.344
+ },
+ {
+  "id": "stack-frontend--vite-7-3-6",
+  "rotulo": "Vite 7.3.6",
+  "imagem": "assets/blocos/stack-frontend--vite-7-3-6.png",
+  "esquerda": 3.406,
+  "topo": 19.406,
+  "largura": 21.159,
+  "altura": 13.616
+ },
+ {
+  "id": "stack-frontend--typescript-5-9-3",
+  "rotulo": "TypeScript 5.9.3",
+  "imagem": "assets/blocos/stack-frontend--typescript-5-9-3.png",
+  "esquerda": 25.435,
+  "topo": 19.406,
+  "largura": 21.159,
+  "altura": 13.616
+ },
+ {
+  "id": "stack-frontend--build",
+  "rotulo": "build",
+  "imagem": "assets/blocos/stack-frontend--build.png",
+  "esquerda": 47.464,
+  "topo": 19.406,
+  "largura": 21.159,
+  "altura": 13.616
+ },
+ {
+  "id": "stack-frontend--runtime",
+  "rotulo": "Runtime",
+  "imagem": "assets/blocos/stack-frontend--runtime.png",
+  "esquerda": 2.319,
+  "topo": 36.15,
+  "largura": 67.391,
+  "altura": 22.066
+ },
+ {
+  "id": "stack-frontend--react-19-2-8-react-dom-19-2-8",
+  "rotulo": "React 19.2.8 + react-dom 19.2.8",
+  "imagem": "assets/blocos/stack-frontend--react-19-2-8-react-dom-19-2-8.png",
+  "esquerda": 3.406,
+  "topo": 41.159,
+  "largura": 21.159,
+  "altura": 15.336
+ },
+ {
+  "id": "stack-frontend--react-router-7-18-2",
+  "rotulo": "React Router 7.18.2",
+  "imagem": "assets/blocos/stack-frontend--react-router-7-18-2.png",
+  "esquerda": 25.435,
+  "topo": 41.159,
+  "largura": 21.159,
+  "altura": 15.336
+ },
+ {
+  "id": "stack-frontend--guardas",
+  "rotulo": "Guardas",
+  "imagem": "assets/blocos/stack-frontend--guardas.png",
+  "esquerda": 47.464,
+  "topo": 41.159,
+  "largura": 21.159,
+  "altura": 15.336
+ },
+ {
+  "id": "stack-frontend--interface-mantine-8-e-o-css-que-s-func",
+  "rotulo": "Interface — Mantine 8, e o CSS que só funciona na ordem certa",
+  "imagem": "assets/blocos/stack-frontend--interface-mantine-8-e-o-css-que-s-func.png",
+  "esquerda": 2.319,
+  "topo": 59.624,
+  "largura": 67.391,
+  "altura": 22.066
+ },
+ {
+  "id": "stack-frontend--mantine-core-8-3-18",
+  "rotulo": "@mantine/core 8.3.18",
+  "imagem": "assets/blocos/stack-frontend--mantine-core-8-3-18.png",
+  "esquerda": 3.406,
+  "topo": 64.633,
+  "largura": 21.159,
+  "altura": 15.336
+ },
+ {
+  "id": "stack-frontend--mantinesheetsinloadorder-css-ts-33-fol",
+  "rotulo": "mantineSheetsInLoadOrder.css.ts — 33 folhas",
+  "imagem": "assets/blocos/stack-frontend--mantinesheetsinloadorder-css-ts-33-fol.png",
+  "esquerda": 25.435,
+  "topo": 64.633,
+  "largura": 21.159,
+  "altura": 15.336
+ },
+ {
+  "id": "stack-frontend--mantine-dates-est-instalado-e-fica-for",
+  "rotulo": "@mantine/dates está instalado e fica fora",
+  "imagem": "assets/blocos/stack-frontend--mantine-dates-est-instalado-e-fica-for.png",
+  "esquerda": 47.464,
+  "topo": 64.633,
+  "largura": 21.159,
+  "altura": 15.336
+ },
+ {
+  "id": "stack-frontend--estado-e-dados",
+  "rotulo": "Estado e dados",
+  "imagem": "assets/blocos/stack-frontend--estado-e-dados.png",
+  "esquerda": 2.319,
+  "topo": 83.099,
+  "largura": 67.391,
+  "altura": 33.646
+ },
+ {
+  "id": "stack-frontend--shared-api-client-ts",
+  "rotulo": "shared/api/client.ts",
+  "imagem": "assets/blocos/stack-frontend--shared-api-client-ts.png",
+  "esquerda": 3.406,
+  "topo": 88.107,
+  "largura": 21.159,
+  "altura": 15.336
+ },
+ {
+  "id": "stack-frontend--tanstack-query-5-101",
+  "rotulo": "TanStack Query 5.101",
+  "imagem": "assets/blocos/stack-frontend--tanstack-query-5-101.png",
+  "esquerda": 25.435,
+  "topo": 88.107,
+  "largura": 21.159,
+  "altura": 15.336
+ },
+ {
+  "id": "stack-frontend--formul-rios",
+  "rotulo": "Formulários",
+  "imagem": "assets/blocos/stack-frontend--formul-rios.png",
+  "esquerda": 47.464,
+  "topo": 88.107,
+  "largura": 21.159,
+  "altura": 15.336
+ },
+ {
+  "id": "stack-frontend--o-caminho-de-um-dado-do-clique-at-o-se",
+  "rotulo": "O caminho de um dado, do clique até o servidor",
+  "imagem": "assets/blocos/stack-frontend--o-caminho-de-um-dado-do-clique-at-o-se.png",
+  "esquerda": 70.87,
+  "topo": 14.397,
+  "largura": 27.101,
+  "altura": 48.514
+ },
+ {
+  "id": "stack-frontend--o-port-o",
+  "rotulo": "O portão",
+  "imagem": "assets/blocos/stack-frontend--o-port-o.png",
+  "esquerda": 70.87,
+  "topo": 64.79,
+  "largura": 27.101,
+  "altura": 23.788
+ }
+]

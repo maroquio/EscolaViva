@@ -1,0 +1,13 @@
+node_modules
+apps/api/node_modules
+apps/web/node_modules
+apps/web/dist
+.git
+.env
+docs
+apps/api/tests
+e2e
+playwright-report
+test-results
+.playwright-mcp
+coverage

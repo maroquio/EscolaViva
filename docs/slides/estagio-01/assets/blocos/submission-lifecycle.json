@@ -1,0 +1,38 @@
+[
+ {
+  "id": "submission-lifecycle--reservada",
+  "rotulo": "reservada",
+  "imagem": "assets/blocos/submission-lifecycle--reservada.png",
+  "esquerda": 11.36,
+  "topo": 33.621,
+  "largura": 20.8,
+  "altura": 20.69
+ },
+ {
+  "id": "submission-lifecycle--comitada",
+  "rotulo": "comitada",
+  "imagem": "assets/blocos/submission-lifecycle--comitada.png",
+  "esquerda": 44.16,
+  "topo": 33.621,
+  "largura": 20.8,
+  "altura": 20.69
+ },
+ {
+  "id": "submission-lifecycle--conclu-da",
+  "rotulo": "concluída",
+  "imagem": "assets/blocos/submission-lifecycle--conclu-da.png",
+  "esquerda": 76.96,
+  "topo": 33.621,
+  "largura": 20.8,
+  "altura": 20.69
+ },
+ {
+  "id": "submission-lifecycle--nunca-existiu",
+  "rotulo": "nunca existiu",
+  "imagem": "assets/blocos/submission-lifecycle--nunca-existiu.png",
+  "esquerda": 11.36,
+  "topo": 72.414,
+  "largura": 20.8,
+  "altura": 18.103
+ }
+]

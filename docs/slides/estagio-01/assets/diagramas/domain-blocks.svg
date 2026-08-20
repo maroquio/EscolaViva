@@ -1,0 +1,255 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1190" width="1800" height="1190">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+  </defs>
+  <rect x="0" y="0" width="1800" height="1190" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — A camada de domínio, bloco a bloco</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/api/src/*/domain/ · 17 arquivos, 4 contextos delimitados · nenhum importa banco, HTTP, log, agendador ou biblioteca externa</text>
+  <rect x="40" y="108" width="420" height="425" rx="12" ry="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <path d="M 42,122 V 519" fill="none" stroke="#7c3aed" stroke-width="4"/>
+  <path d="M 42,122 V 519" fill="none" stroke="#7c3aed" stroke-width="4" stroke-linecap="round"/>
+  <text x="58" y="138" font-size="14.5" fill="#7c3aed" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">identity</text>
+  <text x="58" y="156" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">quem entra, com que papel, em que escola</text>
+  <circle cx="62" cy="178" r="4" fill="#2563eb"/>
+  <text x="72" y="182" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">Entidades (registros)</text>
+  <text x="72" y="198" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Network { id, name, slug, status }</text>
+  <text x="72" y="211" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">School { id, networkId, name, inepCode, active }</text>
+  <text x="72" y="224" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">User { id, networkId, name, email, cpf, phone, active }</text>
+  <text x="72" y="237" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Session { id, networkId, userId, createdAt, expiresAt, ip }</text>
+  <circle cx="62" cy="250" r="4" fill="#0d9488"/>
+  <text x="72" y="254" font-size="9.5" fill="#0d9488" font-weight="600" text-anchor="start">Objetos de valor (conjuntos fechados)</text>
+  <text x="72" y="270" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Role · network_admin | registrar | teacher | guardian</text>
+  <text x="72" y="283" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">NetworkStatus · active | suspended | cancelled</text>
+  <text x="72" y="296" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">RoleInSchool { schoolId, schoolName, role }</text>
+  <circle cx="62" cy="309" r="4" fill="#2563eb"/>
+  <text x="72" y="313" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">Visões de leitura das entidades</text>
+  <text x="72" y="329" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">AuthenticatedUser · UserSummary · UserContact</text>
+  <circle cx="62" cy="342" r="4" fill="#16a34a"/>
+  <text x="72" y="346" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">Invariantes (predicados puros)</text>
+  <text x="72" y="362" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidRole(v) · isNetworkActive(network)</text>
+  <text x="72" y="375" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">hasSessionExpired(session, now)</text>
+  <text x="72" y="388" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">MINIMUM_PASSWORD_LENGTH = 10</text>
+  <circle cx="62" cy="401" r="4" fill="#7c3aed"/>
+  <text x="72" y="405" font-size="9.5" fill="#7c3aed" font-weight="600" text-anchor="start">Serviços e fábricas</text>
+  <text x="72" y="421" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">toAuthenticatedUser(user, network, roles)  ← junta 3 fontes</text>
+  <text x="72" y="434" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">sessionExpiration(now, durationHours)</text>
+  <text x="72" y="447" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">normalizedEmail(email)</text>
+  <circle cx="62" cy="460" r="4" fill="#ea580c"/>
+  <text x="72" y="464" font-size="9.5" fill="#ea580c" font-weight="600" text-anchor="start">Construtores que LANÇAM</text>
+  <text x="72" y="480" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">toRole(v) · toNetworkStatus(v)</text>
+  <text x="72" y="493" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">só quando o BANCO devolve valor fora do domínio</text>
+  <rect x="480" y="108" width="420" height="425" rx="12" ry="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <path d="M 482,122 V 519" fill="none" stroke="#2563eb" stroke-width="4"/>
+  <path d="M 482,122 V 519" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+  <text x="498" y="138" font-size="14.5" fill="#2563eb" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">academics</text>
+  <text x="498" y="156" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">quem estuda, onde e com quem</text>
+  <circle cx="502" cy="178" r="4" fill="#2563eb"/>
+  <text x="512" y="182" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">Entidades (registros)</text>
+  <text x="512" y="198" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Student · Subject</text>
+  <text x="512" y="211" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">AcademicYear { year, startDate, endDate }</text>
+  <text x="512" y="224" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ClassGroup { schoolId, academicYearId, name, gradeLevel, shift }</text>
+  <text x="512" y="237" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ClassGroupSubject { classGroupId, subjectId, teacherUserId }</text>
+  <text x="512" y="250" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Enrollment { studentId, classGroupId, academicYearId, status }</text>
+  <circle cx="502" cy="263" r="4" fill="#0d9488"/>
+  <text x="512" y="267" font-size="9.5" fill="#0d9488" font-weight="600" text-anchor="start">Objetos de valor (conjuntos fechados)</text>
+  <text x="512" y="283" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Shift · morning | afternoon | evening | full_time</text>
+  <text x="512" y="296" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">EnrollmentStatus · active | transferred | cancelled | completed</text>
+  <text x="512" y="309" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ACTIVE_ENROLLMENT_STATUS — a constante que as escritas usam</text>
+  <text x="512" y="322" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">GuardianLink { userId, relationship, financiallyResponsible }</text>
+  <circle cx="502" cy="335" r="4" fill="#2563eb"/>
+  <text x="512" y="339" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">Visões de leitura das entidades</text>
+  <text x="512" y="355" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">TeacherClassGroupSubject — o mesmo, mais turma e turno</text>
+  <circle cx="502" cy="368" r="4" fill="#16a34a"/>
+  <text x="512" y="372" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">Invariantes (predicados puros)</text>
+  <text x="512" y="388" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">canTransfer(enrollment)   ← só a ativa</text>
+  <text x="512" y="401" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isCoherentPeriod(start, end)</text>
+  <text x="512" y="414" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidShift(v) · isValidEnrollmentStatus(v)</text>
+  <circle cx="502" cy="427" r="4" fill="#7c3aed"/>
+  <text x="512" y="431" font-size="9.5" fill="#7c3aed" font-weight="600" text-anchor="start">Serviços de domínio</text>
+  <text x="512" y="447" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ageOn(birthDate, date)</text>
+  <rect x="920" y="108" width="420" height="425" rx="12" ry="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <path d="M 922,122 V 519" fill="none" stroke="#16a34a" stroke-width="4"/>
+  <path d="M 922,122 V 519" fill="none" stroke="#16a34a" stroke-width="4" stroke-linecap="round"/>
+  <text x="938" y="138" font-size="14.5" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">assessment</text>
+  <text x="938" y="156" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">nota, frequência e o fechamento do bimestre</text>
+  <circle cx="942" cy="178" r="4" fill="#2563eb"/>
+  <text x="952" y="182" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">Entidades e tipos calculados</text>
+  <text x="952" y="198" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Grade { enrollmentId, classGroupSubjectId, term, value }</text>
+  <text x="952" y="211" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">RollCallRow · DayPresence · AttendanceEntry · AttendanceTally</text>
+  <text x="952" y="224" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">TermClosing · TermClosingState</text>
+  <text x="952" y="237" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">ReportCard { rows, termAverages, attendanceRate, status }</text>
+  <text x="952" y="250" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">  ← calculado ao ler, nunca gravado (I5)</text>
+  <circle cx="942" cy="263" r="4" fill="#0d9488"/>
+  <text x="952" y="267" font-size="9.5" fill="#0d9488" font-weight="600" text-anchor="start">Objetos de valor</text>
+  <text x="952" y="283" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">FINAL_STATUSES · in_progress | passed | failed</text>
+  <text x="952" y="296" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">TERMS = [1, 2, 3, 4] · TERM_COUNT = 4</text>
+  <circle cx="942" cy="309" r="4" fill="#16a34a"/>
+  <text x="952" y="313" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">Invariantes (predicados puros)</text>
+  <text x="952" y="329" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidTerm(t) · isValidGradeValue(v)</text>
+  <text x="952" y="342" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidRollCallDate(d) · isDateWithinAcademicYear(d, start, end)</text>
+  <text x="952" y="355" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">allTermsClosed(states)</text>
+  <circle cx="942" cy="368" r="4" fill="#7c3aed"/>
+  <text x="952" y="372" font-size="9.5" fill="#7c3aed" font-weight="600" text-anchor="start">Serviços de domínio — o núcleo do módulo</text>
+  <text x="952" y="388" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">subjectAverage(grades) · overallAverage(values)</text>
+  <text x="952" y="401" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">termAverages(rows) · attendanceRate(presentDays, total)</text>
+  <text x="952" y="414" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">finalStatus(average, attendance, allClosed)</text>
+  <text x="952" y="427" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">closingStates(closed)   ← ausência vira estado</text>
+  <text x="952" y="440" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">closingPendingItems(subjects, active, posted)</text>
+  <text x="952" y="453" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">pendingItemsMessage(pendingItems)</text>
+  <rect x="1360" y="108" width="420" height="425" rx="12" ry="12" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <path d="M 1362,122 V 519" fill="none" stroke="#ea580c" stroke-width="4"/>
+  <path d="M 1362,122 V 519" fill="none" stroke="#ea580c" stroke-width="4" stroke-linecap="round"/>
+  <text x="1378" y="138" font-size="14.5" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">communication</text>
+  <text x="1378" y="156" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start" font-style="italic">o que a escola diz às famílias, e quem leu</text>
+  <circle cx="1382" cy="178" r="4" fill="#2563eb"/>
+  <text x="1392" y="182" font-size="9.5" fill="#2563eb" font-weight="600" text-anchor="start">Entidades (registros)</text>
+  <text x="1392" y="198" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Announcement { title, body, authorName, publishedAt }</text>
+  <text x="1392" y="211" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">StoredAnnouncement { ..., authorUserId }</text>
+  <text x="1392" y="224" font-size="8.6" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">BoardItem · ReadCount · ReadStatistic</text>
+  <circle cx="1382" cy="237" r="4" fill="#0d9488"/>
+  <text x="1392" y="241" font-size="9.5" fill="#0d9488" font-weight="600" text-anchor="start">Objetos de valor</text>
+  <text x="1392" y="257" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">MAX_TITLE_LENGTH = 160 · MAX_BODY_LENGTH = 8000</text>
+  <circle cx="1382" cy="270" r="4" fill="#16a34a"/>
+  <text x="1392" y="274" font-size="9.5" fill="#16a34a" font-weight="600" text-anchor="start">Invariantes (predicados puros)</text>
+  <text x="1392" y="290" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidTitle(t) · 1..160</text>
+  <text x="1392" y="303" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isValidBody(b) · 1..8000</text>
+  <text x="1392" y="316" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">isPublished(announcement)</text>
+  <circle cx="1382" cy="329" r="4" fill="#7c3aed"/>
+  <text x="1392" y="333" font-size="9.5" fill="#7c3aed" font-weight="600" text-anchor="start">Serviços de domínio</text>
+  <text x="1392" y="349" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">readRate(recipients, reads)</text>
+  <text x="1392" y="362" font-size="8.6" fill="#6b7280" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">withAuthor(stored, authorName)  ← monta a visão de leitura</text>
+  <rect x="40" y="561" width="1180" height="196" rx="12" ry="12" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.6" data-graph-role="container"/>
+  <text x="58" y="587" font-size="12.5" fill="#0f766e" font-weight="600" text-anchor="start">Núcleo compartilhado — as quatro coisas que o domínio pode alcançar, e nada além</text>
+  <rect x="56" y="601" width="275" height="142" rx="8" ry="8" fill="#ffffff" stroke="#99f6e4" stroke-width="1.3"/>
+  <text x="68" y="621" font-size="9" fill="#0f766e" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">apps/api/src/shared/document/ — CPF</text>
+  <text x="68" y="637" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">O único objeto de valor com aritmética</text>
+  <text x="68" y="649" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">própria: normalizeCpf · isValidCpf (DV)</text>
+  <text x="68" y="661" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">formatCpf · generateCpf</text>
+  <text x="68" y="685" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">Vive em shared/ porque a regra é a MESMA</text>
+  <text x="68" y="697" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">para identity e academics. Duplicar seria</text>
+  <text x="68" y="709" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">pior do que compartilhar.</text>
+  <rect x="343" y="601" width="275" height="142" rx="8" ry="8" fill="#ffffff" stroke="#99f6e4" stroke-width="1.3"/>
+  <text x="355" y="621" font-size="9" fill="#0f766e" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">apps/api/src/shared/result.ts</text>
+  <text x="355" y="637" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">Result&lt;T&gt; = { ok: true, value }</text>
+  <text x="355" y="649" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">          | { ok: false, errors }</text>
+  <text x="355" y="661" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">success() · failure() · fieldFailure()</text>
+  <text x="355" y="673" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">schemaErrors() · isRefusal()</text>
+  <text x="355" y="697" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">Uma falha esperada é um VALOR, não uma</text>
+  <text x="355" y="709" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">exceção. O domínio não usa: um predicado</text>
+  <text x="355" y="721" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">devolve booleano, e application/ monta o</text>
+  <text x="355" y="733" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">erro.</text>
+  <rect x="630" y="601" width="275" height="142" rx="8" ry="8" fill="#ffffff" stroke="#99f6e4" stroke-width="1.3"/>
+  <text x="642" y="621" font-size="9" fill="#0f766e" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">apps/api/src/shared/ports/</text>
+  <text x="642" y="637" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">Clock { now(): Date } · dayOf(clock)</text>
+  <text x="642" y="649" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">IdGenerator { next(): string }</text>
+  <text x="642" y="673" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">Nenhum arquivo de domain/ importa uma</text>
+  <text x="642" y="685" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">ainda. A permissão fica escrita assim</text>
+  <text x="642" y="697" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">para que, quando uma regra precisar do</text>
+  <text x="642" y="709" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">relógio, a regra não seja o impedimento —</text>
+  <text x="642" y="721" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">e ler o relógio siga efeito atrás de porta.</text>
+  <rect x="917" y="601" width="275" height="142" rx="8" ry="8" fill="#ffffff" stroke="#99f6e4" stroke-width="1.3"/>
+  <text x="929" y="621" font-size="9" fill="#0f766e" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">constants.ts — o de shared/ e o do módulo</text>
+  <text x="929" y="637" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">FORMATS · TIME · ISO_DATE_LENGTH, mais o</text>
+  <text x="929" y="649" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">constants.ts de cada módulo.</text>
+  <text x="929" y="673" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">Entrou na permissão para que um limite com</text>
+  <text x="929" y="685" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">dono não precise ser copiado para dentro</text>
+  <text x="929" y="697" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">de domain/ só para ficar alcançável. É a</text>
+  <text x="929" y="709" font-size="8" fill="#6b7280" font-weight="400" text-anchor="start">única concessão, e não traz comportamento.</text>
+  <rect x="1240" y="561" width="520" height="196" rx="12" ry="12" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1256" y="587" font-size="11.5" fill="#92400e" font-weight="600" text-anchor="start">A regra que desenha essa fronteira — apps/api/.dependency-cruiser.js</text>
+  <text x="1256" y="609" font-size="8.2" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">{ name: 'pure-domain', severity: 'error',</text>
+  <text x="1256" y="621" font-size="8.2" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">  from: { path: '^apps/api/src/[^/]+/domain/' },</text>
+  <text x="1256" y="633" font-size="8.2" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">  to:   { pathNot: [ '^apps/api/src/[^/]+/domain/',</text>
+  <text x="1256" y="645" font-size="8.2" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">                     '^apps/api/src/[^/]+/constants\.ts$',</text>
+  <text x="1256" y="657" font-size="8.2" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">                     '^apps/api/src/shared/(?:ports|document)/',</text>
+  <text x="1256" y="669" font-size="8.2" fill="#111827" font-weight="400" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" xml:space="preserve">                     '^apps/api/src/shared/(?:result|constants)\.ts$' ] } }</text>
+  <text x="1256" y="693" font-size="8.5" fill="#78350f" font-weight="400" text-anchor="start">Escrita como PERMISSÃO, não como denylist. Uma denylist só proíbe o que</text>
+  <text x="1256" y="705" font-size="8.5" fill="#78350f" font-weight="400" text-anchor="start">alguém lembrou de nomear: shared/pagination e shared/config nunca estiveram</text>
+  <text x="1256" y="717" font-size="8.5" fill="#78350f" font-weight="400" text-anchor="start">em uma, e um arquivo de domain/ importando qualquer um passaria na checagem</text>
+  <text x="1256" y="729" font-size="8.5" fill="#78350f" font-weight="400" text-anchor="start">em silêncio. Não é convenção — `bun run check` quebra o build.</text>
+  <text x="1256" y="741" font-size="8.5" fill="#78350f" font-weight="400" text-anchor="start">É por isso que zod aparece em 18 casos de uso e em zero arquivo sob domain/.</text>
+  <rect x="40" y="785" width="420" height="330" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="56" y="811" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">O estilo: registro anêmico + função pura</text>
+  <text x="56" y="833" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Nenhuma entidade é classe. Todas são type X = { ... }, e o</text>
+  <text x="56" y="845.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">comportamento vive em função exportada que recebe o registro:</text>
+  <text x="56" y="870.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">canTransfer(enrollment)   e não   enrollment.canTransfer()</text>
+  <text x="56" y="883.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">isNetworkActive(network)    e não   network.isActive()</text>
+  <text x="56" y="908.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Consequência aceita: não há encapsulamento. Nada impede</text>
+  <text x="56" y="921.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">montar um Enrollment com status incoerente — a garantia vem</text>
+  <text x="56" y="933.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">do CHECK do banco e do predicado que o caso de uso chama,</text>
+  <text x="56" y="946.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">não do construtor.</text>
+  <text x="56" y="971.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Em troca: toda regra é função pura, testável sem montar</text>
+  <text x="56" y="984.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">objeto, sem mocks e sem banco. Os 17 arquivos sob domain/</text>
+  <text x="56" y="996.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">não importam NADA além do constants.ts do próprio módulo</text>
+  <text x="56" y="1009.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">e do núcleo compartilhado.</text>
+  <text x="56" y="1034.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">É DDD tático em estilo funcional. Chamar de “modelo</text>
+  <text x="56" y="1047.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">anêmico” só é crítica quando a regra vaza para o serviço —</text>
+  <text x="56" y="1059.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">aqui não vaza: está em domain/, e a checagem prova.</text>
+  <rect x="480" y="785" width="420" height="330" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="496" y="811" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Por onde sai a falha — três canais, nunca misturados</text>
+  <text x="496" y="833" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">1. PREDICADO (domain/) — devolve booleano.</text>
+  <text x="496" y="845.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">isValidGradeValue(11) → false. Não lança, não formata</text>
+  <text x="496" y="858.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">mensagem, não sabe o que é campo de formulário.</text>
+  <text x="496" y="883.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">2. Result&lt;T&gt; (application/) — a falha ESPERADA vira valor.</text>
+  <text x="496" y="896" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">fieldFailure(field, code, message): 52 chamadas nos 17</text>
+  <text x="496" y="908.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">arquivos de caso de uso que o importam. Nota fora da faixa,</text>
+  <text x="496" y="921.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">matrícula duplicada, bimestre já fechado: nada disso é exceção,</text>
+  <text x="496" y="933.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">é resposta.</text>
+  <text x="496" y="959" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Devolvida de dentro de unitOfWork(), é também o que desfaz</text>
+  <text x="496" y="971.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">a transação — e com ela a reserva de idempotência, para que um</text>
+  <text x="496" y="984.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">envio recusado não queime a chave do cliente.</text>
+  <text x="496" y="1009.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">3. throw (http/) — 4 classes em shared/http/errors.ts:</text>
+  <text x="496" y="1022" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Unauthorized (3 usos) · NotFound (19) · BusinessRuleViolation (3) ·</text>
+  <text x="496" y="1034.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Forbidden (0 usos, declarada e nunca lançada).</text>
+  <text x="496" y="1059.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">E duas exceções no próprio domínio: toRole() e</text>
+  <text x="496" y="1072.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">toNetworkStatus(). Só disparam se o BANCO devolver valor</text>
+  <text x="496" y="1085" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">fora do conjunto — corrupção, não erro de usuário.</text>
+  <rect x="920" y="785" width="420" height="330" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="936" y="811" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">O que este domínio NÃO tem</text>
+  <text x="936" y="833" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">RAIZ DE AGREGADO como objeto. Não há classe que segure filhos</text>
+  <text x="936" y="845.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">e recuse mudança inválida. A fronteira do agregado é o</text>
+  <text x="936" y="858.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">index.ts do módulo mais o repositório: quem está fora só</text>
+  <text x="936" y="870.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">vê o que a fachada publica.</text>
+  <text x="936" y="896" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">EVENTOS DE DOMÍNIO. Zero. Nenhum evento é criado, publicado</text>
+  <text x="936" y="908.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">ou consumido sob apps/api/src. unitOfWork virou o único ponto</text>
+  <text x="936" y="921.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">de commit justamente para que o outbox, quando existir, entre</text>
+  <text x="936" y="933.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">ali e em nenhum outro lugar — mas ele ainda não existe.</text>
+  <text x="936" y="959" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">REPOSITÓRIO NA CAMADA DE DOMÍNIO. Não existe interface de</text>
+  <text x="936" y="971.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">repositório sob domain/. Os repositórios vivem em infra/ e</text>
+  <text x="936" y="984.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">recebem o `sql` da transação como parâmetro. A inversão de</text>
+  <text x="936" y="996.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">dependência existe só para Clock e IdGenerator.</text>
+  <text x="936" y="1022" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">ESPECIFICAÇÃO, POLÍTICA, SAGA. Nenhum desses padrões aparece —</text>
+  <text x="936" y="1034.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">e nada no código finge que aparecem.</text>
+  <text x="936" y="1059.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">CAMADA ANTICORRUPÇÃO. academics pega Role de identity como está;</text>
+  <text x="936" y="1072.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment consome Enrollment e ClassGroupSubject sem traduzir.</text>
+  <rect x="1360" y="785" width="420" height="330" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="1376" y="811" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Contextos: quem depende de quem</text>
+  <text x="1376" y="833" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">communication ──┐</text>
+  <text x="1376" y="845.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">assessment ─────┼──▶ academics ──▶ identity</text>
+  <text x="1376" y="858.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">                └──▶ identity</text>
+  <text x="1376" y="883.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">identity é a folha: não conhece ninguém.</text>
+  <text x="1376" y="908.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">LINGUAGEM PUBLICADA — a travessia é sempre pelo index.ts.</text>
+  <text x="1376" y="921.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">domain/, application/ e infra/ são privados, e o depcruise</text>
+  <text x="1376" y="933.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">recusa o atalho.</text>
+  <text x="1376" y="959" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">É uma relação Conformista sobre linguagem publicada, não</text>
+  <text x="1376" y="971.6" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">um ACL: barato agora, e a conta que o Estágio 14 paga.</text>
+  <text x="1376" y="996.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">A INVERSÃO QUE O BANCO IMPUNHA acabou: app_user não aponta</text>
+  <text x="1376" y="1009.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">mais para academics. student_guardian.user_id aponta ao</text>
+  <text x="1376" y="1022" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">contrário, e identity é folha ali também. Veja o ER.</text>
+  <text x="1376" y="1047.2" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Uma segunda regra guarda a camada acima: no-sdk-in-application</text>
+  <text x="1376" y="1059.8" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">deixa um caso de uso citar exatamente um pacote externo — zod.</text>
+  <text x="1376" y="1072.4" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">Qualquer outro que peça entrada é um efeito, e efeito fica</text>
+  <text x="1376" y="1085" font-size="9" fill="#6b7280" font-weight="400" text-anchor="start">atrás de uma porta.</text>
+  <text x="40" y="1150" font-size="9.5" fill="#111827" font-weight="600" text-anchor="start">Cor do marcador:</text>
+  <circle cx="150" cy="1146" r="4" fill="#2563eb"/>
+  <text x="160" y="1150" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Entidade</text>
+  <circle cx="227.6" cy="1146" r="4" fill="#0d9488"/>
+  <text x="237.6" y="1150" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Objeto de valor</text>
+  <circle cx="338.8" cy="1146" r="4" fill="#16a34a"/>
+  <text x="348.8" y="1150" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Invariante</text>
+  <circle cx="433.2" cy="1146" r="4" fill="#7c3aed"/>
+  <text x="443.2" y="1150" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Serviço de domínio</text>
+  <circle cx="555.6" cy="1146" r="4" fill="#ea580c"/>
+  <text x="565.6" y="1150" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Fábrica / construtor</text>
+  <text x="36" y="1170" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Lido de apps/api/src/*/domain/, apps/api/src/shared/ e apps/api/.dependency-cruiser.js. Estado do Estágio 01.</text>
+</svg>

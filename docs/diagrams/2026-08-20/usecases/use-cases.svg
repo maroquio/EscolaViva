@@ -1,0 +1,243 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1560 1680" width="1560" height="1680">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-7c3aed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1560" height="1680" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — UML Use Case Diagram</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">User features derived from the HTTP routes in apps/api/src/http/routes and the application use cases in apps/api/src/*/application</text>
+  <marker id="gen" markerWidth="14" markerHeight="12" refX="13" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 Z" fill="#ffffff" stroke="#111827" stroke-width="1.3"/></marker>
+  <rect x="246" y="100" width="1194" height="1260" rx="10" ry="10" fill="#ffffff" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="7,6" data-graph-role="container"/>
+  <text x="266" y="124" font-size="12.5" fill="#475569" font-weight="600" text-anchor="start">EscolaViva system — multi-tenant school SaaS platform</text>
+  <rect x="275" y="130" width="1097" height="120" rx="10" ry="10" fill="#f3f4f6" stroke-dasharray="5,5"/>
+  <text x="287" y="152" font-size="11" fill="#111827" font-weight="600" text-anchor="start">Access and account — any authenticated user</text>
+  <ellipse cx="388" cy="206" rx="101" ry="28" fill="#ffffff" stroke="#111827" stroke-width="1.5"/>
+  <text x="388" y="210" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Authenticate</text>
+  <ellipse cx="606" cy="206" rx="101" ry="28" fill="#ffffff" stroke="#111827" stroke-width="1.5"/>
+  <text x="606" y="203" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Recover the current</text>
+  <text x="606" y="217" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">session</text>
+  <ellipse cx="824" cy="206" rx="101" ry="28" fill="#ffffff" stroke="#111827" stroke-width="1.5"/>
+  <text x="824" y="210" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">End session</text>
+  <ellipse cx="1042" cy="206" rx="101" ry="28" fill="#ffffff" stroke="#111827" stroke-width="1.5"/>
+  <text x="1042" y="210" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Change own password</text>
+  <rect x="275" y="274" width="1097" height="196" rx="10" ry="10" fill="#faf5ff" stroke-dasharray="5,5"/>
+  <text x="287" y="296" font-size="11" fill="#7c3aed" font-weight="600" text-anchor="start">Network administration</text>
+  <ellipse cx="388" cy="350" rx="101" ry="28" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="388" y="354" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">View network dashboard</text>
+  <ellipse cx="606" cy="350" rx="101" ry="28" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="606" y="354" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Create school</text>
+  <ellipse cx="824" cy="350" rx="101" ry="28" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="824" y="354" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Define academic year</text>
+  <ellipse cx="1042" cy="350" rx="101" ry="28" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="1042" y="354" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Invite user</text>
+  <ellipse cx="1042" cy="426" rx="101" ry="28" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="1042" y="423" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Generate temporary</text>
+  <text x="1042" y="437" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">password</text>
+  <rect x="275" y="494" width="1097" height="120" rx="10" ry="10" fill="#fff7ed" stroke-dasharray="5,5"/>
+  <text x="287" y="516" font-size="11" fill="#ea580c" font-weight="600" text-anchor="start">Communication with families</text>
+  <ellipse cx="388" cy="570" rx="101" ry="28" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="388" y="574" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Publish announcement</text>
+  <ellipse cx="606" cy="570" rx="101" ry="28" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="606" y="567" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Track announcement</text>
+  <text x="606" y="581" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">reads</text>
+  <rect x="275" y="638" width="1097" height="272" rx="10" ry="10" fill="#eff6ff" stroke-dasharray="5,5"/>
+  <text x="287" y="660" font-size="11" fill="#2563eb" font-weight="600" text-anchor="start">Academic registrar</text>
+  <ellipse cx="388" cy="714" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="388" y="711" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Dashboard for the</text>
+  <text x="388" y="725" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">registrar</text>
+  <ellipse cx="606" cy="714" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="606" y="718" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Register student</text>
+  <ellipse cx="824" cy="714" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="824" y="711" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">View the student</text>
+  <text x="824" y="725" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">record</text>
+  <ellipse cx="1042" cy="714" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1042" y="711" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Register guardian</text>
+  <text x="1042" y="725" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">with portal access</text>
+  <ellipse cx="1260" cy="714" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1260" y="711" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Link a guardian</text>
+  <text x="1260" y="725" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">to a student</text>
+  <ellipse cx="388" cy="790" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="388" y="794" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Enrol student</text>
+  <ellipse cx="606" cy="790" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="606" y="794" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Transfer enrollment</text>
+  <ellipse cx="824" cy="790" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="824" y="794" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Register class group</text>
+  <ellipse cx="1042" cy="790" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1042" y="794" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">View class group</text>
+  <ellipse cx="1260" cy="790" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1260" y="787" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Assign a teacher</text>
+  <text x="1260" y="801" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">to a subject</text>
+  <ellipse cx="388" cy="866" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="388" y="870" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Register subject</text>
+  <ellipse cx="606" cy="866" rx="101" ry="28" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="606" y="863" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Close the source</text>
+  <text x="606" y="877" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">enrollment</text>
+  <rect x="275" y="934" width="1097" height="196" rx="10" ry="10" fill="#f0fdf4" stroke-dasharray="5,5"/>
+  <text x="287" y="956" font-size="11" fill="#16a34a" font-weight="600" text-anchor="start">Teacher's journal</text>
+  <ellipse cx="388" cy="1010" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="388" y="1007" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Dashboard for the</text>
+  <text x="388" y="1021" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">teacher</text>
+  <ellipse cx="606" cy="1010" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="606" y="1014" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Post grades</text>
+  <ellipse cx="824" cy="1010" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="824" y="1014" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Record roll call</text>
+  <ellipse cx="1042" cy="1010" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="1042" y="1014" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Close term</text>
+  <ellipse cx="606" cy="1086" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="606" y="1090" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Clear a posted grade</text>
+  <ellipse cx="1042" cy="1086" rx="101" ry="28" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="1042" y="1083" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Check what is missing</text>
+  <text x="1042" y="1097" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">in the term</text>
+  <rect x="275" y="1154" width="1097" height="196" rx="10" ry="10" fill="#f0fdfa" stroke-dasharray="5,5"/>
+  <text x="287" y="1176" font-size="11" fill="#0d9488" font-weight="600" text-anchor="start">Guardian's follow-up</text>
+  <ellipse cx="388" cy="1230" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="388" y="1227" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Dashboard for the</text>
+  <text x="388" y="1241" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">guardian</text>
+  <ellipse cx="606" cy="1230" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="606" y="1234" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">View report card</text>
+  <ellipse cx="824" cy="1230" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="824" y="1234" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">View attendance</text>
+  <ellipse cx="1042" cy="1230" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="1042" y="1227" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">View the announcement</text>
+  <text x="1042" y="1241" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">board</text>
+  <ellipse cx="1260" cy="1230" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="1260" y="1234" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Read announcement</text>
+  <ellipse cx="1260" cy="1306" rx="101" ry="28" fill="#ffffff" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="1260" y="1303" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">Mark announcement</text>
+  <text x="1260" y="1317" font-size="10.5" fill="#111827" font-weight="400" text-anchor="middle">as read</text>
+  <path d="M 181,206 L 265,206" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 265,164 L 265,206" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 265,164 L 1042,164" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 388,164 L 388,178" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 606,164 L 606,178" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 824,164 L 824,178" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 1042,164 L 1042,178" fill="none" stroke="#111827" stroke-width="1.3"/>
+  <path d="M 181,350 L 265,350" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 265,308 L 265,350" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 265,308 L 1042,308" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 388,308 L 388,322" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 606,308 L 606,322" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 824,308 L 824,322" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 1042,308 L 1042,322" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 181,714 L 265,714" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 265,672 L 265,824" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 265,672 L 1260,672" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 388,672 L 388,686" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 606,672 L 606,686" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 824,672 L 824,686" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 1042,672 L 1042,686" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 1260,672 L 1260,686" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 265,748 L 1260,748" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 388,748 L 388,762" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 606,748 L 606,762" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 824,748 L 824,762" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 1042,748 L 1042,762" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 1260,748 L 1260,762" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 265,824 L 388,824" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 388,824 L 388,838" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 181,1010 L 265,1010" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 265,968 L 265,1010" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 265,968 L 1042,968" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 388,968 L 388,982" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 606,968 L 606,982" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 824,968 L 824,982" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 1042,968 L 1042,982" fill="none" stroke="#16a34a" stroke-width="1.3"/>
+  <path d="M 181,1230 L 265,1230" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 265,1188 L 265,1230" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 265,1188 L 1260,1188" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 388,1188 L 388,1202" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 606,1188 L 606,1202" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 824,1188 L 824,1202" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 1042,1188 L 1042,1202" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 1260,1188 L 1260,1202" fill="none" stroke="#0d9488" stroke-width="1.3"/>
+  <path d="M 265,350 L 265,528" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 265,528 L 606,528" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 388,528 L 388,542" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 606,528 L 606,542" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 181,350 L 265,350" fill="none" stroke="#7c3aed" stroke-width="1.3"/>
+  <path d="M 265,528 L 265,714" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 265,528 L 606,528" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 388,528 L 388,542" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 606,528 L 606,542" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <path d="M 181,714 L 265,714" fill="none" stroke="#2563eb" stroke-width="1.3"/>
+  <circle cx="159" cy="176" r="9" fill="#ffffff" stroke="#111827" stroke-width="1.6"/>
+  <path d="M 159,185 L 159,208" fill="none" stroke="#111827" stroke-width="1.6"/>
+  <path d="M 145,194 L 173,194" fill="none" stroke="#111827" stroke-width="1.6"/>
+  <path d="M 159,208 L 147,224" fill="none" stroke="#111827" stroke-width="1.6"/>
+  <path d="M 159,208 L 171,224" fill="none" stroke="#111827" stroke-width="1.6"/>
+  <text x="159" y="240" font-size="10.5" fill="#111827" font-weight="600" text-anchor="middle">Authenticated</text>
+  <text x="159" y="253" font-size="9" fill="#6b7280" font-weight="400" text-anchor="middle">user</text>
+  <circle cx="159" cy="320" r="9" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+  <path d="M 159,329 L 159,352" fill="none" stroke="#7c3aed" stroke-width="1.6"/>
+  <path d="M 145,338 L 173,338" fill="none" stroke="#7c3aed" stroke-width="1.6"/>
+  <path d="M 159,352 L 147,368" fill="none" stroke="#7c3aed" stroke-width="1.6"/>
+  <path d="M 159,352 L 171,368" fill="none" stroke="#7c3aed" stroke-width="1.6"/>
+  <text x="159" y="384" font-size="10.5" fill="#111827" font-weight="600" text-anchor="middle">Network Admin</text>
+  <circle cx="159" cy="684" r="9" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+  <path d="M 159,693 L 159,716" fill="none" stroke="#2563eb" stroke-width="1.6"/>
+  <path d="M 145,702 L 173,702" fill="none" stroke="#2563eb" stroke-width="1.6"/>
+  <path d="M 159,716 L 147,732" fill="none" stroke="#2563eb" stroke-width="1.6"/>
+  <path d="M 159,716 L 171,732" fill="none" stroke="#2563eb" stroke-width="1.6"/>
+  <text x="159" y="748" font-size="10.5" fill="#111827" font-weight="600" text-anchor="middle">Registrar</text>
+  <circle cx="159" cy="980" r="9" fill="#ffffff" stroke="#16a34a" stroke-width="1.6"/>
+  <path d="M 159,989 L 159,1012" fill="none" stroke="#16a34a" stroke-width="1.6"/>
+  <path d="M 145,998 L 173,998" fill="none" stroke="#16a34a" stroke-width="1.6"/>
+  <path d="M 159,1012 L 147,1028" fill="none" stroke="#16a34a" stroke-width="1.6"/>
+  <path d="M 159,1012 L 171,1028" fill="none" stroke="#16a34a" stroke-width="1.6"/>
+  <text x="159" y="1044" font-size="10.5" fill="#111827" font-weight="600" text-anchor="middle">Teacher</text>
+  <circle cx="159" cy="1200" r="9" fill="#ffffff" stroke="#0d9488" stroke-width="1.6"/>
+  <path d="M 159,1209 L 159,1232" fill="none" stroke="#0d9488" stroke-width="1.6"/>
+  <path d="M 145,1218 L 173,1218" fill="none" stroke="#0d9488" stroke-width="1.6"/>
+  <path d="M 159,1232 L 147,1248" fill="none" stroke="#0d9488" stroke-width="1.6"/>
+  <path d="M 159,1232 L 171,1248" fill="none" stroke="#0d9488" stroke-width="1.6"/>
+  <text x="159" y="1264" font-size="10.5" fill="#111827" font-weight="600" text-anchor="middle">Guardian</text>
+  <path d="M 66,206 L 66,1230" fill="none" stroke="#111827" stroke-width="1.2"/>
+  <path d="M 137,350 L 66,350" fill="none" stroke="#111827" stroke-width="1.2"/>
+  <path d="M 137,714 L 66,714" fill="none" stroke="#111827" stroke-width="1.2"/>
+  <path d="M 137,1010 L 66,1010" fill="none" stroke="#111827" stroke-width="1.2"/>
+  <path d="M 137,1230 L 66,1230" fill="none" stroke="#111827" stroke-width="1.2"/>
+  <path d="M 66,206 L 135,206" fill="none" stroke="#111827" stroke-width="1.2" marker-end="url(#gen)"/>
+  <text x="52" y="718" font-size="9" fill="#9ca3af" font-weight="400" text-anchor="middle" transform="rotate(-90 52 718)">actor generalisation</text>
+  <path d="M 1042,378 L 1042,396" fill="none" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-7c3aed)"/>
+  <text x="1054" y="391" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="start" font-style="italic">«include»</text>
+  <path d="M 606,818 L 606,836" fill="none" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-7c3aed)"/>
+  <text x="618" y="831" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="start" font-style="italic">«include»</text>
+  <path d="M 1042,1038 L 1042,1056" fill="none" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-7c3aed)"/>
+  <text x="1054" y="1051" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="start" font-style="italic">«include»</text>
+  <path d="M 606,1058 L 606,1040" fill="none" stroke="#ea580c" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-ea580c)"/>
+  <text x="618" y="1051" font-size="9" fill="#ea580c" font-weight="400" text-anchor="start" font-style="italic">«extend»</text>
+  <path d="M 1260,1278 L 1260,1260" fill="none" stroke="#ea580c" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-ea580c)"/>
+  <text x="1272" y="1271" font-size="9" fill="#ea580c" font-weight="400" text-anchor="start" font-style="italic">«extend»</text>
+  <path d="M 1147,714 L 1147,626 L 1400,626 L 1400,426 L 1145,426" fill="none" stroke="#7c3aed" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#p-7c3aed)"/>
+  <text x="1394" y="570" font-size="9" fill="#7c3aed" font-weight="400" text-anchor="middle" font-style="italic" transform="rotate(-90 1394 570)">«include»</text>
+  <rect x="246" y="1392" width="700" height="200" rx="10" ry="10" fill="#fcfcfd" stroke="#e5e7eb" stroke-width="1.3" data-graph-role="container"/>
+  <text x="266" y="1416" font-size="11.5" fill="#475569" font-weight="600" text-anchor="start">Legend</text>
+  <path d="M 268,1442 L 322,1442" fill="none" stroke="#2563eb" stroke-width="1.4"/>
+  <text x="336" y="1446" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Association — the actor performs the use case</text>
+  <path d="M 268,1466 L 322,1466" fill="none" stroke="#111827" stroke-width="1.4" marker-end="url(#gen)"/>
+  <text x="336" y="1470" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">Generalisation — every role is an authenticated user</text>
+  <path d="M 268,1490 L 322,1490" fill="none" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#p-7c3aed)"/>
+  <text x="336" y="1494" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">«include» — behaviour always executed by the base case</text>
+  <path d="M 268,1514 L 322,1514" fill="none" stroke="#ea580c" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#p-ea580c)"/>
+  <text x="336" y="1518" font-size="9.5" fill="#6b7280" font-weight="400" text-anchor="start">«extend» — optional behaviour that extends the base case</text>
+  <text x="266" y="1560" font-size="9" fill="#9ca3af" font-weight="400" text-anchor="start">Dashed ellipse = included/extended use case, never started directly by the actor.</text>
+  <text x="266" y="1576" font-size="9" fill="#9ca3af" font-weight="400" text-anchor="start">Lookup endpoints under /options are omitted: they fill in a form, they are not a goal anybody has.</text>
+  <rect x="978" y="1392" width="462" height="200" rx="10" ry="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.3" data-graph-role="container"/>
+  <text x="996" y="1416" font-size="11.5" fill="#92400e" font-weight="600" text-anchor="start">What is true of every case above</text>
+  <text x="996" y="1438" font-size="9" fill="#78350f" font-weight="400" text-anchor="start">Every use case happens inside a network: the network_id in the</text>
+  <text x="996" y="1450.6" font-size="9" fill="#78350f" font-weight="400" text-anchor="start">session scopes what each role sees. Roles are assigned per school —</text>
+  <text x="996" y="1463.2" font-size="9" fill="#78350f" font-weight="400" text-anchor="start">the same person can be a registrar at one school and a guardian at</text>
+  <text x="996" y="1475.8" font-size="9" fill="#78350f" font-weight="400" text-anchor="start">another, and requireRole() only checks that the role exists, not</text>
+  <text x="996" y="1488.4" font-size="9" fill="#78350f" font-weight="400" text-anchor="start">which records it covers.</text>
+  <text x="996" y="1513.6" font-size="9" fill="#78350f" font-weight="400" text-anchor="start">Publish announcement and Track reads are shared between two primary</text>
+  <text x="996" y="1526.2" font-size="9" fill="#78350f" font-weight="400" text-anchor="start">actors. Generate temporary password is included by two base cases:</text>
+  <text x="996" y="1538.8" font-size="9" fill="#78350f" font-weight="400" text-anchor="start">Invite user and Register guardian with portal access.</text>
+  <text x="996" y="1564" font-size="9" fill="#78350f" font-weight="400" text-anchor="start">Every case that writes carries an Idempotency-Key and the</text>
+  <text x="996" y="1576.6" font-size="9" fill="#78350f" font-weight="400" text-anchor="start">X-Requested-By mark, or the edge refuses it before any handler runs.</text>
+  <text x="36" y="1660" font-size="9.5" fill="#9ca3af" font-weight="400" text-anchor="start" font-style="italic">Read from apps/api/src/http/routes/ and apps/api/src/*/index.ts. State of Stage 01.</text>
+</svg>

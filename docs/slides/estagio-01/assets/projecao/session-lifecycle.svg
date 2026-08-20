@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 0 1260 505" width="1260" height="505">
+  <defs>
+    <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+    <marker id="p-475569" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="p-ea580c" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ea580c"/>
+    </marker>
+    <marker id="p-dc2626" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect x="8" y="0" width="1260" height="505" fill="#ffffff"/>
+  <text x="36" y="44" font-size="22" fill="#111827" font-weight="600" text-anchor="start">EscolaViva — Ciclo da sessão</text>
+  <text x="36" y="70" font-size="12.5" fill="#6b7280" font-weight="400" text-anchor="start">apps/api/src/identity/domain/session.ts · application/authenticate.ts · application/queries.ts · application/purgeSessions.ts</text>
+  <circle cx="315" cy="132" r="9" fill="#111827"/>
+  <path d="M 315,141 L 315,193" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="332" y="146" font-size="16.1" fill="#475569" font-weight="600" text-anchor="start">authenticate / INSERT INTO session</text>
+  <rect x="190" y="195" width="250" height="108" rx="12" ry="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="206" y="221" font-size="22.9" fill="#16a34a" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">válida</text>
+  <rect x="650" y="195" width="250" height="108" rx="12" ry="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="666" y="221" font-size="22.9" fill="#ea580c" font-weight="600" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">expirada</text>
+  <path d="M 440,249 L 648,249" fill="none" stroke="#ea580c" stroke-width="1.6" marker-end="url(#p-ea580c)"/>
+  <text x="452" y="222" font-size="16.1" fill="#ea580c" font-weight="600" text-anchor="start">expires_at &lt; now()</text>
+  <circle cx="1215" cy="249" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8"/>
+  <circle cx="1215" cy="249" r="7.5" fill="#111827"/>
+  <path d="M 900,249 L 1200,249" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#p-475569)"/>
+  <text x="912" y="212" font-size="16.1" fill="#475569" font-weight="600" text-anchor="start">job expurgo-de-sessoes</text>
+  <circle cx="315" cy="400" r="13" fill="#ffffff" stroke="#111827" stroke-width="1.8"/>
+  <circle cx="315" cy="400" r="7.5" fill="#111827"/>
+  <path d="M 315,303 L 315,385" fill="none" stroke="#dc2626" stroke-width="1.6" marker-end="url(#p-dc2626)"/>
+  <text x="332" y="330" font-size="16.1" fill="#dc2626" font-weight="600" text-anchor="start">logout / DELETE FROM session WHERE id = ?</text>
+  <rect x="650" y="345" width="590" height="132" rx="10" ry="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4" data-graph-role="container"/>
+  <text x="666" y="369" font-size="19.6" fill="#2563eb" font-weight="600" text-anchor="start">válida na tabela ≠ aceita na requisição</text>
+</svg>
