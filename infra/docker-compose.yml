@@ -1,10 +1,3 @@
-# Estágio 01 inteiro: um servidor de aplicação e um banco relacional. Nada mais.
-# Qualquer serviço a mais aqui cobraria aluguel permanente sem resolver problema que exista hoje.
-
-# Sem esta linha o nome do projeto viria da pasta que contém este arquivo — `infra` — e o
-# volume passaria a se chamar `infra_database_data`. Quem já tinha banco de desenvolvimento
-# não veria erro nenhum: veria um banco vazio, com os dados antigos parados num volume órfão.
-# Fixar o nome desacopla a identidade do projeto do lugar onde o arquivo mora.
 name: escolaviva
 
 services:
@@ -14,17 +7,12 @@ services:
       POSTGRES_DB: escolaviva
       POSTGRES_USER: escolaviva
       POSTGRES_PASSWORD: escolaviva_dev
-    # pg_stat_statements é a linha de base da Seção 5: p95 do lançamento de notas e CPU do
-    # banco anotados à mão uma vez por semana. Não é observabilidade (Estágio 11) — é o
-    # mínimo sem o qual nenhuma dor futura é demonstrável.
     command:
       - postgres
       - -c
       - shared_preload_libraries=pg_stat_statements
       - -c
       - pg_stat_statements.track=all
-    # A porta do host é configurável porque quem já tem PostgreSQL instalado na máquina
-    # encontra 5432 ocupada. Dentro da rede do compose o serviço continua em 5432.
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
@@ -41,15 +29,6 @@ services:
       POSTGRES_DB: escolaviva_teste
       POSTGRES_USER: escolaviva
       POSTGRES_PASSWORD: escolaviva_dev
-    # Banco descartável: os dados vivem em tmpfs e somem quando o container para. A suíte
-    # trunca as tabelas entre os casos, então durabilidade aqui só custaria tempo de teste.
-    #
-    # O autovacuum fica ligado, e isso não é descuido. Ele chega a bloquear o TRUNCATE do
-    # `clearDatabase` — ANALYZE segura SHARE UPDATE EXCLUSIVE, TRUNCATE quer ACCESS EXCLUSIVE, e o
-    # caso estoura o prazo esperando —, mas desligá-lo troca esse tropeço por uma parede: cada
-    # TRUNCATE atualiza o catálogo, o catálogo incha sem ninguém para recolher, e a suíte morre com
-    # `No space left on device` porque o tmpfs acabou. Medido em 16/08/2026: com `autovacuum=off`,
-    # 3 falhas em 12 rodadas, duas delas por espaço em disco.
     command:
       - postgres
       - -c
@@ -59,7 +38,7 @@ services:
       - -c
       - full_page_writes=off
     ports:
-      - "${TEST_DB_PORT:-5433}:5432"
+      - "${TEST_DB_PORT:-5432}:5432"
     tmpfs:
       - /var/lib/postgresql/data
     healthcheck:
@@ -69,11 +48,6 @@ services:
       retries: 12
 
   app:
-    # O contexto é a raiz do repositório, não esta pasta: o Dockerfile copia `src/`,
-    # `migrations/` e `scripts/`, que vivem lá. Por consequência o `.dockerignore` lido é o
-    # da raiz — o Docker sempre o procura na raiz do contexto, nunca ao lado do Dockerfile.
-    # Movê-lo para cá não daria erro: ele apenas deixaria de ser lido, e a imagem passaria a
-    # carregar `node_modules`, `.git` e o `.env` com segredo real.
     build:
       context: ..
       dockerfile: infra/Dockerfile
@@ -83,15 +57,8 @@ services:
     env_file:
       - ../.env
     environment:
-      # Dentro da rede do compose o banco atende pelo nome do serviço, não por localhost.
       DATABASE_URL: postgres://escolaviva:escolaviva_dev@database:5432/escolaviva
       PORT: "3000"
-      # O `.env` acima traz `FRONT_PATH=` vazio, e vazio não é ausente: ele sobrepõe o
-      # `ENV FRONT_PATH=/app/front` da imagem e o servidor volta a procurar o front em
-      # `apps/web/dist`, que não existe dentro do container. O sintoma é cruel — `/health/live`
-      # responde 200 e toda tela responde 404, ou seja, a aplicação parece viva para quem lê
-      # status e vazia para quem abre o navegador. `environment` vence `env_file`, e é aqui que
-      # o caminho da imagem é restabelecido.
       FRONT_PATH: /app/front
     ports:
       - "3000:3000"

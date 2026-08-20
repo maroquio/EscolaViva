@@ -115,21 +115,21 @@ with the old data sitting in an orphaned volume.
 ## Demo credentials
 
 All created by `bun run seed`. **Network: `demo` · password: `escolaviva` for everyone.**
-The `escolaviva.test` domain is reserved by RFC 2606 — none of these addresses exists for real.
+Sign-in is by **CPF**. The numbers below are generated from a fixed seed — they are the same on
+any machine, they pass the check-digit rule, and none of them belongs to a real person.
 
-| E-mail | Role | Where |
+| CPF | Role | Where |
 |---|---|---|
-| `admin@escolaviva.test` | network_admin | Escola Central + Escola Bairro Novo |
-| `secretaria1@escolaviva.test` | registrar | Escola Central |
-| `secretaria2@escolaviva.test` | registrar | Escola Bairro Novo |
-| `professor1@escolaviva.test` … `professor3@escolaviva.test` | teacher | Escola Central |
-| `professor4@escolaviva.test` … `professor6@escolaviva.test` | teacher | Escola Bairro Novo |
+| `100.000.001-08` | network_admin | Escola Central + Escola Bairro Novo |
+| `100.000.002-80` | registrar | Escola Central |
+| `100.000.003-61` | registrar | Escola Bairro Novo |
+| `100.000.004-42` … `100.000.006-04` | teacher | Escola Central |
+| `100.000.007-95` … `100.000.009-57` | teacher | Escola Bairro Novo |
 | ~200 guardians | guardian | guardian portal |
 
-Sign-in is by **CPF**, not by e-mail. The seed prints the CPF next to each credential; the
-e-mails above identify who is who in the demo data. The seed also prints three guardian records at
-the end of its run — the names are drawn from a fixed seed, so they are always the same on any
-machine.
+The seed prints the same table at the end of its run, plus three guardian CPFs — the guardians'
+names are drawn from a fixed seed too, so they are always the same on any machine. The login form
+accepts the CPF with or without the dots and dash.
 
 Two details deliberately planted in the demo database:
 
